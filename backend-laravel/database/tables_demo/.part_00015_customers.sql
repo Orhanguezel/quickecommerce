@@ -1,0 +1,45 @@
+
+INSERT INTO `customers` (`id`, `first_name`, `last_name`, `email`, `phone`, `image`, `birth_day`, `gender`, `def_lang`, `firebase_token`, `google_id`, `facebook_id`, `apple_id`, `password`, `password_changed_at`, `email_verify_token`, `email_verified`, `email_verified_at`, `verified`, `verify_method`, `activity_notification`, `marketing_email`, `marketing_sms`, `status`, `online_at`, `deactivated_at`, `remember_token`, `deleted_at`, `created_at`, `updated_at`) VALUES
+(1, 'John', 'Doe', 'customer@gmail.com', '+8801711111111', '1300', '1990-01-12', 'male', NULL, 'c5QQBLJfKrOWh4TFuvjRxt:APA91bEqrE6t_8enXuIDh2JpTgsh0Q6Im9_ak2OsDQS_4ih6u6UnqSHO8nXB6dUrLPWpGBcJNrRHXi1Pktc_wff8MH02TrLZr7vOv-hfr_2Tudocvs5fVMo', NULL, NULL, NULL, '$2y$12$GLk.V7aTwFT1DIkYy.AU6uXxqJPw1D8PgPUcbEn3UMIErt82ecBpC', '2025-09-13 22:41:00', '430314', 1, '2025-08-06 00:14:42', 1, 'email', 1, 1, 0, 1, '2025-10-05 22:33:23', NULL, NULL, NULL, '2025-03-10 01:43:01', '2025-10-05 22:33:23'),
+
+(2, 'Ahmet', 'Yilmaz', 'ahmet.yilmaz@example.com', '+905301111111', '1295', '1992-05-14', 'male', 'tr', NULL, NULL, NULL, NULL, '$2y$12$GLk.V7aTwFT1DIkYy.AU6uXxqJPw1D8PgPUcbEn3UMIErt82ecBpC', '2025-09-20 10:05:00', NULL, 1, '2025-09-20 10:05:00', 1, 'email', 1, 0, 0, 1, '2025-10-10 09:12:03', NULL, NULL, NULL, '2025-04-01 12:00:00', '2025-10-10 09:12:03'),
+(3, 'Ayse', 'Kaya', 'ayse.kaya@example.com', '+905302222222', '1304', '1995-11-02', 'female', 'tr', NULL, NULL, NULL, NULL, '$2y$12$GLk.V7aTwFT1DIkYy.AU6uXxqJPw1D8PgPUcbEn3UMIErt82ecBpC', '2025-09-21 14:20:00', NULL, 1, '2025-09-21 14:20:00', 1, 'email', 1, 1, 0, 1, '2025-10-11 18:22:10', NULL, NULL, NULL, '2025-04-02 12:00:00', '2025-10-11 18:22:10'),
+(4, 'Mehmet', 'Demir', 'mehmet.demir@example.com', '+905303333333', '1300', '1988-03-21', 'male', 'tr', NULL, NULL, NULL, NULL, '$2y$12$GLk.V7aTwFT1DIkYy.AU6uXxqJPw1D8PgPUcbEn3UMIErt82ecBpC', '2025-09-22 08:45:00', NULL, 0, NULL, 0, 'email', 1, 0, 0, 1, NULL, NULL, NULL, NULL, '2025-04-03 12:00:00', '2025-09-22 08:45:00'),
+(5, 'Elif', 'Sahin', 'elif.sahin@example.com', '+905304444444', '1306', '1997-07-09', 'female', 'tr', NULL, NULL, NULL, NULL, '$2y$12$GLk.V7aTwFT1DIkYy.AU6uXxqJPw1D8PgPUcbEn3UMIErt82ecBpC', '2025-09-23 16:30:00', NULL, 1, '2025-09-23 16:30:00', 1, 'email', 1, 1, 1, 1, '2025-10-09 13:05:55', NULL, NULL, NULL, '2025-04-04 12:00:00', '2025-10-09 13:05:55'),
+(6, 'Can', 'Arslan', 'can.arslan@example.com', '+905305555555', '1305', '1991-12-30', 'male', 'tr', NULL, NULL, NULL, NULL, '$2y$12$GLk.V7aTwFT1DIkYy.AU6uXxqJPw1D8PgPUcbEn3UMIErt82ecBpC', '2025-09-24 09:10:00', NULL, 1, '2025-09-24 09:10:00', 1, 'email', 1, 0, 1, 1, '2025-10-12 21:44:01', NULL, NULL, NULL, '2025-04-05 12:00:00', '2025-10-12 21:44:01'),
+(7, 'Zeynep', 'Aydin', 'zeynep.aydin@example.com', '+905306666666', '1295', '1999-02-18', 'female', 'tr', NULL, NULL, NULL, NULL, '$2y$12$GLk.V7aTwFT1DIkYy.AU6uXxqJPw1D8PgPUcbEn3UMIErt82ecBpC', '2025-09-25 11:55:00', NULL, 0, NULL, 0, 'email', 1, 0, 0, 1, NULL, NULL, NULL, NULL, '2025-04-06 12:00:00', '2025-09-25 11:55:00'),
+(8, 'Murat', 'Koc', 'murat.koc@example.com', '+905307777777', '1304', '1986-09-05', 'male', 'tr', NULL, NULL, NULL, NULL, '$2y$12$GLk.V7aTwFT1DIkYy.AU6uXxqJPw1D8PgPUcbEn3UMIErt82ecBpC', '2025-09-26 20:15:00', NULL, 1, '2025-09-26 20:15:00', 1, 'email', 1, 1, 0, 1, '2025-10-08 07:31:19', NULL, NULL, NULL, '2025-04-07 12:00:00', '2025-10-08 07:31:19'),
+(9, 'Selin', 'Celik', 'selin.celik@example.com', '+905308888888', '1300', '1993-04-27', 'female', 'tr', NULL, NULL, NULL, NULL, '$2y$12$GLk.V7aTwFT1DIkYy.AU6uXxqJPw1D8PgPUcbEn3UMIErt82ecBpC', '2025-09-27 13:40:00', NULL, 1, '2025-09-27 13:40:00', 1, 'email', 1, 0, 0, 1, '2025-10-13 10:02:44', NULL, NULL, NULL, '2025-04-08 12:00:00', '2025-10-13 10:02:44'),
+(10, 'Hakan', 'Yildiz', 'hakan.yildiz@example.com', '+905309999999', '1306', '1984-06-11', 'male', 'tr', NULL, NULL, NULL, NULL, '$2y$12$GLk.V7aTwFT1DIkYy.AU6uXxqJPw1D8PgPUcbEn3UMIErt82ecBpC', '2025-09-28 07:25:00', NULL, 0, NULL, 0, 'email', 1, 0, 0, 1, NULL, NULL, NULL, NULL, '2025-04-09 12:00:00', '2025-09-28 07:25:00'),
+(11, 'Derya', 'Ozdemir', 'derya.ozdemir@example.com', '+905300000001', '1305', '1996-10-03', 'female', 'tr', NULL, NULL, NULL, NULL, '$2y$12$GLk.V7aTwFT1DIkYy.AU6uXxqJPw1D8PgPUcbEn3UMIErt82ecBpC', '2025-09-29 19:05:00', NULL, 1, '2025-09-29 19:05:00', 1, 'email', 1, 1, 0, 1, '2025-10-14 16:19:33', NULL, NULL, NULL, '2025-04-10 12:00:00', '2025-10-14 16:19:33')
+ON DUPLICATE KEY UPDATE
+  `first_name`           = VALUES(`first_name`),
+  `last_name`            = VALUES(`last_name`),
+  `email`                = VALUES(`email`),
+  `phone`                = VALUES(`phone`),
+  `image`                = VALUES(`image`),
+  `birth_day`            = VALUES(`birth_day`),
+  `gender`               = VALUES(`gender`),
+  `def_lang`             = VALUES(`def_lang`),
+  `firebase_token`       = VALUES(`firebase_token`),
+  `google_id`            = VALUES(`google_id`),
+  `facebook_id`          = VALUES(`facebook_id`),
+  `apple_id`             = VALUES(`apple_id`),
+  `password`             = VALUES(`password`),
+  `password_changed_at`  = VALUES(`password_changed_at`),
+  `email_verify_token`   = VALUES(`email_verify_token`),
+  `email_verified`       = VALUES(`email_verified`),
+  `email_verified_at`    = VALUES(`email_verified_at`),
+  `verified`             = VALUES(`verified`),
+  `verify_method`        = VALUES(`verify_method`),
+  `activity_notification`= VALUES(`activity_notification`),
+  `marketing_email`      = VALUES(`marketing_email`),
+  `marketing_sms`        = VALUES(`marketing_sms`),
+  `status`               = VALUES(`status`),
+  `online_at`            = VALUES(`online_at`),
+  `deactivated_at`       = VALUES(`deactivated_at`),
+  `remember_token`       = VALUES(`remember_token`),
+  `deleted_at`           = VALUES(`deleted_at`),
+  `updated_at`           = VALUES(`updated_at`);
+
+-- --------------------------------------------------------

@@ -1,0 +1,2 @@
+D:/studio project/sherve_mart/android/app/.cxx/RelWithDebInfo/5o2l5o3e/arm64-v8a/CMakeFiles/edit_cache.dir
+D:/studio project/sherve_mart/android/app/.cxx/RelWithDebInfo/5o2l5o3e/arm64-v8a/CMakeFiles/rebuild_cache.dir

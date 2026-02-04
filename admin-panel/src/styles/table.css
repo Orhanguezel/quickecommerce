@@ -1,0 +1,573 @@
+.rc-table {
+  position: relative;
+  box-sizing: border-box;
+  color: #666;
+  font-size: 12px;
+  line-height: 1.5;
+  border-radius: 0px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+.rc-table-rtl {
+  direction: rtl;
+}
+.rc-table table {
+  width: 100%;
+  border-spacing: 0;
+  border-collapse: separate;
+}
+.rc-table-measure-row {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: #f9fafb !important; 
+}
+.rc-table-measure-cell {
+  text-align: left !important;
+  position: relative;
+  padding: 12px;
+  white-space: normal;
+  word-break: break-word;
+  border-top: 0;
+  border-left: 0;
+  transition: box-shadow 0.3s;
+  font-size: 14px;
+  font-weight: 700;
+  color: #54697D;
+  line-height: 1.25rem;
+  border-radius: 5px;
+  background-color: #f9fafb;
+  border-bottom: 1px solid transparent;
+  height: 52px !important;
+  margin-bottom: 30px !important;
+}
+.rc-table-measure-row th:first-child,
+.rc-table-measure-row .rc-table-measure-cell:first-child {
+  position: sticky !important;
+  left: 0 !important;
+  z-index: 3 !important; /* higher than body */
+  background: #f9fafb !important;
+}
+
+/* Make last header column sticky */
+.rc-table-measure-row th:last-child,
+.rc-table-measure-row .rc-table-measure-cell:last-child {
+  position: sticky !important;
+  right: 0 !important;
+  z-index: 3 !important; /* higher than body */
+  background: #f9fafb !important;
+}
+.rc-table-ping-left .rc-table-measure-row th:first-child {
+  box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1);
+}
+
+.rc-table-ping-right .rc-table-measure-row th:last-child {
+  box-shadow: -2px 0 5px -2px rgba(0,0,0,0.1);
+}
+
+
+.rc-table tbody tr:last-child {
+  position: sticky !important;
+  left: 0;
+  z-index: 2;
+  background: #f9fafb; 
+}
+.rc-table-measure-cell-fix-right {
+  position: sticky !important;
+  right: 0;
+  z-index: 2;
+  background: #f9fafb;
+}
+ .rc-table thead {
+  display: none !important;
+ }
+
+ .rc-table td {
+  position: relative;
+  padding: 12px 12px;
+  white-space: normal;
+  word-break: break-word;
+  border-top: 0;
+  border-left: 0;
+  transition: box-shadow 0.3s;
+  font-size: 14px;
+  line-height: 1rem;
+  font-weight: 400;
+  color: #647482;
+  border-bottom: 1px solid transparent;
+}
+
+/* .rc-table tbody > tr > th {
+  background: transparent !important;
+  padding: 0 !important;
+  visibility: collapse !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+.rc-table thead tr th {
+  position: relative;
+  box-sizing: border-box;
+  padding: 12px;
+  white-space: normal;
+  word-break: break-word;
+  border-top: 0;
+  border-left: 0;
+  transition: box-shadow 0.3s;
+  font-size: 1rem;
+  line-height: 1.25rem;
+  border-bottom: 1px solid #e5e7eb;
+}  */
+
+.rc-table td {
+  position: relative;
+  padding: 12px 12px;
+  white-space: normal;
+  word-break: break-word;
+  border-top: 0;
+  border-left: 0;
+  transition: box-shadow 0.3s;
+  font-size: 14px;
+  line-height: 1rem;
+  font-weight: 500;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.rc-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.rc-table tr td:last-child {
+  border-right: 0;
+}
+
+.rc-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.rc-table-rtl .rc-table th,
+.rc-table-rtl .rc-table td {
+  border-right: 0;
+}
+.rc-table-fixed-column-gapped .rc-table-cell-fix-left-last::after,
+.rc-table-fixed-column-gapped .rc-table-cell-fix-right-first::after {
+  display: none;
+}
+/* .rc-table-measure-row {
+  display: none !important;
+} */
+.rc-table-cell {
+  background: #f4f4f4;
+}
+.rc-table-cell-fix-left,
+.rc-table-cell-fix-right {
+  z-index: 2;
+}
+.rc-table-cell-fix-left {
+  z-index: 2;
+  padding-left: 20px !important;
+}
+
+.rc-table-cell-fix-right {
+  z-index: 2;
+  padding-right: 20px !important;
+}
+.rc-table-cell-fix-right:last-child:not(.rc-table-cell-fix-sticky) {
+  border-right-color: transparent;
+}
+
+.rc-table-rtl .rc-table-cell-fix-left:last-child {
+  border-left-color: transparent;
+}
+
+.rc-table-cell-fix-left-first::after,
+.rc-table-cell-fix-left-last::after {
+  position: absolute;
+  top: 0;
+  right: -1px;
+  bottom: -1px;
+  width: 20px;
+  transform: translateX(100%);
+  transition: box-shadow 0.3s;
+  content: "";
+  pointer-events: none;
+}
+.rc-table-cell-fix-left-all::after {
+  display: none;
+}
+.rc-table-rtl .rc-table-cell-fix-right-first,
+.rc-table-rtl .rc-table-cell-fix-right-last {
+  box-shadow: none;
+}
+.rc-table-cell-fix-right-first::after,
+.rc-table-cell-fix-right-last::after {
+  position: absolute;
+  top: 0;
+  bottom: -1px;
+  left: -1px;
+  width: 20px;
+  transform: translateX(-100%);
+  transition: box-shadow 0.3s;
+  content: "";
+  pointer-events: none;
+}
+.rc-table-cell-ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.rc-table-cell-ellipsis.rc-table-cell-fix-left-first,
+.rc-table-cell-ellipsis.rc-table-cell-fix-left-last,
+.rc-table-cell-ellipsis.rc-table-cell-fix-right-first.rc-table-cell-ellipsis.rc-table-cell-fix-right-last {
+  overflow: visible;
+}
+.rc-table-cell-content {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rc-table-ping-left .rc-table-cell-fix-left-first::after,
+.rc-table-ping-left .rc-table-cell-fix-left-last::after {
+  box-shadow: inset 10px 0 8px -8px #d3d3d3;
+}
+.rc-table-ping-right .rc-table-cell-fix-right-first::after,
+.rc-table-ping-right .rc-table-cell-fix-right-last::after {
+  box-shadow: inset -10px 0 8px -8px #d3d3d3;
+}
+.dark .rc-table-ping-left .rc-table-cell-fix-left-first::after,
+.dark .rc-table-ping-left .rc-table-cell-fix-left-last::after {
+  box-shadow: inset 10px 0 8px -8px #444;
+}
+
+.dark .rc-table-ping-right .rc-table-cell-fix-right-first::after,
+.dark .rc-table-ping-right .rc-table-cell-fix-right-last::after {
+  box-shadow: inset -10px 0 8px -8px #444;
+}
+.rc-table-expand-icon-col {
+  width: 60px;
+}
+.rc-table-row-expand-icon-cell {
+  text-align: center;
+}
+.rc-table thead th {
+  text-align: start;
+  color: #54697D;
+  font-size: 14px;
+  background: #f7f7f7;
+}
+.dark .rc-table thead th {
+  background-color: #374151; 
+  color: #d1d5db; 
+}
+
+.rc-table-cell-scrollbar::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -1px;
+  width: 1px;
+  background: #f7f7f7;
+  content: "";
+}
+.dark .rc-table-cell-scrollbar::after {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -1px;
+    width: 1px;
+    background: #374151;
+    content: "";
+}
+.rc-table-rtl .rc-table-cell-scrollbar::after {
+  right: -1px;
+  left: auto;
+}
+.rc-table-placeholder {
+  text-align: center;
+}
+.rc-table tbody tr td {
+  background: #fff;
+}
+
+.rc-table tbody > tr:nth-child(odd) > td{
+  background-color: #ffffff;
+  border-bottom: 1px solid #ebebeb
+}
+.rc-table tbody > tr:nth-child(even) > td{
+  background-color: #ffffff;
+  border-bottom: 1px solid #ebebeb
+}
+.rc-table tbody tr {
+  border-bottom: 1px solid #ebebeb !important;
+}
+.rc-table tbody tr:hover td {
+  background-color: #f9fafb !important;
+}
+
+.rc-table-content {
+  border-right: 0;
+  border-bottom: 0;
+  border-radius: 4px 0 0 0;
+}
+
+.rc-table-body {
+  border-radius: 0 0 8px 8px;
+  overflow: auto !important;
+  background-color: white;
+}
+
+.rc-table thead tr:first-child th:first-child {
+  border-top-left-radius: 0 !important;
+  background: #f7f7f7;
+}
+
+.rc-table thead tr:first-child th:last-child {
+  border-top-right-radius: 0 !important;
+  background: #f7f7f7;
+}
+.dark .rc-table tbody tr td {
+  background-color: #1f2937; 
+  color: #d1d5db;
+}
+
+.dark .rc-table tbody > tr:nth-child(odd) > td,
+.dark .rc-table tbody > tr:nth-child(even) > td {
+  background-color: #1f2937; 
+  border-bottom: 1px solid #374151;
+}
+
+
+.rc-table tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 8px;
+}
+.rc-table tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 8px;
+}
+
+.rc-table tbody tr:hover td {
+  background-color: #f9fafb !important;
+}
+.rc-table-body:has(.rc-table-placeholder) {
+  overflow-y: hidden !important;
+}
+
+.rc-table-body::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+.rc-table-body {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(229 231 235 / var(--tw-bg-opacity)) #f7f7f7;
+}
+
+.rc-table-body::-moz-scrollbar-thumb {
+  background-color: rgb(229 231 235 / var(--tw-bg-opacity));
+  border-radius: 4px !important;
+  border: 1px solid transparent !important;
+  background-clip: content-box !important;
+}
+
+.rc-table-body::-moz-scrollbar-thumb:hover {
+  background-color: rgba(153, 154, 157, 0.565);
+  border-radius: 4px !important;
+  border: 1px solid transparent !important;
+  background-clip: content-box !important;
+}
+
+
+.rc-table-body::-webkit-scrollbar-track {
+  background: #f7f7f7;
+  border-radius: 4px;
+}
+
+.rc-table-body::-webkit-scrollbar-thumb {
+  background-color: rgb(229 231 235 / var(--tw-bg-opacity));
+  border-radius: 4px;
+  border: 1px solid transparent;
+  background-clip: content-box;
+}
+
+.rc-table-body::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(153, 154, 157, 0.565);
+}
+.rc-table-fixed-column .rc-table-body::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  content: "";
+}
+.rc-table-expanded-row .rc-table-cell {
+  box-shadow: inset 0 8px 8px -8px white;
+}
+.rc-table-expanded-row-fixed {
+  box-sizing: border-box;
+  margin: -16px -8px;
+  margin-right: -10px;
+  padding: 16px 8px;
+}
+.rc-table-expanded-row-fixed::after {
+  position: absolute;
+  top: 0;
+  right: 1px;
+  bottom: 0;
+  width: 0;
+  content: "";
+}
+.rc-table-row-expand-icon {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  color: #aaa;
+  line-height: 13px;
+  text-align: center;
+  vertical-align: middle;
+  border: 2px solid currentColor;
+  cursor: pointer;
+  border-radius: 2px;
+  margin-right: 10px;
+}
+.rc-table-row-expanded::after {
+  content: "-";
+}
+.rc-table-row-collapsed::after {
+  content: "+";
+}
+.rc-table-row-spaced {
+  visibility: hidden;
+}
+.rc-table-title {
+  padding: 16px 8px;
+  border: 1px solid red;
+  border-bottom: 0;
+}
+.rc-table-caption {
+  padding: 16px 8px;
+  border-right: 1px solid red;
+  border-bottom: 1px solid red;
+}
+.rc-table-footer {
+  padding: 16px 8px;
+  border: 1px solid red;
+  border-top: 0;
+}
+.rc-table tfoot td {
+  background: #fff;
+}
+.rc-table-summary {
+  border-top: 1px solid red;
+  border-left: 1px solid red;
+}
+.rc-table-sticky-holder {
+  position: sticky;
+  z-index: 2;
+}
+.rc-table-sticky-scroll {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  border-top: 1px solid #f3f3f3;
+  opacity: 0.6;
+  transition: transform 0.1s ease-in 0s;
+}
+.rc-table-sticky-scroll:hover {
+  transform: scaleY(1.2);
+  transform-origin: center bottom;
+}
+.rc-table-sticky-scroll-bar {
+  height: 8px;
+  background-color: #bbb;
+  border-radius: 4px;
+}
+.rc-table-sticky-scroll-bar:hover {
+  background-color: #999;
+}
+.rc-table-sticky-scroll-bar-active {
+  background-color: #999;
+}
+
+.ascend-icon {
+  margin-bottom: -5px;
+}
+.descend-icon {
+  margin-top: -5px;
+}
+
+.dark .rc-pagination-item a {
+    display: block;
+    padding: 0 6px;
+    color: white !important;
+    transition: none;
+}
+
+.dark .rc-table {
+  border: 1px solid #374151;
+}
+
+.dark .rc-table-body {
+  background-color: #1f2937;
+}
+
+.dark .rc-table thead tr:first-child th:first-child,
+.dark .rc-table thead tr:first-child th:last-child {
+  background: #374151;
+}
+
+.dark .rc-table tbody tr:hover td {
+  background-color: #2d3748 !important;
+}
+
+.dark .rc-table-body::-webkit-scrollbar-track {
+  background: #2d2d2d;
+}
+
+.dark .rc-table-body::-webkit-scrollbar-thumb {
+  background-color: #6b7280;
+}
+
+.dark .rc-table-body::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(209, 213, 219, 0.6);
+}
+
+.dark .rc-table-body::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+.dark .rc-table-body::-webkit-scrollbar-thumb {
+  background-color: #4b5563;
+}
+
+.dark .rc-table-body::-webkit-scrollbar-thumb:hover {
+  background-color: #6b7280;
+}
+
+.dark .rc-table-body::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+.dark .rc-table-body::-webkit-scrollbar-thumb {
+  background-color: #4b5563;
+}
+
+.dark .rc-table-body::-webkit-scrollbar-thumb:hover {
+  background-color: #6b7280;
+}
+
+.dark .rc-table-body {
+  scrollbar-color: #4b5563 #1f2937;
+}
+.dark .rc-table {
+  border: 1px solid #374151;
+}
+.dark .rc-table th {
+  border-bottom: 1px solid #374151;
+}
+.dark .rc-table th {
+  border-bottom: 1px solid #374151;
+}
+.dark .rc-table thead tr th:last-child {
+  border-right: 1px solid #374151;
+  background-color: #374151;
+}
+

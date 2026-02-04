@@ -1,0 +1,34 @@
+{
+  "project_info": {
+    "project_number": "987654321000",
+    "project_id": "sample-firebase-app",
+    "storage_bucket": "sample-firebase-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:987654321000:android:abc123sampleappid987",
+        "android_client_info": {
+          "package_name": "com.bizmic.quick_ecommerce_customer"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "987654321000-xxxxxsampleclientidxxxxx.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "SAMPLE_ANDROID_API_KEY_123456789"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

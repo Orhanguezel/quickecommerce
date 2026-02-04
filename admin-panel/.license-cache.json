@@ -1,0 +1,8 @@
+{
+  "baz": "MIT",
+  "babel-packages": "UNLICENSED",
+  "constants-browserify": "MIT",
+  "react-builtin": "ISC",
+  "react-server-dom-webpack-builtin": "ISC",
+  "sockjs-client": "MIT"
+}
