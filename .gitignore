@@ -137,3 +137,102 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+
+# === Laravel / PHP ===
+
+/vendor/
+/node_modules/
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+
+# Laravel caches / logs
+/storage/*.key
+/storage/app/public/
+/storage/framework/
+/storage/logs/
+/bootstrap/cache/
+
+# PHPUnit / coverage
+/.phpunit.result.cache
+/coverage/
+.phpunit.cache/
+
+# Frontend build outputs (Vite / Mix)
+public/build/
+public/hot/
+public/storage
+
+# IDE / OS junk
+/.idea/
+/.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Debug / local tooling
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+
+# === Flutter / Dart ===
+.dart_tool/
+.packages
+.pub/
+build/
+**/build/
+
+# Flutter/Android/iOS generated
+.android/
+.ios/
+.macOS/
+.windows/
+.linux/
+web/.dart_tool/
+web/build/
+
+# iOS / Xcode
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/App.framework
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+ios/Flutter/ephemeral/
+ios/Runner.xcworkspace/
+*.xcuserstate
+
+# Android / Gradle
+android/.gradle/
+android/local.properties
+android/**/GeneratedPluginRegistrant.java
+
+# Web (Flutter)
+web/flutter_service_worker.js
+web/manifest.json
+web/icons/Icon-*.png
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Secrets / env
+.env
+.env.*
+!.env.example
+
