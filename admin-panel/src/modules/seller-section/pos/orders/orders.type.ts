@@ -1,0 +1,28 @@
+
+
+import {
+  type QueryOptions,
+} from "@/types";
+import { ToastContent } from "react-toastify";
+
+export interface OrdersQueryOptions extends QueryOptions {
+  sort?: string;
+  sortField?: string;
+  start_date?: string;
+  end_date?: string;
+  per_page?: any;
+  store_id?: string;
+  flash_sale_id?: string;
+  status?: string;
+  order_id?: string;
+  payment_status?: string;
+  order_package_id?: string;
+}
+
+
+export interface Orders {
+  [x: string]: ToastContent<unknown>;
+    id: string;
+    name: string;
+    slug: string;
+  }

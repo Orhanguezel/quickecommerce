@@ -1,0 +1,42 @@
+"use client";
+import AddToCardIcon from "@/assets/icons/AddToCardIcon";
+import CreateOrUpdateVehicleTypeForm from "@/components/blocks/admin-section/deliveryman/vehicle-type/CreateOrUpdateVehicleTypeForm";
+import { Card, CardContent } from "@/components/ui";
+import { Routes } from "@/config/routes";
+import { useTranslations } from "next-intl";
+import Link from "next/link";
+
+const AddVehicleType = () => {
+   const t = useTranslations();
+  
+  return (
+    <>
+      <Card>
+        <CardContent className="flex flex-col md:flex-row gap-4  justify-between p-2 md:p-4">
+          <div className="flex items-center justify-start md:justify-center gap-2">
+            <AddToCardIcon />
+            <h1 className="text-lg md:text-2xl font-semibold text-black dark:text-white flex items-center gap-2">
+            {t("label.add_vehicle_type")}
+            </h1>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-blue-500 hover:text-white dark:text-[#93c5fd] dark:hover:text-white  bg-blue-100 hover:bg-blue-500 py-2 px-4 rounded flex items-center gap-2">
+              <Link
+                className=""
+                href={Routes.vehicleTypeList}
+              >
+                {t("label.vehicle_type")}
+              </Link>
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="mt-4">
+        <CreateOrUpdateVehicleTypeForm />
+      </div>
+    </>
+  );
+};
+
+export default AddVehicleType;
