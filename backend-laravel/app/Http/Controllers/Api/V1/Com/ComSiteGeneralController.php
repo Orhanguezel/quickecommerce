@@ -84,7 +84,7 @@ class ComSiteGeneralController extends Controller
         $settings = [
             'com_maintenance_title' => com_option_get('com_maintenance_title'),
             'com_maintenance_description' => com_option_get('com_maintenance_description'),
-            'com_maintenance_start_date' => com_option_get('com_maintenance_end_date'),
+            'com_maintenance_start_date' => com_option_get('com_maintenance_start_date'),
             'com_maintenance_end_date' => com_option_get('com_maintenance_end_date'),
             'com_maintenance_image' => ImageModifier::generateImageUrl(com_option_get('com_maintenance_image'))
         ];

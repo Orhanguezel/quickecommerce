@@ -57,10 +57,18 @@ class MediaService
 
             $image_db = $image_name . time() . '.' . $image_extenstion;
 
+            $usage_type = $request->usage_type;
+
             // Resize and save images
-            $resize_full_image = Image::make($image)->resize($image_width, $image_height, function ($constraint) {
-                $constraint->aspectRatio();
-            });
+            if ($usage_type === 'brand') {
+                $crop_size = min($image_width, $image_height);
+                $image_dimension_for_db = $crop_size . ' x ' . $crop_size . ' pixels';
+                $resize_full_image = Image::make($image)->fit($crop_size, $crop_size);
+            } else {
+                $resize_full_image = Image::make($image)->resize($image_width, $image_height, function ($constraint) {
+                    $constraint->aspectRatio();
+                });
+            }
 
 
             // Save images to storage
@@ -69,8 +77,6 @@ class MediaService
 
             $user_id = auth('sanctum')->id();
             $user_type = get_class(auth('sanctum')->user());
-            $usage_type = $request->usage_type;
-
             if (!empty($request->store_id)) {
                 $store = Store::find($request->store_id);
                 if ($store) {

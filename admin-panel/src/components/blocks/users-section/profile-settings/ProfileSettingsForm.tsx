@@ -11,7 +11,7 @@ import {
 } from "@/components/ui";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Info, LockKeyholeOpen } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import CloudIcon from "@/assets/icons/CloudIcon";
@@ -72,12 +72,16 @@ const ProfileSettingsForm = ({ data }: any) => {
   const editData = useMemo(() => {
     return QueryGeneralSettingsData || {};
   }, [QueryGeneralSettingsData]);
+  const lastLoadedIdRef = useRef<string | number | null>(null);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
   };
   useEffect(() => {
     if (!editData || !QueryGeneralSettingsData) return;
+    const currentId = (editData as any)?.id ?? null;
+    if (lastLoadedIdRef.current === currentId) return;
+    lastLoadedIdRef.current = currentId;
     setValue("first_name", editData.first_name ?? "");
     setValue("last_name", editData.last_name ?? "");
     setValue("phone", editData.phone ?? "");
@@ -89,13 +93,7 @@ const ProfileSettingsForm = ({ data }: any) => {
       img_url: editData.image_url ?? "",
       name: "profile image",
     });
-  }, [
-    editData,
-    editData?.id,
-    QueryGeneralSettingsData,
-    QueryGeneralSettingsData?.id,
-    setValue,
-  ]);
+  }, [editData, QueryGeneralSettingsData, setValue]);
 
   const [loading, setLoading] = useState(false);
   const [password, setPassword] = useState("");
@@ -186,11 +184,7 @@ const ProfileSettingsForm = ({ data }: any) => {
     );
   };
 
-  useEffect(() => {
-    if (!isPending && !error) {
-      refetch();
-    }
-  }, [isPending, refetch, error]);
+  // useQuery already fetches; avoid refetch loop here
 
   const trigger = (
     <div className="w-32 h-32 flex flex-col items-center justify-center bg-white text-center rounded cursor-pointer  transition-colors">

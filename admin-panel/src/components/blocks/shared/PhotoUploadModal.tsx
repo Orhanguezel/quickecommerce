@@ -12,7 +12,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui";
-import GlobalImageLoader from "@/lib/imageLoader";
+import GlobalImageLoader, { resolveImageSrc } from "@/lib/imageLoader";
 import {
   useAltChange,
   useFileUploadService,
@@ -426,8 +426,9 @@ const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
                               } cursor-pointer relative h-32 w-32 rounded-md group`}
                             >
                               {(() => {
-                                const imgSrc =
-                                  image.img_url || image.url || "/images/no-image.png";
+                                const imgSrc = resolveImageSrc(
+                                  (image.img_url || image.url || "/images/no-image.png") as string
+                                );
                                 if (!imgSrc) return null;
                                 return (
                                   <Image
@@ -529,10 +530,11 @@ const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
                         className="relative w-full h-32 rounded shadow-xl border"
                       >
                         {(() => {
-                          const imgSrc =
-                            lastSelectedImages.img_url ||
-                            lastSelectedImages.url ||
-                            "/images/no-image.png";
+                          const imgSrc = resolveImageSrc(
+                            (lastSelectedImages.img_url ||
+                              lastSelectedImages.url ||
+                              "/images/no-image.png") as string
+                          );
                           if (!imgSrc) return null;
                           return (
                             <Image

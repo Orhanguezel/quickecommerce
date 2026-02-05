@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../config/colors.dart';
 import '../../config/icons.dart';
 import '../../config/images.dart';
@@ -14,6 +17,9 @@ import '../../controller/bloc/currency_bloc/currency_state.dart';
 import '../../controller/bloc/currency_list_bloc/currency_list_bloc.dart';
 import '../../controller/bloc/currency_list_bloc/currency_list_event.dart';
 import '../../controller/bloc/currency_list_bloc/currency_list_state.dart';
+import '../../controller/bloc/menu_list_bloc/menu_list_bloc.dart';
+import '../../controller/bloc/menu_list_bloc/menu_list_event.dart';
+import '../../controller/bloc/menu_list_bloc/menu_list_state.dart';
 import '../../controller/bloc/profile_bloc/profile_bloc.dart';
 import '../../controller/bloc/profile_bloc/profile_event.dart';
 import '../../controller/bloc/profile_bloc/profile_state.dart';
@@ -26,6 +32,7 @@ import '../../controller/provider/filter_controller.dart';
 import '../../controller/provider/home_screen_provider.dart';
 import '../../controller/provider/notification_controller.dart';
 import '../../data/data_model/currency_list_model.dart';
+import '../../data/data_model/menu_model.dart';
 import '../../l10n/app_localizations.dart';
 import '../auth_screens/email_verification.dart';
 import '../checkout/desktop_checkout.dart';
@@ -53,6 +60,7 @@ class _DesktopTabsHomeState extends State<DesktopTabsHome> {
   late final CurrencyListBloc _currencyListBloc;
   late final AllProductBloc _allProductBloc;
   late final ProfileBloc _profileBloc;
+  late final MenuListBloc _menuListBloc;
   String _token = '', _emailSettingsOn = "", _currencyCode = '', _language = '', _userLat = '', _userLong = '';
   bool _emailVerified = false;
   final FocusNode focusNode = FocusNode();
@@ -61,6 +69,7 @@ class _DesktopTabsHomeState extends State<DesktopTabsHome> {
     _allProductBloc = context.read<AllProductBloc>();
     _currencyListBloc = context.read<CurrencyListBloc>();
     _profileBloc = context.read<ProfileBloc>();
+    _menuListBloc = context.read<MenuListBloc>();
     getUserRout();
     super.initState();
   }
@@ -103,6 +112,7 @@ class _DesktopTabsHomeState extends State<DesktopTabsHome> {
     _userLong = customerLong ?? "";
     checkLogin();
     _currencyListBloc.add(CurrencyList(token: _token));
+    _menuListBloc.add(MenuList(language: _language.isEmpty ? "en" : _language));
   }
 
   checkLogin() {
@@ -130,6 +140,191 @@ class _DesktopTabsHomeState extends State<DesktopTabsHome> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool isFirstLoad = true;
   bool isCurrencyLoad = true;
+
+  String _normalizeMenuSlug(String url) {
+    var trimmed = url.trim();
+    if (trimmed.isEmpty) return '';
+    if (trimmed.startsWith('http')) {
+      final uri = Uri.tryParse(trimmed);
+      if (uri != null) {
+        trimmed = uri.path;
+      }
+    }
+    if (trimmed.startsWith('/')) {
+      trimmed = trimmed.substring(1);
+    }
+    return trimmed;
+  }
+
+  String _tabKeyForMenu(MenuItem item) {
+    final slug = _normalizeMenuSlug((item.url ?? '').toString());
+    switch (slug) {
+      case '':
+      case 'home':
+        return "Home";
+      case 'products':
+      case 'product':
+        return "Products";
+      case 'product-categories':
+      case 'categories':
+      case 'category':
+        return "Category";
+      default:
+        return "menu-${item.id ?? slug}";
+    }
+  }
+
+  Future<void> _handleMenuTap(MenuItem item) async {
+    final homeCon = Provider.of<HomeScreenProvider>(context, listen: false);
+    final rawUrl = (item.url ?? '').toString().trim();
+    final slug = _normalizeMenuSlug(rawUrl);
+
+    switch (slug) {
+      case '':
+      case 'home':
+        homeCon.setTabType("Home");
+        return;
+      case 'products':
+      case 'product':
+        homeCon.setTabType("Products");
+        return;
+      case 'product-categories':
+      case 'categories':
+      case 'category':
+        homeCon.setTabType("Category");
+        return;
+      case 'privacy-policy':
+        homeCon.setTabType("Menu");
+        homeCon.setMenuName("PrivacyPolicy");
+        return;
+      case 'terms-and-conditions':
+      case 'terms-and-condition':
+        homeCon.setTabType("Menu");
+        homeCon.setMenuName("TermsAndConditions");
+        return;
+      case 'contact':
+      case 'contact-us':
+        homeCon.setTabType("Menu");
+        homeCon.setMenuName("Contact");
+        return;
+      default:
+        break;
+    }
+
+    if (rawUrl.startsWith('http')) {
+      final uri = Uri.tryParse(rawUrl);
+      if (uri != null) {
+        await launchUrl(uri, webOnlyWindowName: '_blank');
+        return;
+      }
+    }
+
+    CommonFunctions.showUpSnack(
+      context: context,
+      message: AppLocalizations.of(context)!.noDataFound,
+    );
+  }
+
+  List<MenuItem> _fallbackMenus(BuildContext context) {
+    return [
+      MenuItem(id: 'home', name: AppLocalizations.of(context)!.home, url: '/'),
+      MenuItem(id: 'products', name: AppLocalizations.of(context)!.products, url: 'products'),
+      MenuItem(id: 'category', name: AppLocalizations.of(context)!.category, url: 'product-categories'),
+    ];
+  }
+
+  List<MenuItem> _menuContentToMenuItems(dynamic menuContent) {
+    if (menuContent == null) return [];
+    dynamic decoded = menuContent;
+    if (menuContent is String) {
+      try {
+        decoded = jsonDecode(menuContent);
+      } catch (_) {
+        return [];
+      }
+    }
+    if (decoded is! List) return [];
+    return decoded
+        .whereType<Map>()
+        .map<MenuItem>((item) => _menuContentItemToMenuItem(item.cast<String, dynamic>()))
+        .toList();
+  }
+
+  MenuItem _menuContentItemToMenuItem(Map<String, dynamic> item) {
+    final childrenRaw = item['children'];
+    final children = childrenRaw is List
+        ? childrenRaw
+            .whereType<Map>()
+            .map<MenuItem>((c) => _menuContentItemToMenuItem(c.cast<String, dynamic>()))
+            .toList()
+        : <MenuItem>[];
+
+    return MenuItem(
+      id: item['id'],
+      name: item['label'] ?? item['name'],
+      label: item['label'] ?? item['name'],
+      url: item['url'] ?? item['slug'],
+      isVisible: item['is_visible'] ?? item['isVisible'],
+      childrenRecursive: children,
+    );
+  }
+
+  List<MenuItem> _extractMenuItems(MenuListModel model) {
+    // Prefer menu_content from the first menu that has it (admin customization)
+    for (final menu in model.menus) {
+      final items = _menuContentToMenuItems(menu.menuContent);
+      if (items.isNotEmpty) {
+        return items;
+      }
+    }
+    return model.menus;
+  }
+
+  List<Widget> _buildMenuTabs(List<MenuItem> menus, String selectedTab) {
+    final visible = menus.where((m) => m.isVisible != false).toList();
+    final items = <Widget>[];
+    for (var i = 0; i < visible.length; i++) {
+      final menu = visible[i];
+      final title = (menu.name ?? menu.label ?? '').toString();
+      final children = menu.childrenRecursive;
+      final tabKey = _tabKeyForMenu(menu);
+
+      Widget tabChild = MenuTab(
+        title: title,
+        selectedTab: selectedTab,
+        tabKey: tabKey,
+        onTap: () => _handleMenuTap(menu),
+        enableTap: children.isEmpty,
+      );
+
+      if (children.isNotEmpty) {
+        tabChild = PopupMenuButton<MenuItem>(
+          onSelected: (item) => _handleMenuTap(item),
+          itemBuilder: (context) => children
+              .where((c) => c.isVisible != false)
+              .map((child) => PopupMenuItem<MenuItem>(
+                    value: child,
+                    child: Text((child.name ?? child.label ?? '').toString()),
+                  ))
+              .toList(),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              tabChild,
+              const SizedBox(width: 4),
+              const Icon(Icons.keyboard_arrow_down, size: 16),
+            ],
+          ),
+        );
+      }
+
+      items.add(tabChild);
+      if (i != visible.length - 1) {
+        items.add(const SizedBox(width: 12));
+      }
+    }
+    return items;
+  }
   @override
   Widget build(BuildContext context) {
     final currencyCon = Provider.of<CurrencyController>(context);
@@ -492,25 +687,20 @@ class _DesktopTabsHomeState extends State<DesktopTabsHome> {
             widget: Row(
               children: [
                 const SizedBox(width: 12),
-                MenuTab(
-                  title: AppLocalizations.of(context)!.home,
-                  selectedTab: homeCon.tabType,
-                  tabKey: "Home",
-                  onTap: () => homeCon.setTabType("Home"),
-                ),
-                const SizedBox(width: 12),
-                MenuTab(
-                  title: AppLocalizations.of(context)!.products,
-                  selectedTab: homeCon.tabType,
-                  tabKey: "Products",
-                  onTap: () => homeCon.setTabType("Products"),
-                ),
-                const SizedBox(width: 12),
-                MenuTab(
-                  title: AppLocalizations.of(context)!.category,
-                  selectedTab: homeCon.tabType,
-                  tabKey: "Category",
-                  onTap: () => homeCon.setTabType("Category"),
+                BlocBuilder<MenuListBloc, MenuListState>(
+                  builder: (context, state) {
+                    List<MenuItem> menus = [];
+                    if (state is MenuListLoaded) {
+                      menus = _extractMenuItems(state.menuListModel);
+                    }
+                    final effectiveMenus =
+                        menus.isNotEmpty ? menus : _fallbackMenus(context);
+                    final tabs = _buildMenuTabs(effectiveMenus, homeCon.tabType);
+                    return Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: tabs,
+                    );
+                  },
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -590,6 +780,7 @@ class MenuTab extends StatelessWidget {
   final String selectedTab;
   final String tabKey;
   final VoidCallback onTap;
+  final bool enableTap;
   final Color activeColor;
   final Color inactiveColor;
   final Duration animationDuration;
@@ -600,6 +791,7 @@ class MenuTab extends StatelessWidget {
     required this.selectedTab,
     required this.tabKey,
     required this.onTap,
+    this.enableTap = true,
     this.activeColor = Colors.red,
     this.inactiveColor = Colors.black,
     this.animationDuration = const Duration(milliseconds: 300),
@@ -609,17 +801,23 @@ class MenuTab extends StatelessWidget {
   Widget build(BuildContext context) {
     bool isSelected = selectedTab == tabKey;
 
+    final textWidget = AnimatedDefaultTextStyle(
+      duration: animationDuration,
+      style: Theme.of(context).textTheme.displayLarge!.copyWith(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: isSelected ? activeColor : null,
+          ),
+      child: Text(title),
+    );
+
+    if (!enableTap) {
+      return textWidget;
+    }
+
     return InkWell(
       onTap: onTap,
-      child: AnimatedDefaultTextStyle(
-        duration: animationDuration,
-        style: Theme.of(context).textTheme.displayLarge!.copyWith(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: isSelected ? activeColor : null,
-            ),
-        child: Text(title),
-      ),
+      child: textWidget,
     );
   }
 }

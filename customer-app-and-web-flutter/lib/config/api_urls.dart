@@ -57,6 +57,7 @@ class ApiUrls{
   static String topRatedUrl() => '$baseUrlMart/api/v1/top-rated-products';
   static String productSuggestionUrl() => '$baseUrlMart/api/v1/product-suggestion';
   static String keywordSuggestionUrl() => '$baseUrlMart/api/v1/keyword-suggestion';
+  static String menuListUrl() => '$baseUrlMart/api/v1/menu';
   static String popularProductsUrl() => '$baseUrlMart/api/v1/popular-products';
   static String featuredProductsUrl() => '$baseUrlMart/api/v1/featured-products';
   static String wishListUrl() => '$baseUrlMart/api/v1/customer/wish-list/list';
