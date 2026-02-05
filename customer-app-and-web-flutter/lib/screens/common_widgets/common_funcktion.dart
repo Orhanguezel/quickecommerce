@@ -174,8 +174,31 @@ class CommonFunctions {
 
  static bool isTimePassed(String internationalTime) {
     try {
-      DateTime expiryTime = DateTime.parse("${internationalTime}Z").toUtc();
-      DateTime currentTime = DateTime.now().toUtc();
+      final trimmed = internationalTime.trim();
+      if (trimmed.isEmpty) return true;
+
+      DateTime expiryTime;
+
+      // Handle date-only strings: "YYYY-MM-DD"
+      final isDateOnly = RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(trimmed);
+      if (isDateOnly) {
+        final parsed = DateTime.parse(trimmed);
+        expiryTime = DateTime.utc(
+          parsed.year,
+          parsed.month,
+          parsed.day,
+          23,
+          59,
+          59,
+        );
+      } else {
+        expiryTime = DateTime.parse(trimmed);
+        if (!expiryTime.isUtc) {
+          expiryTime = expiryTime.toUtc();
+        }
+      }
+
+      final currentTime = DateTime.now().toUtc();
       return currentTime.isAfter(expiryTime);
     } catch (e) {
       return true;

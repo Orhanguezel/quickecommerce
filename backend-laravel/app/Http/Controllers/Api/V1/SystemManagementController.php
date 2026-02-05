@@ -287,9 +287,10 @@ class SystemManagementController extends Controller
                 'com_maintenance_start_date' => 'nullable|string',
                 'com_maintenance_end_date' => 'nullable|string',
                 'com_maintenance_image' => 'nullable|string',
+                'com_maintenance_mode' => 'nullable|string',
             ]);
 
-            $fields = ['com_maintenance_title', 'com_maintenance_description', 'com_maintenance_start_date', 'com_maintenance_end_date', 'com_maintenance_image'];
+            $fields = ['com_maintenance_title', 'com_maintenance_description', 'com_maintenance_start_date', 'com_maintenance_end_date', 'com_maintenance_image', 'com_maintenance_mode'];
             foreach ($fields as $field) {
                 $value = $request->input($field) ?? null;
                 com_option_update($field, $value);
@@ -357,6 +358,7 @@ class SystemManagementController extends Controller
             $com_maintenance_end_date = com_option_get('com_maintenance_end_date');
             $com_maintenance_image = com_option_get('com_maintenance_image');
             $com_maintenance_image_url = $imageModifier->generateImageUrl(com_option_get('com_maintenance_image'));
+            $com_maintenance_mode = com_option_get('com_maintenance_mode');
 
             return $this->success([
                 'com_maintenance_title' => $com_maintenance_title,
@@ -365,6 +367,7 @@ class SystemManagementController extends Controller
                 'com_maintenance_end_date' => $com_maintenance_end_date,
                 'com_maintenance_image' => $com_maintenance_image,
                 'com_maintenance_image_url' => $com_maintenance_image_url,
+                'com_maintenance_mode' => $com_maintenance_mode,
                 'translations' => $transformedData,
             ]);
         }

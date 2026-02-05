@@ -34,6 +34,7 @@ import '../controller/bloc/home_title_bloc/home_title_bloc.dart';
 import '../controller/bloc/login_bloc/login_bloc.dart';
 import '../controller/bloc/maintenence_settings_bloc/maintenance_settings_bloc.dart';
 import '../controller/bloc/message_send_bloc/message_send_bloc.dart';
+import '../controller/bloc/menu_list_bloc/menu_list_bloc.dart';
 import '../controller/bloc/new_arrivals_bloc/new_arrival_bloc.dart';
 import '../controller/bloc/notification_bloc/notificatioon_bloc.dart';
 import '../controller/bloc/order_details_bloc/order_details_bloc.dart';
@@ -154,6 +155,12 @@ List<SingleChildWidget> getAppProviders(String? theme) {
       create: (context) => MessageSendBloc(
         connectivityRepository: ConnectivityRepository(),
         saveRepository: SaveRepository(),
+      ),
+    ),
+    BlocProvider(
+      create: (context) => MenuListBloc(
+        connectivityRepository: ConnectivityRepository(),
+        commonRepository: CommonRepository(),
       ),
     ),
     BlocProvider(

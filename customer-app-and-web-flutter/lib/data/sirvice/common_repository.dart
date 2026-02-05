@@ -18,6 +18,17 @@ class CommonRepository {
     return response;
   }
 
+  Future<Response> menuList(String language) {
+    final response = _dio.get(
+      ApiUrls.menuListUrl(),
+      queryParameters: {
+        "language": language,
+        "pagination": "false",
+      },
+    );
+    return response;
+  }
+
 
   Future<Response> productDetailsSetting(String language) {
     final response = _dio.get(

@@ -30,6 +30,7 @@ import {
   Card,
   CardContent,
   Input,
+  Switch,
   Tabs,
   TabsContent,
   TabsList,
@@ -265,6 +266,7 @@ export default function MaintenanceSettingsForm() {
 
   const [lastSelectedLogo, setLastSelectedLogo] = useState<UploadedImage | null>(null);
   const [errorLogoMessage, setLogoErrorMessage] = useState<string>('');
+  const [maintenanceMode, setMaintenanceMode] = useState<string>('');
 
   const { maintenanceSettingsData, refetch } = useMaintenanceSettingsQuery({});
   const queryData = useMemo(() => (maintenanceSettingsData as any) || {}, [maintenanceSettingsData]);
@@ -289,6 +291,7 @@ export default function MaintenanceSettingsForm() {
 
     const startRaw = message?.com_maintenance_start_date;
     const endRaw = message?.com_maintenance_end_date;
+    setMaintenanceMode(message?.com_maintenance_mode || '');
 
     setValueAny('start_date', startRaw ? new Date(startRaw) : null, {
       shouldDirty: false,
@@ -303,7 +306,7 @@ export default function MaintenanceSettingsForm() {
 
     if (message?.com_maintenance_image) {
       const img: UploadedImage = {
-        image_id: message?.com_maintenance_image ?? '',
+        image_id: String(message?.com_maintenance_image ?? ''),
         img_url: message?.com_maintenance_image_url ?? '/images/no-image.png',
         url: message?.com_maintenance_image_url ?? '/images/no-image.png',
         name: 'logo',
@@ -361,7 +364,10 @@ export default function MaintenanceSettingsForm() {
       setLogoErrorMessage('');
       return;
     }
-    setLastSelectedLogo(first);
+    setLastSelectedLogo({
+      ...first,
+      image_id: String(first.image_id ?? (first as any).id ?? ''),
+    });
     setLogoErrorMessage(is1to1Image(first) ? '' : 'Image must have a 1:1 aspect ratio.');
   };
 
@@ -375,7 +381,6 @@ export default function MaintenanceSettingsForm() {
   const onSubmit = async (values: MaintenanceSettingsFormData) => {
     if (lastSelectedLogo && !is1to1Image(lastSelectedLogo)) {
       setLogoErrorMessage('Image must have a 1:1 aspect ratio.');
-      return;
     }
 
     const v = safeObject(values);
@@ -414,10 +419,11 @@ export default function MaintenanceSettingsForm() {
       com_maintenance_title: rootTitle,
       com_maintenance_description: rootDesc,
 
+      com_maintenance_mode: maintenanceMode,
       com_maintenance_start_date: toYmd((v as any).start_date),
       com_maintenance_end_date: toYmd((v as any).end_date),
 
-      com_maintenance_image: lastSelectedLogo?.image_id ?? '',
+      com_maintenance_image: safeStr(lastSelectedLogo?.image_id ?? ''),
 
       // ✅ CRITICAL: real array
       translations,
@@ -577,6 +583,17 @@ export default function MaintenanceSettingsForm() {
                     </p>
                   ) : null}
                 </div>
+              </div>
+
+              <div className="mb-6 grid grid-cols-2 lg:grid-cols-4 items-center">
+                <p className="text-sm font-medium mb-1">Maintenance Mode</p>
+                <Switch
+                  dir="ltr"
+                  checked={maintenanceMode === 'on'}
+                  onCheckedChange={() =>
+                    setMaintenanceMode((prev) => (prev === 'on' ? '' : 'on'))
+                  }
+                />
               </div>
 
               <div className="mb-8">

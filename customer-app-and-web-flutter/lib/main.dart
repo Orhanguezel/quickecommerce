@@ -17,6 +17,7 @@ import 'controller/provider/thyme_provider.dart';
 import 'data/sirvice/lokal_database_repository.dart';
 import 'data/sirvice/notification_reposytory.dart';
 import 'l10n/app_localizations.dart';
+import 'widgets/maintenance_gate.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -162,7 +163,9 @@ class _MyAppState extends State<MyApp> {
                     data: MediaQuery.of(context).copyWith(
                       textScaler: const TextScaler.linear(1.0),
                     ),
-                    child: widget ?? const SizedBox.shrink(),
+                    child: MaintenanceGate(
+                      child: widget ?? const SizedBox.shrink(),
+                    ),
                   );
                 },
                 themeMode: themeMode,

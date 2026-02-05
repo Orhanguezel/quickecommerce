@@ -1,6 +1,3 @@
-// =====================================================
-// src/components/blocks/admin-section/media-manage/CreateOrUpdateBrandForm.tsx
-
 "use client";
 import multiLang from "@/components/molecules/multiLang.json";
 import {
@@ -26,7 +23,7 @@ import { useForm } from "react-hook-form";
 
 import CloudIcon from "@/assets/icons/CloudIcon";
 import { SubmitButton } from "@/components/blocks/shared";
-import GlobalImageLoader from "@/lib/imageLoader";
+import GlobalImageLoader, { resolveImageSrc } from "@/lib/imageLoader";
 import {
   useBrandStoreMutation,
   useBrandUpdateMutation,
@@ -37,22 +34,10 @@ import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import Cancel from "../../custom-icons/Cancel";
-import PhotoUploadModal, { type UploadedImage } from "@/components/blocks/shared/PhotoUploadModal";
-
-// JSON scaffold stack (standard)
-import {
-  AdminI18nJsonPanel,
-  buildI18nJsonFromFlatValues,
-  applyI18nJsonToFlatForm,
-  makeRHFSetValueAny, safeObject,
-  ensureLangKeys,
-  useFormI18nScaffold,
-  initI18nFlatFormFromEntity,
-} from '@/lib/json';
-import type {  LangKeys, ViewMode, LangType} from '@/lib/json';
+import PhotoUploadModal, { type UploadedImage } from '@/components/blocks/shared/PhotoUploadModal';
 
 
-
+type LangKeys = keyof IntlMessages["lang"];
 export default function CreateOrUpdateBrandForm({ data }: any) {
   const dispatch = useAppDispatch();
   const t = useTranslations();
@@ -97,7 +82,7 @@ export default function CreateOrUpdateBrandForm({ data }: any) {
       });
       if (editData?.brand_logo) {
         setLastSelectedLogo({
-          image_id: editData?.brand_logo ? editData?.brand_logo : "",
+          image_id: editData?.brand_logo ? String(editData?.brand_logo) : "",
           img_url: editData?.brand_logo_url
             ? editData?.brand_logo_url
             : "/images/no-image.png",
@@ -108,8 +93,13 @@ export default function CreateOrUpdateBrandForm({ data }: any) {
   }, [editData, setValue]);
 
   const handleSaveLogo = (images: UploadedImage[]) => {
-    setLastSelectedLogo(images[0]);
-    const dimensions = images[0].dimensions;
+    const selected = images[0];
+    if (!selected) return false;
+    setLastSelectedLogo({
+      ...selected,
+      image_id: selected.image_id ?? selected.id,
+    });
+    const dimensions = selected.dimensions;
     //@ts-ignore
     const [width, height] = dimensions
       .split(" x ")
@@ -151,10 +141,12 @@ export default function CreateOrUpdateBrandForm({ data }: any) {
         meta_title: (values as any)[`meta_title_${lang.id}`],
         meta_description: (values as any)[`meta_description_${lang.id}`],
       }));
+    const brandLogoId =
+      lastSelectedLogo?.image_id ?? lastSelectedLogo?.id ?? "";
     const submissionData = {
       ...defaultData,
       id: editData?.id,
-      brand_logo: lastSelectedLogo ? lastSelectedLogo?.image_id : "",
+      brand_logo: lastSelectedLogo ? brandLogoId : "",
       translations: translations,
     };
 
@@ -185,7 +177,7 @@ export default function CreateOrUpdateBrandForm({ data }: any) {
         <div className="relative w-32 h-32 group">
           <Image
             loader={GlobalImageLoader}
-            src={lastSelectedLogo?.img_url}
+            src={resolveImageSrc(String(lastSelectedLogo?.img_url ?? ""))}
             alt={lastSelectedLogo?.name as string}
              fill
            sizes="128px"

@@ -9,7 +9,7 @@ import TableSkeletonLoader from "@/components/molecules/TableSkeletonLoader";
 import UploadImageModal from "@/components/screen/admin-section/MediaManage/modal/UploadImageModal";
 import { Button, Card, CardContent, Input } from "@/components/ui";
 import { CountItems } from "@/config/helperJson";
-import GlobalImageLoader from "@/lib/imageLoader";
+import GlobalImageLoader, { resolveImageSrc } from "@/lib/imageLoader";
 import {
   useMediaManageDelete,
   useMediaManagesQuery,
@@ -223,30 +223,33 @@ const MediaManageTable = () => {
           title: t("table_header.image"),
           dataIndex: "img_url",
           width: 120,
-          render: (img_url: any) => (
-            <div className="flex items-center gap-2">
-              <div className="relative w-24 h-24">
-                {img_url ? (
-                  <Image
-                    loader={GlobalImageLoader}
-                    src={img_url}
-                    alt="img_url"
-                    fill
-                    sizes="96px"
-                    className="w-full h-full"
-                  />
-                ) : (
-                  <Image
-                    src="/images/no-image.png"
-                    alt="No Image"
-                    fill
-                    sizes="96px"
-                    className="w-full h-full"
-                  />
-                )}
+          render: (img_url: any) => {
+            const safeSrc = img_url ? resolveImageSrc(String(img_url)) : "";
+            return (
+              <div className="flex items-center gap-2">
+                <div className="relative w-24 h-24">
+                  {safeSrc ? (
+                    <Image
+                      loader={GlobalImageLoader}
+                      src={safeSrc}
+                      alt="img_url"
+                      fill
+                      sizes="96px"
+                      className="w-full h-full"
+                    />
+                  ) : (
+                    <Image
+                      src="/images/no-image.png"
+                      alt="No Image"
+                      fill
+                      sizes="96px"
+                      className="w-full h-full"
+                    />
+                  )}
+                </div>
               </div>
-            </div>
-          ),
+            );
+          },
         },
 
         {

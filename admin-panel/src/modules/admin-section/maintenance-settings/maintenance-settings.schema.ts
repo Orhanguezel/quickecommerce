@@ -15,6 +15,7 @@ export type statusUpdateData = z.infer<typeof statusUpdateSchema> & {
 const baseSchema = {
   title_df: z.string().optional(),
   description_df: z.string().optional(),
+  com_maintenance_mode: z.string().optional(),
   start_date: z.date().nullable().optional(),
   end_date: z.date().nullable().optional(),
   date_time_field: z.date().nullable().optional(),

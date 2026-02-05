@@ -244,12 +244,15 @@ flutter run -d web-server --web-renderer html --web-hostname 127.0.0.1 --web-por
 
 
 
+### upload klasörünü simlik yapar. 
 
+cd /home/orhan/Documents/quickecommerce/backend-laravel
+mv public/storage public/storage.bak
+php artisan storage:link
 
-
-
-
-
+###  flutter acma
+cd /home/orhan/Documents/quickecommerce/customer-app-and-web-flutter
+flutter run -d web-server --web-hostname 127.0.0.1 --web-port 3001
 
 
 
