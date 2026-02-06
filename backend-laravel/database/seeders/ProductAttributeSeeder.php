@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class ProductAttributeSeeder extends Seeder
 {
@@ -483,18 +484,27 @@ class ProductAttributeSeeder extends Seeder
             DB::table('product_attribute_values')->delete();
             DB::table('product_attributes')->delete();
 
+            // Check if store_type column exists
+            $hasStoreTypeColumn = Schema::hasColumn('product_attributes', 'store_type');
+
             $totalValues = 0;
 
             foreach ($attributes as $attr) {
                 // Insert attribute
-                $attrId = DB::table('product_attributes')->insertGetId([
+                $insertData = [
                     'name' => $attr['tr'],
                     'product_type' => $attr['type'],
-                    'store_type' => $attr['store_type'],
                     'status' => 1,
                     'created_at' => now(),
                     'updated_at' => now(),
-                ]);
+                ];
+
+                // Only add store_type if column exists
+                if ($hasStoreTypeColumn) {
+                    $insertData['store_type'] = $attr['store_type'];
+                }
+
+                $attrId = DB::table('product_attributes')->insertGetId($insertData);
 
                 // Attribute translations
                 $this->addTranslation($attrId, 'App\\Models\\ProductAttribute', 'df', 'name', $attr['tr']);
