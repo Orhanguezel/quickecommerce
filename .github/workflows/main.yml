@@ -60,6 +60,15 @@ jobs:
             php artisan view:cache
             php artisan migrate --force || echo "Migration skipped"
 
+            echo "=== Run Essential Seeders ==="
+            php artisan db:seed --class=RolesSeeder --force || true
+            php artisan db:seed --class=UserSeeder --force || true
+            php artisan db:seed --class=PermissionAdminSeeder --force || true
+
+            echo "=== Fix Storage Permissions ==="
+            chown -R www-data:www-data storage bootstrap/cache
+            chmod -R 775 storage bootstrap/cache
+
             echo "=== Admin Panel Setup ==="
             cd /var/www/quikecommerce/admin-panel
             npm ci --legacy-peer-deps || npm install --legacy-peer-deps

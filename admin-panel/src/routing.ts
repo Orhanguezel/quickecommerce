@@ -4,7 +4,7 @@ import { availableLocales } from "./lib/language";
 
 export const routing = defineRouting({
   locales: availableLocales,
-  defaultLocale: "en",
+  defaultLocale: "tr",
   localePrefix: "as-needed",
   pathnames: {
     "/": "/",
