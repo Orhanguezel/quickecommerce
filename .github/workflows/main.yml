@@ -27,10 +27,21 @@ jobs:
             set -e
             export COMPOSER_ALLOW_SUPERUSER=1
 
-            echo "=== Pulling latest changes ==="
+            echo "=== Backup .env files ==="
             cd /var/www/quikecommerce
+
+            # .env dosyalarını yedekle
+            [ -f backend-laravel/.env ] && cp backend-laravel/.env /tmp/backend-laravel.env.bak
+            [ -f admin-panel/.env.local ] && cp admin-panel/.env.local /tmp/admin-panel.env.bak
+
+            echo "=== Pulling latest changes ==="
             git fetch origin main
             git reset --hard origin/main
+
+            echo "=== Restore .env files ==="
+            # .env dosyalarını geri yükle
+            [ -f /tmp/backend-laravel.env.bak ] && cp /tmp/backend-laravel.env.bak backend-laravel/.env
+            [ -f /tmp/admin-panel.env.bak ] && cp /tmp/admin-panel.env.bak admin-panel/.env.local
 
             echo "=== Backend Laravel Setup ==="
             cd /var/www/quikecommerce/backend-laravel
@@ -39,6 +50,7 @@ jobs:
             if [ ! -f .env ]; then
               cp .env.example .env
               php artisan key:generate
+              echo "WARNING: New .env created - configure database settings!"
             fi
 
             composer install --no-dev --optimize-autoloader --no-interaction
