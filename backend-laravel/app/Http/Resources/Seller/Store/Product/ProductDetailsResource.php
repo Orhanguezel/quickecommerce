@@ -52,7 +52,7 @@ class ProductDetailsResource extends JsonResource
             "expiry_date" => $this->expiry_date,
             "meta_title" => $this->meta_title,
             "meta_description" => $this->meta_description,
-            "meta_keywords" => is_array($decodedKeywords = json_decode($this->meta_keywords, true))
+            "meta_keywords" => $this->meta_keywords && is_array($decodedKeywords = json_decode($this->meta_keywords, true))
                 ? implode(',', $decodedKeywords)
                 : $this->meta_keywords,
             "meta_image" => ImageModifier::generateImageUrl($this->meta_image),

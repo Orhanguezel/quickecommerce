@@ -64,7 +64,7 @@ export const AppSearchSelect: React.FC<AppSelectProps> = ({
       }, 0);
       return () => clearTimeout(timer);
     }
-  }, [isOpen, filteredGroups]);
+  }, [isOpen]);
 
   return (
     <Select 
