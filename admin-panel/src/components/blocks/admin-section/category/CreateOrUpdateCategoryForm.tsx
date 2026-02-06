@@ -159,13 +159,9 @@ export default function CreateOrUpdateCategoryForm({ data }: any) {
   });
   const optionsData = (categories as any)?.data || [];
 
-  // ✅ type değişince: parent seçimleri reset + listeyi yenile
+  // ✅ type değişince sadece parent kategorileri refetch et
+  // Parent reset işlemi handleSelectItem'da yapılıyor (kullanıcı değiştirdiğinde)
   useEffect(() => {
-    // create/edit fark etmez, type değişince parent path invalid olur
-    setSelectedItems([]);
-    setSelectedIDs([]);
-    setfinalSelectedID("");
-    // refetch parent list
     if (typeValue) refetch();
   }, [typeValue, refetch]);
 
