@@ -61,7 +61,7 @@ class AdminAreaSetupManageController extends Controller
     public function show(Request $request)
     {
         $area = $this->areaRepo->getById($request->id);
-        return response()->json(new AreaDetailsResource($area));
+        return response()->json($area);
     }
 
     public function update(AreaCreateRequest $request): JsonResponse

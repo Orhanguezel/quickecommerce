@@ -3,7 +3,6 @@
 namespace Modules\Subscription\app\Transformers;
 
 use App\Actions\ImageModifier;
-use App\Http\Resources\Translation\SubspriptionPackageTranslationResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -14,9 +13,24 @@ class AdminSubscriptionPackageDetailsResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        // Transform translations to object keyed by language
+        $translations = [];
+        if ($this->related_translations) {
+            foreach ($this->related_translations->groupBy('language') as $lang => $items) {
+                // Skip 'df' as it's the default language stored in main columns
+                if ($lang === 'df') {
+                    continue;
+                }
+                $translations[$lang] = [
+                    'name' => $items->where('key', 'name')->first()?->value,
+                    'description' => $items->where('key', 'description')->first()?->value,
+                ];
+            }
+        }
+
         return [
             'id' => $this->id,
-            'name' => $this->name, // If language is empty or not provided attribute
+            'name' => $this->name,
             'type' => $this->type,
             'validity' => $this->validity,
             'price' => $this->price,
@@ -27,7 +41,7 @@ class AdminSubscriptionPackageDetailsResource extends JsonResource
             'order_limit' => $this->order_limit,
             'product_limit' => $this->product_limit,
             'product_featured_limit' => $this->product_featured_limit,
-            'description' => $this->description, // If language is empty or not provided attribute
+            'description' => $this->description,
             'image' => $this->image,
             'image_url' => ImageModifier::generateImageUrl($this->image),
             'payment_gateway' => $this->payment_gateway,
@@ -36,7 +50,7 @@ class AdminSubscriptionPackageDetailsResource extends JsonResource
             'status' => $this->status,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'translations' => SubspriptionPackageTranslationResource::collection($this->related_translations->groupBy('language'))
+            'translations' => $translations,
         ];
     }
 }

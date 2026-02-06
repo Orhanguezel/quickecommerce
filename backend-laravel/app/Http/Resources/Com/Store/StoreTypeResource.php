@@ -25,7 +25,8 @@ class StoreTypeResource extends JsonResource
                 ? $translation->where('key', 'name')->first()->value
                 : $this->name,
             "type" => $this->type,
-            "image" => ImageModifier::generateImageUrl($this->image),
+            "image" => $this->image,
+            "image_url" => ImageModifier::generateImageUrl($this->image),
             "description" => !empty($translation) && $translation->where('key', 'description')->first()
                 ? $translation->where('key', 'description')->first()->value
                 : $this->description,

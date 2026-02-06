@@ -171,14 +171,14 @@ const StoreTypeTable = ({ searchValue }: any) => {
         {
           title: t("table_header.image"),
           width: 100,
-             dataIndex: "image",
+             dataIndex: "image_url",
           render: (_:any , row: any) => (
             <div className="flex items-center gap-2">
-              {row?.image ? (
+              {row?.image_url ? (
                 <div className="relative w-12 h-12">
                   <Image
                     loader={GlobalImageLoader}
-                    src={row?.image}
+                    src={row?.image_url}
                     alt="Brand Logo"
                     fill
                     sizes="48px"

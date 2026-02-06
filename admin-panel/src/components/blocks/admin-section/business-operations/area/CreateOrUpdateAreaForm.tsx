@@ -22,7 +22,7 @@ import {
   AreaFormData,
   areaSchema,
 } from "@/modules/admin-section/business-operations/area/area.schema";
-import { useGoogleMapForAllQuery } from "@/modules/admin-section/google-map-settings/google-map-settings.action";
+import { useGoogleMaps } from "@/contexts/GoogleMapsContext";
 import { useAppDispatch } from "@/redux/hooks";
 import { setRefetch } from "@/redux/slices/refetchSlice";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -83,13 +83,7 @@ const CreateOrUpdateAreaForm = ({ data }: any) => {
     width: "100%",
     height: "350px",
   };
-  const { GoogleMapData } = useGoogleMapForAllQuery({});
-  const GoogleMapSettingsMessage = (GoogleMapData as any)?.message;
-  const googleMapKey =
-    GoogleMapSettingsMessage &&
-    GoogleMapSettingsMessage?.com_google_map_api_key;
-  const isMapEnabled =
-    GoogleMapSettingsMessage?.com_google_map_enable_disable === "on";
+  const { isLoaded, isEnabled: isMapEnabled, apiKey: googleMapKey, isPending: isMapSettingsPending } = useGoogleMaps();
   const [markerPosition, setMarkerPosition] = useState({
     lat: 23.8103,
     lng: 90.4125,
@@ -197,12 +191,14 @@ const CreateOrUpdateAreaForm = ({ data }: any) => {
       setValue("state_df", data.state);
       setValue("city_df", data.city);
 
-      Object?.keys(data.translations).forEach((language) => {
-        const translation = data.translations[language];
-        setValue(`name_${language}` as keyof AreaFormData, translation?.name);
-        setValue(`state_${language}` as keyof AreaFormData, translation?.state);
-        setValue(`city_${language}` as keyof AreaFormData, translation?.city);
-      });
+      if (data.translations && typeof data.translations === 'object') {
+        Object.keys(data.translations).forEach((language) => {
+          const translation = data.translations[language];
+          setValue(`name_${language}` as keyof AreaFormData, translation?.name);
+          setValue(`state_${language}` as keyof AreaFormData, translation?.state);
+          setValue(`city_${language}` as keyof AreaFormData, translation?.city);
+        });
+      }
       setPolygonCoords(data?.coordinates);
       setMarkerPosition({
         lat: Number(data?.center_latitude),
@@ -297,7 +293,29 @@ const CreateOrUpdateAreaForm = ({ data }: any) => {
           <CardContent className="p-0">
             <div className="">
               <div className="relative">
-                {isMapEnabled && googleMapKey ? (
+                {isMapSettingsPending ? (
+                  <div className="flex items-center justify-center bg-gray-100 dark:bg-gray-800" style={mapContainerStyle}>
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
+                      <p className="text-gray-500 dark:text-gray-400">{t("common.loading")}...</p>
+                    </div>
+                  </div>
+                ) : !isMapEnabled || !googleMapKey ? (
+                  <div className="flex items-center justify-center bg-gray-100 dark:bg-gray-800" style={mapContainerStyle}>
+                    <div className="text-center">
+                      <p className="text-gray-500 dark:text-gray-400">
+                        {!googleMapKey ? t("common.google_map_api_key_not_set") : t("common.google_map_disabled")}
+                      </p>
+                    </div>
+                  </div>
+                ) : !isLoaded ? (
+                  <div className="flex items-center justify-center bg-gray-100 dark:bg-gray-800" style={mapContainerStyle}>
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
+                      <p className="text-gray-500 dark:text-gray-400">{t("common.loading_map")}...</p>
+                    </div>
+                  </div>
+                ) : (
                   <div className="relative mt-16 md:mt-0">
                     <Autocomplete
                       onLoad={(autocomplete) =>
@@ -355,18 +373,6 @@ const CreateOrUpdateAreaForm = ({ data }: any) => {
                         }}
                       />
                     </GoogleMap>
-                  </div>
-                ) : (
-                  <div className="mt-4">
-                    <div className="relative mt-16 md:mt-0">
-                      <GoogleMap
-                        mapContainerStyle={mapContainerStyle}
-                        center={center}
-                        zoom={zoom}
-                      >
-                        <Marker position={markerPosition} />
-                      </GoogleMap>
-                    </div>
                   </div>
                 )}
               </div>

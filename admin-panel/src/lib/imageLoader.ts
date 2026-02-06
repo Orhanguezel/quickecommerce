@@ -30,10 +30,19 @@ const GlobalImageLoader = ({ src, width, quality }: LoaderParams): string => {
   if (normalizedSrc.startsWith("data:") || normalizedSrc.startsWith("blob:")) {
     return normalizedSrc;
   }
+
+  // Replace existing width parameter if present, otherwise add it
   if (/[?&]w=\d+/.test(normalizedSrc)) {
-    return normalizedSrc;
+    // Replace existing w= parameter with the requested width
+    const updatedSrc = normalizedSrc.replace(/([?&])w=\d+/, `$1w=${width}`);
+    // Also update or add quality parameter
+    if (/[?&]q=\d+/.test(updatedSrc)) {
+      return updatedSrc.replace(/([?&])q=\d+/, `$1q=${quality || 75}`);
+    }
+    return `${updatedSrc}&q=${quality || 75}`;
   }
-  // Add ?w=...&q=... only if not already present
+
+  // Add ?w=...&q=... if not present
   const hasQuery = normalizedSrc.includes("?");
   const separator = hasQuery ? "&" : "?";
 
