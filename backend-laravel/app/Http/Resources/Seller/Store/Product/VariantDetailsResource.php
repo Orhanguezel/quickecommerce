@@ -32,7 +32,7 @@ class VariantDetailsResource extends JsonResource
             "length" => $this->length,
             "width" => $this->width,
             "height" => $this->height,
-            "image" => (int)$this->image,
+            "image" => $this->image,
             "image_url" => ImageModifier::generateImageUrl($this->image),
             "order_count" => $this->order_count,
             "status" => $this->status,

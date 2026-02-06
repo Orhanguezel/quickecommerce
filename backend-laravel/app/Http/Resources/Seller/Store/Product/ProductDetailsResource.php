@@ -29,7 +29,7 @@ class ProductDetailsResource extends JsonResource
             "behaviour" => $this->behaviour,
             "slug" => $this->slug,
             "description" => $this->description,
-            "image" => (int)$this->image,
+            "image" => $this->image,
             "image_url" => ImageModifier::generateImageUrl($this->image),
             "video_url" => $this->video_url,
             "gallery_images" => MultipleImageModifier::multipleImageModifier($this->gallery_images),
