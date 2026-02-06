@@ -39,6 +39,11 @@ export default withBundleAnalyzer(
         },
         {
           protocol: "https",
+          hostname: "images.unsplash.com",
+          pathname: "**",
+        },
+        {
+          protocol: "https",
           hostname: imageHost,
           pathname: "/storage/uploads/media-uploader/default/**",
         },
