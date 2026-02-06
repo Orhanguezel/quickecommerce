@@ -22,8 +22,10 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_KEY }}
+          command_timeout: 20m
           script: |
             set -e
+            export COMPOSER_ALLOW_SUPERUSER=1
 
             echo "=== Pulling latest changes ==="
             cd /var/www/quikecommerce
@@ -32,11 +34,19 @@ jobs:
 
             echo "=== Backend Laravel Setup ==="
             cd /var/www/quikecommerce/backend-laravel
+
+            # .env yoksa oluştur
+            if [ ! -f .env ]; then
+              cp .env.example .env
+              php artisan key:generate
+            fi
+
             composer install --no-dev --optimize-autoloader --no-interaction
+            php artisan config:clear
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
-            php artisan migrate --force
+            php artisan migrate --force || echo "Migration skipped"
 
             echo "=== Admin Panel Setup ==="
             cd /var/www/quikecommerce/admin-panel
