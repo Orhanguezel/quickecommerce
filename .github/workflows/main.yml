@@ -88,6 +88,8 @@ jobs:
             php artisan db:seed --class=RolesSeeder --force || true
             php artisan db:seed --class=UserSeeder --force || true
             php artisan db:seed --class=PermissionAdminSeeder --force || true
+            php artisan db:seed --class=CurrencySeeder --force || true
+            php artisan db:seed --class=PageSeeder --force || true
 
             echo "=== Fix Storage Permissions (After Laravel Operations) ==="
             # Laravel işlemleri sonrası tekrar düzelt (yeni cache dosyaları için)
