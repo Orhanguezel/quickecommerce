@@ -644,12 +644,26 @@ function com_get_footer_copyright()
 
 function com_option_get_id_wise_url($id, $size = null)
 {
+    // Support external URLs - if it starts with http:// or https://, return as-is
+    if (is_string($id) && (str_starts_with($id, 'http://') || str_starts_with($id, 'https://'))) {
+        return $id;
+    }
+
     $return_val = com_get_attachment_by_id($id, $size);
     return $return_val['img_url'] ?? '';
 }
 
 function com_get_attachment_by_id($id, $size = null, $default = false)
 {
+    // Support external URLs - if it starts with http:// or https://, return URL info directly
+    if (is_string($id) && (str_starts_with($id, 'http://') || str_starts_with($id, 'https://'))) {
+        return [
+            'image_id' => null,
+            'img_url' => $id,
+            'img_path' => $id,
+        ];
+    }
+
     $image_details = Media::find($id);
     $return_val = [];
     $image_url = '';
