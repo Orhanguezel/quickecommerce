@@ -164,7 +164,7 @@ const MyStores = ({ searchValue, selectStatus, selectSeller }: any) => {
           title: t("table_header.info"),
           width: 200,
           dataIndex: "info",
-          render: (row: any) => (
+          render: (_info: any, row: any) => (
             <div className="flex items-center gap-2">
               <div>
                 {row?.logo_url ? (

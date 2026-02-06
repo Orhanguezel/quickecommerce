@@ -18,7 +18,6 @@ import {
 } from '@/components/ui';
 import { SellerRoutes } from '@/config/sellerRoutes';
 import GlobalImageLoader from '@/lib/imageLoader';
-import { useGoogleMapForAllQuery } from '@/modules/admin-section/google-map-settings/google-map-settings.action';
 import { useAreaDropdownQuery } from '@/modules/common/area/area.action';
 import { usePaymentGatewayQuery } from '@/modules/common/payment-gateway/payment-gateway.action';
 import { useStoreTypeQuery } from '@/modules/common/store-type/store-type.action';
@@ -33,7 +32,8 @@ import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setDynamicValue, setRefetch } from '@/redux/slices/refetchSlice';
 import { setSelectedStore } from '@/redux/slices/storeSlice';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { DrawingManager, GoogleMap, Marker, Polygon, useLoadScript } from '@react-google-maps/api';
+import { DrawingManager, GoogleMap, Marker, Polygon } from '@react-google-maps/api';
+import { useGoogleMaps } from '@/contexts/GoogleMapsContext';
 import { ChevronsDownIcon, ChevronsRightIcon, CircleCheckBig } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
@@ -80,10 +80,9 @@ export default function CreateOrUpdateStoreForm({ data }: any) {
   const dir = locale === 'ar' ? 'rtl' : 'ltr';
   const editData = data;
   const selectedStore = useAppSelector((state) => state.store.selectedStore);
-  const { GoogleMapData } = useGoogleMapForAllQuery({});
-  const GoogleMapSettingsMessage = (GoogleMapData as any)?.message;
-  const googleMapKey = GoogleMapSettingsMessage?.com_google_map_api_key;
-  const isMapEnabled = GoogleMapSettingsMessage?.com_google_map_enable_disable === 'on';
+
+  // Google map settings - use global context
+  const { isLoaded, isEnabled: isMapEnabled, apiKey: googleMapKey } = useGoogleMaps();
 
   const [polygonCoords, setPolygonCoords] = useState<any>(null);
   const selectedStoreType = editData && editData?.store_type ? editData?.store_type : '';
@@ -447,10 +446,7 @@ export default function CreateOrUpdateStoreForm({ data }: any) {
     }
   };
 
-  const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: googleMapKey || '',
-    libraries: ['geometry', 'drawing'], // Add any additional libraries you need
-  });
+  // isLoaded is now provided by GoogleMapsContext
 
   const handleNextStep = async () => {
     if (activeStep === 'general_info') {

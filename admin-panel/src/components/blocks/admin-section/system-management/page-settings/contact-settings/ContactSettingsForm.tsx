@@ -38,7 +38,6 @@ import Linkedin from '@/assets/icons/Linkedin';
 import Twitter from '@/assets/icons/Twitter';
 
 import GlobalImageLoader from '@/lib/imageLoader';
-import { useGoogleMapForAllQuery } from '@/modules/admin-section/google-map-settings/google-map-settings.action';
 import { useAboutPageUpdateMutation } from '@/modules/admin-section/system-management/page-settings/contact-settings/contact-settings.action';
 import {
   ContactSettingsFormData,
@@ -52,8 +51,8 @@ import {
   GoogleMap,
   Marker,
   Polygon,
-  useLoadScript,
 } from '@react-google-maps/api';
+import { useGoogleMaps } from '@/contexts/GoogleMapsContext';
 
 import { Info, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -70,7 +69,6 @@ type SocialRow = {
 };
 
 const DF_LANG = 'df';
-const GOOGLE_LIBRARIES = ['places', 'drawing'] as const;
 
 const ContactSettingsForm = ({ data }: any) => {
   const t = useTranslations();
@@ -92,28 +90,9 @@ const ContactSettingsForm = ({ data }: any) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [firstUILangId, uiLangs.length]);
 
-  // ---- Google Map Settings ----
+  // ---- Google Map Settings - use global context ----
   const mapContainerStyle = { width: '100%', height: '350px' } as const;
-  const { GoogleMapData } = useGoogleMapForAllQuery({});
-  const GoogleMapSettingsMessage = (GoogleMapData as any)?.message;
-  const [googleMapKey, setGoogleMapKey] = useState('');
-
-  useEffect(() => {
-    if (GoogleMapSettingsMessage?.com_google_map_enable_disable === 'on') {
-      setGoogleMapKey(GoogleMapSettingsMessage?.com_google_map_api_key || '');
-    } else {
-      setGoogleMapKey('');
-    }
-  }, [
-    GoogleMapSettingsMessage?.com_google_map_enable_disable,
-    GoogleMapSettingsMessage?.com_google_map_api_key,
-  ]);
-
-  // ---- LOAD SCRIPT (google is not defined fix) ----
-  const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: googleMapKey || ' ',
-    libraries: [...GOOGLE_LIBRARIES] as any,
-  });
+  const { isLoaded, loadError, isEnabled, apiKey: googleMapKey } = useGoogleMaps();
 
   const defaultCenter = { lat: 23.8103, lng: 90.4125 };
   const [center, setCenter] = useState(defaultCenter);
