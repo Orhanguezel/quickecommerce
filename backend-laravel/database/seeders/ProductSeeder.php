@@ -78,6 +78,7 @@ class ProductSeeder extends Seeder
                 'store' => 'supplementler',
                 'unit' => 'kilogram',
                 'price' => 2500,
+                'image' => 'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=600',
                 'tags' => ['cok-satan', 'protein', 'fitness', 'kas-yapma'],
                 'variants' => [
                     ['name' => 'Çikolata', 'sku' => 'HL-WM-CHO-2300', 'price' => 2500, 'stock' => 50],
@@ -94,6 +95,7 @@ class ProductSeeder extends Seeder
                 'store' => 'supplementler',
                 'unit' => 'gram',
                 'price' => 1200,
+                'image' => 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=600',
                 'tags' => ['bcaa', 'antrenman', 'dayaniklilik'],
                 'variants' => [
                     ['name' => 'Limon', 'sku' => 'HL-BCAA-LEM-500', 'price' => 1200, 'stock' => 60],
@@ -109,6 +111,7 @@ class ProductSeeder extends Seeder
                 'store' => 'supplementler',
                 'unit' => 'gram',
                 'price' => 900,
+                'image' => 'https://images.unsplash.com/photo-1594381898411-846e7d193883?w=600',
                 'tags' => ['kreatin', 'guc', 'kas-yapma'],
                 'variants' => [
                     ['name' => 'Aromasız', 'sku' => 'OL-CRE-500', 'price' => 900, 'stock' => 80],
@@ -122,6 +125,7 @@ class ProductSeeder extends Seeder
                 'store' => 'supplementler',
                 'unit' => 'gram',
                 'price' => 800,
+                'image' => 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=600',
                 'tags' => ['pre-workout', 'antrenman', 'fitness'],
                 'variants' => [
                     ['name' => 'Meyve Punch', 'sku' => 'BJ-PRE-FP-300', 'price' => 800, 'stock' => 45],
@@ -136,6 +140,7 @@ class ProductSeeder extends Seeder
                 'store' => 'supplementler',
                 'unit' => 'kapsul',
                 'price' => 550,
+                'image' => 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600',
                 'tags' => ['vitamin', 'mineral', 'premium'],
                 'variants' => [
                     ['name' => '120 Kapsül', 'sku' => 'SL-OM3-120', 'price' => 550, 'stock' => 70],
@@ -151,6 +156,7 @@ class ProductSeeder extends Seeder
                 'store' => 'decathlon',
                 'unit' => 'set',
                 'price' => 5000,
+                'image' => 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600',
                 'tags' => ['fitness', 'agirlik-antrenmani', 'ev-tipi'],
                 'variants' => [
                     ['name' => 'Siyah', 'sku' => 'BS-AD24-BLK', 'price' => 5000, 'stock' => 20],
@@ -164,6 +170,7 @@ class ProductSeeder extends Seeder
                 'store' => 'decathlon',
                 'unit' => 'set',
                 'price' => 3000,
+                'image' => 'https://images.unsplash.com/photo-1517963879433-6ad2b056d712?w=600',
                 'tags' => ['fitness', 'antrenman', 'crossfit'],
                 'variants' => [
                     ['name' => 'Set', 'sku' => 'BS-KB-SET4', 'price' => 3000, 'stock' => 15],
@@ -177,6 +184,7 @@ class ProductSeeder extends Seeder
                 'store' => 'decathlon',
                 'unit' => 'adet',
                 'price' => 400,
+                'image' => 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600',
                 'tags' => ['yoga', 'pilates', 'esneme'],
                 'variants' => [
                     ['name' => 'Mor', 'sku' => 'DC-YM8-PUR', 'price' => 400, 'stock' => 60],
@@ -192,6 +200,7 @@ class ProductSeeder extends Seeder
                 'store' => 'decathlon',
                 'unit' => 'set',
                 'price' => 350,
+                'image' => 'https://images.unsplash.com/photo-1598289431512-b97b0917affc?w=600',
                 'tags' => ['fitness', 'direnc-bandi', 'ev-tipi'],
                 'variants' => [
                     ['name' => 'Set', 'sku' => 'DC-RB-PRO', 'price' => 350, 'stock' => 80],
@@ -205,6 +214,7 @@ class ProductSeeder extends Seeder
                 'store' => 'decathlon',
                 'unit' => 'adet',
                 'price' => 150,
+                'image' => 'https://images.unsplash.com/photo-1434682881908-b43d0467b798?w=600',
                 'tags' => ['kardiyo', 'crossfit', 'antrenman'],
                 'variants' => [
                     ['name' => 'Siyah', 'sku' => 'DC-SR-BLK', 'price' => 150, 'stock' => 100],
@@ -220,6 +230,7 @@ class ProductSeeder extends Seeder
                 'store' => 'kutupayisi',
                 'unit' => 'adet',
                 'price' => 3500,
+                'image' => 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=600',
                 'tags' => ['kamp', 'outdoor', 'su-gecirmez'],
                 'variants' => [
                     ['name' => 'Yeşil', 'sku' => 'QC-T4P-GRN', 'price' => 3500, 'stock' => 20],
@@ -234,6 +245,7 @@ class ProductSeeder extends Seeder
                 'store' => 'kutupayisi',
                 'unit' => 'adet',
                 'price' => 1900,
+                'image' => 'https://images.unsplash.com/photo-1510312305653-8ed496efae75?w=600',
                 'tags' => ['kamp', 'kis-sezonu', 'dagcilik'],
                 'variants' => [
                     ['name' => 'Lacivert', 'sku' => 'CL-SB15-NVY', 'price' => 1900, 'stock' => 25],
@@ -247,6 +259,7 @@ class ProductSeeder extends Seeder
                 'store' => 'kutupayisi',
                 'unit' => 'adet',
                 'price' => 1300,
+                'image' => 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=600',
                 'tags' => ['outdoor', 'kamp', 'premium'],
                 'variants' => [
                     ['name' => 'Hammertone Green', 'sku' => 'ST-CL14-GRN', 'price' => 1300, 'stock' => 40],
@@ -261,6 +274,7 @@ class ProductSeeder extends Seeder
                 'store' => 'kutupayisi',
                 'unit' => 'adet',
                 'price' => 3300,
+                'image' => 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600',
                 'tags' => ['outdoor', 'dagcilik', 'ergonomik'],
                 'variants' => [
                     ['name' => 'Yeşil', 'sku' => 'OS-HK50-GRN', 'price' => 3300, 'stock' => 18],
@@ -275,6 +289,7 @@ class ProductSeeder extends Seeder
                 'store' => 'kutupayisi',
                 'unit' => 'adet',
                 'price' => 450,
+                'image' => 'https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?w=600',
                 'tags' => ['kamp', 'outdoor', 'aksesuarlar'],
                 'variants' => [
                     ['name' => 'Mavi', 'sku' => 'CL-CC-BLU', 'price' => 450, 'stock' => 50],
@@ -291,6 +306,7 @@ class ProductSeeder extends Seeder
                 'store' => 'intersport',
                 'unit' => 'adet',
                 'price' => 1300,
+                'image' => 'https://images.unsplash.com/photo-1614632537423-1e6c2e7e0aab?w=600',
                 'tags' => ['futbol', 'profesyonel', 'orijinal'],
                 'variants' => [
                     ['name' => 'Beyaz/Siyah', 'sku' => 'NK-FLP-WB', 'price' => 1300, 'stock' => 30],
@@ -304,6 +320,7 @@ class ProductSeeder extends Seeder
                 'store' => 'intersport',
                 'unit' => 'adet',
                 'price' => 1200,
+                'image' => 'https://images.unsplash.com/photo-1519861531473-9200262188bf?w=600',
                 'tags' => ['basketbol', 'profesyonel', 'indoor'],
                 'variants' => [
                     ['name' => '7 Numara', 'sku' => 'SP-TF1000-7', 'price' => 1200, 'stock' => 25],
@@ -317,6 +334,7 @@ class ProductSeeder extends Seeder
                 'store' => 'intersport',
                 'unit' => 'adet',
                 'price' => 4500,
+                'image' => 'https://images.unsplash.com/photo-1617083934555-ac7d4c10cd50?w=600',
                 'tags' => ['tenis', 'profesyonel', 'ileri-seviye'],
                 'variants' => [
                     ['name' => 'Grip 2', 'sku' => 'BB-PA-G2', 'price' => 4500, 'stock' => 12],
@@ -331,6 +349,7 @@ class ProductSeeder extends Seeder
                 'store' => 'intersport',
                 'unit' => 'adet',
                 'price' => 600,
+                'image' => 'https://images.unsplash.com/photo-1530549387789-4c1017266635?w=600',
                 'tags' => ['yuzme', 'profesyonel', 'yaris'],
                 'variants' => [
                     ['name' => 'Siyah/Smoke', 'sku' => 'SP-FS-BLK', 'price' => 600, 'stock' => 40],
@@ -345,6 +364,7 @@ class ProductSeeder extends Seeder
                 'store' => 'intersport',
                 'unit' => 'cift',
                 'price' => 1300,
+                'image' => 'https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=600',
                 'tags' => ['boks', 'mma', 'profesyonel'],
                 'variants' => [
                     ['name' => 'Siyah', 'sku' => 'EV-BP14-BLK', 'price' => 1300, 'stock' => 20],
@@ -361,6 +381,7 @@ class ProductSeeder extends Seeder
                 'store' => 'decathlon',
                 'unit' => 'cift',
                 'price' => 4000,
+                'image' => 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600',
                 'tags' => ['kosu', 'gunluk-kullanim', 'erkek'],
                 'variants' => [
                     ['name' => 'Siyah - 41', 'sku' => 'NK-AM270R-41', 'price' => 4000, 'stock' => 8],
@@ -377,6 +398,7 @@ class ProductSeeder extends Seeder
                 'store' => 'decathlon',
                 'unit' => 'cift',
                 'price' => 4800,
+                'image' => 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=600',
                 'tags' => ['kosu', 'premium', 'unisex'],
                 'variants' => [
                     ['name' => 'Core Black - 41', 'sku' => 'AD-UB23L-41', 'price' => 4800, 'stock' => 6],
@@ -392,6 +414,7 @@ class ProductSeeder extends Seeder
                 'store' => 'decathlon',
                 'unit' => 'adet',
                 'price' => 700,
+                'image' => 'https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=600',
                 'tags' => ['kosu', 'erkek', 'nefes-alabilir'],
                 'variants' => [
                     ['name' => 'Siyah - S', 'sku' => 'NK-DFRT-S', 'price' => 700, 'stock' => 25],
@@ -408,6 +431,7 @@ class ProductSeeder extends Seeder
                 'store' => 'decathlon',
                 'unit' => 'adet',
                 'price' => 1300,
+                'image' => 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=600',
                 'tags' => ['gunluk-kullanim', 'erkek', 'sonbahar'],
                 'variants' => [
                     ['name' => 'Siyah - M', 'sku' => 'AD-EFH-M', 'price' => 1300, 'stock' => 20],
@@ -423,6 +447,7 @@ class ProductSeeder extends Seeder
                 'store' => 'decathlon',
                 'unit' => 'adet',
                 'price' => 900,
+                'image' => 'https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=600',
                 'tags' => ['fitness', 'kadin', 'antrenman'],
                 'variants' => [
                     ['name' => 'Siyah - S', 'sku' => 'NK-TTK-S', 'price' => 900, 'stock' => 20],
@@ -440,6 +465,7 @@ class ProductSeeder extends Seeder
                 'store' => 'decathlon',
                 'unit' => 'adet',
                 'price' => 13000,
+                'image' => 'https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=600',
                 'tags' => ['akilli-cihaz', 'kosu', 'premium'],
                 'variants' => [
                     ['name' => 'Siyah', 'sku' => 'GR-FR265-BLK', 'price' => 13000, 'stock' => 15],
@@ -454,6 +480,7 @@ class ProductSeeder extends Seeder
                 'store' => 'decathlon',
                 'unit' => 'adet',
                 'price' => 16000,
+                'image' => 'https://images.unsplash.com/photo-1564466809058-bf4114d55352?w=600',
                 'tags' => ['elektronik', 'profesyonel', 'outdoor'],
                 'variants' => [
                     ['name' => 'Creator Edition', 'sku' => 'GP-H12-CE', 'price' => 16000, 'stock' => 10],
@@ -467,6 +494,7 @@ class ProductSeeder extends Seeder
                 'store' => 'decathlon',
                 'unit' => 'adet',
                 'price' => 3300,
+                'image' => 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600',
                 'tags' => ['elektronik', 'su-gecirmez', 'fitness'],
                 'variants' => [
                     ['name' => 'Siyah', 'sku' => 'JBL-EP3-BLK', 'price' => 3300, 'stock' => 30],
@@ -483,6 +511,7 @@ class ProductSeeder extends Seeder
                 'store' => 'intersport',
                 'unit' => 'adet',
                 'price' => 1200,
+                'image' => 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600',
                 'tags' => ['aksesuarlar', 'dayanikli', 'fitness'],
                 'variants' => [
                     ['name' => 'Siyah', 'sku' => 'NK-BRXL-BLK', 'price' => 1200, 'stock' => 35],
@@ -496,6 +525,7 @@ class ProductSeeder extends Seeder
                 'store' => 'intersport',
                 'unit' => 'adet',
                 'price' => 2500,
+                'image' => 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=600',
                 'tags' => ['aksesuarlar', 'uv-korumali', 'outdoor'],
                 'variants' => [
                     ['name' => 'Matte Black/Prizm Sapphire', 'sku' => 'OK-HBXL-BPS', 'price' => 2500, 'stock' => 20],
@@ -511,6 +541,7 @@ class ProductSeeder extends Seeder
                 'store' => 'superstacy',
                 'unit' => 'adet',
                 'price' => 599,
+                'image' => 'https://images.unsplash.com/photo-1538805060514-97d9cc17730c?w=600',
                 'tags' => ['fitness', 'kadin', 'antrenman'],
                 'variants' => [
                     ['name' => 'Siyah - XS', 'sku' => 'SS-HWT-XS', 'price' => 599, 'stock' => 30],
@@ -527,6 +558,7 @@ class ProductSeeder extends Seeder
                 'store' => 'superstacy',
                 'unit' => 'adet',
                 'price' => 399,
+                'image' => 'https://images.unsplash.com/photo-1571945153237-4929e783af4a?w=600',
                 'tags' => ['fitness', 'kadin', 'antrenman'],
                 'variants' => [
                     ['name' => 'Siyah - S', 'sku' => 'SS-SB-S', 'price' => 399, 'stock' => 50],
@@ -542,6 +574,7 @@ class ProductSeeder extends Seeder
                 'store' => 'superstacy',
                 'unit' => 'adet',
                 'price' => 299,
+                'image' => 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600',
                 'tags' => ['fitness', 'kadin', 'yoga'],
                 'variants' => [
                     ['name' => 'Beyaz - S', 'sku' => 'SS-CT-WS', 'price' => 299, 'stock' => 35],
@@ -557,6 +590,7 @@ class ProductSeeder extends Seeder
                 'store' => 'superstacy',
                 'unit' => 'set',
                 'price' => 899,
+                'image' => 'https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=600',
                 'tags' => ['fitness', 'kadin', 'yoga', 'premium'],
                 'variants' => [
                     ['name' => 'Bordo Set - S', 'sku' => 'SS-YS-BS', 'price' => 899, 'stock' => 25],
@@ -574,6 +608,7 @@ class ProductSeeder extends Seeder
                 'store' => 'orcamp',
                 'unit' => 'adet',
                 'price' => 4500,
+                'image' => 'https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?w=600',
                 'tags' => ['kamp', 'outdoor', 'su-gecirmez'],
                 'variants' => [
                     ['name' => 'Yeşil', 'sku' => 'OC-E4S3-GRN', 'price' => 4500, 'stock' => 15],
@@ -588,6 +623,7 @@ class ProductSeeder extends Seeder
                 'store' => 'orcamp',
                 'unit' => 'adet',
                 'price' => 2200,
+                'image' => 'https://images.unsplash.com/photo-1504851149312-7a075b496cc7?w=600',
                 'tags' => ['kamp', 'kis-sezonu', 'dagcilik'],
                 'variants' => [
                     ['name' => 'Turuncu', 'sku' => 'OC-CS20-ORA', 'price' => 2200, 'stock' => 20],
@@ -602,6 +638,7 @@ class ProductSeeder extends Seeder
                 'store' => 'orcamp',
                 'unit' => 'adet',
                 'price' => 650,
+                'image' => 'https://images.unsplash.com/photo-1510312305653-8ed496efae75?w=600',
                 'tags' => ['kamp', 'outdoor', 'aksesuarlar'],
                 'variants' => [
                     ['name' => 'Siyah', 'sku' => 'OC-KO35-BLK', 'price' => 650, 'stock' => 40],
@@ -615,6 +652,7 @@ class ProductSeeder extends Seeder
                 'store' => 'orcamp',
                 'unit' => 'adet',
                 'price' => 890,
+                'image' => 'https://images.unsplash.com/photo-1445308394109-4ec2920981b1?w=600',
                 'tags' => ['kamp', 'outdoor', 'ergonomik'],
                 'variants' => [
                     ['name' => 'Yeşil', 'sku' => 'OC-SMU-GRN', 'price' => 890, 'stock' => 35],
@@ -628,6 +666,7 @@ class ProductSeeder extends Seeder
                 'store' => 'orcamp',
                 'unit' => 'adet',
                 'price' => 450,
+                'image' => 'https://images.unsplash.com/photo-1532339142463-fd0a8979791a?w=600',
                 'tags' => ['kamp', 'outdoor', 'elektronik'],
                 'variants' => [
                     ['name' => 'Siyah', 'sku' => 'OC-KL-BLK', 'price' => 450, 'stock' => 50],
@@ -643,6 +682,7 @@ class ProductSeeder extends Seeder
                 'store' => 'spor-kitapligi',
                 'unit' => 'adet',
                 'price' => 180,
+                'image' => 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=600',
                 'tags' => ['kosu', 'fitness', 'premium'],
                 'variants' => [
                     ['name' => 'Karton Kapak', 'sku' => 'BK-BTR-KK', 'price' => 180, 'stock' => 50],
@@ -657,6 +697,7 @@ class ProductSeeder extends Seeder
                 'store' => 'spor-kitapligi',
                 'unit' => 'adet',
                 'price' => 160,
+                'image' => 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=600',
                 'tags' => ['outdoor', 'kamp', 'premium'],
                 'variants' => [
                     ['name' => 'Karton Kapak', 'sku' => 'BK-ITW-KK', 'price' => 160, 'stock' => 60],
@@ -670,6 +711,7 @@ class ProductSeeder extends Seeder
                 'store' => 'spor-kitapligi',
                 'unit' => 'adet',
                 'price' => 200,
+                'image' => 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=600',
                 'tags' => ['dagcilik', 'outdoor', 'profesyonel'],
                 'variants' => [
                     ['name' => 'Karton Kapak', 'sku' => 'BK-ITA-KK', 'price' => 200, 'stock' => 45],
@@ -683,6 +725,7 @@ class ProductSeeder extends Seeder
                 'store' => 'spor-kitapligi',
                 'unit' => 'adet',
                 'price' => 170,
+                'image' => 'https://images.unsplash.com/photo-1476275466078-4007374efbbe?w=600',
                 'tags' => ['kosu', 'fitness', 'dayaniklilik'],
                 'variants' => [
                     ['name' => 'Karton Kapak', 'sku' => 'BK-UMM-KK', 'price' => 170, 'stock' => 40],
@@ -696,6 +739,7 @@ class ProductSeeder extends Seeder
                 'store' => 'spor-kitapligi',
                 'unit' => 'adet',
                 'price' => 220,
+                'image' => 'https://images.unsplash.com/photo-1522163182402-834f871fd851?w=600',
                 'tags' => ['dagcilik', 'profesyonel', 'premium'],
                 'variants' => [
                     ['name' => 'Karton Kapak', 'sku' => 'BK-AOW-KK', 'price' => 220, 'stock' => 35],
@@ -710,6 +754,7 @@ class ProductSeeder extends Seeder
                 'store' => 'spor-kitapligi',
                 'unit' => 'adet',
                 'price' => 250,
+                'image' => 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=600',
                 'tags' => ['outdoor', 'kamp', 'dagcilik'],
                 'variants' => [
                     ['name' => 'Karton Kapak', 'sku' => 'BK-SRV-KK', 'price' => 250, 'stock' => 55],
@@ -745,6 +790,7 @@ class ProductSeeder extends Seeder
             'name' => $data['tr']['name'],
             'slug' => $slug,
             'description' => $data['tr']['description'],
+            'image' => $data['image'] ?? null,
             'status' => 'approved',
             'is_featured' => rand(0, 1),
             'cash_on_delivery' => 1,
