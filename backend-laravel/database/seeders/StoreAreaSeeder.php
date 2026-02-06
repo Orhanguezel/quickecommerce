@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class StoreAreaSeeder extends Seeder
 {
@@ -13,6 +14,12 @@ class StoreAreaSeeder extends Seeder
      */
     public function run()
     {
+        // Check if table exists
+        if (!Schema::hasTable('store_areas')) {
+            $this->command->warn('StoreAreaSeeder: store_areas table does not exist. Skipping...');
+            return;
+        }
+
         $areas = [
             [
                 'code' => 'BD-001',

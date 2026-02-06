@@ -7,6 +7,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 
 class StoreSellerSeeder extends Seeder
 {
@@ -15,7 +16,12 @@ class StoreSellerSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('store_sellers')->insert([
+        if (!Schema::hasTable('store_sellers')) {
+            $this->command->warn('StoreSellerSeeder: store_sellers table does not exist. Skipping...');
+            return;
+        }
+
+        DB::table('store_sellers')->insertOrIgnore([
             [
                 'user_id' => 1,
                 'status' => 1,

@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\StoreAreaSetting;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Schema;
 
 class StoreAreaSettingsSeeder extends Seeder
 {
@@ -12,8 +13,14 @@ class StoreAreaSettingsSeeder extends Seeder
      */
     public function run(): void
     {
-        StoreAreaSetting::create([
-            "store_area_id" => 1,
+        if (!Schema::hasTable('store_area_settings')) {
+            $this->command->warn('StoreAreaSettingsSeeder: store_area_settings table does not exist. Skipping...');
+            return;
+        }
+
+        StoreAreaSetting::updateOrCreate(
+            ['store_area_id' => 1],
+            [
             "delivery_time_per_km" => 2,
             "min_order_delivery_fee" => 10,
             "out_of_area_delivery_charge" => 500,

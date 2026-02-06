@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Faker\Factory as Faker;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class LocationSeeder extends Seeder
 {
@@ -13,6 +14,24 @@ class LocationSeeder extends Seeder
      */
     public function run(): void
     {
+        // Check if required tables exist
+        if (!Schema::hasTable('countries')) {
+            $this->command->warn('LocationSeeder: countries table does not exist. Skipping...');
+            return;
+        }
+        if (!Schema::hasTable('states')) {
+            $this->command->warn('LocationSeeder: states table does not exist. Skipping...');
+            return;
+        }
+        if (!Schema::hasTable('cities')) {
+            $this->command->warn('LocationSeeder: cities table does not exist. Skipping...');
+            return;
+        }
+        if (!Schema::hasTable('areas')) {
+            $this->command->warn('LocationSeeder: areas table does not exist. Skipping...');
+            return;
+        }
+
         $faker = Faker::create();
         $states = [
             'USA' => [
