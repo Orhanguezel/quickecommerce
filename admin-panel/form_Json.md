@@ -9,6 +9,10 @@ Bu dosya **tek kaynak**tır. DF + JSON i18n form yapan her dosya **bu sırayla**
 - DF + JSON scaffold kullanan **tüm formlar**.
 - Amaç: deterministik init, tek kaynak, drift olmadan submit.
 
+
+
+fhfgh
+
 ---
 
 ## 1) Import Kuralları (Sadece Bunlar)
