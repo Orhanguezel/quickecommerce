@@ -45,10 +45,10 @@ class EmailTemplateSeeder extends Seeder
                 "updated_at" => $now,
             ],
             [
-                "type" => 'register',
-                "name" => 'User Registration',
-                "subject" => 'Welcome to ' . config('app.name'),
-                "body" => "<h1>Hello Admin, A New Seller Just Joined BravoMart!</h1>
+                "type" => 'register-seller-admin',
+                "name" => 'New Seller Registration (Admin)',
+                "subject" => 'New Seller Joined ' . config('app.name'),
+                "body" => "<h1>Hello Admin, A New Seller Just Joined!</h1>
                             <ul>
                                 <li>Name: @name</li>
                                 <li>Email: @email</li>
