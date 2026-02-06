@@ -76,7 +76,7 @@ class AdminSubscriptionPackageController extends Controller
 
     public function show($id)
     {
-        $package = Subscription::findOrFail($id);
+        $package = Subscription::with('related_translations')->findOrFail($id);
         return response()->json([
             'success' => true,
             'package' => new AdminSubscriptionPackageDetailsResource($package),

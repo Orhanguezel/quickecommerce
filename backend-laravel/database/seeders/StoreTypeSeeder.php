@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\StoreType;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class StoreTypeSeeder extends Seeder
 {
@@ -12,28 +14,165 @@ class StoreTypeSeeder extends Seeder
      */
     public function run(): void
     {
+        if (!Schema::hasTable('store_types')) {
+            $this->command->warn('StoreTypeSeeder: store_types table does not exist. Skipping...');
+            return;
+        }
+
         $storeTypes = [
-            ['name' => 'Grocery', 'type' => \App\Enums\StoreType::GROCERY->value],
-            ['name' => 'Bakery', 'type' => \App\Enums\StoreType::BAKERY->value],
-            ['name' => 'Medicine', 'type' => \App\Enums\StoreType::MEDICINE->value],
-            ['name' => 'Makeup', 'type' => \App\Enums\StoreType::MAKEUP->value],
-            ['name' => 'Bags', 'type' => \App\Enums\StoreType::BAGS->value],
-            ['name' => 'Clothing', 'type' => \App\Enums\StoreType::CLOTHING->value],
-            ['name' => 'Furniture', 'type' => \App\Enums\StoreType::FURNITURE->value],
-            ['name' => 'Books', 'type' => \App\Enums\StoreType::BOOKS->value],
-            ['name' => 'Gadgets', 'type' => \App\Enums\StoreType::GADGET->value],
-            ['name' => 'Animals & Pets', 'type' => \App\Enums\StoreType::ANIMALS_PET->value],
-            ['name' => 'Fish', 'type' => \App\Enums\StoreType::FISH->value],
+            [
+                'name_tr' => 'Market',
+                'name_en' => 'Grocery',
+                'description_tr' => 'Günlük ihtiyaçlarınız için taze gıda ve market ürünleri.',
+                'description_en' => 'Fresh food and grocery products for your daily needs.',
+                'type' => \App\Enums\StoreType::GROCERY->value,
+                'image' => 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400',
+            ],
+            [
+                'name_tr' => 'Fırın & Pastane',
+                'name_en' => 'Bakery',
+                'description_tr' => 'Taze ekmek, pasta ve unlu mamüller.',
+                'description_en' => 'Fresh bread, cakes and bakery products.',
+                'type' => \App\Enums\StoreType::BAKERY->value,
+                'image' => 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400',
+            ],
+            [
+                'name_tr' => 'Eczane',
+                'name_en' => 'Pharmacy',
+                'description_tr' => 'İlaç, sağlık ve kişisel bakım ürünleri.',
+                'description_en' => 'Medicine, health and personal care products.',
+                'type' => \App\Enums\StoreType::MEDICINE->value,
+                'image' => 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=400',
+            ],
+            [
+                'name_tr' => 'Kozmetik',
+                'name_en' => 'Cosmetics',
+                'description_tr' => 'Makyaj, cilt bakımı ve güzellik ürünleri.',
+                'description_en' => 'Makeup, skincare and beauty products.',
+                'type' => \App\Enums\StoreType::MAKEUP->value,
+                'image' => 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400',
+            ],
+            [
+                'name_tr' => 'Çanta & Aksesuar',
+                'name_en' => 'Bags & Accessories',
+                'description_tr' => 'Çanta, cüzdan ve moda aksesuarları.',
+                'description_en' => 'Bags, wallets and fashion accessories.',
+                'type' => \App\Enums\StoreType::BAGS->value,
+                'image' => 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400',
+            ],
+            [
+                'name_tr' => 'Giyim',
+                'name_en' => 'Clothing',
+                'description_tr' => 'Kadın, erkek ve çocuk giyim ürünleri.',
+                'description_en' => 'Women, men and kids clothing products.',
+                'type' => \App\Enums\StoreType::CLOTHING->value,
+                'image' => 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400',
+            ],
+            [
+                'name_tr' => 'Mobilya',
+                'name_en' => 'Furniture',
+                'description_tr' => 'Ev ve ofis mobilyaları, dekorasyon ürünleri.',
+                'description_en' => 'Home and office furniture, decoration products.',
+                'type' => \App\Enums\StoreType::FURNITURE->value,
+                'image' => 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400',
+            ],
+            [
+                'name_tr' => 'Kitap & Kırtasiye',
+                'name_en' => 'Books & Stationery',
+                'description_tr' => 'Kitap, dergi ve kırtasiye malzemeleri.',
+                'description_en' => 'Books, magazines and stationery supplies.',
+                'type' => \App\Enums\StoreType::BOOKS->value,
+                'image' => 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400',
+            ],
+            [
+                'name_tr' => 'Elektronik',
+                'name_en' => 'Electronics',
+                'description_tr' => 'Telefon, bilgisayar ve elektronik cihazlar.',
+                'description_en' => 'Phones, computers and electronic devices.',
+                'type' => \App\Enums\StoreType::GADGET->value,
+                'image' => 'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?w=400',
+            ],
+            [
+                'name_tr' => 'Pet Shop',
+                'name_en' => 'Pet Shop',
+                'description_tr' => 'Evcil hayvan maması ve aksesuarları.',
+                'description_en' => 'Pet food and accessories.',
+                'type' => \App\Enums\StoreType::ANIMALS_PET->value,
+                'image' => 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400',
+            ],
+            [
+                'name_tr' => 'Balıkçı',
+                'name_en' => 'Fish Market',
+                'description_tr' => 'Taze balık ve deniz ürünleri.',
+                'description_en' => 'Fresh fish and seafood products.',
+                'type' => \App\Enums\StoreType::FISH->value,
+                'image' => 'https://images.unsplash.com/photo-1534043464124-3be32fe000c9?w=400',
+            ],
         ];
 
+        $now = now();
+
         foreach ($storeTypes as $storeType) {
-            StoreType::updateOrInsert(
-                ['type' => $storeType['type']],
-                [
-                    'name' => $storeType['name'],
-                    'status' => 1
-                ]
-            );
+            $nameTr = $storeType['name_tr'];
+            $nameEn = $storeType['name_en'];
+            $descTr = $storeType['description_tr'];
+            $descEn = $storeType['description_en'];
+
+            // Check if exists by type
+            $existing = DB::table('store_types')->where('type', $storeType['type'])->first();
+
+            if ($existing) {
+                $storeTypeId = $existing->id;
+                DB::table('store_types')->where('id', $storeTypeId)->update([
+                    'name' => $nameTr,
+                    'image' => $storeType['image'],
+                    'description' => $descTr,
+                    'status' => 1,
+                    'updated_at' => $now,
+                ]);
+            } else {
+                $storeTypeId = DB::table('store_types')->insertGetId([
+                    'name' => $nameTr,
+                    'type' => $storeType['type'],
+                    'image' => $storeType['image'],
+                    'description' => $descTr,
+                    'status' => 1,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
+
+            // Add translations if translations table exists
+            if (Schema::hasTable('translations')) {
+                // Name translations
+                $this->addTranslation($storeTypeId, 'App\\Models\\StoreType', 'df', 'name', $nameTr);
+                $this->addTranslation($storeTypeId, 'App\\Models\\StoreType', 'tr', 'name', $nameTr);
+                $this->addTranslation($storeTypeId, 'App\\Models\\StoreType', 'en', 'name', $nameEn);
+
+                // Description translations
+                $this->addTranslation($storeTypeId, 'App\\Models\\StoreType', 'df', 'description', $descTr);
+                $this->addTranslation($storeTypeId, 'App\\Models\\StoreType', 'tr', 'description', $descTr);
+                $this->addTranslation($storeTypeId, 'App\\Models\\StoreType', 'en', 'description', $descEn);
+            }
         }
+
+        $this->command->info('StoreTypeSeeder: 11 store types seeded with TR/EN translations and images.');
+    }
+
+    private function addTranslation($id, $type, $lang, $key, $value): void
+    {
+        DB::table('translations')->updateOrInsert(
+            [
+                'translatable_id' => $id,
+                'translatable_type' => $type,
+                'language' => $lang,
+                'key' => $key,
+            ],
+            [
+                'value' => $value,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
     }
 }

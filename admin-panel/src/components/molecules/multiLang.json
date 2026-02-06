@@ -1,5 +1,4 @@
 [
-  { "id": "tr", "language_code": "turkish", "label": "Türkçe" },
+  { "id": "df", "language_code": "default", "label": "Türkçe" },
   { "id": "en", "language_code": "english", "label": "İngilizce" }
-
 ]

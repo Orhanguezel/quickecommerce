@@ -10,7 +10,7 @@ const MuteVectorIcon: React.FC<VectorIconProps> = ({
   h = "20",
 }) => {
   return (
-    <div>
+    <span className="inline-flex">
       <svg
         width={w}
         height={h}
@@ -27,7 +27,7 @@ const MuteVectorIcon: React.FC<VectorIconProps> = ({
           fill="#FFFFFF"
         />
       </svg>
-    </div>
+    </span>
   );
 };
 

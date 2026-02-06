@@ -8,7 +8,7 @@ const VectorIcon: React.FC<VectorIconProps> = ({
   h="20"
 }) => {
   return (
-    <div>
+    <span className="inline-flex">
       <svg
         width={w}
         height={h}
@@ -21,7 +21,7 @@ const VectorIcon: React.FC<VectorIconProps> = ({
           fill="#2563EB"
         />
       </svg>
-    </div>
+    </span>
   );
 };
 

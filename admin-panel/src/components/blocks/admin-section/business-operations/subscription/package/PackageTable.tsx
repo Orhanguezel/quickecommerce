@@ -221,9 +221,9 @@ const PackageTable = ({ searchValue }: any) => {
           title: t("table_header.pos_system"),
           dataIndex: "pos_system",
           render: (pos_system: any) => (
-            <p className="px-4">
+            <span className="px-4 inline-block">
               {pos_system == true ? <VectorIcon /> : <MuteVectorIcon />}
-            </p>
+            </span>
           ),
           width: 150,
         },
@@ -231,9 +231,9 @@ const PackageTable = ({ searchValue }: any) => {
           title: t("table_header.live_chat"),
           dataIndex: "live_chat",
           render: (live_chat: any) => (
-            <p className="px-4">
+            <span className="px-4 inline-block">
               {live_chat == 1 ? <VectorIcon /> : <MuteVectorIcon />}
-            </p>
+            </span>
           ),
           width: 100,
         },

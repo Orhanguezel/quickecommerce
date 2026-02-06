@@ -3,7 +3,6 @@
 namespace App\Repositories;
 
 use App\Helpers\ComHelper;
-use App\Http\Resources\Translation\AreaTranslationResource;
 use App\Models\StoreArea;
 use App\Interfaces\ComAreaInterface;
 use Illuminate\Support\Facades\DB;
@@ -67,6 +66,20 @@ class ComAreaRepository implements ComAreaInterface
         $area = $this->area->with('related_translations')->findOrFail($id);
         $formated_coordinates = json_decode($area->coordinates[0]->toJson(), true);
 
+        // Transform translations to object keyed by language
+        $translations = [];
+        foreach ($area->related_translations->groupBy('language') as $lang => $items) {
+            // Skip 'df' as it's the default language stored in main columns
+            if ($lang === 'df') {
+                continue;
+            }
+            $translations[$lang] = [
+                'name' => $items->where('key', 'name')->first()?->value,
+                'city' => $items->where('key', 'city')->first()?->value,
+                'state' => $items->where('key', 'state')->first()?->value,
+            ];
+        }
+
         return [
             'id' => $area->id,
             'code' => $area->code,
@@ -78,7 +91,7 @@ class ComAreaRepository implements ComAreaInterface
             'center_longitude' => $area->center_longitude,
             'created_by' => $area->created_by,
             'coordinates' => ComHelper::format_coordiantes($formated_coordinates['coordinates']),
-            'translations' => AreaTranslationResource::collection($area->related_translations->groupBy('language')),
+            'translations' => $translations,
         ];
     }
     public function store(array $data): string|object
