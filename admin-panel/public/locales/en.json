@@ -636,6 +636,10 @@
     "add_page": "Add Page",
     "edit_page": "Edit Page",
     "pages": "Pages",
+    "theme_name": "Theme Name",
+    "default_theme": "Default",
+    "theme_one": "Theme One",
+    "theme_two": "Theme Two",
     "edit_role": "Edit Role",
     "add_role": "Add Role",
     "update_role": "Update Role",
@@ -846,7 +850,22 @@
     "commission_base_subtitle": "Choose a commission-based plan to align with your business growth. Pay only when you generate sales, making it ideal for startups or businesses focused on minimizing upfront costs. Enjoy key features like real-time sales tracking, detailed analytics, and scalable opportunities to suit your business needs.",
     "subscription_base": " Subscription Base",
     "subscription_base_subtitle": "Opt for a subscription-based plan to enjoy a fixed monthly cost with access to premium features and support. This plan is perfect for businesses looking to streamline operations with tools like a POS system, self-delivery management, mobile apps, and enhanced customer engagement tools. Unlock predictable expenses with unlimited access to critical features.",
-    "choose_your_business_plan": "Choose your Business Plan"
+    "choose_your_business_plan": "Choose your Business Plan",
+    "manage_currency": "Manage Currency",
+    "currency_settings": "Currency Settings",
+    "add_currency": "Add Currency",
+    "site_global_currency": "Site Global Currency",
+    "enable_disable_decimal_point": "Enable/Disable Decimal Point",
+    "space_between_currency_symbol_and_amount": "Add/Remove Space Between Currency Symbol and Amount",
+    "comma_from_amount": "Add/Remove comma (,) from amount",
+    "currency_symbol_position": "Currency Symbol Position",
+    "decimal_note_yes": "Yes: Show prices with decimals (example: 10.50).",
+    "decimal_note_no": "No: Show prices without decimals – rounded to whole prices (example: 10).",
+    "note": "Note",
+    "left": "Left",
+    "right": "Right",
+    "yes": "Yes",
+    "no": "No"
   },
   "place_holder": {
     "enter_coupon_code": "Enter Coupon Code",
@@ -975,6 +994,8 @@
     "select_store_type": "Select Store Type"
   },
   "table_header": {
+    "theme_name": "Theme Name",
+    "path": "Path",
     "subscription_type": "Subscription Type",
     "package_info": "Package Info",
     "slug": "Slug",

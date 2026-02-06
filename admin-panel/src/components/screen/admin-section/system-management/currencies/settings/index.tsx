@@ -15,7 +15,7 @@ const CurrencySettings = () => {
           <div>
             <h1 className="text-lg md:text-2xl font-semibold text-black dark:text-white flex items-center gap-2">
               {" "}
-              <CurrencyIcon /> Currency Settings
+              <CurrencyIcon /> {t('label.currency_settings')}
             </h1>
           </div>
         </CardContent>

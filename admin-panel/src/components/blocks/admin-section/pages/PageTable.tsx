@@ -151,7 +151,7 @@ const PagesTable = ({ searchValue }: any) => {
           width: "10%",
         },
         {
-          title: "Theme Name",
+          title: t("table_header.theme_name"),
           dataIndex: "theme_name",
           width: 200,
         },
@@ -161,7 +161,7 @@ const PagesTable = ({ searchValue }: any) => {
           width: 200,
         },
         {
-          title: "Path",
+          title: t("table_header.path"),
           dataIndex: "slug",
           width: 200,
         },
@@ -225,7 +225,7 @@ const PagesTable = ({ searchValue }: any) => {
                       : "bg-gray-50 border border-gray-500 text-gray-500"
                   } capitalize`}
                 >
-                  {status}
+                  {status === "publish" ? t("label.publish") : t("label.draft")}
                 </Badge>
               </div>
             </div>
