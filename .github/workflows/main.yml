@@ -71,7 +71,7 @@ jobs:
 
             composer install --no-dev --optimize-autoloader --no-interaction
 
-            # Cache işlemlerinden ÖNCE temizle
+            # Cache işlemlerinden ÖNCE izinleri kontrol et
             php artisan config:clear
             php artisan cache:clear
             php artisan view:clear
@@ -88,12 +88,9 @@ jobs:
             php artisan db:seed --class=RolesSeeder --force || true
             php artisan db:seed --class=UserSeeder --force || true
             php artisan db:seed --class=PermissionAdminSeeder --force || true
-            php artisan db:seed --class=CurrencySeeder --force || true
-            php artisan db:seed --class=PageSeeder --force || true
 
             echo "=== Fix Storage Permissions (After Laravel Operations) ==="
             # Laravel işlemleri sonrası tekrar düzelt (yeni cache dosyaları için)
-            cd /var/www/quikecommerce/backend-laravel
             find storage -type f -exec chown www-data:www-data {} \;
             find storage -type d -exec chown www-data:www-data {} \;
             find bootstrap/cache -type f -exec chown www-data:www-data {} \;
