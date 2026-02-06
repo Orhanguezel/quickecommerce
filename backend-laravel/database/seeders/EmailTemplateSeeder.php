@@ -5,8 +5,8 @@ namespace Database\Seeders;
 use App\Models\EmailTemplate;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
-use Modules\Wallet\app\Models\Wallet;
-use Modules\Wallet\app\Models\WalletTransaction;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class EmailTemplateSeeder extends Seeder
 {
@@ -15,6 +15,15 @@ class EmailTemplateSeeder extends Seeder
      */
     public function run(): void
     {
+        // Check if table exists
+        if (!Schema::hasTable('email_templates')) {
+            $this->command->warn('EmailTemplateSeeder: email_templates table does not exist. Skipping...');
+            return;
+        }
+
+        // Clear existing data to avoid duplicates
+        DB::table('email_templates')->delete();
+
         $now = Carbon::now();
 
         // Batch insert email templates

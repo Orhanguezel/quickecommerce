@@ -7,6 +7,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 
 class CustomerSeeder extends Seeder
 {
@@ -15,7 +16,14 @@ class CustomerSeeder extends Seeder
      */
     public function run(): void
     {
-        \App\Models\Customer::create([
+        if (!Schema::hasTable('customers')) {
+            $this->command->warn('CustomerSeeder: customers table does not exist. Skipping...');
+            return;
+        }
+
+        \App\Models\Customer::updateOrCreate(
+            ['email' => 'john_doe@example.com'],
+            [
             "first_name" => "John",
             "last_name" => "Doe",
             "email" => "john_doe@example.com",

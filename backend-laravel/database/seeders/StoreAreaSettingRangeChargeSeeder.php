@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\StoreAreaSettingRangeCharge;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Schema;
 
 class StoreAreaSettingRangeChargeSeeder extends Seeder
 {
@@ -12,6 +13,10 @@ class StoreAreaSettingRangeChargeSeeder extends Seeder
      */
     public function run(): void
     {
+        if (!Schema::hasTable('store_area_setting_range_charges')) {
+            $this->command->warn('StoreAreaSettingRangeChargeSeeder: store_area_setting_range_charges table does not exist. Skipping...');
+            return;
+        }
 
         $rangeCharges = [
             [
@@ -45,7 +50,19 @@ class StoreAreaSettingRangeChargeSeeder extends Seeder
         ];
 
         foreach ($rangeCharges as $charge) {
-            StoreAreaSettingRangeCharge::create($charge);
+            StoreAreaSettingRangeCharge::updateOrCreate(
+                [
+                    'store_area_setting_id' => $charge['store_area_setting_id'],
+                    'min_km' => $charge['min_km'],
+                    'max_km' => $charge['max_km'],
+                ],
+                [
+                    'charge_amount' => $charge['charge_amount'],
+                    'status' => $charge['status'],
+                ]
+            );
         }
+
+        $this->command->info('StoreAreaSettingRangeChargeSeeder: 4 range charges seeded.');
     }
 }

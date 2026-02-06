@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Modules\Subscription\app\Models\Subscription;
 
 class SubscriptionPackageSeeder extends Seeder
@@ -14,9 +15,15 @@ class SubscriptionPackageSeeder extends Seeder
      */
     public function run(): void
     {
+        if (!Schema::hasTable('subscriptions')) {
+            $this->command->warn('SubscriptionPackageSeeder: subscriptions table does not exist. Skipping...');
+            return;
+        }
+
         $packages = [
             [
-                "name" => "Trial Package",
+                "name_tr" => "Deneme Paketi",
+                "name_en" => "Trial Package",
                 "type" => 'Weekly',
                 "validity" => 30,
                 "price" => 0,
@@ -29,7 +36,8 @@ class SubscriptionPackageSeeder extends Seeder
                 "product_featured_limit" => 2
             ],
             [
-                "name" => "Basic Package",
+                "name_tr" => "Temel Paket",
+                "name_en" => "Basic Package",
                 "type" => 'Monthly',
                 "validity" => 30,
                 "price" => 30,
@@ -42,7 +50,8 @@ class SubscriptionPackageSeeder extends Seeder
                 "product_featured_limit" => 5
             ],
             [
-                "name" => "Standard Package",
+                "name_tr" => "Standart Paket",
+                "name_en" => "Standard Package",
                 "type" => 'Half-Yearly',
                 "validity" => 180,
                 "price" => 100,
@@ -55,7 +64,8 @@ class SubscriptionPackageSeeder extends Seeder
                 "product_featured_limit" => 10
             ],
             [
-                "name" => "Premium Package",
+                "name_tr" => "Premium Paket",
+                "name_en" => "Premium Package",
                 "type" => 'Yearly',
                 "validity" => 365,
                 "price" => 200,
@@ -68,7 +78,8 @@ class SubscriptionPackageSeeder extends Seeder
                 "product_featured_limit" => 15
             ],
             [
-                "name" => "Enterprise Package",
+                "name_tr" => "Kurumsal Paket",
+                "name_en" => "Enterprise Package",
                 "type" => 'Extended',
                 "validity" => 1095,
                 "price" => 500,
@@ -83,9 +94,40 @@ class SubscriptionPackageSeeder extends Seeder
         ];
 
         foreach ($packages as $package) {
-            Subscription::create($package);
+            $nameTr = $package['name_tr'];
+            $nameEn = $package['name_en'];
+            unset($package['name_tr'], $package['name_en']);
+
+            $subscription = Subscription::updateOrCreate(
+                ['name' => $nameTr],
+                array_merge($package, ['name' => $nameTr])
+            );
+
+            // Add translations if table exists
+            if (Schema::hasTable('translations')) {
+                $this->addTranslation($subscription->id, 'Modules\\Subscription\\app\\Models\\Subscription', 'df', 'name', $nameTr);
+                $this->addTranslation($subscription->id, 'Modules\\Subscription\\app\\Models\\Subscription', 'tr', 'name', $nameTr);
+                $this->addTranslation($subscription->id, 'Modules\\Subscription\\app\\Models\\Subscription', 'en', 'name', $nameEn);
+            }
         }
 
+        $this->command->info('SubscriptionPackageSeeder: 5 packages seeded with TR/EN translations.');
+    }
 
+    private function addTranslation($id, $type, $lang, $key, $value): void
+    {
+        DB::table('translations')->updateOrInsert(
+            [
+                'translatable_id' => $id,
+                'translatable_type' => $type,
+                'language' => $lang,
+                'key' => $key,
+            ],
+            [
+                'value' => $value,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
     }
 }

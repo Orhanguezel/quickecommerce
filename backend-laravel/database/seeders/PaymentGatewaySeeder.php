@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Modules\PaymentGateways\app\Models\PaymentGateway;
 
 class PaymentGatewaySeeder extends Seeder
@@ -15,7 +16,12 @@ class PaymentGatewaySeeder extends Seeder
      */
     public function run(): void
     {
-        PaymentGateway::create([
+        if (!Schema::hasTable('payment_gateways')) {
+            $this->command->warn('PaymentGatewaySeeder: payment_gateways table does not exist. Skipping...');
+            return;
+        }
+
+        PaymentGateway::updateOrCreate(['slug' => 'paypal'], [
             'name' => 'PayPal',
             'slug' => 'paypal',
             'description' => 'fdf',
@@ -32,9 +38,8 @@ class PaymentGatewaySeeder extends Seeder
             'is_test_mode' => true,
         ]);
 
-        PaymentGateway::create([
+        PaymentGateway::updateOrCreate(['slug' => 'stripe'], [
             'name' => 'Stripe',
-            'slug' => 'stripe',
             'description' => 'stripe info',
             'auth_credentials' => json_encode([
                 'stripe_public_key' => '',
@@ -45,9 +50,8 @@ class PaymentGatewaySeeder extends Seeder
             'is_test_mode' => true,
         ]);
 
-        PaymentGateway::create([
+        PaymentGateway::updateOrCreate(['slug' => 'razorpay'], [
             'name' => 'Razorpay',
-            'slug' => 'razorpay',
             'description' => 'razorpay info',
             'auth_credentials' => json_encode([
                 'razorpay_api_key' => '',
@@ -58,9 +62,8 @@ class PaymentGatewaySeeder extends Seeder
             'is_test_mode' => true,
         ]);
 
-        PaymentGateway::create([
+        PaymentGateway::updateOrCreate(['slug' => 'paytm'], [
             'name' => 'Paytm',
-            'slug' => 'paytm',
             'description' => 'paytm info',
             'auth_credentials' => json_encode([
                 'paytm_seller_key' => '',
@@ -74,14 +77,15 @@ class PaymentGatewaySeeder extends Seeder
             'is_test_mode' => true,
         ]);
 
-        PaymentGateway::create([
+        PaymentGateway::updateOrCreate(['slug' => 'cash_on_delivery'], [
             'name' => 'Cash On Delivery',
-            'slug' => 'cash_on_delivery',
             'description' => 'Pay for your order in cash when it is delivered to your doorstep. No online payment required!',
             'auth_credentials' => null,
             'image' => null,
             'status' => true,
             'is_test_mode' => true,
         ]);
+
+        $this->command->info('PaymentGatewaySeeder: 5 payment gateways seeded.');
     }
 }

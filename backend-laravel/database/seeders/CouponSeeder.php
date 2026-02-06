@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class CouponSeeder extends Seeder
@@ -15,8 +16,13 @@ class CouponSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('coupons')->truncate(); // Clears previous data
-        DB::table('coupon_lines')->truncate();
+        if (!Schema::hasTable('coupons') || !Schema::hasTable('coupon_lines')) {
+            $this->command->warn('CouponSeeder: coupons or coupon_lines table does not exist. Skipping...');
+            return;
+        }
+
+        DB::table('coupon_lines')->delete();
+        DB::table('coupons')->delete();
 
         $coupons = [];
         for ($i = 1; $i <= 20; $i++) {
