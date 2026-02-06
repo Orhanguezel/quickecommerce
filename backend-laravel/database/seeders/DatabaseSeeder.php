@@ -28,5 +28,7 @@ class DatabaseSeeder extends Seeder
         $this->call(StoreAreaSeeder::class);
         // currencies
         $this->call(CurrencySeeder::class);
+        // pages
+        $this->call(PageSeeder::class);
     }
 }

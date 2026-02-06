@@ -57,7 +57,7 @@ const ManageCurrency = () => {
           <div className="">
             <h1 className="text-lg md:text-2xl font-semibold text-black dark:text-white flex items-center gap-2">
               {" "}
-              <Currency /> Manage Currency
+              <Currency /> {t('label.manage_currency')}
             </h1>
           </div>
           <div className="flex flex-col lg:flex-row items-start lg:items-center gap-2">
@@ -90,7 +90,7 @@ const ManageCurrency = () => {
                   }
                 }}
               >
-                + Add Currency
+                + {t('label.add_currency')}
               </Button>
             </Link>
           </div>

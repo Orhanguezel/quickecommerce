@@ -636,6 +636,10 @@
     "add_page": "Sayfa Ekle",
     "edit_page": "Sayfayı Düzenle",
     "pages": "Sayfalar",
+    "theme_name": "Tema Adı",
+    "default_theme": "Varsayılan",
+    "theme_one": "Tema 1",
+    "theme_two": "Tema 2",
     "edit_role": "Rolü Düzenle",
     "add_role": "Rol Ekle",
     "update_role": "Rolü Güncelle",
@@ -846,7 +850,22 @@
     "commission_base_subtitle": "Büyümenizle uyumlu bir komisyon planı seçin. Satış yaptığınızda ödeme yaparsınız; başlangıç aşamasındaki işletmeler için idealdir. Gerçek zamanlı satış takibi, detaylı analitik ve ölçeklenebilir fırsatlar gibi temel özelliklerden yararlanın.",
     "subscription_base": "Abonelik Tabanlı",
     "subscription_base_subtitle": "Sabit aylık maliyetle premium özelliklere ve desteğe erişmek için abonelik planını seçin. POS sistemi, kendi teslimat yönetimi, mobil uygulamalar ve gelişmiş müşteri etkileşim araçlarıyla operasyonları sadeleştirmek isteyen işletmeler için idealdir. Kritik özelliklere sınırsız erişimle öngörülebilir giderler elde edin.",
-    "choose_your_business_plan": "İş Planınızı Seçin"
+    "choose_your_business_plan": "İş Planınızı Seçin",
+    "manage_currency": "Para Birimi Yönetimi",
+    "currency_settings": "Para Birimi Ayarları",
+    "add_currency": "Para Birimi Ekle",
+    "site_global_currency": "Site Genel Para Birimi",
+    "enable_disable_decimal_point": "Ondalık Noktayı Etkinleştir/Devre Dışı Bırak",
+    "space_between_currency_symbol_and_amount": "Para Birimi Sembolü ile Tutar Arasına Boşluk Ekle/Kaldır",
+    "comma_from_amount": "Tutardan Virgül (,) Ekle/Kaldır",
+    "currency_symbol_position": "Para Birimi Sembol Konumu",
+    "decimal_note_yes": "Evet: Fiyatları ondalıklı göster (örnek: 10.50).",
+    "decimal_note_no": "Hayır: Fiyatları ondalıksız — tam sayıya yuvarlanmış olarak göster (örnek: 10).",
+    "note": "Not",
+    "left": "Sol",
+    "right": "Sağ",
+    "yes": "Evet",
+    "no": "Hayır"
   },
   "place_holder": {
     "enter_coupon_code": "Kupon kodunu girin",
@@ -975,6 +994,8 @@
     "select_store_type": "Mağaza Türü Seç"
   },
   "table_header": {
+    "theme_name": "Tema Adı",
+    "path": "Yol",
     "subscription_type": "Abonelik Türü",
     "package_info": "Paket Bilgisi",
     "slug": "Slug",

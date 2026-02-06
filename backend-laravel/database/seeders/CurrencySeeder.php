@@ -49,6 +49,25 @@ class CurrencySeeder extends Seeder
             ],
         ];
 
+        // Remove currencies that are not in our list
+        $validCodes = array_column($currencies, 'code');
+        $type = 'Modules\\PaymentGateways\\app\\Models\\Currency';
+        $oldCurrencyIds = Currency::whereNotIn('code', $validCodes)->pluck('id');
+        if ($oldCurrencyIds->isNotEmpty()) {
+            DB::table('translations')
+                ->where('translatable_type', $type)
+                ->whereIn('translatable_id', $oldCurrencyIds)
+                ->delete();
+            Currency::whereIn('id', $oldCurrencyIds)->delete();
+        }
+
+        // Clean up orphaned translations (currencies that no longer exist)
+        $existingCurrencyIds = Currency::pluck('id');
+        DB::table('translations')
+            ->where('translatable_type', $type)
+            ->whereNotIn('translatable_id', $existingCurrencyIds)
+            ->delete();
+
         foreach ($currencies as $currency) {
             $nameTr = $currency['name_tr'];
             $nameEn = $currency['name_en'];
@@ -62,6 +81,14 @@ class CurrencySeeder extends Seeder
             // Add translations (df = Turkish default, en = English)
             if (Schema::hasTable('translations')) {
                 $type = 'Modules\\PaymentGateways\\app\\Models\\Currency';
+
+                // Remove non-df/en translations for this currency
+                DB::table('translations')
+                    ->where('translatable_type', $type)
+                    ->where('translatable_id', $currencyModel->id)
+                    ->whereNotIn('language', ['df', 'en'])
+                    ->delete();
+
                 // Turkish (df = default)
                 $this->addTranslation($currencyModel->id, $type, 'df', 'name', $nameTr);
                 // English
@@ -69,7 +96,30 @@ class CurrencySeeder extends Seeder
             }
         }
 
-        $this->command->info('CurrencySeeder: 3 currencies seeded (TRY default, USD, EUR) with TR(df)/EN translations.');
+        // Set default currency settings
+        if (Schema::hasTable('setting_options')) {
+            $settings = [
+                'com_site_global_currency' => 'TRY',
+                'com_site_currency_symbol_position' => 'left',
+                'com_site_enable_disable_decimal_point' => 'YES',
+                'com_site_space_between_amount_and_symbol' => 'YES',
+                'com_site_comma_form_adjustment_amount' => 'YES',
+            ];
+
+            foreach ($settings as $key => $value) {
+                DB::table('setting_options')->updateOrInsert(
+                    ['option_name' => $key],
+                    [
+                        'option_value' => $value,
+                        'autoload' => '1',
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]
+                );
+            }
+        }
+
+        $this->command->info('CurrencySeeder: 3 currencies seeded (TRY default, USD, EUR) with TR(df)/EN translations and default settings.');
     }
 
     private function addTranslation($id, $type, $lang, $key, $value): void

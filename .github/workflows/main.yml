@@ -43,6 +43,22 @@ jobs:
             [ -f /tmp/backend-laravel.env.bak ] && cp /tmp/backend-laravel.env.bak backend-laravel/.env
             [ -f /tmp/admin-panel.env.bak ] && cp /tmp/admin-panel.env.bak admin-panel/.env.local
 
+            echo "=== Fix ALL File Permissions (After Git) ==="
+            # Git sonrası TÜM storage ve cache dosyalarını düzelt
+            cd /var/www/quikecommerce/backend-laravel
+
+            # Storage - Tüm dosya ve klasörleri recursive düzelt
+            find storage -type f -exec chown www-data:www-data {} \;
+            find storage -type d -exec chown www-data:www-data {} \;
+            find storage -type f -exec chmod 664 {} \;
+            find storage -type d -exec chmod 775 {} \;
+
+            # Bootstrap cache
+            find bootstrap/cache -type f -exec chown www-data:www-data {} \;
+            find bootstrap/cache -type d -exec chown www-data:www-data {} \;
+            find bootstrap/cache -type f -exec chmod 664 {} \;
+            find bootstrap/cache -type d -exec chmod 775 {} \;
+
             echo "=== Backend Laravel Setup ==="
             cd /var/www/quikecommerce/backend-laravel
 
@@ -54,10 +70,18 @@ jobs:
             fi
 
             composer install --no-dev --optimize-autoloader --no-interaction
+
+            # Cache işlemlerinden ÖNCE temizle
             php artisan config:clear
+            php artisan cache:clear
+            php artisan view:clear
+
+            # Cache oluştur
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
+
+            # Migration
             php artisan migrate --force || echo "Migration skipped"
 
             echo "=== Run Essential Seeders ==="
@@ -65,9 +89,13 @@ jobs:
             php artisan db:seed --class=UserSeeder --force || true
             php artisan db:seed --class=PermissionAdminSeeder --force || true
 
-            echo "=== Fix Storage Permissions ==="
-            chown -R www-data:www-data storage bootstrap/cache
-            chmod -R 775 storage bootstrap/cache
+            echo "=== Fix Storage Permissions (After Laravel Operations) ==="
+            # Laravel işlemleri sonrası tekrar düzelt (yeni cache dosyaları için)
+            cd /var/www/quikecommerce/backend-laravel
+            find storage -type f -exec chown www-data:www-data {} \;
+            find storage -type d -exec chown www-data:www-data {} \;
+            find bootstrap/cache -type f -exec chown www-data:www-data {} \;
+            find bootstrap/cache -type d -exec chown www-data:www-data {} \;
 
             echo "=== Admin Panel Setup ==="
             cd /var/www/quikecommerce/admin-panel
@@ -77,6 +105,10 @@ jobs:
             echo "=== PM2 Reload ==="
             pm2 reload quickecommerce-admin || pm2 start ecosystem.config.cjs --only quickecommerce-admin
             pm2 save
+
+            echo "=== Final Permission Check ==="
+            cd /var/www/quikecommerce/backend-laravel
+            ls -la storage/framework/cache/data/ | head -10
 
             echo "=== Deploy Complete ==="
             pm2 status

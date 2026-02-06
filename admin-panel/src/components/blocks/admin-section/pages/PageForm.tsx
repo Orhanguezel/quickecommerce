@@ -86,7 +86,6 @@ export default function PagesForm({ data }: any) {
   const t = useTranslations();
   const pathname = usePathname();
   const locale = pathname.split('/')[1] || 'tr';
-  const dir = locale === 'ar' ? 'rtl' : 'ltr';
 
   const entity = useMemo(() => getEntityFromProps(data), [data]);
   const editId = entity?.id;
@@ -124,9 +123,9 @@ export default function PagesForm({ data }: any) {
   const setValueAny = useMemo(() => makeRHFSetValueAny<PagesFormData>(setValue), [setValue]);
 
   const Themelist = [
-    { label: 'Default', value: 'default' },
-    { label: 'Theme One', value: 'theme_one' },
-    { label: 'Theme Two', value: 'theme_two' },
+    { label: t('label.default_theme'), value: 'default' },
+    { label: t('label.theme_one'), value: 'theme_one' },
+    { label: t('label.theme_two'), value: 'theme_two' },
   ];
 
   const statuslist = [
@@ -482,7 +481,7 @@ export default function PagesForm({ data }: any) {
             <Card>
               <CardContent className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm font-medium mb-1">Theme Name</p>
+                  <p className="text-sm font-medium mb-1">{t('label.theme_name')}</p>
                   <Controller
                     control={control}
                     name="theme_name"
@@ -523,7 +522,7 @@ export default function PagesForm({ data }: any) {
                   onValueChange={setActiveLangId}
                   className="col-span-2"
                 >
-                  <TabsList dir={dir} className="flex justify-start bg-white dark:bg-[#1f2937]">
+                  <TabsList dir="ltr" className="flex justify-start bg-white dark:bg-[#1f2937]">
                     {uiLangs.map((lang) => (
                       <TabsTrigger key={lang.id} value={lang.id}>
                         {lang.label}
@@ -531,7 +530,7 @@ export default function PagesForm({ data }: any) {
                     ))}
                   </TabsList>
 
-                  <div dir={dir}>
+                  <div dir="ltr">
                     {uiLangs.map((lang) => (
                       <TabsContent key={lang.id} value={lang.id} forceMount>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
