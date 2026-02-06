@@ -33,6 +33,8 @@ class StoreSeeder extends Seeder
                 'opening_time' => '09:00:00',
                 'closing_time' => '21:00:00',
                 'off_day' => null,
+                'logo' => 'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=200',
+                'banner' => 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1200',
             ],
             [
                 'tr' => [
@@ -55,6 +57,8 @@ class StoreSeeder extends Seeder
                 'opening_time' => '09:00:00',
                 'closing_time' => '20:00:00',
                 'off_day' => 'Pazar',
+                'logo' => 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=200',
+                'banner' => 'https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=1200',
             ],
 
             // ============ FITNESS GİYİM ============
@@ -79,6 +83,8 @@ class StoreSeeder extends Seeder
                 'opening_time' => '10:00:00',
                 'closing_time' => '21:00:00',
                 'off_day' => null,
+                'logo' => 'https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=200',
+                'banner' => 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=1200',
             ],
 
             // ============ KAMP & OUTDOOR ============
@@ -103,6 +109,8 @@ class StoreSeeder extends Seeder
                 'opening_time' => '09:00:00',
                 'closing_time' => '18:00:00',
                 'off_day' => 'Cumartesi,Pazar',
+                'logo' => 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=200',
+                'banner' => 'https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?w=1200',
             ],
             [
                 'tr' => [
@@ -125,6 +133,8 @@ class StoreSeeder extends Seeder
                 'opening_time' => '10:00:00',
                 'closing_time' => '20:00:00',
                 'off_day' => 'Pazar',
+                'logo' => 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=200',
+                'banner' => 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200',
             ],
 
             // ============ SPOR MAĞAZALARI ============
@@ -149,6 +159,8 @@ class StoreSeeder extends Seeder
                 'opening_time' => '10:00:00',
                 'closing_time' => '22:00:00',
                 'off_day' => null,
+                'logo' => 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=200',
+                'banner' => 'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=1200',
             ],
             [
                 'tr' => [
@@ -171,6 +183,8 @@ class StoreSeeder extends Seeder
                 'opening_time' => '10:00:00',
                 'closing_time' => '22:00:00',
                 'off_day' => null,
+                'logo' => 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200',
+                'banner' => 'https://images.unsplash.com/photo-1576678927484-cc907957088c?w=1200',
             ],
 
             // ============ KİTAP ============
@@ -195,6 +209,8 @@ class StoreSeeder extends Seeder
                 'opening_time' => '10:00:00',
                 'closing_time' => '21:00:00',
                 'off_day' => 'Pazar',
+                'logo' => 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=200',
+                'banner' => 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=1200',
             ],
         ];
 
@@ -216,8 +232,8 @@ class StoreSeeder extends Seeder
                     'slug' => $slug,
                     'phone' => $store['phone'],
                     'email' => $store['email'],
-                    'logo' => null,
-                    'banner' => null,
+                    'logo' => $store['logo'] ?? null,
+                    'banner' => $store['banner'] ?? null,
                     'address' => $store['tr']['address'],
                     'latitude' => $store['latitude'],
                     'longitude' => $store['longitude'],
