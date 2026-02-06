@@ -42,7 +42,8 @@ import { StoreFormData, storeSchema } from '@/modules/admin-section/store/store.
 import { useAppDispatch } from '@/redux/hooks';
 import { setDynamicValue, setRefetch } from '@/redux/slices/refetchSlice';
 
-import { DrawingManager, GoogleMap, Marker, Polygon, useLoadScript } from '@react-google-maps/api';
+import { DrawingManager, GoogleMap, Marker, Polygon } from '@react-google-maps/api';
+import { useGoogleMaps } from '@/contexts/GoogleMapsContext';
 
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -54,7 +55,6 @@ import CloudIcon from '@/assets/icons/CloudIcon';
 import GlobalImageLoader from '@/lib/imageLoader';
 import Cancel from '../../custom-icons/Cancel';
 import AppPhoneNumberInput from '../../common/AppPhoneNumberInput';
-import { useGoogleMapForAllQuery } from '@/modules/admin-section/google-map-settings/google-map-settings.action';
 
 // JSON scaffold stack (standard)
 import {
@@ -174,16 +174,8 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
 
   const [viewMode, setViewMode] = useState<ViewMode>('form');
 
-  // Google map settings
-  const { GoogleMapData } = useGoogleMapForAllQuery({});
-  const GoogleMapSettingsMessage = (GoogleMapData as any)?.message;
-  const googleMapKey = GoogleMapSettingsMessage?.com_google_map_api_key;
-  const isMapEnabled = GoogleMapSettingsMessage?.com_google_map_enable_disable === 'on';
-
-  const { isLoaded } = useLoadScript({
-    googleMapsApiKey: googleMapKey || '',
-    libraries: ['geometry', 'drawing'],
-  });
+  // Google map settings - use global context
+  const { isLoaded, isEnabled: isMapEnabled, apiKey: googleMapKey } = useGoogleMaps();
 
   // RHF
   const {
