@@ -13,28 +13,27 @@ class StoreTypeSeeder extends Seeder
     public function run(): void
     {
         $storeTypes = [
-            ['name' => 'Grocery', 'type' => \App\Enums\StoreType::BAKKAL->value],
-            ['name' => 'Bakery', 'type' => \App\Enums\StoreType::FIRIN->value],
-            ['name' => 'Medicine', 'type' => \App\Enums\StoreType::ECZANE->value],
-            ['name' => 'Makeup', 'type' => \App\Enums\StoreType::MAKYAJ->value],
-            ['name' => 'Bags', 'type' => \App\Enums\StoreType::CANTA->value],
-            ['name' => 'Clothing', 'type' => \App\Enums\StoreType::GIYIM->value],
-            ['name' => 'Furniture', 'type' => \App\Enums\StoreType::ESYA->value],
-            ['name' => 'Books', 'type' => \App\Enums\StoreType::KITAP->value],
-            ['name' => 'Gadgets', 'type' => \App\Enums\StoreType::CIHAZ->value],
-            ['name' => 'Animals & Pets', 'type' => \App\Enums\StoreType::HAYVANLAR->value],
-            ['name' => 'Fish', 'type' => \App\Enums\StoreType::BALIK->value],
+            ['name' => 'Grocery', 'type' => \App\Enums\StoreType::GROCERY->value],
+            ['name' => 'Bakery', 'type' => \App\Enums\StoreType::BAKERY->value],
+            ['name' => 'Medicine', 'type' => \App\Enums\StoreType::MEDICINE->value],
+            ['name' => 'Makeup', 'type' => \App\Enums\StoreType::MAKEUP->value],
+            ['name' => 'Bags', 'type' => \App\Enums\StoreType::BAGS->value],
+            ['name' => 'Clothing', 'type' => \App\Enums\StoreType::CLOTHING->value],
+            ['name' => 'Furniture', 'type' => \App\Enums\StoreType::FURNITURE->value],
+            ['name' => 'Books', 'type' => \App\Enums\StoreType::BOOKS->value],
+            ['name' => 'Gadgets', 'type' => \App\Enums\StoreType::GADGET->value],
+            ['name' => 'Animals & Pets', 'type' => \App\Enums\StoreType::ANIMALS_PET->value],
+            ['name' => 'Fish', 'type' => \App\Enums\StoreType::FISH->value],
         ];
 
         foreach ($storeTypes as $storeType) {
             StoreType::updateOrInsert(
-                ['type' => $storeType['type']], // Unique column to check
+                ['type' => $storeType['type']],
                 [
                     'name' => $storeType['name'],
                     'status' => 1
                 ]
             );
         }
-
     }
 }
