@@ -11,19 +11,10 @@ export const routing = defineRouting({
     "/client": "/client",
     "/about": "/about",
     "/client/redirect": "/client/redirect",
-    "/nested": {
-      en: "/nested",
-      ar: "/verschachtelt",
-    },
+    "/nested": "/nested",
     "/redirect": "/redirect",
-    "/news/[articleId]": {
-      en: "/news/[articleId]",
-      ar: "/neuigkeiten/[articleId]",
-    },
-    "/news/just-in": {
-      en: "/news/just-in",
-      ar: "/neuigkeiten/aktuell",
-    },
+    "/news/[articleId]": "/news/[articleId]",
+    "/news/just-in": "/news/just-in",
   },
 });
 
