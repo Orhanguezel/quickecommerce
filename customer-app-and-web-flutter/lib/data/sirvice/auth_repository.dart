@@ -1,9 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import '../../config/api_urls.dart';
+import 'dio_client.dart';
 
 class AuthRepository {
-  final Dio _dio = Dio();
+  final Dio _dio = DioClient.instance;
 
   /// this function is responsible for login into the app
   /// it needs [userName] and [password] for calling login api

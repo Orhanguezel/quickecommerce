@@ -6,9 +6,10 @@ import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../config/api_urls.dart';
+import 'dio_client.dart';
 
 class SaveRepository {
-  final Dio _dio = Dio();
+  final Dio _dio = DioClient.instance;
 
   /// this function is responsible for change email into the app
   /// it needs [userName] and [password] for calling login api
