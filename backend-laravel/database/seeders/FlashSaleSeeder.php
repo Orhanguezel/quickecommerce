@@ -216,6 +216,36 @@ class FlashSaleSeeder extends Seeder
                     $this->insertTranslation($flashSaleId, $lang, 'button_text', $sale[$source]['button_text']);
                 }
             }
+
+            // Link random products to flash sales
+            $productIds = DB::table('products')
+                ->where('status', 'approved')
+                ->whereNull('deleted_at')
+                ->pluck('id')
+                ->toArray();
+
+            $flashSaleIds = DB::table('flash_sales')->pluck('id')->toArray();
+
+            if (!empty($productIds) && !empty($flashSaleIds)) {
+                shuffle($productIds);
+                $perSale = max(1, intdiv(count($productIds), count($flashSaleIds)));
+
+                foreach ($flashSaleIds as $index => $fsId) {
+                    $start = $index * $perSale;
+                    $chunk = array_slice($productIds, $start, $perSale);
+
+                    foreach ($chunk as $pid) {
+                        DB::table('flash_sale_products')->insert([
+                            'flash_sale_id' => $fsId,
+                            'product_id' => $pid,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    }
+                }
+
+                echo "Flash sale products linked: " . DB::table('flash_sale_products')->count() . "\n";
+            }
         });
 
         echo "Flash Sales seeded successfully! Total: " . count($flashSales) . "\n";
