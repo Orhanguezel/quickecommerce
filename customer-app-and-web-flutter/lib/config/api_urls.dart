@@ -1,5 +1,8 @@
 class ApiUrls{
-  static const baseUrlMart = 'http://localhost:8000';
+  static const baseUrlMart = String.fromEnvironment(
+    'BASE_URL',
+    defaultValue: 'https://sportoonline.com',
+  );
   static String registration() => '$baseUrlMart/api/v1/customer/registration';
   static String loginUrl() => '$baseUrlMart/api/v1/customer/login';
   static String refreshTokenUrl() => '$baseUrlMart/api/v1/customer/refresh-token';
