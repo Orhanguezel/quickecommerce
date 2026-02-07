@@ -59,9 +59,9 @@ class StoreDetailsPublicResource extends JsonResource
             'meta_title' => $this->meta_title,
             'meta_description' => $this->meta_description,
             'meta_image_url' => ImageModifier::generateImageUrl($this->meta_image),
-            "additional_charge_name" => $store_type_info->additional_charge_enable_disable ? $store_type_info->additional_charge_name : null,
-            "additional_charge_amount" => $store_type_info->additional_charge_enable_disable ? $store_type_info->additional_charge_amount : 0,
-            "additional_charge_type" => $store_type_info->additional_charge_enable_disable ? $store_type_info->additional_charge_type : 'fixed',
+            "additional_charge_name" => $store_type_info?->additional_charge_enable_disable ? $store_type_info->additional_charge_name : null,
+            "additional_charge_amount" => $store_type_info?->additional_charge_enable_disable ? round($store_type_info->additional_charge_amount) : 0,
+            "additional_charge_type" => $store_type_info?->additional_charge_enable_disable ? $store_type_info->additional_charge_type : 'fixed',
             'total_product' => $this->products()->where('deleted_at', null)->where('status', 'approved')->count(),
             'all_products' => StoreProductListPublicResource::collection($this->products()
                 ->where('deleted_at', null)
