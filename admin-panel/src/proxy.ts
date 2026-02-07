@@ -27,6 +27,13 @@ export default function middleware(request: NextRequest) {
     }
   }
 
+  // Remove location header ONLY if there's a rewrite
+  // This prevents redirect loops when we're doing internal rewrites
+  // But allows normal redirects (like / -> /tr) to work
+  if (rewrite && response.headers.has('location')) {
+    response.headers.delete('location');
+  }
+
   return response;
 }
 
