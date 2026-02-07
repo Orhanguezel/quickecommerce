@@ -22,7 +22,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_KEY }}
-          command_timeout: 20m
+          command_timeout: 25m
           script: |
             set -e
             export COMPOSER_ALLOW_SUPERUSER=1
@@ -102,8 +102,9 @@ jobs:
             [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
             echo "Node version: $(node --version)"
 
-            # devDependencies'in yüklenmesini garanti et (fs-extra postbuild için gerekli)
-            NODE_ENV=development npm ci --legacy-peer-deps || NODE_ENV=development npm install --legacy-peer-deps
+            # devDependencies dahil kur (fs-extra postbuild için gerekli)
+            # npm install kullan (npm ci her seferinde node_modules siler, VPS'te çok yavaş)
+            NODE_ENV=development npm install --legacy-peer-deps --prefer-offline
 
             # PM2'yi durdur (deploy/ klasörü yeniden oluşturulacak)
             pm2 stop quickecommerce-admin || true
