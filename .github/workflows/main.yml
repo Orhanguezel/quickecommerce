@@ -44,7 +44,6 @@ jobs:
             [ -f /tmp/admin-panel.env.bak ] && cp /tmp/admin-panel.env.bak admin-panel/.env.local
 
             echo "=== Fix ALL File Permissions (After Git) ==="
-            # Git sonrası TÜM storage ve cache dosyalarını düzelt
             cd /var/www/quikecommerce/backend-laravel
 
             # Storage - Tüm dosya ve klasörleri recursive düzelt
@@ -90,7 +89,6 @@ jobs:
             php artisan db:seed --class=PermissionAdminSeeder --force || true
 
             echo "=== Fix Storage Permissions (After Laravel Operations) ==="
-            # Laravel işlemleri sonrası tekrar düzelt (yeni cache dosyaları için)
             find storage -type f -exec chown www-data:www-data {} \;
             find storage -type d -exec chown www-data:www-data {} \;
             find bootstrap/cache -type f -exec chown www-data:www-data {} \;
@@ -98,16 +96,36 @@ jobs:
 
             echo "=== Admin Panel Setup ==="
             cd /var/www/quikecommerce/admin-panel
-            npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+
+            # Node versiyonunu kontrol et (Next.js >= 20 gerektirir)
+            export NVM_DIR="/root/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+            echo "Node version: $(node --version)"
+
+            # devDependencies'in yüklenmesini garanti et (fs-extra postbuild için gerekli)
+            NODE_ENV=development npm ci --legacy-peer-deps || NODE_ENV=development npm install --legacy-peer-deps
+
+            # PM2'yi durdur (deploy/ klasörü yeniden oluşturulacak)
+            pm2 stop quickecommerce-admin || true
+
+            # Build + postbuild (deploy/ klasörünü oluşturur)
             npm run build
 
-            echo "=== PM2 Reload ==="
-            pm2 reload quickecommerce-admin || pm2 start ecosystem.config.cjs --only quickecommerce-admin
+            # .env.local dosyasını deploy klasörüne de kopyala
+            [ -f .env.local ] && cp .env.local deploy/.env.local
+
+            echo "=== PM2 Restart ==="
+            pm2 restart quickecommerce-admin || pm2 start ecosystem.config.cjs --only quickecommerce-admin
             pm2 save
+
+            echo "=== Verify Deploy ==="
+            echo "Deploy dir contents:"
+            ls -la /var/www/quikecommerce/admin-panel/deploy/server.js 2>/dev/null && echo "server.js OK" || echo "ERROR: server.js missing!"
+            sleep 3
+            pm2 status
 
             echo "=== Final Permission Check ==="
             cd /var/www/quikecommerce/backend-laravel
             ls -la storage/framework/cache/data/ | head -10
 
             echo "=== Deploy Complete ==="
-            pm2 status
