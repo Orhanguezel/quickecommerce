@@ -235,6 +235,7 @@ const MediaManageTable = () => {
                       alt="img_url"
                       fill
                       sizes="96px"
+                      unoptimized
                       className="w-full h-full"
                     />
                   ) : (
