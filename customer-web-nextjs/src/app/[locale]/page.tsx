@@ -15,10 +15,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const t = await getTranslations({ locale, namespace: "seo" });
 
   return {
-    title: t("home_title"),
+    title: { absolute: `Sporto Online — ${t("home_title")}` },
     description: t("home_description"),
     openGraph: {
-      title: t("home_title"),
+      title: `Sporto Online — ${t("home_title")}`,
       description: t("home_description"),
       type: "website",
       locale: locale === "tr" ? "tr_TR" : "en_US",

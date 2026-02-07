@@ -1,7 +1,12 @@
+"use client";
+
 import type { Product } from "@/modules/product/product.type";
 import { Link } from "@/i18n/routing";
+import { useCartStore, type CartItem } from "@/stores/cart-store";
+import { useAuthStore } from "@/stores/auth-store";
+import { useWishlistToggleMutation } from "@/modules/wishlist/wishlist.service";
 import Image from "next/image";
-import { Star } from "lucide-react";
+import { Star, ShoppingCart, Heart } from "lucide-react";
 
 interface ProductCardProps {
   product: Product;
@@ -12,6 +17,36 @@ export function ProductCard({ product }: ProductCardProps) {
   const specialPrice = product.special_price != null ? Number(product.special_price) : null;
   const hasDiscount = specialPrice != null && price != null && specialPrice < price;
   const displayPrice = hasDiscount ? specialPrice : price;
+
+  const addItem = useCartStore((s) => s.addItem);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const wishlistToggle = useWishlistToggleMutation();
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (displayPrice == null) return;
+    const cartItem: CartItem = {
+      id: product.id,
+      product_id: product.id,
+      store_id: product.store_id ?? undefined,
+      name: product.name,
+      slug: product.slug,
+      image: product.image_url || "",
+      price: displayPrice,
+      original_price: price ?? undefined,
+      quantity: 1,
+      max_cart_qty: product.max_cart_qty || 99,
+    };
+    addItem(cartItem);
+  };
+
+  const handleWishlistToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isAuthenticated) return;
+    wishlistToggle.mutate(product.id);
+  };
 
   return (
     <Link
@@ -47,6 +82,30 @@ export function ProductCard({ product }: ProductCardProps) {
             Flash
           </span>
         )}
+
+        {/* Action Buttons (hover) */}
+        <div className="absolute bottom-2 right-2 flex gap-1.5 opacity-0 transition-opacity group-hover:opacity-100">
+          {isAuthenticated && (
+            <button
+              onClick={handleWishlistToggle}
+              className={`flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-sm transition-colors hover:bg-white ${
+                product.wishlist ? "text-red-500" : "text-muted-foreground"
+              }`}
+            >
+              <Heart
+                className={`h-4 w-4 ${product.wishlist ? "fill-current" : ""}`}
+              />
+            </button>
+          )}
+          {displayPrice != null && (
+            <button
+              onClick={handleAddToCart}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+            >
+              <ShoppingCart className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Content */}
