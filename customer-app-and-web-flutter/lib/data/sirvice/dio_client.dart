@@ -27,8 +27,9 @@ class _LanguageInterceptor extends Interceptor {
         ) ??
         'tr';
 
-    // Add language to query parameters if not already set
-    if (!options.queryParameters.containsKey('language')) {
+    // Add or override language if missing or empty
+    final existing = options.queryParameters['language'];
+    if (existing == null || existing.toString().isEmpty) {
       options.queryParameters['language'] = language;
     }
 

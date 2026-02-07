@@ -56,13 +56,11 @@ class ThemeProvider extends ChangeNotifier {
     );
     if (language == null || !_supportedLanguages.contains(language)) {
       _appLocale = const Locale('tr');
-      // Clear invalid saved language
-      if (language != null && !_supportedLanguages.contains(language)) {
-        await UserSharedPreference.putValue(
-          SharedPreferenceHelper.languageCode,
-          'tr',
-        );
-      }
+      // Save default language so all API calls can read it
+      await UserSharedPreference.putValue(
+        SharedPreferenceHelper.languageCode,
+        'tr',
+      );
       return null;
     }
     _appLocale = Locale(language);

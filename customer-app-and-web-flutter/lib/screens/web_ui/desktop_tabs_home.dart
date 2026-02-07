@@ -112,7 +112,7 @@ class _DesktopTabsHomeState extends State<DesktopTabsHome> {
     _userLong = customerLong ?? "";
     checkLogin();
     _currencyListBloc.add(CurrencyList(token: _token));
-    _menuListBloc.add(MenuList(language: _language.isEmpty ? "en" : _language));
+    _menuListBloc.add(MenuList(language: _language.isEmpty ? "tr" : _language));
   }
 
   checkLogin() {
