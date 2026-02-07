@@ -5,7 +5,7 @@ if (!defined('APP_NOTICE_DOMAIN')) {
 }
 
 if (!defined('DEFAULT_LANGUAGE')) {
-    define('DEFAULT_LANGUAGE', config('default_language'));
+    define('DEFAULT_LANGUAGE', config('app.default_language', 'en'));
 }
 
 if (!defined('NOT_AUTHORIZED')) {

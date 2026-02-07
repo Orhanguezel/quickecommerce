@@ -77,11 +77,12 @@ const ContactSettingsForm = ({ data }: any) => {
   const dir = locale === 'ar' ? 'rtl' : 'ltr';
 
   const multiLangData = useMemo(() => multiLang, []);
+  // ✅ df dahil — Currency/PageForm pattern
   const uiLangs = useMemo(
-    () => (multiLangData || []).filter((l: any) => l?.id && l.id !== DF_LANG),
+    () => (multiLangData || []).filter((l: any) => l?.id),
     [multiLangData],
   );
-  const firstUILangId = uiLangs?.[0]?.id || 'en';
+  const firstUILangId = uiLangs?.[0]?.id || 'df';
 
   // ---- Tabs controlled ----
   const [tab, setTab] = useState<string>(firstUILangId);
@@ -438,7 +439,7 @@ const ContactSettingsForm = ({ data }: any) => {
 
     const map_section = { coordinates: markerPosition };
 
-    const translations = uiLangs.map((lang: any) => ({
+    const translations = uiLangs.filter((lang: any) => lang.id !== 'df').map((lang: any) => ({
       language_code: lang.id,
       title: (values as any)[`page_title_${lang.id}`] || '',
       meta_title: (values as any)[`meta_title_${lang.id}`] || '',

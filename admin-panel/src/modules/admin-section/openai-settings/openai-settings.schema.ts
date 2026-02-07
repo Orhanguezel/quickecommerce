@@ -17,6 +17,10 @@ const baseSchema = {
   com_openai_model: z.string().optional(),
   com_openai_timeout: z.string().optional(),
   com_openai_enable_disable: z.string().optional(),
+  com_claude_api_key: z.string().optional(),
+  com_claude_model: z.string().optional(),
+  com_claude_timeout: z.string().optional(),
+  com_claude_enable_disable: z.string().optional(),
 };
 
 export const openAISettingsSchema = z.object({

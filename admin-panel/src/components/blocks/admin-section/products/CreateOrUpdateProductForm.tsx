@@ -20,10 +20,6 @@ import {
   TabsList,
   TabsTrigger,
   Textarea,
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
 } from '@/components/ui';
 import { useBrandsQuery } from '@/modules/common/brand/brand.action';
 import { useCategoriesQuery } from '@/modules/common/category/category.action';
@@ -72,6 +68,22 @@ import {
   normalizeTranslationsMap,
 } from '@/lib/json';
 import type { LangKeys, ViewMode } from '@/lib/json';
+
+/** Simple CSS tooltip — replaces Radix Tooltip (compose-refs crash in React 19) */
+const InfoTooltip = ({ text, side = 'top' }: { text: string; side?: 'top' | 'right' }) => (
+  <div className="relative group inline-flex">
+    <Info className="w-4 text-custom-dark-blue dark:text-white cursor-pointer" />
+    <div
+      className={`absolute z-50 invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-opacity px-3 py-2 text-sm font-medium rounded-md shadow-md pointer-events-none bg-custom-dark-blue dark:bg-white text-white dark:text-black max-w-sm w-max ${
+        side === 'right'
+          ? 'left-full top-1/2 -translate-y-1/2 ml-2'
+          : 'bottom-full left-1/2 -translate-x-1/2 mb-2'
+      }`}
+    >
+      {text}
+    </div>
+  </div>
+);
 
 interface Option {
   value: string;
@@ -225,6 +237,9 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
     name: `meta_keywords_${firstUILangId}` as any,
   });
   useEffect(() => {
+    // When firstUILangId is 'df', the watched field IS meta_keywords_df — writing
+    // to the same field creates an infinite loop. Skip in that case.
+    if (firstUILangId === 'df') return;
     if (Array.isArray(firstLangMetaKeywords)) {
       setValueAny('meta_keywords_df', firstLangMetaKeywords, {
         shouldDirty: false,
@@ -232,7 +247,8 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
         shouldValidate: false,
       });
     }
-  }, [firstLangMetaKeywords, setValueAny]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [firstLangMetaKeywords, setValueAny, firstUILangId]);
 
   useEffect(() => {
     uiLangs.forEach((l) => {
@@ -259,8 +275,8 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
   });
 
   const { sellerStoreList, refetch: sellerStoreRefetch } = useSellerStoreQuery(
-    watchedSellerId !== 'undefined'
-      ? { seller_id: watchedSellerId } // Pass seller_id only if it is valid
+    watchedSellerId && watchedSellerId !== 'undefined'
+      ? { seller_id: watchedSellerId }
       : {},
   );
 
@@ -623,7 +639,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
     const specifications = DynamicValues?.length > 0 ? buildSpecificationsPayload() : [];
     const submissionData = {
       ...defaultData,
-      image: lastSelectedLogo ? lastSelectedLogo?.image_id : '',
+      image: lastSelectedLogo ? lastSelectedLogo?.image_id : null,
       translations,
       translations_json,
       variants: combinationData,
@@ -856,7 +872,8 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
         setSpecificationsState(initialSpec);
       }
     }
-  }, [DynamicValues, editData, specificationsState]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [DynamicValues, editData]);
 
   const handleSpecificationChange = (slug: string, value: string) => {
     setSpecificationsState((prev) => ({
@@ -1068,9 +1085,9 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                                   <Button
                                     variant="outline"
                                     className="app-button"
-                                    disabled={GeneralData?.com_openai_enable_disable == 'off'}
+                                    disabled={GeneralData?.com_openai_enable_disable !== 'on' && GeneralData?.com_claude_enable_disable !== 'on'}
                                   >
-                                    <span className="mx-1">Generate description with AI</span>
+                                    <span className="mx-1">{t('label.generate_description_with_ai')}</span>
                                   </Button>
                                 }
                                 onSave={(prompt: string) =>
@@ -1084,27 +1101,8 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                                 setIsModalOpen={setIsModalOpen}
                                 isModalOpen={isModalOpen}
                               />
-                              {GeneralData?.com_openai_enable_disable == 'off' && (
-                                <div>
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Info className="w-4 text-custom-dark-blue dark:text-white cursor-pointer" />
-                                      </TooltipTrigger>
-                                      <TooltipContent
-                                        side="top"
-                                        align="center"
-                                        sideOffset={4}
-                                        avoidCollisions={false}
-                                        className="bg-custom-dark-blue dark:bg-white max-w-sm"
-                                      >
-                                        <p className="p-1 text-sm font-medium">
-                                          OpenAI generate settings off
-                                        </p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                </div>
+                              {GeneralData?.com_openai_enable_disable !== 'on' && GeneralData?.com_claude_enable_disable !== 'on' && (
+                                <InfoTooltip text={t('label.ai_generate_settings_off')} />
                               )}
                             </div>
                             <div className="mb-4">
@@ -1170,26 +1168,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                                   {t('label.meta_keywords')} (
                                   {t(`lang.${lang.id}` as `lang.${LangKeys}`)})
                                 </span>
-                                <div>
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Info className="w-4 text-custom-dark-blue dark:text-white cursor-pointer" />
-                                      </TooltipTrigger>
-                                      <TooltipContent
-                                        side="top"
-                                        align="center"
-                                        sideOffset={4}
-                                        avoidCollisions={false}
-                                        className="bg-custom-dark-blue dark:bg-white max-w-sm"
-                                      >
-                                        <p className="p-1 text-sm font-medium">
-                                          {t('tooltip.enter_meta_key')}
-                                        </p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                </div>
+                                <InfoTooltip text={t('tooltip.enter_meta_key')} />
                               </div>
                               <Controller
                                 name={`meta_keywords_${lang.id}` as keyof ProductFormData}
@@ -1296,26 +1275,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                   <div className="">
                     <div className="text-sm font-medium flex items-center gap-2">
                       <span>{t('label.thumbnail')}</span>
-                      <div>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Info className="w-4 text-custom-dark-blue cursor-pointer" />
-                            </TooltipTrigger>
-                            <TooltipContent
-                              side="top"
-                              align="center"
-                              sideOffset={4}
-                              avoidCollisions={false}
-                              className="bg-custom-dark-blue max-w-sm"
-                            >
-                              <p className="p-1 text-sm font-medium">
-                                {t('tooltip.aspect_ratio_1_1')}
-                              </p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
+                      <InfoTooltip text={t('tooltip.aspect_ratio_1_1')} />
                     </div>
                     <div className="relative flex align-start gap-4 my-2">
                       <div className="relative w-32">
@@ -1446,30 +1406,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                               >
                                 {t('label.cash_on_delivery')}
                               </label>
-                              <div className="text-sm font-medium flex items-center gap-2">
-                                <div>
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Info className="w-4  text-custom-dark-blue dark:text-white cursor-pointer" />
-                                      </TooltipTrigger>
-                                      <TooltipContent
-                                        side="right"
-                                        align="center"
-                                        sideOffset={4}
-                                        avoidCollisions={false}
-                                        className="bg-custom-dark-blue dark:bg-white  max-w-[400px]"
-                                      >
-                                        <p className="p-1 text-sm font-medium">
-                                          {t(
-                                            'tooltip.ensure_products_are_eligible_cah_on_delivery',
-                                          )}
-                                        </p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                </div>
-                              </div>
+                              <InfoTooltip text={t('tooltip.ensure_products_are_eligible_cah_on_delivery')} side="right" />
                             </div>
                             <div className="flex items-center space-x-2">
                               <Checkbox
@@ -1483,28 +1420,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                               >
                                 {t('label.allow_change_in_mind')}
                               </label>
-                              <div className="text-sm font-medium flex items-center gap-2">
-                                <div>
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Info className="w-4  text-custom-dark-blue dark:text-white cursor-pointer" />
-                                      </TooltipTrigger>
-                                      <TooltipContent
-                                        side="right"
-                                        align="center"
-                                        sideOffset={4}
-                                        avoidCollisions={false}
-                                        className="bg-custom-dark-blue dark:bg-white max-w-[400px]"
-                                      >
-                                        <p className="p-1 text-sm font-medium ">
-                                          {t('tooltip.allow_change_in_mind')}
-                                        </p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                </div>
-                              </div>
+                              <InfoTooltip text={t('tooltip.allow_change_in_mind')} side="right" />
                             </div>
                           </div>
                         </div>
@@ -1524,26 +1440,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                   <p className="flex items-center">
                     {t('label.attribute')} <span className="text-red-500 mx-0.5">*</span>
                   </p>
-                  <div className="relative w-full">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Info className="w-4 text-custom-dark-blue dark:text-white cursor-pointer" />
-                        </TooltipTrigger>
-                        <TooltipContent
-                          side="right"
-                          align="center"
-                          sideOffset={8}
-                          avoidCollisions={false}
-                          className="bg-custom-dark-blue dark:bg-white"
-                        >
-                          <p className="p-1 text-sm font-medium">
-                            {t('tooltip.please_select_attribute')}
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>{' '}
+                  <InfoTooltip text={t('tooltip.please_select_attribute')} side="right" />{' '}
                 </div>
                 <Select
                   isMulti

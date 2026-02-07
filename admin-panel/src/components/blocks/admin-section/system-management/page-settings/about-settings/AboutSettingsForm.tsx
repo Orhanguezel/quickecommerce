@@ -117,9 +117,8 @@ const AboutSettingsForm = ({ data }: any) => {
 
   const entity = useMemo(() => getEntityFromProps(data), [data]);
 
-  // ✅ df UI’da yok
+  // ✅ df dahil — Currency/PageForm pattern: excludeLangIds: []
   const allLangs = useMemo(() => (Array.isArray(multiLang) ? (multiLang as LangType[]) : []), []);
-  const uiLangsOnly = useMemo(() => allLangs.filter((l) => l.id !== 'df'), [allLangs]);
 
   const [viewMode, setViewMode] = useState<ViewMode>('form');
   const [activeLangId, setActiveLangId] = useState<string>('');
@@ -159,15 +158,15 @@ const AboutSettingsForm = ({ data }: any) => {
     { label: t('label.publish'), value: 'publish' },
   ];
   const Themelist = [
-    { label: 'Default', value: 'default' },
-    { label: 'Theme One', value: 'theme_one' },
-    { label: 'Theme Two', value: 'theme_two' },
+    { label: t('label.default_theme'), value: 'default' },
+    { label: t('label.theme_one'), value: 'theme_one' },
+    { label: t('label.theme_two'), value: 'theme_two' },
   ];
 
   // ✅ i18n scaffold (standard)
   const i18n = useFormI18nScaffold<AboutSettingsFormData>({
     languages: allLangs,
-    excludeLangIds: ['df'],
+    excludeLangIds: [],
     fields: [...I18N_FIELDS],
     control,
     getValues,
@@ -433,33 +432,65 @@ const AboutSettingsForm = ({ data }: any) => {
 
     setOnBoardSteps(
       storySteps.length
-        ? storySteps.map((s: any) => ({
-            titles: { [dfKey]: safeStr(s?.title) },
-            subtitles: { [dfKey]: safeStr(s?.subtitle) },
-            image: { id: s?.image ?? '', url: s?.image_url ?? '' },
-          }))
+        ? storySteps.map((s: any, idx: number) => {
+            const titles: Record<string, string> = { [dfKey]: safeStr(s?.title) };
+            const subtitles: Record<string, string> = { [dfKey]: safeStr(s?.subtitle) };
+            if (trMap) {
+              Object.keys(trMap).forEach((langId) => {
+                if (langId === 'df') return;
+                const langSteps = trMap[langId]?.content?.story_section?.steps;
+                if (Array.isArray(langSteps) && langSteps[idx]) {
+                  titles[langId] = safeStr(langSteps[idx]?.title);
+                  subtitles[langId] = safeStr(langSteps[idx]?.subtitle);
+                }
+              });
+            }
+            return { titles, subtitles, image: { id: s?.image ?? '', url: s?.image_url ?? '' } };
+          })
         : [],
     );
 
     setAttributeValues(
       missionSteps.length
-        ? missionSteps.map((s: any) => ({
-            titles: { [dfKey]: safeStr(s?.title) },
-            subtitles: { [dfKey]: safeStr(s?.subtitle) },
-            descriptions: { [dfKey]: safeStr(s?.description) },
-            image: { id: s?.image ?? '', url: s?.image_url ?? '' },
-          }))
+        ? missionSteps.map((s: any, idx: number) => {
+            const titles: Record<string, string> = { [dfKey]: safeStr(s?.title) };
+            const subtitles: Record<string, string> = { [dfKey]: safeStr(s?.subtitle) };
+            const descriptions: Record<string, string> = { [dfKey]: safeStr(s?.description) };
+            if (trMap) {
+              Object.keys(trMap).forEach((langId) => {
+                if (langId === 'df') return;
+                const langSteps = trMap[langId]?.content?.mission_and_vision_section?.steps;
+                if (Array.isArray(langSteps) && langSteps[idx]) {
+                  titles[langId] = safeStr(langSteps[idx]?.title);
+                  subtitles[langId] = safeStr(langSteps[idx]?.subtitle);
+                  descriptions[langId] = safeStr(langSteps[idx]?.description);
+                }
+              });
+            }
+            return { titles, subtitles, descriptions, image: { id: s?.image ?? '', url: s?.image_url ?? '' } };
+          })
         : [],
     );
 
     setTestimonialSteps(
       testimonialStepsArr.length
-        ? testimonialStepsArr.map((s: any) => ({
-            titles: { [dfKey]: safeStr(s?.title) },
-            subtitles: { [dfKey]: safeStr(s?.subtitle) },
-            descriptions: { [dfKey]: safeStr(s?.description) },
-            image: { id: s?.image ?? '', url: s?.image_url ?? '' },
-          }))
+        ? testimonialStepsArr.map((s: any, idx: number) => {
+            const titles: Record<string, string> = { [dfKey]: safeStr(s?.title) };
+            const subtitles: Record<string, string> = { [dfKey]: safeStr(s?.subtitle) };
+            const descriptions: Record<string, string> = { [dfKey]: safeStr(s?.description) };
+            if (trMap) {
+              Object.keys(trMap).forEach((langId) => {
+                if (langId === 'df') return;
+                const langSteps = trMap[langId]?.content?.testimonial_and_success_section?.steps;
+                if (Array.isArray(langSteps) && langSteps[idx]) {
+                  titles[langId] = safeStr(langSteps[idx]?.title);
+                  subtitles[langId] = safeStr(langSteps[idx]?.subtitle);
+                  descriptions[langId] = safeStr(langSteps[idx]?.description);
+                }
+              });
+            }
+            return { titles, subtitles, descriptions, image: { id: s?.image ?? '', url: s?.image_url ?? '' } };
+          })
         : [],
     );
 
@@ -622,7 +653,7 @@ const AboutSettingsForm = ({ data }: any) => {
       })),
     };
 
-    const translations = (uiLangsOnly || []).map((lang) => ({
+    const translations = (uiLangs ?? []).filter((lang) => lang.id !== 'df').map((lang) => ({
       language_code: lang.id,
       title: safeStr((values as any)[`title_${lang.id}`]),
       meta_title: safeStr((values as any)[`meta_title_${lang.id}`]),
@@ -731,7 +762,7 @@ const AboutSettingsForm = ({ data }: any) => {
         <Card className="mt-4 sticky top-14 z-20">
           <CardContent className="p-2 md:p-4 flex items-center justify-between gap-3">
             <div className="text-sm font-semibold text-gray-700 dark:text-gray-200">
-              About Page Settings
+              {t('label.about_page_settings')}
             </div>
 
             <div className="inline-flex rounded-md border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 overflow-hidden">
@@ -780,14 +811,14 @@ const AboutSettingsForm = ({ data }: any) => {
           <div>
             {/* i18n Tabs — CONTROLLED */}
             <Tabs
-              value={activeLangId || firstUILangId || (uiLangsOnly?.[0]?.id ?? '')}
+              value={activeLangId || firstUILangId || (uiLangs?.[0]?.id ?? '')}
               onValueChange={setActiveLangId}
               className=""
             >
               <Card className="mt-4">
                 <CardContent className="px-0 md:px-6 py-2">
                   <TabsList dir={dir} className="flex justify-start bg-white dark:bg-[#1f2937]">
-                    {uiLangsOnly.map((lang) => (
+                    {uiLangs.map((lang) => (
                       <TabsTrigger key={lang.id} value={lang.id}>
                         {lang.label}
                       </TabsTrigger>
@@ -798,13 +829,13 @@ const AboutSettingsForm = ({ data }: any) => {
               {/* HEADER/SEO */}
               <Card dir={dir}>
                 <CardContent className="mt-4 p-4">
-                  {uiLangsOnly.map((lang) => (
-                    <TabsContent key={lang.id} value={lang.id} forceMount>
+                  {uiLangs.map((lang) => (
+                    <TabsContent key={lang.id} value={lang.id}>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-4">
                           <div>
                             <p className="text-sm font-medium mb-1 flex items-center gap-2">
-                              <span>Theme Name</span>
+                              <span>{t('label.theme_name')}</span>
                             </p>
                             <Controller
                               control={control}
@@ -936,15 +967,15 @@ const AboutSettingsForm = ({ data }: any) => {
               <Card className="mt-4">
                 <CardContent className="p-2 md:p-6">
                   <div dir={dir}>
-                    <h1 className="text-lg md:text-2xl font-medium mb-4">About Section</h1>
+                    <h1 className="text-lg md:text-2xl font-medium mb-4">{t('label.about_section')}</h1>
 
-                    {uiLangsOnly.map((lang) => (
-                      <TabsContent key={lang.id} value={lang.id} forceMount>
+                    {uiLangs.map((lang) => (
+                      <TabsContent key={lang.id} value={lang.id}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                           <div>
                             <div className="mb-4">
                               <div className="text-sm font-medium mb-1 flex items-center gap-2">
-                                <span>Title ({lang.label})</span>
+                                <span>{t('label.title')} ({lang.label})</span>
                               </div>
                               <Input
                                 id={`about_title_${lang.id}`}
@@ -952,13 +983,13 @@ const AboutSettingsForm = ({ data }: any) => {
                                   `about_title_${lang.id}` as keyof AboutSettingsFormData,
                                 )}
                                 className="app-input"
-                                placeholder="Enter value"
+                                placeholder={t('place_holder.enter_value')}
                               />
                             </div>
 
                             <div className="mb-4">
                               <div className="text-sm font-medium mb-1 flex items-center gap-2">
-                                <span>Subtitle ({lang.label})</span>
+                                <span>{t('label.subtitle')} ({lang.label})</span>
                               </div>
                               <Input
                                 id={`about_subtitle_${lang.id}`}
@@ -966,13 +997,13 @@ const AboutSettingsForm = ({ data }: any) => {
                                   `about_subtitle_${lang.id}` as keyof AboutSettingsFormData,
                                 )}
                                 className="app-input"
-                                placeholder="Enter value"
+                                placeholder={t('place_holder.enter_value')}
                               />
                             </div>
 
                             <div className="mb-4">
                               <div className="text-sm font-medium mb-1 flex items-center gap-2">
-                                <span>Description ({lang.label})</span>
+                                <span>{t('label.description')} ({lang.label})</span>
                               </div>
                               <Textarea
                                 id={`about_description_${lang.id}`}
@@ -980,7 +1011,7 @@ const AboutSettingsForm = ({ data }: any) => {
                                   `about_description_${lang.id}` as keyof AboutSettingsFormData,
                                 )}
                                 className="app-input"
-                                placeholder="Enter value"
+                                placeholder={t('place_holder.enter_value')}
                               />
                             </div>
                           </div>
@@ -988,7 +1019,7 @@ const AboutSettingsForm = ({ data }: any) => {
                           <div>
                             <div className="mt-0 md:mt-4">
                               <p className="text-sm font-medium flex items-center gap-2 mb-1">
-                                <span>Image</span>
+                                <span>{t('label.image')}</span>
                               </p>
                               <div className="relative flex align-start gap-4">
                                 <div className="relative w-32">
@@ -1024,15 +1055,15 @@ const AboutSettingsForm = ({ data }: any) => {
               <Card className="mt-4">
                 <CardContent className="p-2 md:p-6">
                   <div dir={dir} className="">
-                    <h1 className="text-lg md:text-2xl font-medium mb-4">Story Section</h1>
+                    <h1 className="text-lg md:text-2xl font-medium mb-4">{t('label.story_section')}</h1>
                     <div>
-                      {uiLangsOnly.map((lang) => {
+                      {uiLangs.map((lang) => {
                         return (
                           <TabsContent key={lang.id} value={lang.id}>
                             <div className="">
                               <div className="mb-4">
                                 <div className="text-sm font-medium mb-1 flex items-center gap-2">
-                                  <span> Title ({lang.label})</span>
+                                  <span>{t('label.title')} ({lang.label})</span>
                                   <div>
                                     <TooltipProvider>
                                       <Tooltip>
@@ -1041,11 +1072,7 @@ const AboutSettingsForm = ({ data }: any) => {
                                         </TooltipTrigger>
                                         <TooltipContent className="bg-custom-dark-blue">
                                           <p className="p-1 text-sm font-medium">
-                                            Please provide title{' '}
-                                            <span>
-                                              {' '}
-                                              {lang.label !== 'Default' && `in ${lang.label}`}
-                                            </span>
+                                            {t('tooltip.provide_title')} ({lang.label})
                                           </p>
                                         </TooltipContent>
                                       </Tooltip>
@@ -1058,12 +1085,12 @@ const AboutSettingsForm = ({ data }: any) => {
                                     `story_title_${lang.id}` as keyof AboutSettingsFormData,
                                   )}
                                   className="app-input"
-                                  placeholder="Enter value"
+                                  placeholder={t('place_holder.enter_value')}
                                 />
                               </div>
                               <div className="mb-4">
                                 <div className="text-sm font-medium mb-1 flex items-center gap-2">
-                                  <span> Subtitle ({lang.label})</span>
+                                  <span>{t('label.subtitle')} ({lang.label})</span>
                                   <div>
                                     <TooltipProvider>
                                       <Tooltip>
@@ -1072,11 +1099,7 @@ const AboutSettingsForm = ({ data }: any) => {
                                         </TooltipTrigger>
                                         <TooltipContent className="bg-custom-dark-blue">
                                           <p className="p-1 text-sm font-medium">
-                                            Please provide subtitle{' '}
-                                            <span>
-                                              {' '}
-                                              {lang.label !== 'Default' && `in ${lang.label}`}
-                                            </span>
+                                            {t('tooltip.provide_subtitle')} ({lang.label})
                                           </p>
                                         </TooltipContent>
                                       </Tooltip>
@@ -1089,16 +1112,16 @@ const AboutSettingsForm = ({ data }: any) => {
                                     `story_subtitle_${lang.id}` as keyof AboutSettingsFormData,
                                   )}
                                   className="app-input"
-                                  placeholder="Enter value"
+                                  placeholder={t('place_holder.enter_value')}
                                 />
                               </div>
                               <div className="mt-8 w-full text-sm font-semibold flex items-center justify-between ">
-                                <span>Story Steps</span>
+                                <span>{t('label.story_steps')}</span>
                                 <span
                                   onClick={handleAddOnBoardStep}
                                   className="flex items-center cursor-pointer bg-blue-50 border border-blue-500 text-blue-500 text-sm font-bold shadow-2xl px-2 py-2 rounded hover:bg-blue-500 hover:text-white"
                                 >
-                                  Add more
+                                  {t('button.add_more')}
                                 </span>
                               </div>
                               <div className="max-h-[300px] overflow-x-auto custom-scrollbar">
@@ -1111,7 +1134,7 @@ const AboutSettingsForm = ({ data }: any) => {
                                       <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-8 ">
                                         <div className="flex  flex-col items-center">
                                           <p className="text-sm font-medium mb-1 text-gray-500 dark:text-white">
-                                            Image
+                                            {t('label.image')}
                                           </p>
 
                                           {
@@ -1164,7 +1187,7 @@ const AboutSettingsForm = ({ data }: any) => {
 
                                         <div className="w-full">
                                           <p className="text-sm font-medium mb-1 text-gray-500 dark:text-white">
-                                            Title
+                                            {t('label.title')}
                                           </p>
                                           <Input
                                             type="text"
@@ -1178,13 +1201,13 @@ const AboutSettingsForm = ({ data }: any) => {
                                               )
                                             }
                                             className="app-input flex-grow py-2"
-                                            placeholder="Enter value"
+                                            placeholder={t('place_holder.enter_value')}
                                           />
                                         </div>
                                       </div>
                                       <div className="col-span-2">
                                         <p className="text-sm font-medium mb-1 text-gray-500 dark:text-white">
-                                          Sub Title
+                                          {t('label.subtitle')}
                                         </p>
                                         <Input
                                           type="text"
@@ -1198,20 +1221,20 @@ const AboutSettingsForm = ({ data }: any) => {
                                             )
                                           }
                                           className="app-input flex-grow py-2"
-                                          placeholder="Enter value"
+                                          placeholder={t('place_holder.enter_value')}
                                         />
                                       </div>
                                     </div>
                                     {index === 0 ? (
                                       <span className="flex items-center cursor-not-allowed bg-slate-500 text-slate-300 text-sm font-bold shadow-2xl px-2 py-2.5 rounded">
-                                        Default
+                                        {t('button.default')}
                                       </span>
                                     ) : (
                                       <span
                                         onClick={() => handleDeleteOnBoardStep(index)}
                                         className="cursor-pointer bg-red-500 text-white shadow-2xl px-3 py-2 rounded"
                                       >
-                                        Close
+                                        {t('button.close')}
                                       </span>
                                     )}
                                   </div>
@@ -1229,16 +1252,16 @@ const AboutSettingsForm = ({ data }: any) => {
                 <CardContent className="p-2 md:p-6">
                   <div dir={dir} className="">
                     <h1 className="text-lg md:text-2xl font-medium mb-4">
-                      Mission & Vision Section
+                      {t('label.mission_vision_section')}
                     </h1>
                     <div>
-                      {uiLangsOnly.map((lang) => {
+                      {uiLangs.map((lang) => {
                         return (
                           <TabsContent key={lang.id} value={lang.id}>
                             <div className="">
                               <div className="mb-4">
                                 <div className="text-sm font-medium mb-1 flex items-center gap-2">
-                                  <span> Title ({lang.label})</span>
+                                  <span>{t('label.title')} ({lang.label})</span>
                                   <div>
                                     <TooltipProvider>
                                       <Tooltip>
@@ -1247,11 +1270,7 @@ const AboutSettingsForm = ({ data }: any) => {
                                         </TooltipTrigger>
                                         <TooltipContent className="bg-custom-dark-blue">
                                           <p className="p-1 text-sm font-medium">
-                                            Please provide title{' '}
-                                            <span>
-                                              {' '}
-                                              {lang.label !== 'Default' && `in ${lang.label}`}
-                                            </span>
+                                            {t('tooltip.provide_title')} ({lang.label})
                                           </p>
                                         </TooltipContent>
                                       </Tooltip>
@@ -1264,12 +1283,12 @@ const AboutSettingsForm = ({ data }: any) => {
                                     `mission_title_${lang.id}` as keyof AboutSettingsFormData,
                                   )}
                                   className="app-input"
-                                  placeholder="Enter value"
+                                  placeholder={t('place_holder.enter_value')}
                                 />
                               </div>
                               <div className="mb-4">
                                 <div className="text-sm font-medium mb-1 flex items-center gap-2">
-                                  <span> Subtitle ({lang.label})</span>
+                                  <span>{t('label.subtitle')} ({lang.label})</span>
                                   <div>
                                     <TooltipProvider>
                                       <Tooltip>
@@ -1278,11 +1297,7 @@ const AboutSettingsForm = ({ data }: any) => {
                                         </TooltipTrigger>
                                         <TooltipContent className="bg-custom-dark-blue">
                                           <p className="p-1 text-sm font-medium">
-                                            Please provide subtitle{' '}
-                                            <span>
-                                              {' '}
-                                              {lang.label !== 'Default' && `in ${lang.label}`}
-                                            </span>
+                                            {t('tooltip.provide_subtitle')} ({lang.label})
                                           </p>
                                         </TooltipContent>
                                       </Tooltip>
@@ -1295,16 +1310,16 @@ const AboutSettingsForm = ({ data }: any) => {
                                     `mission_subtitle_${lang.id}` as keyof AboutSettingsFormData,
                                   )}
                                   className="app-input"
-                                  placeholder="Enter value"
+                                  placeholder={t('place_holder.enter_value')}
                                 />
                               </div>
                               <div className="mt-8 text-sm font-semibold flex items-center justify-between ">
-                                <span>Mission & Vision Steps</span>
+                                <span>{t('label.mission_vision_steps')}</span>
                                 <span
                                   onClick={handleAddAttributeValue}
                                   className="flex items-center cursor-pointer bg-blue-50 border border-blue-500 text-blue-500 text-sm font-bold shadow-2xl px-2 py-2 rounded hover:bg-blue-500 hover:text-white"
                                 >
-                                  Add more
+                                  {t('button.add_more')}
                                 </span>
                               </div>
                               <div className="max-h-[300px] overflow-x-auto custom-scrollbar">
@@ -1317,7 +1332,7 @@ const AboutSettingsForm = ({ data }: any) => {
                                       <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-8 ">
                                         <div className="flex flex-col items-center ">
                                           <p className="text-sm font-medium mb-1 text-gray-500 dark:text-white">
-                                            Image
+                                            {t('label.image')}
                                           </p>
 
                                           {
@@ -1369,7 +1384,7 @@ const AboutSettingsForm = ({ data }: any) => {
                                         </div>
                                         <div className=" w-full">
                                           <p className="text-sm font-medium mb-1 text-gray-500 dark:text-white">
-                                            Title
+                                            {t('label.title')}
                                           </p>
                                           <Input
                                             type="text"
@@ -1383,14 +1398,14 @@ const AboutSettingsForm = ({ data }: any) => {
                                               )
                                             }
                                             className="app-input flex-grow py-2"
-                                            placeholder="Enter value"
+                                            placeholder={t('place_holder.enter_value')}
                                           />
                                         </div>
                                       </div>
                                       <div className="flex items-center gap-4">
                                         <div className=" w-full">
                                           <p className="text-sm font-medium mb-1 text-gray-500 dark:text-white">
-                                            Sub Title
+                                            {t('label.subtitle')}
                                           </p>
                                           <Input
                                             type="text"
@@ -1404,14 +1419,14 @@ const AboutSettingsForm = ({ data }: any) => {
                                               )
                                             }
                                             className="app-input flex-grow py-2"
-                                            placeholder="Enter value"
+                                            placeholder={t('place_holder.enter_value')}
                                           />
                                         </div>
                                       </div>
                                       <div className="flex items-center gap-4">
                                         <div className=" w-full">
                                           <p className="text-sm font-medium mb-1 text-gray-500 dark:text-white">
-                                            Descriptions
+                                            {t('label.description')}
                                           </p>
                                           <Input
                                             type="text"
@@ -1425,21 +1440,21 @@ const AboutSettingsForm = ({ data }: any) => {
                                               )
                                             }
                                             className="app-input flex-grow py-2"
-                                            placeholder="Enter value"
+                                            placeholder={t('place_holder.enter_value')}
                                           />
                                         </div>
                                       </div>
                                     </div>
                                     {index === 0 ? (
                                       <span className="flex items-center cursor-not-allowed bg-slate-500 text-slate-300 text-sm font-bold shadow-2xl px-2 py-2.5 rounded">
-                                        Default
+                                        {t('button.default')}
                                       </span>
                                     ) : (
                                       <span
                                         onClick={() => handleDeleteAttributeValue(index)}
                                         className="cursor-pointer bg-red-500 text-white shadow-2xl px-3 py-2 rounded"
                                       >
-                                        Close
+                                        {t('button.close')}
                                       </span>
                                     )}
                                   </div>
@@ -1457,16 +1472,16 @@ const AboutSettingsForm = ({ data }: any) => {
                 <CardContent className="p-2 md:p-6">
                   <div dir={dir} className="">
                     <h1 className="text-lg md:text-2xl font-medium mb-4">
-                      Testimonial & Success Section
+                      {t('label.testimonial_section')}
                     </h1>
                     <div>
-                      {uiLangsOnly.map((lang) => {
+                      {uiLangs.map((lang) => {
                         return (
                           <TabsContent key={lang.id} value={lang.id}>
                             <div className="">
                               <div className="mb-4">
                                 <div className="text-sm font-medium mb-1 flex items-center gap-2">
-                                  <span> Title ({lang.label})</span>
+                                  <span>{t('label.title')} ({lang.label})</span>
                                   <div>
                                     <TooltipProvider>
                                       <Tooltip>
@@ -1475,11 +1490,7 @@ const AboutSettingsForm = ({ data }: any) => {
                                         </TooltipTrigger>
                                         <TooltipContent className="bg-custom-dark-blue">
                                           <p className="p-1 text-sm font-medium">
-                                            Please provide title{' '}
-                                            <span>
-                                              {' '}
-                                              {lang.label !== 'Default' && `in ${lang.label}`}
-                                            </span>
+                                            {t('tooltip.provide_title')} ({lang.label})
                                           </p>
                                         </TooltipContent>
                                       </Tooltip>
@@ -1492,12 +1503,12 @@ const AboutSettingsForm = ({ data }: any) => {
                                     `testimonial_title_${lang.id}` as keyof AboutSettingsFormData,
                                   )}
                                   className="app-input"
-                                  placeholder="Enter value"
+                                  placeholder={t('place_holder.enter_value')}
                                 />
                               </div>
                               <div className="mb-4">
                                 <div className="text-sm font-medium mb-1 flex items-center gap-2">
-                                  <span> Subtitle ({lang.label})</span>
+                                  <span>{t('label.subtitle')} ({lang.label})</span>
                                   <div>
                                     <TooltipProvider>
                                       <Tooltip>
@@ -1506,11 +1517,7 @@ const AboutSettingsForm = ({ data }: any) => {
                                         </TooltipTrigger>
                                         <TooltipContent className="bg-custom-dark-blue">
                                           <p className="p-1 text-sm font-medium">
-                                            Please provide subtitle{' '}
-                                            <span>
-                                              {' '}
-                                              {lang.label !== 'Default' && `in ${lang.label}`}
-                                            </span>
+                                            {t('tooltip.provide_subtitle')} ({lang.label})
                                           </p>
                                         </TooltipContent>
                                       </Tooltip>
@@ -1523,16 +1530,16 @@ const AboutSettingsForm = ({ data }: any) => {
                                     `testimonial_subtitle_${lang.id}` as keyof AboutSettingsFormData,
                                   )}
                                   className="app-input"
-                                  placeholder="Enter value"
+                                  placeholder={t('place_holder.enter_value')}
                                 />
                               </div>
                               <div className="mt-8 text-sm font-semibold flex items-center justify-between ">
-                                <span>Testimonial & Success Steps</span>
+                                <span>{t('label.testimonial_steps')}</span>
                                 <span
                                   onClick={handleAddTestimonialStep}
                                   className="flex items-center cursor-pointer bg-blue-50 border border-blue-500 text-blue-500 text-sm font-bold shadow-2xl px-2 py-2 rounded hover:bg-blue-500 hover:text-white"
                                 >
-                                  Add more
+                                  {t('button.add_more')}
                                 </span>
                               </div>
                               <div className="max-h-[300px] overflow-x-auto custom-scrollbar">
@@ -1545,7 +1552,7 @@ const AboutSettingsForm = ({ data }: any) => {
                                       <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-8 ">
                                         <div className="flex flex-col items-center ">
                                           <p className="text-sm font-medium mb-1 text-gray-500 dark:text-white">
-                                            Image
+                                            {t('label.image')}
                                           </p>
 
                                           {
@@ -1597,7 +1604,7 @@ const AboutSettingsForm = ({ data }: any) => {
                                         </div>
                                         <div className=" w-full">
                                           <p className="text-sm font-medium mb-1 text-gray-500 dark:text-white">
-                                            Title
+                                            {t('label.title')}
                                           </p>
                                           <Input
                                             type="text"
@@ -1611,14 +1618,14 @@ const AboutSettingsForm = ({ data }: any) => {
                                               )
                                             }
                                             className="app-input flex-grow py-2"
-                                            placeholder="Enter value"
+                                            placeholder={t('place_holder.enter_value')}
                                           />
                                         </div>
                                       </div>
                                       <div className="flex items-center gap-4">
                                         <div className=" w-full">
                                           <p className="text-sm font-medium mb-1 text-gray-500 dark:text-white">
-                                            Sub Title
+                                            {t('label.subtitle')}
                                           </p>
                                           <Input
                                             type="text"
@@ -1632,14 +1639,14 @@ const AboutSettingsForm = ({ data }: any) => {
                                               )
                                             }
                                             className="app-input flex-grow py-2"
-                                            placeholder="Enter value"
+                                            placeholder={t('place_holder.enter_value')}
                                           />
                                         </div>
                                       </div>
                                       <div className="flex items-center gap-4">
                                         <div className=" w-full">
                                           <p className="text-sm font-medium mb-1 text-gray-500 dark:text-white">
-                                            Description
+                                            {t('label.description')}
                                           </p>
                                           <Input
                                             type="text"
@@ -1653,21 +1660,21 @@ const AboutSettingsForm = ({ data }: any) => {
                                               )
                                             }
                                             className="app-input flex-grow py-2"
-                                            placeholder="Enter value"
+                                            placeholder={t('place_holder.enter_value')}
                                           />
                                         </div>
                                       </div>
                                     </div>
                                     {index === 0 ? (
                                       <span className="flex items-center cursor-not-allowed bg-slate-500 text-slate-300 text-sm font-bold shadow-2xl px-2 py-2.5 rounded">
-                                        Default
+                                        {t('button.default')}
                                       </span>
                                     ) : (
                                       <span
                                         onClick={() => handleDeleteTestimonialStep(index)}
                                         className="cursor-pointer bg-red-500 text-white shadow-2xl px-3 py-2 rounded"
                                       >
-                                        Close
+                                        {t('button.close')}
                                       </span>
                                     )}
                                   </div>
@@ -1686,7 +1693,7 @@ const AboutSettingsForm = ({ data }: any) => {
         )}
 
         <Card className="mt-4 sticky bottom-0 w-full p-4">
-          <SubmitButton IsLoading={isUpdating} AddLabel="Save Changes" />
+          <SubmitButton IsLoading={isUpdating} AddLabel={t('button.save_changes')} />
         </Card>
       </form>
     </div>

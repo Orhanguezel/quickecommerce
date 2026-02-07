@@ -192,14 +192,14 @@ export const Sidebar = memo(({ setIsLoading }: any) => {
               )}
             >
               {QueryGeneralSettingsData?.com_site_white_logo ? (
-                <div className="relative w-24 h-12">
+                <div className="relative w-full h-14">
                   <Image
                     loader={GlobalImageLoader}
                     src={QueryGeneralSettingsData?.com_site_white_logo}
                     alt="quick_ecommerce"
                     fill
-                    sizes="48px"
-                    className="w-full h-full rounded"
+                    sizes="200px"
+                    className="w-full h-full object-contain object-left"
                     priority
                   />
                 </div>

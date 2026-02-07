@@ -37,6 +37,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Load global constants (DEFAULT_LANGUAGE, etc.)
+        require_once config_path('constants.php');
+
         // Observers
         User::observe(UserObserver::class);
         Customer::observe(CustomerObserver::class);

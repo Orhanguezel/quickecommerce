@@ -30,7 +30,7 @@ class ProductUpdateRequest extends FormRequest
             "behaviour" => "nullable|in:" . implode(',', array_column(Behaviour::cases(), 'value')),
             "name" => "required|string|max:255",
             "description" => "nullable|string",
-            "image" => "nullable|integer",
+            "image" => "nullable",
             "video_url" => "nullable|string|max:500",
             "class" => "nullable|string|max:255",
             "warranty" => "nullable|array",
@@ -74,7 +74,7 @@ class ProductUpdateRequest extends FormRequest
             "variants.*.length" => "nullable|numeric|min:0",
             "variants.*.width" => "nullable|numeric|min:0",
             "variants.*.height" => "nullable|numeric|min:0",
-            "variants.*.image" => "nullable|integer",
+            "variants.*.image" => "nullable",
             "variants.*.order_count" => "nullable|integer|min:0",
             "variants.*.status" => "nullable|integer|in:0,1",
         ];

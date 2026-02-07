@@ -322,8 +322,7 @@ const CreateOrUpdateEmailTemplateForm = ({
                               </TooltipTrigger>
                               <TooltipContent className="bg-custom-dark-blue">
                                 <p className="p-1 text-sm font-medium">
-                                  Please provide name{" "}
-                                  <span>{`in ${lang.label ?? lang.id}`}</span>
+                                  {t("tooltip.please_provide_name_in", { lang: lang.label ?? lang.id })}
                                 </p>
                               </TooltipContent>
                             </Tooltip>
@@ -334,7 +333,7 @@ const CreateOrUpdateEmailTemplateForm = ({
                           id={`name_${lang.id}`}
                           {...register(`name_${lang.id}` as any)}
                           className="app-input"
-                          placeholder="Enter value"
+                          placeholder={t("place_holder.enter_value")}
                         />
 
                         {(errors as any)?.[`name_${lang.id}`]?.message ? (
@@ -357,8 +356,7 @@ const CreateOrUpdateEmailTemplateForm = ({
                               </TooltipTrigger>
                               <TooltipContent className="bg-custom-dark-blue">
                                 <p className="p-1 text-sm font-medium">
-                                  Please provide subject{" "}
-                                  <span>{`in ${lang.label ?? lang.id}`}</span>
+                                  {t("tooltip.please_provide_subject_in", { lang: lang.label ?? lang.id })}
                                 </p>
                               </TooltipContent>
                             </Tooltip>
@@ -369,7 +367,7 @@ const CreateOrUpdateEmailTemplateForm = ({
                           id={`subject_${lang.id}`}
                           {...register(`subject_${lang.id}` as any)}
                           className="app-input"
-                          placeholder="Enter value"
+                          placeholder={t("place_holder.enter_value")}
                         />
                       </div>
 
@@ -396,7 +394,7 @@ const CreateOrUpdateEmailTemplateForm = ({
                           id={`body_${lang.id}`}
                           {...register(`body_${lang.id}` as any)}
                           className="app-input"
-                          placeholder="Enter value"
+                          placeholder={t("place_holder.enter_value")}
                         />
                       </div>
                     </TabsContent>

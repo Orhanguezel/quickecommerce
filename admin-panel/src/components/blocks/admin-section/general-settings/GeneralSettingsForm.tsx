@@ -536,7 +536,7 @@ export default function GeneralSettingsForm({ data }: any) {
         <Card className="mt-4">
           <CardContent className="p-2 md:p-4 flex items-center justify-between gap-3">
             <div className="text-sm font-semibold text-gray-700 dark:text-gray-200">
-              General Settings
+              {t('label.general_settings')}
             </div>
 
             <div className="inline-flex rounded-md border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 overflow-hidden">
@@ -573,11 +573,11 @@ export default function GeneralSettingsForm({ data }: any) {
           <CardContent className="p-4">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div>
-                <p className="text-sm font-medium mb-1">Website URL</p>
+                <p className="text-sm font-medium mb-1">{t('label.website_url')}</p>
                 <Input
                   {...register('website_url' as any)}
                   className="app-input"
-                  placeholder="Enter value"
+                  placeholder={t('place_holder.enter_value')}
                 />
                 {(errors as any)?.website_url?.message ? (
                   <p className="text-red-500 text-sm mt-1">
@@ -587,11 +587,11 @@ export default function GeneralSettingsForm({ data }: any) {
               </div>
 
               <div>
-                <p className="text-sm font-medium mb-1">Email</p>
+                <p className="text-sm font-medium mb-1">{t('label.email')}</p>
                 <Input
                   {...register('email' as any)}
                   className="app-input"
-                  placeholder="Enter value"
+                  placeholder={t('place_holder.enter_value')}
                 />
                 {(errors as any)?.email?.message ? (
                   <p className="text-red-500 text-sm mt-1">
@@ -664,14 +664,14 @@ export default function GeneralSettingsForm({ data }: any) {
                       <TabsContent key={lang.id} value={lang.id}>
                         <div className="mb-4">
                           <div className="text-sm font-medium mb-1 flex items-center gap-2">
-                            <span>Title ({lang.label})</span>
+                            <span>{t('label.title')} ({lang.label})</span>
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <Info className="w-4 text-custom-dark-blue cursor-pointer" />
                                 </TooltipTrigger>
                                 <TooltipContent className="bg-custom-dark-blue dark:bg-white max-w-sm">
-                                  <p className="p-1 text-sm">Site title (localized)</p>
+                                  <p className="p-1 text-sm">{t('tooltip.site_title_localized')}</p>
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
@@ -679,47 +679,47 @@ export default function GeneralSettingsForm({ data }: any) {
                           <Input
                             {...register(`title_${lang.id}` as any)}
                             className="app-input"
-                            placeholder="Enter value"
+                            placeholder={t('place_holder.enter_value')}
                           />
                         </div>
 
                         <div className="mb-4">
-                          <div className="text-sm font-medium mb-1">Sub Title ({lang.label})</div>
+                          <div className="text-sm font-medium mb-1">{t('label.sub_title')} ({lang.label})</div>
                           <Input
                             {...register(`sub_title_${lang.id}` as any)}
                             className="app-input"
-                            placeholder="Enter value"
+                            placeholder={t('place_holder.enter_value')}
                           />
                         </div>
 
                         <div className="mb-4">
                           <div className="text-sm font-medium mb-1">
-                            Contact Number ({lang.label})
+                            {t('label.contact_number')} ({lang.label})
                           </div>
                           <Input
                             {...register(`contact_number_${lang.id}` as any)}
                             className="app-input"
-                            placeholder="Enter value"
+                            placeholder={t('place_holder.enter_value')}
                           />
                         </div>
 
                         <div className="mb-4">
-                          <div className="text-sm font-medium mb-1">Address ({lang.label})</div>
+                          <div className="text-sm font-medium mb-1">{t('label.address')} ({lang.label})</div>
                           <Input
                             {...register(`street_address_${lang.id}` as any)}
                             className="app-input"
-                            placeholder="Enter value"
+                            placeholder={t('place_holder.enter_value')}
                           />
                         </div>
 
                         <div className="mb-4">
                           <div className="text-sm font-medium mb-1">
-                            Footer Copyright ({lang.label})
+                            {t('label.footer_copyright')} ({lang.label})
                           </div>
                           <Input
                             {...register(`footer_copyright_${lang.id}` as any)}
                             className="app-input"
-                            placeholder="Enter value"
+                            placeholder={t('place_holder.enter_value')}
                           />
                         </div>
                       </TabsContent>
@@ -732,7 +732,7 @@ export default function GeneralSettingsForm({ data }: any) {
                       {/* Primary logo */}
                       <div>
                         <div className="text-sm font-medium flex items-center gap-2 mb-1">
-                          <span>Primary Logo</span>
+                          <span>{t('label.primary_logo')}</span>
                         </div>
                         <div className="relative w-32">
                           <PhotoUploadModal
@@ -765,7 +765,7 @@ export default function GeneralSettingsForm({ data }: any) {
                       {/* Light logo */}
                       <div>
                         <div className="text-sm font-medium flex items-center gap-2 mb-1">
-                          <span>Light Mode Logo</span>
+                          <span>{t('label.light_mode_logo')}</span>
                         </div>
                         <div className="relative w-32">
                           <PhotoUploadModal
@@ -794,7 +794,7 @@ export default function GeneralSettingsForm({ data }: any) {
                       {/* Favicon */}
                       <div>
                         <div className="text-sm font-medium flex items-center gap-2 mb-1">
-                          <span>Favicon</span>
+                          <span>{t('label.favicon')}</span>
                         </div>
                         <div className="relative w-32">
                           <PhotoUploadModal
@@ -827,7 +827,7 @@ export default function GeneralSettingsForm({ data }: any) {
 
                     <div className="mt-6">
                       <div className="grid grid-cols-2 lg:grid-cols-4">
-                        <p className="text-sm font-medium mb-1">Email verification</p>
+                        <p className="text-sm font-medium mb-1">{t('label.email_verification')}</p>
                         <Switch
                           dir="ltr"
                           checked={toggles.emailVerification === 'on'}
@@ -836,7 +836,7 @@ export default function GeneralSettingsForm({ data }: any) {
                       </div>
 
                       <div className="my-4 grid grid-cols-2 lg:grid-cols-4">
-                        <p className="text-sm font-medium mb-1">Login OTP</p>
+                        <p className="text-sm font-medium mb-1">{t('label.login_otp')}</p>
                         <Switch
                           dir="ltr"
                           checked={toggles.loginOTP === 'on'}
@@ -845,7 +845,7 @@ export default function GeneralSettingsForm({ data }: any) {
                       </div>
 
                       <div className="grid grid-cols-2 lg:grid-cols-4">
-                        <p className="text-sm font-medium mb-1">Maintenance Mode</p>
+                        <p className="text-sm font-medium mb-1">{t('label.maintenance_mode')}</p>
                         <Switch
                           dir="ltr"
                           checked={toggles.maintenanceMode === 'on'}
@@ -861,7 +861,7 @@ export default function GeneralSettingsForm({ data }: any) {
         )}
 
         <Card className="mt-4 sticky bottom-0 w-full p-4">
-          <SubmitButton IsLoading={isPending} AddLabel="Save Changes" />
+          <SubmitButton IsLoading={isPending} AddLabel={t('button.save_changes')} />
         </Card>
       </form>
     </div>
