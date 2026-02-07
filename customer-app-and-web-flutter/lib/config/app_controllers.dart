@@ -8,6 +8,7 @@ import '../controller/bloc/address_list_bloc/address_list_bloc.dart';
 import '../controller/bloc/all_product_bloc/all_product_bloc.dart';
 import '../controller/bloc/banner_bloc/banner_bloc.dart';
 import '../controller/bloc/best_saleing_bloc/best_saleing_bloc.dart';
+import '../controller/bloc/blog_bloc/blog_bloc.dart';
 import '../controller/bloc/brand_bloc/brand_bloc.dart';
 import '../controller/bloc/cancel_order_bloc/cancel_order_bloc.dart';
 import '../controller/bloc/categories_bloc/categories_bloc.dart';
@@ -442,6 +443,12 @@ List<SingleChildWidget> getAppProviders(String? theme) {
     ),
     BlocProvider(
       create: (context) => DashboardBloc(
+        connectivityRepository: ConnectivityRepository(),
+        commonRepository: CommonRepository(),
+      ),
+    ),
+    BlocProvider(
+      create: (context) => BlogBloc(
         connectivityRepository: ConnectivityRepository(),
         commonRepository: CommonRepository(),
       ),

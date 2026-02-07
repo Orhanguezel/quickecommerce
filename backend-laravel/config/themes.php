@@ -1,7 +1,7 @@
 <?php
 
 return array (
-  'active_theme' => 'theme_two',
+  'active_theme' => 'theme_one',
   'available_themes' => 
   array (
     0 => 'theme_one',

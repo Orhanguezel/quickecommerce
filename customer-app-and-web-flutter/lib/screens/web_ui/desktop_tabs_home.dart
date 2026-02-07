@@ -45,6 +45,8 @@ import '../desktop_common_widgets/common_search_widget.dart';
 import '../home/find_location.dart';
 import '../my_card/my_card_screen.dart';
 import 'web_menu_and_page.dart';
+import '../blog/blog_list_screen.dart';
+import '../blog/blog_detail_screen.dart';
 import '../desktop_home/all_product_screen.dart';
 import '../desktop_home/desktop_categories_screen.dart';
 import '../desktop_home/desktop_home.dart';
@@ -166,9 +168,13 @@ class _DesktopTabsHomeState extends State<DesktopTabsHome> {
       case 'product':
         return "Products";
       case 'product-categories':
+      case 'product-category/list':
       case 'categories':
       case 'category':
         return "Category";
+      case 'blogs':
+      case 'blog':
+        return "Blog";
       default:
         return "menu-${item.id ?? slug}";
     }
@@ -189,9 +195,19 @@ class _DesktopTabsHomeState extends State<DesktopTabsHome> {
         homeCon.setTabType("Products");
         return;
       case 'product-categories':
+      case 'product-category/list':
       case 'categories':
       case 'category':
         homeCon.setTabType("Category");
+        return;
+      case 'blogs':
+      case 'blog':
+        homeCon.setTabType("Blog");
+        return;
+      case 'about-us':
+      case 'about':
+        homeCon.setTabType("Menu");
+        homeCon.setMenuName("About");
         return;
       case 'privacy-policy':
         homeCon.setTabType("Menu");
@@ -199,11 +215,26 @@ class _DesktopTabsHomeState extends State<DesktopTabsHome> {
         return;
       case 'terms-and-conditions':
       case 'terms-and-condition':
+      case 'terms-conditions':
         homeCon.setTabType("Menu");
         homeCon.setMenuName("TermsAndConditions");
         return;
       case 'contact':
       case 'contact-us':
+        homeCon.setTabType("Menu");
+        homeCon.setMenuName("Contact");
+        return;
+      case 'coupon':
+      case 'coupons':
+        homeCon.setTabType("Menu");
+        homeCon.setMenuName("Coupon");
+        return;
+      case 'store/list':
+      case 'store-list':
+      case 'stores':
+        homeCon.setTabType("Products");
+        return;
+      case 'become-a-seller':
         homeCon.setTabType("Menu");
         homeCon.setMenuName("Contact");
         return;
@@ -219,10 +250,9 @@ class _DesktopTabsHomeState extends State<DesktopTabsHome> {
       }
     }
 
-    CommonFunctions.showUpSnack(
-      context: context,
-      message: AppLocalizations.of(context)!.noDataFound,
-    );
+    // Fallback: try as a page slug
+    homeCon.setTabType("Menu");
+    homeCon.setMenuName("PrivacyPolicy");
   }
 
   List<MenuItem> _fallbackMenus(BuildContext context) {
@@ -746,9 +776,13 @@ class _DesktopTabsHomeState extends State<DesktopTabsHome> {
                           ? const DesktopCategories()
                           : homeCon.tabType == 'Checkout'
                   ? const WebCheckoutScreens()
-              :homeCon.tabType == 'Menu'?
-              const MenuAndPage()
-                  :const SizedBox()),
+              : homeCon.tabType == 'Blog'
+                  ? const BlogListScreen()
+              : homeCon.tabType == 'BlogDetail'
+                  ? BlogDetailScreen(slug: homeCon.menuName)
+              : homeCon.tabType == 'Menu'
+                  ? const MenuAndPage()
+                  : const SizedBox()),
         ],
       ),
     );

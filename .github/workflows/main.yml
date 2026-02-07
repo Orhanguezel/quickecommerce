@@ -71,22 +71,22 @@ jobs:
             composer install --no-dev --optimize-autoloader --no-interaction
 
             # Cache işlemlerinden ÖNCE izinleri kontrol et
-            php artisan config:clear
-            php artisan cache:clear
-            php artisan view:clear
+            sudo -u www-data php artisan config:clear
+            sudo -u www-data php artisan cache:clear
+            sudo -u www-data php artisan view:clear
 
             # Cache oluştur
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
+            sudo -u www-data php artisan config:cache
+            sudo -u www-data php artisan route:cache
+            sudo -u www-data php artisan view:cache
 
             # Migration
-            php artisan migrate --force || echo "Migration skipped"
+            sudo -u www-data php artisan migrate --force || echo "Migration skipped"
 
             echo "=== Run Essential Seeders ==="
-            php artisan db:seed --class=RolesSeeder --force || true
-            php artisan db:seed --class=UserSeeder --force || true
-            php artisan db:seed --class=PermissionAdminSeeder --force || true
+            sudo -u www-data php artisan db:seed --class=RolesSeeder --force || true
+            sudo -u www-data php artisan db:seed --class=UserSeeder --force || true
+            sudo -u www-data php artisan db:seed --class=PermissionAdminSeeder --force || true
 
             echo "=== Fix Storage Permissions (After Laravel Operations) ==="
             find storage -type f -exec chown www-data:www-data {} \;
