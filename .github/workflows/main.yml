@@ -94,6 +94,33 @@ jobs:
             find bootstrap/cache -type f -exec chown www-data:www-data {} \;
             find bootstrap/cache -type d -exec chown www-data:www-data {} \;
 
+            echo "=== Customer Web (Flutter) Setup ==="
+            cd /var/www/quikecommerce/customer-app-and-web-flutter
+
+            # Flutter SDK path
+            export PATH="/root/dev/flutter/bin:$PATH"
+
+            # Flutter versiyonunu kontrol et
+            echo "Flutter version: $(flutter --version --suppress-analytics | head -1 || echo 'Flutter not found')"
+
+            # Clean old build
+            flutter clean || echo "Flutter clean skipped"
+
+            # Dependencies install
+            flutter pub get
+
+            # Build web (production mode)
+            flutter build web --release --no-tree-shake-icons
+
+            # Build klasörü izinlerini düzelt (nginx www-data ile okuyabilmeli)
+            echo "=== Fix Flutter Build Permissions ==="
+            [ -d build/web ] && find build/web -type f -exec chmod 644 {} \;
+            [ -d build/web ] && find build/web -type d -exec chmod 755 {} \;
+
+            # Verify build
+            echo "Flutter build verification:"
+            ls -la /var/www/quikecommerce/customer-app-and-web-flutter/build/web/index.html 2>/dev/null && echo "index.html OK" || echo "ERROR: index.html missing!"
+
             echo "=== Admin Panel Setup ==="
             cd /var/www/quikecommerce/admin-panel
 
@@ -120,7 +147,7 @@ jobs:
             pm2 save
 
             echo "=== Verify Deploy ==="
-            echo "Deploy dir contents:"
+            echo "Admin Panel deploy dir:"
             ls -la /var/www/quikecommerce/admin-panel/deploy/server.js 2>/dev/null && echo "server.js OK" || echo "ERROR: server.js missing!"
             sleep 3
             pm2 status
@@ -130,3 +157,6 @@ jobs:
             ls -la storage/framework/cache/data/ | head -10
 
             echo "=== Deploy Complete ==="
+            echo "✅ Backend Laravel: Ready"
+            echo "✅ Customer Web (Flutter): Ready at https://sportoonline.com"
+            echo "✅ Admin Panel (Next.js): Ready at https://panel.sportoonline.com"
