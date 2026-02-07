@@ -31,6 +31,7 @@ export default withBundleAnalyzer(
       },
     },
     images: {
+      unoptimized: true,
       remotePatterns: [
         {
           protocol: "https",
