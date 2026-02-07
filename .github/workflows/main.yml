@@ -110,7 +110,7 @@ jobs:
             flutter pub get
 
             # Build web (production mode)
-            flutter build web --release --no-tree-shake-icons
+            flutter build web --release --no-tree-shake-icons --dart-define=BASE_URL=https://sportoonline.com
 
             # Build klasörü izinlerini düzelt (nginx www-data ile okuyabilmeli)
             echo "=== Fix Flutter Build Permissions ==="
