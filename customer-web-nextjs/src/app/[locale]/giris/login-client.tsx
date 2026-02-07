@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link } from "@/i18n/routing";
@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { SocialLoginButtons } from "@/components/auth/social-login-buttons";
 import { Eye, EyeOff, LogIn } from "lucide-react";
 
 interface Props {
@@ -25,6 +26,10 @@ interface Props {
     remember_me: string;
     login_error: string;
     loading: string;
+    or: string;
+    google: string;
+    facebook: string;
+    social_error: string;
   };
 }
 
@@ -143,6 +148,17 @@ export function LoginClient({ translations: t }: Props) {
               {loginMutation.isPending ? t.loading : t.login}
             </Button>
           </form>
+
+          <Suspense>
+            <SocialLoginButtons
+              translations={{
+                or: t.or,
+                google: t.google,
+                facebook: t.facebook,
+                social_error: t.social_error,
+              }}
+            />
+          </Suspense>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
             {t.dont_have_account}{" "}

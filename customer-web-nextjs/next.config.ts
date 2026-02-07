@@ -5,9 +5,28 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const imageHost = process.env.NEXT_IMAGE_HOST ?? "sportoonline.com";
 
+const apiUrl = process.env.NEXT_PUBLIC_REST_API_ENDPOINT ?? "https://sportoonline.com/api/v1";
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   output: "standalone",
+  async redirects() {
+    return [
+      {
+        source: "/",
+        destination: "/tr",
+        permanent: false,
+      },
+    ];
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/api/proxy/:path*",
+        destination: `${apiUrl}/:path*`,
+      },
+    ];
+  },
   async headers() {
     return [
       {

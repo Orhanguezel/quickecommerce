@@ -37,6 +37,13 @@ class GeneralSettingsSeeder extends Seeder
             'com_user_email_verification' => '',
             'com_user_login_otp'          => '',
             'com_maintenance_mode'        => '',
+
+            // Maintenance page
+            'com_maintenance_title'       => 'Bakımdayız',
+            'com_maintenance_description' => 'Sitemiz şu anda bakım çalışması nedeniyle geçici olarak hizmet dışıdır. En kısa sürede tekrar yayında olacağız.',
+            'com_maintenance_start_date'  => '',
+            'com_maintenance_end_date'    => '',
+            'com_maintenance_image'       => '',
         ];
 
         foreach ($settings as $key => $value) {
@@ -56,11 +63,13 @@ class GeneralSettingsSeeder extends Seeder
 
         // EN values for all translatable keys
         $enValues = [
-            'com_site_title'            => 'Sportoonline',
-            'com_site_subtitle'         => 'Sports Apparel & Equipment Store',
-            'com_site_contact_number'   => '+90 212 555 0 123',
-            'com_site_full_address'     => 'Levent Mah. Buyukdere Cad. No:185, Sisli, Istanbul, Turkey',
-            'com_site_footer_copyright' => '© 2025 Sportoonline. All rights reserved.',
+            'com_site_title'              => 'Sportoonline',
+            'com_site_subtitle'           => 'Sports Apparel & Equipment Store',
+            'com_site_contact_number'     => '+90 212 555 0 123',
+            'com_site_full_address'       => 'Levent Mah. Buyukdere Cad. No:185, Sisli, Istanbul, Turkey',
+            'com_site_footer_copyright'   => '© 2025 Sportoonline. All rights reserved.',
+            'com_maintenance_title'       => 'Under Maintenance',
+            'com_maintenance_description' => 'Our site is temporarily unavailable due to scheduled maintenance. We will be back online shortly.',
         ];
 
         // The GET endpoint loads translations from rows:
@@ -73,6 +82,8 @@ class GeneralSettingsSeeder extends Seeder
             'com_site_full_address',
             'com_site_contact_number',
             'com_site_footer_copyright',
+            'com_maintenance_title',
+            'com_maintenance_description',
         ])->get();
 
         foreach ($anchorOptions as $option) {

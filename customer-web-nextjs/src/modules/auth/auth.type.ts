@@ -38,6 +38,12 @@ export interface ResetPasswordInput {
   password_confirmation: string;
 }
 
+export interface SocialLoginInput {
+  email: string;
+  access_token: string;
+  type: "google" | "facebook";
+}
+
 export interface LoginResponse {
   token: string;
   expires_at: string;

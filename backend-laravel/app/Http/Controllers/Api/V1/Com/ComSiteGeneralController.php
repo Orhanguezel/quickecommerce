@@ -45,7 +45,7 @@ class ComSiteGeneralController extends Controller
                 'com_site_website_url' => com_option_get('com_site_website_url'),
                 'com_site_contact_number' => com_option_get('com_site_contact_number'),
                 'com_site_full_address' => com_option_get('com_site_full_address'),
-                'com_maintenance_mode' => com_option_get('com_maintenance_mode'),
+                'com_maintenance_mode' => com_option_get('com_maintenance_mode', null, false),
                 'com_user_login_otp' => com_option_get('com_user_login_otp'),
                 'com_user_email_verification' => com_option_get('com_user_email_verification'),
                 'com_google_recaptcha_v3_site_key' => com_option_get('com_google_recaptcha_v3_site_key'),
