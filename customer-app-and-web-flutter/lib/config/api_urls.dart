@@ -72,6 +72,8 @@ class ApiUrls{
   static String bannerListUrl() => '$baseUrlMart/api/v1/banner-list';
   static String flashDealsUrl() => '$baseUrlMart/api/v1/flash-deals';
   static String flashDealProductsUrl() => '$baseUrlMart/api/v1/flash-deal-products';
+  static String blogListUrl() => '$baseUrlMart/api/v1/blogs';
+  static String blogDetailUrl(String slug) => '$baseUrlMart/api/v1/blog/$slug';
 
   static String addressAddUrl() => '$baseUrlMart/api/v1/customer/address/add';
   static String addressListUrl() => '$baseUrlMart/api/v1/customer/address/customer-addresses';

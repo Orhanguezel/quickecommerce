@@ -624,4 +624,26 @@ class CommonRepository {
     );
     return response;
   }
+
+  Future<Response> blogList(String language, {int page = 1, int perPage = 10}) {
+    final response = _dio.get(
+      ApiUrls.blogListUrl(),
+      queryParameters: {
+        "language": language,
+        "per_page": perPage,
+        "page": page,
+      },
+    );
+    return response;
+  }
+
+  Future<Response> blogDetail(String slug, String language) {
+    final response = _dio.get(
+      ApiUrls.blogDetailUrl(slug),
+      queryParameters: {
+        "language": language,
+      },
+    );
+    return response;
+  }
 }
