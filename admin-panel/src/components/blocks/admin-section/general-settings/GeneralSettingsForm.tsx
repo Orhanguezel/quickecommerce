@@ -428,6 +428,7 @@ export default function GeneralSettingsForm({ data }: any) {
             alt={String(img?.name ?? 'image')}
             width={128}
             height={128}
+            unoptimized
             className="object-contain max-w-full max-h-full"
           />
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 bg-[#FFFFFFE5] py-2 border-l border-r border-b w-full rounded-b opacity-0 group-hover:opacity-90 transition-opacity duration-300 flex flex-col items-center justify-center">
