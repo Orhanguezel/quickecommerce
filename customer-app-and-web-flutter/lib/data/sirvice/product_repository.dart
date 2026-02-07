@@ -1,9 +1,10 @@
 import 'package:dio/dio.dart';
 
 import '../../config/api_urls.dart';
+import 'dio_client.dart';
 
 class ProductRepository {
-  final Dio _dio = Dio();
+  final Dio _dio = DioClient.instance;
   /// this function is responsible for change email into the app
   /// it needs [userName] and [password] for calling login api
   /// both of them are required parameters.
@@ -76,7 +77,7 @@ class ProductRepository {
     String token,
   ) {
     final queryParams = {
-      "language": language.isEmpty ? "en" : language,
+      "language": language.isEmpty ? "tr" : language,
       "category_id": categoryId.isEmpty ? [] : categoryId,
       "search": search.isEmpty ? "" : search,
       "per_page": perPage.isEmpty ? "" : perPage,

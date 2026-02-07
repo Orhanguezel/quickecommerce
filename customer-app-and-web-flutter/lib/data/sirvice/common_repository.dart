@@ -1,9 +1,10 @@
 import 'package:dio/dio.dart';
 import '../../config/api_urls.dart';
+import 'dio_client.dart';
 
 class CommonRepository {
 
-  final Dio _dio = Dio();
+  final Dio _dio = DioClient.instance;
 
 
   Future<Response> homePageSettings() {
@@ -428,7 +429,7 @@ class CommonRepository {
     final response = _dio.get(ApiUrls.contactUrl(),
         queryParameters:{
           "theme_name": "theme_one",
-          "language":"en"
+          "language": language,
         } ,
     );
     return response;
