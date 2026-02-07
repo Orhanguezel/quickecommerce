@@ -30,5 +30,11 @@ class DatabaseSeeder extends Seeder
         $this->call(CurrencySeeder::class);
         // pages
         $this->call(PageSeeder::class);
+        // general settings
+        $this->call(GeneralSettingsSeeder::class);
+        // seo settings
+        $this->call(SeoSettingsSeeder::class);
+        // gdpr cookie settings
+        $this->call(GdprCookieSettingsSeeder::class);
     }
 }

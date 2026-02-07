@@ -484,6 +484,10 @@ class SystemManagementController extends Controller
                 'com_openai_model' => 'nullable|string',
                 'com_openai_timeout' => 'nullable|string',
                 'com_openai_enable_disable' => 'nullable|string',
+                'com_claude_api_key' => 'nullable|string',
+                'com_claude_model' => 'nullable|string',
+                'com_claude_timeout' => 'nullable|string',
+                'com_claude_enable_disable' => 'nullable|string',
             ]);
             if ($validator->fails()) {
                 return response()->json([
@@ -495,7 +499,12 @@ class SystemManagementController extends Controller
             com_option_update('com_openai_timeout', $request->com_openai_timeout);
             com_option_update('com_openai_enable_disable', $request->com_openai_enable_disable);
 
-            return $this->success(translate('messages.update_success', ['name' => 'Open AI Settings']));
+            com_option_update('com_claude_api_key', $request->com_claude_api_key);
+            com_option_update('com_claude_model', $request->com_claude_model);
+            com_option_update('com_claude_timeout', $request->com_claude_timeout);
+            com_option_update('com_claude_enable_disable', $request->com_claude_enable_disable);
+
+            return $this->success(translate('messages.update_success', ['name' => 'AI Settings']));
         }
 
 
@@ -504,10 +513,17 @@ class SystemManagementController extends Controller
         $com_openai_timeout = com_option_get('com_openai_timeout');
         $com_openai_enable_disable = com_option_get('com_openai_enable_disable');
 
+        $com_claude_api_key = com_option_get('com_claude_api_key');
+        $com_claude_model = com_option_get('com_claude_model');
+        $com_claude_timeout = com_option_get('com_claude_timeout');
+        $com_claude_enable_disable = com_option_get('com_claude_enable_disable');
+
         //demo check
         if (Config::get('demoMode.check')) {
             $com_openai_api_key = '';
             $com_openai_model = '';
+            $com_claude_api_key = '';
+            $com_claude_model = '';
         }
 
         return response()->json([
@@ -517,6 +533,10 @@ class SystemManagementController extends Controller
                 'com_openai_model'          => $com_openai_model,
                 'com_openai_timeout'        => $com_openai_timeout,
                 'com_openai_enable_disable' => $com_openai_enable_disable,
+                'com_claude_api_key'        => $com_claude_api_key,
+                'com_claude_model'          => $com_claude_model,
+                'com_claude_timeout'        => $com_claude_timeout,
+                'com_claude_enable_disable' => $com_claude_enable_disable,
             ]
         ], 200);
 

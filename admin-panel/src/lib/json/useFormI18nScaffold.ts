@@ -75,7 +75,8 @@ export function useFormI18nScaffold<TFormValues extends Record<string, any>>(arg
 }) {
   const {
     languages,
-    excludeLangIds = ['df'],
+    // excludeLangIds artık kullanılmıyor — multiLang.json'daki tüm diller gösterilir
+    excludeLangIds: _excludeLangIds = [],
     fields,
     control,
     getValues,
@@ -89,8 +90,8 @@ export function useFormI18nScaffold<TFormValues extends Record<string, any>>(arg
 
   const uiLangs = useMemo(() => {
     const base = Array.isArray(languages) ? languages : [];
-    return base.filter((l) => l?.id && !excludeLangIds.includes(l.id));
-  }, [languages, excludeLangIds]);
+    return base.filter((l) => !!l?.id);
+  }, [languages]);
 
   const firstUILangId = useMemo(() => uiLangs?.[0]?.id ?? 'tr', [uiLangs]);
 

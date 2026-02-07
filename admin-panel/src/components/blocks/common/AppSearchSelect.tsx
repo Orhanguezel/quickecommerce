@@ -1,13 +1,19 @@
 "use client";
 import * as React from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { usePathname } from "next/navigation";
+import { Check, ChevronDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 
 interface SelectGroupData {
@@ -38,8 +44,8 @@ export const AppSearchSelect: React.FC<AppSelectProps> = ({
   const locale = pathname.split("/")[1];
   const dir = locale === "ar" ? "rtl" : "ltr";
 
+  const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
-  const [isOpen, setIsOpen] = React.useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   const filteredGroups = React.useMemo(() => {
@@ -48,73 +54,110 @@ export const AppSearchSelect: React.FC<AppSelectProps> = ({
     );
   }, [groups, search]);
 
-  const getSelectedLabel = (value: any) => {
-    if (value == "none") return placeholder;
-    const selectedOption = groups?.find(
+  const selectedLabel = React.useMemo(() => {
+    if (!value || value === "none") return null;
+    const found = groups?.find(
       (item) => String(item.value) === String(value)
     );
-    return selectedOption ? selectedOption.label : placeholder;
-  };
+    return found ? found.label : null;
+  }, [value, groups]);
 
-  // Maintain focus on the input when the dropdown is open
+  // Reset search when popover closes, focus input when opens
   React.useEffect(() => {
-    if (isOpen && inputRef.current) {
-      const timer = setTimeout(() => {
-        inputRef.current?.focus();
-      }, 0);
+    if (open) {
+      const timer = setTimeout(() => inputRef.current?.focus(), 0);
       return () => clearTimeout(timer);
+    } else {
+      setSearch("");
     }
-  }, [isOpen]);
+  }, [open]);
 
   return (
-    <Select 
-      dir={dir} 
-      value={value} 
-      onValueChange={onSelect}
-      open={isOpen}
-      onOpenChange={setIsOpen}
-    >
-      <SelectTrigger
-        className={`${
-          disabled
-            ? ""
-            : "ring ring-transparent focus:ring-transparent ring-offset-0 app-input"
-        }  ${customClass}`}
-        disabled={disabled}
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          role="combobox"
+          aria-expanded={open}
+          disabled={disabled}
+          dir={dir}
+          className={cn(
+            "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none disabled:cursor-not-allowed disabled:opacity-50",
+            disabled
+              ? ""
+              : "ring ring-transparent focus:ring-transparent ring-offset-0 app-input",
+            customClass
+          )}
+        >
+          <span className="line-clamp-1 text-start">
+            {selectedLabel ?? placeholder}
+          </span>
+          <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        className="p-0"
+        style={{ width: "var(--radix-popover-trigger-width)" }}
+        dir={dir}
       >
-        <SelectValue placeholder={placeholder}>
-          {getSelectedLabel(value || "")}
-        </SelectValue>
-      </SelectTrigger>
-      <SelectContent className="z-80 space-y-1">
-        {/* Search input inside dropdown */}
-        <div className="px-2 pt-2 mb-2 w-full">
-          <Input
-            ref={inputRef}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search..."
-            className="app-input h-8 w-full"
-            onKeyDown={(e) => {
-              e.stopPropagation();
-            }}
-          />
-        </div>
-
-        {!hideNone && <SelectItem value="none">None</SelectItem>}
-
-        {filteredGroups?.map((option, i) => (
-          <SelectItem key={i} value={String(option.value)}>
-            {option.label}
-          </SelectItem>
-        ))}
-
-        {filteredGroups.length === 0 && (
-          <div className="px-2 py-1 text-sm text-muted-foreground">
-            No results
+        <Command shouldFilter={false}>
+          <div className="p-2">
+            <Input
+              ref={inputRef}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search..."
+              className="app-input h-8 w-full"
+            />
           </div>
-        )}
-      </SelectContent>
-    </Select>
+          <CommandList>
+            <CommandGroup>
+              {!hideNone && (
+                <CommandItem
+                  onSelect={() => {
+                    onSelect("none");
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      !value || value === "none"
+                        ? "opacity-100"
+                        : "opacity-0"
+                    )}
+                  />
+                  None
+                </CommandItem>
+              )}
+              {filteredGroups?.map((option, i) => (
+                <CommandItem
+                  key={i}
+                  onSelect={() => {
+                    onSelect(String(option.value));
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      String(value) === String(option.value)
+                        ? "opacity-100"
+                        : "opacity-0"
+                    )}
+                  />
+                  {option.label}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+            {filteredGroups.length === 0 && (
+              <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                No results
+              </div>
+            )}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 };

@@ -572,7 +572,7 @@ const BecomeSellerForm = ({ data }: any) => {
       image_url: '',
     };
 
-    const translations = multiLangData.map((lang) => ({
+    const translations = multiLangData.filter((lang) => lang.id !== 'df').map((lang) => ({
       language_code: lang.id,
       title: (values as any)[`title_${lang.id}`],
       meta_title: (values as any)[`meta_title_${lang.id}`],

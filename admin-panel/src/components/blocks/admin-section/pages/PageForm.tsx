@@ -133,10 +133,10 @@ export default function PagesForm({ data }: any) {
     { label: t('label.publish'), value: 'publish' },
   ];
 
-  // ✅ Scaffold (df UI’da görünmez)
+  // ✅ Scaffold (df dahil — Currency pattern: excludeLangIds: [])
   const i18n = useFormI18nScaffold<PagesFormData>({
     languages: allLangs,
-    excludeLangIds: ['df'],
+    excludeLangIds: [],
     fields: [...I18N_FIELDS],
     control,
     getValues,
@@ -378,6 +378,7 @@ export default function PagesForm({ data }: any) {
     };
 
     const translations = (uiLangs ?? [])
+      .filter((lang) => lang.id !== 'df')
       .filter((lang) => safeStr((values as any)[`title_${lang.id}`]))
       .map((lang) => ({
         language_code: lang.id,
@@ -532,7 +533,7 @@ export default function PagesForm({ data }: any) {
 
                   <div dir="ltr">
                     {uiLangs.map((lang) => (
-                      <TabsContent key={lang.id} value={lang.id} forceMount>
+                      <TabsContent key={lang.id} value={lang.id}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-4">
                             <div>
@@ -627,7 +628,6 @@ export default function PagesForm({ data }: any) {
                                     placeholder={`${t('place_holder.enter_meta_key')} ${t(
                                       `lang.${lang.id}` as `lang.${LangKeys}`,
                                     )}`}
-                                    label={t('meta.keywords_title')}
                                     className="app-input"
                                   />
                                 )}

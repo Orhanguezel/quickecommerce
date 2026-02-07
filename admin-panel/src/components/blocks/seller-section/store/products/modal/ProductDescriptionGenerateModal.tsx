@@ -35,9 +35,9 @@ const ProductDescriptionGenerateModal: React.FC<RejectConfirmModalProps> = ({
   const dir = locale === "ar" ? "rtl" : "ltr";
   const [prompts, setPrompts] = useState("");
   const defaultSentence = name
-    ? `Generate a product description for "${name}". This product belongs to the following categories: ${categories.join(
+    ? `Generate a product description in ${lang} for "${name}". This product belongs to the following categories: ${categories.join(
         " > "
-      )}.`
+      )}. Please write the entire description in ${lang}.`
     : "";
 
   const handleSave = () => {
@@ -75,7 +75,7 @@ const ProductDescriptionGenerateModal: React.FC<RejectConfirmModalProps> = ({
     <AppModal
       trigger={trigger}
       actionButtonLabel={
-        useIsMobile() ? "Generate" : "Generate Product Description"
+        useIsMobile() ? t('label.generate') : t('label.generate_product_description')
       }
       customClass="inset-x-0p md:inset-x-10p lg:inset-x-20p xl:inset-x-30p top-[100px] md:top-[150px]  lg:top-[150px] "
       onSave={() => handleSave()}
@@ -84,21 +84,21 @@ const ProductDescriptionGenerateModal: React.FC<RejectConfirmModalProps> = ({
       onOpenChange={setIsModalOpen}
     >
       <div className="p-2">
-        <h1 className="text-xl font-bold mb-6">Lets get started !</h1>
+        <h1 className="text-xl font-bold mb-6">{t('label.lets_get_started')}</h1>
         {name && (
           <p className="text-sm mb-2">
-            Description for: <span className="font-semibold">{name}</span>
+            {t('label.description_for')} <span className="font-semibold">{name}</span>
           </p>
         )}
         {loading ? (
           <div className="bg-black flex flex-col items-center justify-center py-10 rounded min-h-48">
             <img
               src="/images/GPT AI.gif"
-              alt="Generating description..."
+              alt={t('label.generating_description')}
               className="w-16 h-16"
             />
             <p className="mt-3 text-sm text-gray-200">
-              Generating description...
+              {t('label.generating_description')}
             </p>
           </div>
         ) : (

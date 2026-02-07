@@ -54,6 +54,7 @@ class ComSiteGeneralController extends Controller
                 'otp_login_enabled_disable' => com_option_get('otp_login_enabled_disable'),
                 'active_theme' => $config_theme ?? 'theme_one',
                 'com_openai_enable_disable' =>com_option_get('com_openai_enable_disable'),
+                'com_claude_enable_disable' =>com_option_get('com_claude_enable_disable'),
             ];
         }
 
