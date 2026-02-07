@@ -5,7 +5,7 @@ import { availableLocales } from "./lib/language";
 export const routing = defineRouting({
   locales: availableLocales,
   defaultLocale: "tr",
-  localePrefix: "as-needed",
+  localePrefix: "always",
 });
 
 export type Locale = (typeof routing.locales)[number];
