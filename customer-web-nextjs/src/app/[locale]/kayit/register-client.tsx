@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link } from "@/i18n/routing";
@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { SocialLoginButtons } from "@/components/auth/social-login-buttons";
 import { Eye, EyeOff, UserPlus } from "lucide-react";
 
 interface Props {
@@ -29,6 +30,10 @@ interface Props {
     register: string;
     register_error: string;
     loading: string;
+    or: string;
+    google: string;
+    facebook: string;
+    social_error: string;
   };
 }
 
@@ -72,6 +77,26 @@ export function RegisterClient({ translations: t }: Props) {
                 t.register_error}
             </div>
           )}
+
+          <Suspense>
+            <SocialLoginButtons
+              translations={{
+                or: t.or,
+                google: t.google,
+                facebook: t.facebook,
+                social_error: t.social_error,
+              }}
+            />
+          </Suspense>
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">{t.or}</span>
+            </div>
+          </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">

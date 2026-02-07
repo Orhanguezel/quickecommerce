@@ -5,8 +5,8 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import { useLocale } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
-import { env } from "@/env.mjs";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
+import { getApiBaseUrl } from "@/lib/api-url";
 import { AUTH_TOKEN_KEY, AUTH_USER } from "@/lib/constants";
 import { useAuthStore } from "@/stores/auth-store";
 import type {
@@ -17,10 +17,11 @@ import type {
   ForgotPasswordInput,
   VerifyTokenInput,
   ResetPasswordInput,
+  SocialLoginInput,
 } from "./auth.type";
 
 const api = axios.create({
-  baseURL: env.NEXT_PUBLIC_REST_API_ENDPOINT,
+  baseURL: getApiBaseUrl(),
   timeout: 15000,
   headers: { "Content-Type": "application/json" },
 });
@@ -71,6 +72,37 @@ export function useRegisterMutation() {
       }
       setUser(data.user);
       router.push(`/${locale}`);
+    },
+  });
+}
+
+export function useSocialLoginMutation() {
+  const locale = useLocale();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const setUser = useAuthStore((s) => s.setUser);
+
+  return useMutation({
+    mutationFn: async (data: SocialLoginInput) => {
+      const res = await api.post<LoginResponse>(API_ENDPOINTS.LOGIN, {
+        ...data,
+        social_login: true,
+        role: "customer",
+        platform: "web",
+      }, {
+        headers: { "X-localization": locale },
+      });
+      return res.data;
+    },
+    onSuccess: (data) => {
+      Cookies.set(AUTH_TOKEN_KEY, data.token, { expires: 30 });
+      Cookies.set(AUTH_USER, JSON.stringify(data.user), { expires: 30 });
+      if (data.expires_at) {
+        localStorage.setItem("expires_at", data.expires_at);
+      }
+      setUser(data.user);
+      const redirectTo = searchParams.get("redirect");
+      router.push(redirectTo || `/${locale}`);
     },
   });
 }

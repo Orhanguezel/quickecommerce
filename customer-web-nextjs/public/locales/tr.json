@@ -184,7 +184,11 @@
     "new_password": "Yeni Şifre",
     "reset_password": "Şifre Sıfırla",
     "reset_password_subtitle": "Yeni şifrenizi belirleyin.",
-    "password_reset_success": "Şifreniz başarıyla sıfırlandı. Artık giriş yapabilirsiniz."
+    "password_reset_success": "Şifreniz başarıyla sıfırlandı. Artık giriş yapabilirsiniz.",
+    "or": "veya",
+    "google": "Google ile Giriş Yap",
+    "facebook": "Facebook ile Giriş Yap",
+    "social_error": "Sosyal giriş sırasında bir hata oluştu."
   },
   "cart": {
     "your_cart": "Sepetiniz",

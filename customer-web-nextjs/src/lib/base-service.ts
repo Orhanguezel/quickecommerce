@@ -1,7 +1,7 @@
 "use client";
 
-import { env } from "@/env.mjs";
 import { AUTH_TOKEN_KEY, AUTH_USER } from "@/lib/constants";
+import { getApiBaseUrl } from "@/lib/api-url";
 import { type ApiResponse, type SearchParamOptions } from "@/types";
 import axios, {
   AxiosRequestConfig,
@@ -32,7 +32,7 @@ export const useBaseService = <DataType, InputType = unknown>(
 
   const axiosInstance = useMemo(() => {
     const instance = axios.create({
-      baseURL: env.NEXT_PUBLIC_REST_API_ENDPOINT,
+      baseURL: getApiBaseUrl(),
       timeout: 30000,
       headers: {
         "Content-Type": "application/json",
@@ -88,7 +88,7 @@ export const useBaseService = <DataType, InputType = unknown>(
 
           try {
             const refreshResp = await axios.post(
-              `${env.NEXT_PUBLIC_REST_API_ENDPOINT}/customer/refresh-token`,
+              `${getApiBaseUrl()}/customer/refresh-token`,
               null,
               {
                 headers: {

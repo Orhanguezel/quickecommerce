@@ -184,7 +184,11 @@
     "new_password": "New Password",
     "reset_password": "Reset Password",
     "reset_password_subtitle": "Set your new password.",
-    "password_reset_success": "Your password has been reset successfully. You can now login."
+    "password_reset_success": "Your password has been reset successfully. You can now login.",
+    "or": "or",
+    "google": "Sign in with Google",
+    "facebook": "Sign in with Facebook",
+    "social_error": "An error occurred during social login."
   },
   "cart": {
     "your_cart": "Your Cart",

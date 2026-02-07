@@ -40,6 +40,10 @@ export default async function RegisterPage({ params }: Props) {
         register: commonT("register"),
         register_error: t("register_error"),
         loading: commonT("loading"),
+        or: t("or"),
+        google: t("google"),
+        facebook: t("facebook"),
+        social_error: t("social_error"),
       }}
     />
   );

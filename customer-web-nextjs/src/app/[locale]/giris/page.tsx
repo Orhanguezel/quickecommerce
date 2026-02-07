@@ -38,6 +38,10 @@ export default async function LoginPage({ params }: Props) {
         remember_me: t("remember_me"),
         login_error: t("login_error"),
         loading: commonT("loading"),
+        or: t("or"),
+        google: t("google"),
+        facebook: t("facebook"),
+        social_error: t("social_error"),
       }}
     />
   );
