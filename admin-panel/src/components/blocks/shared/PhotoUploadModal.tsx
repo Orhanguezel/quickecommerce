@@ -355,6 +355,7 @@ const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
                                 alt={image.file.name}
                                 fill
                                 sizes="128px"
+                                unoptimized
                                 className="h-full w-full rounded"
                               />
                               {image.isLoading ? (
@@ -437,6 +438,7 @@ const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
                                     alt={(image.name as string) || "image"}
                                     fill
                                     sizes="128px"
+                                    unoptimized
                                     className="h-full w-full rounded"
                                   />
                                 );
@@ -542,6 +544,7 @@ const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
                               src={imgSrc as string}
                               alt={(lastSelectedImages.name as string) || "image"}
                               fill
+                              unoptimized
                               className="w-full h-full"
                             />
                           );
