@@ -44,6 +44,7 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
+    unoptimized: true, // Development'da localhost resimlerini yüklemek için gerekli
     remotePatterns: [
       {
         protocol: "https",

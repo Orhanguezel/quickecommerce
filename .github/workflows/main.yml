@@ -33,6 +33,7 @@ jobs:
             # .env dosyalarını yedekle
             [ -f backend-laravel/.env ] && cp backend-laravel/.env /tmp/backend-laravel.env.bak
             [ -f admin-panel/.env.local ] && cp admin-panel/.env.local /tmp/admin-panel.env.bak
+            [ -f customer-web-nextjs/.env.local ] && cp customer-web-nextjs/.env.local /tmp/customer-web-nextjs.env.bak
 
             echo "=== Pulling latest changes ==="
             git fetch origin main
@@ -42,6 +43,7 @@ jobs:
             # .env dosyalarını geri yükle
             [ -f /tmp/backend-laravel.env.bak ] && cp /tmp/backend-laravel.env.bak backend-laravel/.env
             [ -f /tmp/admin-panel.env.bak ] && cp /tmp/admin-panel.env.bak admin-panel/.env.local
+            [ -f /tmp/customer-web-nextjs.env.bak ] && cp /tmp/customer-web-nextjs.env.bak customer-web-nextjs/.env.local
 
             echo "=== Fix ALL File Permissions (After Git) ==="
             cd /var/www/quikecommerce/backend-laravel
@@ -94,32 +96,36 @@ jobs:
             find bootstrap/cache -type f -exec chown www-data:www-data {} \;
             find bootstrap/cache -type d -exec chown www-data:www-data {} \;
 
-            echo "=== Customer Web (Flutter) Setup ==="
-            cd /var/www/quikecommerce/customer-app-and-web-flutter
+            echo "=== Customer Web (Next.js) Setup ==="
+            cd /var/www/quikecommerce/customer-web-nextjs
 
-            # Flutter SDK path
-            export PATH="/root/dev/flutter/bin:$PATH"
+            # Node versiyonunu kontrol et (Next.js >= 20.9 gerektirir)
+            export NVM_DIR="/root/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+            echo "Node version: $(node --version)"
 
-            # Flutter versiyonunu kontrol et
-            echo "Flutter version: $(flutter --version --suppress-analytics | head -1 || echo 'Flutter not found')"
-
-            # Clean old build
-            flutter clean || echo "Flutter clean skipped"
+            # .env.local yoksa oluştur
+            if [ ! -f .env.local ]; then
+              cp .env.example .env.local || echo "WARNING: .env.local missing, using defaults"
+            fi
 
             # Dependencies install
-            flutter pub get
+            npm ci
 
-            # Build web (production mode)
-            flutter build web --release --no-tree-shake-icons --dart-define=BASE_URL=https://sportoonline.com
+            # PM2'yi durdur (build sırasında)
+            pm2 stop quickecommerce-customer || true
 
-            # Build klasörü izinlerini düzelt (nginx www-data ile okuyabilmeli)
-            echo "=== Fix Flutter Build Permissions ==="
-            [ -d build/web ] && find build/web -type f -exec chmod 644 {} \;
-            [ -d build/web ] && find build/web -type d -exec chmod 755 {} \;
+            # Build (production mode)
+            npm run build
 
             # Verify build
-            echo "Flutter build verification:"
-            ls -la /var/www/quikecommerce/customer-app-and-web-flutter/build/web/index.html 2>/dev/null && echo "index.html OK" || echo "ERROR: index.html missing!"
+            echo "Next.js build verification:"
+            ls -la /var/www/quikecommerce/customer-web-nextjs/.next/standalone/server.js 2>/dev/null && echo "server.js OK" || echo "ERROR: Build failed!"
+
+            # PM2 restart
+            echo "=== PM2 Restart Customer Web ==="
+            pm2 restart quickecommerce-customer || pm2 start npm --name "quickecommerce-customer" -- start
+            pm2 save
 
             echo "=== Admin Panel Setup ==="
             cd /var/www/quikecommerce/admin-panel
@@ -158,5 +164,5 @@ jobs:
 
             echo "=== Deploy Complete ==="
             echo "✅ Backend Laravel: Ready"
-            echo "✅ Customer Web (Flutter): Ready at https://sportoonline.com"
+            echo "✅ Customer Web (Next.js): Ready at https://sportoonline.com"
             echo "✅ Admin Panel (Next.js): Ready at https://panel.sportoonline.com"

@@ -50,10 +50,10 @@ const ThemeDetails = ({ ID }: any) => {
         <CardContent className="flex flex-col md:flex-row items-center justify-between p-2  md:p-4">
           <div className="space-y-2 mb-4 md:mb-0">
             <h1 className="text-lg md:text-2xl font-semibold text-black dark:text-white flex items-center gap-2">
-              {`${(ThemeDetails as any)?.theme_data?.name ?(ThemeDetails as any)?.theme_data?.name : "Theme"} Customization`}
+              {`${(ThemeDetails as any)?.theme_data?.name ?(ThemeDetails as any)?.theme_data?.name : t("theme.title")} ${t("theme.customization")}`}
             </h1>
             <p className="text-sm font-semibold text-gray-500 dark:text-white flex items-center gap-2">
-              Customize and adjust all settings
+              {t("theme.description")}
             </p>
           </div>
         </CardContent>

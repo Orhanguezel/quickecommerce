@@ -113,7 +113,7 @@ const ThemeRegisterPage: React.FC<ThemeRegisterPageProps> = ({
       }
     }
 
-    if ((allData as any).translations.length > 0) {
+    if (Object.keys((allData as any).translations || {}).length > 0) {
       multiLangData.forEach((lang) => {
         const langCode = lang.id;
         const translation =
@@ -198,7 +198,7 @@ const ThemeRegisterPage: React.FC<ThemeRegisterPageProps> = ({
     const updatedTranslations: Record<string, any> = JSON.parse(
       JSON.stringify((allData as any).translations)
     );
-    if (updatedTranslations.length > 0) {
+    if (Object.keys(updatedTranslations).length > 0) {
       multiLangData.forEach((lang) => {
         const langCode = lang.id;
 
@@ -254,7 +254,7 @@ const ThemeRegisterPage: React.FC<ThemeRegisterPageProps> = ({
           />
           <div className="py-2 absolute bottom-0 left-1/2 -translate-x-1/2 bg-[#FFFFFFE5] border-l border-r border-b w-full rounded-b opacity-0 group-hover:opacity-90 transition-opacity duration-300 flex flex-col items-center justify-center">
             <CloudIcon />
-            <p className="text-sm font-bold text-red-500 p-1">Change image</p>
+            <p className="text-sm font-bold text-red-500 p-1">{t("common.change_image")}</p>
           </div>
           <Cancel
             customClass="absolute top-0 right-0 m-1"
@@ -267,7 +267,7 @@ const ThemeRegisterPage: React.FC<ThemeRegisterPageProps> = ({
       ) : (
         <div className="w-32 h-32 border-2 border-dashed border-blue-500 text-center rounded-lg cursor-pointer hover:bg-blue-50 transition-colors flex flex-col items-center justify-center">
           <CloudIcon />
-          <p className="mt-2 text-blue-500 text-xs font-medium">Drag & drop</p>
+          <p className="mt-2 text-blue-500 text-xs font-medium">{t("common.drag_and_drop")}</p>
         </div>
       )}
     </div>
@@ -293,7 +293,7 @@ const ThemeRegisterPage: React.FC<ThemeRegisterPageProps> = ({
               <Card className="p-4 space-y-6">
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Title ({t(`lang.${lang.id}` as `lang.${LangKeys}`)})
+                    {t("theme.register.title_label")} ({t(`lang.${lang.id}` as `lang.${LangKeys}`)})
                   </label>
                   <Input
                     id={`title_${lang.id}`}
@@ -307,7 +307,7 @@ const ThemeRegisterPage: React.FC<ThemeRegisterPageProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Subtitle ({t(`lang.${lang.id}` as `lang.${LangKeys}`)})
+                    {t("theme.register.subtitle_label")} ({t(`lang.${lang.id}` as `lang.${LangKeys}`)})
                   </label>
                   <Input
                     id={`subtitle_${lang.id}`}
@@ -321,7 +321,7 @@ const ThemeRegisterPage: React.FC<ThemeRegisterPageProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Description ({t(`lang.${lang.id}` as `lang.${LangKeys}`)})
+                    {t("theme.register.description_label")} ({t(`lang.${lang.id}` as `lang.${LangKeys}`)})
                   </label>
                   <Textarea
                     id={`description_${lang.id}`}
@@ -335,8 +335,7 @@ const ThemeRegisterPage: React.FC<ThemeRegisterPageProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Terms Page Title (
-                    {t(`lang.${lang.id}` as `lang.${LangKeys}`)})
+                    {t("theme.register.terms_page_title")} ({t(`lang.${lang.id}` as `lang.${LangKeys}`)})
                   </label>
                   <Input
                     id={`terms_page_title_${lang.id}`}
@@ -350,7 +349,7 @@ const ThemeRegisterPage: React.FC<ThemeRegisterPageProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Terms Page URL
+                    {t("theme.register.terms_page_url")}
                   </label>
                   <Input
                     id="terms_page_url"
@@ -364,7 +363,7 @@ const ThemeRegisterPage: React.FC<ThemeRegisterPageProps> = ({
 
                 <div className="space-y-3">
                   <label className="block text-sm font-medium">
-                    Social Login Enable/Disable
+                    {t("theme.register.social_login")}
                   </label>
                   <Switch
                     dir="ltr"
@@ -374,7 +373,7 @@ const ThemeRegisterPage: React.FC<ThemeRegisterPageProps> = ({
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Image
+                    {t("theme.register.image")}
                   </label>
                   <div className="relative flex items-start gap-4">
                     <div className="relative w-32">

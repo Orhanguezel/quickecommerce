@@ -193,7 +193,7 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
           ? "on"
           : "",
     });
-    if ((allData as any).translations.length > 0) {
+    if (Object.keys((allData as any).translations || {}).length > 0) {
       // translations
       multiLangData
         .filter((l) => l.id !== "df")
@@ -342,7 +342,7 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
     const updatedTranslations: Record<string, any> = JSON.parse(
       JSON.stringify((allData as any).translations || {})
     );
-    if (updatedTranslations.length > 0) {
+    if (Object.keys(updatedTranslations).length > 0) {
       multiLangData
         .filter((l) => l.id !== "df")
         .forEach((lang) => {
@@ -425,9 +425,9 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
             <TabsContent key={id} value={id} className="lg:col-span-2">
               <div className="space-y-4">
                 <Card className="p-4">
-                  <h3 className="text-lg font-semibold mb-3">Slider</h3>
+                  <h3 className="text-lg font-semibold mb-3">{t("theme.home.slider")}</h3>
                   <div className="space-y-3 border rounded p-4">
-                    <p className="text-base">Enable/Disable</p>
+                    <p className="text-base">{t("common.enable_disable")}</p>
                     <Switch
                       checked={toggles.slider === "on"}
                       onCheckedChange={() => handleToggle("slider")}
@@ -435,9 +435,9 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
                   </div>
                 </Card>
                 <Card className="p-4">
-                  <h3 className="text-lg font-semibold mb-3">Banner</h3>
+                  <h3 className="text-lg font-semibold mb-3">{t("theme.home.banner")}</h3>
                   <div className="space-y-3 border rounded p-4">
-                    <p className="text-base">Enable/Disable</p>
+                    <p className="text-base">{t("common.enable_disable")}</p>
                     <Switch
                       checked={toggles.banner_section === "on"}
                       onCheckedChange={() => handleToggle("banner_section")}
@@ -447,7 +447,7 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
 
                 {/* Category */}
                 <Card className="p-4">
-                  <h3 className="text-lg font-semibold mb-3">Flash Sale</h3>
+                  <h3 className="text-lg font-semibold mb-3">{t("theme.home.flash_sale")}</h3>
                   <div className="space-y-3 border rounded p-4">
                     <label className="block text-sm font-medium">
                       {t("label.title")} ({t(`lang.${id}` as any)})
@@ -457,7 +457,7 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
                       {...register(field("flash_sale_title"))}
                     />
 
-                    <p className="text-base">Enable/Disable</p>
+                    <p className="text-base">{t("common.enable_disable")}</p>
                     <Switch
                       checked={toggles.flash_sale === "on"}
                       onCheckedChange={() => handleToggle("flash_sale")}
@@ -465,7 +465,7 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
                   </div>
                 </Card>
                 <Card className="p-4">
-                  <h3 className="text-lg font-semibold mb-3">Category</h3>
+                  <h3 className="text-lg font-semibold mb-3">{t("theme.home.category")}</h3>
                   <div className="space-y-3 border rounded p-4">
                     <label className="block text-sm font-medium">
                       {t("label.title")} ({t(`lang.${id}` as any)})
@@ -475,7 +475,7 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
                       {...register(field("category_title"))}
                     />
 
-                    <p className="text-base">Enable/Disable</p>
+                    <p className="text-base">{t("common.enable_disable")}</p>
                     <Switch
                       checked={toggles.category === "on"}
                       onCheckedChange={() => handleToggle("category")}
@@ -486,18 +486,18 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
                 {/* Featured Products */}
                 <Card className="p-4">
                   <h3 className="text-lg font-semibold mb-3">
-                    Featured Products
+                    {t("theme.home.featured_products")}
                   </h3>
                   <div className="space-y-3 border rounded p-4">
                     <label className="block text-sm font-medium">
-                      Title ({t(`lang.${id}` as any)})
+                      {t("label.title")} ({t(`lang.${id}` as any)})
                     </label>
                     <Input
                       className="app-input"
                       {...register(field("product_featured_title"))}
                     />
 
-                    <p className="text-base">Enable/Disable</p>
+                    <p className="text-base">{t("common.enable_disable")}</p>
                     <Switch
                       checked={toggles.product_featured === "on"}
                       onCheckedChange={() => handleToggle("product_featured")}
@@ -508,18 +508,18 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
                 {/* Top Selling */}
                 <Card className="p-4">
                   <h3 className="text-lg font-semibold mb-3">
-                    Top Selling Products
+                    {t("theme.home.top_selling_products")}
                   </h3>
                   <div className="space-y-3 border rounded p-4">
                     <label className="block text-sm font-medium">
-                      Title ({t(`lang.${id}` as any)})
+                      {t("label.title")} ({t(`lang.${id}` as any)})
                     </label>
                     <Input
                       className="app-input"
                       {...register(field("product_top_selling_title"))}
                     />
 
-                    <p className="text-base">Enable/Disable</p>
+                    <p className="text-base">{t("common.enable_disable")}</p>
                     <Switch
                       checked={toggles.product_top_selling === "on"}
                       onCheckedChange={() =>
@@ -532,18 +532,18 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
                 {/* Latest */}
                 <Card className="p-4">
                   <h3 className="text-lg font-semibold mb-3">
-                    Latest Products
+                    {t("theme.home.latest_products")}
                   </h3>
                   <div className="space-y-3 border rounded p-4">
                     <label className="block text-sm font-medium">
-                      Title ({t(`lang.${id}` as any)})
+                      {t("label.title")} ({t(`lang.${id}` as any)})
                     </label>
                     <Input
                       className="app-input"
                       {...register(field("product_latest_title"))}
                     />
 
-                    <p className="text-base">Enable/Disable</p>
+                    <p className="text-base">{t("common.enable_disable")}</p>
                     <Switch
                       checked={toggles.product_latest === "on"}
                       onCheckedChange={() => handleToggle("product_latest")}
@@ -554,18 +554,18 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
                 {/* Popular */}
                 <Card className="p-4">
                   <h3 className="text-lg font-semibold mb-3">
-                    Popular Products
+                    {t("theme.home.popular_products")}
                   </h3>
                   <div className="space-y-3 border rounded p-4">
                     <label className="block text-sm font-medium">
-                      Title ({t(`lang.${id}` as any)})
+                      {t("label.title")} ({t(`lang.${id}` as any)})
                     </label>
                     <Input
                       className="app-input"
                       {...register(field("popular_product_section_title"))}
                     />
 
-                    <p className="text-base">Enable/Disable</p>
+                    <p className="text-base">{t("common.enable_disable")}</p>
                     <Switch
                       checked={toggles.popular_product_section === "on"}
                       onCheckedChange={() =>
@@ -577,17 +577,17 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
 
                 {/* Top Stores */}
                 <Card className="p-4">
-                  <h3 className="text-lg font-semibold mb-3">Top Stores</h3>
+                  <h3 className="text-lg font-semibold mb-3">{t("theme.home.top_stores")}</h3>
                   <div className="space-y-3 border rounded p-4">
                     <label className="block text-sm font-medium">
-                      Title ({t(`lang.${id}` as any)})
+                      {t("label.title")} ({t(`lang.${id}` as any)})
                     </label>
                     <Input
                       className="app-input"
                       {...register(field("top_stores_section_title"))}
                     />
 
-                    <p className="text-base">Enable/Disable</p>
+                    <p className="text-base">{t("common.enable_disable")}</p>
                     <Switch
                       checked={toggles.top_stores_section === "on"}
                       onCheckedChange={() => handleToggle("top_stores_section")}
@@ -597,10 +597,10 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
 
                 {/* Newsletters */}
                 <Card className="p-4">
-                  <h3 className="text-lg font-semibold mb-3">Newsletters</h3>
+                  <h3 className="text-lg font-semibold mb-3">{t("theme.home.newsletters")}</h3>
                   <div className="space-y-3 border rounded p-4">
                     <label className="block text-sm font-medium">
-                      Title ({t(`lang.${id}` as any)})
+                      {t("label.title")} ({t(`lang.${id}` as any)})
                     </label>
                     <Input
                       className="app-input"
@@ -608,14 +608,14 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
                     />
 
                     <label className="block text-sm font-medium">
-                      Subtitle ({t(`lang.${id}` as any)})
+                      {t("label.subtitle")} ({t(`lang.${id}` as any)})
                     </label>
                     <Textarea
                       className="app-input"
                       {...register(field("newsletters_subtitle"))}
                     />
 
-                    <p className="text-base">Enable/Disable</p>
+                    <p className="text-base">{t("common.enable_disable")}</p>
                     <Switch
                       checked={toggles.newsletters_section === "on"}
                       onCheckedChange={() =>

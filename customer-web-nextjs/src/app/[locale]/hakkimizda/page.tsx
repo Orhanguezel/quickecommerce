@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
-import { ContentPageClient } from "@/components/common/content-page-client";
+import { AboutPageClient } from "./about-client";
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -39,7 +39,7 @@ export default async function AboutPage({ params }: Props) {
   const pageT = await getTranslations({ locale, namespace: "pages" });
 
   return (
-    <ContentPageClient
+    <AboutPageClient
       title={pageT("about")}
       content={data?.content}
       breadcrumbs={[{ label: t("home"), href: "/" }, { label: pageT("about") }]}

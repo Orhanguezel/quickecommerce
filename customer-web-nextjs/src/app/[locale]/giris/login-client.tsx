@@ -13,6 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SocialLoginButtons } from "@/components/auth/social-login-buttons";
 import { Eye, EyeOff, LogIn } from "lucide-react";
+import { useThemeConfig } from "@/modules/theme/use-theme-config";
+import Image from "next/image";
 
 interface Props {
   translations: {
@@ -36,6 +38,7 @@ interface Props {
 export function LoginClient({ translations: t }: Props) {
   const [showPassword, setShowPassword] = useState(false);
   const loginMutation = useLoginMutation();
+  const { loginConfig } = useThemeConfig();
 
   const {
     register,
@@ -59,12 +62,34 @@ export function LoginClient({ translations: t }: Props) {
   };
 
   return (
-    <div className="container mx-auto flex min-h-[60vh] items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md">
-        <div className="rounded-lg border bg-card p-8 shadow-sm">
+    <div className="container mx-auto px-4 py-12">
+      <div className={`mx-auto ${loginConfig.imageUrl ? "max-w-6xl" : "max-w-md"}`}>
+        <div className={`grid gap-8 ${loginConfig.imageUrl ? "md:grid-cols-2" : "grid-cols-1"} items-center`}>
+          {/* Left - Theme Image (optional) */}
+          {loginConfig.imageUrl && (
+            <div className="relative hidden h-[600px] overflow-hidden rounded-lg md:block">
+              <Image
+                src={loginConfig.imageUrl}
+                alt={loginConfig.title || t.login_title}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
+                priority
+              />
+            </div>
+          )}
+
+          {/* Right - Login Form */}
+          <div className={`${loginConfig.imageUrl ? "" : "w-full"}`}>
+            <div className="rounded-lg border bg-card p-8 shadow-sm">
           <div className="mb-6 text-center">
             <LogIn className="mx-auto mb-3 h-10 w-10 text-primary" />
-            <h1 className="text-2xl font-bold">{t.login_title}</h1>
+            <h1 className="text-2xl font-bold">{loginConfig.title || t.login_title}</h1>
+            {loginConfig.subtitle && (
+              <p className="mt-1 text-sm text-muted-foreground">
+                {loginConfig.subtitle}
+              </p>
+            )}
           </div>
 
           {loginMutation.isError && (
@@ -169,6 +194,8 @@ export function LoginClient({ translations: t }: Props) {
               {t.register}
             </Link>
           </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

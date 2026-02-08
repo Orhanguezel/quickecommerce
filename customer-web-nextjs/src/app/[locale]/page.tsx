@@ -4,6 +4,7 @@ import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { Product, Slider } from "@/modules/product/product.type";
 import type { Category } from "@/modules/site/site.type";
+import type { FlashDeal } from "@/modules/flash-deal/flash-deal.type";
 import { HomePageClient } from "./home-client";
 
 interface Props {
@@ -42,7 +43,8 @@ async function getHomeData(locale: string) {
     newArrivalsRes,
     bestSellingRes,
     trendingRes,
-    topDealsRes,
+    flashDealsRes,
+    flashSaleProductsRes,
     popularRes,
   ] = await Promise.allSettled([
     fetchAPI<any>(API_ENDPOINTS.SLIDER_LIST, { platform: "web" }, locale),
@@ -51,7 +53,8 @@ async function getHomeData(locale: string) {
     fetchAPI<any>(API_ENDPOINTS.NEW_ARRIVALS, { per_page: 10 }, locale),
     fetchAPI<any>(API_ENDPOINTS.BEST_SELLING, { per_page: 10 }, locale),
     fetchAPI<any>(API_ENDPOINTS.TRENDING_PRODUCTS, { per_page: 10 }, locale),
-    fetchAPI<any>(API_ENDPOINTS.TOP_DEALS, { per_page: 10 }, locale),
+    fetchAPI<any>(API_ENDPOINTS.FLASH_DEALS, {}, locale),
+    fetchAPI<any>(API_ENDPOINTS.FLASH_DEAL_PRODUCTS, { per_page: 10 }, locale),
     fetchAPI<any>(API_ENDPOINTS.POPULAR_PRODUCTS, { per_page: 10 }, locale),
   ]);
 
@@ -62,7 +65,8 @@ async function getHomeData(locale: string) {
     newArrivals: (newArrivalsRes.status === "fulfilled" ? newArrivalsRes.value?.data ?? [] : []) as Product[],
     bestSelling: (bestSellingRes.status === "fulfilled" ? bestSellingRes.value?.data ?? [] : []) as Product[],
     trending: (trendingRes.status === "fulfilled" ? trendingRes.value?.data ?? [] : []) as Product[],
-    topDeals: (topDealsRes.status === "fulfilled" ? topDealsRes.value?.data ?? [] : []) as Product[],
+    flashDeals: (flashDealsRes.status === "fulfilled" ? flashDealsRes.value?.data ?? [] : []) as FlashDeal[],
+    topDeals: (flashSaleProductsRes.status === "fulfilled" ? flashSaleProductsRes.value?.data ?? [] : []) as Product[],
     popular: (popularRes.status === "fulfilled" ? popularRes.value?.data ?? [] : []) as Product[],
   };
 }
@@ -109,6 +113,9 @@ export default async function HomePage({ params }: Props) {
           popular_subtitle: t("popular_subtitle"),
           categories_title: t("categories_title"),
           categories_subtitle: t("categories_subtitle"),
+          top_stores_title: t("top_stores_title"),
+          newsletter_title: t("newsletter_title"),
+          newsletter_subtitle: t("newsletter_subtitle"),
         }}
       />
     </>

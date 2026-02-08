@@ -14,15 +14,20 @@ class FooterSettingsPublicResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        // Get the requested language from the query parameter
-        $language = $request->input('language', 'en');
-        // Get the translation for the requested language
-        $translation = $this->translations->where('language', $language);
-        return [
-            "content" => !empty($translation) && $translation->where('key', 'content')->first()
-                ? jsonImageModifierFormatter(json_decode($translation->where('key', 'content')->first()->value, true))
-                : $this->content,
-        ];
+        $locale = app()->getLocale();
 
+        // Try the exact locale first, then fall back to 'df' (default/Turkish)
+        $translation = $this->translations->where('language', $locale);
+        if ($translation->isEmpty() || !$translation->where('key', 'content')->first()) {
+            $translation = $this->translations->where('language', 'df');
+        }
+
+        $translated = $translation->where('key', 'content')->first();
+
+        return [
+            "content" => $translated
+                ? jsonImageModifierFormatter(json_decode($translated->value, true))
+                : $this->option_value,
+        ];
     }
 }

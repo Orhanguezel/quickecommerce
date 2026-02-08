@@ -2,6 +2,7 @@
 
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
+import { ArrowRight } from "lucide-react";
 
 interface SectionHeaderProps {
   title: string;
@@ -23,9 +24,10 @@ export function SectionHeader({ title, subtitle, viewAllHref }: SectionHeaderPro
       {viewAllHref && (
         <Link
           href={viewAllHref}
-          className="text-sm font-medium text-primary hover:underline"
+          className="flex items-center gap-1 text-sm font-medium text-primary hover:underline"
         >
           {t("view_all")}
+          <ArrowRight className="h-4 w-4" />
         </Link>
       )}
     </div>

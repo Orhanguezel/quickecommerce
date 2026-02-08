@@ -5,6 +5,7 @@ export const ROUTES = {
   LOGIN: "/giris",
   REGISTER: "/kayit",
   FORGOT_PASSWORD: "/sifremi-unuttum",
+  SELLER_REGISTER: "/satici-basvuru",
 
   // Products
   PRODUCT_DETAIL: (slug: string) => `/urun/${slug}`,

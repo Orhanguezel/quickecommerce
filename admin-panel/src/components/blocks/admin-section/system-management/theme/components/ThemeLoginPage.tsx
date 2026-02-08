@@ -225,7 +225,7 @@ const ThemeLoginPage: React.FC<ThemeLoginPageProps> = ({
     const updatedTranslations: Record<string, any> = JSON.parse(
       JSON.stringify((allData as any).translations || {})
     );
-    if (updatedTranslations.length > 0) {
+    if (Object.keys(updatedTranslations).length > 0) {
       multiLangData
         .filter((l) => l.id !== "df")
         .forEach((lang) => {
@@ -295,7 +295,7 @@ const ThemeLoginPage: React.FC<ThemeLoginPageProps> = ({
           />
           <div className="py-2 absolute bottom-0 left-1/2 -translate-x-1/2 bg-[#FFFFFFE5] border-l border-r border-b w-full rounded-b opacity-0 group-hover:opacity-90 transition-opacity duration-300 flex flex-col items-center justify-center">
             <CloudIcon />
-            <p className="text-sm font-bold text-red-500 p-1">Change image</p>
+            <p className="text-sm font-bold text-red-500 p-1">{t("common.change_image")}</p>
           </div>
           <Cancel
             customClass="absolute top-0 right-0 m-1"
@@ -308,7 +308,7 @@ const ThemeLoginPage: React.FC<ThemeLoginPageProps> = ({
       ) : (
         <div className="w-32 h-32 border-2 border-dashed border-blue-500 text-center rounded-lg cursor-pointer hover:bg-blue-50 transition-colors flex flex-col items-center justify-center">
           <CloudIcon />
-          <p className="mt-2 text-blue-500 text-xs font-medium">Drag & drop</p>
+          <p className="mt-2 text-blue-500 text-xs font-medium">{t("common.drag_and_drop")}</p>
         </div>
       )}
     </div>
@@ -338,7 +338,7 @@ const ThemeLoginPage: React.FC<ThemeLoginPageProps> = ({
           />
           <div className="py-2 absolute bottom-0 left-1/2 -translate-x-1/2 bg-[#FFFFFFE5] border-l border-r border-b w-full rounded-b opacity-0 group-hover:opacity-90 transition-opacity duration-300 flex flex-col items-center justify-center">
             <CloudIcon />
-            <p className="text-sm font-bold text-red-500 p-1">Change image</p>
+            <p className="text-sm font-bold text-red-500 p-1">{t("common.change_image")}</p>
           </div>
           <Cancel
             customClass="absolute top-0 right-0 m-1"
@@ -351,7 +351,7 @@ const ThemeLoginPage: React.FC<ThemeLoginPageProps> = ({
       ) : (
         <div className="w-32 h-32 border-2 border-dashed border-blue-500 text-center rounded-lg cursor-pointer hover:bg-blue-50 transition-colors flex flex-col items-center justify-center">
           <CloudIcon />
-          <p className="mt-2 text-blue-500 text-xs font-medium">Drag & drop</p>
+          <p className="mt-2 text-blue-500 text-xs font-medium">{t("common.drag_and_drop")}</p>
         </div>
       )}
     </div>
@@ -378,10 +378,10 @@ const ThemeLoginPage: React.FC<ThemeLoginPageProps> = ({
             <TabsContent key={id} value={id} className="lg:col-span-2">
               <div className="space-y-4">
                 <Card className="p-4">
-                  <h3 className="text-lg font-semibold mb-3">Customer</h3>
+                  <h3 className="text-lg font-semibold mb-3">{t("theme.login.customer")}</h3>
                   <div className="space-y-3 border rounded p-4">
                     <label className="block text-sm font-medium">
-                      Title ({t(`lang.${id}` as any)})
+                      {t("label.title")} ({t(`lang.${id}` as any)})
                     </label>
                     <Input
                       className="app-input"
@@ -389,21 +389,21 @@ const ThemeLoginPage: React.FC<ThemeLoginPageProps> = ({
                     />
 
                     <label className="block text-sm font-medium">
-                      Subtitle ({t(`lang.${id}` as any)})
+                      {t("label.subtitle")} ({t(`lang.${id}` as any)})
                     </label>
                     <Textarea
                       className="app-input"
                       {...register(field("customer_subtitle"))}
                     />
 
-                    <p className="text-base">Social Login Enable/Disable</p>
+                    <p className="text-base">{t("theme.login.social_login_enable")}</p>
                     <Switch
                       checked={toggles.customer === "on"}
                       onCheckedChange={() => handleToggle("customer")}
                     />
                     <div>
                       <label className="block text-sm font-medium mb-1">
-                        Login Image
+                        {t("theme.login.login_image")}
                       </label>
                       <div className="relative flex items-start gap-4">
                         <div className="relative w-32">
@@ -425,10 +425,10 @@ const ThemeLoginPage: React.FC<ThemeLoginPageProps> = ({
                   </div>
                 </Card>
                 <Card className="p-4">
-                  <h3 className="text-lg font-semibold mb-3">Admin</h3>
+                  <h3 className="text-lg font-semibold mb-3">{t("theme.login.admin")}</h3>
                   <div className="space-y-3 border rounded p-4">
                     <label className="block text-sm font-medium">
-                      Title ({t(`lang.${id}` as any)})
+                      {t("label.title")} ({t(`lang.${id}` as any)})
                     </label>
                     <Input
                       className="app-input"
@@ -436,7 +436,7 @@ const ThemeLoginPage: React.FC<ThemeLoginPageProps> = ({
                     />
 
                     <label className="block text-sm font-medium">
-                      Subtitle ({t(`lang.${id}` as any)})
+                      {t("label.subtitle")} ({t(`lang.${id}` as any)})
                     </label>
                     <Textarea
                       className="app-input"
@@ -445,7 +445,7 @@ const ThemeLoginPage: React.FC<ThemeLoginPageProps> = ({
 
                     <div>
                       <label className="block text-sm font-medium mb-1">
-                        Login Image
+                        {t("theme.login.login_image")}
                       </label>
                       <div className="relative flex items-start gap-4">
                         <div className="relative w-32">

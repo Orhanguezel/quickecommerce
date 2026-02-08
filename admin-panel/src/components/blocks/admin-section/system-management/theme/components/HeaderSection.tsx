@@ -2,6 +2,7 @@
 import { Check } from "lucide-react";
 import Image from "next/image";
 import React from "react";
+import { useTranslations } from "next-intl";
 
 interface HeaderSectionProps {
   data: any[];
@@ -21,6 +22,7 @@ const HeaderSection: React.FC<HeaderSectionProps> = ({
   handleChange,
   ID,
 }) => {
+  const t = useTranslations();
   const headers = [
     { header_number: "01", image: "/images/header_1.png", id: "theme_one" },
     { header_number: "02", image: "/images/header_2.png", id: "theme_two" },
@@ -54,7 +56,7 @@ const HeaderSection: React.FC<HeaderSectionProps> = ({
                   isSelected ? "text-blue-500" : "text-gray-500"
                 }`}
               >
-                Header 01
+                {t("theme.header.header_01")}
               </p>
               <div
                 className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${

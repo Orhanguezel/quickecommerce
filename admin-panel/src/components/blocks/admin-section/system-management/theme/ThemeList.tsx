@@ -18,7 +18,7 @@ import { useRouter } from "next/navigation";
 import React, { useMemo, useState } from "react";
 
 const ThemeCardList = ({ searchValue }: any) => {
-  const t = useTranslations();
+  const t = useTranslations("theme");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(12);
 
@@ -126,7 +126,7 @@ const ThemeCardList = ({ searchValue }: any) => {
                       <Button className="w-full !bg-green-100 !text-green-600">
                         {" "}
                         <Check width={18} height={18} />
-                        Activated
+                        {t("activated")}
                       </Button>
                       <Button
                         disabled={editRowId == theme.slug}
@@ -135,7 +135,7 @@ const ThemeCardList = ({ searchValue }: any) => {
                         }
                         className="w-full app-button"
                       >
-                        Customize
+                        {t("customize")}
                       </Button>
                     </>
                   ) : (
@@ -147,18 +147,18 @@ const ThemeCardList = ({ searchValue }: any) => {
                         }
                         className="w-full app-button"
                       >
-                        Customize
+                        {t("customize")}
                       </Button>
                       <ConfirmationModal
                         trigger={
                           <Button className="w-full app-button">
-                            Make Active
+                            {t("makeActive")}
                           </Button>
                         }
                         onSave={() => handleThemeActivation(theme.slug)}
                         loading={loading}
-                        title="Theme Activate"
-                        subTitle="Are you sure you want to active this theme?"
+                        title={t("activateTitle")}
+                        subTitle={t("activateConfirm")}
                       />{" "}
                     </>
                   )}

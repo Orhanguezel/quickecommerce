@@ -14,8 +14,8 @@ cd /home/orhan/Documents/quickecommerce/admin-panel
 npm run dev
 
 # Terminal 3: Customer Web
-cd /home/orhan/Documents/quickecommerce/customer-app-and-web-flutter
-flutter run -d web-server --web-hostname 127.0.0.1 --web-port 3001
+cd /home/orhan/Documents/quickecommerce/customer-web-nextjs
+npm run dev
 ```
 
 ### Erişim Adresleri
@@ -24,7 +24,7 @@ flutter run -d web-server --web-hostname 127.0.0.1 --web-port 3001
 |--------|-----------|
 | Backend API | http://127.0.0.1:8000/api |
 | Admin Panel | http://localhost:3000/tr |
-| Customer Web | http://127.0.0.1:3001 |
+| Customer Web | http://localhost:3003 |
 
 ---
 
@@ -71,22 +71,22 @@ rm -rf node_modules .next && npm install --legacy-peer-deps
 
 ---
 
-## Customer Web (Flutter)
+## Customer Web (Next.js)
 
 ```bash
-cd /home/orhan/Documents/quickecommerce/customer-app-and-web-flutter
+cd /home/orhan/Documents/quickecommerce/customer-web-nextjs
 
 # Paketleri indir
-flutter pub get
+npm install
 
-# Web'de çalıştır
-flutter run -d chrome
+# Dev server başlat (port 3003)
+npm run dev
 
-# Headless web server
-flutter run -d web-server --web-hostname 127.0.0.1 --web-port 3001
+# Build
+npm run build
 
 # Temiz başlangıç
-flutter clean && flutter pub get
+rm -rf .next node_modules && npm install
 ```
 
 ---

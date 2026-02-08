@@ -13,7 +13,9 @@ export const API_ENDPOINTS = {
   MENU: "/menu",
   SLIDER_LIST: "/slider-list",
   BANNER_LIST: "/banner-list",
+  FOOTER: "/footer",
   PAGES: "/pages",
+  THEME: "/theme",
 
   // Products
   PRODUCTS: "/product-list",
@@ -21,7 +23,10 @@ export const API_ENDPOINTS = {
   CATEGORIES: "/product-category/list",
   BRANDS: "/brand-list",
   PRODUCT_QA: "/product-qa",
+  PRODUCT_QA_ASK: "/product-qa/ask",
   PRODUCT_SUGGESTION: "/product-suggestion",
+  REVIEW_ADD: "/product-review/store",
+  REVIEW_REACTION: "/product-review/reaction",
 
   // Homepage Product Sections
   NEW_ARRIVALS: "/new-arrivals",
@@ -96,6 +101,18 @@ export const API_ENDPOINTS = {
   // Coupons
   COUPONS: "/coupons",
 
+  // Currency
+  CURRENCY_LIST: "/currency-list",
+
+  // Seller
+  SELLER_REGISTER: "/seller/registration",
+
   // Notifications
   NOTIFICATIONS: "/customer/notifications",
+
+  // Chat
+  CHAT_LIST: "/customer/chat/list",
+  CHAT_MESSAGES: "/customer/chat/messages",
+  CHAT_SEND: "/customer/chat/send",
+  CHAT_SEEN: "/customer/chat/seen",
 } as const;

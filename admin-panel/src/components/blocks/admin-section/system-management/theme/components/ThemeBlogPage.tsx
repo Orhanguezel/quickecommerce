@@ -126,7 +126,7 @@ const ThemeBlogPage: React.FC<ThemeBlogPageProps> = ({
     const updatedTranslations: Record<string, any> = JSON.parse(
       JSON.stringify((allData as any).translations)
     );
-    if (updatedTranslations.length > 0) {
+    if (Object.keys(updatedTranslations).length > 0) {
       multiLangData.forEach((lang) => {
         const langCode = lang.id;
 
@@ -185,7 +185,7 @@ const ThemeBlogPage: React.FC<ThemeBlogPageProps> = ({
                 <Card className="p-4">
                   <div className="space-y-3 border rounded p-4">
                     <label className="block text-sm font-medium">
-                      Popular Title ({t(`lang.${id}` as any)})
+                      {t("theme.blog.popular_title")} ({t(`lang.${id}` as any)})
                     </label>
                     <Input
                       className="app-input"
@@ -193,7 +193,7 @@ const ThemeBlogPage: React.FC<ThemeBlogPageProps> = ({
                     />
 
                     <label className="block text-sm font-medium">
-                      Related Title ({t(`lang.${id}` as any)})
+                      {t("theme.blog.related_title")} ({t(`lang.${id}` as any)})
                     </label>
                     <Input
                       className="app-input"

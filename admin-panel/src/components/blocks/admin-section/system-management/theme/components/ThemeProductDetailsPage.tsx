@@ -190,7 +190,7 @@ const ThemeProductDetailsPage: React.FC<ThemeLoginPageProps> = ({
     const updatedTranslations: Record<string, any> = JSON.parse(
       JSON.stringify((allData as any).translations)
     );
-    if (updatedTranslations.length > 0) {
+    if (Object.keys(updatedTranslations).length > 0) {
       multiLangData.forEach((lang) => {
         const langCode = lang.id;
 
@@ -258,7 +258,7 @@ const ThemeProductDetailsPage: React.FC<ThemeLoginPageProps> = ({
                 <Card className="p-4">
                   <div className="space-y-3 border rounded p-4">
                     <label className="block text-sm font-medium">
-                      Delivery Title ({t(`lang.${id}` as any)})
+                      {t("theme.product_details.delivery_title")} ({t(`lang.${id}` as any)})
                     </label>
                     <Input
                       className="app-input"
@@ -266,7 +266,7 @@ const ThemeProductDetailsPage: React.FC<ThemeLoginPageProps> = ({
                     />
 
                     <label className="block text-sm font-medium">
-                      Delivery Subtitle ({t(`lang.${id}` as any)})
+                      {t("theme.product_details.delivery_subtitle")} ({t(`lang.${id}` as any)})
                     </label>
                     <Input
                       className="app-input"
@@ -274,7 +274,7 @@ const ThemeProductDetailsPage: React.FC<ThemeLoginPageProps> = ({
                     />
 
                     <label className="block text-sm font-medium">
-                      Delivery URL
+                      {t("theme.product_details.delivery_url")}
                     </label>
                     <Input
                       className="app-input"
@@ -282,7 +282,7 @@ const ThemeProductDetailsPage: React.FC<ThemeLoginPageProps> = ({
                     />
 
                     <label className="block text-sm font-medium">
-                      Refund Title ({t(`lang.${id}` as any)})
+                      {t("theme.product_details.refund_title")} ({t(`lang.${id}` as any)})
                     </label>
                     <Input
                       className="app-input"
@@ -290,7 +290,7 @@ const ThemeProductDetailsPage: React.FC<ThemeLoginPageProps> = ({
                     />
 
                     <label className="block text-sm font-medium">
-                      Refund Subtitle ({t(`lang.${id}` as any)})
+                      {t("theme.product_details.refund_subtitle")} ({t(`lang.${id}` as any)})
                     </label>
                     <Input
                       className="app-input"
@@ -298,25 +298,25 @@ const ThemeProductDetailsPage: React.FC<ThemeLoginPageProps> = ({
                     />
 
                     <label className="block text-sm font-medium">
-                      Refund URL
+                      {t("theme.product_details.refund_url")}
                     </label>
                     <Input className="app-input" {...register("refund_url")} />
 
                     <label className="block text-sm font-medium">
-                      Related Title ({t(`lang.${id}` as any)})
+                      {t("theme.product_details.related_title")} ({t(`lang.${id}` as any)})
                     </label>
                     <Input
                       className="app-input"
                       {...register(field("related_title"))}
                     />
 
-                    <p className="text-base">Delivery Enable/Disable</p>
+                    <p className="text-base">{t("theme.product_details.delivery_enable")}</p>
                     <Switch
                       checked={toggles.emailVerification === "on"}
                       onCheckedChange={() => handleToggle("emailVerification")}
                     />
 
-                    <p className="text-base">Refund Enable/Disable</p>
+                    <p className="text-base">{t("theme.product_details.refund_enable")}</p>
                     <Switch
                       checked={toggles.loginOTP === "on"}
                       onCheckedChange={() => handleToggle("loginOTP")}

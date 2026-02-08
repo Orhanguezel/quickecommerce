@@ -2,7 +2,8 @@
 
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import { useQuery } from "@tanstack/react-query";
-import { useSiteInfoService, useMenuService, useCategoryService } from "./site.service";
+import { useLocale } from "next-intl";
+import { useSiteInfoService, useMenuService, useCategoryService, useFooterService, useCurrencyService } from "./site.service";
 
 export const useSiteInfoQuery = () => {
   const { findAll } = useSiteInfoService();
@@ -20,17 +21,35 @@ export const useSiteInfoQuery = () => {
   };
 };
 
-export const useMenuQuery = () => {
-  const { findAll } = useMenuService();
+export const useFooterQuery = () => {
+  const { findAll } = useFooterService();
+  const locale = useLocale();
 
   const { data, isPending, error } = useQuery({
-    queryKey: [API_ENDPOINTS.MENU],
-    queryFn: () => findAll({ pagination: "false" }),
+    queryKey: [API_ENDPOINTS.FOOTER, locale],
+    queryFn: () => findAll(),
     staleTime: 1000 * 60 * 30,
   });
 
   return {
-    menus: (data?.data as any)?.data ?? [],
+    footerData: (data?.data as any)?.data?.content ?? null,
+    isPending,
+    error,
+  };
+};
+
+export const useMenuQuery = () => {
+  const { findAll } = useMenuService();
+  const locale = useLocale();
+
+  const { data, isPending, error } = useQuery({
+    queryKey: [API_ENDPOINTS.MENU, locale],
+    queryFn: () => findAll({ pagination: "false", language: locale }),
+    staleTime: 1000 * 60 * 30,
+  });
+
+  return {
+    menus: (data?.data as any)?.menus ?? [],
     isPending,
     error,
   };
@@ -47,6 +66,34 @@ export const useCategoryQuery = () => {
 
   return {
     categories: (data?.data as any)?.data ?? [],
+    isPending,
+    error,
+  };
+};
+
+export interface CurrencyItem {
+  label: string;
+  value: string;
+  symbol: string;
+  exchange_rate: number;
+  is_default: boolean;
+}
+
+export const useCurrencyQuery = () => {
+  const { findAll } = useCurrencyService();
+
+  const { data, isPending, error } = useQuery({
+    queryKey: [API_ENDPOINTS.CURRENCY_LIST],
+    queryFn: () => findAll(),
+    staleTime: 1000 * 60 * 30,
+  });
+
+  const currencies: CurrencyItem[] = (data?.data as any)?.data ?? [];
+  const defaultCurrency = currencies.find((c) => c.is_default) ?? currencies[0] ?? null;
+
+  return {
+    currencies,
+    defaultCurrency,
     isPending,
     error,
   };

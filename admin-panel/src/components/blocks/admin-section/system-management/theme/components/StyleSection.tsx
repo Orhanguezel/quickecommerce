@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { HexColorPicker } from "react-colorful";
+import { useTranslations } from "next-intl";
 
 interface StyleSectionProps {
   data: any[];
@@ -27,6 +28,7 @@ const StyleSection: React.FC<StyleSectionProps> = ({
   sectionIndex,
   handleChange,
 }) => {
+  const t = useTranslations();
   return (
     <Card className="space-y-6 p-6">
       {data.map((section, itemIndex) => {
@@ -37,7 +39,7 @@ const StyleSection: React.FC<StyleSectionProps> = ({
           <div key={itemIndex} className="flex gap-6">
             {/* Primary Color */}
             <div className="space-y-2">
-              <p className="text-sm font-medium">Primary Color</p>
+              <p className="text-sm font-medium">{t("theme.style.primary_color")}</p>
               <div className="p-1 flex items-center gap-2 border border-slate-300 w-48 rounded">
                 <Popover>
                   <PopoverTrigger asChild>
@@ -73,7 +75,7 @@ const StyleSection: React.FC<StyleSectionProps> = ({
 
             {/* Secondary Color */}
             <div className="space-y-2">
-              <p className="text-sm font-medium">Secondary Color</p>
+              <p className="text-sm font-medium">{t("theme.style.secondary_color")}</p>
               <div className="p-1 flex items-center gap-2 border border-slate-300 w-48 rounded">
                 <Popover>
                   <PopoverTrigger asChild>

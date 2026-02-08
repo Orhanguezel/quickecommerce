@@ -469,7 +469,7 @@ const SEOSettingsForm = () => {
                           <div>
                             <div className="mb-4">
                               <div className="text-sm font-medium mb-1 flex items-center gap-2">
-                                <span>Meta Tags ({lang.label})</span>
+                                <span>{t('seo.meta_tags')} ({lang.label})</span>
                                 <div>
                                   <TooltipProvider>
                                     <Tooltip>
@@ -478,9 +478,9 @@ const SEOSettingsForm = () => {
                                       </TooltipTrigger>
                                       <TooltipContent className="bg-custom-dark-blue">
                                         <p className="p-1 text-sm font-medium">
-                                          Please provide meta tags{' '}
+                                          {t('seo.provide_meta_tags')}{' '}
                                           <span>
-                                            {lang.label !== 'Default' && `in ${lang.label}`}
+                                            {lang.label !== 'Default' && t('seo.in_lang', { lang: lang.label })}
                                           </span>
                                         </p>
                                       </TooltipContent>
@@ -497,7 +497,7 @@ const SEOSettingsForm = () => {
                                     {...field}
                                     value={Array.isArray(field.value) ? field.value : []}
                                     onChange={(newValue: string[]) => field.onChange(newValue)}
-                                    placeholder={`Enter meta tags for ${lang.label}`}
+                                    placeholder={t('seo.enter_meta_tags_for', { lang: lang.label })}
                                     className="app-input "
                                   />
                                 )}
@@ -506,7 +506,7 @@ const SEOSettingsForm = () => {
 
                             <div className="mb-4">
                               <div className="text-sm font-medium mb-1 flex items-center gap-2">
-                                <span>Meta Title ({lang.label})</span>
+                                <span>{t('seo.meta_title')} ({lang.label})</span>
                                 <div>
                                   <TooltipProvider>
                                     <Tooltip>
@@ -515,9 +515,9 @@ const SEOSettingsForm = () => {
                                       </TooltipTrigger>
                                       <TooltipContent className="bg-custom-dark-blue">
                                         <p className="p-1 text-sm font-medium">
-                                          Please provide meta title{' '}
+                                          {t('seo.provide_meta_title')}{' '}
                                           <span>
-                                            {lang.label !== 'Default' && `in ${lang.label}`}
+                                            {lang.label !== 'Default' && t('seo.in_lang', { lang: lang.label })}
                                           </span>
                                         </p>
                                       </TooltipContent>
@@ -530,13 +530,13 @@ const SEOSettingsForm = () => {
                                 id={`meta_title_${lang.id}`}
                                 {...register(`meta_title_${lang.id}` as keyof SEOSettingsFormData)}
                                 className="app-input"
-                                placeholder="Enter value"
+                                placeholder={t('seo.enter_value')}
                               />
                             </div>
 
                             <div className="mb-4">
                               <div className="text-sm font-medium mb-1 flex items-center gap-2">
-                                <span>Meta Description ({lang.label})</span>
+                                <span>{t('seo.meta_description')} ({lang.label})</span>
                                 <div>
                                   <TooltipProvider>
                                     <Tooltip>
@@ -545,9 +545,9 @@ const SEOSettingsForm = () => {
                                       </TooltipTrigger>
                                       <TooltipContent className="bg-custom-dark-blue">
                                         <p className="p-1 text-sm font-medium">
-                                          Please provide meta description{' '}
+                                          {t('seo.provide_meta_description')}{' '}
                                           <span>
-                                            {lang.label !== 'Default' && `in ${lang.label}`}
+                                            {lang.label !== 'Default' && t('seo.in_lang', { lang: lang.label })}
                                           </span>
                                         </p>
                                       </TooltipContent>
@@ -562,14 +562,14 @@ const SEOSettingsForm = () => {
                                   `meta_description_${lang.id}` as keyof SEOSettingsFormData,
                                 )}
                                 className="app-input"
-                                placeholder="Enter value"
+                                placeholder={t('seo.enter_value')}
                               />
                             </div>
                           </div>
 
                           <div className="mb-4">
                             <div className="text-sm font-medium mb-1 flex items-center gap-2">
-                              <span>OG Title ({lang.label})</span>
+                              <span>{t('seo.og_title')} ({lang.label})</span>
                               <div>
                                 <TooltipProvider>
                                   <Tooltip>
@@ -578,9 +578,9 @@ const SEOSettingsForm = () => {
                                     </TooltipTrigger>
                                     <TooltipContent className="bg-custom-dark-blue">
                                       <p className="p-1 text-sm font-medium">
-                                        Please provide OG title{' '}
+                                        {t('seo.provide_og_title')}{' '}
                                         <span>
-                                          {lang.label !== 'Default' && `in ${lang.label}`}
+                                          {lang.label !== 'Default' && t('seo.in_lang', { lang: lang.label })}
                                         </span>
                                       </p>
                                     </TooltipContent>
@@ -593,13 +593,13 @@ const SEOSettingsForm = () => {
                               id={`og_title_${lang.id}`}
                               {...register(`og_title_${lang.id}` as keyof SEOSettingsFormData)}
                               className="app-input"
-                              placeholder="Enter value"
+                              placeholder={t('seo.enter_value')}
                             />
                           </div>
 
                           <div className="mb-4">
                             <div className="text-sm font-medium mb-1 flex items-center gap-2">
-                              <span>OG Description ({lang.label})</span>
+                              <span>{t('seo.og_description')} ({lang.label})</span>
                               <div>
                                 <TooltipProvider>
                                   <Tooltip>
@@ -608,9 +608,9 @@ const SEOSettingsForm = () => {
                                     </TooltipTrigger>
                                     <TooltipContent className="bg-custom-dark-blue">
                                       <p className="p-1 text-sm font-medium">
-                                        Please provide OG description{' '}
+                                        {t('seo.provide_og_description')}{' '}
                                         <span>
-                                          {lang.label !== 'Default' && `in ${lang.label}`}
+                                          {lang.label !== 'Default' && t('seo.in_lang', { lang: lang.label })}
                                         </span>
                                       </p>
                                     </TooltipContent>
@@ -625,24 +625,24 @@ const SEOSettingsForm = () => {
                                 `og_description_${lang.id}` as keyof SEOSettingsFormData,
                               )}
                               className="app-input"
-                              placeholder="Enter value"
+                              placeholder={t('seo.enter_value')}
                             />
                           </div>
 
                           <div>
                             <p className="text-sm font-medium mb-1 flex items-center gap-2">
-                              <span>Canonical URL</span>
+                              <span>{t('seo.canonical_url')}</span>
                             </p>
                             <Input
                               id="canonical_url"
                               {...register('canonical_url' as keyof SEOSettingsFormData)}
                               className="app-input"
-                              placeholder="Enter value"
+                              placeholder={t('seo.enter_value')}
                             />
                           </div>
 
                           <div>
-                            <p className="text-sm font-medium my-2">OG Image</p>
+                            <p className="text-sm font-medium my-2">{t('seo.og_image')}</p>
                             <div className="relative">
                               <div className="relative w-32">
                                 <PhotoUploadModal
@@ -678,7 +678,7 @@ const SEOSettingsForm = () => {
           )}
 
           <Card className="mt-4 sticky bottom-0 w-full p-4">
-            <SubmitButton IsLoading={isPending} AddLabel="Save Changes" />
+            <SubmitButton IsLoading={isPending} AddLabel={t('seo.save_changes')} />
           </Card>
         </form>
       )}

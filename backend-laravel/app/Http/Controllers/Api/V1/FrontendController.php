@@ -2087,6 +2087,7 @@ class FrontendController extends Controller
         $perPage = $request->input('per_page', 10); // Default to 10 items per page
         $today = now()->toDateString();
         if (auth('api_customer')->check()) {
+            $customerId = auth('api_customer')->user()->id;
             $coupon = $query->with('coupon.related_translations')
                 ->whereHas('coupon', function ($q) {
                     $q->where('status', 1);
@@ -2094,8 +2095,10 @@ class FrontendController extends Controller
                 ->where('status', 1)
                 ->whereDate('start_date', '<=', $today)
                 ->whereDate('end_date', '>=', $today)
-                ->whereNull('customer_id')
-                ->orWhere('customer_id', auth('api_customer')->user()->id)
+                ->where(function ($q) use ($customerId) {
+                    $q->whereNull('customer_id')
+                      ->orWhere('customer_id', $customerId);
+                })
                 ->paginate($perPage);
         } else {
             $coupon = $query->with('coupon.related_translations')
@@ -2118,97 +2121,64 @@ class FrontendController extends Controller
 
     public function page(Request $request, $slug)
     {
-        $page = Page::where('slug', $slug)
-            ->where('theme_name', 'default')
+        $activeTheme = config('themes.active_theme') ?? config('themes.default_theme', 'default');
+        $requestTheme = $request->theme_name ?? $activeTheme;
+
+        $page = Page::with('related_translations')
+            ->where('slug', $slug)
+            ->where('theme_name', $requestTheme)
             ->where('status', 'publish')
             ->first();
 
-        if (!$page){
+        if (!$page) {
             $page = Page::with('related_translations')
                 ->where('slug', $slug)
-                ->where('theme_name', $request->theme_name ?? 'default')
                 ->where('status', 'publish')
                 ->first();
         }
-
-
-        if ($page->slug === 'about') {
-            $setting = Page::with('related_translations')
-                ->where('slug', $slug)
-                ->where('theme_name', $request->theme_name ?? 'default')
-                ->where('status', 'publish')
-                ->first();
-
-            if (!$setting) {
-                return response()->json([
-                    'message' => __('messages.data_not_found')
-                ], 404);
-            }
-
-            $content = is_string($setting->content)
-                ? json_decode($setting->content, true)
-                : $setting->content;
-
-            $content = is_array($content) ? jsonImageModifierFormatter($content) : [];
-
-            $setting->content = $content;
-
-            return response()->json(new AboutUsPublicResource($setting));
-        }
-
-        if ($page->slug === 'contact') {
-            $setting = Page::with('related_translations')
-                ->where('slug', $slug)
-                ->where('theme_name', $request->theme_name ?? 'default')
-                ->where('status', 'publish')
-                ->first();
-
-            if (!$setting) {
-                return response()->json([
-                    'message' => __('messages.data_not_found')
-                ], 404);
-            }
-            $content = is_string($setting->content)
-                ? json_decode($setting->content, true)
-                : $setting->content;
-
-            $content = is_array($content) ? jsonImageModifierFormatter($content) : [];
-
-            $setting->content = $content;
-
-            return response()->json(new ContactUsPublicResource($setting));
-        }
-
-        if ($page->slug === 'become-a-seller') {
-            $setting = Page::with('related_translations')
-                ->where('slug', $slug)
-                ->where('theme_name', $request->theme_name ?? 'default')
-                ->where('status', 'publish')
-                ->first();
-
-            if (!$setting) {
-                return response()->json([
-                    'message' => __('messages.data_not_found')
-                ], 404);
-            }
-
-            $content = is_string($setting->content)
-                ? json_decode($setting->content, true)
-                : $setting->content;
-
-            $content = is_array($content) ? jsonImageModifierFormatter($content) : [];
-
-            $setting->content = $content;
-
-            return response()->json(new BecomeSellerPublicResource($setting));
-        }
-
 
         if (!$page) {
             return response()->json([
-                'message' => __('Page Not Found')
+                'message' => __('messages.data_not_found')
             ], 404);
         }
+
+        if ($page->slug === 'about') {
+            $content = is_string($page->content)
+                ? json_decode($page->content, true)
+                : $page->content;
+
+            $content = is_array($content) ? jsonImageModifierFormatter($content) : [];
+
+            $page->content = $content;
+
+            return response()->json(new AboutUsPublicResource($page));
+        }
+
+        if ($page->slug === 'contact') {
+            $content = is_string($page->content)
+                ? json_decode($page->content, true)
+                : $page->content;
+
+            $content = is_array($content) ? jsonImageModifierFormatter($content) : [];
+
+            $page->content = $content;
+
+            return response()->json(new ContactUsPublicResource($page));
+        }
+
+        if ($page->slug === 'become-a-seller') {
+            $content = is_string($page->content)
+                ? json_decode($page->content, true)
+                : $page->content;
+
+            $content = is_array($content) ? jsonImageModifierFormatter($content) : [];
+
+            $page->content = $content;
+
+            return response()->json(new BecomeSellerPublicResource($page));
+        }
+
         return response()->json(new PrivacyPolicyResource($page));
     }
 
@@ -2220,6 +2190,13 @@ class FrontendController extends Controller
             ->where('slug', 'become-a-seller')
             ->where('status', 'publish')
             ->first();
+
+        if (!$page) {
+            $page = Page::with('related_translations')
+                ->where('slug', 'become-a-seller')
+                ->where('status', 'publish')
+                ->first();
+        }
 
         if (!$page) {
             return response()->json([

@@ -2,6 +2,7 @@
   "common": {
     "home": "Home",
     "search": "Search",
+    "search_your_product": "Search your product",
     "cart": "Cart",
     "wishlist": "Wishlist",
     "account": "My Account",
@@ -33,16 +34,24 @@
     "sort_newest": "Newest",
     "sort_rating": "Highest Rating",
     "sort_popular": "Most Popular",
-    "page": "Page"
+    "page": "Page",
+    "days": "Days",
+    "hours": "Hours",
+    "minutes": "Min",
+    "seconds": "Sec",
+    "become_seller": "Become a Seller"
   },
   "nav": {
     "categories": "Categories",
+    "all_categories": "All Categories",
     "brands": "Brands",
     "stores": "Stores",
     "blog": "Blog",
     "about": "About Us",
     "contact": "Contact",
-    "coupons": "Coupons"
+    "coupons": "Coupons",
+    "explore_store_types": "Explore Store Types",
+    "store_type": "Store Type"
   },
   "home": {
     "hero_title": "Best Deals Are Here",
@@ -64,6 +73,9 @@
     "flash_deals_subtitle": "Limited time offers",
     "popular_title": "Popular Products",
     "popular_subtitle": "Most viewed products",
+    "top_stores_title": "Popular Stores",
+    "newsletter_title": "Subscribe to Newsletter",
+    "newsletter_subtitle": "Stay informed about latest campaigns and deals",
     "discount": "Discount",
     "off": "off"
   },
@@ -357,9 +369,24 @@
     "terms": "Terms & Conditions",
     "privacy": "Privacy Policy",
     "follow_us": "Follow Us",
+    "quick_access": "Quick Access",
+    "our_information": "Our Information",
+    "help_center": "Help Center",
+    "social_connect": "Social Connect",
+    "download_app": "Download App",
+    "address": "Address",
+    "email": "Email",
+    "phone": "Phone",
     "newsletter": "Subscribe to Newsletter",
     "newsletter_placeholder": "Your email address",
     "subscribe": "Subscribe"
+  },
+  "newsletter": {
+    "email_placeholder": "Your email address",
+    "subscribe": "Subscribe",
+    "success": "Successfully subscribed!",
+    "error": "An error occurred, please try again",
+    "invalid_email": "Please enter a valid email address"
   },
   "seo": {
     "home_title": "Online Shopping",
@@ -407,6 +434,15 @@
     "wallet_title": "Wallet",
     "wallet_description": "View your wallet balance and transaction history",
     "support_title": "Support",
-    "support_description": "Manage your support tickets"
+    "support_description": "Manage your support tickets",
+    "become_seller_title": "Become a Seller",
+    "become_seller_description": "Become a seller on Sportoonline and reach millions of customers with your sports products"
+  },
+  "product_details": {
+    "delivery_title": "Delivery Title",
+    "delivery_subtitle": "Delivery Subtitle",
+    "refund_title": "Refund Title",
+    "refund_subtitle": "Refund Subtitle",
+    "related_title": "Related Products"
   }
 }

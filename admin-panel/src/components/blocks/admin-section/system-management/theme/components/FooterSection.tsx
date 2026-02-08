@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui";
+import { useTranslations } from "next-intl";
 
 interface FooterSectionProps {
   data: any[];
@@ -27,12 +28,13 @@ const FooterSection: React.FC<FooterSectionProps> = ({
   sectionIndex,
   handleChange,
 }) => {
+  const t = useTranslations();
   return (
     <Card className="space-y-4">
       {data.map((section, itemIndex) => (
         <div key={itemIndex} className="px-4 py-8 flex items-center  gap-4 ">
           <div className="space-y-2">
-            <p className="col-span-3 text-sm font-medium">Background Color</p>
+            <p className="col-span-3 text-sm font-medium">{t("theme.footer.background_color")}</p>
             <div className="p-1 flex items-center gap-2 border border-slate-300 w-48 rounded">
               <Popover>
                 <PopoverTrigger asChild>
@@ -74,7 +76,7 @@ const FooterSection: React.FC<FooterSectionProps> = ({
           </div>
 
           <div className="space-y-2">
-            <p className="col-span-3 text-sm font-medium ">Text Color</p>
+            <p className="col-span-3 text-sm font-medium ">{t("theme.footer.text_color")}</p>
             <div className="p-1 flex items-center gap-2 border border-slate-300 w-48 rounded">
               <Popover>
                 <PopoverTrigger asChild>
@@ -110,7 +112,7 @@ const FooterSection: React.FC<FooterSectionProps> = ({
 
           {/* Layout Columns */}
           <div className="space-y-2">
-            <p className="col-span-3 text-sm font-medium">Layout Columns</p>
+            <p className="col-span-3 text-sm font-medium">{t("theme.footer.layout_columns")}</p>
             <Input
               type="number"
               value={section.layout_columns || 0}

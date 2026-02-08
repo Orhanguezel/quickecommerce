@@ -21,6 +21,7 @@ import type {
   ProductVariant,
 } from "@/modules/product/product.type";
 import { ProductCard } from "@/components/product/product-card";
+import { useThemeConfig } from "@/modules/theme/use-theme-config";
 
 interface ProductDetailTranslations {
   add_to_cart: string;
@@ -60,6 +61,7 @@ export function ProductDetailClient({
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
     product.variants?.[0] ?? null
   );
+  const { productDetailsConfig } = useThemeConfig();
 
   const price = selectedVariant
     ? Number(selectedVariant.price)
@@ -301,6 +303,23 @@ export function ProductDetailClient({
 
           {/* Delivery & Return Info */}
           <div className="space-y-2 rounded-lg border p-4">
+            {/* Tema Teslimat Mesajı - Genel */}
+            {productDetailsConfig.isDeliveryEnabled && (
+              <div className="flex items-center gap-3 text-sm">
+                <Truck className="h-4 w-4 text-muted-foreground" />
+                {productDetailsConfig.deliveryUrl ? (
+                  <Link href={productDetailsConfig.deliveryUrl} className="hover:text-primary hover:underline">
+                    {productDetailsConfig.deliveryTitle}: {productDetailsConfig.deliverySubtitle}
+                  </Link>
+                ) : (
+                  <span>
+                    {productDetailsConfig.deliveryTitle}: {productDetailsConfig.deliverySubtitle}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Ürün Bazlı Teslimat - Özel */}
             {product.delivery_time_text && (
               <div className="flex items-center gap-3 text-sm">
                 <Truck className="h-4 w-4 text-muted-foreground" />
@@ -313,6 +332,24 @@ export function ProductDetailClient({
                 <span>{product.delivery_time_min}-{product.delivery_time_max} gün</span>
               </div>
             )}
+
+            {/* Tema İade Mesajı - Genel */}
+            {productDetailsConfig.isRefundEnabled && (
+              <div className="flex items-center gap-3 text-sm">
+                <RotateCcw className="h-4 w-4 text-muted-foreground" />
+                {productDetailsConfig.refundUrl ? (
+                  <Link href={productDetailsConfig.refundUrl} className="hover:text-primary hover:underline">
+                    {productDetailsConfig.refundTitle}: {productDetailsConfig.refundSubtitle}
+                  </Link>
+                ) : (
+                  <span>
+                    {productDetailsConfig.refundTitle}: {productDetailsConfig.refundSubtitle}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Ürün Bazlı İade - Özel */}
             {product.return_in_days != null && product.return_in_days > 0 && (
               <div className="flex items-center gap-3 text-sm">
                 <RotateCcw className="h-4 w-4 text-muted-foreground" />
@@ -321,6 +358,8 @@ export function ProductDetailClient({
                 </span>
               </div>
             )}
+
+            {/* Kapıda Ödeme */}
             {(product.cash_on_delivery === 1 || product.cash_on_delivery === "1") && (
               <div className="flex items-center gap-3 text-sm">
                 <ShieldCheck className="h-4 w-4 text-muted-foreground" />
@@ -449,7 +488,7 @@ export function ProductDetailClient({
       {/* Related Products */}
       {relatedProducts.length > 0 && (
         <section className="mt-10">
-          <h2 className="mb-6 text-xl font-bold">{t.related_products}</h2>
+          <h2 className="mb-6 text-xl font-bold">{productDetailsConfig.relatedTitle || t.related_products}</h2>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {relatedProducts.slice(0, 10).map((p) => (
               <ProductCard key={p.id} product={p} />

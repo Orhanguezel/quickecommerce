@@ -9,6 +9,7 @@ import FooterSection from "./components/FooterSection";
 import HeaderSection from "./components/HeaderSection";
 import PagesSection from "./components/PagesSection";
 import StyleSection from "./components/StyleSection";
+import { useTranslations } from "next-intl";
 
 type ThemeData = {
   name: string;
@@ -23,6 +24,7 @@ type ThemeData = {
 };
 
 const ThemeDetailsForm = ({ ThemeDetails, refetch, ID }: any) => {
+  const t = useTranslations();
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [formValues, setFormValues] = useState<any[]>([]);
   const [expandedParents, setExpandedParents] = useState<string[]>([]);
@@ -163,7 +165,7 @@ const ThemeDetailsForm = ({ ThemeDetails, refetch, ID }: any) => {
                       : "hover:bg-gray-100 text-gray-500"
                   }`}
                 >
-                  {key.replace("theme_", "").replace("_", " ")}
+                  {t(`theme.sidebar.${key.replace("theme_", "")}` as any)}
                   {hasChildren && (
                     <span
                       className={`transition-transform duration-200 ${
@@ -192,7 +194,7 @@ const ThemeDetailsForm = ({ ThemeDetails, refetch, ID }: any) => {
                               : "bg-gray-50 hover:bg-gray-100 text-gray-500"
                           }`}
                         >
-                          {childKey.replace("theme_", "").replace(/_/g, " ")}
+                          {t(`theme.sidebar.${childKey.replace("theme_", "")}` as any)}
                         </button>
                       </li>
                     ))}
@@ -210,12 +212,10 @@ const ThemeDetailsForm = ({ ThemeDetails, refetch, ID }: any) => {
           <h2 className="text-xl font-semibold capitalize">
             {selectedKey
               ? `${selectedKey
-                  .replace("theme_", "")
-                  .replace(".", " > ")
-                  .replace("theme_", "")
-                  .replace("_", " ")
-                  .replace("_", " ")} Settings`
-              : "Details"}
+                  .split(".")
+                  .map((k: string) => t(`theme.sidebar.${k.replace("theme_", "")}` as any))
+                  .join(" > ")} ${t("theme.settings_suffix")}`
+              : t("theme.details")}
           </h2>
         </div>
 
@@ -255,7 +255,7 @@ const ThemeDetailsForm = ({ ThemeDetails, refetch, ID }: any) => {
             )}
           </div>
         ) : (
-          <p className="text-gray-500">Select a section to edit details</p>
+          <p className="text-gray-500">{t("theme.select_section")}</p>
         )}
         {childKey !== "theme_home_page" &&
           childKey !== "theme_product_details_page" &&
@@ -271,7 +271,7 @@ const ThemeDetailsForm = ({ ThemeDetails, refetch, ID }: any) => {
                 {isPending ? (
                   <Loader size="small" />
                 ) : (
-                  <span>Save Changes</span>
+                  <span>{t("button.save_changes")}</span>
                 )}
               </Button>
             </Card>

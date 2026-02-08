@@ -1468,6 +1468,7 @@
     "type_url": "Type &  URL",
     "change_image": "Change Image",
     "drag_and_drop": "Drag your file(s) or browse",
+    "enable_disable": "Enable/Disable",
     "add_category": "Add Category",
     "edit_category": "Edit Category",
     "all_category": "All Categories",
@@ -1566,5 +1567,101 @@
     "approve_request_title": "Approve Request",
     "approve_request_subtitle": "Are You Sure You Want To prove Request?",
     "payment_getway": "Payment Getway"
+  },
+  "theme": {
+    "title": "Themes",
+    "customization": "Customization",
+    "description": "Choose theme to customize and make active.",
+    "activated": "Activated",
+    "customize": "Customize",
+    "makeActive": "Make Active",
+    "activateTitle": "Theme Activate",
+    "activateConfirm": "Are you sure you want to active this theme?",
+    "select_section": "Select a section to edit",
+    "settings_suffix": "Settings",
+    "details": "Details",
+    "sidebar": {
+      "style": "Style",
+      "header": "Header",
+      "footer": "Footer",
+      "pages": "Pages",
+      "home_page": "Home Page",
+      "login_page": "Login Page",
+      "register_page": "Register Page",
+      "blog_page": "Blog Page",
+      "product_details_page": "Product Details Page"
+    },
+    "style": {
+      "primary_color": "Primary Color",
+      "secondary_color": "Secondary Color"
+    },
+    "header": {
+      "header_01": "Header 01"
+    },
+    "footer": {
+      "background_color": "Background Color",
+      "text_color": "Text Color",
+      "layout_columns": "Layout Columns"
+    },
+    "home": {
+      "slider": "Slider",
+      "banner": "Banner",
+      "flash_sale": "Flash Sale",
+      "category": "Category",
+      "featured_products": "Featured Products",
+      "top_selling_products": "Top Selling Products",
+      "latest_products": "Latest Products",
+      "popular_products": "Popular Products",
+      "top_stores": "Top Stores",
+      "newsletters": "Newsletters"
+    },
+    "login": {
+      "customer": "Customer Login",
+      "social_login_enable": "Social Login Enable/Disable",
+      "login_image": "Login Image",
+      "admin": "Admin Login"
+    },
+    "register": {
+      "title_label": "Title",
+      "subtitle_label": "Subtitle",
+      "description_label": "Description",
+      "terms_page_title": "Terms Page Title",
+      "terms_page_url": "Terms Page URL",
+      "social_login": "Social Login Enable/Disable",
+      "image": "Image"
+    },
+    "blog": {
+      "popular_title": "Popular Title",
+      "related_title": "Related Title"
+    },
+    "product_details": {
+      "delivery_title": "Delivery Title",
+      "delivery_subtitle": "Delivery Subtitle",
+      "delivery_url": "Delivery URL",
+      "refund_title": "Refund Title",
+      "refund_subtitle": "Refund Subtitle",
+      "refund_url": "Refund URL",
+      "related_title": "Related Title",
+      "delivery_enable": "Delivery Enable/Disable",
+      "refund_enable": "Refund Enable/Disable"
+    }
+  },
+  "seo": {
+    "meta_tags": "Meta Tags",
+    "meta_title": "Meta Title",
+    "meta_description": "Meta Description",
+    "og_title": "OG Title",
+    "og_description": "OG Description",
+    "canonical_url": "Canonical URL",
+    "og_image": "OG Image",
+    "provide_meta_tags": "Please provide meta tags",
+    "provide_meta_title": "Please provide meta title",
+    "provide_meta_description": "Please provide meta description",
+    "provide_og_title": "Please provide OG title",
+    "provide_og_description": "Please provide OG description",
+    "enter_meta_tags_for": "Enter meta tags for {lang}",
+    "enter_value": "Enter value",
+    "in_lang": "in {lang}",
+    "save_changes": "Save Changes"
   }
 }

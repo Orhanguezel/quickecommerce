@@ -65,9 +65,9 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
       <div className="fixed inset-y-0 left-0 z-50 w-72 bg-background shadow-xl">
         <div className="flex h-full flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between border-b px-4 py-3">
+          <div className="flex items-center justify-between bg-primary px-4 py-3 text-primary-foreground">
             <span className="text-lg font-semibold">{t('nav.categories')}</span>
-            <Button variant="ghost" size="icon" onClick={onClose}>
+            <Button variant="ghost" size="icon" onClick={onClose} className="text-primary-foreground hover:bg-white/15 hover:text-primary-foreground">
               <X className="h-5 w-5" />
             </Button>
           </div>
@@ -96,7 +96,7 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
                         onClick={onClose}
                         className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent"
                       >
-                        <link.icon className="h-4 w-4 text-muted-foreground" />
+                        <link.icon className="h-4 w-4 text-primary" />
                         {link.label}
                       </Link>
                     </li>
@@ -115,7 +115,7 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
                         onClick={onClose}
                         className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent"
                       >
-                        <link.icon className="h-4 w-4 text-muted-foreground" />
+                        <link.icon className="h-4 w-4 text-primary" />
                         {link.label}
                       </Link>
                     </li>

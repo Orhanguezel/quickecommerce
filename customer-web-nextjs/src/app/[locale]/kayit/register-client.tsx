@@ -15,6 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { SocialLoginButtons } from "@/components/auth/social-login-buttons";
 import { Eye, EyeOff, UserPlus } from "lucide-react";
+import { useThemeConfig } from "@/modules/theme/use-theme-config";
+import Image from "next/image";
 
 interface Props {
   translations: {
@@ -41,6 +43,7 @@ export function RegisterClient({ translations: t }: Props) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const registerMutation = useRegisterMutation();
+  const { registerConfig } = useThemeConfig();
 
   const {
     register,
@@ -63,12 +66,34 @@ export function RegisterClient({ translations: t }: Props) {
   };
 
   return (
-    <div className="container mx-auto flex min-h-[60vh] items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md">
-        <div className="rounded-lg border bg-card p-8 shadow-sm">
+    <div className="container mx-auto px-4 py-12">
+      <div className={`mx-auto ${registerConfig.imageUrl ? "max-w-6xl" : "max-w-md"}`}>
+        <div className={`grid gap-8 ${registerConfig.imageUrl ? "md:grid-cols-2" : "grid-cols-1"} items-center`}>
+          {/* Left - Theme Image (optional) */}
+          {registerConfig.imageUrl && (
+            <div className="relative hidden h-[700px] overflow-hidden rounded-lg md:block">
+              <Image
+                src={registerConfig.imageUrl}
+                alt={registerConfig.title || t.register_title}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
+                priority
+              />
+            </div>
+          )}
+
+          {/* Right - Register Form */}
+          <div className={`${registerConfig.imageUrl ? "" : "w-full"}`}>
+            <div className="rounded-lg border bg-card p-8 shadow-sm">
           <div className="mb-6 text-center">
             <UserPlus className="mx-auto mb-3 h-10 w-10 text-primary" />
-            <h1 className="text-2xl font-bold">{t.register_title}</h1>
+            <h1 className="text-2xl font-bold">{registerConfig.title || t.register_title}</h1>
+            {(registerConfig.subtitle || registerConfig.description) && (
+              <p className="mt-1 text-sm text-muted-foreground">
+                {registerConfig.subtitle}
+              </p>
+            )}
           </div>
 
           {registerMutation.isError && (
@@ -78,16 +103,18 @@ export function RegisterClient({ translations: t }: Props) {
             </div>
           )}
 
-          <Suspense>
-            <SocialLoginButtons
-              translations={{
-                or: t.or,
-                google: t.google,
-                facebook: t.facebook,
-                social_error: t.social_error,
-              }}
-            />
-          </Suspense>
+          {registerConfig.isSocialLoginEnabled && (
+            <Suspense>
+              <SocialLoginButtons
+                translations={{
+                  or: t.or,
+                  google: t.google,
+                  facebook: t.facebook,
+                  social_error: t.social_error,
+                }}
+              />
+            </Suspense>
+          )}
 
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
@@ -237,6 +264,8 @@ export function RegisterClient({ translations: t }: Props) {
               {t.login}
             </Link>
           </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

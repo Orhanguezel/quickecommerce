@@ -32,6 +32,8 @@ class DatabaseSeeder extends Seeder
         $this->call(PageSeeder::class);
         // general settings
         $this->call(GeneralSettingsSeeder::class);
+        // theme settings
+        $this->call(ThemeSeeder::class);
         // seo settings
         $this->call(SeoSettingsSeeder::class);
         // gdpr cookie settings

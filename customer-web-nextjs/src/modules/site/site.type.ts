@@ -36,6 +36,36 @@ export interface MenuItem {
   status: number;
 }
 
+export interface FooterLinkItem {
+  title?: string;
+  url?: string;
+  com_quick_access_title?: string;
+  com_quick_access_url?: string;
+}
+
+export interface FooterContent {
+  com_quick_access_enable_disable?: string;
+  com_our_info_enable_disable?: string;
+  com_social_links_enable_disable?: string;
+  com_social_links_title?: string;
+  com_payment_methods_enable_disable?: string;
+  com_quick_access?: FooterLinkItem[];
+  com_our_info?: FooterLinkItem[];
+  com_help_center?: FooterLinkItem[];
+  com_social_links_facebook_url?: string;
+  com_social_links_twitter_url?: string;
+  com_social_links_instagram_url?: string;
+  com_social_links_linkedin_url?: string;
+  com_download_app_link_one?: string;
+  com_download_app_link_two?: string;
+  com_payment_methods_image?: string;
+  com_payment_methods_image_urls?: string;
+}
+
+export interface FooterSettings {
+  content: FooterContent;
+}
+
 export interface Category {
   id: number;
   value: number;
@@ -49,4 +79,5 @@ export interface Category {
   category_name_paths: string;
   parent_path: string;
   display_order: number;
+  children?: Category[];
 }

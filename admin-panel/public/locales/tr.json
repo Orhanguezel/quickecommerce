@@ -1468,6 +1468,7 @@
     "type_url": "Tür & URL",
     "change_image": "Görseli Değiştir",
     "drag_and_drop": "Dosyalarınızı sürükleyin veya göz atın",
+    "enable_disable": "Etkinleştir/Devre Dışı Bırak",
     "add_category": "Kategori Ekle",
     "edit_category": "Kategoriyi Düzenle",
     "all_category": "Tüm Kategoriler",
@@ -1566,5 +1567,101 @@
     "approve_request_title": "Talebi Onayla",
     "approve_request_subtitle": "Talebi onaylamak istediğinize emin misiniz?",
     "payment_getway": "Ödeme Ağ Geçidi"
+  },
+  "theme": {
+    "title": "Temalar",
+    "customization": "Özelleştirme",
+    "description": "Özelleştirmek ve aktif hale getirmek için tema seçin.",
+    "activated": "Aktif",
+    "customize": "Özelleştir",
+    "makeActive": "Aktif Yap",
+    "activateTitle": "Tema Aktivasyonu",
+    "activateConfirm": "Bu temayı aktif hale getirmek istediğinizden emin misiniz?",
+    "select_section": "Düzenlemek için bir bölüm seçin",
+    "settings_suffix": "Ayarları",
+    "details": "Detaylar",
+    "sidebar": {
+      "style": "Stil",
+      "header": "Üst Bilgi",
+      "footer": "Alt Bilgi",
+      "pages": "Sayfalar",
+      "home_page": "Ana Sayfa",
+      "login_page": "Giriş Sayfası",
+      "register_page": "Kayıt Sayfası",
+      "blog_page": "Blog Sayfası",
+      "product_details_page": "Ürün Detay Sayfası"
+    },
+    "style": {
+      "primary_color": "Ana Renk",
+      "secondary_color": "İkincil Renk"
+    },
+    "header": {
+      "header_01": "Üst Bilgi 01"
+    },
+    "footer": {
+      "background_color": "Arka Plan Rengi",
+      "text_color": "Metin Rengi",
+      "layout_columns": "Düzen Sütunları"
+    },
+    "home": {
+      "slider": "Slider",
+      "banner": "Banner",
+      "flash_sale": "Fırsat Ürünleri",
+      "category": "Kategori",
+      "featured_products": "Öne Çıkan Ürünler",
+      "top_selling_products": "En Çok Satanlar",
+      "latest_products": "Yeni Ürünler",
+      "popular_products": "Popüler Ürünler",
+      "top_stores": "Popüler Mağazalar",
+      "newsletters": "Bülten"
+    },
+    "login": {
+      "customer": "Müşteri Girişi",
+      "social_login_enable": "Sosyal Giriş Etkinleştir/Devre Dışı Bırak",
+      "login_image": "Giriş Görseli",
+      "admin": "Yönetici Girişi"
+    },
+    "register": {
+      "title_label": "Başlık",
+      "subtitle_label": "Alt Başlık",
+      "description_label": "Açıklama",
+      "terms_page_title": "Kullanım Koşulları Başlığı",
+      "terms_page_url": "Kullanım Koşulları URL",
+      "social_login": "Sosyal Giriş Etkinleştir/Devre Dışı Bırak",
+      "image": "Görsel"
+    },
+    "blog": {
+      "popular_title": "Popüler Başlık",
+      "related_title": "İlgili Başlık"
+    },
+    "product_details": {
+      "delivery_title": "Teslimat Başlığı",
+      "delivery_subtitle": "Teslimat Alt Başlığı",
+      "delivery_url": "Teslimat URL",
+      "refund_title": "İade Başlığı",
+      "refund_subtitle": "İade Alt Başlığı",
+      "refund_url": "İade URL",
+      "related_title": "Benzer Başlık",
+      "delivery_enable": "Teslimat Etkinleştir/Devre Dışı Bırak",
+      "refund_enable": "İade Etkinleştir/Devre Dışı Bırak"
+    }
+  },
+  "seo": {
+    "meta_tags": "Meta Etiketler",
+    "meta_title": "Meta Başlık",
+    "meta_description": "Meta Açıklama",
+    "og_title": "OG Başlık",
+    "og_description": "OG Açıklama",
+    "canonical_url": "Canonical URL",
+    "og_image": "OG Görsel",
+    "provide_meta_tags": "Lütfen meta etiketleri girin",
+    "provide_meta_title": "Lütfen meta başlığı girin",
+    "provide_meta_description": "Lütfen meta açıklamasını girin",
+    "provide_og_title": "Lütfen OG başlığı girin",
+    "provide_og_description": "Lütfen OG açıklamasını girin",
+    "enter_meta_tags_for": "{lang} için meta etiketleri girin",
+    "enter_value": "Değer girin",
+    "in_lang": "{lang} dilinde",
+    "save_changes": "Değişiklikleri Kaydet"
   }
 }

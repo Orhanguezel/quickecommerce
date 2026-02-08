@@ -2,6 +2,7 @@
   "common": {
     "home": "Ana Sayfa",
     "search": "Ara",
+    "search_your_product": "Ürün ara",
     "cart": "Sepet",
     "wishlist": "Favorilerim",
     "account": "Hesabım",
@@ -33,16 +34,24 @@
     "sort_newest": "En Yeni",
     "sort_rating": "En Yüksek Puan",
     "sort_popular": "En Popüler",
-    "page": "Sayfa"
+    "page": "Sayfa",
+    "days": "Gün",
+    "hours": "Saat",
+    "minutes": "Dk",
+    "seconds": "Sn",
+    "become_seller": "Satıcı Ol"
   },
   "nav": {
     "categories": "Kategoriler",
+    "all_categories": "Tüm Kategoriler",
     "brands": "Markalar",
     "stores": "Mağazalar",
     "blog": "Blog",
     "about": "Hakkımızda",
     "contact": "İletişim",
-    "coupons": "Kuponlar"
+    "coupons": "Kuponlar",
+    "explore_store_types": "Mağaza Türlerini Keşfet",
+    "store_type": "Mağaza Türü"
   },
   "home": {
     "hero_title": "En İyi Fırsatlar Burada",
@@ -64,6 +73,9 @@
     "flash_deals_subtitle": "Sınırlı süreli teklifler",
     "popular_title": "Popüler Ürünler",
     "popular_subtitle": "En çok görüntülenen ürünler",
+    "top_stores_title": "Popüler Mağazalar",
+    "newsletter_title": "Bültene Abone Ol",
+    "newsletter_subtitle": "En son kampanya ve fırsatlardan haberdar olun",
     "discount": "İndirim",
     "off": "indirim"
   },
@@ -357,9 +369,24 @@
     "terms": "Kullanım Koşulları",
     "privacy": "Gizlilik Politikası",
     "follow_us": "Bizi Takip Edin",
+    "quick_access": "Hızlı Erişim",
+    "our_information": "Bilgilerimiz",
+    "help_center": "Yardım Merkezi",
+    "social_connect": "Sosyal Medya",
+    "download_app": "Uygulama İndir",
+    "address": "Adres",
+    "email": "E-posta",
+    "phone": "Telefon",
     "newsletter": "Bültene Abone Ol",
     "newsletter_placeholder": "E-posta adresiniz",
     "subscribe": "Abone Ol"
+  },
+  "newsletter": {
+    "email_placeholder": "E-posta adresiniz",
+    "subscribe": "Abone Ol",
+    "success": "Başarıyla abone oldunuz!",
+    "error": "Bir hata oluştu, lütfen tekrar deneyin",
+    "invalid_email": "Geçerli bir e-posta adresi girin"
   },
   "seo": {
     "home_title": "Online Alışveriş",
@@ -407,6 +434,15 @@
     "wallet_title": "Cüzdan",
     "wallet_description": "Cüzdan bakiyenizi ve işlem geçmişinizi görüntüleyin",
     "support_title": "Destek",
-    "support_description": "Destek taleplerinizi yönetin"
+    "support_description": "Destek taleplerinizi yönetin",
+    "become_seller_title": "Satıcı Ol",
+    "become_seller_description": "Sportoonline'da satıcı olun ve spor ürünlerinizi milyonlarca müşteriye ulaştırın"
+  },
+  "product_details": {
+    "delivery_title": "Teslimat Başlığı",
+    "delivery_subtitle": "Teslimat Alt Başlığı",
+    "refund_title": "İade Başlığı",
+    "refund_subtitle": "İade Alt Başlığı",
+    "related_title": "İlgili Ürünler"
   }
 }

@@ -4,7 +4,7 @@
 
 - Ubuntu 22.04+ / Debian 12+
 - PHP 8.2+ (php-fpm)
-- Node.js 18+
+- Node.js 20+ (Next.js 16 için gerekli)
 - MySQL 8.0+ / MariaDB 10.6+
 - Nginx
 - PM2
@@ -20,8 +20,8 @@ Local'de commit & push yaptığınızda GitHub Actions otomatik olarak:
 2. `git pull` yapar
 3. `.env` dosyalarını geri yükler
 4. Laravel: `composer install`, migration, cache
-5. Admin Panel: `npm install`, build
-6. PM2 reload
+5. Admin Panel: `npm install`, build, PM2 reload
+6. Customer Web: `npm install`, build, PM2 reload
 7. Seederleri çalıştırır
 
 ---
@@ -82,6 +82,24 @@ npm run build
 
 # PM2 reload
 pm2 reload quickecommerce-admin
+```
+
+### Customer Web (Next.js)
+
+```bash
+cd /var/www/quikecommerce/customer-web-nextjs
+
+# Git pull
+git pull origin main
+
+# Bağımlılıklar
+npm ci
+
+# Build
+npm run build
+
+# PM2 reload
+pm2 reload quickecommerce-customer
 ```
 
 ---

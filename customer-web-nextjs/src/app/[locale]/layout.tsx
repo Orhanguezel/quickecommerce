@@ -4,6 +4,7 @@ import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import { QueryProvider } from '@/lib/query-provider';
+import { ThemeProvider } from '@/components/providers/theme-provider';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { MaintenancePage } from '@/components/maintenance-page';
@@ -12,11 +13,63 @@ import '../globals.css';
 
 const API_URL = process.env.NEXT_PUBLIC_REST_API_ENDPOINT || 'https://sportoonline.com/api/v1';
 
+const hexToHSL = (hex: string): string => {
+  if (!hex) return '0 0% 0%';
+  hex = hex.replace('#', '');
+  if (hex.length !== 6) return '0 0% 0%';
+
+  const r = parseInt(hex.substring(0, 2), 16) / 255;
+  const g = parseInt(hex.substring(2, 4), 16) / 255;
+  const b = parseInt(hex.substring(4, 6), 16) / 255;
+
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  let h = 0,
+    s = 0;
+  const l = (max + min) / 2;
+
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+    switch (max) {
+      case r:
+        h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+        break;
+      case g:
+        h = ((b - r) / d + 2) / 6;
+        break;
+      case b:
+        h = ((r - g) / d + 4) / 6;
+        break;
+    }
+  }
+
+  h = Math.round(h * 360);
+  s = Math.round(s * 100);
+  const lVal = Math.round(l * 100);
+
+  return `${h} ${s}% ${lVal}%`;
+};
+
+async function getThemeColors() {
+  try {
+    const res = await fetch(`${API_URL}/theme`, {
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.theme_data?.theme_style?.[0]?.colors?.[0] || null;
+  } catch {
+    return null;
+  }
+}
+
 async function getSiteSettings(locale: string) {
   try {
     const res = await fetch(`${API_URL}/site-general-info`, {
       headers: { 'X-localization': locale },
-      cache: 'no-store',
+      next: { revalidate: 60 },
     });
     if (!res.ok) return null;
     const data = await res.json();
@@ -30,7 +83,7 @@ async function getMaintenancePageData(locale: string) {
   try {
     const res = await fetch(`${API_URL}/maintenance-page-settings`, {
       headers: { 'X-localization': locale },
-      cache: 'no-store',
+      next: { revalidate: 60 },
     });
     if (!res.ok) return null;
     const data = await res.json();
@@ -95,7 +148,11 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
     notFound();
   }
 
-  const [messages, settings] = await Promise.all([getMessages(), getSiteSettings(locale)]);
+  const [messages, settings, themeColors] = await Promise.all([
+    getMessages(),
+    getSiteSettings(locale),
+    getThemeColors(),
+  ]);
 
   const isMaintenanceMode = settings?.com_maintenance_mode === 'on';
 
@@ -123,16 +180,50 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
     );
   }
 
+  // Generate inline CSS for theme colors (server-side)
+  let themeStyles = '';
+  if (themeColors?.primary) {
+    try {
+      const primaryHSL = hexToHSL(themeColors.primary);
+      const accentHSL = hexToHSL(themeColors.secondary || themeColors.primary);
+      const primaryLightness = parseInt(primaryHSL.split('%')[1]);
+      const primaryFgColor = primaryLightness > 65 ? '222.2 47.4% 11.2%' : '210 40% 98%';
+      const navTextHSL = primaryLightness > 65 ? '222.2 47.4% 11.2%' : '0 0% 100%';
+
+      themeStyles = `
+      :root {
+        --primary: ${primaryHSL} !important;
+        --primary-foreground: ${primaryFgColor} !important;
+        --accent: ${accentHSL} !important;
+        --ring: ${primaryHSL} !important;
+        --header-nav-bg: ${primaryHSL} !important;
+        --header-nav-text: ${navTextHSL} !important;
+        --header-topbar-bg: 222 84% 5% !important;
+        --header-topbar-text: 0 0% 100% !important;
+      }
+    `;
+    } catch {
+      // ignore theme color errors
+    }
+  }
+
   return (
     <html lang={locale} suppressHydrationWarning>
+      {themeStyles && (
+        <head>
+          <style dangerouslySetInnerHTML={{ __html: themeStyles }} />
+        </head>
+      )}
       <body className={`${geistSans.variable} font-sans antialiased`} suppressHydrationWarning>
-        <NextIntlClientProvider messages={messages}>
+        <NextIntlClientProvider locale={locale} messages={messages}>
           <QueryProvider>
-            <div className="flex min-h-screen flex-col">
-              <Header />
-              <main className="flex-1">{children}</main>
-              <Footer />
-            </div>
+            <ThemeProvider>
+              <div className="flex min-h-screen flex-col">
+                <Header />
+                <main className="flex-1">{children}</main>
+                <Footer />
+              </div>
+            </ThemeProvider>
           </QueryProvider>
         </NextIntlClientProvider>
       </body>
