@@ -1,6 +1,6 @@
 'use client';
 
-import { Link } from '@/i18n/routing';
+import { Link, useRouter } from '@/i18n/routing';
 import { ROUTES } from '@/config/routes';
 import { useSiteInfoQuery, useMenuQuery, useCategoryQuery } from '@/modules/site/site.action';
 import { useCartStore } from '@/stores/cart-store';
@@ -33,6 +33,7 @@ import type { Category, MenuItem } from '@/modules/site/site.type';
 export function HeaderVariant1() {
   const t = useTranslations();
   const locale = useLocale();
+  const router = useRouter();
   const { siteInfo } = useSiteInfoQuery();
   const { menus } = useMenuQuery();
   const { categories } = useCategoryQuery();
@@ -44,12 +45,13 @@ export function HeaderVariant1() {
   const [searchQuery, setSearchQuery] = useState('');
   const [catOpen, setCatOpen] = useState(false);
   const [hoveredCatId, setHoveredCatId] = useState<number | null>(null);
+  const [logoError, setLogoError] = useState(false);
   const catDropdownRef = useRef<HTMLDivElement>(null);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      window.location.href = `/${locale}${ROUTES.SEARCH}?q=${encodeURIComponent(searchQuery.trim())}`;
+      router.push(`${ROUTES.SEARCH}?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
@@ -117,7 +119,7 @@ export function HeaderVariant1() {
 
           {/* Logo */}
           <Link href={ROUTES.HOME} className="flex shrink-0 items-center gap-2">
-            {siteInfo?.com_site_logo ? (
+            {siteInfo?.com_site_logo && !logoError ? (
               <Image
                 src={siteInfo.com_site_logo}
                 alt={siteInfo?.com_site_title || 'Logo'}
@@ -125,6 +127,7 @@ export function HeaderVariant1() {
                 height={40}
                 className="h-10 w-auto object-contain"
                 priority
+                onError={() => setLogoError(true)}
               />
             ) : (
               <span className="text-xl font-bold">{siteInfo?.com_site_title || 'Sporto Online'}</span>
@@ -310,7 +313,7 @@ export function HeaderVariant1() {
                             .map((child: MenuItem) => (
                               <Link
                                 key={child.id}
-                                href={`/${locale}/${child.url}`}
+                                href={child.url ? `/${child.url}` : '/'}
                                 className="block px-4 py-2.5 text-sm text-foreground transition-colors hover:bg-muted hover:text-primary"
                               >
                                 {child.name}
@@ -324,7 +327,7 @@ export function HeaderVariant1() {
                   return (
                     <Link
                       key={menu.id}
-                      href={menu.url ? `/${locale}/${menu.url}` : '/'}
+                      href={menu.url ? `/${menu.url}` : '/'}
                       className="text-foreground transition-colors hover:text-primary"
                     >
                       {menu.name}
