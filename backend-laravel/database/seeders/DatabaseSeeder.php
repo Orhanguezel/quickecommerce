@@ -77,10 +77,26 @@ class DatabaseSeeder extends Seeder
         $this->call(BrandSeeder::class);
         $this->call(ProductSeeder::class);
         $this->call(StoreSeeder::class);
+        $this->call(CouponSeeder::class);
         $this->call(FlashSaleSeeder::class);
         $this->call(FlashSaleProductSeeder::class);
         $this->call(BlogCategorySeeder::class);
         $this->call(BlogSeeder::class);
+
+        // ── ADDITIONAL SEEDERS ──────────────────────────────────────
+        $this->call(CustomerSeeder::class);
+        $this->call(DynamicFieldSeeder::class);
+        $this->call(ProductAuthorSeeder::class);
+        $this->call(ProductBrandSeeder::class);
+        $this->call(ProductCategorySeeder::class);
+        $this->call(ReviewSeeder::class);
+        $this->call(SettingOptionsSeeder::class);
+        $this->call(StoreAreaSettingRangeChargeSeeder::class);
+        $this->call(StoreAreaSettingsSeeder::class);
+        $this->call(StoreAreaSettingStoreTypeSeeder::class);
+        $this->call(StoreSellerSeeder::class);
+        $this->call(SubscriptionPackageSeeder::class);
+        $this->call(WalletSeeder::class);
     }
 }
 
