@@ -40,6 +40,9 @@ class ProductionSeeder extends Seeder
         $this->call(GdprCookieSettingsSeeder::class);
         $this->call(PageSeeder::class);
         $this->call(FooterSettingsSeeder::class);
+        $this->call(PaymentGatewaySeeder::class);
+        $this->call(UnitSeeder::class);
+        $this->call(LocationSeeder::class);
 
         $this->command->info('✅ Production seeders completed successfully!');
         $this->command->info('ℹ️  Safe to run on every deployment.');

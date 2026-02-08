@@ -61,10 +61,17 @@ class DatabaseSeeder extends Seeder
         $this->call(SeoSettingsSeeder::class);
         $this->call(GdprCookieSettingsSeeder::class);
         $this->call(FooterSettingsSeeder::class);
+        $this->call(PaymentGatewaySeeder::class);
+        $this->call(UnitSeeder::class);
+        $this->call(LocationSeeder::class);
 
         // ── CONTENT SEEDERS (⚠️ UNSAFE - DELETE existing data!) ────
         // CRITICAL: These seeders use delete()/truncate()!
         // Only run on initial setup or local development!
+        $this->call(EmailTemplateSeeder::class);
+        $this->call(TagSeeder::class);
+        $this->call(DepartmentSeeder::class);
+        $this->call(ProductAttributeSeeder::class);
         $this->call(SliderSeeder::class);
         $this->call(BannerSeeder::class);
         $this->call(BrandSeeder::class);
