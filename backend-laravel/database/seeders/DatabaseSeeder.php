@@ -45,7 +45,8 @@ class DatabaseSeeder extends Seeder
         // system commission
         $this->call(SystemCommissionSeeder::class);
         $this->call(MenuSeeder::class);
-        $this->call(ProductCategorySeedSeeder::class);
+        // ✅ REMOVED: ProductCategorySeedSeeder - using ProductCategorySeeder instead (line 91)
+        // $this->call(ProductCategorySeedSeeder::class);
 
         $this->call(StoreTypeSeeder::class);
         $this->call(VehicleTypeSeeder::class);
@@ -75,6 +76,7 @@ class DatabaseSeeder extends Seeder
         $this->call(SliderSeeder::class);
         $this->call(BannerSeeder::class);
         $this->call(BrandSeeder::class);
+        $this->call(ProductCategorySeeder::class);  // ✅ MOVED: Must run before ProductSeeder
         $this->call(ProductSeeder::class);
         $this->call(StoreSeeder::class);
         $this->call(CouponSeeder::class);
@@ -88,7 +90,7 @@ class DatabaseSeeder extends Seeder
         $this->call(DynamicFieldSeeder::class);
         $this->call(ProductAuthorSeeder::class);
         $this->call(ProductBrandSeeder::class);
-        $this->call(ProductCategorySeeder::class);
+        // ProductCategorySeeder moved to line 79 (before ProductSeeder)
         $this->call(ReviewSeeder::class);
         $this->call(SettingOptionsSeeder::class);
         $this->call(StoreAreaSettingRangeChargeSeeder::class);
