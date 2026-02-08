@@ -124,7 +124,7 @@ class PageSeeder extends Seeder
     {
         return [
             [
-                'slug' => 'terms-conditions',
+                'slug' => 'kullanim-kosullari',
                 'theme_name' => 'default',
                 'page_type' => 'dynamic_page',
                 'status' => 'publish',
@@ -146,7 +146,7 @@ class PageSeeder extends Seeder
                 ],
             ],
             [
-                'slug' => 'privacy-policy',
+                'slug' => 'gizlilik-politikasi',
                 'theme_name' => 'default',
                 'page_type' => 'dynamic_page',
                 'status' => 'publish',
@@ -168,7 +168,7 @@ class PageSeeder extends Seeder
                 ],
             ],
             [
-                'slug' => 'refund-policies',
+                'slug' => 'iade-degisim',
                 'theme_name' => 'default',
                 'page_type' => 'dynamic_page',
                 'status' => 'publish',
@@ -190,7 +190,7 @@ class PageSeeder extends Seeder
                 ],
             ],
             [
-                'slug' => 'shipping-policy',
+                'slug' => 'kargo-politikasi',
                 'theme_name' => 'default',
                 'page_type' => 'dynamic_page',
                 'status' => 'publish',
@@ -288,7 +288,7 @@ class PageSeeder extends Seeder
         return [
             // ── About Page ──
             [
-                'slug' => 'about',
+                'slug' => 'hakkimizda',
                 'theme_name' => 'theme_two',
                 'page_type' => 'dynamic_page',
                 'status' => 'publish',
@@ -402,7 +402,7 @@ class PageSeeder extends Seeder
 
             // ── Contact Page ──
             [
-                'slug' => 'contact',
+                'slug' => 'iletisim',
                 'theme_name' => 'theme_two',
                 'page_type' => 'dynamic_page',
                 'status' => 'publish',
