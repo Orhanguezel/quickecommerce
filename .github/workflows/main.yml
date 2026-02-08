@@ -82,6 +82,14 @@ jobs:
             sudo -u www-data php artisan route:cache
             sudo -u www-data php artisan view:cache
 
+            echo "=== Fix Storage Symlink ==="
+            # Eski symlink'i sil (yanlış path içerebilir)
+            rm -f public/storage
+            # Yeni symlink oluştur (www-data kullanıcısı ile)
+            sudo -u www-data php artisan storage:link
+            # Doğrulama
+            ls -la public/storage || echo "WARNING: storage symlink failed!"
+
             # Migration
             sudo -u www-data php artisan migrate --force || echo "Migration skipped"
 

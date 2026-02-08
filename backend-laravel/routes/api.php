@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\V1\Com\LiveLocationController;
 use App\Http\Controllers\Api\V1\Com\SubscriberManageController;
 use App\Http\Controllers\Api\V1\ContactManageController;
 use App\Http\Controllers\Api\V1\Customer\CustomerOrderController;
+use Modules\Blog\app\Http\Controllers\Api\FrontendBlogController;
 use App\Http\Controllers\Api\V1\Customer\CustomerProductQueryController;
 use App\Http\Controllers\Api\V1\Customer\PlaceOrderController;
 use App\Http\Controllers\Api\V1\DeliveryChargeCalculateController;
@@ -115,10 +116,18 @@ Route::group(['prefix' => 'v1/'], function () {
         // home page footer api route
         Route::get('/theme', [ThemeManageController::class, 'activeThemeData']);
         Route::get('/footer', [HeaderFooterController::class, 'siteFooterInfo']);
+        Route::get('/footer-settings', [HeaderFooterController::class, 'siteFooterInfo']); // Alias for /footer
         Route::get('/site-general-info', [ComSiteGeneralController::class, 'siteGeneralInfo']);
+        Route::get('/general-settings', [ComSiteGeneralController::class, 'siteGeneralInfo']); // Alias for /site-general-info
+        Route::get('/currency-list', [ComSiteGeneralController::class, 'currencyList']);
         Route::get('/maintenance-page-settings', [ComSiteGeneralController::class, 'siteMaintenancePage']);
         Route::get('/google-map-settings', [ComSiteGeneralController::class, 'googleMapSettings']);
         Route::get('/gdpr-cookie-settings', [ComSiteGeneralController::class, 'gdprCookieSettings']);
+
+        // blog routes
+        Route::get('/blogs', [FrontendBlogController::class, 'blogs']);
+        Route::get('/blog/{slug}', [FrontendBlogController::class, 'blogDetails']);
+        Route::get('/blog-page-settings', [FrontendBlogController::class, 'BlogPageSettings']);
 
         // pages settings routes
         Route::get('/register-page-settings', [FrontendPageSettingsController::class, 'RegisterPageSettings']);
