@@ -60,6 +60,7 @@ class DatabaseSeeder extends Seeder
         $this->call(ThemeSeeder::class);
         $this->call(SeoSettingsSeeder::class);
         $this->call(GdprCookieSettingsSeeder::class);
+        $this->call(FooterSettingsSeeder::class);
 
         // ── CONTENT SEEDERS (⚠️ UNSAFE - DELETE existing data!) ────
         // CRITICAL: These seeders use delete()/truncate()!
