@@ -90,6 +90,8 @@ class ProductCategorySeedSeeder extends Seeder
             [
                 'category_name',
                 'is_featured',
+                'category_thumb',
+                'category_banner',
                 'meta_title',
                 'meta_description',
                 'status',
