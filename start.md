@@ -5,11 +5,13 @@
 
 cd /home/orhan/Documents/quickecommerce/backend-laravel
 php artisan serve
+
+
 ### Terminal 2 - Admin Panel (port 3000):
-
-
 cd /home/orhan/Documents/quickecommerce/admin-panel
 npm run dev
+
+
 ### Terminal 3 - Customer Web (port 3003):
 
 

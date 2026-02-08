@@ -26,7 +26,7 @@ import {
   ChevronRight,
   Store,
 } from 'lucide-react';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import type { Category, MenuItem } from '@/modules/site/site.type';
 
@@ -46,7 +46,13 @@ export function HeaderVariant1() {
   const [catOpen, setCatOpen] = useState(false);
   const [hoveredCatId, setHoveredCatId] = useState<number | null>(null);
   const [logoError, setLogoError] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const catDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Prevent hydration mismatch for cart count (client-only)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,8 +61,8 @@ export function HeaderVariant1() {
     }
   };
 
-  // Use cart count directly without mounting state
-  const cartCount = totalItems();
+  // Cart count - only show after client-side mount to prevent hydration mismatch
+  const cartCount = mounted ? totalItems() : 0;
 
   const topCategories = (categories as Category[]).filter(
     (c) => !c.parent_id
