@@ -20,10 +20,17 @@ import {
   LogOut,
 } from 'lucide-react';
 import { useToken } from '@/lib/use-token';
+import type { MenuItem } from '@/modules/site/site.type';
 
 interface MobileNavProps {
   open: boolean;
   onClose: () => void;
+}
+
+interface DefaultLink {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
 }
 
 export function MobileNav({ open, onClose }: MobileNavProps) {
@@ -41,7 +48,7 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
 
   if (!open) return null;
 
-  const defaultLinks = [
+  const defaultLinks: DefaultLink[] = [
     { href: ROUTES.HOME, label: t('common.home'), icon: Home },
     { href: ROUTES.STORES, label: t('nav.stores'), icon: Store },
     { href: ROUTES.BLOG, label: t('nav.blog'), icon: BookOpen },
@@ -50,7 +57,7 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
     { href: ROUTES.CONTACT, label: t('nav.contact'), icon: Phone },
   ];
 
-  const customerLinks = [
+  const customerLinks: DefaultLink[] = [
     { href: ROUTES.ORDERS, label: t('order.my_orders'), icon: ShoppingBag },
     { href: ROUTES.WISHLIST, label: t('common.wishlist'), icon: Heart },
     { href: ROUTES.PROFILE, label: t('common.account'), icon: User },
@@ -77,8 +84,8 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
             <ul className="space-y-1">
               {menus.length > 0
                 ? menus
-                    .filter((m: any) => m.is_visible && m.parent_id === null)
-                    .map((menu: any) => (
+                    .filter((m: MenuItem) => m.is_visible && m.parent_id === null)
+                    .map((menu: MenuItem) => (
                       <li key={menu.id}>
                         <Link
                           href={menu.url || '/'}

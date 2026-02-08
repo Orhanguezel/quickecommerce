@@ -24,7 +24,7 @@ class SubscribeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => 'required|email|unique:subscribers,email',
+            'email' => 'required|email',
         ];
     }
 
@@ -33,12 +33,15 @@ class SubscribeRequest extends FormRequest
         return [
             'email.required' => __('validation.required', ['attribute' => 'email']),
             'email.email' => __('validation.email', ['attribute' => 'email']),
-            'email.unique' => __('validation.unique', ['attribute' => 'email']),
         ];
     }
 
     public function failedValidation(Validator $validator)
     {
-        throw new HttpResponseException(response()->json($validator->errors(), 422));
+        throw new HttpResponseException(response()->json([
+            'success' => false,
+            'message' => $validator->errors()->first(),
+            'errors' => $validator->errors(),
+        ], 422));
     }
 }

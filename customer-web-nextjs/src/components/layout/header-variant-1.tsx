@@ -2,10 +2,9 @@
 
 import { Link } from '@/i18n/routing';
 import { ROUTES } from '@/config/routes';
-import { useSiteInfoQuery, useMenuQuery, useFooterQuery, useCategoryQuery } from '@/modules/site/site.action';
+import { useSiteInfoQuery, useMenuQuery, useCategoryQuery } from '@/modules/site/site.action';
 import { useCartStore } from '@/stores/cart-store';
 import { useAuthStore } from '@/stores/auth-store';
-import { useThemeConfig } from '@/modules/theme/use-theme-config';
 import { useTranslations } from 'next-intl';
 import { useLocale } from 'next-intl';
 import { Input } from '@/components/ui/input';
@@ -27,7 +26,7 @@ import {
   ChevronRight,
   Store,
 } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import Image from 'next/image';
 import type { Category, MenuItem } from '@/modules/site/site.type';
 
@@ -36,24 +35,16 @@ export function HeaderVariant1() {
   const locale = useLocale();
   const { siteInfo } = useSiteInfoQuery();
   const { menus } = useMenuQuery();
-  const { footerData } = useFooterQuery();
   const { categories } = useCategoryQuery();
-  const { headerConfig } = useThemeConfig();
   const totalItems = useCartStore((s) => s.totalItems);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const [mounted, setMounted] = useState(false);
 
   // Theme colors already applied via ThemeProvider (CSS variables)
-  // headerConfig.headerNumber can be used for different header variants (Phase 2)
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [catOpen, setCatOpen] = useState(false);
   const [hoveredCatId, setHoveredCatId] = useState<number | null>(null);
   const catDropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,6 +53,7 @@ export function HeaderVariant1() {
     }
   };
 
+  // Use cart count directly without mounting state
   const cartCount = totalItems();
 
   const topCategories = (categories as Category[]).filter(
@@ -184,7 +176,7 @@ export function HeaderVariant1() {
               className="relative flex items-center justify-center rounded-full p-2 text-muted-foreground transition-colors hover:text-foreground"
             >
               <ShoppingCart className="h-5 w-5" />
-              {mounted && cartCount > 0 && (
+              {cartCount > 0 && (
                 <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
                   {cartCount}
                 </span>

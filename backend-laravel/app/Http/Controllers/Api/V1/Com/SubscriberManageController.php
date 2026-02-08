@@ -17,11 +17,21 @@ class SubscriberManageController extends Controller
     }
     public function subscribe(SubscribeRequest $request)
     {
+        $existing = \App\Models\Subscriber::where('email', $request->email)->first();
+
+        if ($existing && $existing->is_subscribed) {
+            return response()->json([
+                'success' => true,
+                'message' => __('You are already subscribed!'),
+                'subscriber' => $existing,
+            ]);
+        }
+
         $subscriber = $this->subscriberRepo->subscribe($request->validated());
 
         return response()->json([
             'success' => true,
-            'message' => 'You have successfully subscribed!',
+            'message' => __('You have successfully subscribed!'),
             'subscriber' => $subscriber,
         ]);
     }

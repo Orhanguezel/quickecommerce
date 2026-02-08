@@ -8,6 +8,6 @@ export interface NewsletterSubscribeResponse {
   subscriber: {
     id: number;
     email: string;
-    status: number;
+    is_subscribed: boolean;
   };
 }
