@@ -77,6 +77,9 @@ php artisan serve --host=127.0.0.1 --port=8000
 
 API şu adreste çalışacak: `http://127.0.0.1:8000/api`
 
+
+
+
 ---
 
 ## Sık Kullanılan Komutlar
