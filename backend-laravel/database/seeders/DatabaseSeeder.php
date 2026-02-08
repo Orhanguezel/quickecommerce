@@ -38,5 +38,17 @@ class DatabaseSeeder extends Seeder
         $this->call(SeoSettingsSeeder::class);
         // gdpr cookie settings
         $this->call(GdprCookieSettingsSeeder::class);
+
+        // ── CONTENT SEEDERS (Homepage Data) ──────────────────────
+        // CRITICAL: Without these, homepage will be empty in production!
+        $this->call(SliderSeeder::class);
+        $this->call(BannerSeeder::class);
+        $this->call(BrandSeeder::class);
+        $this->call(ProductSeeder::class);
+        $this->call(StoreSeeder::class);
+        $this->call(FlashSaleSeeder::class);
+        $this->call(FlashSaleProductSeeder::class);
+        $this->call(BlogCategorySeeder::class);
+        $this->call(BlogSeeder::class);
     }
 }
