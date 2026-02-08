@@ -12,126 +12,91 @@ class ProductCategorySeedSeeder extends Seeder
     {
         $now = Carbon::now();
 
-        $rows = [
-            // Mevcut satırlar...
-            [
-                'id' => 1,
-                'category_name' => 'Daily Needs',
-                'category_slug' => 'daily needs',
-                'type' => 'grocery',
-                'category_name_paths' => null,
-                'parent_path' => null,
-                'parent_id' => null,
-                'category_level' => 1,
-                'is_featured' => 1,
-                'admin_commission_rate' => 0,
-                'category_thumb' => '1296',
-                'category_banner' => '#EAF5E5',
-                'meta_title' => 'Daily needs',
-                'meta_description' => 'Daily needs',
-                'display_order' => 1,
-                'created_by' => null,
-                'updated_by' => null,
-                'status' => 1,
-                'created_at' => '2025-03-10 01:43:04',
-                'updated_at' => '2025-06-16 09:06:00',
-            ],
-            [
-                'id' => 2,
-                'category_name' => 'Fruits',
-                'category_slug' => 'fruits',
-                'type' => 'grocery',
-                'category_name_paths' => 'Daily Needs',
-                'parent_path' => '1',
-                'parent_id' => 1,
-                'category_level' => 2,
-                'is_featured' => 1,
-                'admin_commission_rate' => 0,
-                'category_thumb' => '1296',
-                'category_banner' => '#fff',
-                'meta_title' => 'Fruits',
-                'meta_description' => 'Fruits',
-                'display_order' => 58,
-                'created_by' => null,
-                'updated_by' => null,
-                'status' => 1,
-                'created_at' => '2025-03-10 01:43:04',
-                'updated_at' => '2025-06-17 10:46:41',
-            ],
+        // Spor & Fitness kategorileri (ProductSeeder ile uyumlu)
+        $categories = [
+            // Ana Kategori: Supplement & Nutrition
+            ['name' => 'Proteinler', 'slug' => 'proteinler', 'type' => 'supplement', 'parent' => null, 'featured' => 1],
+            ['name' => 'BCAA & Aminoasitler', 'slug' => 'bcaa-aminoasitler', 'type' => 'supplement', 'parent' => null, 'featured' => 1],
+            ['name' => 'Kreatin', 'slug' => 'kreatin', 'type' => 'supplement', 'parent' => null, 'featured' => 0],
+            ['name' => 'Pre-Workout', 'slug' => 'pre-workout', 'type' => 'supplement', 'parent' => null, 'featured' => 1],
+            ['name' => 'Vitamin & Mineraller', 'slug' => 'vitamin-mineraller', 'type' => 'supplement', 'parent' => null, 'featured' => 0],
 
-            // ✅ YENİ BENZERSİZ KATEGORİ (örnek)
-            // - id: null => id’ye dokunmuyoruz (AUTO_INCREMENT varsayımı)
-            // - category_slug: benzersiz seçildi
-            // - type: yeni bir type değil, istersen mevcut bir type içinde de benzersiz olabilir
-            [
-                'id' => null,
-                'category_name' => 'Outdoor & Camping',
-                'category_slug' => 'outdoor-camping',
-                'type' => 'grocery',
+            // Ana Kategori: Fitness Ekipmanları
+            ['name' => 'Ağırlıklar & Dambıllar', 'slug' => 'agirliklar-dambillar', 'type' => 'equipment', 'parent' => null, 'featured' => 1],
+            ['name' => 'Yoga & Pilates', 'slug' => 'yoga-pilates', 'type' => 'equipment', 'parent' => null, 'featured' => 1],
+            ['name' => 'Fitness Aksesuarları', 'slug' => 'fitness-aksesuarlari', 'type' => 'equipment', 'parent' => null, 'featured' => 1],
+
+            // Ana Kategori: Kamp & Outdoor
+            ['name' => 'Çadırlar', 'slug' => 'cadirlar', 'type' => 'outdoor', 'parent' => null, 'featured' => 1],
+            ['name' => 'Uyku Tulumları', 'slug' => 'uyku-tulumlari', 'type' => 'outdoor', 'parent' => null, 'featured' => 0],
+            ['name' => 'Mataralar & Termoslar', 'slug' => 'mataralar-termoslar', 'type' => 'outdoor', 'parent' => null, 'featured' => 0],
+            ['name' => 'Sırt Çantaları', 'slug' => 'sirt-cantalari', 'type' => 'outdoor', 'parent' => null, 'featured' => 1],
+            ['name' => 'Kamp Aksesuarları', 'slug' => 'kamp-aksesuarlari', 'type' => 'outdoor', 'parent' => null, 'featured' => 0],
+
+            // Ana Kategori: Takım Sporları
+            ['name' => 'Futbol', 'slug' => 'futbol', 'type' => 'sports', 'parent' => null, 'featured' => 1],
+            ['name' => 'Basketbol', 'slug' => 'basketbol', 'type' => 'sports', 'parent' => null, 'featured' => 1],
+            ['name' => 'Tenis', 'slug' => 'tenis', 'type' => 'sports', 'parent' => null, 'featured' => 0],
+            ['name' => 'Yüzücü Gözlüğü', 'slug' => 'yuzucu-gozlugu', 'type' => 'sports', 'parent' => null, 'featured' => 0],
+            ['name' => 'Boks', 'slug' => 'boks', 'type' => 'sports', 'parent' => null, 'featured' => 1],
+
+            // Ana Kategori: Giyim & Ayakkabı
+            ['name' => 'Spor Ayakkabı', 'slug' => 'spor-ayakkabi', 'type' => 'apparel', 'parent' => null, 'featured' => 1],
+            ['name' => 'Erkek Giyim', 'slug' => 'erkek-giyim', 'type' => 'apparel', 'parent' => null, 'featured' => 1],
+            ['name' => 'Kadın Giyim', 'slug' => 'kadin-giyim', 'type' => 'apparel', 'parent' => null, 'featured' => 1],
+
+            // Ana Kategori: Teknoloji & Aksesuar
+            ['name' => 'Akıllı Saatler', 'slug' => 'akilli-saatler', 'type' => 'tech', 'parent' => null, 'featured' => 1],
+            ['name' => 'Aksiyon Kameraları', 'slug' => 'aksiyon-kameralari', 'type' => 'tech', 'parent' => null, 'featured' => 0],
+            ['name' => 'Spor Kulaklıkları', 'slug' => 'spor-kulakliklari', 'type' => 'tech', 'parent' => null, 'featured' => 0],
+            ['name' => 'Spor Çantaları', 'slug' => 'spor-cantalari', 'type' => 'apparel', 'parent' => null, 'featured' => 0],
+            ['name' => 'Gözlükler', 'slug' => 'gozlukler', 'type' => 'apparel', 'parent' => null, 'featured' => 0],
+
+            // Ana Kategori: Kitaplar
+            ['name' => 'Spor & Fitness Kitapları', 'slug' => 'spor-fitness-kitaplari', 'type' => 'books', 'parent' => null, 'featured' => 0],
+            ['name' => 'Outdoor & Macera Kitapları', 'slug' => 'outdoor-macera-kitaplari', 'type' => 'books', 'parent' => null, 'featured' => 0],
+            ['name' => 'Dağcılık & Tırmanış Kitapları', 'slug' => 'dagcilik-tirmanis-kitaplari', 'type' => 'books', 'parent' => null, 'featured' => 0],
+        ];
+
+        $rows = [];
+        foreach ($categories as $cat) {
+            $rows[] = [
+                'category_name' => $cat['name'],
+                'category_slug' => $cat['slug'],
+                'type' => $cat['type'],
                 'category_name_paths' => null,
                 'parent_path' => null,
                 'parent_id' => null,
                 'category_level' => 1,
-                'is_featured' => 0,
+                'is_featured' => $cat['featured'],
                 'admin_commission_rate' => 0,
                 'category_thumb' => null,
                 'category_banner' => '#fff',
-                'meta_title' => 'Outdoor & Camping',
-                'meta_description' => 'Outdoor & Camping products',
-                'display_order' => 999,
+                'meta_title' => $cat['name'],
+                'meta_description' => $cat['name'],
+                'display_order' => 100,
                 'created_by' => null,
                 'updated_by' => null,
                 'status' => 1,
                 'created_at' => $now,
                 'updated_at' => $now,
-            ],
-        ];
+            ];
+        }
 
-        DB::transaction(function () use ($rows) {
-            // 1) Mevcut seed satırların (id) ile upsert’i varsa kalsın
-            //    (istersen mevcutları update etmek istemiyorsan bunun yerine insertOrIgnore’a döneriz)
-            $existingRows = array_values(array_filter($rows, fn ($r) => !empty($r['id'])));
+        // Upsert: varsa update, yoksa insert
+        DB::table('product_category')->upsert(
+            $rows,
+            ['category_slug', 'type'], // Unique key
+            [
+                'category_name',
+                'is_featured',
+                'meta_title',
+                'meta_description',
+                'status',
+                'updated_at',
+            ]
+        );
 
-            if (!empty($existingRows)) {
-                DB::table('product_category')->upsert(
-                    $existingRows,
-                    ['id'],
-                    [
-                        'category_name',
-                        'category_slug',
-                        'type',
-                        'category_name_paths',
-                        'parent_path',
-                        'parent_id',
-                        'category_level',
-                        'is_featured',
-                        'admin_commission_rate',
-                        'category_thumb',
-                        'category_banner',
-                        'meta_title',
-                        'meta_description',
-                        'display_order',
-                        'created_by',
-                        'updated_by',
-                        'status',
-                        'created_at',
-                        'updated_at',
-                    ]
-                );
-            }
-
-            // 2) ✅ SADECE YENİ EKLE (varsa dokunma)
-            $newOnlyRows = array_values(array_filter($rows, fn ($r) => empty($r['id'])));
-
-            // upsert unique key: (type, category_slug)
-            // updateColumns: [] => varsa update ETME
-            if (!empty($newOnlyRows)) {
-                DB::table('product_category')->upsert(
-                    $newOnlyRows,
-                    ['type', 'category_slug'],
-                    []
-                );
-            }
-        });
+        echo "ProductCategorySeedSeeder: " . count($rows) . " categories seeded.\n";
     }
 }
