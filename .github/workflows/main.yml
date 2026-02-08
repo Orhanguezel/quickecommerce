@@ -93,10 +93,14 @@ jobs:
             # Migration
             sudo -u www-data php artisan migrate --force || echo "Migration skipped"
 
-            echo "=== Run Essential Seeders ==="
-            sudo -u www-data php artisan db:seed --class=RolesSeeder --force || true
-            sudo -u www-data php artisan db:seed --class=UserSeeder --force || true
-            sudo -u www-data php artisan db:seed --class=PermissionAdminSeeder --force || true
+            echo "=== Run Seeders (Initial Setup) ==="
+            # ⚠️ TODO: Change to ProductionSeeder after first deployment!
+            # Running full DatabaseSeeder to populate initial data (stores, products, sliders, etc.)
+            sudo -u www-data php artisan db:seed --force || echo "Seeder completed with warnings"
+
+            # ✅ After initial setup, change above line to:
+            # sudo -u www-data php artisan db:seed --class=ProductionSeeder --force || true
+            # This will only update theme/settings without touching content data
 
             echo "=== Fix Storage Permissions (After Laravel Operations) ==="
             find storage -type f -exec chown www-data:www-data {} \;

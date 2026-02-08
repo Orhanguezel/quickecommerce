@@ -4,43 +4,66 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 
+/**
+ * DatabaseSeeder
+ *
+ * ⚠️ WARNING: This seeder includes UNSAFE seeders that DELETE data!
+ *
+ * Use this ONLY for:
+ * 1. Local development (fresh database)
+ * 2. Initial production setup (first time only)
+ *
+ * For production updates, use instead:
+ * - ProductionSeeder (safe, idempotent)
+ * - InitialSetupSeeder (dangerous, only once)
+ *
+ * @see ProductionSeeder For safe production deployments
+ * @see InitialSetupSeeder For initial setup with data deletion
+ */
 class DatabaseSeeder extends Seeder
 {
     /**
      * Seed the application's database.
+     *
+     * ⚠️ WARNING: Contains UNSAFE seeders that delete existing data!
      */
     public function run(): void
     {
+        $this->command->warn('⚠️  WARNING: This seeder will DELETE existing data!');
+        $this->command->warn('⚠️  Use ProductionSeeder for production deployments instead.');
+
+        // ── SYSTEM SEEDERS (Required) ──────────────────────────────
         $this->call(UserSeeder::class);
+
         // role & permission
         $this->call(RolesSeeder::class);
         $this->call(ModelHasRolesSeeder::class);
         $this->call(PermissionAdminSeeder::class);
         $this->call(PermissionStoreSeeder::class);
         $this->call(PermissionDeliverymanSeeder::class);
+
         // system commission
         $this->call(SystemCommissionSeeder::class);
         $this->call(MenuSeeder::class);
         $this->call(ProductCategorySeedSeeder::class);
-        
+
         $this->call(StoreTypeSeeder::class);
         $this->call(VehicleTypeSeeder::class);
         $this->call(StoreAreaSeeder::class);
+
         // currencies
         $this->call(CurrencySeeder::class);
-        // pages
+
+        // ── SAFE SEEDERS (updateOrCreate - Idempotent) ─────────────
         $this->call(PageSeeder::class);
-        // general settings
         $this->call(GeneralSettingsSeeder::class);
-        // theme settings
         $this->call(ThemeSeeder::class);
-        // seo settings
         $this->call(SeoSettingsSeeder::class);
-        // gdpr cookie settings
         $this->call(GdprCookieSettingsSeeder::class);
 
-        // ── CONTENT SEEDERS (Homepage Data) ──────────────────────
-        // CRITICAL: Without these, homepage will be empty in production!
+        // ── CONTENT SEEDERS (⚠️ UNSAFE - DELETE existing data!) ────
+        // CRITICAL: These seeders use delete()/truncate()!
+        // Only run on initial setup or local development!
         $this->call(SliderSeeder::class);
         $this->call(BannerSeeder::class);
         $this->call(BrandSeeder::class);
@@ -52,3 +75,4 @@ class DatabaseSeeder extends Seeder
         $this->call(BlogSeeder::class);
     }
 }
+
