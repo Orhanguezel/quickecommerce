@@ -5,13 +5,12 @@ import { ROUTES } from '@/config/routes';
 import { useSiteInfoQuery, useMenuQuery, useCategoryQuery } from '@/modules/site/site.action';
 import { useCartStore } from '@/stores/cart-store';
 import { useAuthStore } from '@/stores/auth-store';
+import { useLocationStore } from '@/stores/location-store';
 import { useTranslations } from 'next-intl';
-import { useLocale } from 'next-intl';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { useTheme } from 'next-themes';
 import { MobileNav } from './mobile-nav';
 import { LanguageSwitcher } from './language-switcher';
-import { CurrencySwitcher } from './currency-switcher';
+import { CurrencySwitcher } from '@/components/common/currency-switcher';
 import {
   Search,
   ShoppingCart,
@@ -20,36 +19,40 @@ import {
   Menu,
   Mail,
   Phone,
-  Bell,
+  Moon,
+  Sun,
   Grid3X3,
   ChevronDown,
   ChevronRight,
   Store,
+  MapPin,
 } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import type { Category, MenuItem } from '@/modules/site/site.type';
 
 export function HeaderVariant1() {
   const t = useTranslations();
-  const locale = useLocale();
   const router = useRouter();
+  const { theme, setTheme } = useTheme();
   const { siteInfo } = useSiteInfoQuery();
   const { menus } = useMenuQuery();
   const { categories } = useCategoryQuery();
-  const totalItems = useCartStore((s) => s.totalItems);
+  const cartCountLive = useCartStore((s) =>
+    s.items.reduce((sum, item) => sum + item.quantity, 0)
+  );
+  const openCartDrawer = useCartStore((s) => s.openDrawer);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const { selectedArea, openSelector } = useLocationStore();
 
-  // Theme colors already applied via ThemeProvider (CSS variables)
+  const [mounted, setMounted] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [catOpen, setCatOpen] = useState(false);
   const [hoveredCatId, setHoveredCatId] = useState<number | null>(null);
   const [logoError, setLogoError] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const catDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Prevent hydration mismatch for cart count (client-only)
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -61,241 +64,268 @@ export function HeaderVariant1() {
     }
   };
 
-  // Cart count - only show after client-side mount to prevent hydration mismatch
-  const cartCount = mounted ? totalItems() : 0;
+  const cartCount = cartCountLive;
 
-  const topCategories = (categories as Category[]).filter(
-    (c) => !c.parent_id
-  );
-
-  const hoveredCategory = topCategories.find((c) => c.id === hoveredCatId);
-  const hoveredChildren = hoveredCategory?.children ?? [];
+  // Build category tree from flat API data
+  const allCats = categories as Category[];
+  const topCategories = allCats.filter((c) => !c.parent_id);
+  const getChildren = (parentId: number) =>
+    allCats.filter((c) => c.parent_id === parentId);
+  const hoveredChildren = hoveredCatId ? getChildren(hoveredCatId) : [];
 
   return (
-    <header className="sticky top-0 z-50 w-full shadow-sm">
-      {/* Top Bar - Contact & Actions */}
-      <div className="hidden bg-primary text-primary-foreground lg:block">
-        <div className="container flex h-9 items-center justify-between text-xs">
-          <div className="flex items-center gap-4">
+    <>
+      {/* ══════════ Sticky: ROW 1 + ROW 2 ══════════ */}
+      <div className="sticky top-0 z-50 w-full shadow-sm">
+      {/* ══════════ ROW 1 — Top Bar (Dynamic from theme) ══════════ */}
+      <div className="hidden lg:block" style={{ backgroundColor: 'hsl(var(--header-topbar-bg))', color: 'hsl(var(--header-topbar-text))' }}>
+        <div className="container flex h-11 items-center justify-between text-sm font-medium">
+          {/* Left — Email | Hotline */}
+          <div className="flex items-center gap-3">
             {siteInfo?.com_site_email && (
               <a
                 href={`mailto:${siteInfo.com_site_email}`}
-                className="flex items-center gap-1.5 transition-opacity hover:opacity-80"
+                className="flex items-center gap-2 transition-opacity hover:opacity-80"
               >
-                <Mail className="h-3.5 w-3.5" />
-                <span>Email : {siteInfo.com_site_email}</span>
+                <Mail className="h-4 w-4" />
+                <span>{t("email_label")} : {siteInfo.com_site_email}</span>
               </a>
+            )}
+            {siteInfo?.com_site_email && siteInfo?.com_site_contact_number && (
+              <span className="mx-1.5 opacity-60">|</span>
             )}
             {siteInfo?.com_site_contact_number && (
               <a
                 href={`tel:${siteInfo.com_site_contact_number}`}
-                className="flex items-center gap-1.5 transition-opacity hover:opacity-80"
+                className="flex items-center gap-2 transition-opacity hover:opacity-80"
               >
-                <Phone className="h-3.5 w-3.5" />
-                <span>Hotline : {siteInfo.com_site_contact_number}</span>
+                <Phone className="h-4 w-4" />
+                <span>{t("hotline_label")} : {siteInfo.com_site_contact_number}</span>
               </a>
             )}
           </div>
 
+          {/* Right — Theme Toggle + Language + Currency */}
           <div className="flex items-center gap-4">
-            <Link
-              href={ROUTES.SELLER_REGISTER}
-              className="transition-opacity hover:opacity-80"
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-transparent transition-all hover:border-white/40"
+              aria-label={t("toggle_theme")}
             >
-              {t('common.become_seller')}
-            </Link>
+              {mounted ? (
+                theme === 'dark' ? (
+                  <Sun className="h-4 w-4" />
+                ) : (
+                  <Moon className="h-4 w-4" />
+                )
+              ) : (
+                <Moon className="h-4 w-4" />
+              )}
+            </button>
             <LanguageSwitcher />
             <CurrencySwitcher />
           </div>
         </div>
       </div>
 
-      {/* Main Bar - Logo, Search, Actions */}
-      <div className="border-b bg-background">
-        <div className="container flex h-16 items-center justify-between gap-4">
-          {/* Mobile Menu Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
+      {/* ══════════ ROW 2 — Main Bar (Dynamic from theme) ══════════ */}
+      <div className="border-b shadow-sm" style={{ backgroundColor: 'hsl(var(--header-main-bg))' }}>
+        <div className="container flex h-[100px] items-center gap-6">
+          {/* Mobile hamburger */}
+          <button
+            className="flex items-center justify-center rounded-lg p-2 text-foreground lg:hidden"
             onClick={() => setMobileOpen(true)}
           >
-            <Menu className="h-5 w-5" />
-          </Button>
+            <Menu className="h-6 w-6" />
+          </button>
 
           {/* Logo */}
-          <Link href={ROUTES.HOME} className="flex shrink-0 items-center gap-2">
+          <Link href={ROUTES.HOME} className="flex shrink-0 items-center">
             {siteInfo?.com_site_logo && !logoError ? (
-              <Image
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
                 src={siteInfo.com_site_logo}
                 alt={siteInfo?.com_site_title || 'Logo'}
-                width={140}
-                height={40}
-                className="h-10 w-auto object-contain"
-                priority
+                className="h-16 w-auto object-contain"
                 onError={() => setLogoError(true)}
               />
             ) : (
-              <span className="text-xl font-bold">{siteInfo?.com_site_title || 'Sporto Online'}</span>
+              <span className="text-[28px] font-bold text-primary">
+                {siteInfo?.com_site_title || 'Sportoonline'}
+              </span>
             )}
           </Link>
 
-          {/* Search Bar - Desktop */}
-          <form
-            onSubmit={handleSearch}
-            className="hidden flex-1 items-center lg:flex lg:max-w-2xl"
+          {/* Location Selector Pill */}
+          <button
+            onClick={openSelector}
+            className="hidden items-center gap-2.5 rounded-full border border-border bg-background/50 px-6 py-3 text-[15px] transition-colors hover:border-primary/40 lg:flex"
           >
-            <div className="relative flex w-full">
-              <Input
+            <MapPin className="h-5 w-5 text-primary" />
+            <span className={selectedArea ? "font-medium text-foreground" : "text-foreground"}>
+              {selectedArea ? selectedArea.label : t('common.select_location')}
+            </span>
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          </button>
+
+          {/* Search Bar — wide */}
+          <form onSubmit={handleSearch} className="hidden flex-1 lg:flex">
+            <div className="flex w-full overflow-hidden rounded-lg border border-border bg-background/50 transition-colors focus-within:border-primary">
+              <input
                 type="search"
-                placeholder={t('common.search') + '...'}
+                placeholder={t('common.search_placeholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-11 rounded-r-none border-r-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="h-12 flex-1 border-none bg-transparent px-5 text-sm text-foreground outline-none placeholder:text-muted-foreground"
               />
-              <Button
+              <button
                 type="submit"
-                className="shrink-0 gap-2 rounded-l-none bg-primary px-5 text-primary-foreground hover:bg-primary/90"
+                className="flex shrink-0 items-center gap-2 bg-primary px-6 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
               >
+                {t('common.search')}
                 <Search className="h-4 w-4" />
-                <span className="text-sm font-medium">{t('common.search')}</span>
-              </Button>
+              </button>
             </div>
           </form>
 
-          {/* Right Actions */}
-          <div className="flex items-center gap-2">
+          {/* Right Action Icons */}
+          <div className="flex items-center gap-3">
+            {/* Language switcher (mobile only) */}
             <div className="lg:hidden">
               <LanguageSwitcher />
             </div>
 
-            <button className="hidden items-center justify-center rounded-full p-2 text-muted-foreground transition-colors hover:text-foreground lg:flex">
-              <Bell className="h-5 w-5" />
-            </button>
-
+            {/* Wishlist */}
             <Link
               href={ROUTES.WISHLIST}
-              className="hidden items-center justify-center rounded-full p-2 text-muted-foreground transition-colors hover:text-foreground sm:flex"
+              className="hidden h-11 w-11 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground sm:flex"
             >
-              <Heart className="h-5 w-5" />
+              <Heart className="h-5 w-5" strokeWidth={1.5} />
             </Link>
 
-            <Link
-              href={ROUTES.CART}
-              className="relative flex items-center justify-center rounded-full p-2 text-muted-foreground transition-colors hover:text-foreground"
+            {/* Cart — always show badge */}
+            <button
+              onClick={openCartDrawer}
+              className="relative flex h-11 w-11 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground"
             >
-              <ShoppingCart className="h-5 w-5" />
-              {cartCount > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
-                  {cartCount}
-                </span>
-              )}
-            </Link>
+              <ShoppingCart className="h-5 w-5" strokeWidth={1.5} />
+              <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                {cartCount}
+              </span>
+            </button>
 
+            {/* User / Profile */}
             <Link
               href={isAuthenticated ? ROUTES.PROFILE : ROUTES.LOGIN}
-              className="flex items-center justify-center rounded-full p-2 text-muted-foreground transition-colors hover:text-foreground"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground"
             >
-              <User className="h-5 w-5" />
+              <User className="h-5 w-5" strokeWidth={1.5} />
             </Link>
           </div>
         </div>
       </div>
+      </div>{/* end sticky wrapper */}
 
-      {/* Navigation Bar - Desktop (White bg + All Categories dropdown + menu links) */}
-      <nav className="hidden border-b bg-background lg:block">
-        <div className="container flex h-12 items-center gap-6">
-          {/* All Categories Mega Dropdown */}
+      {/* ══════════ ROW 3 — Navigation Bar (Dynamic from theme) ══════════ */}
+      <nav className="hidden border-b lg:block" style={{ backgroundColor: 'hsl(var(--header-nav-bg))' }}>
+        <div className="container flex h-[72px] items-center gap-8">
+          {/* All Categories — button */}
           <div className="relative" ref={catDropdownRef}>
             <button
               onClick={() => { setCatOpen(!catOpen); setHoveredCatId(null); }}
-              className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              className="flex items-center gap-3 rounded-lg px-7 py-4 text-base font-semibold transition-colors"
+              style={{ backgroundColor: 'hsl(var(--header-nav-button-bg))', color: 'hsl(var(--header-nav-button-text))' }}
             >
-              <Grid3X3 className="h-4 w-4" />
+              <Grid3X3 className="h-[18px] w-[18px]" />
               <span>{t('nav.all_categories')}</span>
               <ChevronDown className={`h-4 w-4 transition-transform ${catOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {catOpen && (
               <>
-                <div className="fixed inset-0 z-40" onClick={() => setCatOpen(false)} />
-                <div className="absolute left-0 top-full z-50 mt-1 flex rounded-lg border bg-background shadow-lg">
-                  {/* Left Panel - Parent Categories */}
-                  <div className="w-64 border-r py-2">
+                <div className="fixed inset-0 z-30" onClick={() => setCatOpen(false)} />
+                <div className="absolute left-0 top-full z-40 mt-2 rounded-xl border bg-background shadow-xl">
+                  <div className="relative w-[340px] py-2">
                     {topCategories.length > 0 ? (
                       topCategories.slice(0, 14).map((cat) => {
-                        const hasChildren = cat.children && cat.children.length > 0;
+                        const hasChildren = getChildren(cat.id).length > 0;
                         const isHovered = hoveredCatId === cat.id;
                         return (
-                          <Link
+                          <div
                             key={cat.id}
-                            href={ROUTES.CATEGORY(cat.category_slug)}
-                            onClick={() => setCatOpen(false)}
+                            className="relative"
                             onMouseEnter={() => setHoveredCatId(cat.id)}
-                            className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
-                              isHovered ? 'bg-muted text-primary' : 'text-foreground hover:bg-muted'
-                            }`}
                           >
-                            {cat.category_thumb_url ? (
-                              <Image
-                                src={cat.category_thumb_url}
-                                alt={cat.category_name}
-                                width={24}
-                                height={24}
-                                className="h-6 w-6 shrink-0 rounded object-cover"
-                              />
-                            ) : (
-                              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-muted text-muted-foreground">
-                                <Grid3X3 className="h-3.5 w-3.5" />
+                            <Link
+                              href={ROUTES.CATEGORY(cat.category_slug)}
+                              onClick={() => setCatOpen(false)}
+                              className={`flex items-center gap-4 px-6 py-4 text-base transition-colors ${
+                                isHovered ? 'bg-primary/5 text-primary' : 'text-foreground hover:bg-muted'
+                              }`}
+                            >
+                              {cat.category_thumb_url ? (
+                                <Image
+                                  src={cat.category_thumb_url}
+                                  alt={cat.category_name}
+                                  width={32}
+                                  height={32}
+                                  className="h-8 w-8 shrink-0 rounded-lg object-cover"
+                                />
+                              ) : (
+                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                                  <Grid3X3 className="h-4 w-4" />
+                                </div>
+                              )}
+                              <span className="flex-1 font-medium">{cat.category_name}</span>
+                              {hasChildren && (
+                                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                              )}
+                            </Link>
+
+                            {/* Subcategory flyout — aligned to hovered row */}
+                            {isHovered && hoveredChildren.length > 0 && (
+                              <div className="absolute left-full top-0 min-w-[280px] rounded-r-xl border border-l-0 bg-background py-2 shadow-xl">
+                                {hoveredChildren.map((child) => (
+                                  <Link
+                                    key={child.id}
+                                    href={ROUTES.CATEGORY(child.category_slug)}
+                                    onClick={() => setCatOpen(false)}
+                                    className="flex items-center gap-4 px-6 py-4 text-base text-foreground transition-colors hover:bg-primary/5 hover:text-primary"
+                                  >
+                                    {child.category_thumb_url ? (
+                                      <Image
+                                        src={child.category_thumb_url}
+                                        alt={child.category_name}
+                                        width={28}
+                                        height={28}
+                                        className="h-7 w-7 shrink-0 rounded-lg object-cover"
+                                      />
+                                    ) : (
+                                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                                        <Grid3X3 className="h-3.5 w-3.5" />
+                                      </div>
+                                    )}
+                                    <span>{child.category_name}</span>
+                                  </Link>
+                                ))}
                               </div>
                             )}
-                            <span className="flex-1">{cat.category_name}</span>
-                            {hasChildren && (
-                              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                            )}
-                          </Link>
+                          </div>
                         );
                       })
                     ) : (
-                      <div className="px-4 py-3 text-sm text-muted-foreground">
+                      <div className="px-5 py-4 text-sm text-muted-foreground">
                         {t('common.no_data')}
                       </div>
                     )}
                   </div>
-
-                  {/* Right Panel - Subcategories (on hover) */}
-                  {hoveredChildren.length > 0 && (
-                    <div className="w-56 py-2">
-                      {hoveredChildren.map((child) => (
-                        <Link
-                          key={child.id}
-                          href={ROUTES.CATEGORY(child.category_slug)}
-                          onClick={() => setCatOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground transition-colors hover:bg-muted hover:text-primary"
-                        >
-                          {child.category_thumb_url ? (
-                            <Image
-                              src={child.category_thumb_url}
-                              alt={child.category_name}
-                              width={20}
-                              height={20}
-                              className="h-5 w-5 shrink-0 rounded object-cover"
-                              />
-                          ) : (
-                            <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-muted-foreground" />
-                          )}
-                          <span>{child.category_name}</span>
-                        </Link>
-                      ))}
-                    </div>
-                  )}
                 </div>
               </>
             )}
           </div>
 
-          {/* Menu Links */}
-          <div className="flex flex-1 items-center gap-5 text-sm font-medium">
+          {/* Menu Links — centered, wider spacing */}
+          <div className="flex flex-1 items-center justify-center gap-12 text-[17px] font-semibold">
             {menus.length > 0 ? (
               menus
                 .filter((m: MenuItem) => m.is_visible && m.parent_id === null)
@@ -305,13 +335,11 @@ export function HeaderVariant1() {
 
                   if (hasChildren) {
                     return (
-                      <div key={menu.id} className="relative group">
-                        <button className="flex items-center gap-1.5 text-foreground transition-colors hover:text-primary">
+                      <div key={menu.id} className="group relative">
+                        <button className="flex items-center gap-1.5 transition-colors hover:opacity-80" style={{ color: 'hsl(var(--header-nav-text))' }}>
                           <span>{menu.name}</span>
                           <ChevronDown className="h-3.5 w-3.5 transition-transform group-hover:rotate-180" />
                         </button>
-
-                        {/* Dropdown */}
                         <div className="absolute left-0 top-full z-50 mt-1 hidden w-56 rounded-lg border bg-background py-2 shadow-lg group-hover:block">
                           {menu.childrenRecursive
                             .filter((child: MenuItem) => child.is_visible)
@@ -334,7 +362,8 @@ export function HeaderVariant1() {
                     <Link
                       key={menu.id}
                       href={menu.url ? `/${menu.url}` : '/'}
-                      className="text-foreground transition-colors hover:text-primary"
+                      className="transition-colors hover:opacity-80"
+                      style={{ color: 'hsl(var(--header-nav-text))' }}
                     >
                       {menu.name}
                     </Link>
@@ -342,32 +371,33 @@ export function HeaderVariant1() {
                 })
             ) : (
               <>
-                <Link href={ROUTES.HOME} className="text-foreground transition-colors hover:text-primary">
+                <Link href={ROUTES.HOME} className="transition-colors hover:opacity-80" style={{ color: 'hsl(var(--header-nav-text))' }}>
                   {t('common.home')}
                 </Link>
-                <Link href={ROUTES.STORES} className="text-foreground transition-colors hover:text-primary">
+                <Link href={ROUTES.STORES} className="transition-colors hover:opacity-80" style={{ color: 'hsl(var(--header-nav-text))' }}>
                   {t('nav.stores')}
                 </Link>
-                <Link href={ROUTES.BLOG} className="text-foreground transition-colors hover:text-primary">
+                <Link href={ROUTES.BLOG} className="transition-colors hover:opacity-80" style={{ color: 'hsl(var(--header-nav-text))' }}>
                   {t('nav.blog')}
                 </Link>
-                <Link href={ROUTES.COUPONS} className="text-foreground transition-colors hover:text-primary">
+                <Link href={ROUTES.COUPONS} className="transition-colors hover:opacity-80" style={{ color: 'hsl(var(--header-nav-text))' }}>
                   {t('nav.coupons')}
                 </Link>
-                <Link href={ROUTES.ABOUT} className="text-foreground transition-colors hover:text-primary">
+                <Link href={ROUTES.ABOUT} className="transition-colors hover:opacity-80" style={{ color: 'hsl(var(--header-nav-text))' }}>
                   {t('nav.about')}
                 </Link>
-                <Link href={ROUTES.CONTACT} className="text-foreground transition-colors hover:text-primary">
+                <Link href={ROUTES.CONTACT} className="transition-colors hover:opacity-80" style={{ color: 'hsl(var(--header-nav-text))' }}>
                   {t('nav.contact')}
                 </Link>
               </>
             )}
           </div>
 
-          {/* Explore Store Types Button */}
+          {/* Explore Store Types — button */}
           <Link
             href={ROUTES.STORES}
-            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="flex items-center gap-3 rounded-lg px-7 py-3.5 text-[15px] font-semibold transition-colors hover:opacity-90"
+            style={{ backgroundColor: 'hsl(var(--header-nav-button-bg))', color: 'hsl(var(--header-nav-button-text))' }}
           >
             <Store className="h-4 w-4" />
             <span>{t('nav.explore_store_types')}</span>
@@ -375,27 +405,26 @@ export function HeaderVariant1() {
         </div>
       </nav>
 
-      {/* Search Bar - Mobile */}
+      {/* ══════════ Mobile Search Bar ══════════ */}
       <div className="border-b bg-background px-4 py-2 lg:hidden">
-        <form onSubmit={handleSearch} className="relative flex">
-          <Input
+        <form onSubmit={handleSearch} className="flex overflow-hidden rounded-lg border border-border">
+          <input
             type="search"
-            placeholder={t('common.search') + '...'}
+            placeholder={t('common.search_placeholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="rounded-r-none border-r-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="h-11 flex-1 border-none bg-transparent px-4 text-sm text-foreground outline-none placeholder:text-muted-foreground"
           />
-          <Button
+          <button
             type="submit"
-            size="icon"
-            className="shrink-0 rounded-l-none bg-primary px-4 text-primary-foreground hover:bg-primary/90"
+            className="flex shrink-0 items-center justify-center bg-primary px-4 text-primary-foreground"
           >
             <Search className="h-4 w-4" />
-          </Button>
+          </button>
         </form>
       </div>
 
       <MobileNav open={mobileOpen} onClose={() => setMobileOpen(false)} />
-    </header>
+    </>
   );
 }

@@ -21,12 +21,29 @@ class StoreSellerSeeder extends Seeder
             return;
         }
 
-        DB::table('store_sellers')->insertOrIgnore([
-            [
-                'user_id' => 1,
-                'status' => 1,
-            ],
-        ]);
+        // Seller user (from UserSeeder: seller@sportoonline.com)
+        $sellerUser = DB::table('users')->where('email', 'seller@sportoonline.com')->first();
+
+        if ($sellerUser) {
+            DB::table('store_sellers')->insertOrIgnore([
+                [
+                    'user_id' => $sellerUser->id,
+                    'status' => 1,
+                ],
+            ]);
+
+            // Link store_seller_id back to user (mirrors registerSeller flow)
+            $storeSeller = DB::table('store_sellers')->where('user_id', $sellerUser->id)->first();
+            if ($storeSeller) {
+                DB::table('users')
+                    ->where('id', $sellerUser->id)
+                    ->update(['store_seller_id' => $storeSeller->id]);
+            }
+
+            $this->command->info("StoreSellerSeeder: Seller record created for user #{$sellerUser->id}");
+        } else {
+            $this->command->warn('StoreSellerSeeder: seller@sportoonline.com not found. Run UserSeeder first.');
+        }
 
     }
 }

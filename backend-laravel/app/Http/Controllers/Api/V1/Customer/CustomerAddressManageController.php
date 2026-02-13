@@ -28,7 +28,15 @@ class CustomerAddressManageController extends Controller
             // Set the customer ID if authenticated
             $request['customer_id'] = auth('api_customer')->user()->id;
             // Store the address using the repository
-            $this->addressRepo->setAddress($request->all());
+            $result = $this->addressRepo->setAddress($request->all());
+
+            if ($result !== true) {
+                return response()->json([
+                    'status' => false,
+                    'status_code' => 500,
+                    'message' => $result,
+                ], 500);
+            }
 
             return response()->json([
                 'status' => true,
@@ -88,7 +96,7 @@ class CustomerAddressManageController extends Controller
         $type = $request->input('type');
         $status = $request->input('status');
         $addresses = $this->addressRepo->getAddress($id, $type, $status);
-        return response()->json(CustomerAddressResource::collection($addresses));
+        return CustomerAddressResource::collection($addresses);
     }
 
     public function getAddressById(Request $request)

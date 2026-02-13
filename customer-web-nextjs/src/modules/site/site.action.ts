@@ -7,9 +7,10 @@ import { useSiteInfoService, useMenuService, useCategoryService, useFooterServic
 
 export const useSiteInfoQuery = () => {
   const { findAll } = useSiteInfoService();
+  const locale = useLocale();
 
   const { data, isPending, error } = useQuery({
-    queryKey: [API_ENDPOINTS.SITE_GENERAL_INFO],
+    queryKey: [API_ENDPOINTS.SITE_GENERAL_INFO, locale],
     queryFn: () => findAll(),
     staleTime: 1000 * 60 * 30,
   });
@@ -57,9 +58,10 @@ export const useMenuQuery = () => {
 
 export const useCategoryQuery = () => {
   const { findAll } = useCategoryService();
+  const locale = useLocale();
 
   const { data, isPending, error } = useQuery({
-    queryKey: [API_ENDPOINTS.CATEGORIES],
+    queryKey: [API_ENDPOINTS.CATEGORIES, locale],
     queryFn: () => findAll({ per_page: 100, all: false }),
     staleTime: 1000 * 60 * 30,
   });
@@ -81,9 +83,10 @@ export interface CurrencyItem {
 
 export const useCurrencyQuery = () => {
   const { findAll } = useCurrencyService();
+  const locale = useLocale();
 
   const { data, isPending, error } = useQuery({
-    queryKey: [API_ENDPOINTS.CURRENCY_LIST],
+    queryKey: [API_ENDPOINTS.CURRENCY_LIST, locale],
     queryFn: () => findAll(),
     staleTime: 1000 * 60 * 30,
   });

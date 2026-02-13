@@ -1,8 +1,10 @@
 "use client";
 
+import { useLocale } from "next-intl";
 import { useThemeQuery } from "./theme.service";
 
 export function useThemeConfig() {
+  const locale = useLocale();
   const { data: themeResponse, isLoading, error } = useThemeQuery();
   const themeData = themeResponse?.theme_data;
 
@@ -11,7 +13,17 @@ export function useThemeConfig() {
     return arr && arr.length > 0 ? arr[0] : null;
   }
 
-  const pages = firstOrNull(themeData?.theme_pages);
+  // Locale-aware theme_pages: If translation exists for current locale, use it
+  // API returns: { theme_data: { theme_pages: [...TR...] }, translations: { en: { theme_data: { theme_pages: [...EN...] } } } }
+  const defaultPages = firstOrNull(themeData?.theme_pages);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const translatedThemeData = (themeResponse?.translations as any)?.[locale]?.theme_data;
+  const translatedPages = translatedThemeData ? firstOrNull(translatedThemeData.theme_pages) : null;
+
+  // Use translated pages if available, otherwise fall back to default (Turkish)
+  const pages = translatedPages || defaultPages;
+
   const homePage = firstOrNull(pages?.theme_home_page);
   const loginPage = firstOrNull(pages?.theme_login_page);
   const registerPage = firstOrNull(pages?.theme_register_page);
@@ -28,6 +40,7 @@ export function useThemeConfig() {
   // Ana Sayfa Accessor'ları
   const homeConfig = {
     isSliderEnabled: isOn(homePage?.slider),
+    sliderNumber: (firstOrNull(homePage?.slider) as any)?.slider_number || "1",
     isCategoriesEnabled: isOn(homePage?.category),
     categoriesTitle: firstOrNull(homePage?.category)?.title,
     categoriesSubtitle: firstOrNull(homePage?.category)?.subtitle,
@@ -95,12 +108,30 @@ export function useThemeConfig() {
   // Header
   const headerConfig = {
     headerNumber: headerData?.header_number || "1",
+    // Light mode
+    row1Bg: headerData?.row1_bg,
+    row1Text: headerData?.row1_text,
+    row2Bg: headerData?.row2_bg,
+    row3Bg: headerData?.row3_bg,
+    row3Text: headerData?.row3_text,
+    row3ButtonBg: headerData?.row3_button_bg,
+    row3ButtonText: headerData?.row3_button_text,
+    // Dark mode
+    darkRow1Bg: headerData?.dark_row1_bg,
+    darkRow1Text: headerData?.dark_row1_text,
+    darkRow2Bg: headerData?.dark_row2_bg,
+    darkRow3Bg: headerData?.dark_row3_bg,
+    darkRow3Text: headerData?.dark_row3_text,
+    darkRow3ButtonBg: headerData?.dark_row3_button_bg,
+    darkRow3ButtonText: headerData?.dark_row3_button_text,
   };
 
   // Footer
   const footerConfig = {
     backgroundColor: footerData?.background_color,
     textColor: footerData?.text_color,
+    darkBackgroundColor: footerData?.dark_background_color,
+    darkTextColor: footerData?.dark_text_color,
     layoutColumns: footerData?.layout_columns || 4,
   };
 

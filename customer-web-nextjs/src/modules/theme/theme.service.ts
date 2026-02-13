@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { useLocale } from "next-intl";
 import { getApiBaseUrl } from "@/lib/api-url";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { ThemeResponse } from "./theme.type";
@@ -13,15 +14,17 @@ const api = axios.create({
 });
 
 export function useThemeQuery() {
+  const locale = useLocale();
+
   return useQuery({
-    queryKey: ["theme"],
+    queryKey: ["theme", locale],
     queryFn: async () => {
       const res = await api.get<ThemeResponse>(API_ENDPOINTS.THEME);
       return res.data;
     },
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes (shorter for testing)
-    gcTime: 1000 * 60 * 60, // Keep in cache for 1 hour
-    refetchOnMount: true, // Always refetch on component mount
-    refetchOnWindowFocus: true, // Refetch when window gains focus
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 60,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 }

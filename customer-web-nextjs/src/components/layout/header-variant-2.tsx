@@ -1,470 +1,268 @@
 'use client';
 
-import { Link } from '@/i18n/routing';
+import { Link, useRouter } from '@/i18n/routing';
 import { ROUTES } from '@/config/routes';
-import { useSiteInfoQuery, useMenuQuery, useCategoryQuery } from '@/modules/site/site.action';
+import { useSiteInfoQuery, useMenuQuery } from '@/modules/site/site.action';
 import { useCartStore } from '@/stores/cart-store';
 import { useAuthStore } from '@/stores/auth-store';
+import { useLocationStore } from '@/stores/location-store';
 import { useTranslations } from 'next-intl';
-import { useLocale } from 'next-intl';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { MobileNav } from './mobile-nav';
 import { LanguageSwitcher } from './language-switcher';
-import { CurrencySwitcher } from './currency-switcher';
+import { CurrencySwitcher } from '@/components/common/currency-switcher';
 import {
   Search,
   ShoppingCart,
   Heart,
   User,
   Menu,
-  Mail,
-  Phone,
-  Grid3X3,
-  ChevronDown,
-  ChevronRight,
+  Bell,
   MapPin,
-  Store,
+  ChevronDown,
 } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
-import Image from 'next/image';
-import type { Category, MenuItem } from '@/modules/site/site.type';
+import { useState } from 'react';
+import type { MenuItem } from '@/modules/site/site.type';
 
 /**
- * Header Variant 2 - Classic Theme (Dark)
- * 3-tier layout with dark main bar
- * - Top bar: Email + Free Shipping | Become a Seller + Language + Currency
- * - Main bar (dark): Logo + Location + Categories + Search + Icons + 24/7 Support
- * - Nav bar: All Categories dropdown + Menu + Store Type button
+ * Header Variant 2 - Flutter-matching layout
+ * 2-row layout matching Flutter's desktop_tabs_home.dart exactly:
+ * - Row 1 (AppBar): White bg, 60px — Logo + Location + Currency + Actions
+ * - Row 2 (CommonCard): Tab links (Home/Products/Categories/Menu) + Search widget
  */
 export function HeaderVariant2() {
   const t = useTranslations();
-  const locale = useLocale();
+  const router = useRouter();
   const { siteInfo } = useSiteInfoQuery();
   const { menus } = useMenuQuery();
-  const { categories } = useCategoryQuery();
-  const totalItems = useCartStore((s) => s.totalItems);
+  const cartCountLive = useCartStore((s) =>
+    s.items.reduce((sum, item) => sum + item.quantity, 0)
+  );
+  const openCartDrawer = useCartStore((s) => s.openDrawer);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const { selectedArea, openSelector } = useLocationStore();
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [catOpen, setCatOpen] = useState(false);
-  const [navCatOpen, setNavCatOpen] = useState(false);
-  const [hoveredCatId, setHoveredCatId] = useState<number | null>(null);
-  const [mounted, setMounted] = useState(false);
-  const catDropdownRef = useRef<HTMLDivElement>(null);
-  const navCatDropdownRef = useRef<HTMLDivElement>(null);
-
-  // Prevent hydration mismatch for cart count (client-only)
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const [logoError, setLogoError] = useState(false);
+  const [activeTab, setActiveTab] = useState('Home');
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      window.location.href = `/${locale}${ROUTES.SEARCH}?q=${encodeURIComponent(searchQuery.trim())}`;
+      router.push(`${ROUTES.SEARCH}?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
-  // Cart count - only show after client-side mount to prevent hydration mismatch
-  const cartCount = mounted ? totalItems() : 0;
-
-  const topCategories = (categories as Category[]).filter(
-    (c) => !c.parent_id
-  );
-
-  const hoveredCategory = topCategories.find((c) => c.id === hoveredCatId);
-  const hoveredChildren = hoveredCategory?.children ?? [];
+  const cartCount = cartCountLive;
 
   return (
-    <header className="sticky top-0 z-50 w-full shadow-sm">
-      {/* Top Bar - Light Gray */}
-      <div className="hidden border-b bg-muted/30 text-foreground lg:block">
-        <div className="container flex h-9 items-center justify-between text-xs">
-          <div className="flex items-center gap-4">
-            {siteInfo?.com_site_email && (
-              <a
-                href={`mailto:${siteInfo.com_site_email}`}
-                className="flex items-center gap-1.5 transition-opacity hover:opacity-70"
-              >
-                <Mail className="h-3.5 w-3.5" />
-                <span>Email: {siteInfo.com_site_email}</span>
-              </a>
+    <header className="sticky top-0 z-50 w-full">
+      {/* ══════════ ROW 1 — AppBar (White, h=60px — matches Flutter AppBar) ══════════ */}
+      <div className="border-b bg-card">
+        <div className="container flex h-[60px] items-center">
+          {/* Mobile hamburger */}
+          <button
+            className="flex items-center justify-center rounded-lg p-2 text-foreground lg:hidden"
+            onClick={() => setMobileOpen(true)}
+          >
+            <Menu className="h-6 w-6" />
+          </button>
+
+          {/* Logo — Flutter: 90×54, object-fill, padding v6 h10 */}
+          <Link href={ROUTES.HOME} className="flex shrink-0 items-center px-2.5 py-1.5">
+            {siteInfo?.com_site_logo && !logoError ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={siteInfo.com_site_logo}
+                alt={siteInfo?.com_site_title || 'Logo'}
+                className="h-[54px] w-[90px] object-contain"
+                onError={() => setLogoError(true)}
+              />
+            ) : (
+              <span className="text-xl font-bold text-primary">
+                {siteInfo?.com_site_title || 'Sportoonline'}
+              </span>
             )}
-            <span className="flex items-center gap-1.5 text-muted-foreground">
-              Free Standard Shipping
-            </span>
+          </Link>
+
+          {/* Location selector — Flutter: Expanded > 300px, MapPin + "Location :" bold + muted address */}
+          <div className="hidden flex-1 lg:flex">
+            <button
+              onClick={openSelector}
+              className="flex w-[300px] items-center justify-end gap-1 px-2.5 transition-opacity hover:opacity-80"
+            >
+              <MapPin className="h-4 w-4 shrink-0 text-foreground" />
+              <span className="whitespace-nowrap text-base font-bold text-foreground">
+                {t('common.location')} :
+              </span>
+              <span className="ml-1.5 truncate text-base font-normal text-muted-foreground">
+                {selectedArea ? selectedArea.label : t('common.get_location')}
+              </span>
+              <ChevronDown className="h-5 w-5 shrink-0 text-foreground" />
+            </button>
           </div>
 
-          <div className="flex items-center gap-4">
-            <Link
-              href={ROUTES.SELLER_REGISTER}
-              className="transition-opacity hover:opacity-70"
-            >
-              {t('common.become_seller')}
-            </Link>
-            <LanguageSwitcher />
+          {/* Currency dropdown — Flutter: SizedBox(width: 150) */}
+          <div className="hidden lg:block" style={{ width: 150 }}>
             <CurrencySwitcher />
           </div>
+
+          {/* Language switcher (not in Flutter but needed for i18n) */}
+          <div className="hidden lg:block">
+            <LanguageSwitcher />
+          </div>
+
+          {/* Action icons — Flutter: actions array in AppBar */}
+          <div className="flex items-center">
+            {/* Language switcher (mobile only) */}
+            <div className="lg:hidden">
+              <LanguageSwitcher />
+            </div>
+
+            {/* Wishlist — Flutter: ImageIcon 24px, black, padding h2 */}
+            <Link href={ROUTES.WISHLIST} className="hidden px-0.5 sm:block">
+              <Heart className="h-6 w-6 text-foreground" />
+            </Link>
+            <div className="w-0.5" />
+
+            {/* Notification — Flutter: ImageIcon 30px, black, padding all 6, red badge 14px */}
+            <button className="relative p-1.5">
+              <Bell className="h-[30px] w-[30px] text-foreground" />
+              <span
+                className="absolute right-1.5 top-2 flex items-center justify-center rounded-full bg-red-500 p-0.5"
+                style={{ minWidth: 14, minHeight: 14 }}
+              >
+                <span className="text-[8px] font-bold leading-none text-white">0</span>
+              </span>
+            </button>
+            <div className="w-0.5" />
+
+            {/* Cart — Flutter: 30×30, grey (or blue if on cart page), red badge 16px */}
+            <button onClick={openCartDrawer} className="relative">
+              <ShoppingCart className="h-[30px] w-[30px] text-muted-foreground" />
+              <span
+                className="absolute -right-px top-px flex items-center justify-center rounded-full bg-red-500 p-1"
+                style={{ minWidth: 16, minHeight: 16 }}
+              >
+                <span className="text-[10px] font-bold leading-none text-white">{cartCount}</span>
+              </span>
+            </button>
+            <div className="w-2.5" />
+
+            {/* User avatar — Flutter: AvatarWidget radius 20 = 40px diameter circle */}
+            <Link
+              href={isAuthenticated ? ROUTES.PROFILE : ROUTES.LOGIN}
+              className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-muted"
+            >
+              <User className="h-5 w-5 text-muted-foreground" />
+            </Link>
+            <div className="w-5" />
+          </div>
         </div>
       </div>
 
-      {/* Main Bar - Dark */}
-      <div className="border-b bg-slate-800 text-white">
-        <div className="container">
-          <div className="flex h-16 items-center justify-between gap-3">
-            {/* Mobile Menu Button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-white hover:bg-slate-700 lg:hidden"
-              onClick={() => setMobileOpen(true)}
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
+      {/* ══════════ ROW 2 — Menu Tab Bar + Search (Flutter: CommonCard) ══════════ */}
+      {/* Flutter: SizedBox(h:6) gap, then CommonCard with pLeft:14 pRight:20 pTop:4 pBottom:4, mH:0 mV:0 */}
+      {/* CommonCard: white bg, 8px radius, 1px border dividerColor */}
+      <div className="hidden bg-card lg:block">
+        <div className="px-0 pt-1.5">
+          <div
+            className="flex items-center rounded-lg border bg-card py-1"
+            style={{ paddingLeft: 14, paddingRight: 20 }}
+          >
+            <div className="w-3" />
 
-            {/* Logo */}
-            <Link href={ROUTES.HOME} className="flex shrink-0 items-center gap-2">
-              {siteInfo?.com_site_logo ? (
-                <Image
-                  src={siteInfo.com_site_logo}
-                  alt={siteInfo?.com_site_title || 'Logo'}
-                  width={140}
-                  height={40}
-                  className="h-10 w-auto object-contain brightness-0 invert"
-                  priority
-                />
-              ) : (
-                <span className="text-lg font-bold">{siteInfo?.com_site_title || 'Sporto Online'}</span>
-              )}
+            {/* Tab: Home — Flutter: MenuTab 16px, w600, active=red, inactive=black */}
+            <Link
+              href={ROUTES.HOME}
+              onClick={() => setActiveTab('Home')}
+              className={`text-base font-semibold transition-colors duration-300 ${
+                activeTab === 'Home' ? 'text-red-500' : 'text-foreground hover:text-red-500'
+              }`}
+            >
+              {t('common.home')}
+            </Link>
+            <div className="w-3" />
+
+            {/* Tab: Products */}
+            <Link
+              href={ROUTES.PRODUCTS}
+              onClick={() => setActiveTab('Products')}
+              className={`text-base font-semibold transition-colors duration-300 ${
+                activeTab === 'Products' ? 'text-red-500' : 'text-foreground hover:text-red-500'
+              }`}
+            >
+              {t('seo.products_title')}
+            </Link>
+            <div className="w-3" />
+
+            {/* Tab: Category */}
+            <Link
+              href={ROUTES.CATEGORIES}
+              onClick={() => setActiveTab('Category')}
+              className={`text-base font-semibold transition-colors duration-300 ${
+                activeTab === 'Category' ? 'text-red-500' : 'text-foreground hover:text-red-500'
+              }`}
+            >
+              {t('nav.categories')}
             </Link>
 
-            {/* Desktop Navigation */}
-            <div className="hidden flex-1 items-center gap-3 lg:flex">
-              {/* Location Badge */}
-              <button className="flex items-center gap-1.5 rounded-md bg-orange-500 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-orange-600">
-                <MapPin className="h-3.5 w-3.5" />
-                <span>Delivery to</span>
-                <span className="font-semibold">Bangladesh, Dhaka</span>
-              </button>
+            {/* Additional menu links from backend (Stores, Blog, etc.) */}
+            {menus.length > 0 &&
+              menus
+                .filter((m: MenuItem) => m.is_visible && m.parent_id === null)
+                .sort((a: MenuItem, b: MenuItem) => a.position - b.position)
+                .map((menu: MenuItem) => (
+                  <span key={menu.id} className="flex items-center">
+                    <div className="w-3" />
+                    <Link
+                      href={menu.url ? `/${menu.url}` : '/'}
+                      className="text-base font-semibold text-foreground transition-colors duration-300 hover:text-red-500"
+                    >
+                      {menu.name}
+                    </Link>
+                  </span>
+                ))}
 
-              {/* All Categories Dropdown (Main Bar) */}
-              <div className="relative" ref={catDropdownRef}>
-                <button
-                  onClick={() => { setCatOpen(!catOpen); setHoveredCatId(null); }}
-                  className="flex items-center gap-2 rounded-md border border-slate-600 bg-slate-700 px-3 py-2 text-sm transition-colors hover:bg-slate-600"
-                >
-                  <span>{t('nav.all_categories')}</span>
-                  <ChevronDown className={`h-4 w-4 transition-transform ${catOpen ? 'rotate-180' : ''}`} />
-                </button>
+            <div className="w-3" />
 
-                {catOpen && (
-                  <>
-                    <div className="fixed inset-0 z-40" onClick={() => setCatOpen(false)} />
-                    <div className="absolute left-0 top-full z-50 mt-2 flex rounded-lg border bg-background shadow-lg">
-                      {/* Left Panel - Parent Categories */}
-                      <div className="w-64 border-r py-2">
-                        {topCategories.length > 0 ? (
-                          topCategories.slice(0, 14).map((cat) => {
-                            const hasChildren = cat.children && cat.children.length > 0;
-                            const isHovered = hoveredCatId === cat.id;
-                            return (
-                              <Link
-                                key={cat.id}
-                                href={ROUTES.CATEGORY(cat.category_slug)}
-                                onClick={() => setCatOpen(false)}
-                                onMouseEnter={() => setHoveredCatId(cat.id)}
-                                className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
-                                  isHovered ? 'bg-muted text-primary' : 'text-foreground hover:bg-muted'
-                                }`}
-                              >
-                                {cat.category_thumb_url ? (
-                                  <Image
-                                    src={cat.category_thumb_url}
-                                    alt={cat.category_name}
-                                    width={24}
-                                    height={24}
-                                    className="h-6 w-6 shrink-0 rounded object-cover"
-                                  />
-                                ) : (
-                                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-muted text-muted-foreground">
-                                    <Grid3X3 className="h-3.5 w-3.5" />
-                                  </div>
-                                )}
-                                <span className="flex-1">{cat.category_name}</span>
-                                {hasChildren && (
-                                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                                )}
-                              </Link>
-                            );
-                          })
-                        ) : (
-                          <div className="px-4 py-3 text-sm text-muted-foreground">
-                            {t('common.no_data')}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Right Panel - Subcategories */}
-                      {hoveredChildren.length > 0 && (
-                        <div className="w-56 py-2">
-                          {hoveredChildren.map((child) => (
-                            <Link
-                              key={child.id}
-                              href={ROUTES.CATEGORY(child.category_slug)}
-                              onClick={() => setCatOpen(false)}
-                              className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground transition-colors hover:bg-muted hover:text-primary"
-                            >
-                              {child.category_thumb_url ? (
-                                <Image
-                                  src={child.category_thumb_url}
-                                  alt={child.category_name}
-                                  width={20}
-                                  height={20}
-                                  className="h-5 w-5 shrink-0 rounded object-cover"
-                                />
-                              ) : (
-                                <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-muted-foreground" />
-                              )}
-                              <span>{child.category_name}</span>
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {/* Search Bar */}
-              <form
-                onSubmit={handleSearch}
-                className="flex max-w-xl flex-1 items-center"
-              >
-                <Input
+            {/* Search widget — Flutter: Container 12px radius, grey.shade300 border */}
+            {/* Input: 12px, w400, #5A637E | SearchIcon 18px grey | right padding 24px */}
+            <form onSubmit={handleSearch} className="flex flex-1">
+              <div className="flex w-full items-center rounded-xl border bg-card">
+                <div className="w-4" />
+                <input
                   type="search"
-                  placeholder={t('common.search_your_product') || t('common.search') + '...'}
+                  placeholder={t('common.search_placeholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-10 rounded-r-none border-slate-600 bg-slate-700 text-white placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className="flex-1 border-none bg-transparent py-2 text-xs font-normal text-muted-foreground outline-none placeholder:text-muted-foreground"
                 />
-                <Button
-                  type="submit"
-                  className="h-10 shrink-0 rounded-l-none bg-primary px-4 hover:bg-primary/90"
-                >
-                  <Search className="h-4 w-4" />
-                </Button>
-              </form>
-            </div>
-
-            {/* Right Actions */}
-            <div className="flex items-center gap-3">
-              <div className="lg:hidden">
-                <LanguageSwitcher />
+                <Search className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
+                <div className="w-6" />
               </div>
-
-              <Link
-                href={ROUTES.WISHLIST}
-                className="relative hidden items-center justify-center rounded-full p-2 text-white transition-colors hover:bg-slate-700 sm:flex"
-                suppressHydrationWarning
-              >
-                <Heart className="h-5 w-5" />
-                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold">
-                  3
-                </span>
-              </Link>
-
-              <Link
-                href={ROUTES.CART}
-                className="relative flex items-center justify-center rounded-full p-2 text-white transition-colors hover:bg-slate-700"
-                suppressHydrationWarning
-              >
-                <ShoppingCart className="h-5 w-5" />
-                {cartCount > 0 && (
-                  <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold">
-                    {cartCount}
-                  </span>
-                )}
-              </Link>
-
-              <Link
-                href={isAuthenticated ? ROUTES.PROFILE : ROUTES.LOGIN}
-                className="hidden items-center justify-center rounded-full lg:flex"
-              >
-                <div className="h-8 w-8 overflow-hidden rounded-full bg-slate-600">
-                  <User className="h-full w-full p-1.5 text-white" />
-                </div>
-              </Link>
-
-              {/* 24/7 Support */}
-              {siteInfo?.com_site_contact_number && (
-                <div className="hidden flex-col items-end lg:flex">
-                  <span className="text-[10px] text-slate-400">24/7 Support</span>
-                  <a
-                    href={`tel:${siteInfo.com_site_contact_number}`}
-                    className="text-xs font-semibold text-white transition-opacity hover:opacity-80"
-                  >
-                    {siteInfo.com_site_contact_number}
-                  </a>
-                </div>
-              )}
-            </div>
+            </form>
           </div>
         </div>
       </div>
 
-      {/* Navigation Bar - White */}
-      <nav className="hidden border-b bg-background lg:block">
-        <div className="container flex h-12 items-center gap-6">
-          {/* All Categories Dropdown (Nav Bar) */}
-          <div className="relative" ref={navCatDropdownRef}>
-            <button
-              onClick={() => { setNavCatOpen(!navCatOpen); setHoveredCatId(null); }}
-              className="flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary"
-            >
-              <Grid3X3 className="h-4 w-4" />
-              <span>{t('nav.all_categories')}</span>
-              <ChevronDown className={`h-4 w-4 transition-transform ${navCatOpen ? 'rotate-180' : ''}`} />
-            </button>
-
-            {navCatOpen && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setNavCatOpen(false)} />
-                <div className="absolute left-0 top-full z-50 mt-2 flex rounded-lg border bg-background shadow-lg">
-                  {/* Categories dropdown same as above */}
-                  <div className="w-64 border-r py-2">
-                    {topCategories.length > 0 ? (
-                      topCategories.slice(0, 14).map((cat) => {
-                        const hasChildren = cat.children && cat.children.length > 0;
-                        const isHovered = hoveredCatId === cat.id;
-                        return (
-                          <Link
-                            key={cat.id}
-                            href={ROUTES.CATEGORY(cat.category_slug)}
-                            onClick={() => setNavCatOpen(false)}
-                            onMouseEnter={() => setHoveredCatId(cat.id)}
-                            className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
-                              isHovered ? 'bg-muted text-primary' : 'text-foreground hover:bg-muted'
-                            }`}
-                          >
-                            {cat.category_thumb_url ? (
-                              <Image
-                                src={cat.category_thumb_url}
-                                alt={cat.category_name}
-                                width={24}
-                                height={24}
-                                className="h-6 w-6 shrink-0 rounded object-cover"
-                              />
-                            ) : (
-                              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-muted text-muted-foreground">
-                                <Grid3X3 className="h-3.5 w-3.5" />
-                              </div>
-                            )}
-                            <span className="flex-1">{cat.category_name}</span>
-                            {hasChildren && (
-                              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                            )}
-                          </Link>
-                        );
-                      })
-                    ) : (
-                      <div className="px-4 py-3 text-sm text-muted-foreground">
-                        {t('common.no_data')}
-                      </div>
-                    )}
-                  </div>
-
-                  {hoveredChildren.length > 0 && (
-                    <div className="w-56 py-2">
-                      {hoveredChildren.map((child) => (
-                        <Link
-                          key={child.id}
-                          href={ROUTES.CATEGORY(child.category_slug)}
-                          onClick={() => setNavCatOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground transition-colors hover:bg-muted hover:text-primary"
-                        >
-                          {child.category_thumb_url ? (
-                            <Image
-                              src={child.category_thumb_url}
-                              alt={child.category_name}
-                              width={20}
-                              height={20}
-                              className="h-5 w-5 shrink-0 rounded object-cover"
-                            />
-                          ) : (
-                            <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-muted-foreground" />
-                          )}
-                          <span>{child.category_name}</span>
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Menu Links */}
-          <div className="flex flex-1 items-center gap-5 text-sm font-medium">
-            {menus.length > 0 ? (
-              menus
-                .filter((m: MenuItem) => m.is_visible && m.parent_id === null)
-                .map((menu: MenuItem) => (
-                  <Link
-                    key={menu.id}
-                    href={menu.url || '/'}
-                    className="text-foreground transition-colors hover:text-primary"
-                  >
-                    {menu.name}
-                  </Link>
-                ))
-            ) : (
-              <>
-                <Link href={ROUTES.HOME} className="text-foreground transition-colors hover:text-primary">
-                  {t('common.home')}
-                </Link>
-                <Link href={ROUTES.STORES} className="text-foreground transition-colors hover:text-primary">
-                  {t('nav.stores')}
-                </Link>
-                <Link href={ROUTES.BLOG} className="text-foreground transition-colors hover:text-primary">
-                  {t('nav.blog')}
-                </Link>
-                <Link href={ROUTES.CONTACT} className="text-foreground transition-colors hover:text-primary">
-                  {t('nav.contact')}
-                </Link>
-              </>
-            )}
-          </div>
-
-          {/* Store Type Button */}
-          <Link
-            href={ROUTES.STORES}
-            className="flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary"
-          >
-            <Store className="h-4 w-4" />
-            <span>{t('nav.store_type')}</span>
-          </Link>
-        </div>
-      </nav>
-
-      {/* Search Bar - Mobile */}
-      <div className="border-b bg-background px-4 py-2 lg:hidden">
-        <form onSubmit={handleSearch} className="relative flex">
-          <Input
+      {/* ══════════ Mobile Search Bar ══════════ */}
+      <div className="border-b bg-card px-4 py-2 lg:hidden">
+        <form
+          onSubmit={handleSearch}
+          className="flex items-center overflow-hidden rounded-xl border bg-card"
+        >
+          <div className="w-4" />
+          <input
             type="search"
-            placeholder={t('common.search') + '...'}
+            placeholder={t('common.search_placeholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="rounded-r-none border-r-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="h-10 flex-1 border-none bg-transparent text-xs font-normal text-muted-foreground outline-none placeholder:text-muted-foreground"
           />
-          <Button
-            type="submit"
-            size="icon"
-            className="shrink-0 rounded-l-none bg-primary px-4 text-primary-foreground hover:bg-primary/90"
-          >
-            <Search className="h-4 w-4" />
-          </Button>
+          <button type="submit" className="flex shrink-0 items-center justify-center px-4">
+            <Search className="h-[18px] w-[18px] text-muted-foreground" />
+          </button>
         </form>
       </div>
 

@@ -1,4 +1,6 @@
 "use client";
+import { useState, useEffect } from "react";
+import { usePrice } from "@/hooks/use-price";
 
 import { Link } from "@/i18n/routing";
 import { ROUTES } from "@/config/routes";
@@ -31,6 +33,12 @@ export function CartClient({ translations: t }: Props) {
   const updateQuantity = useCartStore((s) => s.updateQuantity);
   const totalPrice = useCartStore((s) => s.totalPrice);
   const totalItems = useCartStore((s) => s.totalItems);
+  const { formatPrice } = usePrice();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   if (items.length === 0) {
     return (
@@ -139,13 +147,13 @@ export function CartClient({ translations: t }: Props) {
                     <div className="flex items-center gap-3">
                       <div className="text-right">
                         <p className="font-bold">
-                          {t.currency}
-                          {(item.price * item.quantity).toFixed(2)}
+                          
+                          {mounted ? formatPrice(item.price * item.quantity) : (item.price * item.quantity).toFixed(2)}
                         </p>
                         {item.quantity > 1 && (
                           <p className="text-xs text-muted-foreground">
-                            {t.currency}
-                            {item.price.toFixed(2)} x {item.quantity}
+                            
+                            {mounted ? formatPrice(item.price) : item.price.toFixed(2)} x {item.quantity}
                           </p>
                         )}
                       </div>
@@ -174,8 +182,8 @@ export function CartClient({ translations: t }: Props) {
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{t.subtotal}</span>
                 <span className="font-medium">
-                  {t.currency}
-                  {totalPrice().toFixed(2)}
+                  
+                  {mounted ? formatPrice(totalPrice()) : totalPrice().toFixed(2)}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -188,8 +196,8 @@ export function CartClient({ translations: t }: Props) {
               <div className="flex justify-between text-lg font-bold">
                 <span>{t.total}</span>
                 <span>
-                  {t.currency}
-                  {totalPrice().toFixed(2)}
+                  
+                  {mounted ? formatPrice(totalPrice()) : totalPrice().toFixed(2)}
                 </span>
               </div>
             </div>

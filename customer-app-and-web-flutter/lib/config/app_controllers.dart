@@ -8,7 +8,6 @@ import '../controller/bloc/address_list_bloc/address_list_bloc.dart';
 import '../controller/bloc/all_product_bloc/all_product_bloc.dart';
 import '../controller/bloc/banner_bloc/banner_bloc.dart';
 import '../controller/bloc/best_saleing_bloc/best_saleing_bloc.dart';
-import '../controller/bloc/blog_bloc/blog_bloc.dart';
 import '../controller/bloc/brand_bloc/brand_bloc.dart';
 import '../controller/bloc/cancel_order_bloc/cancel_order_bloc.dart';
 import '../controller/bloc/categories_bloc/categories_bloc.dart';
@@ -28,14 +27,12 @@ import '../controller/bloc/featured_product_bloc/featured_product_bloc.dart';
 import '../controller/bloc/flash_deal_bloc/flash_deal_bloc.dart';
 import '../controller/bloc/flash_deal_product_bloc/flash_deal_product_bloc.dart';
 import '../controller/bloc/general_info_bloc/general_info_bloc.dart';
-import '../controller/bloc/general_info_bloc/general_info_event.dart';
 import '../controller/bloc/get_messsage_bloc/get_message_bloc.dart';
 import '../controller/bloc/h_mac_key_generate_bloc/hmac_generate_bloc.dart';
 import '../controller/bloc/home_title_bloc/home_title_bloc.dart';
 import '../controller/bloc/login_bloc/login_bloc.dart';
 import '../controller/bloc/maintenence_settings_bloc/maintenance_settings_bloc.dart';
 import '../controller/bloc/message_send_bloc/message_send_bloc.dart';
-import '../controller/bloc/menu_list_bloc/menu_list_bloc.dart';
 import '../controller/bloc/new_arrivals_bloc/new_arrival_bloc.dart';
 import '../controller/bloc/notification_bloc/notificatioon_bloc.dart';
 import '../controller/bloc/order_details_bloc/order_details_bloc.dart';
@@ -156,12 +153,6 @@ List<SingleChildWidget> getAppProviders(String? theme) {
       create: (context) => MessageSendBloc(
         connectivityRepository: ConnectivityRepository(),
         saveRepository: SaveRepository(),
-      ),
-    ),
-    BlocProvider(
-      create: (context) => MenuListBloc(
-        connectivityRepository: ConnectivityRepository(),
-        commonRepository: CommonRepository(),
       ),
     ),
     BlocProvider(
@@ -289,7 +280,7 @@ List<SingleChildWidget> getAppProviders(String? theme) {
       create: (context) => GeneralInfoBloc(
         connectivityRepository: ConnectivityRepository(),
         commonRepository: CommonRepository(),
-      )..add(GeneralInfoDataEvent()),
+      ),
     ),
     BlocProvider(
       create: (context) => HomeTitleBloc(
@@ -443,12 +434,6 @@ List<SingleChildWidget> getAppProviders(String? theme) {
     ),
     BlocProvider(
       create: (context) => DashboardBloc(
-        connectivityRepository: ConnectivityRepository(),
-        commonRepository: CommonRepository(),
-      ),
-    ),
-    BlocProvider(
-      create: (context) => BlogBloc(
         connectivityRepository: ConnectivityRepository(),
         commonRepository: CommonRepository(),
       ),

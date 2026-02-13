@@ -48,9 +48,9 @@ class PlaceOrderRequest extends FormRequest
 
             'currency_code' => 'required|string|max:3',   // ISO codes are 3 letters
             'shipping_time_preferred' => 'nullable|string|max:255',
-            'payment_gateway' => 'required|string|in:paypal,stripe,cash_on_delivery,razorpay,paytm,wallet',
+            'payment_gateway' => 'required|string|in:cash_on_delivery,paytr,iyzico,moka,ziraatpay,wallet',
             'order_notes' => 'nullable|string|max:500',
-            'order_amount' => 'nullable|decimal|min:0',
+            'order_amount' => 'nullable|numeric|min:0',
             'coupon_code' => 'nullable|string|max:50',
             'coupon_title' => 'nullable|string|max:255',
             'coupon_discount_amount_admin' => 'nullable|numeric|min:0',

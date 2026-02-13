@@ -43,27 +43,21 @@ class ThemeProvider extends ChangeNotifier {
 
 // language controler
 
-  Locale _appLocale = const Locale("tr");
+  Locale _appLocale = const Locale("en");
 
   Locale get appLocale => _appLocale;
 
-
-  static const _supportedLanguages = ['tr', 'en'];
 
   fetchLocale() async {
     var language = await UserSharedPreference.getValue(
       SharedPreferenceHelper.languageCode,
     );
-    if (language == null || !_supportedLanguages.contains(language)) {
-      _appLocale = const Locale('tr');
-      // Save default language so all API calls can read it
-      await UserSharedPreference.putValue(
-        SharedPreferenceHelper.languageCode,
-        'tr',
-      );
+    if (language == null) {
+      _appLocale = const Locale('en');
       return null;
     }
-    _appLocale = Locale(language);
+    String local = language;
+    _appLocale = Locale(local.toString());
     return null;
   }
 

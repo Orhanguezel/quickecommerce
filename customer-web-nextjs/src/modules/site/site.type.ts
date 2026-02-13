@@ -10,7 +10,12 @@ export interface SiteSettings {
   com_site_contact_number: string;
   com_site_full_address: string;
   com_maintenance_mode: boolean;
+  com_user_login_otp?: string | null;
+  otp_login_enabled_disable?: string | null;
+  com_google_login_enabled?: string | null;
+  com_facebook_login_enabled?: string | null;
   active_theme: string;
+  com_ai_chat_enabled?: string | null;
 }
 
 export interface SiteGeneralInfo {

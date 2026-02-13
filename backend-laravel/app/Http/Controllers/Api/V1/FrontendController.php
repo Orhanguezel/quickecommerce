@@ -1940,8 +1940,10 @@ class FrontendController extends Controller
     public
     function productAttributes()
     {
-        $attributes = ProductAttribute::where('status', 1)->get();
-        return response()->json(ProductAttributeResource::collection($attributes));
+        $attributes = ProductAttribute::where('status', 1)
+            ->with(['attribute_values', 'related_translations'])
+            ->get();
+        return response()->json(\App\Http\Resources\Product\ProductAttributeResource::collection($attributes));
     }
 
     public

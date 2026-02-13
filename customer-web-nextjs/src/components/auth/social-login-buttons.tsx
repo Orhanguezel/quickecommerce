@@ -1,10 +1,47 @@
 "use client";
 
 import { useCallback } from "react";
-import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
+import { GoogleOAuthProvider, useGoogleLogin } from "@react-oauth/google";
 import { useSocialLoginMutation } from "@/modules/auth/auth.service";
 import { env } from "@/env.mjs";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
+
+interface FacebookAuthResponse {
+  accessToken: string;
+}
+
+interface FacebookLoginResponse {
+  authResponse?: FacebookAuthResponse;
+}
+
+interface FacebookUserInfo {
+  email?: string;
+}
+
+interface FacebookSDK {
+  init: (config: {
+    appId?: string;
+    cookie: boolean;
+    xfbml: boolean;
+    version: string;
+  }) => void;
+  login: (
+    cb: (response: FacebookLoginResponse) => void,
+    opts: { scope: string }
+  ) => void;
+  api: (
+    path: string,
+    params: { fields: string },
+    cb: (userInfo: FacebookUserInfo) => void
+  ) => void;
+}
+
+declare global {
+  interface Window {
+    FB?: FacebookSDK;
+  }
+}
 
 interface Props {
   translations: {
@@ -13,14 +50,27 @@ interface Props {
     facebook: string;
     social_error: string;
   };
+  showGoogle?: boolean;
+  showFacebook?: boolean;
 }
 
-function SocialLoginInner({ translations: t }: Props) {
+interface InnerProps extends Props {
+  canUseGoogle: boolean;
+  canUseFacebook: boolean;
+  onGoogleClick?: () => void;
+}
+
+function SocialLoginInner({
+  translations: t,
+  canUseGoogle,
+  canUseFacebook,
+  onGoogleClick,
+}: InnerProps) {
   const socialLogin = useSocialLoginMutation();
   const facebookAppId = env.NEXT_PUBLIC_FACEBOOK_APP_ID;
 
   const handleFacebookLogin = useCallback(() => {
-    if (!facebookAppId) return;
+    if (!canUseFacebook) return;
 
     // Load Facebook SDK dynamically
     const fbScript = document.getElementById("facebook-jssdk");
@@ -37,7 +87,7 @@ function SocialLoginInner({ translations: t }: Props) {
     }
 
     function initFacebookLogin() {
-      const FB = (window as any).FB;
+      const FB = window.FB;
       if (!FB) return;
 
       FB.init({
@@ -48,11 +98,11 @@ function SocialLoginInner({ translations: t }: Props) {
       });
 
       FB.login(
-        (response: any) => {
+        (response: FacebookLoginResponse) => {
           if (response.authResponse) {
             const accessToken = response.authResponse.accessToken;
             // Get user email from FB
-            FB.api("/me", { fields: "email" }, (userInfo: any) => {
+            FB.api("/me", { fields: "email" }, (userInfo: FacebookUserInfo) => {
               if (userInfo.email) {
                 socialLogin.mutate({
                   email: userInfo.email,
@@ -66,7 +116,11 @@ function SocialLoginInner({ translations: t }: Props) {
         { scope: "email,public_profile" }
       );
     }
-  }, [facebookAppId, socialLogin]);
+  }, [canUseFacebook, facebookAppId, socialLogin]);
+
+  if (!canUseGoogle && !canUseFacebook) {
+    return null;
+  }
 
   return (
     <div className="space-y-4">
@@ -81,50 +135,45 @@ function SocialLoginInner({ translations: t }: Props) {
 
       {socialLogin.isError && (
         <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-          {(socialLogin.error as any)?.response?.data?.message || t.social_error}
+          {t.social_error}
         </div>
       )}
 
-      <div className="space-y-3">
-        {/* Google Login */}
-        <div className="flex justify-center [&_div]:!w-full">
-          <GoogleLogin
-            onSuccess={(credentialResponse) => {
-              if (credentialResponse.credential) {
-                // Decode JWT to get email
-                const payload = JSON.parse(
-                  atob(credentialResponse.credential.split(".")[1])
-                );
-                socialLogin.mutate({
-                  email: payload.email,
-                  access_token: credentialResponse.credential,
-                  type: "google",
-                });
-              }
-            }}
-            onError={() => {
-              // Error handled by mutation
-            }}
-            width="400"
-            text="signin_with"
-            shape="rectangular"
-            theme="outline"
-            size="large"
-          />
-        </div>
-
-        {/* Facebook Login */}
-        {facebookAppId && (
+      <div className="grid gap-3 sm:grid-cols-2">
+        {canUseGoogle && (
           <Button
             type="button"
             variant="outline"
-            className="w-full gap-2"
+            className="h-10 w-full gap-2"
+            onClick={onGoogleClick}
+            disabled={socialLogin.isPending}
+          >
+            <Image
+              src="/assets/icons/google.png"
+              alt="Google"
+              width={18}
+              height={18}
+              className="h-[18px] w-[18px]"
+            />
+            {t.google}
+          </Button>
+        )}
+
+        {canUseFacebook && (
+          <Button
+            type="button"
+            variant="outline"
+            className="h-10 w-full gap-2"
             onClick={handleFacebookLogin}
             disabled={socialLogin.isPending}
           >
-            <svg className="h-5 w-5" fill="#1877F2" viewBox="0 0 24 24">
-              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-            </svg>
+            <Image
+              src="/assets/icons/facebook.png"
+              alt="Facebook"
+              width={18}
+              height={18}
+              className="h-[18px] w-[18px]"
+            />
             {t.facebook}
           </Button>
         )}
@@ -133,17 +182,68 @@ function SocialLoginInner({ translations: t }: Props) {
   );
 }
 
+function SocialLoginWithGoogle(props: Props) {
+  const socialLogin = useSocialLoginMutation();
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      if (!tokenResponse.access_token) return;
+      const userInfoResp = await fetch(
+        "https://www.googleapis.com/oauth2/v3/userinfo",
+        {
+          headers: {
+            Authorization: `Bearer ${tokenResponse.access_token}`,
+          },
+        }
+      );
+      const userInfo = await userInfoResp.json();
+      if (userInfo?.email) {
+        socialLogin.mutate({
+          email: userInfo.email,
+          access_token: tokenResponse.access_token,
+          type: "google",
+        });
+      }
+    },
+    onError: () => {
+      // Error handled by mutation
+    },
+    scope: "email profile",
+  });
+
+  return (
+    <SocialLoginInner
+      {...props}
+      canUseGoogle={true}
+      canUseFacebook={props.showFacebook ?? true}
+      onGoogleClick={() => handleGoogleLogin()}
+    />
+  );
+}
+
 export function SocialLoginButtons(props: Props) {
   const googleClientId = env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+  const canUseGoogle = props.showGoogle ?? true;
+  const canUseFacebook = props.showFacebook ?? true;
 
-  // Don't render anything if no social login is configured
-  if (!googleClientId) {
+  if (!canUseGoogle && !canUseFacebook) {
     return null;
   }
 
+  // If Google client ID exists and Google is enabled, use OAuth provider
+  if (googleClientId && canUseGoogle) {
+    return (
+      <GoogleOAuthProvider clientId={googleClientId}>
+        <SocialLoginWithGoogle {...props} />
+      </GoogleOAuthProvider>
+    );
+  }
+
+  // Show buttons (Google visible but non-functional without client ID)
   return (
-    <GoogleOAuthProvider clientId={googleClientId}>
-      <SocialLoginInner {...props} />
-    </GoogleOAuthProvider>
+    <SocialLoginInner
+      {...props}
+      canUseGoogle={canUseGoogle}
+      canUseFacebook={canUseFacebook}
+    />
   );
 }

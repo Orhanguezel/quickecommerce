@@ -52,6 +52,8 @@ class ComSiteGeneralController extends Controller
                 'com_google_recaptcha_v3_secret_key' => com_option_get('com_google_recaptcha_v3_secret_key'),
                 'com_google_recaptcha_enable_disable' => com_option_get('com_google_recaptcha_enable_disable'),
                 'otp_login_enabled_disable' => com_option_get('otp_login_enabled_disable'),
+                'com_google_login_enabled' => com_option_get('com_google_login_enabled'),
+                'com_facebook_login_enabled' => com_option_get('com_facebook_login_enabled'),
                 'active_theme' => $config_theme ?? 'theme_one',
                 'com_openai_enable_disable' =>com_option_get('com_openai_enable_disable'),
                 'com_claude_enable_disable' =>com_option_get('com_claude_enable_disable'),

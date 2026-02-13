@@ -27,16 +27,22 @@ class LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
     final selectedLocale = languageProvider.appLocale.languageCode;
     final List<Language> languages = [
       Language(
-          name: "Türkçe",
-          flag: AssetsIcons.trFlag,
-          locale: "tr",
-          countryCode: "TR"
+          name: AppLocalizations.of(context)!.arabic,
+          flag: AssetsIcons.arFlag,
+          locale: "ar",
+          countryCode: "SA"
       ),
       Language(
           name: AppLocalizations.of(context)!.english,
           flag: AssetsIcons.usFlag,
           locale: "en",
           countryCode: "US"
+      ),
+      Language(
+          name: AppLocalizations.of(context)!.spanish,
+          flag: AssetsIcons.spain,
+          locale: "es",
+          countryCode: "ES"
       ),
     ];
     height=languages.length*50;

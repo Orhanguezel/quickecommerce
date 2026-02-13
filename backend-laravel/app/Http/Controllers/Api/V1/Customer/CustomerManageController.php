@@ -387,11 +387,11 @@ class CustomerManageController extends Controller
     public function customerProfile()
     {
         try {
-            if (!auth('sanctum')->check()) {
+            if (!auth('api_customer')->check()) {
                 return unauthorized_response();
             }
 
-            $userId = auth('sanctum')->id();
+            $userId = auth('api_customer')->id();
             $user = Customer::findOrFail($userId);
 
             // count unread customer notification
@@ -441,11 +441,11 @@ class CustomerManageController extends Controller
             ]);
         }
         try {
-            if (!auth('sanctum')->check()) {
+            if (!auth('api_customer')->check()) {
                 return unauthorized_response();
             }
 
-            $userId = auth('sanctum')->id();
+            $userId = auth('api_customer')->id();
             $user = Customer::findOrFail($userId);
 
             if ($user) {
@@ -512,7 +512,7 @@ class CustomerManageController extends Controller
 
     public function updateCustomerEmail(Request $request)
     {
-        if (!auth('sanctum')->check()) {
+        if (!auth('api_customer')->check()) {
             return unauthorized_response();
         }
         $validator = Validator::make($request->all(), [

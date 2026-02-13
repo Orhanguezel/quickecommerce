@@ -11,11 +11,13 @@ import {
   useAddAddressMutation,
   useCheckCouponMutation,
   usePlaceOrderMutation,
+  usePaymentGatewaysQuery,
 } from "@/modules/checkout/checkout.service";
 import type {
   CustomerAddress,
   PlaceOrderInput,
   CheckoutPackage,
+  PaymentGateway,
 } from "@/modules/checkout/checkout.type";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +43,15 @@ import {
   Tag,
 } from "lucide-react";
 
+const gatewayIconMap: Record<string, typeof CreditCard> = {
+  cash_on_delivery: Banknote,
+  paytr: CreditCard,
+  iyzico: CreditCard,
+  moka: CreditCard,
+  ziraatpay: CreditCard,
+  wallet: Wallet,
+};
+
 interface Props {
   translations: Record<string, string>;
 }
@@ -57,7 +68,7 @@ export function CheckoutClient({ translations: t }: Props) {
     null
   );
   const [showAddressForm, setShowAddressForm] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<string>("cash_on_delivery");
+  const [paymentMethod, setPaymentMethod] = useState<string>("");
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<{
     code: string;
@@ -85,6 +96,13 @@ export function CheckoutClient({ translations: t }: Props) {
   const addAddressMutation = useAddAddressMutation();
   const couponMutation = useCheckCouponMutation();
   const placeOrderMutation = usePlaceOrderMutation();
+  const { data: paymentGateways, isLoading: gatewaysLoading } =
+    usePaymentGatewaysQuery();
+
+  // Auto-select first payment gateway
+  if (paymentGateways && paymentGateways.length > 0 && !paymentMethod) {
+    setPaymentMethod(paymentGateways[0].slug);
+  }
 
   // Auto-select default address
   if (addresses && addresses.length > 0 && selectedAddressId === null) {
@@ -159,12 +177,20 @@ export function CheckoutClient({ translations: t }: Props) {
   };
 
   const handlePlaceOrder = () => {
+    // Validate cart items have required IDs
+    const invalidItems = items.filter((i) => !i.store_id || !i.variant_id);
+    if (invalidItems.length > 0) {
+      alert(
+        "Sepetinizdeki bazı ürünlerde eksik bilgi var. Lütfen ürünleri kaldırıp tekrar ekleyin."
+      );
+      return;
+    }
+
     // Group items by store
     const storeMap = new Map<number, typeof items>();
     for (const item of items) {
-      const storeId = item.store_id ?? 0;
-      if (!storeMap.has(storeId)) storeMap.set(storeId, []);
-      storeMap.get(storeId)!.push(item);
+      if (!storeMap.has(item.store_id!)) storeMap.set(item.store_id!, []);
+      storeMap.get(item.store_id!)!.push(item);
     }
 
     const packages: CheckoutPackage[] = [];
@@ -174,7 +200,7 @@ export function CheckoutClient({ translations: t }: Props) {
         delivery_option: "home_delivery",
         items: storeItems.map((item) => ({
           product_id: item.product_id,
-          variant_id: item.variant_id ?? 0,
+          variant_id: item.variant_id!,
           quantity: item.quantity,
           line_total_price: item.price * item.quantity,
         })),
@@ -184,7 +210,7 @@ export function CheckoutClient({ translations: t }: Props) {
     const orderData: PlaceOrderInput = {
       shipping_address_id: selectedAddressId ?? undefined,
       currency_code: "TRY",
-      payment_gateway: paymentMethod as "cash_on_delivery" | "stripe" | "wallet",
+      payment_gateway: paymentMethod,
       order_notes: orderNotes || undefined,
       order_amount: total,
       coupon_code: appliedCoupon?.code,
@@ -442,31 +468,45 @@ export function CheckoutClient({ translations: t }: Props) {
               {t.payment_method}
             </h2>
 
-            <div className="grid gap-3 sm:grid-cols-3">
-              {[
-                {
-                  key: "cash_on_delivery",
-                  label: t.cash_on_delivery,
-                  icon: Banknote,
-                },
-                { key: "stripe", label: t.stripe, icon: CreditCard },
-                { key: "wallet", label: t.wallet, icon: Wallet },
-              ].map(({ key, label, icon: Icon }) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setPaymentMethod(key)}
-                  className={`flex items-center gap-3 rounded-lg border p-4 transition-colors ${
-                    paymentMethod === key
-                      ? "border-primary bg-primary/5 ring-1 ring-primary"
-                      : "hover:border-primary/50"
-                  }`}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span className="text-sm font-medium">{label}</span>
-                </button>
-              ))}
-            </div>
+            {gatewaysLoading ? (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                {t.loading}
+              </div>
+            ) : !paymentGateways || paymentGateways.length === 0 ? (
+              <p className="text-muted-foreground">{t.no_payment_methods}</p>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-3">
+                {paymentGateways.map((gw: PaymentGateway) => {
+                  const IconComponent = gatewayIconMap[gw.slug] ?? CreditCard;
+                  return (
+                    <button
+                      key={gw.slug}
+                      type="button"
+                      onClick={() => setPaymentMethod(gw.slug)}
+                      className={`flex items-center gap-3 rounded-lg border p-4 transition-colors ${
+                        paymentMethod === gw.slug
+                          ? "border-primary bg-primary/5 ring-1 ring-primary"
+                          : "hover:border-primary/50"
+                      }`}
+                    >
+                      {gw.image_url ? (
+                        <Image
+                          src={gw.image_url}
+                          alt={gw.name}
+                          width={24}
+                          height={24}
+                          className="h-6 w-6 object-contain"
+                        />
+                      ) : (
+                        <IconComponent className="h-5 w-5" />
+                      )}
+                      <span className="text-sm font-medium">{gw.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </section>
 
           {/* Order Notes */}
@@ -599,6 +639,7 @@ export function CheckoutClient({ translations: t }: Props) {
                 onClick={handlePlaceOrder}
                 disabled={
                   placeOrderMutation.isPending ||
+                  !paymentMethod ||
                   (!selectedAddressId && paymentMethod !== "takeaway")
                 }
               >

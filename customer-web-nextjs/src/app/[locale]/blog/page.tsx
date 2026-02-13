@@ -7,18 +7,30 @@ import { BlogListClient } from "./blog-list-client";
 
 interface Props {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ page?: string; category_id?: string }>;
+  searchParams: Promise<{
+    page?: string;
+    category_id?: string;
+    search?: string;
+    sort?: string;
+  }>;
 }
 
-async function getBlogs(locale: string, page: number, categoryId?: string) {
+async function getBlogs(
+  locale: string,
+  page: number,
+  categoryId?: string,
+  search?: string,
+  sort?: string
+) {
   try {
     const res = await fetchAPI<any>(
       API_ENDPOINTS.BLOGS,
       {
         per_page: 12,
         page,
-        sort: "desc",
+        sort: sort || "desc",
         ...(categoryId ? { category_id: categoryId } : {}),
+        ...(search ? { search } : {}),
       },
       locale
     );
@@ -64,7 +76,7 @@ export default async function BlogPage({ params, searchParams }: Props) {
   const sp = await searchParams;
   const page = Number(sp.page) || 1;
 
-  const data = await getBlogs(locale, page, sp.category_id);
+  const data = await getBlogs(locale, page, sp.category_id, sp.search, sp.sort);
   const t = await getTranslations({ locale, namespace: "common" });
   const blogT = await getTranslations({ locale, namespace: "blog" });
 
@@ -95,14 +107,19 @@ export default async function BlogPage({ params, searchParams }: Props) {
       <BlogListClient
         posts={data.posts}
         totalPages={data.totalPages}
-        totalPosts={data.totalPosts}
         currentPage={page}
         currentCategoryId={sp.category_id}
+        currentSearch={sp.search}
+        currentSort={sp.sort}
         translations={{
           blog: blogT("blog"),
           blog_subtitle: blogT("blog_subtitle"),
           read_more: blogT("read_more"),
           no_posts: blogT("no_posts"),
+          search_placeholder: blogT("search_placeholder"),
+          sort_newest: blogT("sort_newest"),
+          sort_oldest: blogT("sort_oldest"),
+          sort_popular: blogT("sort_popular"),
           previous: t("previous"),
           next: t("next"),
           home: t("home"),

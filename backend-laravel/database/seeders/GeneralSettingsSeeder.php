@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Media;
 use App\Models\SettingOption;
 use App\Models\Translation;
 use Illuminate\Database\Seeder;
@@ -54,6 +55,54 @@ class GeneralSettingsSeeder extends Seeder
         }
 
         $this->command->info('GeneralSettingsSeeder: Root settings (TR) seeded.');
+
+        // ── Logo & Favicon (Media records + setting_options) ────────────
+        if (Schema::hasTable('media')) {
+            $mediaFiles = [
+                'favicon' => [
+                    'path'     => 'favicon-512x5121770358150.png',
+                    'name'     => 'favicon-512x512',
+                    'format'   => 'png',
+                    'alt_text' => 'Sportoonline Favicon',
+                ],
+                'logo' => [
+                    'path'     => 'logo-dark1770358220.png',
+                    'name'     => 'logo-dark',
+                    'format'   => 'png',
+                    'alt_text' => 'Sportoonline Logo',
+                ],
+                'logo_light' => [
+                    'path'     => 'logo_light.png',
+                    'name'     => 'logo-light',
+                    'format'   => 'png',
+                    'alt_text' => 'Sportoonline Logo Light',
+                ],
+            ];
+
+            $mediaIds = [];
+            foreach ($mediaFiles as $key => $attrs) {
+                $media = Media::updateOrCreate(
+                    ['path' => $attrs['path']],
+                    collect($attrs)->except('path')->toArray(),
+                );
+                $mediaIds[$key] = (string) $media->id;
+            }
+
+            $logoSettings = [
+                'com_site_logo'       => $mediaIds['logo'],
+                'com_site_white_logo' => $mediaIds['logo_light'],
+                'com_site_favicon'    => $mediaIds['favicon'],
+            ];
+
+            foreach ($logoSettings as $key => $value) {
+                SettingOption::updateOrCreate(
+                    ['option_name' => $key],
+                    ['option_value' => $value],
+                );
+            }
+
+            $this->command->info('GeneralSettingsSeeder: Logo & favicon media records seeded.');
+        }
 
         // ── English translations ──────────────────────────────────────────
         if (!Schema::hasTable('translations')) {

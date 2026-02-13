@@ -38,8 +38,6 @@ import '../my_orders/order_details_screen.dart';
 import '../my_wallet/my_wallet.dart';
 import '../notification/notification_screen.dart';
 import '../profile/profile_edite.dart';
-import '../coupon_list.dart';
-import '../settings/about_us.dart';
 import '../settings/contact_us.dart';
 import '../settings/privacy_policy.dart';
 import '../settings/settings_web.dart';
@@ -193,10 +191,6 @@ class _MenuAndPageState extends State<MenuAndPage> {
               const SettingsWeb()
                   :homeCon.menuName=='Contact'?
               const ContactUs()
-                  :homeCon.menuName=='About'?
-              const AboutUs()
-                  :homeCon.menuName=='Coupon'?
-              const CouponList()
                   : homeCon.menuName=='ProfileEdit'?
                ProfileEdite(
                 firstName:firstName,

@@ -1,8 +1,9 @@
 "use client";
 
-import { Link } from "@/i18n/routing";
+import { useState } from "react";
+import { Link, useRouter } from "@/i18n/routing";
 import Image from "next/image";
-import { ChevronRight, Calendar, FileText } from "lucide-react";
+import { ChevronRight, FileText, Search, SlidersHorizontal } from "lucide-react";
 import type { BlogPost } from "@/modules/blog/blog.type";
 
 interface BlogListTranslations {
@@ -10,6 +11,10 @@ interface BlogListTranslations {
   blog_subtitle: string;
   read_more: string;
   no_posts: string;
+  search_placeholder: string;
+  sort_newest: string;
+  sort_oldest: string;
+  sort_popular: string;
   previous: string;
   next: string;
   home: string;
@@ -18,32 +23,54 @@ interface BlogListTranslations {
 interface BlogListClientProps {
   posts: BlogPost[];
   totalPages: number;
-  totalPosts: number;
   currentPage: number;
   currentCategoryId?: string;
+  currentSearch?: string;
+  currentSort?: string;
   translations: BlogListTranslations;
 }
 
 export function BlogListClient({
   posts,
   totalPages,
-  totalPosts,
   currentPage,
   currentCategoryId,
+  currentSearch,
+  currentSort,
   translations: t,
 }: BlogListClientProps) {
-  function buildPageUrl(page: number) {
+  const router = useRouter();
+  const [searchValue, setSearchValue] = useState(currentSearch || "");
+
+  function buildUrl(overrides: Record<string, string | undefined>) {
     const params = new URLSearchParams();
-    if (page > 1) params.set("page", String(page));
-    if (currentCategoryId) params.set("category_id", currentCategoryId);
+    const page = overrides.page ?? (currentPage > 1 ? String(currentPage) : undefined);
+    const category = overrides.category_id ?? currentCategoryId;
+    const search = overrides.search !== undefined ? overrides.search : currentSearch;
+    const sort = overrides.sort !== undefined ? overrides.sort : currentSort;
+
+    if (page && page !== "1") params.set("page", page);
+    if (category) params.set("category_id", category);
+    if (search) params.set("search", search);
+    if (sort && sort !== "desc") params.set("sort", sort);
+
     const query = params.toString();
     return `/blog${query ? `?${query}` : ""}`;
+  }
+
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    router.push(buildUrl({ search: searchValue || undefined, page: "1" }));
+  }
+
+  function handleSortChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    router.push(buildUrl({ sort: e.target.value, page: "1" }));
   }
 
   return (
     <div className="container py-6">
       {/* Breadcrumb */}
-      <nav className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground">
+      <nav className="mb-6 flex items-center gap-1.5 text-sm text-muted-foreground">
         <Link href="/" className="hover:text-foreground">
           {t.home}
         </Link>
@@ -51,17 +78,44 @@ export function BlogListClient({
         <span className="text-foreground">{t.blog}</span>
       </nav>
 
-      {/* Title */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight">{t.blog}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{t.blog_subtitle}</p>
+      {/* Header Bar — icon + title | search + sort */}
+      <div className="mb-6 flex flex-col gap-4 rounded-lg border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2.5">
+          <SlidersHorizontal className="h-5 w-5 text-muted-foreground" />
+          <h1 className="text-xl font-bold tracking-tight">{t.blog}</h1>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {/* Search */}
+          <form onSubmit={handleSearch} className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="text"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              placeholder={t.search_placeholder}
+              className="h-9 w-48 rounded-md border bg-background pl-9 pr-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary"
+            />
+          </form>
+
+          {/* Sort */}
+          <select
+            value={currentSort || "desc"}
+            onChange={handleSortChange}
+            className="h-9 rounded-md border bg-background px-3 text-sm outline-none transition-colors focus:border-primary"
+          >
+            <option value="desc">{t.sort_newest}</option>
+            <option value="asc">{t.sort_oldest}</option>
+            <option value="popular">{t.sort_popular}</option>
+          </select>
+        </div>
       </div>
 
-      {/* Posts Grid */}
+      {/* Posts Grid — 4 columns */}
       {posts.length > 0 ? (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {posts.map((post) => (
-            <BlogCard key={post.id} post={post} readMore={t.read_more} />
+            <BlogCard key={post.id} post={post} />
           ))}
         </div>
       ) : (
@@ -76,7 +130,7 @@ export function BlogListClient({
         <nav className="mt-8 flex items-center justify-center gap-2">
           {currentPage > 1 && (
             <Link
-              href={buildPageUrl(currentPage - 1)}
+              href={buildUrl({ page: String(currentPage - 1) })}
               className="rounded-md border px-3 py-2 text-sm hover:bg-muted"
             >
               {t.previous}
@@ -98,7 +152,7 @@ export function BlogListClient({
             return (
               <Link
                 key={page}
-                href={buildPageUrl(page)}
+                href={buildUrl({ page: String(page) })}
                 className={`rounded-md border px-3 py-2 text-sm ${
                   page === currentPage
                     ? "bg-primary text-primary-foreground"
@@ -112,7 +166,7 @@ export function BlogListClient({
 
           {currentPage < totalPages && (
             <Link
-              href={buildPageUrl(currentPage + 1)}
+              href={buildUrl({ page: String(currentPage + 1) })}
               className="rounded-md border px-3 py-2 text-sm hover:bg-muted"
             >
               {t.next}
@@ -124,56 +178,70 @@ export function BlogListClient({
   );
 }
 
-function BlogCard({ post, readMore }: { post: BlogPost; readMore: string }) {
+/* ── Category color mapping ── */
+const categoryColors: Record<string, string> = {};
+const palette = [
+  "bg-emerald-100 text-emerald-700",
+  "bg-sky-100 text-sky-700",
+  "bg-rose-100 text-rose-700",
+  "bg-violet-100 text-violet-700",
+  "bg-amber-100 text-amber-700",
+  "bg-teal-100 text-teal-700",
+  "bg-pink-100 text-pink-700",
+  "bg-indigo-100 text-indigo-700",
+];
+let colorIndex = 0;
+
+function getCategoryColor(category: string): string {
+  if (!categoryColors[category]) {
+    categoryColors[category] = palette[colorIndex % palette.length];
+    colorIndex++;
+  }
+  return categoryColors[category];
+}
+
+/* ── Blog Card ── */
+function BlogCard({ post }: { post: BlogPost }) {
   return (
     <Link
       href={`/blog/${post.slug}`}
-      className="group overflow-hidden rounded-lg border transition-shadow hover:shadow-md"
+      className="group overflow-hidden rounded-lg border bg-card transition-shadow hover:shadow-md"
     >
       {/* Image */}
-      <div className="relative aspect-[16/9] bg-muted">
+      <div className="relative aspect-[16/10] overflow-hidden bg-muted">
         {post.image_url ? (
           <Image
             src={post.image_url}
             alt={post.title}
             fill
-            className="object-cover transition-transform group-hover:scale-105"
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
           <div className="flex h-full items-center justify-center">
             <FileText className="h-10 w-10 text-muted-foreground/30" />
           </div>
         )}
-        {post.category && (
-          <span className="absolute left-3 top-3 rounded bg-primary/90 px-2 py-0.5 text-xs font-medium text-primary-foreground">
-            {post.category}
-          </span>
-        )}
       </div>
 
       {/* Content */}
       <div className="p-4">
-        <div className="mb-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Calendar className="h-3 w-3" />
-          <span>{post.created_at}</span>
-        </div>
+        {/* Category badge */}
+        {post.category && (
+          <span
+            className={`mb-2.5 inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${getCategoryColor(post.category)}`}
+          >
+            {post.category}
+          </span>
+        )}
 
-        <h2 className="mb-2 line-clamp-2 font-semibold leading-tight group-hover:text-primary">
+        {/* Title */}
+        <h2 className="mb-2 line-clamp-2 text-sm font-semibold leading-snug group-hover:text-primary">
           {post.title}
         </h2>
 
-        <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">
-          {stripHtml(post.description)}
-        </p>
-
-        <span className="text-sm font-medium text-primary">
-          {readMore} →
-        </span>
+        {/* Date */}
+        <p className="text-xs text-muted-foreground">{post.created_at}</p>
       </div>
     </Link>
   );
-}
-
-function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, "").slice(0, 200);
 }

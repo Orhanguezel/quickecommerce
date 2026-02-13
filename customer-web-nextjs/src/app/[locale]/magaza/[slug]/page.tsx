@@ -142,6 +142,7 @@ export default async function StoreDetailPage({ params }: Props) {
         store={store}
         translations={{
           stores: storeT("stores"),
+          details: storeT("details"),
           all_products: storeT("all_products"),
           featured_products: storeT("featured_products"),
           products: t("products"),
@@ -151,6 +152,8 @@ export default async function StoreDetailPage({ params }: Props) {
           closed_day: storeT("closed_day"),
           contact: storeT("contact"),
           member_since: storeT("member_since"),
+          started_from: storeT("started_from"),
+          reviews: storeT("reviews"),
           no_products: storeT("no_products"),
           home: t("home"),
           add_to_cart: productT("add_to_cart"),

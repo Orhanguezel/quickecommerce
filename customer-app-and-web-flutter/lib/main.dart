@@ -17,7 +17,6 @@ import 'controller/provider/thyme_provider.dart';
 import 'data/sirvice/lokal_database_repository.dart';
 import 'data/sirvice/notification_reposytory.dart';
 import 'l10n/app_localizations.dart';
-import 'widgets/maintenance_gate.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,24 +25,24 @@ Future<void> main() async {
   await Hive.initFlutter();
   await CartDatabaseHelpers.init();
 
-  // ------------------------------------------------------------
-  // Firebase (LOCAL DEV SAFE)
-  // - Web config placeholder varsa crash olur.
-  // - Şimdilik web'de Firebase init'i SKIP ediyoruz.
-  // - Mobile'da dosyalar varsa (google-services / plist) init çalışır.
-  // ------------------------------------------------------------
-  try {
-    if (kIsWeb) {
-      debugPrint('[BOOT] Firebase skipped on Web (no config in local dev).');
-    } else {
-      await Firebase.initializeApp();
-      debugPrint('[BOOT] Firebase initialized (non-web).');
-    }
-  } catch (e) {
-    debugPrint('[BOOT] Firebase init skipped: $e');
+  // Initialize Firebase
+  if (kIsWeb) {
+    await Firebase.initializeApp(
+      options: const FirebaseOptions(
+        apiKey: "customize_your_api_key",
+        authDomain: "customize_your_auth_domain",
+        projectId: "customize_your_project_id",
+        storageBucket: "customize_your_store_bucket",
+        messagingSenderId: "customize_your_message_sender_id",
+        appId: "customize_your_app_id",
+        measurementId: "customize_your_measurement_id",
+      ),
+    );
+  } else {
+    await Firebase.initializeApp();
   }
 
-  // Disable landscape orientation (web'de etkisi yok)
+  // Disable landscape orientation
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -71,26 +70,13 @@ Future<void> main() async {
     ),
   );
 
-  // ------------------------------------------------------------
-  // Stripe (LOCAL DEV SAFE)
-  // - Publishable key placeholder ise init patlatabilir.
-  // - Key girene kadar Stripe init'i skip ediyoruz.
-  // ------------------------------------------------------------
+  // Initialize Stripe settings after first frame
   WidgetsBinding.instance.addPostFrameCallback((_) async {
     try {
-      final pk = ApiUrls.stripePublishableKey.trim();
-      final looksValid = pk.startsWith('pk_') || pk.startsWith('pk_test_') || pk.startsWith('pk_live_');
-
-      if (!looksValid) {
-        debugPrint('[BOOT] Stripe skipped (publishable key not set).');
-        return;
-      }
-
-      Stripe.publishableKey = pk;
+      Stripe.publishableKey = ApiUrls.stripePublishableKey;
       await Stripe.instance.applySettings();
-      debugPrint('[BOOT] Stripe initialized.');
     } catch (e) {
-      debugPrint('[BOOT] Stripe initialization failed (skipped): $e');
+      debugPrint("Stripe initialization failed: $e");
     }
   });
 }
@@ -135,13 +121,16 @@ class _MyAppState extends State<MyApp> {
           return Consumer<ThemeProvider>(
             builder: (context, model, _) {
               final brightness = MediaQuery.of(context).platformBrightness;
-              final themeMode =
-                  brightness == Brightness.dark ? ThemeMode.dark : ThemeMode.light;
+              final themeMode = brightness == Brightness.dark
+                  ? ThemeMode.dark
+                  : ThemeMode.light;
 
               return MaterialApp.router(
                 debugShowCheckedModeBanner: false,
-                routeInformationProvider: AppRoutes.router.routeInformationProvider,
-                routeInformationParser: AppRoutes.router.routeInformationParser,
+                routeInformationProvider:
+                AppRoutes.router.routeInformationProvider,
+                routeInformationParser:
+                AppRoutes.router.routeInformationParser,
                 routerDelegate: AppRoutes.router.routerDelegate,
                 locale: model.appLocale,
                 localizationsDelegates: const [
@@ -151,8 +140,9 @@ class _MyAppState extends State<MyApp> {
                   GlobalCupertinoLocalizations.delegate,
                 ],
                 supportedLocales: const [
-                  Locale('tr'),
-                  Locale('en'),
+                  Locale('en'), // English
+                  Locale('es'), // Spanish
+                  Locale('ar'), // Arabic
                 ],
                 builder: (context, widget) {
                   ScreenUtil.init(
@@ -163,9 +153,7 @@ class _MyAppState extends State<MyApp> {
                     data: MediaQuery.of(context).copyWith(
                       textScaler: const TextScaler.linear(1.0),
                     ),
-                    child: MaintenanceGate(
-                      child: widget ?? const SizedBox.shrink(),
-                    ),
+                    child: widget!,
                   );
                 },
                 themeMode: themeMode,
@@ -176,6 +164,7 @@ class _MyAppState extends State<MyApp> {
           );
         }
 
+        // Show a simple loading indicator while fetching language
         return const MaterialApp(
           debugShowCheckedModeBanner: false,
           home: Scaffold(

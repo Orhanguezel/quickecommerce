@@ -44,6 +44,20 @@ export interface SocialLoginInput {
   type: "google" | "facebook";
 }
 
+export interface OtpLoginSendInput {
+  email: string;
+}
+
+export interface OtpLoginVerifyInput {
+  email: string;
+  otp: string;
+}
+
+export interface OtpLoginSendResponse {
+  status?: boolean;
+  message?: string;
+}
+
 export interface LoginResponse {
   token: string;
   expires_at: string;

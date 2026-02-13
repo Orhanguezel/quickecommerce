@@ -1,8 +1,5 @@
 class ApiUrls{
-  static const baseUrlMart = String.fromEnvironment(
-    'BASE_URL',
-    defaultValue: 'https://sportoonline.com',
-  );
+  static const baseUrlMart = 'customize_your_domain';
   static String registration() => '$baseUrlMart/api/v1/customer/registration';
   static String loginUrl() => '$baseUrlMart/api/v1/customer/login';
   static String refreshTokenUrl() => '$baseUrlMart/api/v1/customer/refresh-token';
@@ -18,7 +15,7 @@ class ApiUrls{
   static String resendOTPUrl () => '$baseUrlMart/api/v1/otp-login/resend';
 
 
-  static String logoutUrl () => '$baseUrlMart/api/logout';
+  static String logoutUrl () => '$baseUrlMart/api/v1/logout';
   // step 1
   static String forgetUrl () => '$baseUrlMart/api/v1/customer/forget-password';
   //step 2
@@ -60,7 +57,6 @@ class ApiUrls{
   static String topRatedUrl() => '$baseUrlMart/api/v1/top-rated-products';
   static String productSuggestionUrl() => '$baseUrlMart/api/v1/product-suggestion';
   static String keywordSuggestionUrl() => '$baseUrlMart/api/v1/keyword-suggestion';
-  static String menuListUrl() => '$baseUrlMart/api/v1/menu';
   static String popularProductsUrl() => '$baseUrlMart/api/v1/popular-products';
   static String featuredProductsUrl() => '$baseUrlMart/api/v1/featured-products';
   static String wishListUrl() => '$baseUrlMart/api/v1/customer/wish-list/list';
@@ -72,8 +68,6 @@ class ApiUrls{
   static String bannerListUrl() => '$baseUrlMart/api/v1/banner-list';
   static String flashDealsUrl() => '$baseUrlMart/api/v1/flash-deals';
   static String flashDealProductsUrl() => '$baseUrlMart/api/v1/flash-deal-products';
-  static String blogListUrl() => '$baseUrlMart/api/v1/blogs';
-  static String blogDetailUrl(String slug) => '$baseUrlMart/api/v1/blog/$slug';
 
   static String addressAddUrl() => '$baseUrlMart/api/v1/customer/address/add';
   static String addressListUrl() => '$baseUrlMart/api/v1/customer/address/customer-addresses';

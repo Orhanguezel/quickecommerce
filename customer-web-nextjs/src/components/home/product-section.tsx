@@ -48,7 +48,7 @@ export function ProductSection({
         {/* Products Scroll */}
         <div
           ref={scrollRef}
-          className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide"
+          className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-hide"
         >
           {products.map((product) => (
             <ProductCard key={product.id} product={product} />

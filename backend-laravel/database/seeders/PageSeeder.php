@@ -124,7 +124,7 @@ class PageSeeder extends Seeder
     {
         return [
             [
-                'slug' => 'kullanim-kosullari',
+                'slug' => 'terms',
                 'theme_name' => 'default',
                 'page_type' => 'dynamic_page',
                 'status' => 'publish',
@@ -146,7 +146,7 @@ class PageSeeder extends Seeder
                 ],
             ],
             [
-                'slug' => 'gizlilik-politikasi',
+                'slug' => 'privacy',
                 'theme_name' => 'default',
                 'page_type' => 'dynamic_page',
                 'status' => 'publish',
@@ -288,7 +288,7 @@ class PageSeeder extends Seeder
         return [
             // ── About Page ──
             [
-                'slug' => 'hakkimizda',
+                'slug' => 'about',
                 'theme_name' => 'theme_two',
                 'page_type' => 'dynamic_page',
                 'status' => 'publish',
@@ -402,7 +402,7 @@ class PageSeeder extends Seeder
 
             // ── Contact Page ──
             [
-                'slug' => 'iletisim',
+                'slug' => 'contact',
                 'theme_name' => 'theme_two',
                 'page_type' => 'dynamic_page',
                 'status' => 'publish',

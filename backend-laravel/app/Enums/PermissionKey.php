@@ -115,6 +115,8 @@ enum PermissionKey: string
     case ADMIN_BLOG_MANAGE = '/admin/blog/posts';
     case ADMIN_CHAT_SETTINGS = '/admin/chat/settings';
     case ADMIN_CHAT_MANAGE = '/admin/chat/manage';
+    case ADMIN_AI_CHAT_SETTINGS = '/admin/ai-chat/settings';
+    case ADMIN_AI_CHAT_KNOWLEDGE = '/admin/ai-chat/knowledge';
     case ADMIN_SMS_GATEWAY_SETTINGS = '/admin/sms-provider/settings';
     case ADMIN_TICKETS_DEPARTMENT = '/admin/ticket/department';
     case ADMIN_SUPPORT_TICKETS_MANAGE = '/admin/support-ticket/list';

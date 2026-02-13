@@ -26,11 +26,18 @@
     --ring: 217 91% 60%;
     --radius: 0.5rem;
 
-    /* Header dynamic theme colors */
-    --header-topbar-bg: 222 84% 5%;
+    /* Header colors — fallbacks, overridden by ThemeProvider from DB */
+    --header-topbar-bg: 213 89% 39%; /* ROW 1: #0E5ABC */
     --header-topbar-text: 0 0% 100%;
-    --header-nav-bg: 217 91% 60%;
-    --header-nav-text: 0 0% 100%;
+    --header-main-bg: 0 0% 100%; /* ROW 2: #FFFFFF */
+    --header-nav-bg: 216 75% 97%; /* ROW 3: #F4F8FE */
+    --header-nav-text: 215 25% 17%; /* ROW 3 text: #1E293B */
+    --header-nav-button-bg: 213 89% 39%; /* All Categories: #0E5ABC */
+    --header-nav-button-text: 0 0% 100%;
+
+    /* Footer colors — fallbacks, overridden by ThemeProvider from DB */
+    --footer-background: 234 79% 24%; /* #0D166D */
+    --footer-foreground: 0 0% 100%;
   }
 
   .dark {
@@ -53,6 +60,19 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
+
+    /* Header colors — fallbacks for dark, overridden by ThemeProvider */
+    --header-topbar-bg: 214 50% 8%; /* ROW 1: #0A121C */
+    --header-topbar-text: 0 0% 100%;
+    --header-main-bg: 216 41% 17%; /* ROW 2: #152841 */
+    --header-nav-bg: 216 41% 17%; /* ROW 3: #152841 */
+    --header-nav-text: 214 32% 91%; /* ROW 3 text: #E2E8F0 */
+    --header-nav-button-bg: 213 52% 24%; /* #1E3A5F */
+    --header-nav-button-text: 0 0% 100%;
+
+    /* Footer colors — fallbacks for dark, overridden by ThemeProvider */
+    --footer-background: 212 56% 15%; /* #11253C */
+    --footer-foreground: 0 0% 100%;
   }
 }
 
@@ -72,5 +92,36 @@
   }
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Filter sidebar: thin scrollbar, visible on hover */
+  .filter-sidebar-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+  .filter-sidebar-scroll:hover {
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+  .filter-sidebar-scroll::-webkit-scrollbar {
+    width: 4px;
+  }
+  .filter-sidebar-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .filter-sidebar-scroll::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    border-radius: 4px;
+  }
+  .filter-sidebar-scroll:hover::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border));
+  }
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
   }
 }

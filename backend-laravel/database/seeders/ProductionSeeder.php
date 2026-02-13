@@ -43,6 +43,7 @@ class ProductionSeeder extends Seeder
         $this->call(PaymentGatewaySeeder::class);
         $this->call(UnitSeeder::class);
         $this->call(LocationSeeder::class);
+        $this->call(AiChatSeeder::class);
 
         $this->command->info('✅ Production seeders completed successfully!');
         $this->command->info('ℹ️  Safe to run on every deployment.');

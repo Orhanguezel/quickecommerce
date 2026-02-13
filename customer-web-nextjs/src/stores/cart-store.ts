@@ -18,6 +18,7 @@ export interface CartItem {
 
 interface CartState {
   items: CartItem[];
+  isDrawerOpen: boolean;
   addItem: (item: CartItem) => void;
   removeItem: (id: number) => void;
   updateQuantity: (id: number, quantity: number) => void;
@@ -25,6 +26,8 @@ interface CartState {
   totalItems: () => number;
   totalPrice: () => number;
   getItemQuantity: (productId: number, variantId?: number) => number;
+  openDrawer: () => void;
+  closeDrawer: () => void;
 }
 
 function getCartKey(item: { product_id: number; variant_id?: number }) {
@@ -37,6 +40,10 @@ export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
+      isDrawerOpen: false,
+
+      openDrawer: () => set({ isDrawerOpen: true }),
+      closeDrawer: () => set({ isDrawerOpen: false }),
 
       addItem: (item) =>
         set((state) => {
@@ -87,6 +94,9 @@ export const useCartStore = create<CartState>()(
     }),
     {
       name: "cart-storage",
+      partialize: (state) => ({
+        items: state.items,
+      }),
     }
   )
 );

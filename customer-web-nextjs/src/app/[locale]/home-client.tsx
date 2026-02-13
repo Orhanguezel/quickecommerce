@@ -128,14 +128,14 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
       {/* Top Stores */}
       {homeConfig.isTopStoresEnabled && (
         <TopStoresSection
-          title={homeConfig.topStoresTitle || t.top_stores_title || "Popüler Mağazalar"}
+          title={homeConfig.topStoresTitle || t.top_stores_title}
         />
       )}
 
       {/* Newsletter */}
       {homeConfig.isNewsletterEnabled && (
         <NewsletterSection
-          title={homeConfig.newsletterTitle || t.newsletter_title || "Bülten"}
+          title={homeConfig.newsletterTitle || t.newsletter_title}
           subtitle={homeConfig.newsletterSubtitle || t.newsletter_subtitle}
         />
       )}

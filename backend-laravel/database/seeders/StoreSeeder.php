@@ -25,7 +25,7 @@ class StoreSeeder extends Seeder
                     'meta_title' => 'Supplementler - Turkey\'s Largest Sports Nutrition Store',
                     'meta_description' => 'Whey protein, creatine, BCAA and all sports supplements. Hardline, BigJoy, Olimp, Weider and more.',
                 ],
-                'store_type' => null,
+                'store_type' => 'medicine',
                 'phone' => '2122800000',
                 'email' => 'info@supplementler.com',
                 'latitude' => '41.1082',
@@ -49,7 +49,7 @@ class StoreSeeder extends Seeder
                     'meta_title' => 'Protein34 - Sports Nutrition and Supplements',
                     'meta_description' => 'BigJoy, Hardline, Kingsize and domestic sports nutrition products. Reliable shopping.',
                 ],
-                'store_type' => null,
+                'store_type' => 'medicine',
                 'phone' => '2164500034',
                 'email' => 'info@protein34.com',
                 'latitude' => '40.9833',
@@ -75,7 +75,7 @@ class StoreSeeder extends Seeder
                     'meta_title' => 'Superstacy - Women\'s Fitness and Sports Wear',
                     'meta_description' => 'Sports leggings, sports bras, crop tops. Designed for freedom of movement.',
                 ],
-                'store_type' => null,
+                'store_type' => 'clothing',
                 'phone' => '2122300000',
                 'email' => 'info@superstacy.com.tr',
                 'latitude' => '41.0500',
@@ -101,7 +101,7 @@ class StoreSeeder extends Seeder
                     'meta_title' => 'Orcamp - Turkey\'s Camping Equipment Brand',
                     'meta_description' => 'Camping tents, sleeping bags and outdoor equipment with 25 years of experience. Domestic production.',
                 ],
-                'store_type' => null,
+                'store_type' => 'bags',
                 'phone' => '2163800000',
                 'email' => 'info@orcamp.com.tr',
                 'latitude' => '40.9167',
@@ -125,7 +125,7 @@ class StoreSeeder extends Seeder
                     'meta_title' => 'Kutupayisi - Outdoor Equipment and Nature Sports',
                     'meta_description' => 'Stanley thermos, trekking shoes, camping equipment. Premium outdoor brands.',
                 ],
-                'store_type' => null,
+                'store_type' => 'bags',
                 'phone' => '2122600000',
                 'email' => 'info@kutupayisi.com',
                 'latitude' => '41.0433',
@@ -151,7 +151,7 @@ class StoreSeeder extends Seeder
                     'meta_title' => 'Decathlon - Sports Equipment for All Levels',
                     'meta_description' => 'Equipment and clothing for over 80 sports. Quality products at affordable prices.',
                 ],
-                'store_type' => null,
+                'store_type' => 'clothing',
                 'phone' => '2125000000',
                 'email' => 'info@decathlon.com.tr',
                 'latitude' => '41.0400',
@@ -175,7 +175,7 @@ class StoreSeeder extends Seeder
                     'meta_title' => 'Intersport - Sports with World Brands',
                     'meta_description' => 'Nike, Adidas, Puma and more. Professional sports equipment.',
                 ],
-                'store_type' => null,
+                'store_type' => 'clothing',
                 'phone' => '2123800000',
                 'email' => 'info@intersport.com.tr',
                 'latitude' => '41.0600',
@@ -201,7 +201,7 @@ class StoreSeeder extends Seeder
                     'meta_title' => 'Sports Bookstore - Sports and Outdoor Books',
                     'meta_description' => 'Sports, fitness, outdoor, adventure and mountaineering books. Motivation and self-improvement works.',
                 ],
-                'store_type' => null,
+                'store_type' => 'books',
                 'phone' => '2122450000',
                 'email' => 'info@sporkitapligi.com',
                 'latitude' => '41.0331',
@@ -215,6 +215,10 @@ class StoreSeeder extends Seeder
         ];
 
         DB::transaction(function () use ($stores) {
+            // Satıcı kullanıcısını bul (UserSeeder'dan)
+            $sellerUser = DB::table('users')->where('email', 'seller@sportoonline.com')->first();
+            $sellerId = $sellerUser ? $sellerUser->id : 1;
+
             // Mevcut store ve translationları temizle
             DB::table('translations')
                 ->where('translatable_type', 'App\\Models\\Store')
@@ -226,7 +230,7 @@ class StoreSeeder extends Seeder
 
                 $storeId = DB::table('stores')->insertGetId([
                     'area_id' => 1,
-                    'store_seller_id' => 1,
+                    'store_seller_id' => $sellerId,
                     'store_type' => $store['store_type'],
                     'name' => $store['tr']['name'],
                     'slug' => $slug,

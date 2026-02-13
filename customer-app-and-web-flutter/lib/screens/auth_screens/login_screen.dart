@@ -14,7 +14,6 @@ import 'package:quick_ecommerce/screens/common_widgets/common_button.dart';
 
 import '../../config/colors.dart';
 import '../../config/images.dart';
-import '../../widgets/brand_logo.dart';
 import '../../config/shared_preference_helper.dart';
 import '../../config/strings.dart';
 import '../../config/user_shared_preference.dart';
@@ -77,13 +76,10 @@ class _LoginScreenState extends State<LoginScreen> {
              mainAxisAlignment: MainAxisAlignment.center,
             children: [
               SizedBox(height: 30.h),
-              SizedBox(
+              Image.asset(
+                Images.logo,
                 height: 80.35.h,
                 width: 80.12.w,
-                child: BrandLogo(
-                  height: 80.35.h,
-                  fallbackAsset: Images.logo,
-                ),
               ),
               SizedBox(height: 10.h),
               Text(AppLocalizations.of(context)!.welcomeBack,

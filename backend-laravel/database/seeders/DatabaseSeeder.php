@@ -65,6 +65,7 @@ class DatabaseSeeder extends Seeder
         $this->call(PaymentGatewaySeeder::class);
         $this->call(UnitSeeder::class);
         $this->call(LocationSeeder::class);
+        $this->call(AiChatSeeder::class);
 
         // ── CONTENT SEEDERS (⚠️ UNSAFE - DELETE existing data!) ────
         // CRITICAL: These seeders use delete()/truncate()!

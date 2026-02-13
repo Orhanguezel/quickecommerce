@@ -1,10 +1,9 @@
 import 'package:dio/dio.dart';
 
 import '../../config/api_urls.dart';
-import 'dio_client.dart';
 
 class ProductRepository {
-  final Dio _dio = DioClient.instance;
+  final Dio _dio = Dio();
   /// this function is responsible for change email into the app
   /// it needs [userName] and [password] for calling login api
   /// both of them are required parameters.
@@ -77,7 +76,7 @@ class ProductRepository {
     String token,
   ) {
     final queryParams = {
-      "language": language.isEmpty ? "tr" : language,
+      "language": language.isEmpty ? "en" : language,
       "category_id": categoryId.isEmpty ? [] : categoryId,
       "search": search.isEmpty ? "" : search,
       "per_page": perPage.isEmpty ? "" : perPage,
@@ -118,7 +117,7 @@ class ProductRepository {
   ) {
     final response = _dio.get(
       ApiUrls.productSuggestionUrl(),
-      queryParameters: {"query": query, "language": language},
+      data: {"query": query, "language": language},
     );
     return response;
   }
@@ -129,7 +128,7 @@ class ProductRepository {
   ) {
     final response = _dio.get(
       ApiUrls.keywordSuggestionUrl(),
-      queryParameters: {
+      data: {
         "query": query,
         "language": language,
       },
@@ -321,9 +320,9 @@ class ProductRepository {
       String userLong,
     String token,
   ) {
-    final response = _dio.get(
+    final response = _dio.post(
       ApiUrls.topDealUrl(),
-      queryParameters: {
+      data: {
         "id": id,
         "category_id": categoryId,
         "min_price": minPrice,
@@ -391,9 +390,9 @@ class ProductRepository {
     String dateFilter,
     String perPage,
   ) {
-    final response = _dio.get(
+    final response = _dio.post(
       ApiUrls.topDealUrl(),
-      queryParameters: {
+      data: {
         "id": id,
         "category_id": categoryId,
         "min_price": minPrice,
@@ -460,7 +459,7 @@ class ProductRepository {
     final response = _dio.get(
       ApiUrls.sliderListUrl(),
       queryParameters: {
-        "platform":"web",
+        "platform":"mobile",
         "language":language,
       }
     );
@@ -472,10 +471,7 @@ class ProductRepository {
   /// both of them are required parameters.
   Future<Response> bannerList(String language) {
     final response =
-        _dio.get(ApiUrls.bannerListUrl(), queryParameters: {
-          "language": language,
-          "theme_name": "default",
-        });
+        _dio.get(ApiUrls.bannerListUrl(), queryParameters: {"language": language});
 
     return response;
   }

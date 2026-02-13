@@ -77,7 +77,9 @@ php artisan serve --host=127.0.0.1 --port=8000
 
 API şu adreste çalışacak: `http://127.0.0.1:8000/api`
 
+Quick Ecommerce
 
+Sportoonline
 
 
 ---
@@ -182,13 +184,48 @@ php artisan tinker --execute="dump(DB::connection()->getPdo());"
 
 ---
 
-## Varsayılan Admin Kullanıcısı
+## Varsayılan Kullanıcılar
+
+### Admin Kullanıcısı
 
 | Alan | Değer |
 |------|-------|
 | Email | admin@sportoonline.com |
 | Şifre | Admin123! |
 | Scope | system_level |
+| Rol | Super Admin |
+
+### Satıcı (Seller) Kullanıcısı
+
+| Alan | Değer |
+|------|-------|
+| Email | seller@sportoonline.com |
+| Şifre | Admin123! |
+| Scope | store_level |
+| Rol | Store Admin |
+
+> **Not:** Satıcı hesabı `UserSeeder` + `StoreSellerSeeder` ile oluşturulur.
+> Mağazalar bu satıcıya bağlıdır (`store_seller_id`).
+> Satıcı girişi **seller paneli** üzerinden yapılır (customer frontend'den değil).
+
+### Müşteri (Customer) Kullanıcısı
+
+| Alan | Değer |
+|------|-------|
+| Email | customer@sportoonline.com |
+| Şifre | Admin123! |
+| Tablo | customers |
+
+> **Not:** Müşteri hesabı `CustomerSeeder` ile oluşturulur.
+> Customer frontend girişi (`/giris`) bu tabloyu kullanır.
+
+### Önemli: Tablo Farkı
+
+| Hesap Tipi | Tablo | Giriş Yeri |
+|------------|-------|------------|
+| Admin | `users` | Admin paneli |
+| Satıcı | `users` + `store_sellers` | Seller paneli |
+| Müşteri | `customers` | Customer frontend (`/giris`) |
 
 ---
 

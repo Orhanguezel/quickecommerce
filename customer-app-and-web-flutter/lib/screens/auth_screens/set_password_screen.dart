@@ -7,7 +7,6 @@ import 'package:quick_ecommerce/screens/auth_screens/social_button.dart';
 import 'package:quick_ecommerce/screens/common_widgets/commn_textfield.dart';
 import '../../config/icons.dart';
 import '../../config/images.dart';
-import '../../widgets/brand_logo.dart';
 import '../../controller/bloc/reset_password/reset_password_bloc.dart';
 import '../../controller/bloc/reset_password/reset_password_event.dart';
 import '../../controller/bloc/reset_password/reset_password_state.dart';
@@ -58,13 +57,10 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             SizedBox(height: 60.h),
-            SizedBox(
+            Image.asset(
+              Images.logo,
               height: 30.35.h,
               width: 30.12.w,
-              child: BrandLogo(
-                height: 30.35.h,
-                fallbackAsset: Images.logo,
-              ),
             ),
             SizedBox(
               height: 10.h,

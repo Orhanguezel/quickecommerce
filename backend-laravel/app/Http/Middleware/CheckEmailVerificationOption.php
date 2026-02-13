@@ -33,11 +33,17 @@ class CheckEmailVerificationOption
             }
 
             // Check email verification setting
-            $emailVerificationEnabled = DB::table('setting_options')
+            $emailVerificationValue = DB::table('setting_options')
                 ->where('option_name', 'com_user_email_verification')
                 ->value('option_value');
 
-            if (!$isVerified && $emailVerificationEnabled !== null) {
+            $emailVerificationEnabled = in_array(
+                strtolower((string) $emailVerificationValue),
+                ['on', '1', 'true'],
+                true
+            );
+
+            if (!$isVerified && $emailVerificationEnabled) {
                 return response()->json([
                     'status' => false,
                     'status_code' => Response::HTTP_FORBIDDEN,

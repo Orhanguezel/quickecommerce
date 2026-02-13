@@ -612,24 +612,44 @@ function com_option_get($key, $default = null, $cache = true)
         return $default;
     }
 
-    $option_name = $key;
+    $locale = app()->getLocale();
+    $cacheKey = "{$key}_{$locale}";
+
     if ($cache) {
-        $value = \Illuminate\Support\Facades\Cache::remember($option_name, 600, function () use ($option_name) {
+        $value = \Illuminate\Support\Facades\Cache::remember($cacheKey, 600, function () use ($key, $locale) {
             try {
-                return SettingOption::where('option_name', $option_name)->first();
+                $option = SettingOption::where('option_name', $key)->first();
+                if (!$option) return null;
+
+                $translation = Translation::where('translatable_type', SettingOption::class)
+                    ->where('translatable_id', $option->id)
+                    ->where('language', $locale)
+                    ->where('key', $key)
+                    ->first();
+
+                return $translation ? $translation->value : $option->option_value;
             } catch (\Exception $e) {
                 return null;
             }
         });
     } else {
         try {
-            $value = SettingOption::where('option_name', $option_name)->first();
+            $option = SettingOption::where('option_name', $key)->first();
+            if (!$option) return $default;
+
+            $translation = Translation::where('translatable_type', SettingOption::class)
+                ->where('translatable_id', $option->id)
+                ->where('language', $locale)
+                ->where('key', $key)
+                ->first();
+
+            $value = $translation ? $translation->value : $option->option_value;
         } catch (\Exception $e) {
             $value = null;
         }
     }
 
-    return $value->option_value ?? $default;
+    return $value ?? $default;
 }
 
 

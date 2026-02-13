@@ -11,8 +11,11 @@ const config = {
       center: true,
       padding: "1rem",
       screens: {
-        "2xl": "1400px",
+        "2xl": "1536px",
       },
+    },
+    fontFamily: {
+      sans: ['var(--font-geist-sans)', 'system-ui', 'sans-serif'],
     },
     extend: {
       colors: {

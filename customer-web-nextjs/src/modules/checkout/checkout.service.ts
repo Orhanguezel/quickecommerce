@@ -10,6 +10,7 @@ import type {
   CouponCheckResponse,
   PlaceOrderInput,
   PlaceOrderResponse,
+  PaymentGateway,
 } from "./checkout.type";
 
 // --- Address Hooks ---
@@ -77,6 +78,25 @@ export function useDeleteAddressMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["addresses"] });
     },
+  });
+}
+
+// --- Payment Gateways Hook ---
+
+export function usePaymentGatewaysQuery() {
+  const { getAxiosInstance } = useBaseService<PaymentGateway[]>(
+    API_ENDPOINTS.PAYMENT_GATEWAYS
+  );
+
+  return useQuery({
+    queryKey: ["payment-gateways"],
+    queryFn: async () => {
+      const res = await getAxiosInstance().get<{
+        paymentGateways: PaymentGateway[];
+      }>(API_ENDPOINTS.PAYMENT_GATEWAYS);
+      return res.data?.paymentGateways ?? [];
+    },
+    staleTime: 1000 * 60 * 30,
   });
 }
 

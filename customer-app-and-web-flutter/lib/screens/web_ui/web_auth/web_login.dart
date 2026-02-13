@@ -8,7 +8,6 @@ import 'package:quick_ecommerce/screens/web_ui/web_auth/web_sign_up.dart';
 import '../../../config/colors.dart';
 import '../../../config/icons.dart';
 import '../../../config/images.dart';
-import '../../../widgets/brand_logo.dart';
 import '../../../config/shared_preference_helper.dart';
 import '../../../config/strings.dart';
 import '../../../config/user_shared_preference.dart';
@@ -95,13 +94,10 @@ class _WebLoginState extends State<WebLogin> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const SizedBox(height: 30),
-                    SizedBox(
+                    Image.asset(
+                      Images.logo,
                       height: 80.35,
                       width: 80.12,
-                      child: BrandLogo(
-                        height: 80.35,
-                        fallbackAsset: Images.logo,
-                      ),
                     ),
                     const SizedBox(height: 10),
                     Text(AppLocalizations.of(context)!.welcomeBack,

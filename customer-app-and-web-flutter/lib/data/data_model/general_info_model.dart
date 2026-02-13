@@ -29,7 +29,6 @@ class SiteSettings {
   final dynamic comSiteSubtitle;
   final dynamic comSiteFavicon;
   final dynamic comSiteLogo;
-  final dynamic comSiteWhiteLogo;
   final dynamic comSiteFooterCopyright;
   final dynamic comSiteEmail;
   final dynamic comSiteWebsiteUrl;
@@ -44,7 +43,6 @@ class SiteSettings {
      this.comSiteSubtitle,
      this.comSiteFavicon,
      this.comSiteLogo,
-     this.comSiteWhiteLogo,
      this.comSiteFooterCopyright,
      this.comSiteEmail,
      this.comSiteWebsiteUrl,
@@ -60,7 +58,6 @@ class SiteSettings {
     comSiteSubtitle: json["com_site_subtitle"],
     comSiteFavicon: json["com_site_favicon"],
     comSiteLogo: json["com_site_logo"],
-    comSiteWhiteLogo: json["com_site_white_logo"],
     comSiteFooterCopyright: json["com_site_footer_copyright"],
     comSiteEmail: json["com_site_email"],
     comSiteWebsiteUrl: json["com_site_website_url"],
@@ -76,7 +73,6 @@ class SiteSettings {
     "com_site_subtitle": comSiteSubtitle,
     "com_site_favicon": comSiteFavicon,
     "com_site_logo": comSiteLogo,
-    "com_site_white_logo": comSiteWhiteLogo,
     "com_site_footer_copyright": comSiteFooterCopyright,
     "com_site_email": comSiteEmail,
     "com_site_website_url": comSiteWebsiteUrl,

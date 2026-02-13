@@ -2,10 +2,7 @@
 
 namespace Database\Seeders;
 
-use Carbon\Carbon;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Modules\PaymentGateways\app\Models\PaymentGateway;
 
@@ -21,71 +18,69 @@ class PaymentGatewaySeeder extends Seeder
             return;
         }
 
-        PaymentGateway::updateOrCreate(['slug' => 'paypal'], [
-            'name' => 'PayPal',
-            'slug' => 'paypal',
-            'description' => 'fdf',
-            'auth_credentials' => json_encode([
-                'paypal_sandbox_client_id' => '',
-                'paypal_sandbox_client_secret' => '',
-                'paypal_sandbox_client_app_id' => '',
-                'paypal_live_client_id' => '',
-                'paypal_live_client_secret' => '',
-                'paypal_live_client_app_id' => '',
-            ]),
-            'image' => null,
-            'status' => true,
-            'is_test_mode' => true,
-        ]);
-
-        PaymentGateway::updateOrCreate(['slug' => 'stripe'], [
-            'name' => 'Stripe',
-            'description' => 'stripe info',
-            'auth_credentials' => json_encode([
-                'stripe_public_key' => '',
-                'stripe_public_secret' => '',
-            ]),
-            'image' => null,
-            'status' => true,
-            'is_test_mode' => true,
-        ]);
-
-        PaymentGateway::updateOrCreate(['slug' => 'razorpay'], [
-            'name' => 'Razorpay',
-            'description' => 'razorpay info',
-            'auth_credentials' => json_encode([
-                'razorpay_api_key' => '',
-                'razorpay_api_secret' => '',
-            ]),
-            'image' => null,
-            'status' => true,
-            'is_test_mode' => true,
-        ]);
-
-        PaymentGateway::updateOrCreate(['slug' => 'paytm'], [
-            'name' => 'Paytm',
-            'description' => 'paytm info',
-            'auth_credentials' => json_encode([
-                'paytm_seller_key' => '',
-                'paytm_seller_mid' => '',
-                'paytm_seller_website' => '',
-                'paytm_cancel_url' => '',
-                'paytm_industry_type' => '',
-            ]),
-            'image' => null,
-            'status' => true,
-            'is_test_mode' => true,
-        ]);
+        // Eski gateway'leri sil
+        PaymentGateway::whereIn('slug', ['paypal', 'stripe', 'razorpay', 'paytm'])->delete();
 
         PaymentGateway::updateOrCreate(['slug' => 'cash_on_delivery'], [
-            'name' => 'Cash On Delivery',
-            'description' => 'Pay for your order in cash when it is delivered to your doorstep. No online payment required!',
+            'name' => 'Kapıda Ödeme',
+            'description' => 'Siparişiniz kapınıza teslim edildiğinde nakit veya kart ile ödeme yapın.',
             'auth_credentials' => null,
-            'image' => null,
+            'image' => 'payment-logos/cash_on_delivery.svg',
+            'status' => true,
+            'is_test_mode' => false,
+        ]);
+
+        PaymentGateway::updateOrCreate(['slug' => 'paytr'], [
+            'name' => 'PayTR',
+            'description' => 'PayTR ile kredi kartı, banka kartı veya havale/EFT ile güvenli ödeme yapın.',
+            'auth_credentials' => json_encode([
+                'merchant_id' => '',
+                'merchant_key' => '',
+                'merchant_salt' => '',
+            ]),
+            'image' => 'payment-logos/paytr.svg',
             'status' => true,
             'is_test_mode' => true,
         ]);
 
-        $this->command->info('PaymentGatewaySeeder: 5 payment gateways seeded.');
+        PaymentGateway::updateOrCreate(['slug' => 'iyzico'], [
+            'name' => 'iyzico',
+            'description' => 'iyzico ile kredi kartı, banka kartı veya BKM Express ile güvenli ödeme yapın.',
+            'auth_credentials' => json_encode([
+                'api_key' => '',
+                'secret_key' => '',
+            ]),
+            'image' => 'payment-logos/iyzico.svg',
+            'status' => true,
+            'is_test_mode' => true,
+        ]);
+
+        PaymentGateway::updateOrCreate(['slug' => 'moka'], [
+            'name' => 'Moka Pos',
+            'description' => 'Moka Pos ile kredi kartı ve banka kartı ile güvenli ödeme yapın.',
+            'auth_credentials' => json_encode([
+                'dealer_code' => '',
+                'username' => '',
+                'password' => '',
+            ]),
+            'image' => 'payment-logos/moka.svg',
+            'status' => true,
+            'is_test_mode' => true,
+        ]);
+
+        PaymentGateway::updateOrCreate(['slug' => 'ziraatpay'], [
+            'name' => 'ZiraatPay',
+            'description' => 'Ziraat Bankası sanal pos ile güvenli ödeme yapın.',
+            'auth_credentials' => json_encode([
+                'merchant_id' => '',
+                'terminal_id' => '',
+                'secret_key' => '',
+            ]),
+            'image' => 'payment-logos/ziraatpay.svg',
+            'status' => true,
+            'is_test_mode' => true,
+        ]);
+
+        $this->command->info('PaymentGatewaySeeder: 5 Turkish payment gateways seeded.');
     }
 }

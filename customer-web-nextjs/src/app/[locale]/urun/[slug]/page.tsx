@@ -182,6 +182,7 @@ export default async function ProductDetailPage({ params }: Props) {
         product={product}
         relatedProducts={relatedProducts}
         translations={{
+          home: t("home"),
           add_to_cart: t("add_to_cart"),
           add_to_wishlist: t("add_to_wishlist"),
           remove_from_wishlist: t("remove_from_wishlist"),
@@ -200,6 +201,31 @@ export default async function ProductDetailPage({ params }: Props) {
           seller: t("seller"),
           no_reviews: t("no_reviews"),
           all_products: t("all_products"),
+          no_image: t("no_image"),
+          sku: t("sku"),
+          category: t("category"),
+          stock: t("stock"),
+          change_of_mind_allowed: t("change_of_mind_allowed"),
+          cash_on_delivery: t("cash_on_delivery"),
+          available_start_time: t("available_start_time"),
+          available_end_time: t("available_end_time"),
+          yes: t("yes"),
+          no: t("no"),
+          options: t("options"),
+          visit_store: t("visit_store"),
+          buy_now: t("buy_now"),
+          share_connect: t("share_connect"),
+          days: t("days"),
+          cash_on_delivery_note: t("cash_on_delivery_note"),
+          questions_coming_soon: t("questions_coming_soon"),
+          anonymous: t("anonymous"),
+          decrease_quantity: t("decrease_quantity"),
+          increase_quantity: t("increase_quantity"),
+          facebook: t("facebook"),
+          twitter: t("twitter"),
+          whatsapp: t("whatsapp"),
+          email: t("email"),
+          copy_link: t("copy_link"),
         }}
       />
     </>

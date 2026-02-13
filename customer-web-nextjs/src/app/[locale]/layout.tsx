@@ -4,10 +4,16 @@ import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import { QueryProvider } from '@/lib/query-provider';
+import { ThemeProvider as NextThemesProvider } from 'next-themes';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { MaintenancePage } from '@/components/maintenance-page';
+import { ChatWidget } from '@/components/chat/chat-widget';
+import { FloatingCart } from '@/components/layout/floating-cart';
+import { CartDrawer } from '@/components/layout/cart-drawer';
+import { LocationSelector } from '@/components/layout/location-selector';
+import { ScrollToTop } from '@/components/layout/scroll-to-top';
 import { Geist } from 'next/font/google';
 import '../globals.css';
 
@@ -149,7 +155,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
   }
 
   const [messages, settings, themeColors] = await Promise.all([
-    getMessages(),
+    getMessages({ locale }),
     getSiteSettings(locale),
     getThemeColors(),
   ]);
@@ -180,7 +186,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
     );
   }
 
-  // Generate inline CSS for theme colors (server-side)
+  // Generate inline CSS for theme colors (server-side) — only primary/accent, no header overrides
   let themeStyles = '';
   if (themeColors?.primary) {
     try {
@@ -188,18 +194,13 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
       const accentHSL = hexToHSL(themeColors.secondary || themeColors.primary);
       const primaryLightness = parseInt(primaryHSL.split('%')[1]);
       const primaryFgColor = primaryLightness > 65 ? '222.2 47.4% 11.2%' : '210 40% 98%';
-      const navTextHSL = primaryLightness > 65 ? '222.2 47.4% 11.2%' : '0 0% 100%';
 
       themeStyles = `
       :root {
-        --primary: ${primaryHSL} !important;
-        --primary-foreground: ${primaryFgColor} !important;
-        --accent: ${accentHSL} !important;
-        --ring: ${primaryHSL} !important;
-        --header-nav-bg: ${primaryHSL} !important;
-        --header-nav-text: ${navTextHSL} !important;
-        --header-topbar-bg: 222 84% 5% !important;
-        --header-topbar-text: 0 0% 100% !important;
+        --primary: ${primaryHSL};
+        --primary-foreground: ${primaryFgColor};
+        --accent: ${accentHSL};
+        --ring: ${primaryHSL};
       }
     `;
     } catch {
@@ -217,13 +218,20 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
       <body className={`${geistSans.variable} font-sans antialiased`} suppressHydrationWarning>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <QueryProvider>
-            <ThemeProvider>
-              <div className="flex min-h-screen flex-col">
-                <Header />
-                <main className="flex-1">{children}</main>
-                <Footer />
-              </div>
-            </ThemeProvider>
+            <NextThemesProvider attribute="class" defaultTheme="light" enableSystem={false}>
+              <ThemeProvider>
+                <div className="flex min-h-screen flex-col">
+                  <Header />
+                  <main className="flex-1">{children}</main>
+                  <Footer />
+                </div>
+                <FloatingCart />
+                <CartDrawer />
+                <LocationSelector />
+                <ChatWidget />
+                <ScrollToTop />
+              </ThemeProvider>
+            </NextThemesProvider>
           </QueryProvider>
         </NextIntlClientProvider>
       </body>

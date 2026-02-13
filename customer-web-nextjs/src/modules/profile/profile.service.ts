@@ -9,6 +9,15 @@ import type {
   ChangePasswordInput,
 } from "./profile.type";
 
+function isCustomerProfile(value: unknown): value is CustomerProfile {
+  if (!value || typeof value !== "object") return false;
+  const obj = value as Record<string, unknown>;
+  const hasId = typeof obj.id === "number" || typeof obj.id === "string";
+  const hasProfileField =
+    "first_name" in obj || "email" in obj || "full_name" in obj;
+  return hasId && hasProfileField;
+}
+
 // --- Get Profile ---
 
 export function useProfileQuery() {
@@ -19,10 +28,15 @@ export function useProfileQuery() {
   return useQuery({
     queryKey: ["profile"],
     queryFn: async () => {
-      const res = await getAxiosInstance().get<{ data: CustomerProfile }>(
+      const res = await getAxiosInstance().get<{
+        data?: unknown;
+      } & Record<string, unknown>>(
         API_ENDPOINTS.PROFILE
       );
-      return res.data?.data ?? null;
+      const nestedData = res.data?.data;
+      if (isCustomerProfile(nestedData)) return nestedData;
+      if (isCustomerProfile(res.data)) return res.data;
+      return null;
     },
   });
 }

@@ -49,15 +49,43 @@ class EmailTemplateSeeder extends Seeder
                 'updated_at' => $now,
             ],
             [
-                'type' => 'register-seller-admin',
+                'type' => 'seller-register',
+                'name' => 'Satıcı Kaydı Onayı',
+                'subject' => '@site_name - Satıcı Kaydınız Başarılı!',
+                'body' => '<h1>Hoş Geldiniz @name!</h1>
+<p>@site_name platformunda satıcı hesabınız başarıyla oluşturuldu.</p>
+<ul>
+    <li>Ad Soyad: @name</li>
+    <li>E-posta: @email</li>
+    <li>Telefon: @phone</li>
+</ul>
+<h2>Sonraki Adımlar</h2>
+<p>Mağazanızı oluşturmak ve ürünlerinizi yönetmek için <strong>Satıcı Paneli</strong>ne giriş yapın:</p>
+<p>👉 <strong>Giriş adresi:</strong> Satıcı Paneli → <code>/seller/signin</code></p>
+<p>👉 <strong>Giriş e-postanız:</strong> @email</p>
+<p>Satıcı panelinizden şunları yapabilirsiniz:</p>
+<ul>
+    <li>Mağazanızı oluşturun ve düzenleyin</li>
+    <li>Ürünlerinizi ekleyin</li>
+    <li>Siparişlerinizi yönetin</li>
+    <li>Kazançlarınızı takip edin</li>
+</ul>
+<p>Başarılar dileriz!</p>',
+                'status' => 1,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'type' => 'seller-register-for-admin',
                 'name' => 'Yeni Satıcı Kaydı (Admin)',
-                'subject' => 'Sportoonline\'a Yeni Satıcı Katıldı',
+                'subject' => 'Yeni Satıcı Katıldı: @name',
                 'body' => '<h1>Merhaba Admin, Yeni Bir Satıcı Katıldı!</h1>
 <ul>
     <li>Ad Soyad: @name</li>
     <li>E-posta: @email</li>
     <li>Telefon: @phone</li>
-</ul>',
+</ul>
+<p>Satıcıyı admin panelinden inceleyebilirsiniz.</p>',
                 'status' => 1,
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -126,7 +154,8 @@ class EmailTemplateSeeder extends Seeder
                 'body' => '<h1>Merhaba @store_owner_name,</h1>
 <p><strong>@store_name</strong> mağazanıza yeni bir sipariş geldi (Sipariş No: @order_id).</p>
 <p>Sipariş Tutarı: @order_amount</p>
-<p>Lütfen siparişi en kısa sürede işleme alın.</p>',
+<p>Lütfen siparişi en kısa sürede işleme alın.</p>
+<p>👉 Satıcı Paneli → <code>/seller/signin</code></p>',
                 'status' => 1,
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -194,6 +223,37 @@ class EmailTemplateSeeder extends Seeder
                 'body' => '<h1>Merhaba @customer_name,</h1>
 <p>Siparişiniz (Sipariş No: @order_id) <strong>teslim edildi</strong>!</p>
 <p>Alışverişinizin keyfini çıkarmanızı dileriz!</p>',
+                'status' => 1,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'type' => 'order-status-delivered-store',
+                'name' => 'Sipariş Teslim Edildi (Mağaza)',
+                'subject' => 'Sipariş Teslim Edildi - @store_name',
+                'body' => '<h1>Merhaba,</h1>
+<p><strong>@store_name</strong> mağazanızdan bir sipariş teslim edildi.</p>
+<ul>
+    <li>Sipariş No: @order_id</li>
+    <li>Mağaza Tutarı: @order_amount_for_store</li>
+</ul>
+<p>Satıcı panelinizden sipariş detaylarını inceleyebilirsiniz.</p>
+<p>👉 Satıcı Paneli → <code>/seller/signin</code></p>',
+                'status' => 1,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'type' => 'order-status-delivered-admin',
+                'name' => 'Sipariş Teslim Edildi (Admin)',
+                'subject' => 'Sipariş Teslim Edildi - #@order_id',
+                'body' => '<h1>Merhaba Admin,</h1>
+<p>Sipariş No: @order_id başarıyla teslim edildi.</p>
+<ul>
+    <li>Admin Komisyonu: @order_amount_admin_commission</li>
+    <li>Teslimat Komisyonu: @delivery_charge_commission_amount</li>
+</ul>
+<p>Admin panelinden detayları inceleyebilirsiniz.</p>',
                 'status' => 1,
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -343,15 +403,39 @@ class EmailTemplateSeeder extends Seeder
     <li>Phone: @phone</li>
 </ul>',
             ],
-            'register-seller-admin' => [
+            'seller-register' => [
+                'name' => 'Seller Registration Confirmation',
+                'subject' => '@site_name - Your Seller Account is Ready!',
+                'body' => '<h1>Welcome @name!</h1>
+<p>Your seller account on @site_name has been successfully created.</p>
+<ul>
+    <li>Name: @name</li>
+    <li>Email: @email</li>
+    <li>Phone: @phone</li>
+</ul>
+<h2>Next Steps</h2>
+<p>Log in to the <strong>Seller Panel</strong> to create your store and manage your products:</p>
+<p>👉 <strong>Login:</strong> Seller Panel → <code>/seller/signin</code></p>
+<p>👉 <strong>Your email:</strong> @email</p>
+<p>From your seller panel you can:</p>
+<ul>
+    <li>Create and customize your store</li>
+    <li>Add your products</li>
+    <li>Manage your orders</li>
+    <li>Track your earnings</li>
+</ul>
+<p>Good luck!</p>',
+            ],
+            'seller-register-for-admin' => [
                 'name' => 'New Seller Registration (Admin)',
-                'subject' => 'New Seller Joined Sportoonline',
+                'subject' => 'New Seller Joined: @name',
                 'body' => '<h1>Hello Admin, A New Seller Just Joined!</h1>
 <ul>
     <li>Name: @name</li>
     <li>Email: @email</li>
     <li>Phone: @phone</li>
-</ul>',
+</ul>
+<p>You can review the seller from the admin panel.</p>',
             ],
             'password-reset' => [
                 'name' => 'Password Reset',
@@ -396,7 +480,8 @@ class EmailTemplateSeeder extends Seeder
                 'body' => '<h1>Hello @store_owner_name,</h1>
 <p>Your store <strong>@store_name</strong> has received a new order (Order ID: @order_id).</p>
 <p>Order Amount: @order_amount</p>
-<p>Please process the order as soon as possible.</p>',
+<p>Please process the order as soon as possible.</p>
+<p>👉 Seller Panel → <code>/seller/signin</code></p>',
             ],
             'order-created-admin' => [
                 'name' => 'New Order (Admin)',
@@ -440,6 +525,29 @@ class EmailTemplateSeeder extends Seeder
                 'body' => '<h1>Hello @customer_name,</h1>
 <p>Your order (Order ID: @order_id) has been <strong>delivered</strong>!</p>
 <p>We hope you enjoy your purchase!</p>',
+            ],
+            'order-status-delivered-store' => [
+                'name' => 'Order Delivered (Store)',
+                'subject' => 'Order Delivered - @store_name',
+                'body' => '<h1>Hello,</h1>
+<p>An order from your store <strong>@store_name</strong> has been delivered.</p>
+<ul>
+    <li>Order ID: @order_id</li>
+    <li>Store Amount: @order_amount_for_store</li>
+</ul>
+<p>You can review order details from your seller panel.</p>
+<p>👉 Seller Panel → <code>/seller/signin</code></p>',
+            ],
+            'order-status-delivered-admin' => [
+                'name' => 'Order Delivered (Admin)',
+                'subject' => 'Order Delivered - #@order_id',
+                'body' => '<h1>Hello Admin,</h1>
+<p>Order #@order_id has been successfully delivered.</p>
+<ul>
+    <li>Admin Commission: @order_amount_admin_commission</li>
+    <li>Delivery Commission: @delivery_charge_commission_amount</li>
+</ul>
+<p>Review details from the admin panel.</p>',
             ],
             'order-status-cancelled' => [
                 'name' => 'Order Cancelled Notification',

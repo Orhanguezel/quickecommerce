@@ -134,6 +134,7 @@ export default async function BlogDetailPage({ params }: Props) {
         totalComments={data.total_comments}
         translations={{
           blog: blogT("blog"),
+          details: blogT("details"),
           categories: blogT("categories"),
           popular_posts: blogT("popular_posts"),
           related_posts: blogT("related_posts"),
@@ -141,6 +142,12 @@ export default async function BlogDetailPage({ params }: Props) {
           tags: blogT("tags"),
           share: blogT("share"),
           read_more: blogT("read_more"),
+          views: blogT("views"),
+          total: blogT("total"),
+          leave_comment: blogT("leave_comment"),
+          comment_placeholder: blogT("comment_placeholder"),
+          submit: blogT("submit"),
+          login_to_comment: blogT("login_to_comment"),
           home: t("home"),
         }}
       />

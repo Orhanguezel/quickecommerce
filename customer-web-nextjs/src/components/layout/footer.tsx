@@ -14,12 +14,14 @@ import {
   Mail,
   Phone,
 } from "lucide-react";
+import { usePaymentGatewaysQuery } from "@/modules/checkout/checkout.service";
 
 export function Footer() {
   const t = useTranslations();
   const { siteInfo } = useSiteInfoQuery();
   const { footerData } = useFooterQuery();
   const { footerConfig } = useThemeConfig();
+  const { data: paymentGateways } = usePaymentGatewaysQuery();
 
   const quickAccess: FooterLinkItem[] = footerData?.com_quick_access ?? [];
   const ourInfo: FooterLinkItem[] = footerData?.com_our_info ?? [];
@@ -47,9 +49,9 @@ export function Footer() {
     footerData?.com_social_links_instagram_url ||
     footerData?.com_social_links_linkedin_url;
 
-  const paymentImages: string[] = footerData?.com_payment_methods_image_urls
-    ? (footerData.com_payment_methods_image_urls as string).split(",").filter(Boolean)
-    : [];
+  const activePaymentGateways = (paymentGateways ?? []).filter(
+    (gw) => gw.image_url
+  );
 
   const hasDownloadApp =
     footerData?.com_download_app_link_one ||
@@ -61,7 +63,12 @@ export function Footer() {
     item.com_quick_access_url || item.url || "/";
 
   return (
-    <footer className="bg-[#0f172a] text-white">
+    <footer
+      style={{
+        backgroundColor: 'hsl(var(--footer-background))',
+        color: 'hsl(var(--footer-foreground))',
+      }}
+    >
       <div className="container py-10">
         {/* Main Grid */}
         <div className={`grid grid-cols-1 gap-8 md:grid-cols-2 ${gridColsClass}`}>
@@ -75,7 +82,7 @@ export function Footer() {
               />
             ) : (
               <h3 className="text-xl font-bold">
-                {siteInfo?.com_site_title || "Quick Ecommerce"}
+                {siteInfo?.com_site_title || "Sportoonline"}
               </h3>
             )}
             {siteInfo?.com_site_subtitle && (
@@ -269,17 +276,17 @@ export function Footer() {
           )}
 
           {/* Payment Methods */}
-          {showPayment && paymentImages.length > 0 ? (
-            <div className="flex flex-wrap items-center justify-center gap-3">
-              {paymentImages.map((url, i) => (
+          {showPayment && activePaymentGateways.length > 0 ? (
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              {activePaymentGateways.map((gw) => (
                 <div
-                  key={i}
-                  className="flex h-10 items-center rounded bg-white px-3"
+                  key={gw.id}
+                  className="flex h-8 items-center rounded bg-white px-2"
                 >
                   <img
-                    src={url.trim()}
-                    alt="Payment method"
-                    className="h-6 w-auto object-contain"
+                    src={gw.image_url!}
+                    alt={gw.name}
+                    className="h-5 w-auto max-w-[60px] object-contain"
                   />
                 </div>
               ))}
@@ -348,7 +355,7 @@ export function Footer() {
         <div className="mt-8 border-t border-gray-800 pt-6 text-center text-sm text-gray-500">
           {siteInfo?.com_site_footer_copyright || (
             <span>
-              &copy; {new Date().getFullYear()} Quick Ecommerce. All rights
+              &copy; {new Date().getFullYear()} Sportoonline. All rights
               reserved.
             </span>
           )}

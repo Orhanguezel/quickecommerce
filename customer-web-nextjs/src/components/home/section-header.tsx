@@ -16,7 +16,7 @@ export function SectionHeader({ title, subtitle, viewAllHref }: SectionHeaderPro
   return (
     <div className="mb-6 flex items-end justify-between">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
+        <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
         {subtitle && (
           <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
         )}
@@ -24,10 +24,10 @@ export function SectionHeader({ title, subtitle, viewAllHref }: SectionHeaderPro
       {viewAllHref && (
         <Link
           href={viewAllHref}
-          className="flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+          className="flex items-center gap-1.5 rounded-full border border-primary/30 px-4 py-1.5 text-[13px] font-normal text-primary transition-colors hover:bg-primary/5"
         >
           {t("view_all")}
-          <ArrowRight className="h-4 w-4" />
+          <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       )}
     </div>

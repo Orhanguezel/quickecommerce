@@ -247,10 +247,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
             //============ calling the api ============
             //-----------------------------------------
 
-            final token = await UserSharedPreference.getValue(
-              SharedPreferenceHelper.token,
-            );
-            final response = await authRepository.logout(token ?? "");
+            final response = await authRepository.logout();
 
             //========== converting json to dart object ===========
             //-----------------------------------------------------

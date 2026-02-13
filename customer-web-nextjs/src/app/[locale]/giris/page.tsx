@@ -28,6 +28,7 @@ export default async function LoginPage({ params }: Props) {
   return (
     <LoginClient
       translations={{
+        home: commonT("home"),
         login_title: t("login_title"),
         email: t("email"),
         password: t("password"),
@@ -42,6 +43,15 @@ export default async function LoginPage({ params }: Props) {
         google: t("google"),
         facebook: t("facebook"),
         social_error: t("social_error"),
+        login_with_otp: t("login_with_otp"),
+        otp_title: t("otp_title"),
+        otp_subtitle: t("otp_subtitle"),
+        otp_code: t("otp_code"),
+        send_otp: t("send_otp"),
+        resend_otp: t("resend_otp"),
+        verify_otp: t("verify_otp"),
+        otp_error: t("otp_error"),
+        otp_sent: t("otp_sent"),
       }}
     />
   );

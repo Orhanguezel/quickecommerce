@@ -1,6 +1,6 @@
 import { useBaseService } from "@/lib/base-service";
-import type { BannerResponse } from "./banner.type";
+import type { BannerGroupedResponse } from "./banner.type";
 
 export const useBannerService = () => {
-  return useBaseService<BannerResponse>("/banner-list");
+  return useBaseService<BannerGroupedResponse>("/banner-list");
 };

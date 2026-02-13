@@ -9,11 +9,29 @@ export interface ThemeStyle {
 
 export interface ThemeHeader {
   header_number: string;
+  // Light mode
+  row1_bg?: string;
+  row1_text?: string;
+  row2_bg?: string;
+  row3_bg?: string;
+  row3_text?: string;
+  row3_button_bg?: string;
+  row3_button_text?: string;
+  // Dark mode
+  dark_row1_bg?: string;
+  dark_row1_text?: string;
+  dark_row2_bg?: string;
+  dark_row3_bg?: string;
+  dark_row3_text?: string;
+  dark_row3_button_bg?: string;
+  dark_row3_button_text?: string;
 }
 
 export interface ThemeFooter {
   background_color: string;
   text_color: string;
+  dark_background_color?: string;
+  dark_text_color?: string;
   layout_columns: number;
 }
 

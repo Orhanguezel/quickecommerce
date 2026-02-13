@@ -1,10 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import '../../config/api_urls.dart';
-import 'dio_client.dart';
 
 class AuthRepository {
-  final Dio _dio = DioClient.instance;
+  final Dio _dio = Dio();
 
   /// this function is responsible for login into the app
   /// it needs [userName] and [password] for calling login api
@@ -49,17 +48,9 @@ class AuthRepository {
   }
   /// it needs [userName] and [password] for calling login api
   /// both of them are required parameters.
-  Future<Response> logout(String token) {
+  Future<Response> logout() {
     final response = _dio.post(
       ApiUrls.logoutUrl(),
-      options: Options(
-        headers: {
-          'Content-Type': 'application/json',
-          'Vary': 'Accept',
-          if (token.isNotEmpty) "Authorization": 'Bearer $token',
-        },
-        followRedirects: false,
-      ),
     );
     return response;
   }

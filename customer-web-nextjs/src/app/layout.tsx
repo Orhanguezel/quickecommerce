@@ -27,7 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const siteInfo = await fetchSiteInfo();
 
   return {
-    title: siteInfo?.com_site_title || "QuickEcommerce",
+    title: siteInfo?.com_site_title || "Sportoonline",
     description: siteInfo?.com_site_subtitle || "Modern e-commerce platform",
     icons: {
       icon: siteInfo?.com_site_favicon || "/favicon.ico",

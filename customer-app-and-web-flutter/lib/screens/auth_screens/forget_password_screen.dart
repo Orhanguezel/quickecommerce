@@ -10,7 +10,6 @@ import 'package:quick_ecommerce/screens/common_widgets/commn_textfield.dart';
 
 import '../../config/colors.dart';
 import '../../config/images.dart';
-import '../../widgets/brand_logo.dart';
 import '../../controller/bloc/reset_password/reset_password_bloc.dart';
 import '../../controller/bloc/reset_password/reset_password_event.dart';
 import '../../controller/bloc/reset_password/reset_password_state.dart';
@@ -98,13 +97,10 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                   ],
                 ),
               SizedBox(height: kIsWeb ? 25 : 100.h),
-              SizedBox(
+              Image.asset(
+                Images.logo,
                 height: kIsWeb ? 80 : 80.35.h,
                 width: kIsWeb ? 80 : 80.12.w,
-                child: BrandLogo(
-                  height: kIsWeb ? 80 : 80.35.h,
-                  fallbackAsset: Images.logo,
-                ),
               ),
               SizedBox(
                 height: kIsWeb ? 5 : 10.h,

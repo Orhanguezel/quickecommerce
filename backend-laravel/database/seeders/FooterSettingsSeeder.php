@@ -36,10 +36,10 @@ class FooterSettingsSeeder extends Seeder
             'com_payment_methods_image_urls'      => '',
             'com_quick_access' => [
                 ['com_quick_access_title' => 'Ana Sayfa',     'com_quick_access_url' => '/'],
-                ['com_quick_access_title' => 'Tüm Ürünler',  'com_quick_access_url' => '/ara'],
-                ['com_quick_access_title' => 'Kategoriler',   'com_quick_access_url' => '/kategori'],
+                ['com_quick_access_title' => 'Tüm Ürünler',  'com_quick_access_url' => '/urunler'],
+                ['com_quick_access_title' => 'Kategoriler',   'com_quick_access_url' => '/kategoriler'],
                 ['com_quick_access_title' => 'Mağazalar',     'com_quick_access_url' => '/magazalar'],
-                ['com_quick_access_title' => 'Satıcı Ol',     'com_quick_access_url' => '/satici-ol'],
+                ['com_quick_access_title' => 'Satıcı Ol',     'com_quick_access_url' => '/satici-basvuru'],
             ],
             'com_our_info' => [
                 ['title' => 'Hakkımızda',                   'url' => '/hakkimizda'],
@@ -73,10 +73,10 @@ class FooterSettingsSeeder extends Seeder
             'com_payment_methods_image_urls'      => '',
             'com_quick_access' => [
                 ['com_quick_access_title' => 'Home',           'com_quick_access_url' => '/'],
-                ['com_quick_access_title' => 'All Products',   'com_quick_access_url' => '/ara'],
-                ['com_quick_access_title' => 'Categories',     'com_quick_access_url' => '/kategori'],
+                ['com_quick_access_title' => 'All Products',   'com_quick_access_url' => '/urunler'],
+                ['com_quick_access_title' => 'Categories',     'com_quick_access_url' => '/kategoriler'],
                 ['com_quick_access_title' => 'Stores',         'com_quick_access_url' => '/magazalar'],
-                ['com_quick_access_title' => 'Become a Seller','com_quick_access_url' => '/satici-ol'],
+                ['com_quick_access_title' => 'Become a Seller','com_quick_access_url' => '/satici-basvuru'],
             ],
             'com_our_info' => [
                 ['title' => 'About Us',               'url' => '/hakkimizda'],

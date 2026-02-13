@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'package:quick_ecommerce/screens/web_ui/web_auth/web_login.dart';
 import '../../../config/icons.dart';
 import '../../../config/images.dart';
-import '../../../widgets/brand_logo.dart';
 import '../../../config/shared_preference_helper.dart';
 import '../../../config/strings.dart';
 import '../../../config/user_shared_preference.dart';
@@ -99,13 +98,10 @@ class _WebSignUpState extends State<WebSignUp> {
               child: Column(
                 children: [
                   const SizedBox(height: 30),
-                  SizedBox(
+                  Image.asset(
+                    Images.logo,
                     height: 80,
                     width: 80,
-                    child: BrandLogo(
-                      height: 80,
-                      fallbackAsset: Images.logo,
-                    ),
                   ),
                   const SizedBox(
                     height: 10,

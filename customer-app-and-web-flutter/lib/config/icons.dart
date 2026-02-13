@@ -68,7 +68,6 @@ class AssetsIcons{
   static const search = 'assets/icons/search.png';
   static const share = 'assets/icons/share.png';
   static const spain = 'assets/icons/spain.jpg';
-  static const trFlag = 'assets/icons/tr_flag.png';
   static const send = 'assets/icons/message_send.png';
   static const starting = 'assets/icons/starting.png';
   static const sLocation = 'assets/icons/s_location.png';

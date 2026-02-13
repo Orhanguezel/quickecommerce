@@ -6,10 +6,9 @@ import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../config/api_urls.dart';
-import 'dio_client.dart';
 
 class SaveRepository {
-  final Dio _dio = DioClient.instance;
+  final Dio _dio = Dio();
 
   /// this function is responsible for change email into the app
   /// it needs [userName] and [password] for calling login api
@@ -61,6 +60,7 @@ class SaveRepository {
         data: formData,
         options: Options(
           headers: {
+            'Content-Type': 'application/json',
             'Vary': 'Accept',
             "Authorization": 'Bearer $token',
           },
@@ -113,6 +113,7 @@ class SaveRepository {
       data: formData,
       options: Options(
         headers: {
+          'Content-Type': 'application/json',
           'Vary': 'Accept',
           "Authorization": 'Bearer $token',
         },
@@ -389,6 +390,7 @@ class SaveRepository {
     } else {
       formData = FormData.fromMap({
         "message": message,
+        "file": "",
         "ticket_id": ticketId,
       });
     }
@@ -399,6 +401,7 @@ class SaveRepository {
         data: formData,
         options: Options(
           headers: {
+            'Content-Type': 'application/json',
             'Vary': 'Accept',
             "Authorization": 'Bearer $token',
           },

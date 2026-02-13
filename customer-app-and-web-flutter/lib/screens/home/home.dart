@@ -12,7 +12,6 @@ import 'package:quick_ecommerce/screens/home/super_deal_widget.dart' show SuperD
 
 import '../../config/icons.dart';
 import '../../config/images.dart';
-import '../../widgets/brand_logo.dart';
 import '../../config/shared_preference_helper.dart';
 
 import '../../config/strings.dart';
@@ -155,13 +154,11 @@ class _HomeState extends State<Home> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: SizedBox(
+        title: Image.asset(
+           Images.darkLogo,
           height: 45.h,
           width: 80.w,
-          child: BrandLogo(
-            height: 45.h,
-            fallbackAsset: Images.darkLogo,
-          ),
+          fit: BoxFit.fill,
         ),
         actions: [
           Row(

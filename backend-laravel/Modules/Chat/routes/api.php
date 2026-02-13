@@ -9,6 +9,10 @@ use Modules\Chat\app\Http\Controllers\Api\ChatManageController;
 use Modules\Chat\app\Http\Controllers\Api\DeliverymanChatController;
 use Modules\Chat\app\Http\Controllers\Api\StoreChatController;
 use Modules\Chat\app\Http\Controllers\Api\CustomerChatController;
+use Modules\Chat\app\Http\Controllers\Api\AdminAiChatSettingsController;
+use Modules\Chat\app\Http\Controllers\Api\AdminAiChatKnowledgeController;
+use Modules\Chat\app\Http\Controllers\Api\CustomerAiChatController;
+use Modules\Chat\app\Http\Controllers\Api\GuestAiChatController;
 
 
 //  Admin Chat manage
@@ -57,3 +61,40 @@ Route::middleware(['auth:sanctum','online.track', 'detect.platform'])->prefix('v
 Route::middleware(['auth:sanctum','detect.platform'])->prefix('v1/')->group(function () {
     Route::get('/chat-credentials', [ChatManageController::class, 'getChatCredentials']);
 });
+
+
+// ── AI Chat (Admin Settings & Knowledge Base) ───────────────────
+Route::middleware(['auth:sanctum', 'online.track', 'detect.platform'])
+    ->prefix('v1/admin/ai-chat/')
+    ->group(function () {
+        Route::match(['get', 'post'], 'settings', [AdminAiChatSettingsController::class, 'settings'])
+            ->middleware('permission:' . PermissionKey::ADMIN_AI_CHAT_SETTINGS->value);
+
+        Route::prefix('knowledge')->middleware('permission:' . PermissionKey::ADMIN_AI_CHAT_KNOWLEDGE->value)->group(function () {
+            Route::get('list', [AdminAiChatKnowledgeController::class, 'list']);
+            Route::post('add', [AdminAiChatKnowledgeController::class, 'store']);
+            Route::get('details/{id}', [AdminAiChatKnowledgeController::class, 'details']);
+            Route::post('update', [AdminAiChatKnowledgeController::class, 'update']);
+            Route::delete('remove/{id}', [AdminAiChatKnowledgeController::class, 'remove']);
+            Route::post('change-status', [AdminAiChatKnowledgeController::class, 'changeStatus']);
+        });
+
+        Route::get('conversations', [AdminAiChatSettingsController::class, 'conversations'])
+            ->middleware('permission:' . PermissionKey::ADMIN_AI_CHAT_SETTINGS->value);
+    });
+
+// ── AI Chat (Customer - authenticated) ──────────────────────────
+Route::middleware(['auth:sanctum', 'online.track', 'check.email.verification.option:customer', 'detect.platform', 'throttle:10,1'])
+    ->prefix('v1/customer/ai-chat/')
+    ->group(function () {
+        Route::post('send', [CustomerAiChatController::class, 'send']);
+        Route::get('history', [CustomerAiChatController::class, 'history']);
+    });
+
+// ── AI Chat (Guest - no auth) ───────────────────────────────────
+Route::middleware(['detect.platform'])
+    ->prefix('v1/ai-chat/')
+    ->group(function () {
+        Route::post('send', [GuestAiChatController::class, 'send'])->middleware('throttle:5,1');
+        Route::get('status', [GuestAiChatController::class, 'status']);
+    });

@@ -1,10 +1,9 @@
 import 'package:dio/dio.dart';
 import '../../config/api_urls.dart';
-import 'dio_client.dart';
 
 class CommonRepository {
 
-  final Dio _dio = DioClient.instance;
+  final Dio _dio = Dio();
 
 
   Future<Response> homePageSettings() {
@@ -19,22 +18,11 @@ class CommonRepository {
     return response;
   }
 
-  Future<Response> menuList(String language) {
-    final response = _dio.get(
-      ApiUrls.menuListUrl(),
-      queryParameters: {
-        "language": language,
-        "pagination": "false",
-      },
-    );
-    return response;
-  }
-
 
   Future<Response> productDetailsSetting(String language) {
     final response = _dio.get(
       ApiUrls.productDetailsSettingUrl(),
-      queryParameters: {
+      data: {
         "language": language,
       },
     );
@@ -44,7 +32,7 @@ class CommonRepository {
   Future<Response> couponList(String searchKey,
       String discountType,bool expireSoon,bool newest,int page,String language,String token,) {
     final response = _dio.get(ApiUrls.couponListUrl(),
-      queryParameters:{
+      data:{
         "search": searchKey,
         "discount_type": discountType, // percentage or amount
         "sort_by_discount": false, // true or false
@@ -70,7 +58,7 @@ class CommonRepository {
 
   Future<Response> addressList(String id,String type,String status,String token) {
     final response = _dio.get(ApiUrls.addressListUrl(),
-      queryParameters: {
+      data: {
         "id":id,
         "type":type,
         "status":status
@@ -104,7 +92,7 @@ class CommonRepository {
   Future<Response> supportTicketList(
   String departmentId, String status,String perPage, String token) {
     final response = _dio.get(ApiUrls.ticketListUrl(),
-      queryParameters: {
+      data: {
         "department_id":departmentId,
         "status":status,
         "per_page":perPage
@@ -270,7 +258,7 @@ class CommonRepository {
 
   Future<Response> currencyList(String token) {
     final response = _dio.get(ApiUrls.currencyListUrl(),
-      queryParameters: {
+      data: {
         "filter": ""
       },
       options: Options(
@@ -387,7 +375,7 @@ class CommonRepository {
 
   Future<Response> extraCharge(List<int> productIds) {
     final response = _dio.get(ApiUrls.extraChargeUrl(),
-      queryParameters:{
+      data:{
         "product_ids":productIds,
       } ,
     );
@@ -395,7 +383,7 @@ class CommonRepository {
   }
   Future<Response> generateHMac(String orderId,String token) {
     final response = _dio.get(ApiUrls.generateHMacUrl(),
-      queryParameters:{
+      data:{
         "order_id":orderId,
       } ,
       options: Options(
@@ -411,7 +399,7 @@ class CommonRepository {
   }
   Future<Response> walletGenerateHMac(String historyId,String token) {
     final response = _dio.get(ApiUrls.walletGenerateHMacUrl(),
-      queryParameters:{
+      data:{
         "wallet_history_id":historyId,
       } ,
       options: Options(
@@ -429,7 +417,7 @@ class CommonRepository {
     final response = _dio.get(ApiUrls.contactUrl(),
         queryParameters:{
           "theme_name": "theme_one",
-          "language": language,
+          "language":"en"
         } ,
     );
     return response;
@@ -446,7 +434,7 @@ class CommonRepository {
   }
   Future<Response> dashboard(String language,String token) {
     final response = _dio.get(ApiUrls.dashboardUrl(),
-      queryParameters: {
+      data: {
         "language":language
       },
       options: Options(
@@ -478,7 +466,7 @@ class CommonRepository {
   }
   Future<Response> orderList(String language,String status,int page, String token) {
     final response = _dio.get(ApiUrls.orderListUrl(),
-      queryParameters:{
+      data:{
       "status": status,
         "page":page,
         "language":language
@@ -498,7 +486,7 @@ class CommonRepository {
     try {
       final response = await _dio.get(
         ApiUrls.orderDetailsUrl(orderId),
-        queryParameters: {
+        data: {
           "language":language
         },
         options: Options(
@@ -517,7 +505,7 @@ class CommonRepository {
   }
   Future<Response> notification(String language,String token) {
     final response = _dio.get(ApiUrls.notificationUrl(),
-      queryParameters: {
+      data: {
         "language":language
       },
       options: Options(
@@ -609,7 +597,7 @@ class CommonRepository {
   }
   Future<Response> tramsAndConditionAndPrivacyPolicy(String base,String language,String token) {
     final response = _dio.get(ApiUrls.tramsAndConditionAndPrivacyPolicyUrl(base),
-      queryParameters: {
+      data: {
         "language":language
       },
       options: Options(
@@ -621,28 +609,6 @@ class CommonRepository {
         },
         followRedirects: false,
       ),
-    );
-    return response;
-  }
-
-  Future<Response> blogList(String language, {int page = 1, int perPage = 10}) {
-    final response = _dio.get(
-      ApiUrls.blogListUrl(),
-      queryParameters: {
-        "language": language,
-        "per_page": perPage,
-        "page": page,
-      },
-    );
-    return response;
-  }
-
-  Future<Response> blogDetail(String slug, String language) {
-    final response = _dio.get(
-      ApiUrls.blogDetailUrl(slug),
-      queryParameters: {
-        "language": language,
-      },
     );
     return response;
   }

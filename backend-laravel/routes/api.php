@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Admin\AdminDeliverymanManageController;
+use App\Http\Controllers\Api\V1\Admin\CurrencyController as AdminCurrencyController;
 use App\Http\Controllers\Api\V1\Admin\ThemeManageController;
 use App\Http\Controllers\Api\V1\Com\ComSiteGeneralController;
+use App\Http\Controllers\Api\V1\CurrencyController;
 use App\Http\Controllers\Api\V1\Com\FrontendPageSettingsController;
 use App\Http\Controllers\Api\V1\Com\HeaderFooterController;
 use App\Http\Controllers\Api\V1\Com\LiveLocationController;
@@ -71,6 +73,7 @@ Route::group(['prefix' => 'v1/'], function () {
     Route::middleware('detect.platform')->group(function () {
         Route::get('/slider-list', [FrontendController::class, 'sliders']);
         Route::match(['GET', 'POST'], '/product-list', [FrontendController::class, 'products']);
+        Route::get('/product/attribute-list', [FrontendController::class, 'productAttributes']);
         Route::get('/product/{product_slug}', [FrontendController::class, 'productDetails']);
         Route::get('/new-arrivals', [FrontendController::class, 'newArrivals']);
         Route::get('/best-selling-products', [FrontendController::class, 'bestSellingProducts']);
@@ -86,7 +89,6 @@ Route::group(['prefix' => 'v1/'], function () {
         Route::get('/area-list', [FrontendController::class, 'areas']);
         Route::get('/tag-list', [FrontendController::class, 'tags']);
         Route::get('/brand-list', [FrontendController::class, 'brands']);
-        Route::get('/product/attribute-list', [FrontendController::class, 'productAttributes']);
         Route::get('/store-types', [FrontendController::class, 'storeTypes']);
         Route::get('/behaviour-list', [FrontendController::class, 'behaviourList']);
         Route::get('/unit-list', [FrontendController::class, 'units']);
@@ -120,6 +122,12 @@ Route::group(['prefix' => 'v1/'], function () {
         Route::get('/site-general-info', [ComSiteGeneralController::class, 'siteGeneralInfo']);
         Route::get('/general-settings', [ComSiteGeneralController::class, 'siteGeneralInfo']); // Alias for /site-general-info
         Route::get('/currency-list', [ComSiteGeneralController::class, 'currencyList']);
+
+        // Currency routes (Public)
+        Route::get('/currencies', [CurrencyController::class, 'index']);
+        Route::get('/currency/default', [CurrencyController::class, 'default']);
+        Route::post('/currency/convert', [CurrencyController::class, 'convert']);
+
         Route::get('/maintenance-page-settings', [ComSiteGeneralController::class, 'siteMaintenancePage']);
         Route::get('/google-map-settings', [ComSiteGeneralController::class, 'googleMapSettings']);
         Route::get('/gdpr-cookie-settings', [ComSiteGeneralController::class, 'gdprCookieSettings']);
@@ -150,6 +158,17 @@ Route::group(['prefix' => 'v1/'], function () {
             // stripe webhook (Stripe will call this)
             Route::post('stripe/webhook', [StripeWebhookController::class, 'handleWebhook']);
         });
+    });
+});
+
+// Admin Currency Management Routes
+Route::group(['prefix' => 'v1/admin', 'middleware' => ['auth:sanctum', ApiAuthMiddleware::class, 'detect.platform']], function () {
+    Route::group(['prefix' => 'currencies'], function () {
+        Route::get('/', [AdminCurrencyController::class, 'index']);
+        Route::post('/update-rates', [AdminCurrencyController::class, 'updateRates']);
+        Route::put('/{currency}', [AdminCurrencyController::class, 'update']);
+        Route::post('/convert', [AdminCurrencyController::class, 'convert']);
+        Route::get('/rate', [AdminCurrencyController::class, 'getRate']);
     });
 });
 

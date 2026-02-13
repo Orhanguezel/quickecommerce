@@ -74,10 +74,21 @@ export interface CheckoutPackage {
   additional_charge?: number;
 }
 
+export interface PaymentGateway {
+  id: number;
+  value: string;
+  label: string;
+  name: string;
+  slug: string;
+  image: string | null;
+  image_url: string | null;
+  description: string | null;
+}
+
 export interface PlaceOrderInput {
   shipping_address_id?: number;
   currency_code: string;
-  payment_gateway: "cash_on_delivery" | "stripe" | "wallet";
+  payment_gateway: string;
   order_notes?: string;
   order_amount?: number;
   coupon_code?: string;

@@ -8,7 +8,7 @@
   <!-- iOS meta tags & icons -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="Sportoonline">
+  <meta name="apple-mobile-web-app-title" content="sherve_mart">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
@@ -16,7 +16,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src * data: blob: filesystem: about: ws: wss: 'unsafe-inline' 'unsafe-eval'; connect-src *;">
   <meta name="google-signin-client_id" content="customize_your_xxxxxxxxxxx.googleusercontent.com">
 
-  <title>Sportoonline</title>
+  <title>Quick Ecommerce Customer</title>
   <link rel="manifest" href="manifest.json">
 
   <!-- Google Maps -->
@@ -107,17 +107,17 @@
       <img class="center" aria-hidden="true" src="splash/img/light-1x.png" alt="">
   </picture>
   
+<script src="flutter_bootstrap.js" async=""></script>
+
 <script>
   window.addEventListener('load', function(ev) {
      {{flutter_js}}
      {{flutter_build_config}}
 
-     const isLocalhost =
-       location.hostname === "localhost" || location.hostname === "127.0.0.1";
      _flutter.loader.load({
-       serviceWorker: isLocalhost
-         ? null
-         : { serviceWorkerVersion: {{flutter_service_worker_version}} },
+       serviceWorker: {
+         serviceWorkerVersion: {{flutter_service_worker_version}},
+       },
        onEntrypointLoaded: function(engineInitializer) {
          engineInitializer.initializeEngine().then(function(appRunner) {
            if(document.getElementById('splash'))

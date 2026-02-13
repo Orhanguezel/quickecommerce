@@ -11,13 +11,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   output: "standalone",
   async redirects() {
-    return [
-      {
-        source: "/",
-        destination: "/tr",
-        permanent: false,
-      },
-    ];
+    return [];
   },
   async rewrites() {
     return [

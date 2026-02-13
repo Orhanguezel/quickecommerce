@@ -21,21 +21,23 @@ class CustomerSeeder extends Seeder
             return;
         }
 
+        // Test müşteri hesabı
         \App\Models\Customer::updateOrCreate(
-            ['email' => 'john_doe@example.com'],
+            ['email' => 'customer@sportoonline.com'],
             [
-            "first_name" => "John",
-            "last_name" => "Doe",
-            "email" => "john_doe@example.com",
-            "phone" => "123456748900",
-            "password" => "12345678",
-            "image" => null,
-            "birth_day" => "1990-01-01",
-            "gender" => "male",
-            "status" => 1,
-            "email_verified" => 1,
-            "email_verified_at" => Carbon::now(),
-        ]);
+                'first_name' => 'Test',
+                'last_name' => 'Customer',
+                'email' => 'customer@sportoonline.com',
+                'phone' => '5551234567',
+                'password' => 'Admin123!',
+                'image' => null,
+                'birth_day' => '1995-06-15',
+                'gender' => 'male',
+                'status' => 1,
+                'email_verified' => 1,
+                'email_verified_at' => Carbon::now(),
+            ]
+        );
 
     }
 }

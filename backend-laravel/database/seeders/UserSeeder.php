@@ -34,17 +34,18 @@ class UserSeeder extends Seeder
             ],
             [
                 'activity_scope' => 'store_level',
-                'created_at' => '2021-06-27 04:13:00',
-                'email' => 'owner@store.com',
-                'email_verified_at' => null,
-                'first_name' => 'Store Admin',
-                'password' => '$2y$10$oSKpyEavNDBqA29RYY1UueFB1Y0hTUXmHqQeJC9lB1gnzoVTHpVV2',
+                'created_at' => now(),
+                'email' => 'seller@sportoonline.com',
+                'email_verified_at' => now(),
+                'first_name' => 'Seller',
+                'last_name' => 'User',
+                'password' => Hash::make('Admin123!'),
                 'remember_token' => null,
-                'slug' => 'store-owner',
+                'slug' => 'seller-user',
                 'status' => 1,
                 'store_owner' => 1,
-                'stores' => '[1,2,3,4]',
-                'updated_at' => '2023-10-02 06:53:37',
+                'stores' => null,
+                'updated_at' => now(),
             ],
         ];
 
@@ -67,6 +68,25 @@ class UserSeeder extends Seeder
             // Enable all permission flags for Super Admin
             DB::table('role_has_permissions')
                 ->where('role_id', $superAdminRole->id)
+                ->update([
+                    'view' => true,
+                    'insert' => true,
+                    'update' => true,
+                    'delete' => true,
+                ]);
+        }
+
+        // Assign Store Admin role to seller user
+        $sellerUser = User::where('email', 'seller@sportoonline.com')->first();
+        $storeAdminRole = Role::where('name', 'Store Admin')->first();
+
+        if ($sellerUser && $storeAdminRole) {
+            $storePermissions = Permission::whereIn('available_for', ['store_level', 'COMMON'])->get();
+            $storeAdminRole->syncPermissions($storePermissions);
+            $sellerUser->syncRoles([$storeAdminRole]);
+
+            DB::table('role_has_permissions')
+                ->where('role_id', $storeAdminRole->id)
                 ->update([
                     'view' => true,
                     'insert' => true,

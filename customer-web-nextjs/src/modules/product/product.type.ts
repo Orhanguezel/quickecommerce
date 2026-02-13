@@ -16,6 +16,7 @@ export interface Product {
   flash_sale: boolean;
   is_featured?: boolean;
   max_cart_qty?: number;
+  singleVariant?: ProductVariant[];
   category_name?: {
     id: number;
     category_name: string;

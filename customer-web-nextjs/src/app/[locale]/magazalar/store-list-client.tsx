@@ -1,9 +1,10 @@
 "use client";
 
-import { Link } from "@/i18n/routing";
+import { Link, useRouter } from "@/i18n/routing";
+import { ROUTES } from "@/config/routes";
 import Image from "next/image";
-import { ChevronRight, Star, MapPin, ShoppingBag } from "lucide-react";
-import type { Store } from "@/modules/store/store.type";
+import { ChevronRight, ShoppingBag } from "lucide-react";
+import type { Store, StoreType } from "@/modules/store/store.type";
 
 interface StoreListTranslations {
   stores: string;
@@ -16,6 +17,7 @@ interface StoreListTranslations {
   home: string;
   view_store: string;
   rating: string;
+  select_type: string;
 }
 
 interface StoreListClientProps {
@@ -23,6 +25,8 @@ interface StoreListClientProps {
   totalPages: number;
   totalStores: number;
   currentPage: number;
+  storeTypes?: StoreType[];
+  currentType?: string;
   translations: StoreListTranslations;
 }
 
@@ -31,39 +35,64 @@ export function StoreListClient({
   totalPages,
   totalStores,
   currentPage,
+  storeTypes = [],
+  currentType,
   translations: t,
 }: StoreListClientProps) {
+  const router = useRouter();
+
   function buildPageUrl(page: number) {
     const params = new URLSearchParams();
     if (page > 1) params.set("page", String(page));
+    if (currentType) params.set("type", currentType);
     const query = params.toString();
     return `/magazalar${query ? `?${query}` : ""}`;
   }
 
+  function handleTypeChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const val = e.target.value;
+    const params = new URLSearchParams();
+    if (val) params.set("type", val);
+    const query = params.toString();
+    router.push(`/magazalar${query ? `?${query}` : ""}`);
+  }
+
   return (
-    <div className="container py-6">
+    <div className="container mx-auto px-4 py-6">
       {/* Breadcrumb */}
-      <nav className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground">
-        <Link href="/" className="hover:text-foreground">
+      <nav className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
+        <Link href={ROUTES.HOME} className="hover:text-primary">
           {t.home}
         </Link>
         <ChevronRight className="h-3.5 w-3.5" />
-        <span className="text-foreground">{t.stores}</span>
+        <span className="font-medium text-foreground">{t.stores}</span>
       </nav>
 
-      {/* Title */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">{t.stores}</h1>
-        {totalStores > 0 && (
-          <p className="mt-1 text-sm text-muted-foreground">
-            {totalStores} {t.store_count}
-          </p>
-        )}
+      {/* Title Bar — Store icon + title left, type dropdown right */}
+      <div className="mb-6 flex items-center justify-between rounded-xl border bg-card p-5">
+        <div className="flex items-center gap-3">
+          <ShoppingBag className="h-6 w-6 text-foreground" />
+          <h1 className="text-xl font-bold text-foreground">{t.stores}</h1>
+        </div>
+
+        {/* Store Type Dropdown */}
+        <select
+          value={currentType || ""}
+          onChange={handleTypeChange}
+          className="rounded-lg border border-border bg-background px-4 py-2 text-sm text-foreground outline-none focus:border-primary"
+        >
+          <option value="">---{t.select_type}---</option>
+          {storeTypes.map((type) => (
+            <option key={type.id} value={type.value || String(type.id)}>
+              {type.label || type.name}
+            </option>
+          ))}
+        </select>
       </div>
 
-      {/* Store Grid */}
+      {/* Store Grid — 4 columns */}
       {stores.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {stores.map((store) => (
             <StoreCard key={store.id} store={store} translations={t} />
           ))}
@@ -128,6 +157,7 @@ export function StoreListClient({
   );
 }
 
+/* ── Store Card — matches reference design ── */
 function StoreCard({
   store,
   translations: t,
@@ -136,76 +166,69 @@ function StoreCard({
   translations: StoreListTranslations;
 }) {
   return (
-    <Link
-      href={`/magaza/${store.slug}`}
-      className="group overflow-hidden rounded-lg border transition-shadow hover:shadow-md"
-    >
-      {/* Banner */}
-      <div className="relative h-32 bg-muted">
-        {store.banner_url ? (
+    <div className="flex flex-col items-center rounded-xl border bg-card p-6 transition-shadow hover:shadow-md">
+      {/* Logo — centered circle */}
+      <div className="relative mb-4 h-[80px] w-[80px] shrink-0 overflow-hidden rounded-full border-2 border-border/50 bg-background">
+        {store.logo_url ? (
           <Image
-            src={store.banner_url}
+            src={store.logo_url}
             alt={store.name}
             fill
             className="object-cover"
           />
         ) : (
-          <div className="flex h-full items-center justify-center bg-gradient-to-r from-primary/10 to-primary/5">
-            <ShoppingBag className="h-10 w-10 text-muted-foreground/30" />
+          <div className="flex h-full w-full items-center justify-center bg-muted text-xl font-bold text-muted-foreground">
+            {store.name.charAt(0)}
           </div>
-        )}
-
-        {store.is_featured === 1 && (
-          <span className="absolute left-2 top-2 rounded bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
-            {t.featured}
-          </span>
         )}
       </div>
 
-      {/* Info */}
-      <div className="p-4">
-        <div className="flex items-start gap-3">
-          {/* Logo */}
-          <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full border bg-background shadow-sm">
-            {store.logo_url ? (
-              <Image
-                src={store.logo_url}
-                alt={store.name}
-                fill
-                className="object-cover"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center bg-muted text-sm font-bold text-muted-foreground">
-                {store.name.charAt(0)}
-              </div>
-            )}
+      {/* Store Name */}
+      <h3 className="mb-4 text-center text-base font-bold text-foreground">
+        {store.name}
+      </h3>
+
+      {/* Contact Info */}
+      <div className="mb-5 w-full space-y-2.5">
+        {/* Phone */}
+        {store.phone && (
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <Image src="/assets/icons/suport_ticket.png" alt="" width={20} height={20} className="h-5 w-5 shrink-0" />
+            <span className="truncate">{store.phone}</span>
           </div>
+        )}
 
-          <div className="min-w-0 flex-1">
-            <h3 className="truncate font-semibold group-hover:text-primary">
-              {store.name}
-            </h3>
-
-            {/* Rating */}
-            {store.rating > 0 && (
-              <div className="mt-0.5 flex items-center gap-1">
-                <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                <span className="text-sm text-muted-foreground">
-                  {store.rating.toFixed(1)}
-                </span>
-              </div>
-            )}
-
-            {/* Address */}
-            {store.address && (
-              <div className="mt-1 flex items-start gap-1 text-xs text-muted-foreground">
-                <MapPin className="mt-0.5 h-3 w-3 shrink-0" />
-                <span className="line-clamp-1">{store.address}</span>
-              </div>
-            )}
+        {/* Email — email.png is white template, apply CSS filter to colorize blue */}
+        {store.email && (
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <Image
+              src="/assets/icons/email.png"
+              alt=""
+              width={20}
+              height={20}
+              className="h-5 w-5 shrink-0 brightness-0 saturate-100"
+              style={{ filter: "invert(42%) sepia(93%) saturate(1352%) hue-rotate(196deg) brightness(97%) contrast(101%)" }}
+            />
+            <span className="truncate">{store.email}</span>
           </div>
-        </div>
+        )}
+
+        {/* Address */}
+        {store.address && (
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <Image src="/assets/icons/address.png" alt="" width={20} height={20} className="h-5 w-5 shrink-0" />
+            <span className="line-clamp-1">{store.address}</span>
+          </div>
+        )}
       </div>
-    </Link>
+
+      {/* Visit Store Button */}
+      <Link
+        href={`/magaza/${store.slug}`}
+        className="mt-auto rounded-full bg-primary px-8 py-2 text-center text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+      >
+        {t.view_store}
+      </Link>
+    </div>
   );
 }

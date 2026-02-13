@@ -25,6 +25,8 @@ export default async function AccountPage({ params }: Props) {
   const accountT = await getTranslations({ locale, namespace: "account" });
   const commonT = await getTranslations({ locale, namespace: "common" });
   const checkoutT = await getTranslations({ locale, namespace: "checkout" });
+  const orderT = await getTranslations({ locale, namespace: "order" });
+  const supportT = await getTranslations({ locale, namespace: "support" });
 
   return (
     <AccountClient
@@ -53,7 +55,13 @@ export default async function AccountPage({ params }: Props) {
         delete_account_message: accountT("delete_account_message"),
         delete_yes: accountT("delete_yes"),
         delete_no: accountT("delete_no"),
+        wishlist: accountT("wishlist"),
+        no_wishlist: accountT("no_wishlist"),
+        recently_viewed: accountT("recently_viewed"),
+        no_recently_viewed: accountT("no_recently_viewed"),
+        clear_history: accountT("clear_history"),
         no_addresses: checkoutT("no_addresses"),
+        address_saved: checkoutT("address_saved"),
         add_address: checkoutT("add_address"),
         address_type: checkoutT("address_type"),
         address_type_home: checkoutT("address_type_home"),
@@ -68,6 +76,44 @@ export default async function AccountPage({ params }: Props) {
         address_floor: checkoutT("address_floor"),
         address_postal: checkoutT("address_postal"),
         set_default: checkoutT("set_default"),
+        // Order translations
+        my_orders: orderT("my_orders"),
+        order_number: orderT("order_number"),
+        order_date: orderT("order_date"),
+        view_detail: orderT("view_detail"),
+        cancel_order: orderT("cancel_order"),
+        no_orders: orderT("no_orders"),
+        cancel_confirm: orderT("cancel_confirm"),
+        cancel_confirm_message: orderT("cancel_confirm_message"),
+        cancel_yes: orderT("cancel_yes"),
+        cancel_no: orderT("cancel_no"),
+        status_pending: orderT("status_pending"),
+        status_confirmed: orderT("status_confirmed"),
+        status_processing: orderT("status_processing"),
+        status_pickup: orderT("status_pickup"),
+        status_shipped: orderT("status_shipped"),
+        status_delivered: orderT("status_delivered"),
+        status_cancelled: orderT("status_cancelled"),
+        status_on_hold: orderT("status_on_hold"),
+        filter_all: orderT("filter_all"),
+        items_count: orderT("items_count"),
+        // Support translations
+        support: supportT("support"),
+        new_ticket: supportT("new_ticket"),
+        ticket_title: supportT("ticket_title"),
+        ticket_subject: supportT("ticket_subject"),
+        ticket_priority: supportT("ticket_priority"),
+        priority_low: supportT("priority_low"),
+        priority_medium: supportT("priority_medium"),
+        priority_high: supportT("priority_high"),
+        priority_urgent: supportT("priority_urgent"),
+        status_open: supportT("status_open"),
+        status_closed: supportT("status_closed"),
+        no_tickets: supportT("no_tickets"),
+        view_conversation: supportT("view_conversation"),
+        type_message: supportT("type_message"),
+        resolve_ticket: supportT("resolve_ticket"),
+        // Common
         home: commonT("home"),
         loading: commonT("loading"),
         error: commonT("error"),
@@ -75,6 +121,11 @@ export default async function AccountPage({ params }: Props) {
         cancel: commonT("cancel"),
         delete: commonT("delete"),
         edit: commonT("edit"),
+        logout: commonT("logout"),
+        currency: commonT("currency"),
+        previous: commonT("previous"),
+        next: commonT("next"),
+        search: commonT("search"),
       }}
     />
   );

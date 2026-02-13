@@ -7,6 +7,9 @@ export const API_ENDPOINTS = {
   FORGOT_PASSWORD: "/customer/forget-password",
   VERIFY_TOKEN: "/customer/verify-token",
   RESET_PASSWORD: "/customer/reset-password",
+  OTP_LOGIN_SEND: "/otp-login/send",
+  OTP_LOGIN_VERIFY: "/otp-login/verify",
+  OTP_LOGIN_RESEND: "/otp-login/resend",
 
   // Site
   SITE_GENERAL_INFO: "/site-general-info",
@@ -22,6 +25,7 @@ export const API_ENDPOINTS = {
   PRODUCT_DETAIL: "/product",
   CATEGORIES: "/product-category/list",
   BRANDS: "/brand-list",
+  PRODUCT_ATTRIBUTES: "/product/attribute-list",
   PRODUCT_QA: "/product-qa",
   PRODUCT_QA_ASK: "/product-qa/ask",
   PRODUCT_SUGGESTION: "/product-suggestion",
@@ -101,8 +105,17 @@ export const API_ENDPOINTS = {
   // Coupons
   COUPONS: "/coupons",
 
+  // Payment Gateways
+  PAYMENT_GATEWAYS: "/payment-gateways",
+
+  // Areas / Location
+  AREA_LIST: "/area-list",
+
   // Currency
   CURRENCY_LIST: "/currency-list",
+  CURRENCIES: "/currencies",
+  CURRENCY_DEFAULT: "/currency/default",
+  CURRENCY_CONVERT: "/currency/convert",
 
   // Seller
   SELLER_REGISTER: "/seller/registration",
@@ -115,4 +128,10 @@ export const API_ENDPOINTS = {
   CHAT_MESSAGES: "/customer/chat/messages",
   CHAT_SEND: "/customer/chat/send",
   CHAT_SEEN: "/customer/chat/seen",
+
+  // AI Chat
+  AI_CHAT_STATUS: "/ai-chat/status",
+  AI_CHAT_SEND: "/customer/ai-chat/send",
+  AI_CHAT_GUEST_SEND: "/ai-chat/send",
+  AI_CHAT_HISTORY: "/customer/ai-chat/history",
 } as const;

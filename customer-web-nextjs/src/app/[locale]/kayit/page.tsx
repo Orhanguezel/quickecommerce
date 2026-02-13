@@ -28,6 +28,7 @@ export default async function RegisterPage({ params }: Props) {
   return (
     <RegisterClient
       translations={{
+        home: commonT("home"),
         register_title: t("register_title"),
         first_name: t("first_name"),
         last_name: t("last_name"),
@@ -44,6 +45,16 @@ export default async function RegisterPage({ params }: Props) {
         google: t("google"),
         facebook: t("facebook"),
         social_error: t("social_error"),
+        agree_terms: t("agree_terms"),
+        login_with_otp: t("login_with_otp"),
+        otp_title: t("otp_title"),
+        otp_subtitle: t("otp_subtitle"),
+        otp_code: t("otp_code"),
+        send_otp: t("send_otp"),
+        resend_otp: t("resend_otp"),
+        verify_otp: t("verify_otp"),
+        otp_error: t("otp_error"),
+        otp_sent: t("otp_sent"),
       }}
     />
   );

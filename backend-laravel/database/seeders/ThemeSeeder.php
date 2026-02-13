@@ -109,7 +109,7 @@ class ThemeSeeder extends Seeder
                 [
                     'colors' => [
                         [
-                            'primary'   => '#1A73E8',
+                            'primary'   => '#0E5ABC',
                             'secondary' => '#0e5abc',
                         ],
                     ],
@@ -118,15 +118,33 @@ class ThemeSeeder extends Seeder
 
             'theme_header' => [
                 [
-                    'header_number' => '01',
+                    'header_number'         => '01',
+                    // Light mode
+                    'row1_bg'               => '#0E5ABC',
+                    'row1_text'             => '#FFFFFF',
+                    'row2_bg'               => '#FFFFFF',
+                    'row3_bg'               => '#F4F8FE',
+                    'row3_text'             => '#1E293B',
+                    'row3_button_bg'        => '#0E5ABC',
+                    'row3_button_text'      => '#FFFFFF',
+                    // Dark mode
+                    'dark_row1_bg'          => '#0A121C',
+                    'dark_row1_text'        => '#FFFFFF',
+                    'dark_row2_bg'          => '#152841',
+                    'dark_row3_bg'          => '#152841',
+                    'dark_row3_text'        => '#E2E8F0',
+                    'dark_row3_button_bg'   => '#1E3A5F',
+                    'dark_row3_button_text' => '#FFFFFF',
                 ],
             ],
 
             'theme_footer' => [
                 [
-                    'background_color' => '#0d166d',
-                    'text_color'       => '#ffffff',
-                    'layout_columns'   => 3,
+                    'background_color'      => '#0D166D',
+                    'text_color'            => '#ffffff',
+                    'dark_background_color' => '#11253C',
+                    'dark_text_color'       => '#ffffff',
+                    'layout_columns'        => 4,
                 ],
             ],
 
@@ -134,7 +152,7 @@ class ThemeSeeder extends Seeder
                 [
                     'theme_home_page' => [
                         [
-                            'slider'                  => [['enabled_disabled' => 'on']],
+                            'slider'                  => [['enabled_disabled' => 'on', 'slider_number' => '01']],
                             'category'                => [['title' => 'Kategoriler', 'enabled_disabled' => 'on']],
                             'flash_sale'              => [['title' => 'Fırsat Ürünleri', 'enabled_disabled' => 'on']],
                             'product_featured'        => [['title' => 'Öne Çıkan Ürünler', 'enabled_disabled' => 'on']],
@@ -245,15 +263,33 @@ class ThemeSeeder extends Seeder
 
             'theme_header' => [
                 [
-                    'header_number' => '02',
+                    'header_number'         => '02',
+                    // Light mode
+                    'row1_bg'               => '#FFFFFF',
+                    'row1_text'             => '#1E293B',
+                    'row2_bg'               => '#FFFFFF',
+                    'row3_bg'               => '#FFFFFF',
+                    'row3_text'             => '#1E293B',
+                    'row3_button_bg'        => '#10B981',
+                    'row3_button_text'      => '#FFFFFF',
+                    // Dark mode
+                    'dark_row1_bg'          => '#0A121C',
+                    'dark_row1_text'        => '#E2E8F0',
+                    'dark_row2_bg'          => '#152841',
+                    'dark_row3_bg'          => '#152841',
+                    'dark_row3_text'        => '#E2E8F0',
+                    'dark_row3_button_bg'   => '#059669',
+                    'dark_row3_button_text' => '#FFFFFF',
                 ],
             ],
 
             'theme_footer' => [
                 [
-                    'background_color' => '#1e293b',
-                    'text_color'       => '#ffffff',
-                    'layout_columns'   => 4,
+                    'background_color'      => '#1E293B',
+                    'text_color'            => '#ffffff',
+                    'dark_background_color' => '#11253C',
+                    'dark_text_color'       => '#ffffff',
+                    'layout_columns'        => 4,
                 ],
             ],
 
@@ -261,7 +297,7 @@ class ThemeSeeder extends Seeder
                 [
                     'theme_home_page' => [
                         [
-                            'slider'                  => [['enabled_disabled' => 'on']],
+                            'slider'                  => [['enabled_disabled' => 'on', 'slider_number' => '02']],
                             'category'                => [['title' => 'Kategoriler', 'enabled_disabled' => 'on']],
                             'flash_sale'              => [['title' => 'Fırsat Ürünleri', 'enabled_disabled' => 'on']],
                             'product_featured'        => [['title' => 'Öne Çıkan Ürünler', 'enabled_disabled' => 'on']],

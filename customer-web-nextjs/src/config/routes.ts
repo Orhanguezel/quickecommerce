@@ -8,7 +8,9 @@ export const ROUTES = {
   SELLER_REGISTER: "/satici-basvuru",
 
   // Products
+  PRODUCTS: "/urunler",
   PRODUCT_DETAIL: (slug: string) => `/urun/${slug}`,
+  CATEGORIES: "/kategoriler",
   CATEGORY: (slug: string) => `/kategori/${slug}`,
   BRAND: (slug: string) => `/marka/${slug}`,
   SEARCH: "/ara",

@@ -2,32 +2,41 @@
 
 import { Link } from "@/i18n/routing";
 import { ROUTES } from "@/config/routes";
-import { Store, Star } from "lucide-react";
+import { Store } from "lucide-react";
 import Image from "next/image";
 import { useTopStoresQuery } from "@/modules/store/store.action";
 import type { Store as StoreType } from "@/modules/store/store.type";
+import { SectionHeader } from "./section-header";
+import { useTranslations } from "next-intl";
 
 interface TopStoresSectionProps {
   title: string;
 }
 
+/* Cycling pastel card colors — bg + button accent */
+const CARD_COLORS = [
+  { bg: "#FFF0F0", btn: "#8BC34A", btnText: "#fff" },
+  { bg: "#FFF3E0", btn: "#FF9800", btnText: "#fff" },
+  { bg: "#E8F5E9", btn: "#4CAF50", btnText: "#fff" },
+  { bg: "#F3E5F5", btn: "#9C27B0", btnText: "#fff" },
+  { bg: "#F5F5F5", btn: "#9E9E9E", btnText: "#fff" },
+  { bg: "#E3F2FD", btn: "#2196F3", btnText: "#fff" },
+];
+
 export function TopStoresSection({ title }: TopStoresSectionProps) {
-  const { data, isPending: isLoading } = useTopStoresQuery(4);
+  const t = useTranslations("store");
+  const { data, isPending: isLoading } = useTopStoresQuery(6);
   const stores: StoreType[] = (data as { data?: StoreType[] })?.data ?? [];
 
-  // If no data and not loading, don't render
-  if (!isLoading && stores.length === 0) {
-    return null;
-  }
+  if (!isLoading && stores.length === 0) return null;
 
-  // Loading skeleton
   if (isLoading) {
     return (
       <section>
-        <h2 className="mb-6 text-2xl font-bold">{title}</h2>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:gap-6">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-48 animate-pulse rounded-lg bg-muted" />
+        <SectionHeader title={title} viewAllHref={ROUTES.STORES} />
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="h-[180px] animate-pulse rounded-xl bg-muted" />
           ))}
         </div>
       </section>
@@ -36,47 +45,51 @@ export function TopStoresSection({ title }: TopStoresSectionProps) {
 
   return (
     <section>
-      <h2 className="mb-6 text-2xl font-bold">{title}</h2>
+      <SectionHeader title={title} viewAllHref={ROUTES.STORES} />
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:gap-6">
-        {stores.map((store) => (
-          <Link
-            key={store.id}
-            href={ROUTES.STORE_DETAIL(store.slug)}
-            className="group rounded-lg border bg-card p-6 transition-all hover:shadow-md"
-          >
-            <div className="mb-4 flex justify-center">
-              {store.logo_url ? (
-                <div className="relative h-20 w-20 overflow-hidden rounded-full">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+        {stores.map((store, index) => {
+          const color = CARD_COLORS[index % CARD_COLORS.length];
+          return (
+            <Link
+              key={store.id}
+              href={ROUTES.STORE_DETAIL(store.slug)}
+              className="group flex flex-col items-center rounded-xl px-4 py-6 transition-shadow hover:shadow-md"
+              style={{ backgroundColor: color.bg }}
+            >
+              {/* Store Logo */}
+              <div className="mb-3 flex h-16 w-16 items-center justify-center overflow-hidden rounded-full">
+                {store.logo_url ? (
                   <Image
                     src={store.logo_url}
                     alt={store.name}
-                    fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-110"
-                    sizes="80px"
+                    width={64}
+                    height={64}
+                    className="h-full w-full object-cover"
+                    unoptimized
                   />
-                </div>
-              ) : (
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-                  <Store className="h-10 w-10 text-primary" />
-                </div>
-              )}
-            </div>
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center rounded-full bg-white/60">
+                    <Store className="h-7 w-7 text-muted-foreground" />
+                  </div>
+                )}
+              </div>
 
-            <h3 className="mb-2 text-center font-semibold group-hover:text-primary">
-              {store.name}
-            </h3>
+              {/* Store Name */}
+              <h3 className="mb-4 text-center text-sm font-semibold text-foreground">
+                {store.name}
+              </h3>
 
-            <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
-              {store.rating > 0 && (
-                <div className="flex items-center gap-1">
-                  <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                  <span>{store.rating.toFixed(1)}</span>
-                </div>
-              )}
-            </div>
-          </Link>
-        ))}
+              {/* Visit Store Button */}
+              <span
+                className="mt-auto rounded-md px-4 py-1.5 text-xs font-medium transition-opacity group-hover:opacity-90"
+                style={{ backgroundColor: color.btn, color: color.btnText }}
+              >
+                {t("view_store")}
+              </span>
+            </Link>
+          );
+        })}
       </div>
     </section>
   );

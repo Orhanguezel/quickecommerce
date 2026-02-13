@@ -18,6 +18,10 @@ import type {
   VerifyTokenInput,
   ResetPasswordInput,
   SocialLoginInput,
+  OtpLoginSendInput,
+  OtpLoginSendResponse,
+  OtpLoginVerifyInput,
+  User,
 } from "./auth.type";
 
 const api = axios.create({
@@ -103,6 +107,109 @@ export function useSocialLoginMutation() {
       setUser(data.user);
       const redirectTo = searchParams.get("redirect");
       router.push(redirectTo || `/${locale}`);
+    },
+  });
+}
+
+interface AuthPayloadCandidate {
+  token?: string;
+  expires_at?: string;
+  user?: User;
+  data?: {
+    token?: string;
+    expires_at?: string;
+    user?: User;
+  };
+}
+
+function extractAuthPayload(data: AuthPayloadCandidate) {
+  if (data?.token && data?.user) {
+    return {
+      token: data.token,
+      user: data.user,
+      expires_at: data.expires_at,
+    };
+  }
+  if (data?.data?.token && data?.data?.user) {
+    return {
+      token: data.data.token,
+      user: data.data.user,
+      expires_at: data.data.expires_at,
+    };
+  }
+  return null;
+}
+
+function persistAuthAndRedirect(
+  payload: { token: string; user: User; expires_at?: string },
+  setUser: (user: User) => void,
+  locale: string,
+  router: ReturnType<typeof useRouter>,
+  redirectTo?: string | null
+) {
+  Cookies.set(AUTH_TOKEN_KEY, payload.token, { expires: 30 });
+  Cookies.set(AUTH_USER, JSON.stringify(payload.user), { expires: 30 });
+  if (payload.expires_at) {
+    localStorage.setItem("expires_at", payload.expires_at);
+  }
+  setUser(payload.user);
+  router.push(redirectTo || `/${locale}`);
+}
+
+export function useOtpLoginSendMutation() {
+  const locale = useLocale();
+  return useMutation({
+    mutationFn: async (data: OtpLoginSendInput) => {
+      const res = await api.post<OtpLoginSendResponse>(
+        API_ENDPOINTS.OTP_LOGIN_SEND,
+        data,
+        {
+          headers: { "X-localization": locale },
+        }
+      );
+      return res.data;
+    },
+  });
+}
+
+export function useOtpLoginResendMutation() {
+  const locale = useLocale();
+  return useMutation({
+    mutationFn: async (data: OtpLoginSendInput) => {
+      const res = await api.post<OtpLoginSendResponse>(
+        API_ENDPOINTS.OTP_LOGIN_RESEND,
+        data,
+        {
+          headers: { "X-localization": locale },
+        }
+      );
+      return res.data;
+    },
+  });
+}
+
+export function useOtpLoginVerifyMutation() {
+  const locale = useLocale();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const setUser = useAuthStore((s) => s.setUser);
+
+  return useMutation({
+    mutationFn: async (data: OtpLoginVerifyInput) => {
+      const res = await api.post<AuthPayloadCandidate>(
+        API_ENDPOINTS.OTP_LOGIN_VERIFY,
+        data,
+        {
+          headers: { "X-localization": locale },
+        }
+      );
+      return res.data;
+    },
+    onSuccess: (data) => {
+      const payload = extractAuthPayload(data);
+      if (!payload) return;
+      const redirectTo = searchParams.get("redirect");
+      persistAuthAndRedirect(payload, setUser, locale, router, redirectTo);
     },
   });
 }

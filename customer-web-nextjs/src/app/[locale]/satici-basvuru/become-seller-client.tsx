@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Link } from "@/i18n/routing";
+import { Link, useRouter } from "@/i18n/routing";
 import { ROUTES } from "@/config/routes";
-import { ChevronRight, Check, Play, HelpCircle, MessageSquare } from "lucide-react";
+import { getApiBaseUrl } from "@/lib/api-url";
+import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
+import { ChevronRight, Check, HelpCircle, MessageSquare, Loader2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -65,13 +67,11 @@ interface BecomeSellerContent {
 
 interface BecomeSellerClientProps {
   content: BecomeSellerContent | null;
-  translations: {
-    home: string;
-    becomeSeller: string;
-  };
+  translations: Record<string, string>;
 }
 
 export function BecomeSellerClient({ content, translations: t }: BecomeSellerClientProps) {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
@@ -84,18 +84,26 @@ export function BecomeSellerClient({ content, translations: t }: BecomeSellerCli
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
     if (!formData.agree) {
-      setError("Şartları ve koşulları kabul etmelisiniz");
+      setError(t.agree_required || "Şartları ve koşulları kabul etmelisiniz");
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError(t.password_min || "Şifre en az 6 karakter olmalıdır");
       return;
     }
 
     if (formData.password !== formData.password_confirmation) {
-      setError("Şifreler eşleşmiyor");
+      setError(t.passwords_not_match || "Şifreler eşleşmiyor");
       return;
     }
 
@@ -103,7 +111,7 @@ export function BecomeSellerClient({ content, translations: t }: BecomeSellerCli
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_REST_API_ENDPOINT}/seller/registration`,
+        `${getApiBaseUrl()}${API_ENDPOINTS.SELLER_REGISTER}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -120,35 +128,37 @@ export function BecomeSellerClient({ content, translations: t }: BecomeSellerCli
 
       const data = await res.json();
 
-      if (res.ok) {
-        // Redirect to seller panel or show success
-        window.location.href = "/seller/dashboard";
+      if (res.ok && data.status) {
+        setSuccess(true);
       } else {
-        setError(data.message || "Kayıt başarısız oldu");
+        // Backend validation returns errors as keyed object or single message
+        if (data.errors) {
+          const firstError = Object.values(data.errors).flat()[0];
+          setError(String(firstError));
+        } else if (data.message) {
+          setError(data.message);
+        } else if (typeof data === "object" && !Array.isArray(data)) {
+          // Validator->errors() format: { email: ["The email has already been taken."] }
+          const firstError = Object.values(data).flat()[0];
+          setError(String(firstError));
+        } else {
+          setError(t.registration_failed || "Kayıt başarısız oldu");
+        }
       }
-    } catch (err) {
-      setError("Bir hata oluştu. Lütfen tekrar deneyin.");
+    } catch {
+      setError(t.generic_error || "Bir hata oluştu. Lütfen tekrar deneyin.");
     } finally {
       setLoading(false);
     }
   };
 
-  if (!content) {
-    return (
-      <div className="container py-12 text-center">
-        <p className="text-muted-foreground">İçerik yükleniyor...</p>
-      </div>
-    );
-  }
-
-  const {
-    login_register_section,
-    on_board_section,
-    video_section,
-    join_benefits_section,
-    faq_section,
-    contact_section,
-  } = content;
+  // Fallback content when backend page data is not available
+  const login_register_section = content?.login_register_section;
+  const on_board_section = content?.on_board_section;
+  const video_section = content?.video_section;
+  const join_benefits_section = content?.join_benefits_section;
+  const faq_section = content?.faq_section;
+  const contact_section = content?.contact_section;
 
   return (
     <div className="min-h-screen">
@@ -160,7 +170,7 @@ export function BecomeSellerClient({ content, translations: t }: BecomeSellerCli
               {t.home}
             </Link>
             <ChevronRight className="h-3.5 w-3.5" />
-            <span className="text-foreground">{t.becomeSeller}</span>
+            <span className="text-foreground">{t.become_seller}</span>
           </nav>
         </div>
       </div>
@@ -172,283 +182,329 @@ export function BecomeSellerClient({ content, translations: t }: BecomeSellerCli
             {/* Left - Info */}
             <div className="flex flex-col justify-center">
               <h1 className="text-3xl font-bold tracking-tight lg:text-4xl">
-                {login_register_section.register_title}
+                {login_register_section?.register_title || t.register_title}
               </h1>
               <p className="mt-3 text-lg text-muted-foreground">
-                {login_register_section.register_subtitle}
+                {login_register_section?.register_subtitle || t.register_subtitle}
               </p>
               <div className="mt-8 space-y-4">
                 <div className="flex items-start gap-3">
                   <Check className="mt-1 h-5 w-5 shrink-0 text-primary" />
-                  <p className="text-sm">Ücretsiz kayıt ve kolay kurulum</p>
+                  <p className="text-sm">{t.benefit_free}</p>
                 </div>
                 <div className="flex items-start gap-3">
                   <Check className="mt-1 h-5 w-5 shrink-0 text-primary" />
-                  <p className="text-sm">Milyonlarca müşteriye ulaşın</p>
+                  <p className="text-sm">{t.benefit_reach}</p>
                 </div>
                 <div className="flex items-start gap-3">
                   <Check className="mt-1 h-5 w-5 shrink-0 text-primary" />
-                  <p className="text-sm">7/24 satıcı desteği</p>
+                  <p className="text-sm">{t.benefit_support}</p>
                 </div>
               </div>
             </div>
 
             {/* Right - Form */}
             <div className="rounded-lg border bg-card p-6 shadow-lg">
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <Label htmlFor="first_name">Ad *</Label>
-                    <Input
-                      id="first_name"
-                      type="text"
-                      required
-                      value={formData.first_name}
-                      onChange={(e) =>
-                        setFormData({ ...formData, first_name: e.target.value })
-                      }
-                      className="mt-1"
-                    />
+              {success ? (
+                <div className="py-8 text-center">
+                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+                    <Check className="h-8 w-8 text-green-600" />
                   </div>
-                  <div>
-                    <Label htmlFor="last_name">Soyad</Label>
-                    <Input
-                      id="last_name"
-                      type="text"
-                      value={formData.last_name}
-                      onChange={(e) =>
-                        setFormData({ ...formData, last_name: e.target.value })
-                      }
-                      className="mt-1"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="email">E-posta *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
-                    className="mt-1"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="phone">Telefon</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) =>
-                      setFormData({ ...formData, phone: e.target.value })
-                    }
-                    className="mt-1"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="password">Şifre *</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    required
-                    value={formData.password}
-                    onChange={(e) =>
-                      setFormData({ ...formData, password: e.target.value })
-                    }
-                    className="mt-1"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="password_confirmation">Şifre Tekrar *</Label>
-                  <Input
-                    id="password_confirmation"
-                    type="password"
-                    required
-                    value={formData.password_confirmation}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        password_confirmation: e.target.value,
-                      })
-                    }
-                    className="mt-1"
-                  />
-                </div>
-
-                <div className="flex items-start gap-2">
-                  <Checkbox
-                    id="agree"
-                    checked={formData.agree}
-                    onCheckedChange={(checked) =>
-                      setFormData({ ...formData, agree: !!checked })
-                    }
-                  />
-                  <label
-                    htmlFor="agree"
-                    className="cursor-pointer text-sm leading-tight"
-                  >
-                    {contact_section.agree_button_title}
-                  </label>
-                </div>
-
-                {error && (
-                  <p className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-                    {error}
+                  <h3 className="text-xl font-bold">{t.registration_success_title}</h3>
+                  <p className="mt-2 text-muted-foreground">
+                    {t.registration_success_message}
                   </p>
-                )}
-
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Kaydediliyor..." : "Satıcı Hesabı Oluştur"}
-                </Button>
-
-                <p className="text-center text-sm text-muted-foreground">
-                  Zaten hesabınız var mı?{" "}
-                  <Link href={ROUTES.LOGIN} className="text-primary hover:underline">
-                    Giriş Yap
-                  </Link>
-                </p>
-              </form>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Onboarding Steps */}
-      <section className="border-b bg-background py-16">
-        <div className="container">
-          <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-2xl font-bold tracking-tight lg:text-3xl">
-              {on_board_section.title}
-            </h2>
-            <p className="mt-2 text-muted-foreground">
-              {on_board_section.subtitle}
-            </p>
-          </div>
-          <div className="mx-auto mt-12 grid max-w-5xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {on_board_section.steps.map((step, i) => (
-              <div key={i} className="rounded-lg border p-6 text-center">
-                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-lg font-bold text-primary">
-                  {i + 1}
+                  <Button className="mt-6" onClick={() => router.push(ROUTES.HOME)}>
+                    {t.home}
+                  </Button>
                 </div>
-                <h3 className="font-semibold">{step.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{step.subtitle}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <Label htmlFor="first_name">{t.first_name} *</Label>
+                      <Input
+                        id="first_name"
+                        type="text"
+                        required
+                        value={formData.first_name}
+                        onChange={(e) =>
+                          setFormData({ ...formData, first_name: e.target.value })
+                        }
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="last_name">{t.last_name}</Label>
+                      <Input
+                        id="last_name"
+                        type="text"
+                        value={formData.last_name}
+                        onChange={(e) =>
+                          setFormData({ ...formData, last_name: e.target.value })
+                        }
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
 
-      {/* Video Section */}
-      <section className="border-b bg-muted/30 py-16">
-        <div className="container">
-          <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-2xl font-bold tracking-tight lg:text-3xl">
-              {video_section.section_title}
-            </h2>
-            <p className="mt-2 text-muted-foreground">
-              {video_section.section_subtitle}
-            </p>
-          </div>
-          <div className="mx-auto mt-8 max-w-4xl">
-            <div className="relative aspect-video overflow-hidden rounded-lg border bg-muted">
-              {video_section.video_url && (
-                <iframe
-                  src={video_section.video_url.replace("watch?v=", "embed/")}
-                  className="h-full w-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
+                  <div>
+                    <Label htmlFor="email">{t.email} *</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      required
+                      value={formData.email}
+                      onChange={(e) =>
+                        setFormData({ ...formData, email: e.target.value })
+                      }
+                      className="mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="phone">{t.phone}</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) =>
+                        setFormData({ ...formData, phone: e.target.value })
+                      }
+                      className="mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="password">{t.password} *</Label>
+                    <div className="relative mt-1">
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        required
+                        value={formData.password}
+                        onChange={(e) =>
+                          setFormData({ ...formData, password: e.target.value })
+                        }
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="password_confirmation">{t.confirm_password} *</Label>
+                    <div className="relative mt-1">
+                      <Input
+                        id="password_confirmation"
+                        type={showConfirmPassword ? "text" : "password"}
+                        required
+                        value={formData.password_confirmation}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            password_confirmation: e.target.value,
+                          })
+                        }
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2">
+                    <Checkbox
+                      id="agree"
+                      checked={formData.agree}
+                      onCheckedChange={(checked) =>
+                        setFormData({ ...formData, agree: !!checked })
+                      }
+                    />
+                    <label
+                      htmlFor="agree"
+                      className="cursor-pointer text-sm leading-tight"
+                    >
+                      {t.agree_terms}
+                    </label>
+                  </div>
+
+                  {error && (
+                    <p className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                      {error}
+                    </p>
+                  )}
+
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {t.registering}
+                      </>
+                    ) : (
+                      t.create_seller_account
+                    )}
+                  </Button>
+
+                  <p className="text-center text-sm text-muted-foreground">
+                    {t.already_have_account}{" "}
+                    <Link href={ROUTES.LOGIN} className="text-primary hover:underline">
+                      {t.login}
+                    </Link>
+                  </p>
+                </form>
               )}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Benefits */}
-      <section className="border-b bg-background py-16">
-        <div className="container">
-          <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-2xl font-bold tracking-tight lg:text-3xl">
-              {join_benefits_section.title}
-            </h2>
-            <p className="mt-2 text-muted-foreground">
-              {join_benefits_section.subtitle}
-            </p>
-          </div>
-          <div className="mx-auto mt-12 grid max-w-6xl gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {join_benefits_section.steps.map((benefit, i) => (
-              <div key={i} className="rounded-lg border p-6">
-                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                  <Check className="h-5 w-5 text-primary" />
+      {/* Onboarding Steps */}
+      {on_board_section && on_board_section.steps?.length > 0 && (
+        <section className="border-b bg-background py-16">
+          <div className="container">
+            <div className="mx-auto max-w-3xl text-center">
+              <h2 className="text-2xl font-bold tracking-tight lg:text-3xl">
+                {on_board_section.title}
+              </h2>
+              <p className="mt-2 text-muted-foreground">
+                {on_board_section.subtitle}
+              </p>
+            </div>
+            <div className="mx-auto mt-12 grid max-w-5xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {on_board_section.steps.map((step, i) => (
+                <div key={i} className="rounded-lg border p-6 text-center">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-lg font-bold text-primary">
+                    {i + 1}
+                  </div>
+                  <h3 className="font-semibold">{step.title}</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">{step.subtitle}</p>
                 </div>
-                <h3 className="font-semibold">{benefit.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {benefit.subtitle}
-                </p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
+
+      {/* Video Section */}
+      {video_section?.video_url && (
+        <section className="border-b bg-muted/30 py-16">
+          <div className="container">
+            <div className="mx-auto max-w-3xl text-center">
+              <h2 className="text-2xl font-bold tracking-tight lg:text-3xl">
+                {video_section.section_title}
+              </h2>
+              <p className="mt-2 text-muted-foreground">
+                {video_section.section_subtitle}
+              </p>
+            </div>
+            <div className="mx-auto mt-8 max-w-4xl">
+              <div className="relative aspect-video overflow-hidden rounded-lg border bg-muted">
+                <iframe
+                  src={video_section.video_url.replace("watch?v=", "embed/")}
+                  className="h-full w-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Benefits */}
+      {join_benefits_section && join_benefits_section.steps?.length > 0 && (
+        <section className="border-b bg-background py-16">
+          <div className="container">
+            <div className="mx-auto max-w-3xl text-center">
+              <h2 className="text-2xl font-bold tracking-tight lg:text-3xl">
+                {join_benefits_section.title}
+              </h2>
+              <p className="mt-2 text-muted-foreground">
+                {join_benefits_section.subtitle}
+              </p>
+            </div>
+            <div className="mx-auto mt-12 grid max-w-6xl gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {join_benefits_section.steps.map((benefit, i) => (
+                <div key={i} className="rounded-lg border p-6">
+                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                    <Check className="h-5 w-5 text-primary" />
+                  </div>
+                  <h3 className="font-semibold">{benefit.title}</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {benefit.subtitle}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* FAQ */}
-      <section className="border-b bg-muted/30 py-16">
-        <div className="container">
-          <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-2xl font-bold tracking-tight lg:text-3xl">
-              {faq_section.title}
-            </h2>
-            <p className="mt-2 text-muted-foreground">{faq_section.subtitle}</p>
+      {faq_section && faq_section.steps?.length > 0 && (
+        <section className="border-b bg-muted/30 py-16">
+          <div className="container">
+            <div className="mx-auto max-w-3xl text-center">
+              <h2 className="text-2xl font-bold tracking-tight lg:text-3xl">
+                {faq_section.title}
+              </h2>
+              <p className="mt-2 text-muted-foreground">{faq_section.subtitle}</p>
+            </div>
+            <div className="mx-auto mt-8 max-w-3xl">
+              <Accordion type="single" collapsible className="space-y-3">
+                {faq_section.steps.map((faq, i) => (
+                  <AccordionItem
+                    key={i}
+                    value={`item-${i}`}
+                    className="rounded-lg border bg-background px-6"
+                  >
+                    <AccordionTrigger className="hover:no-underline">
+                      <span className="text-left font-medium">{faq.question}</span>
+                    </AccordionTrigger>
+                    <AccordionContent className="text-sm text-muted-foreground">
+                      {faq.answer}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </div>
           </div>
-          <div className="mx-auto mt-8 max-w-3xl">
-            <Accordion type="single" collapsible className="space-y-3">
-              {faq_section.steps.map((faq, i) => (
-                <AccordionItem
-                  key={i}
-                  value={`item-${i}`}
-                  className="rounded-lg border bg-background px-6"
-                >
-                  <AccordionTrigger className="hover:no-underline">
-                    <span className="text-left font-medium">{faq.question}</span>
-                  </AccordionTrigger>
-                  <AccordionContent className="text-sm text-muted-foreground">
-                    {faq.answer}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Contact/Support */}
       <section className="bg-background py-16">
         <div className="container">
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="text-2xl font-bold tracking-tight lg:text-3xl">
-              {contact_section.title}
+              {contact_section?.title || t.contact_title}
             </h2>
             <p className="mt-2 text-muted-foreground">
-              {contact_section.subtitle}
+              {contact_section?.subtitle || t.contact_subtitle}
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
               <Button asChild size="lg">
                 <Link href={ROUTES.CONTACT}>
                   <MessageSquare className="mr-2 h-4 w-4" />
-                  Bize Ulaşın
+                  {t.contact_us}
                 </Link>
               </Button>
               <Button asChild variant="outline" size="lg">
                 <Link href={ROUTES.ABOUT}>
                   <HelpCircle className="mr-2 h-4 w-4" />
-                  Daha Fazla Bilgi
+                  {t.more_info}
                 </Link>
               </Button>
             </div>
