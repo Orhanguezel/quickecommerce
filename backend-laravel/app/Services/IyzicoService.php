@@ -39,17 +39,14 @@ class IyzicoService
 
         $apiKey = trim((string)($credentials['api_key'] ?? ''));
         $secretKey = trim((string)($credentials['secret_key'] ?? ''));
-        $baseUrl = trim((string)($credentials['base_url'] ?? ''));
-
         if ($apiKey === '' || $secretKey === '') {
             throw new \Exception(__('messages.iyzico_configuration_missing'));
         }
 
-        if ($baseUrl === '') {
-            $baseUrl = (bool)$gateway->is_test_mode
-                ? 'https://sandbox-api.iyzipay.com'
-                : 'https://api.iyzipay.com';
-        }
+        // Admin panel does not reliably expose base_url, so select URL by mode in code.
+        $baseUrl = (bool)$gateway->is_test_mode
+            ? 'https://sandbox-api.iyzipay.com'
+            : 'https://api.iyzipay.com';
 
         return [
             'gateway' => $gateway,

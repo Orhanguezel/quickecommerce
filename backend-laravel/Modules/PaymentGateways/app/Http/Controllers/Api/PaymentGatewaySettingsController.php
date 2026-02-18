@@ -79,6 +79,14 @@ class PaymentGatewaySettingsController extends Controller
 
 
         // if get payment gateway info
+        if (empty($gateway)) {
+            $gateways = PaymentGateway::query()->orderBy('id')->get();
+            return response()->json([
+                'status' => 'success',
+                'gateways' => PaymentGatewaysResource::collection($gateways),
+            ]);
+        }
+
         $gateway_name = $gateway;
         $paymentGateway = PaymentGateway::where('slug', $gateway_name)->first();
         if (!$paymentGateway) {

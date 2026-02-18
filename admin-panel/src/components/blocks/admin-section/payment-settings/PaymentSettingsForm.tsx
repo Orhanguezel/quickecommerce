@@ -13,6 +13,8 @@ import GetwaySettingsForm from "./GetwaySettingsForm";
 type GatewayButton = {
   id: string;
   label: string;
+  status: boolean;
+  is_test_mode: boolean;
 };
 
 const FALLBACK_SLUG = "cash_on_delivery";
@@ -38,6 +40,8 @@ const PaymentSettingsForm = () => {
       .map((gateway: any) => ({
         id: String(gateway?.slug ?? ""),
         label: String(gateway?.name ?? gateway?.slug ?? "").trim(),
+        status: Boolean(gateway?.status),
+        is_test_mode: Boolean(gateway?.is_test_mode),
       }))
       .filter((gateway: GatewayButton) => gateway.id.length > 0);
   }, [paymentGetwayList]);
@@ -67,11 +71,20 @@ const PaymentSettingsForm = () => {
               <div
                 onClick={() => handleSelectionChange(button.id)}
                 key={button.id}
-                className={`cursor-pointer my-2 bg-blue-50 text-blue-500 rounded p-2 ${
+                className={`cursor-pointer my-2 rounded p-2 ${
                   selectedGateway === button.id ? "bg-blue-500 text-white" : ""
+                } ${
+                  selectedGateway !== button.id
+                    ? button.status
+                      ? "bg-blue-50 text-blue-500"
+                      : "bg-gray-100 text-gray-500"
+                    : ""
                 }`}
               >
-                <button className="text-sm font-semibold text-start">{button.label}</button>
+                <button className="text-sm font-semibold text-start">
+                  {button.label}
+                  {!button.status ? " (Pasif)" : button.is_test_mode ? " (Test)" : " (Canli)"}
+                </button>
               </div>
             ))}
           </CardContent>
