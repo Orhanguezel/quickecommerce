@@ -114,3 +114,13 @@ export interface PlaceOrderResponse {
     order_notes: string | null;
   };
 }
+
+export interface CreateGatewaySessionResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    checkout_url?: string;
+    token?: string;
+    order_master_id?: number;
+  };
+}

@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\V1\Customer\CustomerProductQueryController;
 use App\Http\Controllers\Api\V1\Customer\PlaceOrderController;
 use App\Http\Controllers\Api\V1\DeliveryChargeCalculateController;
 use App\Http\Controllers\Api\V1\FrontendController;
+use App\Http\Controllers\Api\V1\IyzicoPaymentController;
 use App\Http\Controllers\Api\V1\MenuManageController;
 use App\Http\Controllers\Api\V1\OtherChargeInfoController;
 use App\Http\Controllers\Api\V1\PermissionController;
@@ -155,9 +156,14 @@ Route::group(['prefix' => 'v1/'], function () {
             Route::post('orders/checkout', [PlaceOrderController::class, 'placeOrder']);
             // create checkout session (returns stripe checkout url)
             Route::post('orders/create-stripe-session', [StripePaymentController::class, 'createCheckoutSession']);
+            // create checkout session (returns iyzico payment url)
+            Route::post('orders/create-iyzico-session', [IyzicoPaymentController::class, 'createCheckoutSession']);
             // stripe webhook (Stripe will call this)
             Route::post('stripe/webhook', [StripeWebhookController::class, 'handleWebhook']);
         });
+
+        // iyzico callback (Iyzipay redirects customer here)
+        Route::match(['GET', 'POST'], 'iyzico/callback', [IyzicoPaymentController::class, 'callback']);
     });
 });
 

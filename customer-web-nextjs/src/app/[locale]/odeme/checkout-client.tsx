@@ -10,6 +10,7 @@ import {
   useAddressListQuery,
   useAddAddressMutation,
   useCheckCouponMutation,
+  useCreateIyzicoSessionMutation,
   usePlaceOrderMutation,
   usePaymentGatewaysQuery,
 } from "@/modules/checkout/checkout.service";
@@ -102,6 +103,7 @@ export function CheckoutClient({ translations: t }: Props) {
   const addAddressMutation = useAddAddressMutation();
   const couponMutation = useCheckCouponMutation();
   const placeOrderMutation = usePlaceOrderMutation();
+  const createIyzicoSessionMutation = useCreateIyzicoSessionMutation();
   const { data: paymentGateways, isLoading: gatewaysLoading } =
     usePaymentGatewaysQuery();
 
@@ -240,8 +242,27 @@ export function CheckoutClient({ translations: t }: Props) {
 
     placeOrderMutation.mutate(orderData, {
       onSuccess: (data) => {
-        clearCart();
         const orderId = data.order_master?.id ?? data.orders?.[0]?.order_id;
+        if (!orderId) {
+          return;
+        }
+
+        if (paymentMethod === "iyzico") {
+          createIyzicoSessionMutation.mutate(orderId, {
+            onSuccess: (session) => {
+              const checkoutUrl = session?.data?.checkout_url;
+              if (!checkoutUrl) {
+                return;
+              }
+
+              clearCart();
+              window.location.href = checkoutUrl;
+            },
+          });
+          return;
+        }
+
+        clearCart();
         router.push(`/${locale}/siparis-basarili?order=${orderId}`);
       },
     });
@@ -267,6 +288,12 @@ export function CheckoutClient({ translations: t }: Props) {
       {placeOrderMutation.isError && (
         <div className="mb-6 rounded-md bg-destructive/10 p-4 text-sm text-destructive">
           {(placeOrderMutation.error as any)?.response?.data?.message ||
+            t.error}
+        </div>
+      )}
+      {createIyzicoSessionMutation.isError && (
+        <div className="mb-6 rounded-md bg-destructive/10 p-4 text-sm text-destructive">
+          {(createIyzicoSessionMutation.error as any)?.response?.data?.message ||
             t.error}
         </div>
       )}
@@ -660,11 +687,13 @@ export function CheckoutClient({ translations: t }: Props) {
                 onClick={handlePlaceOrder}
                 disabled={
                   placeOrderMutation.isPending ||
+                  createIyzicoSessionMutation.isPending ||
                   !paymentMethod ||
                   (!selectedAddressId && paymentMethod !== "takeaway")
                 }
               >
-                {placeOrderMutation.isPending ? (
+                {placeOrderMutation.isPending ||
+                createIyzicoSessionMutation.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     {t.placing_order}

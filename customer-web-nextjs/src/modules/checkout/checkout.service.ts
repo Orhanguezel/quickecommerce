@@ -8,6 +8,7 @@ import type {
   AddressInput,
   CouponCheckInput,
   CouponCheckResponse,
+  CreateGatewaySessionResponse,
   PlaceOrderInput,
   PlaceOrderResponse,
   PaymentGateway,
@@ -146,6 +147,22 @@ export function useCreateStripeSessionMutation() {
       const res = await getAxiosInstance().post(API_ENDPOINTS.STRIPE_SESSION, {
         order_master_id: orderMasterId,
       });
+      return res.data;
+    },
+  });
+}
+
+export function useCreateIyzicoSessionMutation() {
+  const { getAxiosInstance } = useBaseService(API_ENDPOINTS.IYZICO_SESSION);
+
+  return useMutation({
+    mutationFn: async (orderMasterId: number) => {
+      const res = await getAxiosInstance().post<CreateGatewaySessionResponse>(
+        API_ENDPOINTS.IYZICO_SESSION,
+        {
+          order_master_id: orderMasterId,
+        }
+      );
       return res.data;
     },
   });

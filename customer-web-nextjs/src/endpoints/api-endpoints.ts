@@ -66,6 +66,7 @@ export const API_ENDPOINTS = {
   DELIVERY_CHARGE: "/calculate-delivery-charge",
   CHECKOUT_INFO: "/checkout-info",
   STRIPE_SESSION: "/orders/create-stripe-session",
+  IYZICO_SESSION: "/orders/create-iyzico-session",
   PAYMENT_STATUS: "/customer/orders/payment-status-update",
 
   // Orders (customer - auth required)
