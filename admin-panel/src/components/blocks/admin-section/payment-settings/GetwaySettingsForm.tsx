@@ -36,7 +36,13 @@ type ToggleState = {
 };
 
 const GATEWAY_DEFAULT_AUTH_KEYS: Record<string, string[]> = {
-  iyzico: ["api_key", "secret_key", "sub_merchant_key", "store_sub_merchant_keys"],
+  iyzico: [
+    "api_key",
+    "secret_key",
+    "marketplace_mode",
+    "sub_merchant_key",
+    "store_sub_merchant_keys",
+  ],
 };
 
 type Props = {

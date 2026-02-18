@@ -69,7 +69,8 @@ class IyzicoPaymentController extends Controller
                 $currency = 'TRY';
             }
 
-            $basketItems = $this->buildMarketplaceBasketItems($orderMaster, $credentials);
+            $marketplaceMode = $this->isMarketplaceEnabled($credentials);
+            $basketItems = $this->buildBasketItems($orderMaster, $credentials, $marketplaceMode);
 
             $session = $this->iyzicoService->createCheckoutForm([
                 'locale' => app()->getLocale() === 'tr' ? 'tr' : 'en',
@@ -119,6 +120,7 @@ class IyzicoPaymentController extends Controller
                     'error_code' => $session->getErrorCode(),
                     'error_message' => $session->getErrorMessage(),
                     'store_ids' => $orderMaster->orders->pluck('store_id')->values()->all(),
+                    'marketplace_mode' => $marketplaceMode,
                 ]);
 
                 return response()->json([
@@ -247,13 +249,15 @@ class IyzicoPaymentController extends Controller
         }
     }
 
-    private function buildMarketplaceBasketItems(OrderMaster $orderMaster, array $credentials): array
+    private function buildBasketItems(OrderMaster $orderMaster, array $credentials, bool $marketplaceMode): array
     {
         $basketItems = [];
 
         foreach ($orderMaster->orders as $order) {
             $storeId = (int)($order->store_id ?? 0);
-            $subMerchantKey = $this->resolveStoreSubMerchantKey($storeId, $credentials);
+            $subMerchantKey = $marketplaceMode
+                ? $this->resolveStoreSubMerchantKey($storeId, $credentials)
+                : null;
             $details = $order->orderDetail;
             $detailsTotal = 0.0;
 
@@ -276,9 +280,11 @@ class IyzicoPaymentController extends Controller
                         'category_2' => 'OrderItem',
                         'item_type' => 'PHYSICAL',
                         'price' => number_format($linePrice, 2, '.', ''),
-                        'sub_merchant_key' => $subMerchantKey,
-                        'sub_merchant_price' => number_format($linePrice, 2, '.', ''),
                     ];
+                    if ($marketplaceMode) {
+                        $basketItems[array_key_last($basketItems)]['sub_merchant_key'] = $subMerchantKey;
+                        $basketItems[array_key_last($basketItems)]['sub_merchant_price'] = number_format($linePrice, 2, '.', '');
+                    }
                 }
             }
 
@@ -295,9 +301,11 @@ class IyzicoPaymentController extends Controller
                     'category_2' => 'Order',
                     'item_type' => 'PHYSICAL',
                     'price' => number_format($orderAmount, 2, '.', ''),
-                    'sub_merchant_key' => $subMerchantKey,
-                    'sub_merchant_price' => number_format($orderAmount, 2, '.', ''),
                 ];
+                if ($marketplaceMode) {
+                    $basketItems[array_key_last($basketItems)]['sub_merchant_key'] = $subMerchantKey;
+                    $basketItems[array_key_last($basketItems)]['sub_merchant_price'] = number_format($orderAmount, 2, '.', '');
+                }
                 continue;
             }
 
@@ -310,13 +318,39 @@ class IyzicoPaymentController extends Controller
                     'category_2' => 'Service',
                     'item_type' => 'VIRTUAL',
                     'price' => number_format($remainder, 2, '.', ''),
-                    'sub_merchant_key' => $subMerchantKey,
-                    'sub_merchant_price' => number_format($remainder, 2, '.', ''),
                 ];
+                if ($marketplaceMode) {
+                    $basketItems[array_key_last($basketItems)]['sub_merchant_key'] = $subMerchantKey;
+                    $basketItems[array_key_last($basketItems)]['sub_merchant_price'] = number_format($remainder, 2, '.', '');
+                }
             }
         }
 
         return $basketItems;
+    }
+
+    private function isMarketplaceEnabled(array $credentials): bool
+    {
+        $raw = $credentials['marketplace_mode']
+            ?? $credentials['iyzico_marketplace_mode']
+            ?? null;
+
+        if ($raw !== null && $raw !== '') {
+            if (is_bool($raw)) {
+                return $raw;
+            }
+            $normalized = strtolower(trim((string)$raw));
+            return in_array($normalized, ['1', 'true', 'yes', 'on'], true);
+        }
+
+        // Auto mode: if any sub-merchant key config exists, treat as marketplace.
+        if (!empty($credentials['sub_merchant_key']) || !empty($credentials['default_sub_merchant_key'])) {
+            return true;
+        }
+        if (!empty($credentials['store_sub_merchant_keys']) || !empty($credentials['sub_merchant_keys'])) {
+            return true;
+        }
+        return false;
     }
 
     private function resolveStoreSubMerchantKey(int $storeId, array $credentials): string
