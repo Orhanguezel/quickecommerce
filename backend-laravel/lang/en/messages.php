@@ -150,6 +150,8 @@ return [
     'order_place_error' => 'An error occurred while placing the order.',
     'order_place_success' => 'Order placed successfully.',
     'order_delivery_location_missing' => 'Delivery location is missing for home delivery.',
+    'order_payment_gateway_required' => 'Payment gateway is required.',
+    'order_payment_gateway_not_supported' => 'Selected payment gateway is not supported at checkout.',
     'order_is_not_accepted' => 'This order is not accepted yet!',
     'order_is_not_cash_on_delivery' => 'This order is not cash on delivery!',
     'order_is_not_shipped' => 'This order is not shipped yet!',

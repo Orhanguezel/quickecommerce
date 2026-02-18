@@ -50,6 +50,9 @@ export default async function CheckoutPage({ params }: Props) {
         order_summary: t("order_summary"),
         payment_method: t("payment_method"),
         no_payment_methods: t("no_payment_methods"),
+        unsupported_payment_methods_for_checkout: t(
+          "unsupported_payment_methods_for_checkout"
+        ),
         coupon_code: t("coupon_code"),
         apply: t("apply"),
         coupon_applied: t("coupon_applied"),

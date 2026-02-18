@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "@/i18n/routing";
 import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
@@ -52,6 +52,8 @@ const gatewayIconMap: Record<string, typeof CreditCard> = {
   wallet: Wallet,
 };
 
+const SUPPORTED_CHECKOUT_GATEWAYS = new Set(["cash_on_delivery", "wallet"]);
+
 interface Props {
   translations: Record<string, string>;
 }
@@ -99,17 +101,30 @@ export function CheckoutClient({ translations: t }: Props) {
   const { data: paymentGateways, isLoading: gatewaysLoading } =
     usePaymentGatewaysQuery();
 
-  // Auto-select first payment gateway
-  if (paymentGateways && paymentGateways.length > 0 && !paymentMethod) {
-    setPaymentMethod(paymentGateways[0].slug);
-  }
+  const checkoutPaymentGateways = useMemo(
+    () =>
+      (paymentGateways ?? []).filter((gw) =>
+        SUPPORTED_CHECKOUT_GATEWAYS.has(gw.slug)
+      ),
+    [paymentGateways]
+  );
 
-  // Auto-select default address
-  if (addresses && addresses.length > 0 && selectedAddressId === null) {
+  useEffect(() => {
+    if (!checkoutPaymentGateways.length) {
+      if (paymentMethod) setPaymentMethod("");
+      return;
+    }
+    if (!paymentMethod || !SUPPORTED_CHECKOUT_GATEWAYS.has(paymentMethod)) {
+      setPaymentMethod(checkoutPaymentGateways[0].slug);
+    }
+  }, [checkoutPaymentGateways, paymentMethod]);
+
+  useEffect(() => {
+    if (!addresses || addresses.length === 0 || selectedAddressId !== null) return;
     const defaultAddr = addresses.find((a) => a.is_default);
     if (defaultAddr) setSelectedAddressId(defaultAddr.id);
     else setSelectedAddressId(addresses[0].id);
-  }
+  }, [addresses, selectedAddressId]);
 
   // Calculations
   const subtotal = totalPrice();
@@ -473,11 +488,13 @@ export function CheckoutClient({ translations: t }: Props) {
                 <Loader2 className="h-4 w-4 animate-spin" />
                 {t.loading}
               </div>
-            ) : !paymentGateways || paymentGateways.length === 0 ? (
-              <p className="text-muted-foreground">{t.no_payment_methods}</p>
+            ) : !checkoutPaymentGateways || checkoutPaymentGateways.length === 0 ? (
+              <p className="text-muted-foreground">
+                {t.unsupported_payment_methods_for_checkout}
+              </p>
             ) : (
               <div className="grid gap-3 sm:grid-cols-3">
-                {paymentGateways.map((gw: PaymentGateway) => {
+                {checkoutPaymentGateways.map((gw: PaymentGateway) => {
                   const IconComponent = gatewayIconMap[gw.slug] ?? CreditCard;
                   return (
                     <button

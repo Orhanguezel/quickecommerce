@@ -314,6 +314,7 @@
     "order_summary": "Order Summary",
     "payment_method": "Payment Method",
     "no_payment_methods": "No payment methods available.",
+    "unsupported_payment_methods_for_checkout": "Online payment integrations are not ready yet. You can currently place orders using cash on delivery or wallet only.",
     "coupon_code": "Coupon code",
     "apply": "Apply",
     "coupon_applied": "Coupon applied",

@@ -148,6 +148,8 @@ return [
     'order_place_error' => 'Sipariş oluşturulurken bir hata oluştu.',
     'order_place_success' => 'Sipariş başarıyla oluşturuldu.',
     'order_delivery_location_missing' => 'Adrese teslim için teslimat konumu eksik.',
+    'order_payment_gateway_required' => 'Ödeme yöntemi seçilmelidir.',
+    'order_payment_gateway_not_supported' => 'Seçilen ödeme yöntemi şu anda desteklenmiyor.',
     'order_is_not_accepted' => 'Sipariş henüz kabul edilmedi!',
     'order_is_not_cash_on_delivery' => 'Bu sipariş kapıda ödeme değil!',
     'order_is_not_shipped' => 'Sipariş henüz kargolanmadı!',

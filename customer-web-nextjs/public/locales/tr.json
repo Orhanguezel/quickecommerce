@@ -314,6 +314,7 @@
     "order_summary": "Sipariş Özeti",
     "payment_method": "Ödeme Yöntemi",
     "no_payment_methods": "Kullanılabilir ödeme yöntemi bulunamadı.",
+    "unsupported_payment_methods_for_checkout": "Çevrim içi ödeme altyapısı hazırlık aşamasında. Şu an yalnızca kapıda ödeme/cüzdan ile sipariş oluşturabilirsiniz.",
     "coupon_code": "Kupon kodu",
     "apply": "Uygula",
     "coupon_applied": "Kupon uygulandı",

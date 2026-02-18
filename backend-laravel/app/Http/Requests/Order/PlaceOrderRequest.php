@@ -48,7 +48,7 @@ class PlaceOrderRequest extends FormRequest
 
             'currency_code' => 'required|string|max:3',   // ISO codes are 3 letters
             'shipping_time_preferred' => 'nullable|string|max:255',
-            'payment_gateway' => 'required|string|in:cash_on_delivery,paytr,iyzico,moka,ziraatpay,wallet',
+            'payment_gateway' => 'required|string|in:cash_on_delivery,wallet',
             'order_notes' => 'nullable|string|max:500',
             'order_amount' => 'nullable|numeric|min:0',
             'coupon_code' => 'nullable|string|max:50',
@@ -148,5 +148,13 @@ class PlaceOrderRequest extends FormRequest
             'errors' => $errors
         ];
         throw new HttpResponseException(response()->json($response, 422));
+    }
+
+    public function messages(): array
+    {
+        return [
+            'payment_gateway.required' => __('messages.order_payment_gateway_required'),
+            'payment_gateway.in' => __('messages.order_payment_gateway_not_supported'),
+        ];
     }
 }
