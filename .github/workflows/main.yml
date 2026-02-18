@@ -2,7 +2,13 @@ name: QuickEcommerce Deploy
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: quickecommerce-deploy
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -13,9 +19,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ----------------------------
-      # Deploy to Server via SSH
-      # ----------------------------
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -24,46 +27,29 @@ jobs:
           key: ${{ secrets.VPS_KEY }}
           command_timeout: 25m
           script: |
-            set -e
+            set -euo pipefail
             export COMPOSER_ALLOW_SUPERUSER=1
 
             echo "=== Backup .env files ==="
             cd /var/www/quikecommerce
-
-            # .env dosyalarını yedekle
-            [ -f backend-laravel/.env ] && cp backend-laravel/.env /tmp/backend-laravel.env.bak
-            [ -f admin-panel/.env.local ] && cp admin-panel/.env.local /tmp/admin-panel.env.bak
-            [ -f customer-web-nextjs/.env.local ] && cp customer-web-nextjs/.env.local /tmp/customer-web-nextjs.env.bak
+            BAK_SUFFIX="$(date +%s)-$$"
+            [ -f backend-laravel/.env ] && cp backend-laravel/.env "/tmp/backend-laravel.env.${BAK_SUFFIX}.bak"
+            [ -f admin-panel/.env.local ] && cp admin-panel/.env.local "/tmp/admin-panel.env.${BAK_SUFFIX}.bak"
+            [ -f customer-web-nextjs/.env.local ] && cp customer-web-nextjs/.env.local "/tmp/customer-web-nextjs.env.${BAK_SUFFIX}.bak"
 
             echo "=== Pulling latest changes ==="
-            git fetch origin main
-            git reset --hard origin/main
+            git fetch --prune origin main
+            git checkout main
+            git pull --ff-only origin main
 
             echo "=== Restore .env files ==="
-            # .env dosyalarını geri yükle
-            [ -f /tmp/backend-laravel.env.bak ] && cp /tmp/backend-laravel.env.bak backend-laravel/.env
-            [ -f /tmp/admin-panel.env.bak ] && cp /tmp/admin-panel.env.bak admin-panel/.env.local
-            [ -f /tmp/customer-web-nextjs.env.bak ] && cp /tmp/customer-web-nextjs.env.bak customer-web-nextjs/.env.local
-
-            echo "=== Fix ALL File Permissions (After Git) ==="
-            cd /var/www/quikecommerce/backend-laravel
-
-            # Storage - Tüm dosya ve klasörleri recursive düzelt
-            find storage -type f -exec chown www-data:www-data {} \;
-            find storage -type d -exec chown www-data:www-data {} \;
-            find storage -type f -exec chmod 664 {} \;
-            find storage -type d -exec chmod 775 {} \;
-
-            # Bootstrap cache
-            find bootstrap/cache -type f -exec chown www-data:www-data {} \;
-            find bootstrap/cache -type d -exec chown www-data:www-data {} \;
-            find bootstrap/cache -type f -exec chmod 664 {} \;
-            find bootstrap/cache -type d -exec chmod 775 {} \;
+            [ -f "/tmp/backend-laravel.env.${BAK_SUFFIX}.bak" ] && cp "/tmp/backend-laravel.env.${BAK_SUFFIX}.bak" backend-laravel/.env
+            [ -f "/tmp/admin-panel.env.${BAK_SUFFIX}.bak" ] && cp "/tmp/admin-panel.env.${BAK_SUFFIX}.bak" admin-panel/.env.local
+            [ -f "/tmp/customer-web-nextjs.env.${BAK_SUFFIX}.bak" ] && cp "/tmp/customer-web-nextjs.env.${BAK_SUFFIX}.bak" customer-web-nextjs/.env.local
 
             echo "=== Backend Laravel Setup ==="
             cd /var/www/quikecommerce/backend-laravel
 
-            # .env yoksa oluştur
             if [ ! -f .env ]; then
               cp .env.example .env
               php artisan key:generate
@@ -72,101 +58,80 @@ jobs:
 
             composer install --no-dev --optimize-autoloader --no-interaction
 
-            # Cache işlemlerinden ÖNCE izinleri kontrol et
-            sudo -u www-data php artisan config:clear
-            sudo -u www-data php artisan cache:clear
-            sudo -u www-data php artisan view:clear
+            echo "=== Fix Storage Permissions ==="
+            find storage -type f -exec chown www-data:www-data {} \;
+            find storage -type d -exec chown www-data:www-data {} \;
+            find storage -type f -exec chmod 664 {} \;
+            find storage -type d -exec chmod 775 {} \;
+            find bootstrap/cache -type f -exec chown www-data:www-data {} \;
+            find bootstrap/cache -type d -exec chown www-data:www-data {} \;
+            find bootstrap/cache -type f -exec chmod 664 {} \;
+            find bootstrap/cache -type d -exec chmod 775 {} \;
 
-            # Cache oluştur
+            echo "=== Laravel Cache Clear ==="
+            sudo -u www-data php artisan optimize:clear
+
+            echo "=== Fix Storage Symlink ==="
+            rm -f public/storage
+            sudo -u www-data php artisan storage:link
+            ls -la public/storage || echo "WARNING: storage symlink failed!"
+
+            echo "=== Database Migration (SAFE) ==="
+            sudo -u www-data php artisan migrate --force
+
+            echo "=== Database Seed (SAFE: ProductionSeeder only) ==="
+            sudo -u www-data php artisan db:seed --class=ProductionSeeder --force
+
+            echo "=== Laravel Cache Build ==="
             sudo -u www-data php artisan config:cache
             sudo -u www-data php artisan route:cache
             sudo -u www-data php artisan view:cache
 
-            echo "=== Fix Storage Symlink ==="
-            # Eski symlink'i sil (yanlış path içerebilir)
-            rm -f public/storage
-            # Yeni symlink oluştur (www-data kullanıcısı ile)
-            sudo -u www-data php artisan storage:link
-            # Doğrulama
-            ls -la public/storage || echo "WARNING: storage symlink failed!"
-
-            # Migration
-            sudo -u www-data php artisan migrate --force || echo "Migration skipped"
-
-            echo "=== Run Database Seeders ==="
-            # Tüm seederleri çalıştır (content + settings)
-            # Production verileri de seederlerden geliyor, güncellenmeleri normal
-            sudo -u www-data php artisan db:seed --force || echo "Seeder completed"
-
-            echo "=== Fix Storage Permissions (After Laravel Operations) ==="
-            find storage -type f -exec chown www-data:www-data {} \;
-            find storage -type d -exec chown www-data:www-data {} \;
-            find bootstrap/cache -type f -exec chown www-data:www-data {} \;
-            find bootstrap/cache -type d -exec chown www-data:www-data {} \;
-
             echo "=== Customer Web (Next.js) Setup ==="
             cd /var/www/quikecommerce/customer-web-nextjs
-
-            # Node versiyonunu kontrol et (Next.js >= 20.9 gerektirir)
             export NVM_DIR="/root/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
             echo "Node version: $(node --version)"
 
-            # .env.local yoksa oluştur
             if [ ! -f .env.local ]; then
               cp .env.example .env.local || echo "WARNING: .env.local missing, using defaults"
             fi
 
-            # Dependencies install
             npm ci
-
-            # PM2'yi durdur (build sırasında)
             pm2 stop quickecommerce-customer || true
-
-            # Build (production mode)
             npm run build
 
-            # Verify build
-            echo "Next.js build verification:"
+            echo "Next.js build verification (customer):"
             ls -la /var/www/quikecommerce/customer-web-nextjs/.next/standalone/server.js 2>/dev/null && echo "server.js OK" || echo "ERROR: Build failed!"
 
-            # PM2 restart
-            echo "=== PM2 Restart Customer Web ==="
             pm2 restart quickecommerce-customer || pm2 start npm --name "quickecommerce-customer" -- start
-            pm2 save
 
             echo "=== Admin Panel Setup ==="
             cd /var/www/quikecommerce/admin-panel
-
-            # Node versiyonunu kontrol et (Next.js >= 20 gerektirir)
             export NVM_DIR="/root/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
             echo "Node version: $(node --version)"
 
-            # devDependencies dahil kur (fs-extra postbuild için gerekli)
-            # npm install kullan (npm ci her seferinde node_modules siler, VPS'te çok yavaş)
-            NODE_ENV=development npm install --legacy-peer-deps --prefer-offline
+            if [ ! -f .env.local ] && [ -f .env.example ]; then
+              cp .env.example .env.local
+            fi
 
-            # PM2'yi durdur (deploy/ klasörü yeniden oluşturulacak)
+            npm ci --legacy-peer-deps
             pm2 stop quickecommerce-admin || true
-
-            # Build + postbuild (deploy/ klasörünü oluşturur)
             npm run build
-
-            # .env.local dosyasını deploy klasörüne de kopyala
             [ -f .env.local ] && cp .env.local deploy/.env.local
 
-            echo "=== PM2 Restart ==="
             pm2 restart quickecommerce-admin || pm2 start ecosystem.config.cjs --only quickecommerce-admin
-            pm2 save
 
-            echo "=== Verify Deploy ==="
-            echo "Admin Panel deploy dir:"
-            ls -la /var/www/quikecommerce/admin-panel/deploy/server.js 2>/dev/null && echo "server.js OK" || echo "ERROR: server.js missing!"
+            echo "=== PM2 Save & Verify ==="
+            pm2 save
             sleep 3
             pm2 status
 
-            echo "=== Final Permission Check ==="
+            echo "=== Verify Admin Deploy ==="
+            ls -la /var/www/quikecommerce/admin-panel/deploy/server.js 2>/dev/null && echo "server.js OK" || echo "ERROR: server.js missing!"
+
+            echo "=== Final Backend Permission Check ==="
             cd /var/www/quikecommerce/backend-laravel
             ls -la storage/framework/cache/data/ | head -10
 

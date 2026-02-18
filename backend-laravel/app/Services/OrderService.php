@@ -15,6 +15,7 @@ use App\Models\ProductVariant;
 use App\Models\SystemCommission;
 use App\Services\Order\OrderManageNotificationService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Modules\Subscription\app\Models\StoreSubscription;
 use App\Helpers\ComHelper;
 
@@ -148,6 +149,8 @@ class OrderService
 
             $system_commission = SystemCommission::latest()->first();
             $tax_disabled = $system_commission->order_include_tax_amount == 0;
+
+            DB::beginTransaction();
 
 
             $order_master = OrderMaster::create([
@@ -600,6 +603,7 @@ class OrderService
 
             // mail send Dispatch the email job asynchronously
             dispatch(new DispatchOrderEmails($order_master->id));
+            DB::commit();
 
             return [
                 $all_orders,
@@ -607,7 +611,17 @@ class OrderService
                 'customer' => $customer,
             ];
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            if (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+            Log::error('Order creation failed', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'customer_id' => auth()->guard('api_customer')->id(),
+                'payload' => $data,
+            ]);
+            return false;
         }
     }
 

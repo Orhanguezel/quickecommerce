@@ -39,22 +39,32 @@ class PlaceOrderController extends Controller
 
         $orders = $this->orderService->createOrder($data);
 
+        // if return false
+        if ($orders === false || empty($orders)) {
+            $hasHomeDelivery = collect($data['packages'] ?? [])->contains(function ($package) {
+                return ($package['delivery_option'] ?? 'home_delivery') === 'home_delivery';
+            });
+
+            $locationMissing = $hasHomeDelivery
+                && (empty($data['customer_latitude']) || empty($data['customer_longitude']))
+                && empty($data['shipping_address_id']);
+
+            return response()->json([
+                'success' => false,
+                'message' => $locationMissing
+                    ? 'Failed to place order. Delivery location is missing for home delivery.'
+                    : 'Failed to place order. Please try again.',
+            ], 400);
+        } else {
+            $all_orders = $orders[0];
+            $order_master = $orders[1];
+        }
+
         foreach ($data['packages'] as $package) {
             foreach ($package['items'] as $item) {
                 $this->updateProductData($item['product_id']);
                 $this->updateVariantData($item['variant_id'], $item['quantity']);
             }
-        }
-
-        // if return false
-        if ($orders === false || empty($orders)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to place order. Please try again.',
-            ], 400);
-        } else {
-            $all_orders = $orders[0];
-            $order_master = $orders[1];
         }
 
         try {

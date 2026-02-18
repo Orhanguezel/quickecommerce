@@ -8,6 +8,25 @@ use Illuminate\Support\Facades\DB;
 
 class DeliveryChargeHelper
 {
+    private static function hasValidCoordinates($lat, $lng): bool
+    {
+        return is_numeric($lat) && is_numeric($lng);
+    }
+
+    private static function fallbackCharge(SystemCommission $systemSettings, bool $shouldRound, string $info): array
+    {
+        $charge = (float) ($systemSettings->order_shipping_charge ?? 0);
+
+        return [
+            'status' => false,
+            'message' => 'Calculation failed',
+            'delivery_method' => 'fallback',
+            'delivery_charge' => $shouldRound ? round($charge) : round($charge, 2),
+            'distance_km' => 0,
+            'info' => $info,
+        ];
+    }
+
     public static function calculateDeliveryCharge($areaId, $customerLat, $customerLng)
     {
 
@@ -15,6 +34,14 @@ class DeliveryChargeHelper
         $store_area = StoreArea::with('storeTypeSettings')->find($areaId);
         $systemSettings = SystemCommission::first();
         $shouldRound = shouldRound();
+        if (!$systemSettings) {
+            $systemSettings = new SystemCommission(['order_shipping_charge' => 0]);
+        }
+
+        // Missing/invalid coordinates should never break checkout flow
+        if (!self::hasValidCoordinates($customerLat, $customerLng)) {
+            return self::fallbackCharge($systemSettings, $shouldRound, 'missing or invalid customer coordinates');
+        }
 
         // If not found, try to find the nearest store area based on latitude & longitude
         if (!$store_area) {
@@ -30,15 +57,8 @@ class DeliveryChargeHelper
         }
 
         // if area wise settings not set
-        if (!$store_area->storeTypeSettings) {
-            return [
-                'status' => false,
-                'message' => 'Calculation failed',
-                'delivery_method' => 'failed',
-                'delivery_charge' => $shouldRound ? round($systemSettings->order_shipping_charge) : round($systemSettings->order_shipping_charge, 2),
-                'distance_km' => 0,
-                'info' => 'area settings not found or empty',
-            ];
+        if (!$store_area || !$store_area->storeTypeSettings || $store_area->storeTypeSettings->isEmpty()) {
+            return self::fallbackCharge($systemSettings, $shouldRound, 'area settings not found or empty');
         }
 
         if (!empty($store_area)) {
@@ -58,7 +78,7 @@ class DeliveryChargeHelper
             // new add
             $is_out_of_area = DB::table('store_areas')
                 ->select(DB::raw('ST_Contains(coordinates, ST_GeomFromText(?)) AS is_inside'))
-                ->where('id', $areaId)
+                ->where('id', $store_area->id)
                 ->addBinding("POINT({$customerLng} {$customerLat})", 'select')
                 ->first();
 
@@ -132,14 +152,7 @@ class DeliveryChargeHelper
                 'info' => $out_of_area_delivery_info,
             ];
         } else {
-            return [
-                'status' => false,
-                'message' => 'Calculation failed',
-                'delivery_method' => 'failed',
-                'delivery_charge' => $shouldRound ? round($systemSettings->order_shipping_charge) : round($systemSettings->order_shipping_charge, 2),
-                'distance_km' => 0,
-                'info' => 'area not found',
-            ];
+            return self::fallbackCharge($systemSettings, $shouldRound, 'area not found');
         }
     }
 
