@@ -24,7 +24,7 @@ const PaymentSettingsForm = () => {
 
   const [sectionName, setSectionName] = useState<string>(FALLBACK_SLUG);
 
-  const { paymentGetwayList } = usePaymentGetwayListQuery({});
+  const { paymentGetwayList, refetch: refetchList } = usePaymentGetwayListQuery({});
 
   const buttons = useMemo<GatewayButton[]>(() => {
     const raw = paymentGetwayList as any;
@@ -96,6 +96,7 @@ const PaymentSettingsForm = () => {
           <GetwaySettingsForm
             paymentgetway={paymentgetway}
             refetch={refetch}
+            refetchList={refetchList}
             isPending={isPending}
             getwayname={selectedGateway}
             isFetching={isFetching}

@@ -49,6 +49,7 @@ type Props = {
   getwayname?: string;
   paymentgetway?: any;
   refetch: () => void;
+  refetchList?: () => void;
   isPending: boolean;
   isFetching?: boolean;
   error?: unknown;
@@ -58,6 +59,7 @@ const GetwaySettingsForm = ({
   getwayname = "cash_on_delivery",
   paymentgetway,
   refetch,
+  refetchList,
   isPending,
   error,
 }: Props) => {
@@ -75,6 +77,7 @@ const GetwaySettingsForm = ({
     status: false,
     is_test_mode: false,
   });
+  const [iyzicoMarketplaceMode, setIyzicoMarketplaceMode] = useState(false);
 
   const getwaySettingsData = useMemo(() => (paymentgetway as any) || {}, [paymentgetway]);
 
@@ -106,6 +109,16 @@ const GetwaySettingsForm = ({
       status: Boolean(getwaySettingsData?.status),
       is_test_mode: Boolean(getwaySettingsData?.is_test_mode),
     });
+    const rawMarketplaceMode = getwaySettingsData?.auth_credentials?.marketplace_mode;
+    const normalizedMarketplaceMode =
+      typeof rawMarketplaceMode === "boolean"
+        ? rawMarketplaceMode
+        : ["1", "true", "yes", "on"].includes(
+            String(rawMarketplaceMode ?? "")
+              .trim()
+              .toLowerCase()
+          );
+    setIyzicoMarketplaceMode(normalizedMarketplaceMode);
   }, [authCredentialKeys, getwaySettingsData, getwayname, setValue]);
 
   const handleSaveLogoIcon = (images: UploadedImage[]) => {
@@ -128,8 +141,18 @@ const GetwaySettingsForm = ({
 
   const onSubmit = async (values: any) => {
     const filteredCredentialObject = Object.fromEntries(
-      authCredentialKeys.map((key) => [key, values?.[key] ?? ""])
+      authCredentialKeys
+        .filter((key) => key !== "marketplace_mode")
+        .map((key) => [key, values?.[key] ?? ""])
     );
+
+    if (getwayname === "iyzico") {
+      filteredCredentialObject.marketplace_mode = iyzicoMarketplaceMode;
+      if (!iyzicoMarketplaceMode) {
+        filteredCredentialObject.sub_merchant_key = null;
+        filteredCredentialObject.store_sub_merchant_keys = null;
+      }
+    }
 
     const selectedImageId = lastSelectedLogo?.image_id
       ? String(lastSelectedLogo.image_id)
@@ -148,6 +171,7 @@ const GetwaySettingsForm = ({
     return paymentGetwayService(submissionData as GetwaySettingsFormData, {
       onSuccess: () => {
         refetch();
+        refetchList?.();
       },
     });
   };
@@ -231,6 +255,22 @@ const GetwaySettingsForm = ({
                     onCheckedChange={() => handleToggle("is_test_mode")}
                   />
                 </div>
+
+                {getwayname === "iyzico" && (
+                  <div className="my-4 grid grid-cols-2">
+                    <p className="text-1xl font-medium mb-1">
+                      Enable/Disable Marketplace Mode{" "}
+                      <strong>
+                        <i className="capitalize">{formatLabel(getwayname || "", "_")}</i>
+                      </strong>
+                    </p>
+                    <Switch
+                      dir="ltr"
+                      checked={iyzicoMarketplaceMode}
+                      onCheckedChange={(value) => setIyzicoMarketplaceMode(Boolean(value))}
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-4 gap-4 my-6">
@@ -264,7 +304,17 @@ const GetwaySettingsForm = ({
                 </div>
               </div>
 
-              {authCredentialKeys.map((key) => (
+              {authCredentialKeys.map((key) => {
+                if (key === "marketplace_mode") return null;
+                if (
+                  getwayname === "iyzico" &&
+                  !iyzicoMarketplaceMode &&
+                  (key === "sub_merchant_key" || key === "store_sub_merchant_keys")
+                ) {
+                  return null;
+                }
+
+                return (
                 <div className="mb-4" key={key}>
                   <div className="text-sm font-medium mb-1 flex items-center gap-2">
                     <span>{formatLabel(key, "_")}</span>
@@ -288,7 +338,7 @@ const GetwaySettingsForm = ({
                     placeholder="Enter value"
                   />
                 </div>
-              ))}
+              )})}
 
               <div className="mb-4">
                 <div className="text-sm font-medium mb-1 flex items-center gap-2">

@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Modules\PaymentGateways\app\Models\PaymentGateway;
 
 class IyzicoPaymentController extends Controller
 {
@@ -41,6 +42,29 @@ class IyzicoPaymentController extends Controller
 
         if ($orderMaster->payment_status === 'paid') {
             return response()->json(['success' => false, 'message' => __('messages.order_already_paid')], 400);
+        }
+
+        $gateway = PaymentGateway::where('slug', 'iyzico')->first();
+        $rawCredentials = json_decode($gateway?->auth_credentials ?? '{}', true);
+        $rawCredentials = is_array($rawCredentials) ? $rawCredentials : [];
+
+        $hasApiKey = $this->hasAnyCredential($rawCredentials, ['api_key', 'iyzico_api_key', 'apiKey']);
+        $hasSecretKey = $this->hasAnyCredential($rawCredentials, ['secret_key', 'iyzico_secret_key', 'secretKey', 'api_secret']);
+        $marketplaceMode = $this->isMarketplaceEnabled($rawCredentials);
+        $hasSubMerchantKey = $this->hasSubMerchantConfiguration($rawCredentials);
+
+        if (!$hasApiKey || !$hasSecretKey) {
+            return response()->json([
+                'success' => false,
+                'message' => __('messages.iyzico_configuration_missing'),
+            ], 422);
+        }
+
+        if ($marketplaceMode && !$hasSubMerchantKey) {
+            return response()->json([
+                'success' => false,
+                'message' => __('messages.iyzico_sub_merchant_key_missing'),
+            ], 422);
         }
 
         try {
@@ -120,7 +144,11 @@ class IyzicoPaymentController extends Controller
                     'error_code' => $session->getErrorCode(),
                     'error_message' => $session->getErrorMessage(),
                     'store_ids' => $orderMaster->orders->pluck('store_id')->values()->all(),
+                    'is_test_mode' => (bool)($gateway?->is_test_mode),
                     'marketplace_mode' => $marketplaceMode,
+                    'has_api_key' => $hasApiKey,
+                    'has_secret_key' => $hasSecretKey,
+                    'has_sub_merchant_key' => $hasSubMerchantKey,
                 ]);
 
                 return response()->json([
@@ -144,10 +172,31 @@ class IyzicoPaymentController extends Controller
                     'order_master_id' => $orderMaster->id,
                 ],
             ]);
+        } catch (\RuntimeException $e) {
+            Log::warning('Iyzico checkout session validation failed', [
+                'order_master_id' => $orderMaster->id ?? null,
+                'customer_id' => $customer->id ?? null,
+                'is_test_mode' => (bool)($gateway?->is_test_mode),
+                'marketplace_mode' => $marketplaceMode,
+                'has_api_key' => $hasApiKey,
+                'has_secret_key' => $hasSecretKey,
+                'has_sub_merchant_key' => $hasSubMerchantKey,
+                'message' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
         } catch (\Throwable $e) {
             Log::error('Iyzico checkout session exception', [
                 'order_master_id' => $orderMaster->id ?? null,
                 'customer_id' => $customer->id ?? null,
+                'is_test_mode' => (bool)($gateway?->is_test_mode),
+                'marketplace_mode' => $marketplaceMode,
+                'has_api_key' => $hasApiKey,
+                'has_secret_key' => $hasSecretKey,
+                'has_sub_merchant_key' => $hasSubMerchantKey,
                 'message' => $e->getMessage(),
             ]);
 
@@ -329,26 +378,80 @@ class IyzicoPaymentController extends Controller
         return $basketItems;
     }
 
-    private function isMarketplaceEnabled(array $credentials): bool
+    public function isMarketplaceEnabled(array $credentials): bool
     {
         $raw = $credentials['marketplace_mode']
             ?? $credentials['iyzico_marketplace_mode']
             ?? null;
 
-        if ($raw !== null && $raw !== '') {
-            if (is_bool($raw)) {
-                return $raw;
-            }
-            $normalized = strtolower(trim((string)$raw));
-            return in_array($normalized, ['1', 'true', 'yes', 'on'], true);
+        return $this->toBooleanStrict($raw);
+    }
+
+    public function hasSubMerchantConfiguration(array $credentials): bool
+    {
+        if (trim((string)($credentials['sub_merchant_key'] ?? '')) !== '') {
+            return true;
+        }
+        if (trim((string)($credentials['default_sub_merchant_key'] ?? '')) !== '') {
+            return true;
+        }
+        if (trim((string)($credentials['marketplace_sub_merchant_key'] ?? '')) !== '') {
+            return true;
         }
 
-        // Auto mode: if any sub-merchant key config exists, treat as marketplace.
-        if (!empty($credentials['sub_merchant_key']) || !empty($credentials['default_sub_merchant_key'])) {
-            return true;
+        $maps = [
+            $credentials['store_sub_merchant_keys'] ?? null,
+            $credentials['sub_merchant_keys'] ?? null,
+        ];
+
+        foreach ($maps as $map) {
+            if (is_string($map)) {
+                $trimmed = trim($map);
+                if ($trimmed === '' || $trimmed === '{}' || $trimmed === '[]' || strtolower($trimmed) === 'null') {
+                    continue;
+                }
+                $decoded = json_decode($trimmed, true);
+                $map = is_array($decoded) ? $decoded : [];
+            }
+
+            if (is_array($map)) {
+                foreach ($map as $value) {
+                    if (trim((string)$value) !== '') {
+                        return true;
+                    }
+                }
+            }
         }
-        if (!empty($credentials['store_sub_merchant_keys']) || !empty($credentials['sub_merchant_keys'])) {
-            return true;
+
+        foreach ($credentials as $key => $value) {
+            if (str_starts_with((string)$key, 'store_') && str_ends_with((string)$key, '_sub_merchant_key')) {
+                if (trim((string)$value) !== '') {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private function toBooleanStrict(mixed $value): bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+        $normalized = strtolower(trim((string)$value));
+        if ($normalized === '' || $normalized === '{}' || $normalized === '[]' || $normalized === 'null') {
+            return false;
+        }
+        return in_array($normalized, ['1', 'true', 'yes', 'on'], true);
+    }
+
+    private function hasAnyCredential(array $credentials, array $keys): bool
+    {
+        foreach ($keys as $key) {
+            if (trim((string)($credentials[$key] ?? '')) !== '') {
+                return true;
+            }
         }
         return false;
     }

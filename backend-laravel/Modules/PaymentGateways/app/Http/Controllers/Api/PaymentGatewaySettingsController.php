@@ -61,13 +61,16 @@ class PaymentGatewaySettingsController extends Controller
                 ]);
             } else {
                 // others payment gateway update
-                $auth_credentials = $request->get('auth_credentials', []);
+                $auth_credentials = $this->normalizeAuthCredentials(
+                    $gateway->slug,
+                    $request->get('auth_credentials', [])
+                );
                 $gateway->update([
                     'image' => $request->get('image', $gateway->image),
                     'description' => $request->get('description', $gateway->description),
                     'status' => $request->get('status', $gateway->status),
                     'is_test_mode' => $request->get('is_test_mode', $gateway->is_test_mode),
-                    'auth_credentials' => json_encode($auth_credentials),
+                    'auth_credentials' => $auth_credentials ? json_encode($auth_credentials) : null,
                 ]);
                 Artisan::call('optimize:clear');
                 return response()->json([
@@ -303,5 +306,65 @@ class PaymentGatewaySettingsController extends Controller
         return response()->json([
             'message' => 'Currency deleted successfully'
         ]);
+    }
+
+    private function normalizeAuthCredentials(string $slug, mixed $authCredentials): ?array
+    {
+        if (!is_array($authCredentials)) {
+            return null;
+        }
+
+        $normalized = [];
+        foreach ($authCredentials as $key => $value) {
+            if ($key === null || $key === '') {
+                continue;
+            }
+
+            if (is_string($value)) {
+                $value = trim($value);
+            }
+
+            if ($value === '' || $value === '{}' || $value === '[]') {
+                $value = null;
+            }
+
+            if ($key === 'marketplace_mode' || $key === 'iyzico_marketplace_mode') {
+                $value = $this->toBooleanStrict($value);
+            }
+
+            if (in_array($key, ['store_sub_merchant_keys', 'sub_merchant_keys'], true)) {
+                if (is_string($value)) {
+                    $decoded = json_decode($value, true);
+                    $value = is_array($decoded) ? $decoded : null;
+                }
+                if (is_array($value)) {
+                    $value = array_filter($value, fn($item) => trim((string)$item) !== '');
+                    $value = empty($value) ? null : $value;
+                }
+            }
+
+            if ($value !== null) {
+                $normalized[$key] = $value;
+            }
+        }
+
+        if ($slug === 'iyzico') {
+            $marketplaceMode = $this->toBooleanStrict($normalized['marketplace_mode'] ?? false);
+            $normalized['marketplace_mode'] = $marketplaceMode;
+            if (!$marketplaceMode) {
+                unset($normalized['sub_merchant_key'], $normalized['store_sub_merchant_keys'], $normalized['sub_merchant_keys']);
+            }
+        }
+
+        return empty($normalized) ? null : $normalized;
+    }
+
+    private function toBooleanStrict(mixed $value): bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+        $normalized = strtolower(trim((string)$value));
+        return in_array($normalized, ['1', 'true', 'yes', 'on'], true);
     }
 }
