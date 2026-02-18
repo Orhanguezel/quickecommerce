@@ -2,8 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../config/strings.dart';
 import '../../../data/data_model/profile_image_upload_model.dart';
-import '../../../data/sirvice/connectivity_rypository.dart';
-import '../../../data/sirvice/save_repository.dart';
+import '../../../data/service/connectivity_repository.dart';
+import '../../../data/service/save_repository.dart';
 import 'profile_image_upload_event.dart';
 import 'profile_image_upload_state.dart';
 

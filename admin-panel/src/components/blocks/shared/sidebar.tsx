@@ -6,6 +6,7 @@ import { useStore } from "@/hooks/use-store";
 import GlobalImageLoader from "@/lib/imageLoader";
 import { cn } from "@/lib/utils";
 import { useGeneralQuery } from "@/modules/common/com/com.action";
+import { useStoreListQuery } from "@/modules/seller-section/product/product.action";
 import {
   useSellerDashboardQuery,
   useSellerGrowthOrderQuery,
@@ -32,10 +33,24 @@ export const Sidebar = memo(({ setIsLoading }: any) => {
   );
   const selectedStore = useAppSelector((state) => state.store.selectedStore);
   const storedSlug = selectedStore?.slug ?? "";
+  const pathname = usePathname();
+  const pathnameWithoutLocale = pathname.replace(`/${localeMain}`, "") || "/";
+  const isSellerPath = pathnameWithoutLocale.startsWith("/seller");
+
+  const { stores } = useStoreListQuery(
+    {},
+    { skip: !isSellerPath }
+  );
+  const storeList = useMemo(() => (stores as any)?.stores ?? [], [stores]);
+  const fallbackStoreSlug = useMemo(() => {
+    if (storedSlug) return storedSlug;
+    const first = Array.isArray(storeList) ? storeList[0] : null;
+    return first?.slug ?? "";
+  }, [storedSlug, storeList]);
 
   const { getPermissions, refetch, isPending, isFetching } =
     useGetPermissionsQuery({
-      store_slug: storedSlug ?? "",
+      store_slug: fallbackStoreSlug,
       language: localeMain,
     });
 
@@ -50,7 +65,6 @@ export const Sidebar = memo(({ setIsLoading }: any) => {
 
 
   const sidebar = useStore(useSidebarToggle, (state) => state);
-  const pathname = usePathname();
   const localeDir = pathname.split("/")[1];
   const dir = localeDir === "ar" ? "rtl" : "ltr";
   const MenuItems = getPermissions?.permissions;

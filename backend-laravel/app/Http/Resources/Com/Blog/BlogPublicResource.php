@@ -16,7 +16,8 @@ class BlogPublicResource extends JsonResource
     public function toArray(Request $request): array
     {
         // Get the requested language from the query parameter
-        $language = $request->input('language', 'en');
+        $language = strtolower((string)$request->input('language', 'en'));
+        $dateLocale = str_starts_with($language, 'tr') ? 'tr' : 'en';
         // Get the translation for the requested language
         $translation = $this->related_translations->where('language', $language);
         return [
@@ -30,6 +31,7 @@ class BlogPublicResource extends JsonResource
                 ? $translation->where('key', 'description')->first()->value
                 : $this->description,
             "image_url" => ImageModifier::generateImageUrl($this->image),
+            "is_featured" => (int)($this->is_featured ?? 0),
             "tag_name" => $this->tag_name,
             "meta_title" => !empty($translation) && $translation->where('key', 'meta_title')->first()
                 ? $translation->where('key', 'meta_title')->first()->value
@@ -41,7 +43,7 @@ class BlogPublicResource extends JsonResource
                 ? $translation->where('key', 'meta_keywords')->first()->value
                 : $this->meta_keywords,
             "meta_image" => ImageModifier::generateImageUrl($this->meta_image),
-            "created_at" => optional($this->created_at)->format('F d, Y')
+            "created_at" => optional($this->created_at)?->locale($dateLocale)->translatedFormat('d F Y')
         ];
     }
 }

@@ -5,5 +5,5 @@
 class DefaultFirebaseOptions {
   static const android = {};
   static const ios = {};
-  static const web = {};
+
 }

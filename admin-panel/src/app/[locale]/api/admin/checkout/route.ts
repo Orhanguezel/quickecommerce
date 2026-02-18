@@ -3,17 +3,26 @@ import { SellerRoutes } from "@/config/sellerRoutes";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
-const stripe = new Stripe(
-  process.env.STRIPE_SECRET_KEY || "",
+function getStripeClient() {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  if (!secretKey) return null;
 
-  {
+  return new Stripe(secretKey, {
     //@ts-ignore
     apiVersion: "2022-11-15",
-  }
-);
+  });
+}
 
 export async function POST(req: Request) {
   try {
+    const stripe = getStripeClient();
+    if (!stripe) {
+      return NextResponse.json(
+        { error: "Stripe secret key is not configured" },
+        { status: 500 }
+      );
+    }
+
     const { items } = await req.json();
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],

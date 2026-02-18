@@ -71,6 +71,7 @@ const LiveChatForm = () => {
         selectedType={selectedType}
         setSelectedType={setSelectedType}
         setSearchQuery={setSearchQuery}
+        refreshList={refetch}
         originalData={liveChatUserList}
         handleLoadMore={handleLoadMore}
         hasMore={hasMore}

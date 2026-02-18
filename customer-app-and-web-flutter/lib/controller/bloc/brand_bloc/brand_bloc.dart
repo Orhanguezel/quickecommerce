@@ -2,8 +2,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../data/data_model/brand_model.dart';
-import '../../../data/sirvice/connectivity_rypository.dart';
-import '../../../data/sirvice/product_repository.dart';
+import '../../../data/service/connectivity_repository.dart';
+import '../../../data/service/product_repository.dart';
 import 'brand_event.dart';
 import 'brand_state.dart';
 

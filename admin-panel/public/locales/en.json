@@ -1589,7 +1589,9 @@
       "login_page": "Login Page",
       "register_page": "Register Page",
       "blog_page": "Blog Page",
-      "product_details_page": "Product Details Page"
+      "product_details_page": "Product Details Page",
+      "popup_settings": "Popup Settings",
+      "side_banner_settings": "Side Sticky Banner"
     },
     "style": {
       "primary_color": "Primary Color",

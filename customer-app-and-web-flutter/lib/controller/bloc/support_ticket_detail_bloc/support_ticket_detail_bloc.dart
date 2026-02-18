@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../data/data_model/ticket_detail_model.dart';
-import '../../../data/sirvice/common_repository.dart';
-import '../../../data/sirvice/connectivity_rypository.dart';
+import '../../../data/service/common_repository.dart';
+import '../../../data/service/connectivity_repository.dart';
 import 'support_ticket_detail_event.dart';
 import 'support_ticket_detail_state.dart';
 

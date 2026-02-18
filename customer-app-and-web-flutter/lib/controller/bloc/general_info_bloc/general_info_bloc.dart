@@ -6,8 +6,8 @@ import 'package:quick_ecommerce/controller/bloc/general_info_bloc/general_info_s
 import 'package:quick_ecommerce/data/data_model/all_product_model.dart';
 import '../../../data/data_model/coupon_list_model.dart';
 import '../../../data/data_model/general_info_model.dart';
-import '../../../data/sirvice/common_repository.dart';
-import '../../../data/sirvice/connectivity_rypository.dart';
+import '../../../data/service/common_repository.dart';
+import '../../../data/service/connectivity_repository.dart';
 
 
 class GeneralInfoBloc extends Bloc<GeneralInfoEvent, GeneralInfoState> {

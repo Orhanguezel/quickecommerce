@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quick_ecommerce/data/data_model/chat_list_model.dart';
-import 'package:quick_ecommerce/data/sirvice/common_repository.dart';
-import 'package:quick_ecommerce/data/sirvice/connectivity_rypository.dart';
+import 'package:quick_ecommerce/data/service/common_repository.dart';
+import 'package:quick_ecommerce/data/service/connectivity_repository.dart';
 
 import '../../../config/strings.dart';
 import 'chat_list_event.dart';

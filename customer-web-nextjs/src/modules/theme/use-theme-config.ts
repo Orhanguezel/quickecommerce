@@ -3,44 +3,149 @@
 import { useLocale } from "next-intl";
 import { useThemeQuery } from "./theme.service";
 
+import type {
+  ThemePopupSettingsPage,
+  ThemeHomePage,
+  ThemeLoginPage,
+  ThemeRegisterPage,
+  ThemeProductDetailsPage,
+  ThemeBlogPage,
+  ThemeSectionConfig,
+} from "./theme.type";
+
+const DEFAULT_HOME_SECTION_ORDER = [
+  "slider",
+  "category",
+  "flash_sale",
+  "product_featured",
+  "banner_section",
+  "product_latest",
+  "product_top_selling",
+  "popular_product_section",
+  "blog_section",
+  "top_stores_section",
+  "newsletters_section",
+] as const;
+
+const DEFAULT_HOME_LAYOUT_BLOCKS = DEFAULT_HOME_SECTION_ORDER.map((type, idx) => ({
+  id: `${type}__${idx + 1}`,
+  type,
+  instance: 1,
+  enabled_disabled: "on",
+}));
+
 export function useThemeConfig() {
   const locale = useLocale();
   const { data: themeResponse, isLoading, error } = useThemeQuery();
   const themeData = themeResponse?.theme_data;
 
-  // Helper: İlk array elemanını al
-  function firstOrNull<T>(arr: T[] | undefined): T | null {
-    return arr && arr.length > 0 ? arr[0] : null;
+  function firstOrNull<T>(value: T[] | undefined | null): T | null {
+    if (Array.isArray(value)) return (value[0] as T) ?? null;
+    if (value && typeof value === "object") return value as unknown as T;
+    return null;
+  }
+
+  function toList<T>(value: T[] | undefined | null): T[] {
+    if (Array.isArray(value)) return value;
+    if (value && typeof value === "object") {
+      return Object.values(value as unknown as Record<string, T>);
+    }
+    return [];
   }
 
   // Locale-aware theme_pages: If translation exists for current locale, use it
   // API returns: { theme_data: { theme_pages: [...TR...] }, translations: { en: { theme_data: { theme_pages: [...EN...] } } } }
   const defaultPages = firstOrNull(themeData?.theme_pages);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const translatedThemeData = (themeResponse?.translations as any)?.[locale]?.theme_data;
+  const translatedThemeData = themeResponse?.translations?.[locale]?.theme_data;
   const translatedPages = translatedThemeData ? firstOrNull(translatedThemeData.theme_pages) : null;
 
   // Use translated pages if available, otherwise fall back to default (Turkish)
   const pages = translatedPages || defaultPages;
+  const defaultHomePage = firstOrNull<ThemeHomePage>(defaultPages?.theme_home_page);
 
-  const homePage = firstOrNull(pages?.theme_home_page);
-  const loginPage = firstOrNull(pages?.theme_login_page);
-  const registerPage = firstOrNull(pages?.theme_register_page);
-  const productDetailsPage = firstOrNull(pages?.theme_product_details_page);
-  const blogPage = firstOrNull(pages?.theme_blog_page);
+  const homePage = firstOrNull<ThemeHomePage>(pages?.theme_home_page);
+  const loginPage = firstOrNull<ThemeLoginPage>(pages?.theme_login_page);
+  const registerPage = firstOrNull<ThemeRegisterPage>(pages?.theme_register_page);
+  const productDetailsPage = firstOrNull<ThemeProductDetailsPage>(pages?.theme_product_details_page);
+  const blogPage = firstOrNull<ThemeBlogPage>(pages?.theme_blog_page);
+  const popupPagesRaw = (() => {
+    const localized = toList<ThemePopupSettingsPage>(pages?.theme_popup_settings);
+    if (localized.length) return localized;
+    return toList<ThemePopupSettingsPage>(defaultPages?.theme_popup_settings);
+  })();
+  const sideBannerRaw = (() => {
+    const localized = firstOrNull(pages?.theme_side_banner_settings);
+    if (localized) return localized;
+    return firstOrNull(defaultPages?.theme_side_banner_settings);
+  })();
   const headerData = firstOrNull(themeData?.theme_header);
   const footerData = firstOrNull(themeData?.theme_footer);
 
   // Helper: Theme verisi yoksa varsayılan olarak göster
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const isOn = (section: any[] | undefined) =>
-    !homePage ? true : (section && section.length > 0 ? (section[0] as any)?.enabled_disabled === "on" : false);
+  const isOn = (section: { enabled_disabled: string }[] | undefined | null) =>
+    !homePage
+      ? true
+      : section && section.length > 0
+      ? section[0]?.enabled_disabled === "on"
+      : false;
+
+  const normalizedLayoutBlocks = (() => {
+    const raw = Array.isArray(homePage?.layout_blocks)
+      ? homePage!.layout_blocks!
+      : Array.isArray(defaultHomePage?.layout_blocks)
+        ? defaultHomePage!.layout_blocks!
+        : [];
+
+    if (!raw.length) {
+      return DEFAULT_HOME_LAYOUT_BLOCKS;
+    }
+
+    const allowed = new Set(DEFAULT_HOME_SECTION_ORDER);
+    const blocks = raw
+      .filter((item) => item && typeof item === "object" && typeof item.type === "string")
+      .filter((item) => allowed.has(item.type))
+      .map((item, idx: number) => ({
+        id: String(item.id || `${item.type}__${idx + 1}`),
+        type: item.type,
+        instance: Number(item.instance || 1),
+        enabled_disabled: item?.enabled_disabled === "off" ? "off" : "on",
+        config: item.config || {},
+      }));
+
+    const uniqueIds = new Set<string>();
+    const deduped = blocks.filter((item) => {
+      if (uniqueIds.has(item.id)) return false;
+      uniqueIds.add(item.id);
+      return true;
+    });
+
+    return deduped.length ? deduped : DEFAULT_HOME_LAYOUT_BLOCKS;
+  })();
 
   // Ana Sayfa Accessor'ları
   const homeConfig = {
+    layoutBlocks: normalizedLayoutBlocks,
+    sectionOrder: (() => {
+      const configured: string[] = Array.isArray(homePage?.section_order)
+        ? homePage!.section_order!.filter((item): item is string => typeof item === "string")
+        : Array.isArray(defaultHomePage?.section_order)
+        ? defaultHomePage!.section_order!.filter((item): item is string => typeof item === "string")
+        : [];
+      const seen = new Set<string>();
+      const valid = configured.filter((item) => {
+        const isKnown = DEFAULT_HOME_SECTION_ORDER.includes(
+          item as (typeof DEFAULT_HOME_SECTION_ORDER)[number]
+        );
+        if (!isKnown || seen.has(item)) return false;
+        seen.add(item);
+        return true;
+      });
+      const missing = DEFAULT_HOME_SECTION_ORDER.filter((item) => !valid.includes(item));
+      return [...valid, ...missing];
+    })(),
     isSliderEnabled: isOn(homePage?.slider),
-    sliderNumber: (firstOrNull(homePage?.slider) as any)?.slider_number || "1",
+    sliderNumber: firstOrNull(homePage?.slider)?.slider_number || "1",
     isCategoriesEnabled: isOn(homePage?.category),
     categoriesTitle: firstOrNull(homePage?.category)?.title,
     categoriesSubtitle: firstOrNull(homePage?.category)?.subtitle,
@@ -60,8 +165,11 @@ export function useThemeConfig() {
     isPopularEnabled: isOn(homePage?.popular_product_section),
     popularTitle: firstOrNull(homePage?.popular_product_section)?.title,
     popularSubtitle: firstOrNull(homePage?.popular_product_section)?.subtitle,
+    isBlogEnabled: isOn(homePage?.blog_section),
+    blogTitle: firstOrNull(homePage?.blog_section)?.title,
+    blogSubtitle: firstOrNull(homePage?.blog_section)?.subtitle,
     isTopStoresEnabled: isOn(homePage?.top_stores_section),
-    topStoresTitle: firstOrNull(homePage?.top_stores_section)?.title,
+    topStoresTitle: firstOrNull<ThemeSectionConfig>(homePage?.top_stores_section)?.title,
     isNewsletterEnabled: isOn(homePage?.newsletters_section),
     newsletterTitle: firstOrNull(homePage?.newsletters_section)?.title,
     newsletterSubtitle: firstOrNull(homePage?.newsletters_section)?.subtitle,
@@ -100,9 +208,91 @@ export function useThemeConfig() {
   };
 
   // Blog
+  const blogGridSpanRaw = Number(blogPage?.posts_grid_section?.[0]?.column_span || 4);
+  const blogGridSpan = blogGridSpanRaw === 6 || blogGridSpanRaw === 12 ? blogGridSpanRaw : 4;
   const blogConfig = {
     popularTitle: blogPage?.popular_title,
     relatedTitle: blogPage?.related_title,
+    isPopularPostsEnabled:
+      blogPage?.popular_posts_section?.[0]?.enabled_disabled !== "off",
+    popularPostsSpan: (() => {
+      const raw = Number(blogPage?.popular_posts_section?.[0]?.column_span || 4);
+      return raw === 6 || raw === 12 ? raw : 4;
+    })(),
+    isRelatedPostsEnabled:
+      blogPage?.related_posts_section?.[0]?.enabled_disabled !== "off",
+    relatedPostsSpan: (() => {
+      const raw = Number(blogPage?.related_posts_section?.[0]?.column_span || 4);
+      return raw === 6 || raw === 12 ? raw : 4;
+    })(),
+    isListToolbarEnabled:
+      blogPage?.list_toolbar_section?.[0]?.enabled_disabled !== "off",
+    isPostsGridEnabled:
+      blogPage?.posts_grid_section?.[0]?.enabled_disabled !== "off",
+    postsGridSpan: blogGridSpan as 4 | 6 | 12,
+  };
+
+  const popupConfigs = popupPagesRaw
+    .filter((item) => item && typeof item === "object")
+    .map((item, idx: number) => ({
+      id: String(item.id || `popup_${idx + 1}`),
+      isEnabled: item?.enabled_disabled === "on",
+      title: item?.title || "",
+      subtitle: item?.subtitle || "",
+      buttonText: item?.button_text || "",
+      buttonUrl: item?.button_url || "",
+      imageUrl: item?.image_id_url || item?.img_url || item?.image_url || "",
+      couponCode: item?.coupon_code || "",
+      sortOrder: Number(item?.sort_order ?? idx + 1),
+      delaySeconds: Number(item?.delay_seconds ?? 3),
+      frequencyDays: Number(item?.frequency_days ?? 3),
+      pageTarget: (item?.page_target || "all") as "all" | "home",
+      displayType: (item?.display_type || "modal_center") as
+        | "modal_center"
+        | "top_bar"
+        | "bottom_bar",
+      textBehavior: (item?.text_behavior || "static") as "static" | "marquee",
+      popupBgColor: item?.popup_bg_color || "",
+      popupTextColor: item?.popup_text_color || "",
+      popupButtonBgColor: item?.popup_button_bg_color || "",
+      popupButtonTextColor: item?.popup_button_text_color || "",
+    }))
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
+  const popupConfig = popupConfigs[0] || {
+    id: "popup_default",
+    isEnabled: false,
+    title: "",
+    subtitle: "",
+    buttonText: "",
+    buttonUrl: "",
+    imageUrl: "",
+    couponCode: "",
+    sortOrder: 1,
+    delaySeconds: 3,
+    frequencyDays: 3,
+    pageTarget: "all" as const,
+    displayType: "modal_center" as const,
+    textBehavior: "static" as const,
+    popupBgColor: "",
+    popupTextColor: "",
+    popupButtonBgColor: "",
+    popupButtonTextColor: "",
+  };
+
+  const sideBannerConfig = {
+    id: String(sideBannerRaw?.id || "left_sticky_banner_1"),
+    isEnabled: sideBannerRaw?.enabled_disabled === "on",
+    title: sideBannerRaw?.title || "",
+    linkUrl: sideBannerRaw?.link_url || "",
+    openInNewTab: sideBannerRaw?.open_in_new_tab === "on",
+    pageTarget: (sideBannerRaw?.page_target || "all") as "all" | "home" | "product",
+    widthPx: Math.max(180, Number(sideBannerRaw?.width_px || 240)),
+    topOffsetPx: Math.max(80, Number(sideBannerRaw?.top_offset_px || 200)),
+    bannerOrder: Math.max(1, Number(sideBannerRaw?.banner_order || 1)),
+    dismissible: sideBannerRaw?.dismissible !== "off",
+    dismissPolicy: (sideBannerRaw?.dismiss_policy || "days") as "always" | "session" | "days",
+    dismissDays: Math.max(1, Number(sideBannerRaw?.dismiss_days || 1)),
   };
 
   // Header
@@ -144,6 +334,9 @@ export function useThemeConfig() {
     registerConfig,
     productDetailsConfig,
     blogConfig,
+    popupConfigs,
+    popupConfig,
+    sideBannerConfig,
     headerConfig,
     footerConfig,
   };

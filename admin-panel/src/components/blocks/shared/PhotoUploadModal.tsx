@@ -300,7 +300,13 @@ const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
   };
 
   const handleSave = () => {
-    onSave(selectedImages);
+    const payload =
+      selectedImages.length > 0
+        ? selectedImages
+        : lastSelectedImages
+          ? [lastSelectedImages]
+          : [];
+    onSave(payload);
     setIsModalOpen(false);
   };
   const handleTabChange = (tab: string) => {

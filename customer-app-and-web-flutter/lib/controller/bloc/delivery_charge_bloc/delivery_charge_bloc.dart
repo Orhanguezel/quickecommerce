@@ -7,8 +7,8 @@ import 'package:quick_ecommerce/controller/bloc/delivery_charge_bloc/delivery_ch
 import 'package:quick_ecommerce/controller/bloc/delivery_charge_bloc/delivery_charge_state.dart';
 
 import '../../../data/data_model/delivery_charge_model.dart';
-import '../../../data/sirvice/common_repository.dart';
-import '../../../data/sirvice/connectivity_rypository.dart';
+import '../../../data/service/common_repository.dart';
+import '../../../data/service/connectivity_repository.dart';
 
 
 class DeliveryChargeBloc extends Bloc<DeliveryChargeEvent, DeliveryChargeState> {

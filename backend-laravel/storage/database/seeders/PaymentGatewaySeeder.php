@@ -46,19 +46,6 @@ class PaymentGatewaySeeder extends Seeder
         ]);
 
         PaymentGateway::create([
-            'name' => 'Razorpay',
-            'slug' => 'razorpay',
-            'description' => 'razorpay info',
-            'auth_credentials' => json_encode([
-                'razorpay_api_key' => '',
-                'razorpay_api_secret' => '',
-            ]),
-            'image' => null,
-            'status' => true,
-            'is_test_mode' => true,
-        ]);
-
-        PaymentGateway::create([
             'name' => 'Paytm',
             'slug' => 'paytm',
             'description' => 'paytm info',

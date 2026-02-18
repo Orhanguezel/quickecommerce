@@ -4,6 +4,7 @@ import multiLang from "@/components/molecules/multiLang.json";
 import {
   Card,
   Input,
+  Switch,
   Tabs,
   TabsContent,
   TabsList,
@@ -76,6 +77,13 @@ const ThemeBlogPage: React.FC<ThemeBlogPageProps> = ({
     useForm<PageSettingsFormDataHome>({
       resolver: zodResolver(pageSettingsSchemaHome),
     });
+  const [popularEnabled, setPopularEnabled] = React.useState<"on" | "off">("on");
+  const [relatedEnabled, setRelatedEnabled] = React.useState<"on" | "off">("on");
+  const [popularSpan, setPopularSpan] = React.useState<4 | 6 | 12>(4);
+  const [relatedSpan, setRelatedSpan] = React.useState<4 | 6 | 12>(4);
+  const [listToolbarEnabled, setListToolbarEnabled] = React.useState<"on" | "off">("on");
+  const [postsGridEnabled, setPostsGridEnabled] = React.useState<"on" | "off">("on");
+  const [postsGridSpan, setPostsGridSpan] = React.useState<4 | 6 | 12>(4);
 
   useEffect(() => {
     if (
@@ -90,6 +98,33 @@ const ThemeBlogPage: React.FC<ThemeBlogPageProps> = ({
 
     setValue("popular_title_df", loginDefault?.popular_title || "");
     setValue("related_title_df", loginDefault?.related_title || "");
+    setPopularEnabled(
+      loginDefault?.popular_posts_section?.[0]?.enabled_disabled === "off" ? "off" : "on"
+    );
+    setRelatedEnabled(
+      loginDefault?.related_posts_section?.[0]?.enabled_disabled === "off" ? "off" : "on"
+    );
+    setPopularSpan(
+      [4, 6, 12].includes(Number(loginDefault?.popular_posts_section?.[0]?.column_span))
+        ? (Number(loginDefault?.popular_posts_section?.[0]?.column_span) as 4 | 6 | 12)
+        : 4
+    );
+    setRelatedSpan(
+      [4, 6, 12].includes(Number(loginDefault?.related_posts_section?.[0]?.column_span))
+        ? (Number(loginDefault?.related_posts_section?.[0]?.column_span) as 4 | 6 | 12)
+        : 4
+    );
+    setListToolbarEnabled(
+      loginDefault?.list_toolbar_section?.[0]?.enabled_disabled === "off" ? "off" : "on"
+    );
+    setPostsGridEnabled(
+      loginDefault?.posts_grid_section?.[0]?.enabled_disabled === "off" ? "off" : "on"
+    );
+    setPostsGridSpan(
+      [4, 6, 12].includes(Number(loginDefault?.posts_grid_section?.[0]?.column_span))
+        ? (Number(loginDefault?.posts_grid_section?.[0]?.column_span) as 4 | 6 | 12)
+        : 4
+    );
 
     multiLangData
       .filter((l) => l.id !== "df")
@@ -115,6 +150,16 @@ const ThemeBlogPage: React.FC<ThemeBlogPageProps> = ({
         {
           popular_title: values.popular_title_df,
           related_title: values.related_title_df,
+          popular_posts_section: [
+            { enabled_disabled: popularEnabled, column_span: popularSpan },
+          ],
+          related_posts_section: [
+            { enabled_disabled: relatedEnabled, column_span: relatedSpan },
+          ],
+          list_toolbar_section: [{ enabled_disabled: listToolbarEnabled }],
+          posts_grid_section: [
+            { enabled_disabled: postsGridEnabled, column_span: postsGridSpan },
+          ],
         },
       ];
     }
@@ -127,9 +172,15 @@ const ThemeBlogPage: React.FC<ThemeBlogPageProps> = ({
       JSON.stringify((allData as any).translations)
     );
     if (Object.keys(updatedTranslations).length > 0) {
-      multiLangData.forEach((lang) => {
+      multiLangData.filter((l) => l.id !== "df").forEach((lang) => {
         const langCode = lang.id;
 
+        if (!updatedTranslations[langCode]) {
+          updatedTranslations[langCode] = { theme_data: { theme_pages: { "0": {} } } };
+        }
+        if (!updatedTranslations[langCode].theme_data?.theme_pages) {
+          updatedTranslations[langCode].theme_data.theme_pages = { "0": {} };
+        }
         if (!updatedTranslations[langCode].theme_data.theme_pages["0"]) {
           updatedTranslations[langCode].theme_data.theme_pages["0"] = {};
         }
@@ -140,6 +191,16 @@ const ThemeBlogPage: React.FC<ThemeBlogPageProps> = ({
           {
             popular_title: (values as any)[`popular_title_${langCode}`],
             related_title: (values as any)[`related_title_${langCode}`],
+            popular_posts_section: [
+              { enabled_disabled: popularEnabled, column_span: popularSpan },
+            ],
+            related_posts_section: [
+              { enabled_disabled: relatedEnabled, column_span: relatedSpan },
+            ],
+            list_toolbar_section: [{ enabled_disabled: listToolbarEnabled }],
+            posts_grid_section: [
+              { enabled_disabled: postsGridEnabled, column_span: postsGridSpan },
+            ],
           },
         ];
 
@@ -199,6 +260,88 @@ const ThemeBlogPage: React.FC<ThemeBlogPageProps> = ({
                       className="app-input"
                       {...register(field("related_title"))}
                     />
+                    {isDf ? (
+                      <>
+                        <div className="pt-2">
+                          <p className="text-sm font-medium">Popüler Yazılar - Aktif</p>
+                          <Switch
+                            checked={popularEnabled === "on"}
+                            onCheckedChange={() =>
+                              setPopularEnabled((prev) => (prev === "on" ? "off" : "on"))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium">Popüler Yazılar Kolon</label>
+                          <select
+                            value={popularSpan}
+                            onChange={(e) =>
+                              setPopularSpan((Number(e.target.value) || 4) as 4 | 6 | 12)
+                            }
+                            className="app-input h-10 rounded border px-2 text-sm"
+                          >
+                            <option value={4}>4/12</option>
+                            <option value={6}>6/12</option>
+                            <option value={12}>12/12</option>
+                          </select>
+                        </div>
+                        <div className="pt-2">
+                          <p className="text-sm font-medium">İlgili Yazılar - Aktif</p>
+                          <Switch
+                            checked={relatedEnabled === "on"}
+                            onCheckedChange={() =>
+                              setRelatedEnabled((prev) => (prev === "on" ? "off" : "on"))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium">İlgili Yazılar Kolon</label>
+                          <select
+                            value={relatedSpan}
+                            onChange={(e) =>
+                              setRelatedSpan((Number(e.target.value) || 4) as 4 | 6 | 12)
+                            }
+                            className="app-input h-10 rounded border px-2 text-sm"
+                          >
+                            <option value={4}>4/12</option>
+                            <option value={6}>6/12</option>
+                            <option value={12}>12/12</option>
+                          </select>
+                        </div>
+                        <div className="pt-2">
+                          <p className="text-sm font-medium">Blog Liste Üst Bar - Aktif</p>
+                          <Switch
+                            checked={listToolbarEnabled === "on"}
+                            onCheckedChange={() =>
+                              setListToolbarEnabled((prev) => (prev === "on" ? "off" : "on"))
+                            }
+                          />
+                        </div>
+                        <div className="pt-2">
+                          <p className="text-sm font-medium">Blog Kart Grid - Aktif</p>
+                          <Switch
+                            checked={postsGridEnabled === "on"}
+                            onCheckedChange={() =>
+                              setPostsGridEnabled((prev) => (prev === "on" ? "off" : "on"))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium">Blog Kart Kolonu</label>
+                          <select
+                            value={postsGridSpan}
+                            onChange={(e) =>
+                              setPostsGridSpan((Number(e.target.value) || 4) as 4 | 6 | 12)
+                            }
+                            className="app-input h-10 rounded border px-2 text-sm"
+                          >
+                            <option value={4}>4/12</option>
+                            <option value={6}>6/12</option>
+                            <option value={12}>12/12</option>
+                          </select>
+                        </div>
+                      </>
+                    ) : null}
                   </div>
                 </Card>
               </div>

@@ -5,6 +5,8 @@ export interface BlogPost {
   slug: string;
   description: string;
   image_url: string | null;
+  is_featured?: number | boolean;
+  featured?: number | boolean;
   views?: number;
   tag_name: string | null;
   meta_title: string | null;

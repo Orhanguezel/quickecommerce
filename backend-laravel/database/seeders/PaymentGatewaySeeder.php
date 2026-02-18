@@ -19,7 +19,7 @@ class PaymentGatewaySeeder extends Seeder
         }
 
         // Eski gateway'leri sil
-        PaymentGateway::whereIn('slug', ['paypal', 'stripe', 'razorpay', 'paytm'])->delete();
+        PaymentGateway::whereIn('slug', ['paypal', 'stripe', 'paytm'])->delete();
 
         PaymentGateway::updateOrCreate(['slug' => 'cash_on_delivery'], [
             'name' => 'Kapıda Ödeme',

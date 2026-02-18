@@ -45,6 +45,7 @@ const Chat: React.FC<any> = ({
   selectedType,
   setSelectedType,
   originalData,
+  refreshList,
   handleLoadMore,
   hasMore,
   isListLoading,
@@ -74,6 +75,14 @@ const Chat: React.FC<any> = ({
   const cardRef = useRef<HTMLDivElement | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [hasNewMessage, setHasNewMessage] = useState(false);
+  const lastListRefreshRef = useRef(0);
+
+  const refreshListSafely = () => {
+    const now = Date.now();
+    if (now - lastListRefreshRef.current < 1000) return;
+    lastListRefreshRef.current = now;
+    refreshList?.();
+  };
 
   useEffect(() => {
     const stored = localStorage.getItem("chat_target");
@@ -288,6 +297,7 @@ const Chat: React.FC<any> = ({
     if (!newMessage.trim() && !selectedFile) {
       return "";
     }
+    const outgoingTimestamp = new Date().toISOString();
     const submissionData = {
       file: selectedFile,
       message: newMessage,
@@ -331,11 +341,39 @@ const Chat: React.FC<any> = ({
           sender_type: "admin",
           sender: selectedUser?.sender_id,
           channel: `activeChannel_${currentUser?.sender_id}`,
+          timestamp: outgoingTimestamp,
           file_type:
             selectedFile && selectedFile.type.startsWith("image/")
               ? "image"
               : "file",
         }),
+      });
+
+      // Show outgoing message immediately without waiting for a hard refresh.
+      setMessages((prev) => {
+        const exists = prev.some(
+          (msg) =>
+            msg.text === (submissionData.message ?? "") &&
+            msg.timestamp === outgoingTimestamp
+        );
+        if (exists) return prev;
+        return [
+          ...prev,
+          {
+            id: `local-${Date.now()}`,
+            sender: String(submissionData.sender_id ?? ""),
+            text: submissionData.message ?? "",
+            sender_type: "admin",
+            timestamp: outgoingTimestamp,
+            file_url: uploadedFileUrl ?? "",
+            file_type:
+              selectedFile && selectedFile.type.startsWith("image/")
+                ? "image"
+                : selectedFile
+                ? "file"
+                : undefined,
+          },
+        ];
       });
 
       setNewMessage("");
@@ -392,6 +430,7 @@ const Chat: React.FC<any> = ({
                 placeholder={t("place_holder.search_by_name")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={refreshListSafely}
                 className="w-full p-2 app-input"
               />
             </div>
@@ -406,7 +445,7 @@ const Chat: React.FC<any> = ({
             </div>
           </div>
         </Card>
-        <div className="p-4">
+        <div className="p-4" onFocusCapture={refreshListSafely}>
           <h3 className="flex items-center gap-1 font-medium text-gray-500 dark:text-white mb-2">
             <Users width={16} height={16} />
             <span>{t("common.users_list")}</span>

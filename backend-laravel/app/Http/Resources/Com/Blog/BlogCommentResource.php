@@ -15,6 +15,9 @@ class BlogCommentResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $language = strtolower((string)$request->input('language', 'en'));
+        $dateLocale = str_starts_with($language, 'tr') ? 'tr' : 'en';
+
         return [
             "id" => $this->id,
             "user_name" => $this->user?->getFullNameAttribute(),
@@ -32,7 +35,7 @@ class BlogCommentResource extends JsonResource
                 ->where('blog_comment_id', $this->id)
                 ->where('reaction_type', 'dislike')
                 ->exists(),
-            'created_at' => $this->created_at->format('M d, Y \a\t h:i A'),
+            'created_at' => $this->created_at?->locale($dateLocale)->translatedFormat('d F Y H:i'),
         ];
     }
 }

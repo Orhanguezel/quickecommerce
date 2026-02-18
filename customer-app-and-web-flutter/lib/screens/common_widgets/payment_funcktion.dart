@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 
-import '../../data/sirvice/common_repository.dart';
+import '../../data/service/common_repository.dart';
 
 class PaymentFunction {
   static void stripePayment({

@@ -77,6 +77,7 @@ class AssetsIcons{
   static const theme = 'assets/icons/theme.png';
   static const twitter = 'assets/icons/twitter.png';
   static const translate = 'assets/icons/translate.png';
+  static const trFlag = 'assets/icons/tr_flag.png';
   static const trackOrder  = 'assets/icons/track_order.png';
   static const usFlag = 'assets/icons/us_flag.png';
   static const withdraw = 'assets/icons/withdraw.png';

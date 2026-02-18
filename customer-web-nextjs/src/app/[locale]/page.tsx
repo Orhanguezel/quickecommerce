@@ -5,6 +5,7 @@ import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { Product, Slider } from "@/modules/product/product.type";
 import type { Category } from "@/modules/site/site.type";
 import type { FlashDeal } from "@/modules/flash-deal/flash-deal.type";
+import type { BlogPost } from "@/modules/blog/blog.type";
 import { HomePageClient } from "./home-client";
 
 interface Props {
@@ -16,14 +17,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const t = await getTranslations({ locale, namespace: "seo" });
 
   return {
-    title: { absolute: `Sporto Online — ${t("home_title")}` },
+    title: { absolute: `Sportoonline — ${t("home_title")}` },
     description: t("home_description"),
     openGraph: {
-      title: `Sporto Online — ${t("home_title")}`,
+      title: `Sportoonline — ${t("home_title")}`,
       description: t("home_description"),
       type: "website",
       locale: locale === "tr" ? "tr_TR" : "en_US",
-      siteName: "Sporto Online",
+      siteName: "Sportoonline",
     },
     alternates: {
       canonical: `/${locale}`,
@@ -46,6 +47,7 @@ async function getHomeData(locale: string) {
     flashDealsRes,
     flashSaleProductsRes,
     popularRes,
+    blogsRes,
   ] = await Promise.allSettled([
     fetchAPI<any>(API_ENDPOINTS.SLIDER_LIST, { platform: "web" }, locale),
     fetchAPI<any>(API_ENDPOINTS.CATEGORIES, { per_page: 20, all: "false" }, locale),
@@ -56,6 +58,7 @@ async function getHomeData(locale: string) {
     fetchAPI<any>(API_ENDPOINTS.FLASH_DEALS, {}, locale),
     fetchAPI<any>(API_ENDPOINTS.FLASH_DEAL_PRODUCTS, { per_page: 10 }, locale),
     fetchAPI<any>(API_ENDPOINTS.POPULAR_PRODUCTS, { per_page: 10 }, locale),
+    fetchAPI<any>(API_ENDPOINTS.BLOGS, { per_page: 6, page: 1 }, locale),
   ]);
 
   return {
@@ -68,6 +71,7 @@ async function getHomeData(locale: string) {
     flashDeals: (flashDealsRes.status === "fulfilled" ? flashDealsRes.value?.data ?? [] : []) as FlashDeal[],
     topDeals: (flashSaleProductsRes.status === "fulfilled" ? flashSaleProductsRes.value?.data ?? [] : []) as Product[],
     popular: (popularRes.status === "fulfilled" ? popularRes.value?.data ?? [] : []) as Product[],
+    blogs: (blogsRes.status === "fulfilled" ? blogsRes.value?.data ?? [] : []) as BlogPost[],
   };
 }
 
@@ -75,12 +79,13 @@ export default async function HomePage({ params }: Props) {
   const { locale } = await params;
   const data = await getHomeData(locale);
   const t = await getTranslations({ locale, namespace: "home" });
+  const blogT = await getTranslations({ locale, namespace: "blog" });
   const seoT = await getTranslations({ locale, namespace: "seo" });
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "Sporto Online",
+    name: "Sportoonline",
     url: `https://sportoonline.com/${locale}`,
     description: seoT("home_description"),
     potentialAction: {
@@ -116,6 +121,8 @@ export default async function HomePage({ params }: Props) {
           top_stores_title: t("top_stores_title"),
           newsletter_title: t("newsletter_title"),
           newsletter_subtitle: t("newsletter_subtitle"),
+          blog_title: blogT("blog"),
+          blog_subtitle: blogT("blog_subtitle"),
         }}
       />
     </>

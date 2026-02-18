@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../config/strings.dart';
 import '../../../data/data_model/product_details_model.dart';
-import '../../../data/sirvice/connectivity_rypository.dart';
-import '../../../data/sirvice/product_repository.dart';
+import '../../../data/service/connectivity_repository.dart';
+import '../../../data/service/product_repository.dart';
 import 'product_details_event.dart';
 import 'product_details_state.dart';
 

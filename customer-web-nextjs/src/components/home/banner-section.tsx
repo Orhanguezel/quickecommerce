@@ -71,7 +71,11 @@ function BannerCard({ banner, tall = false }: { banner: Banner; tall?: boolean }
   );
 }
 
-export function BannerSection() {
+interface BannerSectionProps {
+  rows?: number[];
+}
+
+export function BannerSection({ rows }: BannerSectionProps = {}) {
   const { banners, isPending: isLoading } = useBannerQuery();
 
   if (!isLoading && banners.length === 0) return null;
@@ -89,33 +93,45 @@ export function BannerSection() {
     );
   }
 
-  // Split banners into rows: 1 full-width + 3 columns + 2 columns
-  const hero = banners[0];
-  const row3 = banners.slice(1, 4);
-  const row2 = banners.slice(4, 6);
+  const rowsMap = new Map<number, Banner[]>();
+  const filteredBanners =
+    rows && rows.length > 0
+      ? banners.filter((banner) => rows.includes(banner.desktop_row ?? 1))
+      : banners;
+
+  if (!isLoading && filteredBanners.length === 0) return null;
+
+  filteredBanners.forEach((banner) => {
+    const row = banner.desktop_row ?? 1;
+    const list = rowsMap.get(row) ?? [];
+    list.push(banner);
+    rowsMap.set(row, list);
+  });
+
+  const rowGroups = [...rowsMap.entries()].sort((a, b) => a[0] - b[0]);
+
+  const getColsClass = (cols: number) => {
+    const safe = Math.max(1, Math.min(3, cols));
+    if (safe === 1) return "md:grid-cols-1";
+    if (safe === 2) return "md:grid-cols-2";
+    return "md:grid-cols-3";
+  };
 
   return (
     <div className="space-y-4">
-      {/* Row 1: Full-width banner */}
-      {hero && <BannerCard banner={hero} tall />}
+      {rowGroups.map(([rowNo, rowBanners]) => {
+        const desktopColumns = rowBanners[0]?.desktop_columns ?? 3;
+        const colsClass = getColsClass(desktopColumns);
+        const isTall = desktopColumns === 1;
 
-      {/* Row 2: 3-column grid */}
-      {row3.length > 0 && (
-        <div className="grid gap-4 md:grid-cols-3">
-          {row3.map((b) => (
-            <BannerCard key={b.id} banner={b} />
-          ))}
-        </div>
-      )}
-
-      {/* Row 3: 2-column grid */}
-      {row2.length > 0 && (
-        <div className="grid gap-4 md:grid-cols-2">
-          {row2.map((b) => (
-            <BannerCard key={b.id} banner={b} />
-          ))}
-        </div>
-      )}
+        return (
+          <div key={rowNo} className={`grid gap-4 ${colsClass}`}>
+            {rowBanners.map((b) => (
+              <BannerCard key={b.id} banner={b} tall={isTall} />
+            ))}
+          </div>
+        );
+      })}
     </div>
   );
 }

@@ -24,17 +24,11 @@ class AdminChatController extends Controller
         $auth_id = $auth_user->id;
         $auth_type = 'admin';
 
-        // Make sure admin has an existing chat
-        $chat = Chat::where('user_id', $auth_id)
-            ->where('user_type', $auth_type)
-            ->first();
-
-        if (!$chat) {
-            return response()->json([
-                'success' => false,
-                'message' => __('chat::messages.not_found', ['name' => 'Chat']),
-            ]);
-        }
+        // Ensure admin chat exists for first-message flow.
+        Chat::firstOrCreate([
+            'user_id' => $auth_id,
+            'user_type' => $auth_type,
+        ]);
 
         $name = $request->input('search');
         $type = $request->input('type');
@@ -42,22 +36,12 @@ class AdminChatController extends Controller
         // Main query
         $query = Chat::query()
             ->with('user')
-            ->where('user_type', '!=', 'admin')
-            ->where('user_type', '!=', 'customer')
-            ->withLiveChatEnabledStoreSubscription();
+            ->whereIn('user_type', ['store', 'deliveryman']);
 
         // Apply search filter
         if ($name) {
             // Get matching chat IDs separately to avoid complex polymorphic issues
             $matchingChatIds = collect();
-
-            // Customer matches
-            $customerChats = Chat::where('user_type', 'customer')
-                ->whereHasMorph('user', ['customer'], function ($q) use ($name) {
-                    $q->where('first_name', 'like', "%{$name}%")
-                        ->orWhere('last_name', 'like', "%{$name}%");
-                })->pluck('id');
-            $matchingChatIds = $matchingChatIds->merge($customerChats);
 
             // Deliveryman matches - direct database query
             $deliverymanChats = Chat::where('user_type', 'deliveryman')
@@ -130,15 +114,6 @@ class AdminChatController extends Controller
 
         $receiver_id = $request->receiver_id;
         $receiver_type = $request->receiver_type;
-
-        if ($receiver_type == 'store') {
-            $isLiveChatEnabled = checkSubscription($receiver_id, 'live_chat');
-            if (!$isLiveChatEnabled) {
-                return response()->json([
-                    'message' => __('chat::messages.feature_not_available', ['name' => 'Chat']),
-                ], 422);
-            }
-        }
 
         // get message
         $message_query = ChatMessage::query()

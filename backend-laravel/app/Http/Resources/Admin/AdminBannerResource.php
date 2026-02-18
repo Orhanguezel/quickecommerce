@@ -32,6 +32,9 @@ class AdminBannerResource extends JsonResource
                 ? $translation->where('key', 'button_text')->first()?->value
                 : $this->button_text,
             "type" => $this->type,
+            "order" => $this->display_order,
+            "desktop_row" => $this->desktop_row,
+            "desktop_columns" => $this->desktop_columns,
             "status" => $this->status,
         ];
     }

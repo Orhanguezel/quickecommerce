@@ -4,8 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quick_ecommerce/controller/bloc/chat_details_bloc/chat_details_event.dart';
 import 'package:quick_ecommerce/controller/bloc/chat_details_bloc/chat_details_state.dart';
 import 'package:quick_ecommerce/data/data_model/chat_details_model.dart';
-import 'package:quick_ecommerce/data/sirvice/common_repository.dart';
-import 'package:quick_ecommerce/data/sirvice/connectivity_rypository.dart';
+import 'package:quick_ecommerce/data/service/common_repository.dart';
+import 'package:quick_ecommerce/data/service/connectivity_repository.dart';
 
 
 

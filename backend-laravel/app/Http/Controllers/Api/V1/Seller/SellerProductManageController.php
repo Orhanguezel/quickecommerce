@@ -33,7 +33,25 @@ class SellerProductManageController extends Controller
 
     public function listProducts(Request $request)
     {
+        $authUser = auth('api')->user();
         $storeId = $request->store_id;
+        if (empty($storeId)) {
+            $storeId = Store::where('store_seller_id', $authUser?->id)->value('id');
+        }
+        if (empty($storeId)) {
+            return response()->json([
+                'message' => 'No store found for this seller.'
+            ], 422);
+        }
+        $ownsStore = Store::where('id', $storeId)
+            ->where('store_seller_id', $authUser?->id)
+            ->exists();
+        if (!$ownsStore) {
+            return response()->json([
+                'message' => 'Store does not belong to the authenticated seller.'
+            ], 422);
+        }
+
         $status = $request->status ?? '';
         $limit = $request->per_page ?? 10;
         $page = $request->page ?? 1;

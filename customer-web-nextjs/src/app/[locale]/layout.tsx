@@ -14,6 +14,8 @@ import { FloatingCart } from '@/components/layout/floating-cart';
 import { CartDrawer } from '@/components/layout/cart-drawer';
 import { LocationSelector } from '@/components/layout/location-selector';
 import { ScrollToTop } from '@/components/layout/scroll-to-top';
+import { ThemePopup } from '@/components/layout/theme-popup';
+import { ThemeSideBanner } from '@/components/layout/theme-side-banner';
 import { Geist } from 'next/font/google';
 import '../globals.css';
 
@@ -229,6 +231,8 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
                 <CartDrawer />
                 <LocationSelector />
                 <ChatWidget />
+                <ThemePopup />
+                <ThemeSideBanner />
                 <ScrollToTop />
               </ThemeProvider>
             </NextThemesProvider>

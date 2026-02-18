@@ -262,7 +262,11 @@ export const useGetPermissionsQuery = (
   const [isAuthorized] = useAtom(authorizationAtom);
   const { findAll } = useGetPermissionsService(); // Use the hook
   const { data, isPending, error, isFetchedAfterMount, refetch, isFetching } = useQuery<any>({
-    queryKey: [API_ENDPOINTS.GET_PERMISSIONS],
+    queryKey: [
+      API_ENDPOINTS.GET_PERMISSIONS,
+      options?.store_slug ?? "",
+      options?.language ?? "",
+    ],
     queryFn: () => findAll(options),
     retry: false,
     refetchOnWindowFocus: false,

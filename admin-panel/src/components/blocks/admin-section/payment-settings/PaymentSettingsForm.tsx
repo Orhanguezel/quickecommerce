@@ -40,7 +40,6 @@ const PaymentSettingsForm = ({ data }: any) => {
     { id: "Stripe", label: "Stripe" },
     { id: "Paypal", label: "PayPal" },
     { id: "PayTm", label: "PayTm" },
-    { id: "Razorpay", label: "Razorpay" },
     { id: "cash_on_delivery", label: "Cash On Delivery" },
   ];
   const dispatch = useAppDispatch();

@@ -39,7 +39,9 @@ const baseSchema = {
       message: "The redirect URL must be a valid URL.",
     }),
 
-  order: z.number().optional(),
+  order: z.coerce.number().int().min(0).optional(),
+  desktop_row: z.coerce.number().int().min(1).optional(),
+  desktop_columns: z.coerce.number().int().min(1).max(3).optional(),
   store_id: z.string().optional(),
   type: z.string().optional(),
   location: z.string().optional(),

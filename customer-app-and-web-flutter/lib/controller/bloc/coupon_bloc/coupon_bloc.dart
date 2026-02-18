@@ -4,8 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../config/strings.dart';
 import '../../../data/data_model/coupon_model.dart';
-import '../../../data/sirvice/common_repository.dart';
-import '../../../data/sirvice/connectivity_rypository.dart';
+import '../../../data/service/common_repository.dart';
+import '../../../data/service/connectivity_repository.dart';
 import 'coupon_event.dart';
 import 'coupon_state.dart';
 

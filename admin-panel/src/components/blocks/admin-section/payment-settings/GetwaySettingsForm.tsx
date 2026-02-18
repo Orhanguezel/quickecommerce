@@ -641,63 +641,6 @@ const GetwaySettingsForm = ({
                       />
                     </div>
                   </>
-                ) : getwayname && getwayname == "Razorpay" ? (
-                  <>
-                    <div className="mb-4">
-                      <div className="text-sm font-medium mb-1 flex items-center gap-2">
-                        <span>Api key</span>
-                        <div>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Info className="w-4 text-custom-dark-blue cursor-pointer" />
-                              </TooltipTrigger>
-                              <TooltipContent className="bg-custom-dark-blue">
-                                <p className="p-1 text-sm font-medium">
-                                  Please Provide Api key
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                      </div>
-                      <Input
-                        id="razorpay_api_key"
-                        {...register(
-                          "razorpay_api_key" as keyof GetwaySettingsFormData
-                        )}
-                        className="app-input"
-                        placeholder="Enter value"
-                      />
-                    </div>
-                    <div className="mb-4">
-                      <div className="text-sm font-medium mb-1 flex items-center gap-2">
-                        <span>Api secret</span>
-                        <div>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Info className="w-4 text-custom-dark-blue cursor-pointer" />
-                              </TooltipTrigger>
-                              <TooltipContent className="bg-custom-dark-blue">
-                                <p className="p-1 text-sm font-medium">
-                                  Please Provide Api secret
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                      </div>
-                      <Input
-                        id="razorpay_api_secret"
-                        {...register(
-                          "razorpay_api_secret" as keyof GetwaySettingsFormData
-                        )}
-                        className="app-input"
-                        placeholder="Enter value"
-                      />
-                    </div>
-                  </>
                 ) : getwayname && getwayname == "Paystack" ? (
                   <>
                     <div className="mb-4">

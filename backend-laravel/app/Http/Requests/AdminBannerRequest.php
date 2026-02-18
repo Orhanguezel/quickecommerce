@@ -35,6 +35,9 @@ class AdminBannerRequest extends FormRequest
             'redirect_url' => 'nullable|string|max:255',
             'location' => 'nullable|string|max:50',
             'type' => 'nullable|string|max:50',
+            'order' => 'nullable|integer|min:0',
+            'desktop_row' => 'nullable|integer|min:1',
+            'desktop_columns' => 'nullable|integer|in:1,2,3',
 
             // New fields
             'title_color' => 'nullable|string|max:7',
@@ -74,6 +77,12 @@ class AdminBannerRequest extends FormRequest
 
             'type.string' => __('validation.string', ['attribute' => 'Type']),
             'type.max' => __('validation.max', ['attribute' => 'Type']),
+            'order.integer' => __('validation.integer', ['attribute' => 'Order']),
+            'order.min' => __('validation.min.numeric', ['attribute' => 'Order', 'min' => 0]),
+            'desktop_row.integer' => __('validation.integer', ['attribute' => 'Desktop Row']),
+            'desktop_row.min' => __('validation.min.numeric', ['attribute' => 'Desktop Row', 'min' => 1]),
+            'desktop_columns.integer' => __('validation.integer', ['attribute' => 'Desktop Columns']),
+            'desktop_columns.in' => __('validation.in', ['attribute' => 'Desktop Columns']),
 
             // New fields validation messages
             'title_color.string' => __('validation.string', ['attribute' => 'Title Color']),

@@ -5,8 +5,8 @@ import 'package:quick_ecommerce/controller/bloc/contact_bloc/contact_event.dart'
 import 'package:quick_ecommerce/controller/bloc/contact_bloc/contact_state.dart';
 
 import '../../../data/data_model/contact_model.dart';
-import '../../../data/sirvice/common_repository.dart';
-import '../../../data/sirvice/connectivity_rypository.dart';
+import '../../../data/service/common_repository.dart';
+import '../../../data/service/connectivity_repository.dart';
 
 
 class ContactBloc extends Bloc<ContactEvent, ContactState> {

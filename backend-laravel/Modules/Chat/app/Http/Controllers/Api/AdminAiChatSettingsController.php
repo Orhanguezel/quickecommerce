@@ -7,6 +7,7 @@ use App\Models\SettingOption;
 use App\Models\Translation;
 use Illuminate\Http\Request;
 use Modules\Chat\app\Models\AiChatConversation;
+use Modules\Chat\app\Models\AiChatMessage;
 
 class AdminAiChatSettingsController extends Controller
 {
@@ -85,6 +86,29 @@ class AdminAiChatSettingsController extends Controller
             $settings[$field] = com_option_get($field);
         }
 
+        // Include saved translations for system prompt so admin can edit existing texts.
+        $translations = [];
+        $settingOption = SettingOption::where('option_name', 'com_ai_chat_system_prompt')->first();
+        if ($settingOption) {
+            $rows = Translation::where('translatable_type', SettingOption::class)
+                ->where('translatable_id', $settingOption->id)
+                ->where('key', 'com_ai_chat_system_prompt')
+                ->get(['language', 'value']);
+
+            foreach ($rows as $row) {
+                $translations[$row->language] = $row->value;
+            }
+        }
+        $settings['translations'] = $translations;
+        if (empty($settings['com_ai_chat_system_prompt'])) {
+            $fallback = collect($translations)->first(function ($v) {
+                return is_string($v) && trim($v) !== '';
+            });
+            if (!empty($fallback)) {
+                $settings['com_ai_chat_system_prompt'] = $fallback;
+            }
+        }
+
         return response()->json([
             'success' => true,
             'data' => $settings,
@@ -106,6 +130,27 @@ class AdminAiChatSettingsController extends Controller
         return response()->json([
             'success' => true,
             'data' => $conversations,
+        ]);
+    }
+
+    /**
+     * GET conversation messages (admin monitoring).
+     */
+    public function conversationMessages(Request $request, int $conversationId)
+    {
+        $perPage = (int) $request->input('per_page', 30);
+
+        $conversation = AiChatConversation::with(['customer:id,first_name,last_name,email'])
+            ->findOrFail($conversationId);
+
+        $messages = AiChatMessage::where('conversation_id', $conversationId)
+            ->orderBy('created_at', 'asc')
+            ->paginate($perPage);
+
+        return response()->json([
+            'success' => true,
+            'conversation' => $conversation,
+            'data' => $messages,
         ]);
     }
 }

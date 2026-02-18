@@ -14,7 +14,7 @@ class AdminAiChatKnowledgeController extends Controller
      */
     public function list(Request $request)
     {
-        $query = AiChatKnowledge::query();
+        $query = AiChatKnowledge::query()->with('translations');
 
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {

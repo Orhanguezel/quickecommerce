@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quick_ecommerce/config/strings.dart';
 
 import '../../../data/data_model/flush_deal_model.dart';
-import '../../../data/sirvice/connectivity_rypository.dart';
-import '../../../data/sirvice/product_repository.dart';
+import '../../../data/service/connectivity_repository.dart';
+import '../../../data/service/product_repository.dart';
 import 'flash_deal_event.dart';
 import 'flash_deal_state.dart';
 

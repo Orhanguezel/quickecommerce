@@ -5,6 +5,7 @@ import { Link, useRouter } from "@/i18n/routing";
 import Image from "next/image";
 import { ChevronRight, FileText, Search, SlidersHorizontal } from "lucide-react";
 import type { BlogPost } from "@/modules/blog/blog.type";
+import { useThemeConfig } from "@/modules/theme/use-theme-config";
 
 interface BlogListTranslations {
   blog: string;
@@ -40,7 +41,14 @@ export function BlogListClient({
   translations: t,
 }: BlogListClientProps) {
   const router = useRouter();
+  const { blogConfig } = useThemeConfig();
   const [searchValue, setSearchValue] = useState(currentSearch || "");
+  const spanClassMap: Record<4 | 6 | 12, string> = {
+    4: "md:col-span-4",
+    6: "md:col-span-6",
+    12: "md:col-span-12",
+  };
+  const postSpan = blogConfig.postsGridSpan || 4;
 
   function buildUrl(overrides: Record<string, string | undefined>) {
     const params = new URLSearchParams();
@@ -79,43 +87,47 @@ export function BlogListClient({
       </nav>
 
       {/* Header Bar — icon + title | search + sort */}
-      <div className="mb-6 flex flex-col gap-4 rounded-lg border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2.5">
-          <SlidersHorizontal className="h-5 w-5 text-muted-foreground" />
-          <h1 className="text-xl font-bold tracking-tight">{t.blog}</h1>
+      {blogConfig.isListToolbarEnabled ? (
+        <div className="mb-6 flex flex-col gap-4 rounded-lg border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2.5">
+            <SlidersHorizontal className="h-5 w-5 text-muted-foreground" />
+            <h1 className="text-xl font-bold tracking-tight">{t.blog}</h1>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Search */}
+            <form onSubmit={handleSearch} className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                placeholder={t.search_placeholder}
+                className="h-9 w-48 rounded-md border bg-background pl-9 pr-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary"
+              />
+            </form>
+
+            {/* Sort */}
+            <select
+              value={currentSort || "desc"}
+              onChange={handleSortChange}
+              className="h-9 rounded-md border bg-background px-3 text-sm outline-none transition-colors focus:border-primary"
+            >
+              <option value="desc">{t.sort_newest}</option>
+              <option value="asc">{t.sort_oldest}</option>
+              <option value="popular">{t.sort_popular}</option>
+            </select>
+          </div>
         </div>
+      ) : null}
 
-        <div className="flex items-center gap-3">
-          {/* Search */}
-          <form onSubmit={handleSearch} className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              placeholder={t.search_placeholder}
-              className="h-9 w-48 rounded-md border bg-background pl-9 pr-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary"
-            />
-          </form>
-
-          {/* Sort */}
-          <select
-            value={currentSort || "desc"}
-            onChange={handleSortChange}
-            className="h-9 rounded-md border bg-background px-3 text-sm outline-none transition-colors focus:border-primary"
-          >
-            <option value="desc">{t.sort_newest}</option>
-            <option value="asc">{t.sort_oldest}</option>
-            <option value="popular">{t.sort_popular}</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Posts Grid — 4 columns */}
-      {posts.length > 0 ? (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Posts Grid */}
+      {!blogConfig.isPostsGridEnabled ? null : posts.length > 0 ? (
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
           {posts.map((post) => (
-            <BlogCard key={post.id} post={post} />
+            <div key={post.id} className={spanClassMap[postSpan]}>
+              <BlogCard post={post} />
+            </div>
           ))}
         </div>
       ) : (
@@ -126,7 +138,7 @@ export function BlogListClient({
       )}
 
       {/* Pagination */}
-      {totalPages > 1 && (
+      {blogConfig.isPostsGridEnabled && totalPages > 1 && (
         <nav className="mt-8 flex items-center justify-center gap-2">
           {currentPage > 1 && (
             <Link

@@ -32,24 +32,10 @@ class StoreChatController extends Controller
         $auth_id = $request->store_id;
         $auth_type = 'store';
 
-        $isLiveChatEnabled = checkSubscription($auth_id, 'live_chat');
-        if (!$isLiveChatEnabled) {
-            return response()->json([
-                'message' => __('chat::messages.feature_not_available', ['name' => 'Chat']),
-            ], 422);
-        }
-
-        $chat = Chat::where('user_id', $auth_id)
-            ->where('user_type', $auth_type)
-            ->first();
-
-        if (!$chat) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Chats not found',
-                'data' => []
-            ]);
-        }
+        $chat = Chat::firstOrCreate([
+            'user_id' => $auth_id,
+            'user_type' => $auth_type,
+        ]);
 
         // store send message wise get ids
         $sender_chat_ids = ChatMessage::where('sender_id', $auth_id)
@@ -70,6 +56,10 @@ class StoreChatController extends Controller
         if ($currentChat) {
             $all_chat_ids = $all_chat_ids->filter(fn($id) => $id != $currentChat->id)->values();
         }
+
+        // Always include admin chats so store can start conversation without prior message.
+        $admin_chat_ids = Chat::where('user_type', 'admin')->pluck('id');
+        $all_chat_ids = $all_chat_ids->merge($admin_chat_ids)->unique()->values();
 
         // store order customer chat ids
         $store_id = intval($request->store_id);

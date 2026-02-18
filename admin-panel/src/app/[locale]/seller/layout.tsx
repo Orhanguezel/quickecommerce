@@ -12,10 +12,14 @@ import { SellerRoutes } from "@/config/sellerRoutes";
 import { setAuthCredentials } from "@/lib/auth-utils";
 import { authorizationAtom } from "@/lib/authorization-atom";
 import { useToken } from "@/lib/use-token";
+import { useStoreListQuery } from "@/modules/seller-section/product/product.action";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { setSelectedStore } from "@/redux/slices/storeSlice";
 import { store } from "@/redux/store";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { useAtom } from "jotai";
 import dynamic from "next/dynamic";
+import GoogleMapsLoader from "@/components/molecules/GoogleMapsLoader";
 
 interface SiteInfo {
   com_site_title: string;
@@ -73,6 +77,8 @@ export default function SellerLayout({
   const locale = useLocale();
   const pathname = usePathname();
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const selectedStore = useAppSelector((state) => state.store.selectedStore);
   const dir = locale === "ar" ? "rtl" : "ltr";
   const MeData = useMemo(() => me?.data || {}, [me?.data]);
   const [isLoading, setIsLoading] = useState(false);
@@ -84,6 +90,10 @@ export default function SellerLayout({
   const searchParams = useSearchParams();
   const { setToken } = useToken();
   const [_, setAuthorized] = useAtom(authorizationAtom);
+  const shouldFetchStores =
+    isAuthorized && !isPending && me?.data?.activity_scope === "store_level";
+  const { stores } = useStoreListQuery({}, { skip: !shouldFetchStores });
+  const storeList = useMemo(() => (stores as any)?.stores ?? [], [stores]);
 
   useEffect(() => {
     const token = searchParams.get("token");
@@ -156,6 +166,24 @@ export default function SellerLayout({
   }, [isPending, isAuthorized, router]);
 
   useEffect(() => {
+    if (!shouldFetchStores) return;
+    if (selectedStore?.id) return;
+    if (!Array.isArray(storeList) || storeList.length === 0) return;
+
+    const first = storeList[0];
+    if (!first?.value) return;
+
+    const nextStore = {
+      id: first.value,
+      type: first.type ?? "",
+      slug: first.slug ?? "",
+    };
+    dispatch(setSelectedStore(nextStore));
+    localStorage.setItem("selectedStore", JSON.stringify(nextStore));
+    localStorage.setItem("store_id", String(first.value));
+  }, [shouldFetchStores, selectedStore?.id, storeList, dispatch]);
+
+  useEffect(() => {
     setIsLoading(false);
   }, [pathname]);
 
@@ -210,13 +238,15 @@ export default function SellerLayout({
   }
 
   return (
-    <div dir={dir}>
-      <LoaderOverlay isLoading={isLoading} />
-      <Sidebar setIsLoading={setIsLoading} />
-      <Navbar setIsLoading={setIsLoading} MeData={MeData} />
-      <div className="flex-1 flex flex-col justify-between w-full mx-auto">
-        {children}
+    <GoogleMapsLoader>
+      <div dir={dir}>
+        <LoaderOverlay isLoading={isLoading} />
+        <Sidebar setIsLoading={setIsLoading} />
+        <Navbar setIsLoading={setIsLoading} MeData={MeData} />
+        <div className="flex-1 flex flex-col justify-between w-full mx-auto">
+          {children}
+        </div>
       </div>
-    </div>
+    </GoogleMapsLoader>
   );
 }

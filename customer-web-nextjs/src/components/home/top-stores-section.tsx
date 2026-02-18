@@ -4,7 +4,7 @@ import { Link } from "@/i18n/routing";
 import { ROUTES } from "@/config/routes";
 import { Store } from "lucide-react";
 import Image from "next/image";
-import { useTopStoresQuery } from "@/modules/store/store.action";
+import { useStoreListQuery, useTopStoresQuery } from "@/modules/store/store.action";
 import type { Store as StoreType } from "@/modules/store/store.type";
 import { SectionHeader } from "./section-header";
 import { useTranslations } from "next-intl";
@@ -25,8 +25,16 @@ const CARD_COLORS = [
 
 export function TopStoresSection({ title }: TopStoresSectionProps) {
   const t = useTranslations("store");
-  const { data, isPending: isLoading } = useTopStoresQuery(6);
-  const stores: StoreType[] = (data as { data?: StoreType[] })?.data ?? [];
+  const { data, isPending: isFeaturedLoading } = useTopStoresQuery(6);
+  const { data: fallbackData, isPending: isFallbackLoading } = useStoreListQuery({
+    limit: 6,
+    per_page: 6,
+  });
+  const featuredStores: StoreType[] = (data as { data?: StoreType[] })?.data ?? [];
+  const fallbackStores: StoreType[] = (fallbackData as { data?: StoreType[] })?.data ?? [];
+  const stores = featuredStores.length > 0 ? featuredStores : fallbackStores;
+  const isLoading =
+    isFeaturedLoading || (featuredStores.length === 0 && isFallbackLoading);
 
   if (!isLoading && stores.length === 0) return null;
 

@@ -1,5 +1,8 @@
 export interface Banner {
   id: number;
+  order?: number;
+  desktop_row?: number;
+  desktop_columns?: number;
   type: string;
   title: string;
   title_color?: string;

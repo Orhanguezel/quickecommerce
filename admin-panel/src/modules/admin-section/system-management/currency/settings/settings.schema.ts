@@ -45,9 +45,6 @@ const subSchema = {
   paytm_channel: z.string().optional(),
   paytm_industry_type: z.string().optional(),
 
-  razorpay_api_key: z.string().optional(),
-  razorpay_api_secret: z.string().optional(),
-
   paystack_public_key: z.string().optional(),
   paystack_secret_key: z.string().optional(),
   paystack_merchant_email: z.string().optional(),

@@ -140,7 +140,9 @@
       "login_page": "Giriş Sayfası",
       "register_page": "Kayıt Sayfası",
       "blog_page": "Blog Sayfası",
-      "product_details_page": "Ürün Detay Sayfası"
+      "product_details_page": "Ürün Detay Sayfası",
+      "popup_settings": "Popup Ayarları",
+      "side_banner_settings": "Yan Sabit Banner"
     },
     "style": {
       "primary_color": "Ana Renk",

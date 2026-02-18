@@ -44,14 +44,43 @@ export interface ThemeSectionConfig {
 
 export interface ThemeSliderSection {
   enabled_disabled: "on" | "off";
+  slider_number?: string;
 }
 
 export interface ThemeBannerSection {
   enabled_disabled: "on" | "off";
 }
 
+export type ThemeHomeBlockType =
+  | "slider"
+  | "flash_sale"
+  | "category"
+  | "product_featured"
+  | "banner_section"
+  | "product_top_selling"
+  | "product_latest"
+  | "popular_product_section"
+  | "blog_section"
+  | "top_stores_section"
+  | "newsletters_section";
+
+export interface ThemeHomeLayoutBlock {
+  id?: string;
+  type: ThemeHomeBlockType;
+  instance?: number;
+  enabled_disabled?: "on" | "off";
+  config?: {
+    banner_span?: 4 | 6 | 12;
+    flash_sale_span?: 4 | 6 | 12;
+    blog_span?: 4 | 6 | 12;
+    top_stores_span?: 4 | 6 | 12;
+  };
+}
+
 // Ana Sayfa
 export interface ThemeHomePage {
+  layout_blocks?: ThemeHomeLayoutBlock[];
+  section_order?: string[];
   slider: [ThemeSliderSection];
   category: [ThemeSectionConfig];
   flash_sale: [ThemeSectionConfig];
@@ -60,6 +89,7 @@ export interface ThemeHomePage {
   product_top_selling: [ThemeSectionConfig];
   product_latest: [ThemeSectionConfig];
   popular_product_section: [ThemeSectionConfig];
+  blog_section: [ThemeSectionConfig];
   top_stores_section: [ThemeSectionConfig];
   newsletters_section: [ThemeSectionConfig];
 }
@@ -114,6 +144,60 @@ export interface ThemeProductDetailsPage {
 export interface ThemeBlogPage {
   popular_title: string;
   related_title: string;
+  popular_posts_section?: Array<{
+    enabled_disabled: "on" | "off";
+    column_span?: 4 | 6 | 12;
+  }>;
+  related_posts_section?: Array<{
+    enabled_disabled: "on" | "off";
+    column_span?: 4 | 6 | 12;
+  }>;
+  list_toolbar_section?: Array<{
+    enabled_disabled: "on" | "off";
+  }>;
+  posts_grid_section?: Array<{
+    enabled_disabled: "on" | "off";
+    column_span?: 4 | 6 | 12;
+  }>;
+}
+
+export interface ThemePopupSettingsPage {
+  id?: string;
+  enabled_disabled: "on" | "off";
+  title: string;
+  subtitle?: string;
+  button_text?: string;
+  button_url?: string;
+  image_id?: number | string | null;
+  image_id_url?: string;
+  img_url?: string;
+  image_url?: string;
+  coupon_code?: string;
+  sort_order?: number;
+  delay_seconds?: number;
+  frequency_days?: number;
+  page_target?: "all" | "home";
+  display_type?: "modal_center" | "top_bar" | "bottom_bar";
+  text_behavior?: "static" | "marquee";
+  popup_bg_color?: string;
+  popup_text_color?: string;
+  popup_button_bg_color?: string;
+  popup_button_text_color?: string;
+}
+
+export interface ThemeSideBannerSettingsPage {
+  id?: string;
+  enabled_disabled: "on" | "off";
+  title?: string;
+  link_url?: string;
+  open_in_new_tab?: "on" | "off";
+  page_target?: "all" | "home" | "product";
+  width_px?: number;
+  top_offset_px?: number;
+  banner_order?: number;
+  dismissible?: "on" | "off";
+  dismiss_policy?: "always" | "session" | "days";
+  dismiss_days?: number;
 }
 
 // Ana Theme Pages Interface
@@ -123,6 +207,8 @@ export interface ThemePages {
   theme_register_page: [ThemeRegisterPage];
   theme_product_details_page: [ThemeProductDetailsPage];
   theme_blog_page: [ThemeBlogPage];
+  theme_popup_settings?: ThemePopupSettingsPage[];
+  theme_side_banner_settings?: ThemeSideBannerSettingsPage[];
 }
 
 export interface ThemeData {
@@ -138,5 +224,5 @@ export interface ThemeData {
 
 export interface ThemeResponse {
   theme_data: ThemeData;
-  translations?: any;
+  translations?: Record<string, { theme_data: ThemeData }>;
 }

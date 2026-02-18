@@ -60,6 +60,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { HexColorPicker } from 'react-colorful';
 import { Controller, useForm } from 'react-hook-form';
+import type { z } from 'zod';
 
 // JSON scaffold stack (standard)
 import {
@@ -88,6 +89,7 @@ const Themelist = [
 
 // ✅ JSON'a dahil edeceğimiz i18n alanlar
 const I18N_FIELDS = ['title', 'sub_title', 'button_text', 'description'] as const;
+type BannerFormInput = z.input<typeof bannerSchema>;
 
 function safeStr(x: any) {
   return String(x ?? '').trim();
@@ -133,7 +135,7 @@ export default function CreateOrUpdateBannerForm({ data }: any) {
     reset,
     control,
     getValues,
-  } = useForm<BannerFormData>({
+  } = useForm<BannerFormInput, any, BannerFormData>({
     resolver: zodResolver(bannerSchema),
     defaultValues: {
       // DF contract
@@ -145,6 +147,9 @@ export default function CreateOrUpdateBannerForm({ data }: any) {
       // non-i18n
       redirect_url: '',
       type: '',
+      order: 0,
+      desktop_row: 1,
+      desktop_columns: 3,
       theme_name: editRow?.theme_name ?? 'default',
 
       // colors (same defaults as your old form)
@@ -170,6 +175,9 @@ export default function CreateOrUpdateBannerForm({ data }: any) {
     setValueAny,
     extraWatchNames: [
       'type',
+      'order',
+      'desktop_row',
+      'desktop_columns',
       'theme_name',
       'redirect_url',
       'title_color',
@@ -350,6 +358,21 @@ export default function CreateOrUpdateBannerForm({ data }: any) {
       shouldTouch: false,
       shouldValidate: false,
     });
+    setValueAny('desktop_row', Number(editRow?.desktop_row ?? 1), {
+      shouldDirty: false,
+      shouldTouch: false,
+      shouldValidate: false,
+    });
+    setValueAny('desktop_columns', Number(editRow?.desktop_columns ?? 3), {
+      shouldDirty: false,
+      shouldTouch: false,
+      shouldValidate: false,
+    });
+    setValueAny('order', Number(editRow?.order ?? 0), {
+      shouldDirty: false,
+      shouldTouch: false,
+      shouldValidate: false,
+    });
     setValueAny('theme_name', editRow?.theme_name ?? 'default', {
       shouldDirty: false,
       shouldTouch: false,
@@ -485,6 +508,9 @@ export default function CreateOrUpdateBannerForm({ data }: any) {
 
       redirect_url: safeUrl(v?.redirect_url),
       type: v?.type ?? '',
+      order: Number(v?.order ?? 0),
+      desktop_row: Number(v?.desktop_row ?? 1),
+      desktop_columns: Number(v?.desktop_columns ?? 3),
       theme_name: v?.theme_name ?? 'default',
 
       title_color: v?.title_color,
@@ -696,6 +722,58 @@ export default function CreateOrUpdateBannerForm({ data }: any) {
                                 />
                               )}
                             />
+                          </div>
+
+                          <div>
+                            <p className="text-sm font-medium mb-1">Display Order</p>
+                            <Input
+                              type="number"
+                              min={0}
+                              step={1}
+                              {...register('order' as any, { valueAsNumber: true })}
+                              className="app-input"
+                              placeholder="0"
+                            />
+                            {(errors as any)?.order?.message ? (
+                              <p className="text-red-500 text-sm mt-1">
+                                {String((errors as any)?.order?.message)}
+                              </p>
+                            ) : null}
+                          </div>
+
+                          <div>
+                            <p className="text-sm font-medium mb-1">Desktop Row</p>
+                            <Input
+                              type="number"
+                              min={1}
+                              step={1}
+                              {...register('desktop_row' as any, { valueAsNumber: true })}
+                              className="app-input"
+                              placeholder="1"
+                            />
+                            {(errors as any)?.desktop_row?.message ? (
+                              <p className="text-red-500 text-sm mt-1">
+                                {String((errors as any)?.desktop_row?.message)}
+                              </p>
+                            ) : null}
+                          </div>
+
+                          <div>
+                            <p className="text-sm font-medium mb-1">Desktop Columns (1-3)</p>
+                            <Input
+                              type="number"
+                              min={1}
+                              max={3}
+                              step={1}
+                              {...register('desktop_columns' as any, { valueAsNumber: true })}
+                              className="app-input"
+                              placeholder="3"
+                            />
+                            {(errors as any)?.desktop_columns?.message ? (
+                              <p className="text-red-500 text-sm mt-1">
+                                {String((errors as any)?.desktop_columns?.message)}
+                              </p>
+                            ) : null}
                           </div>
 
                           <div>

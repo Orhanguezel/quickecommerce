@@ -1,15 +1,24 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
-const stripe = new Stripe(
-  process.env.STRIPE_SECRET_KEY || "",
+function getStripeClient() {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  if (!secretKey) return null;
 
-  {
+  return new Stripe(secretKey, {
     //@ts-ignore
     apiVersion: "2022-11-15",
-  }
-);
+  });
+}
 export async function GET(req: Request) {
+  const stripe = getStripeClient();
+  if (!stripe) {
+    return NextResponse.json(
+      { error: "Stripe secret key is not configured" },
+      { status: 500 }
+    );
+  }
+
   const url = new URL(req.url);
   const sessionId = url.searchParams.get("session_id");
 

@@ -5,8 +5,8 @@ import 'package:quick_ecommerce/config/strings.dart';
 import 'package:quick_ecommerce/config/user_shared_preference.dart';
 
 import '../../../data/data_model/login_model.dart';
-import '../../../data/sirvice/auth_repository.dart';
-import '../../../data/sirvice/connectivity_rypository.dart';
+import '../../../data/service/auth_repository.dart';
+import '../../../data/service/connectivity_repository.dart';
 import 'reset_password_event.dart';
 import 'reset_password_state.dart';
 

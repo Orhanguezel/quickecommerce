@@ -31,10 +31,18 @@ export function Navbar({ MeData, setIsLoading }: any) {
   const dir = locale === "ar" ? "rtl" : "ltr";
   const localeRoute = useLocale();
   const pathnameWithoutLocale = pathname.replace(`/${localeRoute}`, "") || "/";
+  const isSellerPath = pathnameWithoutLocale.startsWith("/seller");
   const selectedStore = useAppSelector((state) => state.store.selectedStore);
   const storedSlug = selectedStore?.slug;
+  const { stores } = useStoreListQuery({}, { skip: !isSellerPath });
+  const storeList = useMemo(() => (stores as any)?.stores ?? [], [stores]);
+  const fallbackStoreSlug = useMemo(() => {
+    if (storedSlug) return storedSlug;
+    const first = Array.isArray(storeList) ? storeList[0] : null;
+    return first?.slug ?? "";
+  }, [storedSlug, storeList]);
   const { getPermissions } = useGetPermissionsQuery({
-    store_slug: storedSlug ?? "",
+    store_slug: fallbackStoreSlug,
   });
   const [unreadCount, setUnreadCount] = useState(0);
   const { token: firebaseToken, notifications } = useFirebaseNotifications(
@@ -94,11 +102,7 @@ export function Navbar({ MeData, setIsLoading }: any) {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const data: any = getPermissions || {};
-  const { stores } = useStoreListQuery(
-    {},
-    { skip: getPermissions?.activity_scope !== "store_level" }
-  );
-  const storeList = useMemo(() => (stores as any)?.stores ?? [], [stores]);
+
   const [isHovering, setIsHovering] = useState(false);
   const [isPopupHovered, setIsPopupHovered] = useState(false);
 

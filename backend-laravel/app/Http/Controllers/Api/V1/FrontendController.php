@@ -1904,15 +1904,22 @@ class FrontendController extends Controller
     function banners(Request $request)
     {
         $language = $request->language ?? 'en';
+        $activeTheme = config('themes.active_theme') ?? config('themes.default_theme', 'theme_one');
+        $themeName = $request->theme_name ?? $activeTheme;
 
         // Fetch banners with translation eager-loaded
         $banners = Banner::with(['related_translations' => function ($query) use ($language) {
             $query->where('language', $language)
                 ->whereIn('key', ['title', 'description', 'button_text']);
         }])
-            ->where('theme_name', $request->theme_name)
+            ->where('theme_name', $themeName)
             ->where('status', 1)
             ->where('location', 'home_page')
+            ->orderBy('desktop_row')
+            ->orderBy('desktop_columns')
+            ->orderBy('type')
+            ->orderBy('display_order')
+            ->orderBy('id')
             ->get();
 
         // Transform and group by type

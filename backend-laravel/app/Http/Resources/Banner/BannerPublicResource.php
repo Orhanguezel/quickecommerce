@@ -42,6 +42,9 @@ class BannerPublicResource extends JsonResource
             "redirect_url" => $this->redirect_url,
             "location" => $this->location,
             "type" => $this->type,
+            "order" => $this->display_order,
+            "desktop_row" => $this->desktop_row,
+            "desktop_columns" => $this->desktop_columns,
             "status" => $this->status,
         ];
     }

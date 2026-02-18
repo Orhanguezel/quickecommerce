@@ -75,7 +75,7 @@ class ChatController extends Controller
             }
         }
 
-        if ($receiver_type == 'store') {
+        if ($receiver_type == 'store' && $authUser->activity_scope !== 'system_level') {
             $isLiveChatEnabled = checkSubscription($receiver_id, 'live_chat');
             if (!$isLiveChatEnabled) {
                 return response()->json([

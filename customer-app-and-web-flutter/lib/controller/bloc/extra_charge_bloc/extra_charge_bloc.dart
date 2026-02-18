@@ -5,8 +5,8 @@ import 'package:quick_ecommerce/controller/bloc/extra_charge_bloc/extra_charge_e
 import 'package:quick_ecommerce/controller/bloc/extra_charge_bloc/extra_charge_state.dart';
 
 import '../../../data/data_model/extra_charge_model.dart';
-import '../../../data/sirvice/common_repository.dart';
-import '../../../data/sirvice/connectivity_rypository.dart';
+import '../../../data/service/common_repository.dart';
+import '../../../data/service/connectivity_repository.dart';
 
 
 class ExtraChargeBloc extends Bloc<ExtraChargeEvent, ExtraChargeState> {

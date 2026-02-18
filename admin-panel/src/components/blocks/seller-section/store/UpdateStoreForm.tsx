@@ -15,7 +15,7 @@ import {
   Textarea,
 } from '@/components/ui';
 import GlobalImageLoader from '@/lib/imageLoader';
-import { useGoogleMapForAllQuery } from '@/modules/admin-section/google-map-settings/google-map-settings.action';
+import { useGoogleMaps } from '@/contexts/GoogleMapsContext';
 import { useAreaDropdownQuery } from '@/modules/common/area/area.action';
 import { useStoreTypeQuery } from '@/modules/common/store-type/store-type.action';
 import { useSellerUpdateMutation } from '@/modules/seller-section/store/store.action';
@@ -56,15 +56,13 @@ export default function UpdateStoreForm({ data }: any) {
   const dir = locale === 'ar' ? 'rtl' : 'ltr';
   const editData = data;
 
-  const { GoogleMapData } = useGoogleMapForAllQuery({});
-  const [googleMapKey, setGoogleMapKey] = useState('');
-
-  useEffect(() => {
-    const mapSettings = (GoogleMapData as any)?.message;
-    if (mapSettings?.com_google_map_enable_disable === 'on') {
-      setGoogleMapKey(mapSettings.com_google_map_api_key);
-    }
-  }, [GoogleMapData]);
+  const {
+    isLoaded,
+    isEnabled: isMapEnabled,
+    apiKey: googleMapKey,
+    isPending: isMapSettingsPending,
+    loadError,
+  } = useGoogleMaps();
 
   const [polygonCoords, setPolygonCoords] = useState<any>(null);
 
@@ -116,8 +114,9 @@ export default function UpdateStoreForm({ data }: any) {
       setActiveTab(editData?.subscription_type ?? '');
       setSelectedCard(editData?.subscription_id ?? '');
 
-      Object?.keys(editData?.translations).forEach((language) => {
-        const translation = editData.translations[language];
+      const translations = safeObject(editData?.translations);
+      Object.keys(translations).forEach((language) => {
+        const translation = (translations as any)[language];
         setValue(`slug_${language}` as keyof StoreFormData, translation?.slug ?? '');
         setValue(`name_${language}` as keyof StoreFormData, translation?.name ?? '');
         setValue(`address_${language}` as keyof StoreFormData, translation?.address ?? '');
@@ -148,15 +147,18 @@ export default function UpdateStoreForm({ data }: any) {
       setLogoErrorMessage('');
       setImagesErrorMessage('');
       setPolygonCoords(editData?.area?.coordinates);
-      setMarkerPosition({
-        lat: Number(editData?.latitude),
-        lng: Number(editData?.longitude),
-      });
       const lat = Number(editData?.latitude);
       const lng = Number(editData?.longitude);
+      const hasFiniteCoords = Number.isFinite(lat) && Number.isFinite(lng);
+      const safeLat = hasFiniteCoords ? lat : defaultCenter.lat;
+      const safeLng = hasFiniteCoords ? lng : defaultCenter.lng;
+      setMarkerPosition({
+        lat: safeLat,
+        lng: safeLng,
+      });
       setCenter({
-        lat,
-        lng,
+        lat: safeLat,
+        lng: safeLng,
       });
       setZoom(12);
     }
@@ -188,21 +190,24 @@ export default function UpdateStoreForm({ data }: any) {
     if (inputType === 'area_id') {
       const selectedZone = AreaList.find((z: any) => String(z.value) === String(value));
       if (selectedZone && selectedZone.coordinates) {
+        const rawLat = Number(selectedZone.coordinates?.[0]?.lat);
+        const rawLng = Number(selectedZone.coordinates?.[0]?.lng);
+        if (!Number.isFinite(rawLat) || !Number.isFinite(rawLng)) {
+          setErrorMessage('Selected area coordinates are invalid.');
+          return;
+        }
         setPolygonCoords(selectedZone.coordinates);
         setMarkerPosition({
-          lat: selectedZone.coordinates[0].lat,
-          lng: selectedZone.coordinates[0].lng,
+          lat: rawLat,
+          lng: rawLng,
         });
-        const address = await fetchAddress(
-          selectedZone.coordinates[0].lat,
-          selectedZone.coordinates[0].lng,
-        );
-        setValue('latitude', selectedZone.coordinates[0].lat);
-        setValue('longitude', selectedZone.coordinates[0].lng);
+        const address = await fetchAddress(rawLat, rawLng);
+        setValue('latitude', String(rawLat));
+        setValue('longitude', String(rawLng));
         setValue('address', address);
         setZoom(12);
-        const lat = selectedZone.coordinates[0].lat;
-        const lng = selectedZone.coordinates[0].lng;
+        const lat = rawLat;
+        const lng = rawLng;
 
         setCenter({ lat, lng });
         setErrorMessage('');
@@ -809,10 +814,22 @@ export default function UpdateStoreForm({ data }: any) {
                       </div>
 
                       <div className="mt-4">
-                        {!googleMapKey ? (
+                        {isMapSettingsPending || (isMapEnabled && googleMapKey && !isLoaded) ? (
                           <Loader customClass="mt-10" size="large" />
+                        ) : !isMapEnabled ? (
+                          <p className="text-sm text-amber-600">
+                            Google Map is disabled in system settings.
+                          </p>
+                        ) : !googleMapKey ? (
+                          <p className="text-sm text-amber-600">
+                            Google Map API key is missing.
+                          </p>
+                        ) : loadError ? (
+                          <p className="text-sm text-red-500">
+                            Google Map failed to load. Check API key/domain restrictions.
+                          </p>
                         ) : (
-                          <GoogleMap mapContainerStyle={mapContainerStyle} center={center} zoom={8}>
+                          <GoogleMap mapContainerStyle={mapContainerStyle} center={center} zoom={zoom}>
                             {polygonCoords?.length > 0 && (
                               <Polygon
                                 path={polygonCoords}

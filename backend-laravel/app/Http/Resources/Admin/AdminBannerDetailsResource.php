@@ -4,7 +4,6 @@ namespace App\Http\Resources\Admin;
 
 use App\Actions\ImageModifier;
 use App\Http\Resources\Translation\BannerTranslationResource;
-use App\Http\Resources\Translation\VehicleTypeTranslationResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -38,6 +37,9 @@ class AdminBannerDetailsResource extends JsonResource
             "redirect_url" => $this->redirect_url,
             "location" => $this->location,
             "type" => $this->type,
+            "order" => $this->display_order,
+            "desktop_row" => $this->desktop_row,
+            "desktop_columns" => $this->desktop_columns,
             "status" => $this->status,
             "translations" => BannerTranslationResource::collection($this->related_translations->groupBy('language')),
         ];

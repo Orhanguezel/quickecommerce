@@ -296,6 +296,7 @@ const Chat: React.FC<any> = ({
     if (!newMessage.trim() && !selectedFile) {
       return toast.error("Please enter a message or attach a file.");
     }
+    const outgoingTimestamp = new Date().toISOString();
 
     const submissionData = {
       file: selectedFile,
@@ -347,11 +348,38 @@ const Chat: React.FC<any> = ({
           sender_type: "store",
           sender: String(store_id),
           channel: `activeChannel_${currentUser?.user_id}`,
+          timestamp: outgoingTimestamp,
           file_type:
             selectedFile && selectedFile.type.startsWith("image/")
               ? "image"
               : selectedFile?.type ?? "",
         }),
+      });
+
+      setMessages((prev) => {
+        const exists = prev.some(
+          (msg) =>
+            msg.text === (submissionData.message ?? "") &&
+            msg.timestamp === outgoingTimestamp
+        );
+        if (exists) return prev;
+        return [
+          ...prev,
+          {
+            id: `local-${Date.now()}`,
+            sender: String(submissionData.sender_id ?? ""),
+            text: submissionData.message ?? "",
+            sender_type: "store",
+            timestamp: outgoingTimestamp,
+            file_url: uploadedFileUrl ?? "",
+            file_type:
+              selectedFile && selectedFile.type.startsWith("image/")
+                ? "image"
+                : selectedFile
+                ? "file"
+                : undefined,
+          },
+        ];
       });
       setNewMessage("");
       setSelectedFile(null);

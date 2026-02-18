@@ -74,11 +74,11 @@ import '../controller/provider/notification_controller.dart';
 import '../controller/provider/payment_option_controller.dart';
 import '../controller/provider/reset_password_provider.dart';
 import '../controller/provider/thyme_provider.dart';
-import '../data/sirvice/auth_repository.dart';
-import '../data/sirvice/common_repository.dart';
-import '../data/sirvice/connectivity_rypository.dart';
-import '../data/sirvice/product_repository.dart';
-import '../data/sirvice/save_repository.dart';
+import '../data/service/auth_repository.dart';
+import '../data/service/common_repository.dart';
+import '../data/service/connectivity_repository.dart';
+import '../data/service/product_repository.dart';
+import '../data/service/save_repository.dart';
 import '../thyme/dark_theme.dart';
 import '../thyme/light_theme.dart';
 

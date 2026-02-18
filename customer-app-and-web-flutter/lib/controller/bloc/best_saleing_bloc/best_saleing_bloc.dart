@@ -5,8 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../config/strings.dart';
 import '../../../data/data_model/all_product_model.dart';
 import '../../../data/data_model/best_sale_model.dart';
-import '../../../data/sirvice/connectivity_rypository.dart';
-import '../../../data/sirvice/product_repository.dart';
+import '../../../data/service/connectivity_repository.dart';
+import '../../../data/service/product_repository.dart';
 import 'best_saleing_event.dart';
 import 'best_saleing_state.dart';
 

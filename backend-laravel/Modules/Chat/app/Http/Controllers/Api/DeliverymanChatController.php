@@ -22,16 +22,10 @@ class DeliverymanChatController extends Controller
         $auth_id = $auth_user->id;
         $auth_type = 'deliveryman';
 
-        $chat = Chat::where('user_id', $auth_id)
-            ->where('user_type', $auth_type)
-            ->first();
-
-        if (!$chat) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Chats not found',
-            ]);
-        }
+        $chat = Chat::firstOrCreate([
+            'user_id' => $auth_id,
+            'user_type' => $auth_type,
+        ]);
 
 
         $sender_chat_ids = ChatMessage::where('sender_id', $auth_id)
@@ -50,6 +44,19 @@ class DeliverymanChatController extends Controller
 
         if ($currentChat) {
             $all_chat_ids = $all_chat_ids->filter(fn ($id) => $id != $currentChat->id)->values();
+        }
+
+        // Always include admin chats so deliveryman can start conversation directly.
+        $admin_chat_ids = Chat::where('user_type', 'admin')->pluck('id');
+        $all_chat_ids = $all_chat_ids->merge($admin_chat_ids)->unique()->values();
+
+        // Include related store chats from assigned/confirmed orders to allow first-message flow.
+        $store_ids = Order::where('confirmed_by', $auth_user->id)->pluck('store_id')->filter()->unique()->values();
+        if ($store_ids->isNotEmpty()) {
+            $store_chat_ids = Chat::whereIn('user_id', $store_ids)
+                ->where('user_type', 'store')
+                ->pluck('id');
+            $all_chat_ids = $all_chat_ids->merge($store_chat_ids)->unique()->values();
         }
 
         // Get all order customer list

@@ -18,6 +18,17 @@ const notifySubscribers = (token: string) => {
   queue = [];
 };
 
+const sanitizeParams = (params: unknown) => {
+  if (!params || typeof params !== 'object' || Array.isArray(params)) return params;
+  return Object.fromEntries(
+    Object.entries(params as Record<string, unknown>).filter(([, value]) => {
+      if (value === undefined || value === null) return false;
+      if (typeof value === 'string' && value.trim() === '') return false;
+      return true;
+    }),
+  );
+};
+
 import { usePathname } from 'next/navigation'; // Add this
 
 export const useBaseService = <DataType, InputType = unknown>(route: string) => {
@@ -46,6 +57,7 @@ export const useBaseService = <DataType, InputType = unknown>(route: string) => 
         'X-localization': locale,
         'Content-Type': hasFile ? 'multipart/form-data' : 'application/json',
       } as unknown as AxiosRequestHeaders;
+      config.params = sanitizeParams(config.params);
 
       return config;
     });
@@ -147,7 +159,7 @@ export const useBaseService = <DataType, InputType = unknown>(route: string) => 
 
   const findAll = useCallback(
     (params?: unknown) => {
-      return axiosInstance.get<DataType[]>(route, { params });
+      return axiosInstance.get<DataType[]>(route, { params: sanitizeParams(params) });
     },
     [axiosInstance, route],
   );
@@ -165,7 +177,7 @@ export const useBaseService = <DataType, InputType = unknown>(route: string) => 
   );
 
   const findPageBySlug = (slug: string, params?: unknown) =>
-    axiosInstance.get<DataType>(`${route}/${slug}`, { params });
+    axiosInstance.get<DataType>(`${route}/${slug}`, { params: sanitizeParams(params) });
   const findByStore = useCallback(
     (id: string, store_id?: string) => {
       return axiosInstance.get<DataType>(`${route}/${id}`, {

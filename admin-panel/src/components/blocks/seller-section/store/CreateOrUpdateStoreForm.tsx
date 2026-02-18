@@ -251,51 +251,6 @@ export default function CreateOrUpdateStoreForm({ data }: any) {
       setLoading(false);
     }
   };
-  const handleRazorpayPayment = async () => {
-    setLoading(true);
-
-    try {
-      const res = await fetch('/api/razorpay', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: subscription?.name,
-          price: subscription?.price,
-          quantity: 1,
-        }),
-      });
-
-      const data = await res.json();
-
-      const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, // Public Key
-        amount: data.amount,
-        currency: data.currency,
-        name: 'Your Company',
-        description: 'Test Payment',
-        order_id: data.id,
-        handler: function (response: any) {
-          alert('Payment successful');
-        },
-        prefill: {
-          name: 'Your Customer',
-          email: 'email@example.com',
-          contact: '9999999999',
-        },
-        theme: {
-          color: '#3399cc',
-        },
-      };
-
-      const rzp = new (window as any).Razorpay(options);
-      rzp.open();
-    } catch (err) {
-      alert('Payment failed');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
     if (editData) {
       let ariaId = String(editData?.area?.id);
@@ -313,8 +268,9 @@ export default function CreateOrUpdateStoreForm({ data }: any) {
       setValue('store_type', editData?.store_type);
       setActiveTab(editData?.subscription_type);
       setSelectedCard(editData?.subscription_id);
-      Object?.keys(editData?.translations).forEach((language) => {
-        const translation = editData.translations[language];
+      const translations = safeObject(editData?.translations);
+      Object.keys(translations).forEach((language) => {
+        const translation = (translations as any)[language];
         setValue(`name_${language}` as keyof StoreFormData, translation?.name);
         setValue(`address_${language}` as keyof StoreFormData, translation?.address);
         setValue(
@@ -627,8 +583,6 @@ export default function CreateOrUpdateStoreForm({ data }: any) {
                 handlePaypalPayment();
               } else if (selectedPaymentOption === 'paytm') {
                 handlePaytmPayment();
-              } else if (selectedPaymentOption === 'razorpay') {
-                handleRazorpayPayment();
               } else {
                 router.push(SellerRoutes.businessPlan);
               }

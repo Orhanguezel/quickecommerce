@@ -44,6 +44,7 @@ class ProductionSeeder extends Seeder
         $this->call(UnitSeeder::class);
         $this->call(LocationSeeder::class);
         $this->call(AiChatSeeder::class);
+        $this->call(StoreLoginAccountSeeder::class);
 
         $this->command->info('✅ Production seeders completed successfully!');
         $this->command->info('ℹ️  Safe to run on every deployment.');

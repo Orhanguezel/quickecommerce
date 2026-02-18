@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quick_ecommerce/config/strings.dart';
 
 import '../../../data/data_model/login_model.dart';
-import '../../../data/sirvice/auth_repository.dart';
-import '../../../data/sirvice/connectivity_rypository.dart';
+import '../../../data/service/auth_repository.dart';
+import '../../../data/service/connectivity_repository.dart';
 import 'email_verification_event.dart';
 import 'email_verification_state.dart';
 

@@ -5,6 +5,8 @@ import ThemeRegisterPage from "./ThemeRegisterPage";
 import ThemeLoginPage from "./ThemeLoginPage";
 import ThemeBlogPage from "./ThemeBlogPage";
 import ThemeProductDetailsPage from "./ThemeProductDetailsPage";
+import ThemePopupSettings from "./ThemePopupSettings";
+import ThemeSideBannerSettings from "./ThemeSideBannerSettings";
 
 interface PagesSectionProps {
   allData: any[];
@@ -82,6 +84,23 @@ const PagesSection: React.FC<PagesSectionProps> = ({
           data={data}
           sectionIndex={sectionIndex}
           handleChange={handleChange}
+        />
+      );
+    case "theme_popup_settings":
+      return (
+        <ThemePopupSettings
+          allData={allData}
+          refetch={refetch}
+          data={data}
+          sectionIndex={sectionIndex}
+          handleChange={handleChange}
+        />
+      );
+    case "theme_side_banner_settings":
+      return (
+        <ThemeSideBannerSettings
+          allData={allData}
+          refetch={refetch}
         />
       );
 

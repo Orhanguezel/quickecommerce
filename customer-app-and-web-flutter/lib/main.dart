@@ -14,8 +14,9 @@ import 'config/app_controllers.dart';
 import 'config/shared_preference_helper.dart';
 import 'config/user_shared_preference.dart';
 import 'controller/provider/thyme_provider.dart';
-import 'data/sirvice/lokal_database_repository.dart';
-import 'data/sirvice/notification_reposytory.dart';
+import 'data/service/local_database_repository.dart';
+import 'data/service/notification_repository.dart';
+import 'config/app_languages.dart';
 import 'l10n/app_localizations.dart';
 
 Future<void> main() async {
@@ -26,21 +27,7 @@ Future<void> main() async {
   await CartDatabaseHelpers.init();
 
   // Initialize Firebase
-  if (kIsWeb) {
-    await Firebase.initializeApp(
-      options: const FirebaseOptions(
-        apiKey: "customize_your_api_key",
-        authDomain: "customize_your_auth_domain",
-        projectId: "customize_your_project_id",
-        storageBucket: "customize_your_store_bucket",
-        messagingSenderId: "customize_your_message_sender_id",
-        appId: "customize_your_app_id",
-        measurementId: "customize_your_measurement_id",
-      ),
-    );
-  } else {
-    await Firebase.initializeApp();
-  }
+  await Firebase.initializeApp();
 
   // Disable landscape orientation
   await SystemChrome.setPreferredOrientations([
@@ -139,11 +126,7 @@ class _MyAppState extends State<MyApp> {
                   GlobalWidgetsLocalizations.delegate,
                   GlobalCupertinoLocalizations.delegate,
                 ],
-                supportedLocales: const [
-                  Locale('en'), // English
-                  Locale('es'), // Spanish
-                  Locale('ar'), // Arabic
-                ],
+                supportedLocales: AppLanguages.supportedLocales,
                 builder: (context, widget) {
                   ScreenUtil.init(
                     context,

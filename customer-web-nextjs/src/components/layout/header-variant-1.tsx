@@ -76,7 +76,10 @@ export function HeaderVariant1() {
   return (
     <>
       {/* ══════════ Sticky: ROW 1 + ROW 2 ══════════ */}
-      <div className="sticky top-0 z-50 w-full shadow-sm">
+      <div
+        className="sticky z-50 w-full shadow-sm"
+        style={{ top: "var(--theme-popup-top-offset, 0px)" }}
+      >
       {/* ══════════ ROW 1 — Top Bar (Dynamic from theme) ══════════ */}
       <div className="hidden lg:block" style={{ backgroundColor: 'hsl(var(--header-topbar-bg))', color: 'hsl(var(--header-topbar-text))' }}>
         <div className="container flex h-11 items-center justify-between text-sm font-medium">
@@ -224,8 +227,6 @@ export function HeaderVariant1() {
           </div>
         </div>
       </div>
-      </div>{/* end sticky wrapper */}
-
       {/* ══════════ ROW 3 — Navigation Bar (Dynamic from theme) ══════════ */}
       <nav className="hidden border-b lg:block" style={{ backgroundColor: 'hsl(var(--header-nav-bg))' }}>
         <div className="container flex h-[72px] items-center gap-8">
@@ -404,6 +405,7 @@ export function HeaderVariant1() {
           </Link>
         </div>
       </nav>
+      </div>{/* end sticky wrapper */}
 
       {/* ══════════ Mobile Search Bar ══════════ */}
       <div className="border-b bg-background px-4 py-2 lg:hidden">

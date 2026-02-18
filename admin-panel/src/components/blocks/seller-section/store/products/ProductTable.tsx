@@ -7,6 +7,7 @@ import {
   useMakeFeature,
   useProductDelete,
   useProductQuery,
+  useStoreListQuery,
 } from "@/modules/seller-section/product/product.action";
 import { useAppSelector } from "@/redux/hooks/index";
 import { ChevronsLeftIcon, ChevronsRightIcon } from "lucide-react";
@@ -17,8 +18,13 @@ import TableSkeletonLoader from "@/components/molecules/TableSkeletonLoader";
 
 const ProductTable = ({ searchValue, selectStatus }: any) => {
   const selectedStore = useAppSelector((state) => state.store.selectedStore);
-  const slug = selectedStore?.slug;
-  const store_id = selectedStore?.id;
+  const { stores } = useStoreListQuery({}, { skip: false });
+  const storeList = useMemo(() => (stores as any)?.stores ?? [], [stores]);
+  const fallbackStoreId = useMemo(() => {
+    if (selectedStore?.id) return selectedStore.id;
+    const first = Array.isArray(storeList) ? storeList[0] : null;
+    return first?.value ?? "";
+  }, [selectedStore?.id, storeList]);
   const locale = useLocale();
   const [itemsPerPage, setItemsPerPage] = useState<number>(() => {
     return parseInt(localStorage.getItem("itemsPerPage") || "10");
@@ -34,7 +40,7 @@ const ProductTable = ({ searchValue, selectStatus }: any) => {
   const sortField = sortedInfo.order == "ascend" ? "asc" : "desc";
   const { productList, refetch, isPending, isFetching, error } =
     useProductQuery({
-      store_id: store_id,
+      store_id: fallbackStoreId,
       per_page: itemsPerPage,
       language: locale,
       page: currentPage,
@@ -103,21 +109,6 @@ const ProductTable = ({ searchValue, selectStatus }: any) => {
       }
     );
   };
-
-  useEffect(() => {
-    if (!isPending && !error) {
-      refetch();
-    }
-  }, [
-    searchValue,
-    sortField,
-    itemsPerPage,
-    currentPage,
-    isPending,
-    refetch,
-    selectStatus,
-    error,
-  ]);
 
   return (
     <>

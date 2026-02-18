@@ -76,7 +76,7 @@ const ChartSkeleton = () => {
   );
 };
 
-const CustomAreaChart: React.FC<{ data: SellerData[]; isPending: boolean }> = ({
+const CustomAreaChart: React.FC<{ data: SellerData[] | any; isPending: boolean }> = ({
   data,
   isPending,
 }) => {
@@ -88,10 +88,19 @@ const CustomAreaChart: React.FC<{ data: SellerData[]; isPending: boolean }> = ({
   const localeDir = pathname.split("/")[1];
   const dir = localeDir === "ar" ? "rtl" : "ltr";
   const transformedData = useMemo(() => {
-    return data.map((item) => ({
-      name: item.date ? format(parseISO(item.date), "MMM-dd") : "",
-      total_sales: item.total_sales ? parseFloat(item.total_sales) : "",
-    }));
+    const list = Array.isArray(data) ? data : [];
+    return list.map((item) => {
+      const parsedDate = item?.date ? parseISO(item.date) : null;
+      const name =
+        parsedDate && !Number.isNaN(parsedDate.getTime())
+          ? format(parsedDate, "MMM-dd")
+          : "";
+      const totalSales = Number.parseFloat(String(item?.total_sales ?? "0"));
+      return {
+        name,
+        total_sales: Number.isFinite(totalSales) ? totalSales : 0,
+      };
+    });
   }, [data]);
 
   return (

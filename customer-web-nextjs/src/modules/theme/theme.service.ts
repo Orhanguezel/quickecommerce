@@ -19,7 +19,11 @@ export function useThemeQuery() {
   return useQuery({
     queryKey: ["theme", locale],
     queryFn: async () => {
-      const res = await api.get<ThemeResponse>(API_ENDPOINTS.THEME);
+      const res = await api.get<ThemeResponse>(API_ENDPOINTS.THEME, {
+        headers: {
+          "X-localization": locale,
+        },
+      });
       return res.data;
     },
     staleTime: 1000 * 60 * 5,

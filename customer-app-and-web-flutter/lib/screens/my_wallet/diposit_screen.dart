@@ -25,7 +25,7 @@ import '../../config/user_shared_preference.dart';
 import '../../controller/bloc/save_bloc/save_bloc.dart';
 import '../../controller/bloc/save_bloc/save_state.dart';
 import '../../controller/provider/common_provider.dart';
-import '../../data/sirvice/common_repository.dart';
+import '../../data/service/common_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../common_widgets/common_funcktion.dart';
 import '../common_widgets/payment_funcktion.dart';

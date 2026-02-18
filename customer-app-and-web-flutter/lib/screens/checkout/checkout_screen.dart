@@ -45,7 +45,7 @@ import '../../controller/provider/home_screen_provider.dart';
 import '../../controller/provider/payment_option_controller.dart';
 import '../../data/data_model/address_model.dart';
 import '../../data/data_model/extra_charge_model.dart';
-import '../../data/sirvice/common_repository.dart';
+import '../../data/service/common_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../router/route_name.dart';
 import '../common_widgets/common_child_button.dart';

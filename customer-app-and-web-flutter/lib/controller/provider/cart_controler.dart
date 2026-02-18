@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../data/data_model/cart_model.dart';
-import '../../data/sirvice/lokal_database_repository.dart';
+import '../../data/service/local_database_repository.dart';
 import '../../screens/common_widgets/common_funcktion.dart';
 
 class CartProvider with ChangeNotifier {

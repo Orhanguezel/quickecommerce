@@ -28,12 +28,15 @@ export function Footer() {
   const helpCenter: FooterLinkItem[] = footerData?.com_help_center ?? [];
 
   // Dynamic grid columns based on theme config
-  const gridColsClass = {
+  // Dynamic grid columns based on theme config
+  const colCount = Number(footerConfig.layoutColumns);
+  const gridMap: Record<number, string> = {
     1: "lg:grid-cols-1",
     2: "lg:grid-cols-2",
     3: "lg:grid-cols-3",
     4: "lg:grid-cols-4",
-  }[footerConfig.layoutColumns] || "lg:grid-cols-4";
+  };
+  const gridColsClass = gridMap[colCount] || "lg:grid-cols-4";
 
   const showQuickAccess =
     footerData?.com_quick_access_enable_disable === "on" &&

@@ -1,8 +1,7 @@
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import '../../config/app_languages.dart';
 import '../../config/icons.dart';
 import '../../controller/provider/thyme_provider.dart';
 import '../../l10n/app_localizations.dart';
@@ -25,30 +24,40 @@ class LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
   Widget build(BuildContext context) {
     final languageProvider = Provider.of<ThemeProvider>(context);
     final selectedLocale = languageProvider.appLocale.languageCode;
-    final List<Language> languages = [
-      Language(
-          name: AppLocalizations.of(context)!.arabic,
-          flag: AssetsIcons.arFlag,
-          locale: "ar",
-          countryCode: "SA"
-      ),
-      Language(
-          name: AppLocalizations.of(context)!.english,
-          flag: AssetsIcons.usFlag,
-          locale: "en",
-          countryCode: "US"
-      ),
-      Language(
-          name: AppLocalizations.of(context)!.spanish,
-          flag: AssetsIcons.spain,
-          locale: "es",
-          countryCode: "ES"
-      ),
-    ];
+    
+    // Dynamic Language List construction
+    final List<Language> languages = AppLanguages.supportedLocales.map((locale) {
+      final code = locale.languageCode;
+      final details = AppLanguages.languageDetails[code];
+      
+      // Determine name dynamically if available in AppLocalizations, else fallback
+      String name = details?['name'] ?? 'Unknown';
+       if (code == 'ar') name = AppLocalizations.of(context)!.arabic;
+       else if (code == 'en') name = AppLocalizations.of(context)!.english;
+       else if (code == 'es') name = AppLocalizations.of(context)!.spanish;
+       else if (code == 'tr') name = 'Turkish'; // Fallback as key might not exist yet in arb
+      
+      // Determine flag
+      String flag = details?['flag'] ?? '';
+      // Map back to AssetsIcons constants if possible to maintain consistency
+       if (code == 'ar') flag = AssetsIcons.arFlag;
+       else if (code == 'en') flag = AssetsIcons.usFlag;
+       else if (code == 'es') flag = AssetsIcons.spain;
+       // Turkish flag needs to be added to AssetsIcons or handled here
+       if (code == 'tr') flag = 'assets/icons/tr_flag.png'; // Assuming asset exists
+
+      return Language(
+        name: name,
+        flag: flag,
+        locale: code,
+        countryCode: details?['countryCode'] ?? '',
+      );
+    }).toList();
+
+
     height=languages.length*50;
     return Scaffold(
-      appBar: !kIsWeb
-          ? AppBar(
+      appBar: AppBar(
         title:  Text(
            AppLocalizations.of(context)!.changeLanguage,
           style: Theme.of(context)
@@ -56,17 +65,17 @@ class LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
               .titleLarge
               ?.copyWith(
               fontWeight: FontWeight.w500,
-              fontSize:kIsWeb ? 16 : 16.sp),
+              fontSize: 16.sp),
 
         ),
         centerTitle: true,
-      ):null,
+      ),
       body:Column(
         children: [
           CommonCard(
-              mHorizontal:kIsWeb ?0 :12 ,
+              mHorizontal: 12 ,
               widget:SizedBox(
-                height:kIsWeb ?height : height.h,
+                height: height.h,
                 child: ListView.builder(
                   itemCount: languages.length,
                   itemBuilder: (context, index) {
@@ -79,22 +88,23 @@ class LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                       },
                       child: Container(
                         padding: EdgeInsets.symmetric(
-                            horizontal:kIsWeb ? 16 : 16.w, vertical:kIsWeb ? 12 : 12.h),
-                        margin: EdgeInsets.only(bottom: kIsWeb ? 8 :8.h),
+                            horizontal: 16.w, vertical: 12.h),
+                        margin: EdgeInsets.only(bottom: 8.h),
                         decoration: BoxDecoration(
                           color: selectedLocale == language.locale
                               ? Colors.grey.shade100
                               : Colors.transparent,
-                          borderRadius: BorderRadius.circular(kIsWeb ? 8 :8.r),
+                          borderRadius: BorderRadius.circular(8.r),
                         ),
                         child: Row(
                           children: [
                             Image.asset(
                               language.flag,
-                              height: kIsWeb ? 20 :20.h,
-                              width: kIsWeb ? 20 :20.w,
+                              height: 20.h,
+                              width: 20.w,
+                              errorBuilder: (context, error, stackTrace) => Icon(Icons.flag, size: 20.sp),
                             ),
-                            SizedBox(width: kIsWeb ? 12 :12.w),
+                            SizedBox(width: 12.w),
                             Expanded(
                               child: Text(
                                 language.name,
@@ -106,11 +116,11 @@ class LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                                     color: selectedLocale == language.locale
                                         ? Colors.black
                                         : Colors.grey,
-                                    fontSize:kIsWeb ? 16 : 16.sp),
+                                    fontSize: 16.sp),
                               ),
                             ),
                             if (selectedLocale == language.locale)
-                              Icon(Icons.check, color: Colors.blue, size: kIsWeb ? 20 :20.sp),
+                              Icon(Icons.check, color: Colors.blue, size: 20.sp),
                           ],
                         ),
                       ),
@@ -119,7 +129,7 @@ class LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                 ),
               )
           ),
-           SizedBox(height: kIsWeb ? 10 :10.h,),
+           SizedBox(height: 10.h,),
         ],
       ),
     );

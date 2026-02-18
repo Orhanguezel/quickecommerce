@@ -4,8 +4,8 @@ import 'package:quick_ecommerce/config/strings.dart';
 
 import '../../../data/data_model/department_model.dart';
 import '../../../data/data_model/profile_model.dart';
-import '../../../data/sirvice/common_repository.dart';
-import '../../../data/sirvice/connectivity_rypository.dart';
+import '../../../data/service/common_repository.dart';
+import '../../../data/service/connectivity_repository.dart';
 import 'profile_event.dart';
 import 'profile_state.dart';
 

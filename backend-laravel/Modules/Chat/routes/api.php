@@ -68,9 +68,9 @@ Route::middleware(['auth:sanctum', 'online.track', 'detect.platform'])
     ->prefix('v1/admin/ai-chat/')
     ->group(function () {
         Route::match(['get', 'post'], 'settings', [AdminAiChatSettingsController::class, 'settings'])
-            ->middleware('permission:' . PermissionKey::ADMIN_AI_CHAT_SETTINGS->value);
+            ->middleware('permission:' . PermissionKey::ADMIN_CHAT_SETTINGS->value);
 
-        Route::prefix('knowledge')->middleware('permission:' . PermissionKey::ADMIN_AI_CHAT_KNOWLEDGE->value)->group(function () {
+        Route::prefix('knowledge')->middleware('permission:' . PermissionKey::ADMIN_CHAT_SETTINGS->value)->group(function () {
             Route::get('list', [AdminAiChatKnowledgeController::class, 'list']);
             Route::post('add', [AdminAiChatKnowledgeController::class, 'store']);
             Route::get('details/{id}', [AdminAiChatKnowledgeController::class, 'details']);
@@ -80,7 +80,9 @@ Route::middleware(['auth:sanctum', 'online.track', 'detect.platform'])
         });
 
         Route::get('conversations', [AdminAiChatSettingsController::class, 'conversations'])
-            ->middleware('permission:' . PermissionKey::ADMIN_AI_CHAT_SETTINGS->value);
+            ->middleware('permission:' . PermissionKey::ADMIN_CHAT_SETTINGS->value);
+        Route::get('conversations/{conversationId}/messages', [AdminAiChatSettingsController::class, 'conversationMessages'])
+            ->middleware('permission:' . PermissionKey::ADMIN_CHAT_SETTINGS->value);
     });
 
 // ── AI Chat (Customer - authenticated) ──────────────────────────

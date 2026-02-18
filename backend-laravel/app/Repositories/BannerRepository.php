@@ -46,6 +46,9 @@ class BannerRepository implements BannerInterface
 
         // Apply sorting
         if (!empty($sortField) && !empty($sort)) {
+            if ($sortField === 'order') {
+                $sortField = 'display_order';
+            }
             $query->orderBy($sortField, $sort);
         }
 
@@ -76,6 +79,9 @@ class BannerRepository implements BannerInterface
                 'redirect_url' => $data['redirect_url'] ?? null,
                 'location' => 'home_page',
                 'type' => $data['type'] ?? null,
+                'display_order' => (int)($data['order'] ?? 0),
+                'desktop_row' => (int)($data['desktop_row'] ?? 1),
+                'desktop_columns' => (int)($data['desktop_columns'] ?? 3),
                 'status' => 1,
             ]);
             return $banner->id;
@@ -121,6 +127,9 @@ class BannerRepository implements BannerInterface
                 'redirect_url' => $data['redirect_url'] ?? null,
                 'location' => 'home_page',
                 'type' => $data['type'] ?? null,
+                'display_order' => (int)($data['order'] ?? 0),
+                'desktop_row' => (int)($data['desktop_row'] ?? 1),
+                'desktop_columns' => (int)($data['desktop_columns'] ?? 3),
             ]);
 
             return $banner->id;

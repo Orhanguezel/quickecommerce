@@ -2,8 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../data/data_model/banner_list_model.dart';
-import '../../../data/sirvice/connectivity_rypository.dart';
-import '../../../data/sirvice/product_repository.dart';
+import '../../../data/service/connectivity_repository.dart';
+import '../../../data/service/product_repository.dart';
 import 'banner_event.dart';
 import 'banner_state.dart';
 

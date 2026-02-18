@@ -56,7 +56,10 @@ export function HeaderVariant2() {
   const cartCount = cartCountLive;
 
   return (
-    <header className="sticky top-0 z-50 w-full">
+    <header
+      className="sticky z-50 w-full"
+      style={{ top: "var(--theme-popup-top-offset, 0px)" }}
+    >
       {/* ══════════ ROW 1 — AppBar (White, h=60px — matches Flutter AppBar) ══════════ */}
       <div className="border-b bg-card">
         <div className="container flex h-[60px] items-center">

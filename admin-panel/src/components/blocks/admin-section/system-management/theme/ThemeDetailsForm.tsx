@@ -137,12 +137,25 @@ const ThemeDetailsForm = ({ ThemeDetails, refetch, ID }: any) => {
                     k.startsWith("theme_")
                   )
                 : [];
+            const pageChildDefaults = [
+              "theme_home_page",
+              "theme_login_page",
+              "theme_register_page",
+              "theme_product_details_page",
+              "theme_blog_page",
+              "theme_popup_settings",
+              "theme_side_banner_settings",
+            ];
+            const normalizedChildKeys =
+              key === "theme_pages"
+                ? Array.from(new Set([...childKeys, ...pageChildDefaults]))
+                : childKeys;
 
-            const hasChildren = childKeys.length > 0;
+            const hasChildren = normalizedChildKeys.length > 0;
             const isExpanded = expandedParents.includes(key);
 
             // If a child is selected, expand parent
-            const parentSelected = childKeys.some(
+            const parentSelected = normalizedChildKeys.some(
               (childKey) => selectedKey === `${key}.${childKey}`
             );
 
@@ -179,7 +192,7 @@ const ThemeDetailsForm = ({ ThemeDetails, refetch, ID }: any) => {
 
                 {hasChildren && (isExpanded || parentSelected) && (
                   <ul className="ml-4 mt-1 space-y-1">
-                    {childKeys.map((childKey) => (
+                    {normalizedChildKeys.map((childKey) => (
                       <li key={childKey}>
                         <button
                           onClick={() => {
@@ -261,7 +274,9 @@ const ThemeDetailsForm = ({ ThemeDetails, refetch, ID }: any) => {
           childKey !== "theme_product_details_page" &&
           childKey !== "theme_login_page" &&
           childKey !== "theme_blog_page" &&
-          childKey !== "theme_register_page" && (
+          childKey !== "theme_register_page" &&
+          childKey !== "theme_popup_settings" &&
+          childKey !== "theme_side_banner_settings" && (
             <Card className="mt-4 sticky bottom-0 w-full p-4">
               <Button
                 onClick={handleSubmit}

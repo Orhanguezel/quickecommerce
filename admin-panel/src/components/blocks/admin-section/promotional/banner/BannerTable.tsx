@@ -31,6 +31,9 @@ interface RecordType {
   title: string;
   theme_name: string;
   type?: string;
+  desktop_row?: number;
+  desktop_columns?: number;
+  order?: number;
   thumbnail_image_url?: string;
   actions?: any;
   status?: boolean;
@@ -184,8 +187,23 @@ const BannerTable = () => {
           width: 200,
         },
         {
+          title: "Row",
+          dataIndex: "desktop_row",
+          width: 90,
+        },
+        {
+          title: "Cols",
+          dataIndex: "desktop_columns",
+          width: 90,
+        },
+        {
           title: t("table_header.type"),
           dataIndex: "type",
+          width: 100,
+        },
+        {
+          title: "Order",
+          dataIndex: "order",
           width: 100,
         },
         {

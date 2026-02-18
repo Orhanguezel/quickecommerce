@@ -52,8 +52,9 @@ export const useStoreListQuery = (
 export const useProductQuery = (options: Partial<ProductQueryOptions>) => {
   const { findAll } = useProductQueryService();
   const { data, isPending, error, refetch, isFetching } = useQuery({
-    queryKey: [SELLER_API_ENDPOINTS.PRODUCT_LIST],
+    queryKey: [SELLER_API_ENDPOINTS.PRODUCT_LIST, options],
     queryFn: () => findAll(options),
+    enabled: !!options?.store_id,
     ...options,
   });
   return {
