@@ -52,7 +52,11 @@ const gatewayIconMap: Record<string, typeof CreditCard> = {
   wallet: Wallet,
 };
 
-const SUPPORTED_CHECKOUT_GATEWAYS = new Set(["cash_on_delivery", "wallet"]);
+const SUPPORTED_CHECKOUT_GATEWAYS = new Set([
+  "cash_on_delivery",
+  "iyzico",
+  "wallet",
+]);
 
 interface Props {
   translations: Record<string, string>;

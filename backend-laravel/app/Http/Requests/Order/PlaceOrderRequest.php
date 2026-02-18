@@ -48,7 +48,7 @@ class PlaceOrderRequest extends FormRequest
 
             'currency_code' => 'required|string|max:3',   // ISO codes are 3 letters
             'shipping_time_preferred' => 'nullable|string|max:255',
-            'payment_gateway' => 'required|string|in:cash_on_delivery,wallet',
+            'payment_gateway' => 'required|string|in:cash_on_delivery,iyzico,wallet',
             'order_notes' => 'nullable|string|max:500',
             'order_amount' => 'nullable|numeric|min:0',
             'coupon_code' => 'nullable|string|max:50',
