@@ -72,6 +72,6 @@ const subSchema = {
 
 export const getwaySettingsSchema = z.object({
   ...subSchema
-});
+}).passthrough();
 
 export type GetwaySettingsFormData = z.infer<typeof getwaySettingsSchema>;
