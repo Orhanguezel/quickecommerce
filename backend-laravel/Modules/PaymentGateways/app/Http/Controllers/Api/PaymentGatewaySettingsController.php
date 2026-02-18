@@ -16,7 +16,7 @@ use Modules\PaymentGateways\app\Transformers\PaymentGatewaysResource;
 
 class PaymentGatewaySettingsController extends Controller
 {
-    public function paymentGatewayUpdate(Request $request, $gateway)
+    public function paymentGatewayUpdate(Request $request, $gateway = null)
     {
         if ($request->isMethod('POST')) {
             $validator = Validator::make($request->all(), [
