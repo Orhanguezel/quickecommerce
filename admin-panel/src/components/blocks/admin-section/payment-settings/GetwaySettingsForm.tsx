@@ -35,6 +35,10 @@ type ToggleState = {
   is_test_mode: boolean;
 };
 
+const GATEWAY_DEFAULT_AUTH_KEYS: Record<string, string[]> = {
+  iyzico: ["api_key", "secret_key", "sub_merchant_key", "store_sub_merchant_keys"],
+};
+
 type Props = {
   getwayname?: string;
   paymentgetway?: any;
@@ -70,9 +74,13 @@ const GetwaySettingsForm = ({
 
   const authCredentialKeys = useMemo(() => {
     const credentials = getwaySettingsData?.auth_credentials;
-    if (!credentials || typeof credentials !== "object") return [] as string[];
-    return Object.keys(credentials);
-  }, [getwaySettingsData?.auth_credentials]);
+    const existingKeys =
+      credentials && typeof credentials === "object"
+        ? Object.keys(credentials)
+        : ([] as string[]);
+    const defaultKeys = GATEWAY_DEFAULT_AUTH_KEYS[getwayname] ?? [];
+    return Array.from(new Set([...existingKeys, ...defaultKeys]));
+  }, [getwaySettingsData?.auth_credentials, getwayname]);
 
   useEffect(() => {
     setValue("gateway_name", getwayname ?? "");

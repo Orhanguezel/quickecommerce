@@ -49,6 +49,8 @@ class PaymentGatewaySeeder extends Seeder
             'auth_credentials' => json_encode([
                 'api_key' => '',
                 'secret_key' => '',
+                'sub_merchant_key' => '',
+                'store_sub_merchant_keys' => '{}',
             ]),
             'image' => 'payment-logos/iyzico.svg',
             'status' => true,
