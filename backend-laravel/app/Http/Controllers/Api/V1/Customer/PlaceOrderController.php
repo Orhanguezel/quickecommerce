@@ -12,6 +12,7 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Services\OrderService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 use Modules\Wallet\app\Models\Wallet;
 
 class PlaceOrderController extends Controller
@@ -33,7 +34,7 @@ class PlaceOrderController extends Controller
         if (!$user) {
             return response()->json([
                 'success' => false,
-                'message' => 'Please login to proceed with the order.',
+                'message' => __('messages.order_login_required'),
             ], 400);
         }
 
@@ -49,11 +50,18 @@ class PlaceOrderController extends Controller
                 && (empty($data['customer_latitude']) || empty($data['customer_longitude']))
                 && empty($data['shipping_address_id']);
 
+            Log::warning('Order placement failed at controller layer', [
+                'customer_id' => $user->id,
+                'location_missing' => $locationMissing,
+                'delivery_option' => $data['packages'][0]['delivery_option'] ?? null,
+                'has_shipping_address_id' => !empty($data['shipping_address_id']),
+            ]);
+
             return response()->json([
                 'success' => false,
                 'message' => $locationMissing
-                    ? 'Failed to place order. Delivery location is missing for home delivery.'
-                    : 'Failed to place order. Please try again.',
+                    ? __('messages.order_delivery_location_missing')
+                    : __('messages.order_place_failed'),
             ], 400);
         } else {
             $all_orders = $orders[0];
@@ -88,22 +96,25 @@ class PlaceOrderController extends Controller
                 }
                 return response()->json([
                     'success' => true,
-                    'message' => 'Order placed successfully.',
+                    'message' => __('messages.order_place_success'),
                     'orders' => PlaceOrderDetailsResource::collection($all_orders),
                     'order_master' => new PlaceOrderMasterResource($order_master),
                 ]);
             } else {
                 return response()->json([
                     'success' => false,
-                    'message' => 'An error occurred while placing the order.',
+                    'message' => __('messages.order_place_error'),
                 ], 500);
             }
 
         } catch (\Exception $e) {
+            Log::error('Order placement failed in controller exception', [
+                'customer_id' => $user->id ?? null,
+                'message' => $e->getMessage(),
+            ]);
             return response()->json([
                 'success' => false,
-                'message' => 'An error occurred while placing the order.',
-                'error' => $e->getMessage(),
+                'message' => __('messages.order_place_error'),
             ], 500);
         }
     }
