@@ -1,8 +1,10 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui";
-import { usePaymentGetwayQuery } from "@/modules/admin-section/payment-settings/payment-settings.action";
-import { usePaymentGatewayQuery } from "@/modules/common/payment-gateway/payment-gateway.action";
+import {
+  usePaymentGetwayListQuery,
+  usePaymentGetwayQuery,
+} from "@/modules/admin-section/payment-settings/payment-settings.action";
 import { useAppDispatch } from "@/redux/hooks";
 import { setRefetch } from "@/redux/slices/refetchSlice";
 import { useEffect, useMemo, useState } from "react";
@@ -20,12 +22,14 @@ const PaymentSettingsForm = () => {
 
   const [sectionName, setSectionName] = useState<string>(FALLBACK_SLUG);
 
-  const { PaymentGatewayList } = usePaymentGatewayQuery({});
+  const { paymentGetwayList } = usePaymentGetwayListQuery({});
 
   const buttons = useMemo<GatewayButton[]>(() => {
-    const raw = PaymentGatewayList as any;
+    const raw = paymentGetwayList as any;
     const list = Array.isArray(raw)
       ? raw
+      : Array.isArray(raw?.gateways)
+      ? raw.gateways
       : Array.isArray(raw?.paymentGateways)
       ? raw.paymentGateways
       : [];
@@ -36,7 +40,7 @@ const PaymentSettingsForm = () => {
         label: String(gateway?.name ?? gateway?.slug ?? "").trim(),
       }))
       .filter((gateway: GatewayButton) => gateway.id.length > 0);
-  }, [PaymentGatewayList]);
+  }, [paymentGetwayList]);
 
   useEffect(() => {
     if (!buttons.length) return;

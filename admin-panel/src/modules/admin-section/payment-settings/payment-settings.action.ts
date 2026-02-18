@@ -92,6 +92,39 @@ export const usePaymentGetwayQuery = (options: string) => {
     isFetching,
   };
 };
+
+export const usePaymentGetwayListQuery = (options: Partial<PaymentSettingsQueryOptions> = {}) => {
+  const { findAll } = usePaymentGetwayService(API_ENDPOINTS.PAYMENT_GETWAY);
+  const errorToastRef = useRef<string | null>(null);
+  const { data, isPending, error, refetch, isFetching } = useQuery({
+    queryKey: [API_ENDPOINTS.PAYMENT_GETWAY, "list"],
+    queryFn: () => findAll(options),
+    retry: false,
+    refetchOnWindowFocus: false,
+    ...options,
+  });
+
+  useEffect(() => {
+    const errorToast = (error as any)?.response?.data?.message;
+    if (error && errorToast !== errorToastRef.current) {
+      errorToastRef.current = errorToast;
+      toast?.error(`${errorToast}`, {
+        onClose: () => {
+          errorToastRef.current = null;
+        },
+      });
+    }
+  }, [error]);
+
+  return {
+    paymentGetwayList: data?.data ?? [],
+    error,
+    isPending,
+    refetch,
+    isFetching,
+  };
+};
+
 export const usePaymentGetwayStoreMutation = (options: string) => {
   const { create } = usePaymentGetwayUpdateService(
     API_ENDPOINTS.PAYMENT_GETWAY + "/" + options
