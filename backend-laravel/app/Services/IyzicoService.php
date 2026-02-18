@@ -18,6 +18,17 @@ use Modules\PaymentGateways\app\Models\PaymentGateway;
 
 class IyzicoService
 {
+    private function firstNonEmpty(array $credentials, array $keys): string
+    {
+        foreach ($keys as $key) {
+            $value = trim((string)($credentials[$key] ?? ''));
+            if ($value !== '') {
+                return $value;
+            }
+        }
+        return '';
+    }
+
     private function getGateway(): PaymentGateway
     {
         $gateway = PaymentGateway::where('slug', 'iyzico')->first();
@@ -37,8 +48,8 @@ class IyzicoService
             $credentials = [];
         }
 
-        $apiKey = trim((string)($credentials['api_key'] ?? ''));
-        $secretKey = trim((string)($credentials['secret_key'] ?? ''));
+        $apiKey = $this->firstNonEmpty($credentials, ['api_key', 'iyzico_api_key', 'apiKey']);
+        $secretKey = $this->firstNonEmpty($credentials, ['secret_key', 'iyzico_secret_key', 'secretKey', 'api_secret']);
         if ($apiKey === '' || $secretKey === '') {
             throw new \Exception(__('messages.iyzico_configuration_missing'));
         }
@@ -138,6 +149,12 @@ class IyzicoService
             $basketItem->setCategory2((string)($item['category_2'] ?? 'Ürün'));
             $basketItem->setItemType((string)($item['item_type'] ?? BasketItemType::PHYSICAL));
             $basketItem->setPrice((string)$item['price']);
+            if (!empty($item['sub_merchant_key'])) {
+                $basketItem->setSubMerchantKey((string)$item['sub_merchant_key']);
+            }
+            if (isset($item['sub_merchant_price']) && $item['sub_merchant_price'] !== null) {
+                $basketItem->setSubMerchantPrice((string)$item['sub_merchant_price']);
+            }
             $basketItems[] = $basketItem;
         }
 

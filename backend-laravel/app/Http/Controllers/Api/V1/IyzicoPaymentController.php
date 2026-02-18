@@ -29,7 +29,7 @@ class IyzicoPaymentController extends Controller
         }
 
         $customer = auth()->guard('api_customer')->user();
-        $orderMaster = OrderMaster::with(['orders', 'shippingAddress'])->find((int)$request->order_master_id);
+        $orderMaster = OrderMaster::with(['orders.orderDetail.product', 'shippingAddress.area'])->find((int)$request->order_master_id);
 
         if (!$orderMaster) {
             return response()->json(['success' => false, 'message' => __('messages.data_not_found')], 404);
@@ -69,6 +69,8 @@ class IyzicoPaymentController extends Controller
                 $currency = 'TRY';
             }
 
+            $basketItems = $this->buildMarketplaceBasketItems($orderMaster, $credentials);
+
             $session = $this->iyzicoService->createCheckoutForm([
                 'locale' => app()->getLocale() === 'tr' ? 'tr' : 'en',
                 'conversation_id' => $conversationId,
@@ -106,14 +108,7 @@ class IyzicoPaymentController extends Controller
                     'address' => $addressText,
                     'zip_code' => $zipCode,
                 ],
-                'basket_items' => [[
-                    'id' => 'ORDER-' . $orderMaster->id,
-                    'name' => 'Order #' . $orderMaster->id,
-                    'category_1' => 'Ecommerce',
-                    'category_2' => 'Order',
-                    'item_type' => 'PHYSICAL',
-                    'price' => $amount,
-                ]],
+                'basket_items' => $basketItems,
             ]);
 
             if ($session->getStatus() !== 'success' || !$session->getPaymentPageUrl()) {
@@ -123,6 +118,7 @@ class IyzicoPaymentController extends Controller
                     'status' => $session->getStatus(),
                     'error_code' => $session->getErrorCode(),
                     'error_message' => $session->getErrorMessage(),
+                    'store_ids' => $orderMaster->orders->pluck('store_id')->values()->all(),
                 ]);
 
                 return response()->json([
@@ -249,5 +245,115 @@ class IyzicoPaymentController extends Controller
                 ], 500)
                 : redirect()->to($cancelUrl);
         }
+    }
+
+    private function buildMarketplaceBasketItems(OrderMaster $orderMaster, array $credentials): array
+    {
+        $basketItems = [];
+
+        foreach ($orderMaster->orders as $order) {
+            $storeId = (int)($order->store_id ?? 0);
+            $subMerchantKey = $this->resolveStoreSubMerchantKey($storeId, $credentials);
+            $details = $order->orderDetail;
+            $detailsTotal = 0.0;
+
+            if (!empty($details) && $details->count() > 0) {
+                foreach ($details as $detail) {
+                    $linePrice = (float)($detail->line_total_price ?? 0);
+                    if ($linePrice <= 0) {
+                        $linePrice = (float)(($detail->price ?? 0) * ($detail->quantity ?? 1));
+                    }
+                    $linePrice = round(max(0, $linePrice), 2);
+                    if ($linePrice <= 0) {
+                        continue;
+                    }
+
+                    $detailsTotal += $linePrice;
+                    $basketItems[] = [
+                        'id' => 'ORD' . $order->id . '-DET' . $detail->id,
+                        'name' => (string)($detail->product?->name ?? ('Product #' . ($detail->product_id ?? $detail->id))),
+                        'category_1' => 'Ecommerce',
+                        'category_2' => 'OrderItem',
+                        'item_type' => 'PHYSICAL',
+                        'price' => number_format($linePrice, 2, '.', ''),
+                        'sub_merchant_key' => $subMerchantKey,
+                        'sub_merchant_price' => number_format($linePrice, 2, '.', ''),
+                    ];
+                }
+            }
+
+            $orderAmount = round((float)($order->order_amount ?? 0), 2);
+            if ($orderAmount <= 0) {
+                continue;
+            }
+
+            if ($detailsTotal <= 0) {
+                $basketItems[] = [
+                    'id' => 'ORD' . $order->id,
+                    'name' => 'Order #' . $order->id,
+                    'category_1' => 'Ecommerce',
+                    'category_2' => 'Order',
+                    'item_type' => 'PHYSICAL',
+                    'price' => number_format($orderAmount, 2, '.', ''),
+                    'sub_merchant_key' => $subMerchantKey,
+                    'sub_merchant_price' => number_format($orderAmount, 2, '.', ''),
+                ];
+                continue;
+            }
+
+            $remainder = round($orderAmount - $detailsTotal, 2);
+            if ($remainder > 0) {
+                $basketItems[] = [
+                    'id' => 'ORD' . $order->id . '-ADJ',
+                    'name' => 'Order #' . $order->id . ' Service',
+                    'category_1' => 'Ecommerce',
+                    'category_2' => 'Service',
+                    'item_type' => 'VIRTUAL',
+                    'price' => number_format($remainder, 2, '.', ''),
+                    'sub_merchant_key' => $subMerchantKey,
+                    'sub_merchant_price' => number_format($remainder, 2, '.', ''),
+                ];
+            }
+        }
+
+        return $basketItems;
+    }
+
+    private function resolveStoreSubMerchantKey(int $storeId, array $credentials): string
+    {
+        $storeMap = $credentials['store_sub_merchant_keys'] ?? $credentials['sub_merchant_keys'] ?? [];
+        if (is_string($storeMap)) {
+            $decoded = json_decode($storeMap, true);
+            $storeMap = is_array($decoded) ? $decoded : [];
+        }
+
+        if (is_array($storeMap)) {
+            $byInt = trim((string)($storeMap[$storeId] ?? ''));
+            $byString = trim((string)($storeMap[(string)$storeId] ?? ''));
+            if ($byInt !== '') {
+                return $byInt;
+            }
+            if ($byString !== '') {
+                return $byString;
+            }
+        }
+
+        $byDirectStoreKey = trim((string)($credentials['store_' . $storeId . '_sub_merchant_key'] ?? ''));
+        if ($byDirectStoreKey !== '') {
+            return $byDirectStoreKey;
+        }
+
+        $globalFallback = trim((string)(
+            $credentials['sub_merchant_key']
+            ?? $credentials['default_sub_merchant_key']
+            ?? $credentials['marketplace_sub_merchant_key']
+            ?? ''
+        ));
+
+        if ($globalFallback !== '') {
+            return $globalFallback;
+        }
+
+        throw new \RuntimeException(__('messages.iyzico_sub_merchant_key_missing') . ' store_id=' . $storeId);
     }
 }

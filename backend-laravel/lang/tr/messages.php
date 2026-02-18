@@ -156,6 +156,7 @@ return [
     'iyzico_session_create_failed' => 'İyzico ödemesi başlatılamadı. Lütfen tekrar deneyin.',
     'iyzico_payment_verified' => 'İyzico ödemesi başarıyla doğrulandı.',
     'iyzico_payment_not_completed' => 'İyzico ödemesi doğrulanamadı.',
+    'iyzico_sub_merchant_key_missing' => 'Bir veya daha fazla mağaza için İyzico alt üye işyeri anahtarı eksik.',
     'order_is_not_accepted' => 'Sipariş henüz kabul edilmedi!',
     'order_is_not_cash_on_delivery' => 'Bu sipariş kapıda ödeme değil!',
     'order_is_not_shipped' => 'Sipariş henüz kargolanmadı!',

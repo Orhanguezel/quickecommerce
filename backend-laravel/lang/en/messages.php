@@ -158,6 +158,7 @@ return [
     'iyzico_session_create_failed' => 'Iyzico payment could not be started. Please try again.',
     'iyzico_payment_verified' => 'Iyzico payment verified successfully.',
     'iyzico_payment_not_completed' => 'Iyzico payment could not be verified.',
+    'iyzico_sub_merchant_key_missing' => 'Iyzico sub merchant key is missing for one or more stores.',
     'order_is_not_accepted' => 'This order is not accepted yet!',
     'order_is_not_cash_on_delivery' => 'This order is not cash on delivery!',
     'order_is_not_shipped' => 'This order is not shipped yet!',
