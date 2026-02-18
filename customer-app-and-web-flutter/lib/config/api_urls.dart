@@ -1,5 +1,12 @@
 class ApiUrls{
-  static const baseUrlMart = 'customize_your_domain';
+  /// Backend ana URL'i.
+  /// Örnek: https://sizin-domain.com veya http://localhost:8000
+  /// Değiştirmek için:
+  /// flutter run --dart-define=BASE_URL_MART=https://sizin-domain.com
+  static const String baseUrlMart = String.fromEnvironment(
+    'BASE_URL_MART',
+    defaultValue: 'http://localhost:8000',
+  );
   static String registration() => '$baseUrlMart/api/v1/customer/registration';
   static String loginUrl() => '$baseUrlMart/api/v1/customer/login';
   static String refreshTokenUrl() => '$baseUrlMart/api/v1/customer/refresh-token';
@@ -15,7 +22,8 @@ class ApiUrls{
   static String resendOTPUrl () => '$baseUrlMart/api/v1/otp-login/resend';
 
 
-  static String logoutUrl () => '$baseUrlMart/api/v1/logout';
+  /// Laravel backend'deki çıkış endpoint'i
+  static String logoutUrl () => '$baseUrlMart/api/logout';
   // step 1
   static String forgetUrl () => '$baseUrlMart/api/v1/customer/forget-password';
   //step 2

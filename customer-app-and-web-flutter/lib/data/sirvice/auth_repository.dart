@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import '../../config/api_urls.dart';
+import '../../config/shared_preference_helper.dart';
+import '../../config/user_shared_preference.dart';
 
 class AuthRepository {
   final Dio _dio = Dio();
@@ -46,11 +48,24 @@ class AuthRepository {
     );
     return response;
   }
-  /// it needs [userName] and [password] for calling login api
-  /// both of them are required parameters.
-  Future<Response> logout() {
-    final response = _dio.post(
+  /// Müşteri çıkış işlemi
+  /// Kayıtlı token'ı header olarak gönderir.
+  Future<Response> logout() async {
+    final token = await UserSharedPreference.getValue(
+      SharedPreferenceHelper.token,
+    );
+
+    final response = await _dio.post(
       ApiUrls.logoutUrl(),
+      options: Options(
+        headers: {
+          'Content-Type': 'application/json',
+          'Vary': 'Accept',
+          if (token != null && token.toString().isNotEmpty)
+            'Authorization': 'Bearer $token',
+        },
+        followRedirects: false,
+      ),
     );
     return response;
   }
