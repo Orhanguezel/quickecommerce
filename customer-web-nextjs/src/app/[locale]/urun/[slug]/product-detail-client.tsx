@@ -218,7 +218,7 @@ export function ProductDetailClient({
 
   const handleBuyNow = () => {
     handleAddToCart();
-    router.push(`/${locale}/odeme`);
+    router.push("/odeme");
   };
 
   const tabs = [
