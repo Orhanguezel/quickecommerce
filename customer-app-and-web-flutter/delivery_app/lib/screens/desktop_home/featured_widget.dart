@@ -1,0 +1,192 @@
+
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
+import 'package:quick_ecommerce/data/data_model/all_product_model.dart';
+import '../../config/shared_preference_helper.dart';
+import '../../config/user_shared_preference.dart';
+import '../../controller/bloc/favorite_add_bloc/favorite_add_bloc.dart';
+import '../../controller/bloc/favorite_add_bloc/favorite_add_event.dart';
+import '../../controller/bloc/favorite_add_bloc/favorite_add_state.dart';
+import '../../controller/bloc/featured_product_bloc/featured_product_bloc.dart';
+import '../../controller/bloc/featured_product_bloc/featured_product_event.dart';
+import '../../controller/bloc/featured_product_bloc/featured_product_state.dart';
+import '../../controller/provider/common_provider.dart';
+import '../../controller/provider/home_screen_provider.dart';
+import '../../controller/provider/filter_controller.dart';
+import '../../l10n/app_localizations.dart';
+import '../auth_screens/login_confirmation_dailog.dart';
+import '../common_widgets/common_funcktion.dart';
+import '../common_widgets/item_title.dart';
+import 'product_grid.dart';
+
+class DesktopFeaturedWidget extends StatefulWidget {
+  const DesktopFeaturedWidget({super.key, required this.title});
+  final String title;
+  @override
+  State<DesktopFeaturedWidget> createState() => _DesktopFeaturedWidgetState();
+}
+
+class _DesktopFeaturedWidgetState extends State<DesktopFeaturedWidget> {
+  late final FeaturedProductBloc _featuredProductBloc;
+  late final FavoriteAddBloc _favoriteAddBloc;
+  String _token = '', _language = '',_userLat='',_userLong='';
+  getUserRout() async {
+    var token = await UserSharedPreference.getValue(
+      SharedPreferenceHelper.token,
+    );
+    var language = await UserSharedPreference.getValue(
+      SharedPreferenceHelper.languageCode,
+    );
+    var customerLong = await UserSharedPreference.getValue(
+      SharedPreferenceHelper.customerLong,
+    );
+    var customerLat = await UserSharedPreference.getValue(
+      SharedPreferenceHelper.customerLat,
+    );
+    _token = token ?? "";
+    _language = language ?? "";
+    _userLat = customerLat ?? "";
+    _userLong = customerLong ?? "";
+    _featuredProductBloc
+        .add( FeaturedProduct(perPage: '2',language: _language,
+        userLat: _userLat,
+        userLong: _userLong,
+        token: _token
+    ));
+  }
+
+  @override
+  void initState() {
+    _featuredProductBloc = context.read<FeaturedProductBloc>();
+    _favoriteAddBloc = context.read<FavoriteAddBloc>();
+    getUserRout();
+    super.initState();
+  }
+  bool _isInitialLoad = true;
+  List<ProductData> productData=[];
+  @override
+  Widget build(BuildContext context) {
+    var homeCon = Provider.of<HomeScreenProvider>(context);
+    var filterCon = Provider.of<FilterController>(context);
+    var commonProvider = Provider.of<CommonProvider>(context);
+    return BlocConsumer<FeaturedProductBloc, FeaturedProductState>(
+      builder: (_, state) {
+        if (  state is FeaturedProductLoading) {
+          return _isInitialLoad?
+          const DesktopProductLoadingGrid(itemCount: 10,)
+              :DesktopProductGrid(
+                productData: productData,
+                physics: const NeverScrollableScrollPhysics(),
+                onFavoriteToggle: (wishlist, id) {
+                  _handleFavoriteToggle(wishlist!, id);
+                },
+              );
+        }
+
+        if (state is FeaturedProductLoaded) {
+          if (_isInitialLoad && state.hasConnectionError) {
+            CommonFunctions.showCustomSnackBar(
+                context,
+                AppLocalizations.of(context)!.noInternet
+            );
+          }
+          _isInitialLoad = false;
+          productData=state.featuredProductModel.data;
+          return productData.isEmpty
+              ? const SizedBox()
+              : Column(
+            children: [
+             ItemTitle(
+                  title:widget.title.isEmpty?  AppLocalizations.of(context)!.featured:widget.title,
+                  subTitle:"",
+                  onTap: () {
+                    filterCon.updateSelectedValue("Is Featured");
+                    filterCon.setProductType("Is Featured");
+                    homeCon.setTabType("Products");
+                  }),
+              commonProvider.isLoading?
+              BlocListener<FavoriteAddBloc, FavoriteAddState>(
+                listener: (context, state) {
+                  if (state is FavoriteAddConnectionError) {
+                    commonProvider.setLoading(false);
+                    CommonFunctions.showCustomSnackBar(
+                        context, AppLocalizations.of(context)!.noInternet);
+                  } else if (state is FavoriteAddFailure) {
+                    commonProvider.setLoading(false);
+                    CommonFunctions.showCustomSnackBar(
+                        context, state.authModel.message);
+                  }
+                  else if (state is FavoriteAddLoaded) {
+                      CommonFunctions.showCustomSnackBar(
+                          color: Colors.green,
+                          context, state.authModel.message);
+                      commonProvider.setLoading(false);
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        _featuredProductBloc.add( FeaturedProduct(
+                          perPage: '2',
+                          language: _language,
+                          userLat: _userLat,
+                          userLong: _userLong,
+                          token: _token,
+                        ));
+                      });
+                  }
+                },
+                child: const SizedBox(),
+              )
+                  :const SizedBox(),
+              SizedBox(height: 16.h),
+              DesktopProductGrid(
+                productData: productData,
+                physics: const NeverScrollableScrollPhysics(),
+                onFavoriteToggle: (wishlist, id) {
+                  _handleFavoriteToggle(wishlist!, id);
+                },
+              ),
+            ],
+          );
+        }
+        return Container();
+      },
+      listener: (context, state) {
+        if (state is FeaturedProductConnectionError) {
+          CommonFunctions.showUpSnack(
+            message: AppLocalizations.of(context)!.noInternet,
+            context: context,
+          );
+        }
+        if (state is FeaturedProductFailure) {
+          CommonFunctions.showUpSnack(
+            message: state.featuredProductModel.message.isNotEmpty == true
+                ? state.featuredProductModel.message
+                : "An error occurred",
+            context: context,
+          );
+        }
+      },
+    );
+  }
+
+  void _handleFavoriteToggle(bool isWishlist, String id) {
+    var commonProvider = Provider.of<CommonProvider>(context,listen: false);
+    if (_token.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return const ConfirmationDialog();
+        },
+      );
+      return;
+    }
+
+    if (isWishlist) {
+      commonProvider.setLoading(true);
+      _favoriteAddBloc.add(DeleteFavorites(productId: id, token: _token));
+    } else {
+      commonProvider.setLoading(true);
+      _favoriteAddBloc.add(AddFavorites(productId: id, token: _token));
+    }
+  }
+}

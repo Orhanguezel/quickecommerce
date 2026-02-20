@@ -40,7 +40,7 @@ import { ProductFormData, productSchema } from '@/modules/admin-section/products
 import { useSellerStoreQuery } from '@/modules/admin-section/seller-store/seller-store.action';
 import { useSellerQuery } from '@/modules/admin-section/seller/seller.action';
 import { useGeneralQuery } from '@/modules/common/com/com.action';
-import { useProductAttributeQuery } from '@/modules/seller-section/product-attribute/product-attribute.action';
+import { useProductAttributeQuery } from '@/modules/admin-section/attribute/attributes.action';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks/index';
 import { setRefetch } from '@/redux/slices/refetchSlice';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -229,6 +229,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
   const [logoData, setLogoData] = useState<Record<string, UploadedImage | null>>({});
   const [lastSelectedLogo, setLastSelectedLogo] = useState<any>(null);
   const [errorLogoMessage, setLogoErrorMessage] = useState<string>('');
+  const [galleryImages, setGalleryImages] = useState<UploadedImage[]>([]);
 
   const watchedType = useWatch({ control, name: 'type' });
   const watchedSellerId = useWatch({ control, name: 'seller_id' });
@@ -270,7 +271,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
   });
   const { brands } = useBrandsQuery({});
   const { units } = useUnitQuery({});
-  const { productAttribute, refetch } = useProductAttributeQuery({
+  const { productAttribute, refetch, isPending: isAttributesPending } = useProductAttributeQuery({
     type: watchedType,
   });
 
@@ -287,7 +288,10 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
   let sellerStoreData = (sellerStoreList as any) || [];
   let unitData = (units as any) || [];
   const attributeOptions = useMemo(() => {
-    return (productAttribute as any) || [];
+    const raw = (productAttribute as any);
+    if (Array.isArray(raw)) return raw;
+    if (Array.isArray(raw?.data)) return raw.data;
+    return [];
   }, [productAttribute]);
   const { general, refetch: generalRefetch } = useGeneralQuery({
     language: localeMain,
@@ -464,16 +468,45 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
     const allowChangeInMind = editData?.allow_change_in_mind == 1 ? true : false;
     setIsOrganic(cashOnDelivery);
     setIsHalal(allowChangeInMind);
+
+    // Populate gallery images
+    // gallery_images may contain comma-separated IDs (ProductListResource)
+    // or comma-separated URLs (SellerProductDetailsResource) — handle both
+    if (editData?.gallery_images) {
+      const rawVals = String(editData.gallery_images).split(',').map((s: string) => s.trim()).filter(Boolean);
+      const rawUrls = editData.gallery_images_urls
+        ? String(editData.gallery_images_urls).split(',').map((s: string) => s.trim()).filter(Boolean)
+        : [];
+
+      const gallery: UploadedImage[] = rawVals.map((val: string, i: number) => {
+        const isUrl = val.startsWith('http://') || val.startsWith('https://');
+        const displayUrl = isUrl ? val : (rawUrls[i] ?? '');
+        return {
+          image_id: val,
+          img_url: displayUrl,
+          url: displayUrl,
+          name: isUrl ? (val.split('/').pop() ?? `gallery-${i}`) : `gallery-${val}`,
+        };
+      });
+      setGalleryImages(gallery);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editData?.id, firstUILangId]);
 
   const handleSaveLogo = (images: UploadedImage[]) => {
     setLastSelectedLogo(images[0]);
     const dimensions = images[0].dimensions ?? '';
+
+    // Media library images don't carry dimension metadata — skip the check for those
+    if (!dimensions) {
+      setLogoErrorMessage('');
+      return true;
+    }
+
     const [width, height] = dimensions.split(' x ').map((dim) => parseInt(dim.trim(), 10));
     const aspectRatio = width / height;
 
-    if (Math.abs(aspectRatio - 1 / 1) < 0.01) {
+    if (isNaN(aspectRatio) || Math.abs(aspectRatio - 1 / 1) < 0.01) {
       setLogoErrorMessage('');
       return true;
     } else {
@@ -485,6 +518,19 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
   const removeLogo = () => {
     setLastSelectedLogo(null);
     setLogoErrorMessage('');
+  };
+
+  const handleSaveGallery = (images: UploadedImage[]) => {
+    setGalleryImages((prev) => {
+      const existingIds = new Set(prev.map((img) => img.image_id));
+      const newImages = images.filter((img) => !existingIds.has(img.image_id));
+      return [...prev, ...newImages];
+    });
+    return true;
+  };
+
+  const removeGalleryImage = (imageId: string) => {
+    setGalleryImages((prev) => prev.filter((img) => img.image_id !== imageId));
   };
 
   const handleSelectItem = (value: string, inputType: string) => {
@@ -602,8 +648,8 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
         return null;
       }
 
-      if (Stock <= 0) {
-        toast.error(`Stock quantity is required for each variant.`);
+      if (isNaN(Stock) || Stock < 0) {
+        toast.error(`Stock quantity cannot be negative for each variant.`);
         hasError = true;
         return null;
       }
@@ -640,6 +686,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
     const submissionData = {
       ...defaultData,
       image: lastSelectedLogo ? lastSelectedLogo?.image_id : null,
+      gallery_images: galleryImages.map((img) => img.image_id).filter(Boolean).join(','),
       translations,
       translations_json,
       variants: combinationData,
@@ -660,6 +707,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
           {
             onSuccess: () => {
               dispatch(setRefetch(true));
+              setGalleryImages([]);
               reset();
             },
           },
@@ -1301,6 +1349,45 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                       </div>
                     </div>
                   </div>
+
+                  {/* Gallery Images */}
+                  <div className="mt-4 border-t pt-4">
+                    <p className="text-sm font-medium mb-2">{t('label.gallery_images')}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {galleryImages.map((img) => (
+                        <div key={img.image_id} className="relative w-20 h-20 group">
+                          <Image
+                            loader={GlobalImageLoader}
+                            src={img.img_url || img.url || '/images/no-image.png'}
+                            alt={img.name || 'gallery'}
+                            fill
+                            sizes="80px"
+                            className="object-cover rounded border dark:border-gray-500"
+                          />
+                          <Cancel
+                            customClass="absolute top-0 right-0 m-0.5"
+                            onClick={(event: { stopPropagation: () => void }) => {
+                              event.stopPropagation();
+                              removeGalleryImage(img.image_id!);
+                            }}
+                          />
+                        </div>
+                      ))}
+
+                      {/* Add more images button */}
+                      <PhotoUploadModal
+                        trigger={
+                          <div className="w-20 h-20 border-2 border-dashed border-blue-400 rounded flex flex-col items-center justify-center cursor-pointer hover:bg-blue-50 dark:hover:bg-gray-800 transition-colors">
+                            <CloudUploadIcon className="w-6 h-6 text-blue-400" />
+                            <span className="text-xs text-blue-400 mt-1 text-center leading-tight">Add Images</span>
+                          </div>
+                        }
+                        isMultiple={true}
+                        onSave={handleSaveGallery}
+                        usageType="product"
+                      />
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
               <Card className="mt-4">
@@ -1445,7 +1532,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                 <Select
                   isMulti
                   name="attributes"
-                  isDisabled={attributeOptions.length === 0}
+                  isDisabled={isAttributesPending}
                   value={selectedAttributes}
                   styles={customStyles}
                   classNamePrefix="select"
@@ -1453,6 +1540,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                   hideSelectedOptions={false}
                   className="basic-multi-select"
                   options={attributeOptions}
+                  placeholder={isAttributesPending ? 'Loading...' : (attributeOptions.length === 0 && watchedType ? 'No attributes for this store type' : 'Select attributes')}
                   //@ts-ignore
                   onChange={onChangeMultiSelect}
                   formatOptionLabel={(option, { context }) => (
@@ -1467,6 +1555,14 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                     </div>
                   )}
                 />
+                {!isAttributesPending && watchedType && attributeOptions.length === 0 && (
+                  <p className="text-sm text-amber-600 mt-1">
+                    No attributes configured for this store type.{' '}
+                    <a href={`/${locale}/admin/attribute/list`} className="underline text-blue-600">
+                      Create attributes first.
+                    </a>
+                  </p>
+                )}
               </div>
               <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-4 mt-4">
                 {selectedAttributes.map((attribute) => (

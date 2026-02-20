@@ -144,10 +144,14 @@ export function ProductDetailClient({
     : product.stock ?? 0;
   const inStock = stock > 0;
 
+  // gallery_images_urls is a comma-separated string from the backend, not an array
+  const galleryUrls = product.gallery_images_urls
+    ? String(product.gallery_images_urls).split(',').map((s: string) => s.trim()).filter(Boolean)
+    : [];
   const allImages = [
     selectedVariant?.image_url,
     product.image_url,
-    ...(product.gallery_images_urls ?? []),
+    ...galleryUrls,
   ].filter(Boolean) as string[];
 
   const normalizedImageIndex = Math.min(

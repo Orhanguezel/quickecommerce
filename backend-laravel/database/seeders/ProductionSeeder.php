@@ -9,7 +9,8 @@ use Illuminate\Database\Seeder;
  *
  * ✅ SAFE: This seeder is IDEMPOTENT (can run multiple times safely)
  *
- * Contains only SAFE seeders that use updateOrCreate():
+ * Contains only SAFE seeders that use updateOrCreate()/firstOrCreate():
+ * - SafeProductAttributeSeeder
  * - ThemeSeeder
  * - GeneralSettingsSeeder
  * - SeoSettingsSeeder
@@ -33,6 +34,9 @@ class ProductionSeeder extends Seeder
     {
         $this->command->info('🔄 Running production-safe seeders...');
 
+        // Product Attributes (SAFE - firstOrCreate)
+        $this->call(SafeProductAttributeSeeder::class);
+
         // System Settings (SAFE - updateOrCreate)
         $this->call(GeneralSettingsSeeder::class);
         $this->call(ThemeSeeder::class);
@@ -45,6 +49,13 @@ class ProductionSeeder extends Seeder
         $this->call(LocationSeeder::class);
         $this->call(AiChatSeeder::class);
         $this->call(StoreLoginAccountSeeder::class);
+        $this->call(StoreAreaSeeder::class);
+        $this->call(StoreAreaSettingsSeeder::class);
+        $this->call(StoreAreaSettingStoreTypeSeeder::class);
+        $this->call(StoreAreaSettingRangeChargeSeeder::class);
+        $this->call(SubscriptionPackageSeeder::class);
+        $this->call(StoreSubscriptionSeeder::class);
+        $this->call(UniversalNotificationSeeder::class);
 
         $this->command->info('✅ Production seeders completed successfully!');
         $this->command->info('ℹ️  Safe to run on every deployment.');

@@ -11,7 +11,7 @@ import { NotificationsQueryOptions } from "./notifications.type";
 export const useNotificationsQuery = (options: Partial<NotificationsQueryOptions>,  config?: { skip: boolean }) => {
   const { findAll } = useNotificationsQueryService();
   const { data, isPending, error, refetch, isFetching } = useQuery({
-    queryKey: [API_ENDPOINTS.ADMIN_NOTIFICATIONS_ADD],
+    queryKey: [API_ENDPOINTS.ADMIN_NOTIFICATIONS_ADD, options],
     queryFn: () => findAll(options),
     enabled: !config?.skip,
     ...options,

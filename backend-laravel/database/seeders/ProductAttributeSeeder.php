@@ -471,6 +471,144 @@ class ProductAttributeSeeder extends Seeder
                     ['tr' => '31', 'en' => '31'],
                 ],
             ],
+
+            // ============ KİTAPLAR (books) ============
+            [
+                'tr' => 'Yazar',
+                'en' => 'Author',
+                'type' => 'select',
+                'store_type' => 'books',
+                'values' => [
+                    ['tr' => 'Yazar A', 'en' => 'Author A'],
+                    ['tr' => 'Yazar B', 'en' => 'Author B'],
+                    ['tr' => 'Yazar C', 'en' => 'Author C'],
+                ],
+            ],
+            [
+                'tr' => 'Tür',
+                'en' => 'Genre',
+                'type' => 'select',
+                'store_type' => 'books',
+                'values' => [
+                    ['tr' => 'Roman', 'en' => 'Fiction'],
+                    ['tr' => 'Kurgu Dışı', 'en' => 'Non-fiction'],
+                    ['tr' => 'Bilim Kurgu', 'en' => 'Sci-fi'],
+                    ['tr' => 'Tarih', 'en' => 'History'],
+                    ['tr' => 'Biyografi', 'en' => 'Biography'],
+                    ['tr' => 'Çocuk', 'en' => 'Children'],
+                    ['tr' => 'Kişisel Gelişim', 'en' => 'Self-help'],
+                ],
+            ],
+            [
+                'tr' => 'Dil',
+                'en' => 'Language',
+                'type' => 'select',
+                'store_type' => 'books',
+                'values' => [
+                    ['tr' => 'Türkçe', 'en' => 'Turkish'],
+                    ['tr' => 'İngilizce', 'en' => 'English'],
+                    ['tr' => 'Almanca', 'en' => 'German'],
+                    ['tr' => 'Fransızca', 'en' => 'French'],
+                    ['tr' => 'Arapça', 'en' => 'Arabic'],
+                ],
+            ],
+            [
+                'tr' => 'Kapak Türü',
+                'en' => 'Cover Type',
+                'type' => 'select',
+                'store_type' => 'books',
+                'values' => [
+                    ['tr' => 'Karton Kapak', 'en' => 'Paperback'],
+                    ['tr' => 'Sert Kapak', 'en' => 'Hardcover'],
+                    ['tr' => 'Spiralli', 'en' => 'Spiral'],
+                ],
+            ],
+
+            // ============ MARKET/BAKKAL (grocery) ============
+            [
+                'tr' => 'Ağırlık',
+                'en' => 'Weight',
+                'type' => 'select',
+                'store_type' => 'grocery',
+                'values' => [
+                    ['tr' => '100g', 'en' => '100g'],
+                    ['tr' => '250g', 'en' => '250g'],
+                    ['tr' => '500g', 'en' => '500g'],
+                    ['tr' => '1kg', 'en' => '1kg'],
+                    ['tr' => '2kg', 'en' => '2kg'],
+                    ['tr' => '5kg', 'en' => '5kg'],
+                ],
+            ],
+            [
+                'tr' => 'Ambalaj',
+                'en' => 'Packaging',
+                'type' => 'select',
+                'store_type' => 'grocery',
+                'values' => [
+                    ['tr' => 'Tekli Paket', 'en' => 'Single Pack'],
+                    ['tr' => 'Çoklu Paket', 'en' => 'Multi-Pack'],
+                    ['tr' => 'Şişe', 'en' => 'Bottle'],
+                    ['tr' => 'Kutu', 'en' => 'Box'],
+                    ['tr' => 'Torba', 'en' => 'Bag'],
+                ],
+            ],
+
+            // ============ TEKNOLOJİ (gadgets) ============
+            [
+                'tr' => 'Renk',
+                'en' => 'Color',
+                'type' => 'select',
+                'store_type' => 'gadgets',
+                'values' => [
+                    ['tr' => 'Siyah', 'en' => 'Black'],
+                    ['tr' => 'Beyaz', 'en' => 'White'],
+                    ['tr' => 'Gümüş', 'en' => 'Silver'],
+                    ['tr' => 'Altın', 'en' => 'Gold'],
+                    ['tr' => 'Mavi', 'en' => 'Blue'],
+                    ['tr' => 'Kırmızı', 'en' => 'Red'],
+                ],
+            ],
+            [
+                'tr' => 'Boyut',
+                'en' => 'Size',
+                'type' => 'select',
+                'store_type' => 'gadgets',
+                'values' => [
+                    ['tr' => 'Küçük', 'en' => 'Small'],
+                    ['tr' => 'Orta', 'en' => 'Medium'],
+                    ['tr' => 'Büyük', 'en' => 'Large'],
+                    ['tr' => 'Kompakt', 'en' => 'Compact'],
+                ],
+            ],
+
+            // ============ MOBİLYA (furniture) ============
+            [
+                'tr' => 'Malzeme',
+                'en' => 'Material',
+                'type' => 'select',
+                'store_type' => 'furniture',
+                'values' => [
+                    ['tr' => 'Ahşap', 'en' => 'Wood'],
+                    ['tr' => 'Metal', 'en' => 'Metal'],
+                    ['tr' => 'Plastik', 'en' => 'Plastic'],
+                    ['tr' => 'Cam', 'en' => 'Glass'],
+                    ['tr' => 'Deri', 'en' => 'Leather'],
+                    ['tr' => 'Kumaş', 'en' => 'Fabric'],
+                ],
+            ],
+            [
+                'tr' => 'Renk',
+                'en' => 'Color',
+                'type' => 'select',
+                'store_type' => 'furniture',
+                'values' => [
+                    ['tr' => 'Siyah', 'en' => 'Black'],
+                    ['tr' => 'Beyaz', 'en' => 'White'],
+                    ['tr' => 'Gri', 'en' => 'Gray'],
+                    ['tr' => 'Kahverengi', 'en' => 'Brown'],
+                    ['tr' => 'Bej', 'en' => 'Beige'],
+                ],
+            ],
         ];
 
         DB::transaction(function () use ($attributes) {
@@ -493,7 +631,7 @@ class ProductAttributeSeeder extends Seeder
                 // Insert attribute
                 $insertData = [
                     'name' => $attr['tr'],
-                    'product_type' => $attr['type'],
+                    'product_type' => $attr['store_type'],
                     'status' => 1,
                     'created_at' => now(),
                     'updated_at' => now(),

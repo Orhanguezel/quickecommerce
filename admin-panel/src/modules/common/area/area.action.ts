@@ -15,7 +15,8 @@ export const useAreaDropdownQuery = (options: Partial<AreaDropdownQueryOptions>)
   });
 
   return {
-    AreaDropdownList: data?.data ?? [],
+    // API may return either { data: [...] } or direct [...]
+    AreaDropdownList: (data as any)?.data ?? data ?? [],
     error,
     isPending,
     refetch,

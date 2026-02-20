@@ -14,6 +14,14 @@ class AreaResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $locationType = 'Polygon';
+        $coordinatesRaw = $this->coordinates;
+        if (is_object($coordinatesRaw) && method_exists($coordinatesRaw, 'getType')) {
+            $locationType = (string) $coordinatesRaw->getType();
+        } elseif (is_array($coordinatesRaw) && isset($coordinatesRaw['type'])) {
+            $locationType = (string) $coordinatesRaw['type'];
+        }
+
         // Transform related_translations array into grouped object by language
         $translations = [];
         if ($this->related_translations) {
@@ -37,6 +45,8 @@ class AreaResource extends JsonResource
             'state' => $this->state,
             'city' => $this->city,
             'coordinates' => $this->coordinates['coordinates'][0] ?? [],
+            'store_count' => (int) ($this->store_count ?? 0),
+            'location_type' => $locationType,
             'center_latitude' => $this->center_latitude,
             'center_longitude' => $this->center_longitude,
             'status' => $this->status,

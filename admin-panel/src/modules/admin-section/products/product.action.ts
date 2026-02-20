@@ -371,10 +371,14 @@ export const useDynamicFieldQueryAdmin = (options: Partial<any>) => {
     queryKey: [API_ENDPOINTS.PRODUCT_DYNAMIC_FIELD, options?.store_type],
     queryFn: () => findAll(options),
     enabled: !!options?.store_type,
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 
+  const DynamicFieldList = Array.isArray(data?.data) ? data.data : [];
+
   return {
-    DynamicFieldList: data?.data ?? [],
+    DynamicFieldList,
     error,
     isPending,
     refetch,

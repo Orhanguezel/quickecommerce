@@ -94,11 +94,13 @@ class DatabaseSeeder extends Seeder
         // ProductCategorySeeder moved to line 79 (before ProductSeeder)
         $this->call(ReviewSeeder::class);
         $this->call(SettingOptionsSeeder::class);
-        $this->call(StoreAreaSettingRangeChargeSeeder::class);
         $this->call(StoreAreaSettingsSeeder::class);
         $this->call(StoreAreaSettingStoreTypeSeeder::class);
+        $this->call(StoreAreaSettingRangeChargeSeeder::class);
         $this->call(StoreSellerSeeder::class);
         $this->call(SubscriptionPackageSeeder::class);
+        $this->call(StoreSubscriptionSeeder::class);
+        $this->call(UniversalNotificationSeeder::class);
         $this->call(WalletSeeder::class);
     }
 }

@@ -184,7 +184,7 @@ const AreaTable = ({ searchValue }: any) => {
           width: 100,
           title: t("table_header.location_type"),
           dataIndex: "location_type",
-          render: (_: any, row: any) => <span>{row?.coordinates?.type}</span>,
+          render: (locationType: any) => <span>{locationType ?? "-"}</span>,
         },
         {
           title: t("table_header.status"),

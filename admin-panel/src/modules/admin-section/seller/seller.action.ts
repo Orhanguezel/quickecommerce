@@ -31,7 +31,8 @@ export const useSellerQuery = (options: Partial<SellerQueryOptions>) => {
     ...options,
   });
   return {
-    sellerList: data?.data ?? [],
+    // API may return either { data: [...] } or direct [...]
+    sellerList: (data as any)?.data ?? data ?? [],
     error,
     isPending,
     refetch,

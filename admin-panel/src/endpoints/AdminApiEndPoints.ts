@@ -209,6 +209,7 @@ export const API_ENDPOINTS = {
   ATTRIBUTE_EDIT: "v1/admin/attribute/details",
   ATTRIBUTE_REMOVE: "v1/admin/attribute/remove",
   ATTRIBUTE_STATUS_CHANGE: "v1/admin/attribute/status",
+  ATTRIBUTE_TYPE_WISE: "v1/admin/attribute/type-wise",
 
   // admin wallet
   WALLET_LIST: "v1/admin/financial/wallet/list",

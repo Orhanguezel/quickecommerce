@@ -152,7 +152,10 @@ class ProductAttributeController extends Controller
         }
         try {
             $attributes = ProductAttribute::with('attribute_values')
-                ->where('product_type', $request->type)
+                ->where(function ($q) use ($request) {
+                    $q->where('product_type', $request->type)
+                      ->orWhereNull('product_type');
+                })
                 ->where('status', 1)
                 ->get();
             return response()->json(ProductAttributeResource::Collection($attributes));

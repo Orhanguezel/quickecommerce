@@ -12,12 +12,18 @@ export type statusUpdateData = z.infer<typeof statusUpdateSchema> & {
   id: string;
 };
 
+const allLangs = Array.isArray(multiLang)
+  ? multiLang.filter((lang) => lang?.id)
+  : [];
+const defaultLangId = allLangs?.[0]?.id ?? "tr";
+
 const baseSchema = {
-  name_df: z.string().min(2, "Shop name must be at least 2 characters long"),
+  [`name_${defaultLangId}`]: z
+    .string()
+    .min(2, "Shop name must be at least 2 characters long"),
+  [`meta_title_${defaultLangId}`]: z.string().optional(),
+  [`meta_description_${defaultLangId}`]: z.string().optional(),
   slug: z.string().optional(),
-  address_df: z.string().optional(),
-  meta_title_df: z.string().optional(),
-  meta_description_df: z.string().optional(),
   email: z.string().optional(),
   address: z.string().optional(),
   longitude: z.string().optional(),
@@ -44,11 +50,10 @@ closing_time: z
   phone: z.string().nonempty("Contact number is required"),
 };
 
-const dynamicFields = multiLang
-  .filter((lang) => lang.id !== "df")
+const dynamicFields = allLangs
+  .filter((lang) => lang.id !== defaultLangId)
   .reduce((fields, lang) => {
     fields[`name_${lang.id}`] = z.string().optional();
-    // fields[`address_${lang.id}`] = z.string().optional();
     fields[`meta_title_${lang.id}`] = z.string().optional();
     fields[`meta_description_${lang.id}`] = z.string().optional();
     return fields;

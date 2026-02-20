@@ -16,7 +16,7 @@ export const useNotificationsQuery = (
   const { findAll } = useNotificationsQueryService();
 
   const { data, isPending, error, refetch, isFetching } = useQuery({
-    queryKey: [SELLER_API_ENDPOINTS.SELLER_NOTIFICATIONS_ADD],
+    queryKey: [SELLER_API_ENDPOINTS.SELLER_NOTIFICATIONS_ADD, options],
     queryFn: () => findAll(options),
     enabled: !config?.skip,
     ...options,

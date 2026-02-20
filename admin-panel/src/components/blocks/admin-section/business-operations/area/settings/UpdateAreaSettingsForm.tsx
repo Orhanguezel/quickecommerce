@@ -51,7 +51,7 @@ const UpdateAreaSettingsForm = ({ data, ID }: any) => {
   });
   const checkedValue = watch();
 
-  const { storeType, isPending } = useStoreTypeQuery({});
+  const { storeType, isPending } = useStoreTypeQuery({ language: locale } as any);
   let StoreTypeCards = (storeType as any) || [];
 
   const [selectedPaymentOptions, setSelectedPaymentOptions] = useState<any[]>(

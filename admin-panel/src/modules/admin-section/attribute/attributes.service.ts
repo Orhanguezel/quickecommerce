@@ -28,3 +28,7 @@ export const useAttributeDeleteService = () => {
   );
 };
 
+export const useAttributeTypeWiseService = () => {
+  return useBaseService<Attribute>(API_ENDPOINTS.ATTRIBUTE_TYPE_WISE);
+};
+

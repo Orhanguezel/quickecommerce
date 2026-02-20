@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'laravel/laravel',
-        'pretty_version' => 'dev-master',
-        'version' => 'dev-master',
-        'reference' => 'eed9c15e059992da2cb98fb26e719cceaa10a977',
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => '4deb3abe9cc9bb918b3ba1241769c5852a09491d',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -589,6 +589,15 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
+        'iyzico/iyzipay-php' => array(
+            'pretty_version' => 'v2.0.60',
+            'version' => '2.0.60.0',
+            'reference' => 'fda153102f4dc9ffdebc72a6ab47c83123e8333e',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../iyzico/iyzipay-php',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'kodova/hamcrest-php' => array(
             'dev_requirement' => true,
             'replaced' => array(
@@ -641,9 +650,9 @@
             'dev_requirement' => false,
         ),
         'laravel/laravel' => array(
-            'pretty_version' => 'dev-master',
-            'version' => 'dev-master',
-            'reference' => 'eed9c15e059992da2cb98fb26e719cceaa10a977',
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => '4deb3abe9cc9bb918b3ba1241769c5852a09491d',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

@@ -46,7 +46,7 @@ const AttributeTable = ({ searchValue }: any) => {
   const locale = useLocale();
 
   const [itemsPerPage, setItemsPerPage] = useState<number>(() => {
-    return parseInt(localStorage.getItem("itemsPerPage") || "10");
+    return parseInt(localStorage.getItem("attributeItemsPerPage") || "50");
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [sortedInfo, setSortedInfo] = useState<{
@@ -103,7 +103,7 @@ const AttributeTable = ({ searchValue }: any) => {
     const newItemsPerPage = parseInt(value);
     setItemsPerPage(newItemsPerPage);
     setCurrentPage(1);
-    localStorage.setItem("itemsPerPage", value);
+    localStorage.setItem("attributeItemsPerPage", value);
   };
   const [loading, setLoading] = useState(false);
   const { mutate: roleDelete } = useAttributeDelete();

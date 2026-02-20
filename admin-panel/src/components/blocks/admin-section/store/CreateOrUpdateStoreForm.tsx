@@ -59,9 +59,7 @@ import AppPhoneNumberInput from '../../common/AppPhoneNumberInput';
 // JSON scaffold stack (standard)
 import {
   AdminI18nJsonPanel,
-  buildI18nJsonFromFlatValues,
-  applyI18nJsonToFlatForm,
-  makeRHFSetValueAny, safeObject,
+  makeRHFSetValueAny,
   ensureLangKeys,
   useFormI18nScaffold,
   initI18nFlatFormFromEntity,
@@ -157,6 +155,55 @@ function toSelectValue(v: any) {
   return String(v?.value ?? v ?? '');
 }
 
+function mergeSelectedOption(
+  options: AppSelectOption[],
+  selectedValue: string,
+  fallbackLabel?: string,
+): AppSelectOption[] {
+  const v = String(selectedValue ?? '').trim();
+  if (!v) return options;
+  const exists = options.some((o) => String(o.value) === v);
+  if (exists) return options;
+  return [{ value: v, label: fallbackLabel || v }, ...options];
+}
+
+function firstNonEmpty(...values: any[]) {
+  for (const v of values) {
+    const s = String(v ?? '').trim();
+    if (s) return s;
+  }
+  return '';
+}
+
+function resolveOptionValue(
+  options: AppSelectOption[],
+  candidateIds: string[],
+  candidateLabels: string[],
+) {
+  const normalizedOptions = options.map((o) => ({
+    value: String(o.value ?? '').trim(),
+    label: String(o.label ?? '').trim().toLowerCase(),
+  }));
+
+  for (const id of candidateIds) {
+    const v = String(id ?? '').trim();
+    if (!v) continue;
+    const match = normalizedOptions.find((o) => o.value === v);
+    if (match) return v;
+  }
+
+  for (const lbl of candidateLabels) {
+    const l = String(lbl ?? '').trim().toLowerCase();
+    if (!l) continue;
+    const match = normalizedOptions.find(
+      (o) => o.label === l || o.label.includes(l) || l.includes(o.label),
+    );
+    if (match) return match.value;
+  }
+
+  return firstNonEmpty(...candidateIds);
+}
+
 export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
   const t = useTranslations();
   const dispatch = useAppDispatch();
@@ -169,6 +216,15 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
     () => (Array.isArray(multiLang) ? (multiLang as LangType[]) : []),
     [],
   );
+  const formLangs = useMemo(() => {
+    const base = allLangs.filter((lang) => !!lang?.id);
+    if (base.length > 0) return base;
+    return [{ id: locale, label: locale } as LangType];
+  }, [allLangs, locale]);
+  const defaultLangId = allLangs?.[0]?.id ?? 'tr';
+  const defaultNameField = `name_${defaultLangId}`;
+  const defaultMetaTitleField = `meta_title_${defaultLangId}`;
+  const defaultMetaDescriptionField = `meta_description_${defaultLangId}`;
 
   const editData = (data?.data ?? data?.store ?? data) as any;
 
@@ -189,11 +245,9 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
   } = useForm<StoreFormData>({
     resolver: zodResolver(storeSchema),
     defaultValues: {
-      // DF contract
-      name_df: '',
-      meta_title_df: '',
-      meta_description_df: '',
-      address_df: '',
+      [defaultNameField]: '',
+      [defaultMetaTitleField]: '',
+      [defaultMetaDescriptionField]: '',
 
       // globals
       slug: '',
@@ -217,24 +271,14 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
   // ✅ one true wrapper (NO hacks)
   const setValueAny = useMemo(() => makeRHFSetValueAny<StoreFormData>(setValue), [setValue]);
 
-  // ✅ i18n scaffold (df excluded)
+  // ✅ i18n scaffold (multiLang tabs)
   const i18n = useFormI18nScaffold<StoreFormData>({
-    languages: allLangs,
-    excludeLangIds: ['df'],
+    languages: formLangs,
     fields: [...I18N_FIELDS],
     control,
     getValues,
     setValueAny,
     keyOf: (field, langId) => `${field}_${langId}`,
-    dfSync: {
-      enabled: true,
-      pairs: [
-        { dfField: 'name_df', srcField: (l) => `name_${l}`, validate: true },
-        { dfField: 'meta_title_df', srcField: (l) => `meta_title_${l}` },
-        { dfField: 'meta_description_df', srcField: (l) => `meta_description_${l}` },
-        { dfField: 'address_df', srcField: () => 'address' },
-      ],
-    },
     extraWatchNames: [
       'slug',
       'phone',
@@ -256,20 +300,23 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
 
   const { uiLangs, firstUILangId, translationsJson, handleTranslationsJsonChange, rebuildJsonNow } =
     i18n;
+  const displayLangs = uiLangs.length > 0 ? uiLangs : formLangs;
 
   // ✅ controlled language tabs
   const [activeLangId, setActiveLangId] = useState<string>(
-    uiLangs.find((l) => l.id === locale)?.id ?? firstUILangId,
+    displayLangs.find((l) => l.id === locale)?.id ?? firstUILangId,
   );
 
   useEffect(() => {
-    const exists = uiLangs.some((l) => l.id === activeLangId);
+    const exists = displayLangs.some((l) => l.id === activeLangId);
     if (!exists) setActiveLangId(firstUILangId);
-  }, [uiLangs, activeLangId, firstUILangId]);
+  }, [displayLangs, activeLangId, firstUILangId]);
 
   // Minimal watches
-  const watchedNameDf = useWatch({ control, name: 'name_df' as any }) as string;
+  const watchedNameDefault = useWatch({ control, name: defaultNameField as any }) as string;
   const watchedSellerId = useWatch({ control, name: 'store_seller_id' as any }) as string;
+  const watchedStoreType = useWatch({ control, name: 'store_type' as any }) as string;
+  const watchedAreaId = useWatch({ control, name: 'area_id' as any }) as string;
   const watchedLongitude = useWatch({ control, name: 'longitude' as any });
   const watchedLatitude = useWatch({ control, name: 'latitude' as any });
 
@@ -280,8 +327,178 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
 
   // ✅ AppSelect flat arrays
   const AreaOptions = useMemo(() => normalizeOptions(AreaDropdownList), [AreaDropdownList]);
-  const StoreTypeOptions = useMemo(() => normalizeOptions(storeType), [storeType]);
-  const SellerOptions = useMemo(() => normalizeOptions(sellerList), [sellerList]);
+  const rawStoreTypeOptions = useMemo(() => normalizeOptions(storeType), [storeType]);
+  const rawSellerOptions = useMemo(() => normalizeOptions(sellerList), [sellerList]);
+
+  const sellerIdCandidates = useMemo(
+    () =>
+      [
+        editData?.seller_id,
+        editData?.store_seller_id,
+        editData?.storeSellerId,
+        editData?.sellerId,
+        editData?.seller?.id,
+        editData?.seller?.seller_id,
+        editData?.owner?.id,
+        editData?.vendor?.id,
+        editData?.user?.id,
+        editData?.user_id,
+        editData?.owner_id,
+        editData?.merchant_id,
+        typeof editData?.seller === 'string' ? editData?.seller : '',
+      ].map((x) => String(x ?? '')),
+    [editData],
+  );
+  const sellerLabelCandidates = useMemo(
+    () =>
+      [
+        editData?.seller_name,
+        typeof editData?.seller === 'string' ? editData?.seller : '',
+        editData?.seller?.name,
+        editData?.seller?.full_name,
+        editData?.seller?.store_name,
+        editData?.seller?.shop_name,
+        editData?.seller?.email,
+        editData?.owner?.name,
+        editData?.vendor?.name,
+        editData?.user?.name,
+        editData?.owner_name,
+        editData?.user_name,
+      ].map((x) => String(x ?? '')),
+    [editData],
+  );
+
+  const storeTypeIdCandidates = useMemo(
+    () =>
+      [
+        editData?.store_type_id,
+        editData?.type_id,
+        editData?.storeTypeId,
+        editData?.typeId,
+        editData?.type?.id,
+        editData?.store_type?.id,
+        editData?.store_type,
+        typeof editData?.type === 'string' ? editData?.type : '',
+      ].map((x) => String(x ?? '')),
+    [editData],
+  );
+  const storeTypeLabelCandidates = useMemo(
+    () =>
+      [
+        editData?.store_type_name,
+        typeof editData?.store_type === 'string' ? editData?.store_type : '',
+        editData?.store_type,
+        typeof editData?.type === 'string' ? editData?.type : '',
+        editData?.type?.name,
+        editData?.type?.label,
+        editData?.type?.store_type,
+        editData?.store_type?.name,
+        editData?.store_type?.label,
+      ].map((x) => String(x ?? '')),
+    [editData],
+  );
+  const areaIdCandidates = useMemo(
+    () =>
+      [
+        editData?.area_id,
+        editData?.area?.id,
+        editData?.areaId,
+        editData?.zone_id,
+        editData?.zone?.id,
+      ].map((x) => String(x ?? '')),
+    [editData],
+  );
+  const areaLabelCandidates = useMemo(
+    () =>
+      [
+        editData?.area_name,
+        editData?.area?.name,
+        editData?.area?.label,
+        editData?.zone_name,
+        editData?.zone?.name,
+      ].map((x) => String(x ?? '')),
+    [editData],
+  );
+
+  const resolvedSellerValue = useMemo(
+    () => resolveOptionValue(rawSellerOptions, sellerIdCandidates, sellerLabelCandidates),
+    [rawSellerOptions, sellerIdCandidates, sellerLabelCandidates],
+  );
+  const resolvedStoreTypeValue = useMemo(
+    () => resolveOptionValue(rawStoreTypeOptions, storeTypeIdCandidates, storeTypeLabelCandidates),
+    [rawStoreTypeOptions, storeTypeIdCandidates, storeTypeLabelCandidates],
+  );
+  const resolvedAreaValue = useMemo(
+    () => resolveOptionValue(AreaOptions, areaIdCandidates, areaLabelCandidates),
+    [AreaOptions, areaIdCandidates, areaLabelCandidates],
+  );
+
+  const fallbackSellerValue = useMemo(
+    () => firstNonEmpty(...sellerIdCandidates, ...sellerLabelCandidates),
+    [sellerIdCandidates, sellerLabelCandidates],
+  );
+  const fallbackStoreTypeValue = useMemo(
+    () => firstNonEmpty(...storeTypeIdCandidates, ...storeTypeLabelCandidates),
+    [storeTypeIdCandidates, storeTypeLabelCandidates],
+  );
+  const fallbackAreaValue = useMemo(
+    () => firstNonEmpty(...areaIdCandidates, ...areaLabelCandidates),
+    [areaIdCandidates, areaLabelCandidates],
+  );
+
+  const SellerOptions = useMemo(
+    () =>
+      mergeSelectedOption(
+        rawSellerOptions,
+        resolvedSellerValue || fallbackSellerValue,
+        firstNonEmpty(...sellerLabelCandidates),
+      ),
+    [rawSellerOptions, resolvedSellerValue, fallbackSellerValue, sellerLabelCandidates],
+  );
+  const StoreTypeOptions = useMemo(
+    () =>
+      mergeSelectedOption(
+        rawStoreTypeOptions,
+        resolvedStoreTypeValue || fallbackStoreTypeValue,
+        firstNonEmpty(...storeTypeLabelCandidates),
+      ),
+    [rawStoreTypeOptions, resolvedStoreTypeValue, fallbackStoreTypeValue, storeTypeLabelCandidates],
+  );
+  const EffectiveAreaOptions = useMemo(
+    () =>
+      mergeSelectedOption(
+        AreaOptions,
+        resolvedAreaValue || fallbackAreaValue,
+        firstNonEmpty(...areaLabelCandidates),
+      ),
+    [AreaOptions, resolvedAreaValue, fallbackAreaValue, areaLabelCandidates],
+  );
+
+  const effectiveSellerValue = useMemo(
+    () => safeStr(watchedSellerId) || safeStr(resolvedSellerValue) || safeStr(fallbackSellerValue),
+    [watchedSellerId, resolvedSellerValue, fallbackSellerValue],
+  );
+
+  const effectiveStoreTypeValue = useMemo(
+    () => safeStr(watchedStoreType) || safeStr(resolvedStoreTypeValue) || safeStr(fallbackStoreTypeValue),
+    [watchedStoreType, resolvedStoreTypeValue, fallbackStoreTypeValue],
+  );
+  const effectiveAreaValue = useMemo(
+    () => safeStr(watchedAreaId) || safeStr(resolvedAreaValue) || safeStr(fallbackAreaValue),
+    [watchedAreaId, resolvedAreaValue, fallbackAreaValue],
+  );
+
+  const fallbackAddressValue = useMemo(() => {
+    const rows = Array.isArray(editData?.translations) ? editData.translations : [];
+    const byLocale =
+      rows.find((r: any) => String(r?.language_code ?? '').toLowerCase() === String(locale).toLowerCase())
+        ?.address ?? '';
+    const byFirstLang =
+      rows.find((r: any) => String(r?.language_code ?? '').toLowerCase() === String(firstUILangId).toLowerCase())
+        ?.address ?? '';
+    const firstAny = rows.find((r: any) => safeStr(r?.address))?.address ?? '';
+    return safeStr(editData?.address) || safeStr(byLocale) || safeStr(byFirstLang) || safeStr(firstAny);
+  }, [editData, locale, firstUILangId]);
 
   // Map UI state
   const [polygonCoords, setPolygonCoords] = useState<any>(null);
@@ -318,7 +535,7 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
   // ✅ INIT (DB -> FORM)
   useEffect(() => {
     if (!editData || !editData?.id) {
-      setActiveLangId(uiLangs.find((l) => l.id === locale)?.id ?? firstUILangId);
+      setActiveLangId(displayLangs.find((l) => l.id === locale)?.id ?? firstUILangId);
       rebuildJsonNow();
       return;
     }
@@ -350,28 +567,31 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
     });
 
     // seller/store_type/area
-    const sellerId =
-      editData?.seller_id ??
-      editData?.store_seller_id ??
-      editData?.seller?.id ??
-      editData?.seller?.seller_id ??
-      '';
-    setValueAny('store_seller_id', sellerId ? String(sellerId) : '', { shouldDirty: false, shouldTouch: false });
+    setValueAny(
+      'store_seller_id',
+      resolvedSellerValue ? String(resolvedSellerValue) : String(fallbackSellerValue || ''),
+      {
+      shouldDirty: false,
+      shouldTouch: false,
+      },
+    );
 
-    const storeTypeId =
-      editData?.store_type ??
-      editData?.store_type_id ??
-      editData?.type?.id ??
-      editData?.type_id ??
-      '';
-    setValueAny('store_type', storeTypeId ? String(storeTypeId) : '', { shouldDirty: false, shouldTouch: false });
+    setValueAny(
+      'store_type',
+      resolvedStoreTypeValue ? String(resolvedStoreTypeValue) : String(fallbackStoreTypeValue || ''),
+      {
+        shouldDirty: false,
+        shouldTouch: false,
+      },
+    );
 
-    const areaId = editData?.area?.id ?? editData?.area_id ?? '';
-    setValueAny('area_id', areaId ? String(areaId) : '', { shouldDirty: false, shouldTouch: false });
+    setValueAny('area_id', resolvedAreaValue ? String(resolvedAreaValue) : String(fallbackAreaValue || ''), {
+      shouldDirty: false,
+      shouldTouch: false,
+    });
 
-    const addr = String(editData?.address ?? '');
+    const addr = fallbackAddressValue;
     setValueAny('address', addr, { shouldDirty: false, shouldTouch: false });
-    setValueAny('address_df', addr, { shouldDirty: false, shouldTouch: false });
 
     // images
     if (editData?.banner) {
@@ -407,15 +627,90 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
     initI18nFlatFormFromEntity({
       editData,
       firstUILangId,
-      uiLangs,
+      uiLangs: displayLangs,
       i18nFields: I18N_FIELDS,
       setValueAny,
       after: rebuildJsonNow,
     });
 
-    setActiveLangId(uiLangs.find((l) => l.id === locale)?.id ?? firstUILangId);
+    setActiveLangId(displayLangs.find((l) => l.id === locale)?.id ?? firstUILangId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editData?.id, firstUILangId]);
+  }, [
+    editData?.id,
+    firstUILangId,
+    resolvedSellerValue,
+    resolvedStoreTypeValue,
+    fallbackSellerValue,
+    fallbackStoreTypeValue,
+    resolvedAreaValue,
+    fallbackAreaValue,
+    fallbackAddressValue,
+  ]);
+
+  useEffect(() => {
+    if (!editData?.id) return;
+    const currentSeller = String(getValues('store_seller_id' as any) ?? '');
+    const currentType = String(getValues('store_type' as any) ?? '');
+
+    if (!currentSeller && (resolvedSellerValue || fallbackSellerValue)) {
+      setValueAny('store_seller_id', resolvedSellerValue || fallbackSellerValue, {
+        shouldDirty: false,
+        shouldTouch: false,
+      });
+    }
+
+    if (!currentType && (resolvedStoreTypeValue || fallbackStoreTypeValue)) {
+      setValueAny('store_type', resolvedStoreTypeValue || fallbackStoreTypeValue, {
+        shouldDirty: false,
+        shouldTouch: false,
+      });
+    }
+  }, [
+    editData?.id,
+    getValues,
+    resolvedSellerValue,
+    resolvedStoreTypeValue,
+    fallbackSellerValue,
+    fallbackStoreTypeValue,
+    setValueAny,
+  ]);
+
+  useEffect(() => {
+    if (!editData?.id) return;
+    if (!safeStr(getValues('store_seller_id' as any)) && effectiveSellerValue) {
+      setValueAny('store_seller_id', effectiveSellerValue, {
+        shouldDirty: false,
+        shouldTouch: false,
+      });
+    }
+    if (!safeStr(getValues('store_type' as any)) && effectiveStoreTypeValue) {
+      setValueAny('store_type', effectiveStoreTypeValue, {
+        shouldDirty: false,
+        shouldTouch: false,
+      });
+    }
+  }, [editData?.id, getValues, setValueAny, effectiveSellerValue, effectiveStoreTypeValue]);
+
+  useEffect(() => {
+    if (!editData?.id) return;
+    if (!safeStr(getValues('area_id' as any)) && effectiveAreaValue) {
+      setValueAny('area_id', effectiveAreaValue, {
+        shouldDirty: false,
+        shouldTouch: false,
+      });
+    }
+  }, [editData?.id, getValues, setValueAny, effectiveAreaValue]);
+
+  useEffect(() => {
+    if (!editData?.id) return;
+    const currentAddress = safeStr(getValues('address' as any));
+    if (!currentAddress && fallbackAddressValue) {
+      setValueAny('address', fallbackAddressValue, {
+        shouldDirty: false,
+        shouldTouch: false,
+      });
+    }
+  }, [editData?.id, getValues, setValueAny, fallbackAddressValue]);
 
   // JSON mode -> rebuild
   useEffect(() => {
@@ -426,36 +721,40 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
 
   // slug auto
   useEffect(() => {
-    if (!watchedNameDf) return;
-    setValueAny('slug', generateSlug(watchedNameDf), {
+    if (!watchedNameDefault) return;
+    setValueAny('slug', generateSlug(watchedNameDefault), {
       shouldDirty: true,
       shouldTouch: true,
       shouldValidate: false,
     });
-  }, [watchedNameDf, setValueAny]);
+  }, [watchedNameDefault, setValueAny]);
 
   const onJsonChange = (next: any) => {
     handleTranslationsJsonChange(next);
   };
 
-  const ensureDfFromFirstLang = () => {
+  const ensureDefaultFromFirstLang = () => {
     const v: any = getValues();
 
     const name = safeStr(v?.[`name_${firstUILangId}`]);
     const mt = safeStr(v?.[`meta_title_${firstUILangId}`]);
     const md = safeStr(v?.[`meta_description_${firstUILangId}`]);
 
-    if (name && !safeStr(v.name_df)) {
-      setValueAny('name_df', name, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+    if (name && !safeStr(v[defaultNameField])) {
+      setValueAny(defaultNameField, name, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true,
+      });
     }
-    if (mt && !safeStr(v.meta_title_df)) {
-      setValueAny('meta_title_df', mt, { shouldDirty: true, shouldTouch: true });
+    if (mt && !safeStr(v[defaultMetaTitleField])) {
+      setValueAny(defaultMetaTitleField, mt, { shouldDirty: true, shouldTouch: true });
     }
-    if (md && !safeStr(v.meta_description_df)) {
-      setValueAny('meta_description_df', md, { shouldDirty: true, shouldTouch: true });
+    if (md && !safeStr(v[defaultMetaDescriptionField])) {
+      setValueAny(defaultMetaDescriptionField, md, { shouldDirty: true, shouldTouch: true });
     }
 
-    const finalName = safeStr(getValues('name_df' as any));
+    const finalName = safeStr(getValues(defaultNameField as any));
     if (finalName && !safeStr(getValues('slug' as any))) {
       setValueAny('slug', generateSlug(finalName), { shouldDirty: true, shouldTouch: true });
     }
@@ -488,7 +787,6 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
         setValueAny('latitude', String(lat), { shouldDirty: true, shouldTouch: true });
         setValueAny('longitude', String(lng), { shouldDirty: true, shouldTouch: true });
         setValueAny('address', String(address), { shouldDirty: true, shouldTouch: true });
-        setValueAny('address_df', String(address), { shouldDirty: true, shouldTouch: true });
       }
     }
   };
@@ -515,7 +813,6 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
     setValueAny('latitude', String(newLat), { shouldDirty: true, shouldTouch: true });
     setValueAny('longitude', String(newLng), { shouldDirty: true, shouldTouch: true });
     setValueAny('address', String(address), { shouldDirty: true, shouldTouch: true });
-    setValueAny('address_df', String(address), { shouldDirty: true, shouldTouch: true });
   };
 
   const handleSaveImages = (images: UploadedImage[]) => {
@@ -563,32 +860,41 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
   const isSaving = !!storeHook?.isPending || !!updateHook?.isPending;
 
   const onSubmit = async () => {
-    if (viewMode === 'json') ensureDfFromFirstLang();
+    if (viewMode === 'json') ensureDefaultFromFirstLang();
 
     const v: any = getValues();
+    if (!safeStr(v.store_seller_id) && effectiveSellerValue) {
+      setValueAny('store_seller_id', effectiveSellerValue, { shouldDirty: false, shouldTouch: false });
+    }
+    if (!safeStr(v.store_type) && effectiveStoreTypeValue) {
+      setValueAny('store_type', effectiveStoreTypeValue, { shouldDirty: false, shouldTouch: false });
+    }
+    const latest: any = getValues();
 
-    if (!safeStr(v.name_df)) return toast.error('Please Select Store name ');
-    if (!safeStr(v.store_seller_id)) return toast.error('Please Select Seller ');
-    if (!safeStr(v.phone)) return toast.error('Contact number is required');
-    if (!safeStr(v.longitude) || !safeStr(v.latitude)) return toast.error('Please select location on map');
+    if (!safeStr(latest[defaultNameField])) return toast.error('Please Select Store name ');
+    if (!safeStr(latest.store_seller_id)) return toast.error('Please Select Seller ');
+    if (!safeStr(latest.phone)) return toast.error('Contact number is required');
+    if (!safeStr(latest.longitude) || !safeStr(latest.latitude)) return toast.error('Please select location on map');
 
-    const rootName = safeStr(v.name_df) || safeStr(v?.[`name_${firstUILangId}`]);
-    const rootMetaTitle = safeStr(v.meta_title_df) || safeStr(v?.[`meta_title_${firstUILangId}`]);
+    const rootName = safeStr(latest[defaultNameField]) || safeStr(latest?.[`name_${firstUILangId}`]);
+    const rootMetaTitle =
+      safeStr(latest[defaultMetaTitleField]) || safeStr(latest?.[`meta_title_${firstUILangId}`]);
     const rootMetaDesc =
-      safeStr(v.meta_description_df) || safeStr(v?.[`meta_description_${firstUILangId}`]);
+      safeStr(latest[defaultMetaDescriptionField]) || safeStr(latest?.[`meta_description_${firstUILangId}`]);
+    const rootAddress = safeStr(latest.address) || fallbackAddressValue;
 
     const defaultData: any = {
-      ...v,
+      ...latest,
       id: editData?.id ?? '',
 
       name: rootName,
       meta_title: rootMetaTitle,
       meta_description: rootMetaDesc,
 
-      address: safeStr(v.address_df ?? v.address),
+      address: rootAddress,
 
-      longitude: safeStr(v.longitude),
-      latitude: safeStr(v.latitude),
+      longitude: safeStr(latest.longitude),
+      latitude: safeStr(latest.latitude),
 
       banner: lastSelectedImages?.image_id ?? '',
       logo: lastSelectedLogo?.image_id ?? '',
@@ -598,17 +904,17 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
       multipart: true,
     };
 
-    const translations = (uiLangs ?? [])
+    const translations = (displayLangs ?? [])
       .filter((lang) => lang.id !== firstUILangId)
-      .filter((lang) => hasAnyI18nValue(v, lang.id))
+      .filter((lang) => hasAnyI18nValue(latest, lang.id))
       .map((lang) => ({
         language_code: lang.id,
-        name: safeStr(v?.[`name_${lang.id}`]),
-        meta_title: safeStr(v?.[`meta_title_${lang.id}`]),
-        meta_description: safeStr(v?.[`meta_description_${lang.id}`]),
+        name: safeStr(latest?.[`name_${lang.id}`]),
+        meta_title: safeStr(latest?.[`meta_title_${lang.id}`]),
+        meta_description: safeStr(latest?.[`meta_description_${lang.id}`]),
       }));
 
-    const translations_json = ensureLangKeys(translationsJson, uiLangs);
+    const translations_json = ensureLangKeys(translationsJson, displayLangs);
 
     const payload: any = {
       ...defaultData,
@@ -694,8 +1000,8 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
   const isSubmitDisabled =
     isSaving ||
     (viewMode === 'form' &&
-      (!safeStr(watchedSellerId) ||
-        !safeStr(watchedNameDf) ||
+      (!safeStr(effectiveSellerValue) ||
+        !safeStr(watchedNameDefault) ||
         !safeStr(String(watchedLongitude ?? '')) ||
         !safeStr(String(watchedLatitude ?? '')) ||
         !!errorMessage));
@@ -703,44 +1009,42 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
   return (
     <div className="pb-24">
       <form onSubmit={handleSubmit(onSubmit)}>
-        {/* DF hidden required by schema */}
-        <input type="hidden" {...register('name_df' as any)} />
-        <input type="hidden" {...register('meta_title_df' as any)} />
-        <input type="hidden" {...register('meta_description_df' as any)} />
-        <input type="hidden" {...register('address_df' as any)} />
-
         {/* Toggle header */}
         <Card className="mt-4">
           <CardContent className="p-2 md:p-4 flex items-center justify-between gap-3">
             <div className="text-sm font-semibold text-gray-700 dark:text-gray-200">
               {editData?.id ? t('button.update') : t('button.submit')}
             </div>
-
-            <div className="inline-flex rounded-md border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 overflow-hidden">
-              <button
-                type="button"
-                onClick={() => setViewMode('form')}
-                className={[
-                  'px-4 py-2 text-sm font-medium transition',
-                  viewMode === 'form'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800',
-                ].join(' ')}
-              >
-                Form
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('json')}
-                className={[
-                  'px-4 py-2 text-sm font-medium transition',
-                  viewMode === 'json'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800',
-                ].join(' ')}
-              >
-                JSON
-              </button>
+            <div className="flex items-center gap-2">
+              <Button type="submit" variant="outline" className="app-button" disabled={isSubmitDisabled}>
+                {isSaving ? <Loader size="small" /> : editData?.id ? t('button.update') : t('button.submit')}
+              </Button>
+              <div className="inline-flex rounded-md border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('form')}
+                  className={[
+                    'px-4 py-2 text-sm font-medium transition',
+                    viewMode === 'form'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800',
+                  ].join(' ')}
+                >
+                  Form
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('json')}
+                  className={[
+                    'px-4 py-2 text-sm font-medium transition',
+                    viewMode === 'json'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800',
+                  ].join(' ')}
+                >
+                  JSON
+                </button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -750,8 +1054,8 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
             <CardContent className="p-2 md:p-6">
               <AdminI18nJsonPanel
                 label="Store JSON"
-                languages={uiLangs}
-                value={ensureLangKeys(translationsJson, uiLangs)}
+                languages={displayLangs}
+                value={ensureLangKeys(translationsJson, displayLangs)}
                 onChange={onJsonChange}
                 perLanguage={true}
                 showAllTab={true}
@@ -770,51 +1074,50 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
               <CardContent className="p-2 md:p-6">
                 <p className="text-lg md:text-2xl font-medium mb-4">{t('label.basic_information')}</p>
 
-                {/* GLOBAL SELECTS */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <p className="text-sm font-medium mb-1">{t('label.seller')}</p>
-                    <Controller
-                      control={control}
-                      name="store_seller_id"
-                      render={({ field }) => (
-                        <AppSelect
-                          value={String(field.value ?? '')}
-                          onSelect={(value) => field.onChange(toSelectValue(value))}
-                          groups={SellerOptions}
-                        />
-                      )}
-                    />
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium mb-1">{t('label.store_type')}</p>
-                    <Controller
-                      control={control}
-                      name="store_type"
-                      render={({ field }) => (
-                        <AppSelect
-                          value={String(field.value ?? '')}
-                          onSelect={(value) => field.onChange(toSelectValue(value))}
-                          groups={StoreTypeOptions}
-                        />
-                      )}
-                    />
-                  </div>
-                </div>
-
-                {/* LANG TABS only for i18n fields */}
                 <Tabs value={activeLangId} onValueChange={(v) => setActiveLangId(String(v))}>
                   <TabsList dir={dir} className="flex justify-start bg-white dark:bg-[#1f2937]">
-                    {uiLangs.map((lang) => (
+                    {displayLangs.map((lang) => (
                       <TabsTrigger key={lang.id} value={lang.id}>
                         {lang.label}
                       </TabsTrigger>
                     ))}
                   </TabsList>
 
+                  {/* GLOBAL SELECTS */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 mt-4">
+                    <div>
+                      <p className="text-sm font-medium mb-1">{t('label.seller')}</p>
+                      <Controller
+                        control={control}
+                        name="store_seller_id"
+                        render={({ field }) => (
+                          <AppSelect
+                            value={String(field.value || effectiveSellerValue || '')}
+                            onSelect={(value) => field.onChange(toSelectValue(value))}
+                            groups={SellerOptions}
+                          />
+                        )}
+                      />
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium mb-1">{t('label.store_type')}</p>
+                      <Controller
+                        control={control}
+                        name="store_type"
+                        render={({ field }) => (
+                          <AppSelect
+                            value={String(field.value || effectiveStoreTypeValue || '')}
+                            onSelect={(value) => field.onChange(toSelectValue(value))}
+                            groups={StoreTypeOptions}
+                          />
+                        )}
+                      />
+                    </div>
+                  </div>
+
                   <div dir={dir}>
-                    {uiLangs.map((lang) => (
+                    {displayLangs.map((lang) => (
                       <TabsContent key={lang.id} value={lang.id}>
                         <div className="space-y-4">
                           <div>
@@ -1014,17 +1317,26 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
                         name="area_id"
                         render={({ field }) => (
                           <AppSelect
-                            value={String(field.value ?? '')}
+                            value={String(field.value || effectiveAreaValue || '')}
                             onSelect={(value) => {
                               const v = toSelectValue(value);
                               field.onChange(v);
                               handleAreaSelect(v);
                             }}
-                            groups={AreaOptions}
+                            groups={EffectiveAreaOptions}
                           />
                         )}
                       />
                       {errorMessage ? <p className="text-red-500 text-sm mt-2">{errorMessage}</p> : null}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium mb-1">{t('label.address')}</p>
+                      <Textarea
+                        id="address"
+                        {...register('address' as any)}
+                        className="app-input"
+                        placeholder={t('place_holder.enter_address')}
+                      />
                     </div>
 
                     <div className="mt-4">

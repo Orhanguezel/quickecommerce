@@ -17,3 +17,8 @@ npm run dev
 
 cd /home/orhan/Documents/quickecommerce/customer-web-nextjs
 npm run dev
+
+sportoonline.com
+
+ssh root@76.13.4.19
+Engin10001453.

@@ -121,11 +121,9 @@ class DynamicFieldsManageController extends Controller
         // return data
         $dynamic_field = $this->dynamicFieldRepo->getDynamicOptionForProduct($request->store_type);
 
-        // if data not fund
+        // No dynamic fields for this store type — return empty array (200, not 404)
         if ($dynamic_field === false){
-            return response()->json([
-                "massage" => "Data was not found"
-            ], 404);
+            return response()->json(['data' => []]);
         }
 
         return response()->json([

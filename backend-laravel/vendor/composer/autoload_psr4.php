@@ -121,6 +121,7 @@ return array(
     'Kreait\\Firebase\\JWT\\' => array($vendorDir . '/kreait/firebase-tokens/src/JWT'),
     'Kreait\\Firebase\\' => array($vendorDir . '/kreait/firebase-php/src/Firebase'),
     'JmesPath\\' => array($vendorDir . '/mtdowling/jmespath.php/src'),
+    'Iyzipay\\' => array($vendorDir . '/iyzico/iyzipay-php/src/Iyzipay'),
     'Intervention\\Image\\' => array($vendorDir . '/intervention/image/src/Intervention/Image'),
     'Illuminate\\Support\\' => array($vendorDir . '/laravel/framework/src/Illuminate/Macroable', $vendorDir . '/laravel/framework/src/Illuminate/Collections', $vendorDir . '/laravel/framework/src/Illuminate/Conditionable', $vendorDir . '/laravel/framework/src/Illuminate/Reflection'),
     'Illuminate\\' => array($vendorDir . '/laravel/framework/src/Illuminate'),

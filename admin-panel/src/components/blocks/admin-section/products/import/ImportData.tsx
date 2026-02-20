@@ -45,7 +45,7 @@ const ImportData = ({ data }: any) => {
         .slice(file.name.lastIndexOf("."))
         .toLowerCase();
       if (!validExtensions.includes(fileExtension)) {
-        alert("Please upload a valid CSV or XLSX file.");
+        toast.error(t("toast.please_upload_valid_csv_or_xlsx_file"));
         return;
       }
     }
@@ -89,7 +89,7 @@ const ImportData = ({ data }: any) => {
         }
       );
     } catch (error) {
-      alert("An unexpected error occurred. Please try again.");
+      toast.error(t("toast.unexpected_error_please_try_again"));
     }
   };
   const downloadFile = (blob: Blob, filename: string) => {
@@ -107,7 +107,7 @@ const ImportData = ({ data }: any) => {
   const handleSubmit = async () => {
     const file = uploadedFile;
     if (!file) {
-      toast.error("No file uploaded. Please upload a file.");
+      toast.error(t("toast.no_file_uploaded_please_upload_a_file"));
       return;
     }
     setIsImporting(true);
@@ -123,7 +123,7 @@ const ImportData = ({ data }: any) => {
         .slice(file.name.lastIndexOf("."))
         .toLowerCase();
       if (!validExtensions.includes(fileExtension)) {
-        toast.error("Please upload a valid CSV or XLSX file.");
+        toast.error(t("toast.please_upload_valid_csv_or_xlsx_file"));
         setIsImporting(false);
         return;
       }
@@ -138,7 +138,7 @@ const ImportData = ({ data }: any) => {
       toast.success(response?.message);
       setIsImporting(false);
     } catch (error) {
-      toast.error("File upload failed.");
+      toast.error(t("toast.file_upload_failed"));
       setIsImporting(false);
     }
   };
@@ -149,44 +149,11 @@ const ImportData = ({ data }: any) => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
             <Card className="shadow-lg">
               <CardHeader>
-                <CardTitle className="mb-2">First Step</CardTitle>
-                <CardDescription>Download CSV File</CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-4">
-                <div>
-                  <div className="grid grid-cols-[25px_1fr] items-start pb-4 last:mb-0 last:pb-0">
-                    <span className="flex h-2 w-2 translate-y-1 rounded-full bg-blue-500" />
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium leading-none text-gray-500 dark:text-white">
-                        Download the format file and fill it with proper data.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-[25px_1fr] items-start pb-4 last:mb-0 last:pb-0">
-                    <span className="flex h-2 w-2 translate-y-1 rounded-full bg-blue-500" />
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium leading-none text-gray-500 dark:text-white">
-                        You can download the example file to understand how the
-                        data must be filled.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-[25px_1fr] items-start pb-4 last:mb-0 last:pb-0">
-                    <span className="flex h-2 w-2 translate-y-1 rounded-full bg-blue-500" />
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium leading-none text-gray-500 dark:text-white">
-                        Have to upload CSV or XLSX file.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="shadow-lg">
-              <CardHeader>
-                <CardTitle className="mb-2">Second Step</CardTitle>
+                <CardTitle className="mb-2">
+                  {t("common.import_step_one_title")}
+                </CardTitle>
                 <CardDescription>
-                  Match Spread sheet data according to instruction{" "}
+                  {t("common.import_step_one_description")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4">
@@ -195,7 +162,7 @@ const ImportData = ({ data }: any) => {
                     <span className="flex h-2 w-2 translate-y-1 rounded-full bg-blue-500" />
                     <div className="space-y-1">
                       <p className="text-sm font-medium leading-none text-gray-500 dark:text-white">
-                        Download the format file and fill it with proper data.
+                        {t("common.import_step_one_note_one")}
                       </p>
                     </div>
                   </div>
@@ -203,8 +170,7 @@ const ImportData = ({ data }: any) => {
                     <span className="flex h-2 w-2 translate-y-1 rounded-full bg-blue-500" />
                     <div className="space-y-1">
                       <p className="text-sm font-medium leading-none text-gray-500 dark:text-white">
-                        Fill up the data according to the format and
-                        validations.
+                        {t("common.import_step_one_note_two")}
                       </p>
                     </div>
                   </div>
@@ -212,8 +178,7 @@ const ImportData = ({ data }: any) => {
                     <span className="flex h-2 w-2 translate-y-1 rounded-full bg-blue-500" />
                     <div className="space-y-1">
                       <p className="text-sm font-medium leading-none text-gray-500 dark:text-white">
-                        You can get store id tag id and unit id from their list
-                        please input the right ids.
+                        {t("common.import_step_one_note_three")}
                       </p>
                     </div>
                   </div>
@@ -222,9 +187,11 @@ const ImportData = ({ data }: any) => {
             </Card>
             <Card className="shadow-lg">
               <CardHeader>
-                <CardTitle className="mb-2">Third Step</CardTitle>
+                <CardTitle className="mb-2">
+                  {t("common.import_step_two_title")}
+                </CardTitle>
                 <CardDescription>
-                  Validate data and complete import{" "}
+                  {t("common.import_step_two_description")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4">
@@ -233,7 +200,7 @@ const ImportData = ({ data }: any) => {
                     <span className="flex h-2 w-2 translate-y-1 rounded-full bg-blue-500" />
                     <div className="space-y-1">
                       <p className="text-sm font-medium leading-none text-gray-500 dark:text-white">
-                        Upload your file in .csv format.
+                        {t("common.import_step_two_note_one")}
                       </p>
                     </div>
                   </div>
@@ -241,7 +208,45 @@ const ImportData = ({ data }: any) => {
                     <span className="flex h-2 w-2 translate-y-1 rounded-full bg-blue-500" />
                     <div className="space-y-1">
                       <p className="text-sm font-medium leading-none text-gray-500 dark:text-white">
-                        Finally click the upload button.
+                        {t("common.import_step_two_note_two")}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-[25px_1fr] items-start pb-4 last:mb-0 last:pb-0">
+                    <span className="flex h-2 w-2 translate-y-1 rounded-full bg-blue-500" />
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium leading-none text-gray-500 dark:text-white">
+                        {t("common.import_step_two_note_three")}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle className="mb-2">
+                  {t("common.import_step_three_title")}
+                </CardTitle>
+                <CardDescription>
+                  {t("common.import_step_three_description")}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-4">
+                <div>
+                  <div className="grid grid-cols-[25px_1fr] items-start pb-4 last:mb-0 last:pb-0">
+                    <span className="flex h-2 w-2 translate-y-1 rounded-full bg-blue-500" />
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium leading-none text-gray-500 dark:text-white">
+                        {t("common.import_step_three_note_one")}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-[25px_1fr] items-start pb-4 last:mb-0 last:pb-0">
+                    <span className="flex h-2 w-2 translate-y-1 rounded-full bg-blue-500" />
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium leading-none text-gray-500 dark:text-white">
+                        {t("common.import_step_three_note_two")}
                       </p>
                     </div>
                   </div>
@@ -250,7 +255,9 @@ const ImportData = ({ data }: any) => {
             </Card>
           </div>
           <div className="mt-4 text-center">
-            <p className="font-medium my-4">Download Spreadsheet Template</p>
+            <p className="font-medium my-4">
+              {t("common.download_spreadsheet_template")}
+            </p>
             <div className="flex flex-col lg:flex-row items-center justify-center space-x-0 lg:space-x-4 text-center ">
               <Button
                 variant="outline"
@@ -259,8 +266,8 @@ const ImportData = ({ data }: any) => {
                 onClick={() => downloadTemplate(true)}
               >
                 {isExporting && template
-                  ? "Downloading Sample...."
-                  : "Download Sample Data"}
+                  ? t("common.downloading_sample")
+                  : t("common.download_sample_data")}
               </Button>
               <Button
                 variant="outline"
@@ -269,8 +276,8 @@ const ImportData = ({ data }: any) => {
                 onClick={() => downloadTemplate(false)}
               >
                 {isExporting && !template
-                  ? "Downloading Empty...."
-                  : "Download Empty Template"}
+                  ? t("common.downloading_empty")
+                  : t("common.download_empty_template")}
               </Button>
             </div>
           </div>
@@ -279,7 +286,9 @@ const ImportData = ({ data }: any) => {
       <Card className="mt-4">
         <CardContent className="px-6 py-4">
           <div className="">
-            <p className="font-medium my-2">Import Products File</p>
+            <p className="font-medium my-2">
+              {t("common.import_products_file")}
+            </p>
             <div className="grid grid-cols-1 lg:grid-cols-3 ">
               <div className="border-2 border-dashed border-blue-500 text-center rounded cursor-pointer hover:bg-blue-50 transition-colors h-[100px]">
                 <FileUploader
@@ -290,7 +299,7 @@ const ImportData = ({ data }: any) => {
                   <div className="flex flex-col items-center justify-center h-full cursor-pointer">
                     <CloudUploadIcon className="h-6 w-6 text-blue-500" />
                     <p className="text-blue-500 font-medium">
-                      Drag and drop files or click to upload
+                      {t("common.drag_and_drop_files_or_click_to_upload")}
                     </p>
                     <p className="text-xs text-blue-500">CSV</p>
                   </div>
@@ -299,7 +308,7 @@ const ImportData = ({ data }: any) => {
             </div>
             {uploadedFile && (
               <p className="text-xl my-2">
-                Uploaded Products File:{" "}
+                {t("common.uploaded_products_file")}{" "}
                 <span className="text-blue-500">{uploadedFile?.name}</span>{" "}
               </p>
             )}
@@ -312,7 +321,7 @@ const ImportData = ({ data }: any) => {
               disabled={isImporting}
               onClick={handleSubmit}
             >
-              {isImporting ? "Importing..." : "Import File"}
+              {isImporting ? t("common.importing") : t("common.import_file")}
             </Button>
           </div>
         </CardContent>

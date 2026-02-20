@@ -14,7 +14,7 @@ export const useProductAttributeQuery = (options: Partial<ProductAttributeQueryO
   });
 
   return {
-    productAttribute: data?.data ?? [],
+    productAttribute: (data?.data as any)?.data ?? data?.data ?? [],
     error,
     isPending,
     refetch,

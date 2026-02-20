@@ -15,9 +15,27 @@ import {
   useAttributeListService,
   useAttributeStatusUpdateService,
   useAttributeUpdateService,
+  useAttributeTypeWiseService,
 } from "./attributes.service";
-import { AttributeQueryOptions } from "./attributes.type";
+import { AttributeQueryOptions, AttributeTypeWiseQueryOptions } from "./attributes.type";
 import { useEffect, useRef } from "react";
+
+export const useProductAttributeQuery = (options: Partial<AttributeTypeWiseQueryOptions>) => {
+  const { findAll } = useAttributeTypeWiseService();
+  const { data, isPending, error, refetch, isFetching } = useQuery({
+    queryKey: [API_ENDPOINTS.ATTRIBUTE_TYPE_WISE, options?.type],
+    queryFn: () => findAll(options),
+    enabled: !!options?.type,
+  });
+  const raw = (data?.data as any);
+  return {
+    productAttribute: Array.isArray(raw) ? raw : Array.isArray(raw?.data) ? raw.data : [],
+    error,
+    isPending,
+    refetch,
+    isFetching,
+  };
+};
 
 export const useAttributeListQuery = (
   options: Partial<AttributeQueryOptions>

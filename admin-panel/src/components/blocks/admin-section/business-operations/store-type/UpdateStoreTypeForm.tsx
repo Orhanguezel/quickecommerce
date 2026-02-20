@@ -70,9 +70,26 @@ interface Option {
 }
 
 const I18N_FIELDS = ['name', 'description', 'additional_charge_name'] as const;
+const VALID_CHARGE_TYPES = ['fixed', 'percentage'] as const;
 
 function normalizeStr(v: any) {
   return String(v ?? '').trim();
+}
+
+function normalizeChargeType(v: any): '' | 'fixed' | 'percentage' {
+  const s = normalizeStr(v).toLowerCase();
+  if (s === 'fixed') return 'fixed';
+  if (s === 'percentage' || s === 'percent' || s === '%') return 'percentage';
+  return '';
+}
+
+function normalizeImageId(v: any): number | null {
+  if (typeof v === 'number' && Number.isInteger(v) && v > 0) return v;
+  const s = normalizeStr(v);
+  if (!s) return null;
+  if (!/^\d+$/.test(s)) return null;
+  const n = Number(s);
+  return Number.isInteger(n) && n > 0 ? n : null;
 }
 
 /**
@@ -138,6 +155,8 @@ const UpdateStoreTypeForm = ({ data }: any) => {
   const setValueAny = useMemo(() => makeRHFSetValueAny<StoreTypeFormData>(setValue), [setValue]);
 
   const checkedValue = watch();
+  const watchedChargeType = watch('additional_charge_type');
+  const watchedChargeAmount = watch('additional_charge_amount');
 
   // Scaffold (df excluded, first tab = first UI lang)
   const {
@@ -252,17 +271,21 @@ const UpdateStoreTypeForm = ({ data }: any) => {
     });
 
     // numbers & type (non-i18n)
-    setValueAny('additional_charge_amount', String(data?.additional_charge_amount ?? ''), {
+    const normalizedType = normalizeChargeType(data?.additional_charge_type);
+    const normalizedAmount = normalizeStr(data?.additional_charge_amount);
+    const normalizedCommission = normalizeStr(data?.additional_charge_commission);
+
+    setValueAny('additional_charge_amount', normalizedAmount || '0', {
       shouldDirty: false,
       shouldTouch: false,
       shouldValidate: false,
     });
-    setValueAny('additional_charge_type', data?.additional_charge_type ?? '', {
+    setValueAny('additional_charge_type', normalizedType, {
       shouldDirty: false,
       shouldTouch: false,
       shouldValidate: false,
     });
-    setValueAny('additional_charge_commission', String(data?.additional_charge_commission ?? ''), {
+    setValueAny('additional_charge_commission', normalizedCommission || '0', {
       shouldDirty: false,
       shouldTouch: false,
       shouldValidate: false,
@@ -336,6 +359,34 @@ const UpdateStoreTypeForm = ({ data }: any) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.id, firstUILangId]);
 
+  useEffect(() => {
+    if (!data?.id) return;
+    const currentType = normalizeChargeType(getValues('additional_charge_type'));
+    if (!currentType) {
+      const fallbackType = normalizeChargeType(data?.additional_charge_type);
+      if (fallbackType) {
+        setValueAny('additional_charge_type', fallbackType, {
+          shouldDirty: false,
+          shouldTouch: false,
+          shouldValidate: false,
+        });
+      }
+    }
+  }, [data?.id, data?.additional_charge_type, getValues, setValueAny, watchedChargeType]);
+
+  useEffect(() => {
+    if (!data?.id) return;
+    const currentAmount = normalizeStr(getValues('additional_charge_amount'));
+    if (!currentAmount) {
+      const fallbackAmount = normalizeStr(data?.additional_charge_amount);
+      setValueAny('additional_charge_amount', fallbackAmount || '0', {
+        shouldDirty: false,
+        shouldTouch: false,
+        shouldValidate: false,
+      });
+    }
+  }, [data?.id, data?.additional_charge_amount, getValues, setValueAny, watchedChargeAmount]);
+
   // Mode sync: when entering JSON, rebuild from latest form edits
   useEffect(() => {
     if (viewMode !== 'json') return;
@@ -387,13 +438,24 @@ const UpdateStoreTypeForm = ({ data }: any) => {
     useStoreTypeUpdateMutation();
 
   const onSubmit = async (values: StoreTypeFormData) => {
+    const safeType =
+      normalizeChargeType(values.additional_charge_type) ||
+      normalizeChargeType(data?.additional_charge_type);
+    const safeAmountRaw = normalizeStr(values.additional_charge_amount);
+    const safeAmount = safeAmountRaw ? Number(safeAmountRaw) : 0;
+    const safeCommissionRaw = normalizeStr(values.additional_charge_commission);
+    const safeCommission = safeCommissionRaw ? Number(safeCommissionRaw) : 0;
+
+    const safeImageId = normalizeImageId(lastSelectedImages?.image_id);
+
     const defaultData = {
       name: values.name_df,
       description: values.description_df,
       additional_charge_name: values.additional_charge_name_df,
-      additional_charge_amount: Number(values.additional_charge_amount || 0),
-      additional_charge_type: values.additional_charge_type,
-      additional_charge_commission: Number(values.additional_charge_commission || 0),
+      additional_charge_amount: Number.isFinite(safeAmount) ? Math.trunc(safeAmount) : 0,
+      additional_charge_type: safeType || null,
+      additional_charge_commission: Number.isFinite(safeCommission) ? safeCommission : 0,
+      image: safeImageId,
     };
 
     const translations = uiLangs
@@ -409,7 +471,6 @@ const UpdateStoreTypeForm = ({ data }: any) => {
     const submissionData = {
       ...defaultData,
       id: !data ? 0 : data.id,
-      image: lastSelectedImages ? lastSelectedImages?.image_id : '',
       additional_charge_enable_disable: isFeature ? 1 : 0,
       translations,
       // if backend supports later:
@@ -663,10 +724,15 @@ const UpdateStoreTypeForm = ({ data }: any) => {
                               name="additional_charge_type"
                               render={({ field }) => (
                                 <AppSelect
-                                  value={field.value || ''}
+                                  value={
+                                    normalizeChargeType(field.value) ||
+                                    normalizeChargeType(data?.additional_charge_type) ||
+                                    ''
+                                  }
                                   onSelect={(value) => {
-                                    field.onChange(value);
-                                    handleSelectItem(value, 'additional_charge_type');
+                                    const normalized = normalizeChargeType(value);
+                                    field.onChange(normalized);
+                                    handleSelectItem(normalized, 'additional_charge_type');
                                   }}
                                   groups={DiscountTypeList}
                                   hideNone

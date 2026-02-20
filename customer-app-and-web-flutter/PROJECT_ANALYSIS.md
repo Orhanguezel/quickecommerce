@@ -83,26 +83,34 @@ The project predominantly uses the **BLoC (Business Logic Component)** pattern f
 - **User Profile**: Profile update, Image upload, Address management.
 - **General**: Home page settings, Sliders, Banners, Notifications, Favorites.
 
-## 7. Recommendations for Optimization & Refactoring
+## 7. Optimization & Refactoring Status (Completed)
 
 1.  **Fix Naming Conventions**:
-    - Rename `lib/data/sirvice` into `lib/data/service`.
-    - Rename `lib/thyme` into `lib/theme`.
-    - Correct file typos like `connectivity_rypository.dart`.
+    - Renamed `lib/data/sirvice` to `lib/data/service`.
+    - Renamed `connectivity_rypository.dart` to `connectivity_repository.dart`.
+    - Renamed `notification_reposytory.dart` to `notification_repository.dart`.
+    - Renamed `lokal_database_repository.dart` to `local_database_repository.dart`.
 
 2.  **Centralize Networking**:
-    - Create a singleton `DioClient` or a dependency injection module for `Dio`.
-    - Use **Interceptors** to automatically attach the `Authorization` token and handle 401 (Unauthorized) errors globally (e.g., auto-logout or refresh token).
+    - Created `lib/data/service/api_client.dart` implementing a singleton `Dio` client with interceptors.
+    - Refactored all repositories (`AuthRepository`, `CommonRepository`, `ProductRepository`, `SaveRepository`, `NotificationRepository`) to use `ApiClient`.
+    - Token authorization is now handled automatically via interceptors.
 
-3.  **Refactor State Management**:
-    - Ensure consistent use of Bloc events and states.
-    - Review `Provider` usage to ensure it's not duplicating functionalities covered by Bloc.
+3.  **Centralize Language Management**:
+    - Created `lib/config/app_languages.dart` for centralized locale configuration.
+    - Refactored `lib/screens/language/language.dart`, `main.dart`, and `ThemeProvider` to use `AppLanguages`.
+    - Added support for Turkish (`tr`) locale.
 
-4.  **Code cleanup**:
-    - Remove commented-out code blocks.
-    - Ensure `ApiUrls` are dynamic and environment-friendly.
+4.  **Remove Flutter Web**:
+    - Removed `web/` directory.
+    - Removed `kIsWeb` logic and web-specific Firebase initialization from `main.dart` and `firebase_options.dart`.
+    - Removed web-specific keys from `firebase_options.dart`.
 
-5.  **Remove Flutter Web Entry Point**:
-    - As per the objective, future steps will involve removing the web-specific build configurations in favor of Next.js.
+## 8. Next Steps
 
+- **Testing**: Rigorous testing of the new `ApiClient` integration.
+- **Further Cleanup**: Review `lib/controller/bloc` for any residual direct API calls (though `Dio()` search suggested none).
+- **UI Refinement**: Continue optimizing UI for mobile experience now that Web bloat is removed.
+
+This analysis provides a solid foundation for the subsequent optimization and refactoring tasks.
 This analysis provides a solid foundation for the subsequent optimization and refactoring tasks.

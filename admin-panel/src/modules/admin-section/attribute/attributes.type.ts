@@ -17,3 +17,7 @@ export interface Attribute {
     name: string;
     slug: string;
   }
+
+export interface AttributeTypeWiseQueryOptions {
+  type?: string;
+}
