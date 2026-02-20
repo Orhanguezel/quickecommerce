@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "@/i18n/routing";
 import { useLocale } from "next-intl";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ROUTES } from "@/config/routes";
 import { useCartStore } from "@/stores/cart-store";
 import {
@@ -14,6 +14,7 @@ import {
   usePlaceOrderMutation,
   usePaymentGatewaysQuery,
 } from "@/modules/checkout/checkout.service";
+import { useProfileQuery } from "@/modules/profile/profile.service";
 import type {
   CustomerAddress,
   PlaceOrderInput,
@@ -42,6 +43,7 @@ import {
   Loader2,
   Check,
   Tag,
+  XCircle,
 } from "lucide-react";
 
 const gatewayIconMap: Record<string, typeof CreditCard> = {
@@ -66,6 +68,9 @@ interface Props {
 export function CheckoutClient({ translations: t }: Props) {
   const locale = useLocale();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const paymentStatus = searchParams.get("payment");
+  const failedOrderId = searchParams.get("order");
   const items = useCartStore((s) => s.items);
   const totalPrice = useCartStore((s) => s.totalPrice);
   const clearCart = useCartStore((s) => s.clearCart);
@@ -98,7 +103,8 @@ export function CheckoutClient({ translations: t }: Props) {
   });
 
   // Queries & Mutations
-  const { data: addresses, isLoading: addressesLoading } =
+  const { data: profile } = useProfileQuery();
+  const { data: addresses, isLoading: addressesLoading, isError: addressesError, refetch: refetchAddresses } =
     useAddressListQuery();
   const addAddressMutation = useAddAddressMutation();
   const couponMutation = useCheckCouponMutation();
@@ -132,10 +138,48 @@ export function CheckoutClient({ translations: t }: Props) {
     else setSelectedAddressId(addresses[0].id);
   }, [addresses, selectedAddressId]);
 
+  // Pre-fill address form with profile info when the form is opened
+  useEffect(() => {
+    if (!showAddressForm || !profile) return;
+    setAddressForm((prev) => ({
+      ...prev,
+      email: prev.email || profile.email || "",
+      contact_number: prev.contact_number || profile.phone || "",
+    }));
+  }, [showAddressForm, profile]);
+
   // Calculations
   const subtotal = totalPrice();
   const couponDiscount = appliedCoupon?.discount ?? 0;
   const total = Math.max(0, subtotal - couponDiscount);
+
+  // Payment failed redirect
+  if (paymentStatus === "failed") {
+    return (
+      <div className="container mx-auto px-4 py-16 text-center">
+        <XCircle className="mx-auto mb-4 h-16 w-16 text-destructive" />
+        <h1 className="mb-2 text-2xl font-bold">Ödeme Başarısız</h1>
+        <p className="mb-2 text-muted-foreground">
+          Ödeme işlemi tamamlanamadı. Lütfen kart bilgilerinizi kontrol edip tekrar deneyin.
+        </p>
+        {failedOrderId && (
+          <p className="mb-6 text-sm text-muted-foreground">
+            Sipariş No: #{failedOrderId}
+          </p>
+        )}
+        <div className="flex justify-center gap-4">
+          <Button asChild variant="outline">
+            <Link href={ROUTES.HOME}>{t.home}</Link>
+          </Button>
+          {failedOrderId && (
+            <Button asChild>
+              <Link href={`/siparis/${failedOrderId}`}>Siparişi Görüntüle</Link>
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   // Empty cart check
   if (items.length === 0) {
@@ -159,7 +203,7 @@ export function CheckoutClient({ translations: t }: Props) {
         is_default: !addresses || addresses.length === 0,
       },
       {
-        onSuccess: () => {
+        onSuccess: (data) => {
           setShowAddressForm(false);
           setAddressForm({
             type: "home",
@@ -172,6 +216,9 @@ export function CheckoutClient({ translations: t }: Props) {
             floor: "",
             postal_code: "",
           });
+          // Auto-select the newly created address
+          const newId = data?.data?.id ?? data?.id;
+          if (newId) setSelectedAddressId(newId);
         },
       }
     );
@@ -312,6 +359,17 @@ export function CheckoutClient({ translations: t }: Props) {
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 {t.loading}
+              </div>
+            ) : addressesError ? (
+              <div className="flex items-center gap-3 text-sm text-destructive">
+                <span>{t.error}</span>
+                <button
+                  type="button"
+                  onClick={() => refetchAddresses()}
+                  className="underline hover:no-underline"
+                >
+                  {t.loading}
+                </button>
               </div>
             ) : !addresses || addresses.length === 0 ? (
               <p className="text-muted-foreground">{t.no_addresses}</p>

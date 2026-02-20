@@ -140,6 +140,7 @@ export default async function StoreDetailPage({ params }: Props) {
       />
       <StoreDetailClient
         store={store}
+        locale={locale}
         translations={{
           stores: storeT("stores"),
           details: storeT("details"),

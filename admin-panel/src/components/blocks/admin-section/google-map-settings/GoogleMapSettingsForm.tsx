@@ -14,12 +14,14 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslations } from "next-intl";
 
 type ToggleState = {
   com_google_map_enable_disable: string;
 };
 
 const GoogleMapSettingsForm = () => {
+  const t = useTranslations();
   const { GoogleMapSettingsData, refetch, isPending } =
     useGoogleMapSettingsQuery({});
 
@@ -82,7 +84,7 @@ const GoogleMapSettingsForm = () => {
                   htmlFor="com_google_map_enable_disable"
                   className="text-sm font-medium mb-1 block"
                 >
-                  Google Map Enable/Disable
+                  {t("label.com_google_map_enable_disable")}
                 </label>
                 <Switch
                   id="com_google_map_enable_disable"
@@ -98,7 +100,7 @@ const GoogleMapSettingsForm = () => {
                 htmlFor="com_google_map_api_key"
                 className="text-sm font-medium mb-1 block"
               >
-                Google Map API Key
+                {t("label.com_google_map_api_key")}
               </label>
               <Input
                 id="com_google_map_api_key"
@@ -106,40 +108,36 @@ const GoogleMapSettingsForm = () => {
                   "com_google_map_api_key" as keyof GoogleMapSettingsFormData
                 )}
                 className="app-input"
-                placeholder="Enter your API key for Google Maps"
+                placeholder={t("place_holder.enter_google_map_api_key")}
               />
 
               {/* Notes Section */}
               <div className="text-sm text-gray-500 dark:text-white mt-2 ">
-                <strong className="bg-dark text-white p-1">Notes:</strong>
+                <strong className="bg-dark text-white p-1">{t("common.note")}:</strong>
                 <ul className="list-inside list-disc mt-2 space-y-1">
                   <li>
-                    <strong>Store Location Setup:</strong> Create and manage
-                    your seller&#39;s store locations on the map to improve
-                    visibility and provide accurate geographical data.
+                    <strong>{t("common.store_location_setup")}:</strong>{" "}
+                    {t("common.store_location_setup_note")}
                   </li>
                   <li>
-                    <strong>Product Filtering by Location:</strong> Allow
-                    customers to filter products based on their location,
-                    enhancing the shopping experience by showing nearby stores
-                    or sellers.
+                    <strong>{t("common.product_filtering_by_location")}:</strong>{" "}
+                    {t("common.product_filtering_by_location_note")}
                   </li>
                 </ul>
                 <br />
-                You can get your API key by following the{" "}
+                {t("common.api_key_get_instruction_prefix")}{" "}
                 <a
                   href="https://developers.google.com/maps/gmp-get-started"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-500 hover:underline dark:text-[#93c5fd] dark:hover:text-white "
                 >
-                  Google Maps API documentation
+                  {t("common.google_maps_api_documentation")}
                 </a>
                 .
                 <br />
-                <strong className="text-red-500 mt-2">Important:</strong> Always
-                keep your API key secure. Do not share it publicly or in
-                unsecured places.
+                <strong className="text-red-500 mt-2">{t("common.important")}:</strong>{" "}
+                {t("common.google_map_api_key_security_note")}
               </div>
             </div>
           </CardContent>
@@ -147,7 +145,7 @@ const GoogleMapSettingsForm = () => {
 
         {/* Submit button */}
         <Card className="mt-4 sticky bottom-0 w-full p-4">
-          <SubmitButton IsLoading={isUpdating} AddLabel="Save Changes" />
+          <SubmitButton IsLoading={isUpdating} AddLabel={t("button.save_changes")} />
         </Card>
       </form>
     </div>

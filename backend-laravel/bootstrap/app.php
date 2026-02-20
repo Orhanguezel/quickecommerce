@@ -31,7 +31,6 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'detect.platform' => \App\Http\Middleware\DetectPlatform::class,
-            'auth:sanctum' => \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,

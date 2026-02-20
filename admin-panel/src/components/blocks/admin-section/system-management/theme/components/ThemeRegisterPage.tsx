@@ -3,7 +3,7 @@ import CloudIcon from "@/assets/icons/CloudIcon";
 import Cancel from "@/components/blocks/custom-icons/Cancel";
 import { SubmitButton } from "@/components/blocks/shared";
 import PhotoUploadModal, { type UploadedImage } from "@/components/blocks/shared/PhotoUploadModal";
-import multiLang from "@/components/molecules/multiLang.json";
+import { getThemeLanguageData } from "../utils/themeLanguage";
 import {
   Card,
   Input,
@@ -44,7 +44,6 @@ type ToggleState = {
   loginOTP: string;
   maintenanceMode: string;
 };
-type LangKeys = keyof IntlMessages["lang"];
 
 const ThemeRegisterPage: React.FC<ThemeRegisterPageProps> = ({
   allData,
@@ -54,7 +53,7 @@ const ThemeRegisterPage: React.FC<ThemeRegisterPageProps> = ({
   handleChange,
 }) => {
   const t = useTranslations();
-  const multiLangData = React.useMemo(() => multiLang, []);
+  const multiLangData = React.useMemo(() => getThemeLanguageData(), []);
   const pathname = usePathname();
   const locale = pathname.split("/")[1];
   const dir = locale === "ar" ? "rtl" : "ltr";
@@ -114,11 +113,13 @@ const ThemeRegisterPage: React.FC<ThemeRegisterPageProps> = ({
     }
 
     if (Object.keys((allData as any).translations || {}).length > 0) {
-      multiLangData.forEach((lang) => {
+      multiLangData
+        .filter((lang) => lang.id !== "df")
+        .forEach((lang) => {
         const langCode = lang.id;
         const translation =
-          (allData as any).translations?.[langCode]?.theme_data?.theme_pages[0]
-            ?.theme_register_page[0] || {};
+          (allData as any).translations?.[langCode]?.theme_data?.theme_pages?.[0]
+            ?.theme_register_page?.[0] || {};
 
         if (translation) {
           setValue(
@@ -196,12 +197,20 @@ const ThemeRegisterPage: React.FC<ThemeRegisterPageProps> = ({
       delete updatedThemeData.theme_pages.theme_register_page;
     }
     const updatedTranslations: Record<string, any> = JSON.parse(
-      JSON.stringify((allData as any).translations)
+      JSON.stringify((allData as any).translations || {})
     );
     if (Object.keys(updatedTranslations).length > 0) {
-      multiLangData.forEach((lang) => {
+      multiLangData
+        .filter((lang) => lang.id !== "df")
+        .forEach((lang) => {
         const langCode = lang.id;
 
+        if (!updatedTranslations[langCode]) {
+          updatedTranslations[langCode] = { theme_data: { theme_pages: { "0": {} } } };
+        }
+        if (!updatedTranslations[langCode].theme_data?.theme_pages) {
+          updatedTranslations[langCode].theme_data.theme_pages = { "0": {} };
+        }
         if (!updatedTranslations[langCode].theme_data.theme_pages["0"]) {
           updatedTranslations[langCode].theme_data.theme_pages["0"] = {};
         }
@@ -293,7 +302,7 @@ const ThemeRegisterPage: React.FC<ThemeRegisterPageProps> = ({
               <Card className="p-4 space-y-6">
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    {t("theme.register.title_label")} ({t(`lang.${lang.id}` as `lang.${LangKeys}`)})
+                    {t("theme.register.title_label")} ({lang.label})
                   </label>
                   <Input
                     id={`title_${lang.id}`}
@@ -307,7 +316,7 @@ const ThemeRegisterPage: React.FC<ThemeRegisterPageProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    {t("theme.register.subtitle_label")} ({t(`lang.${lang.id}` as `lang.${LangKeys}`)})
+                    {t("theme.register.subtitle_label")} ({lang.label})
                   </label>
                   <Input
                     id={`subtitle_${lang.id}`}
@@ -321,7 +330,7 @@ const ThemeRegisterPage: React.FC<ThemeRegisterPageProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    {t("theme.register.description_label")} ({t(`lang.${lang.id}` as `lang.${LangKeys}`)})
+                    {t("theme.register.description_label")} ({lang.label})
                   </label>
                   <Textarea
                     id={`description_${lang.id}`}
@@ -335,7 +344,7 @@ const ThemeRegisterPage: React.FC<ThemeRegisterPageProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    {t("theme.register.terms_page_title")} ({t(`lang.${lang.id}` as `lang.${LangKeys}`)})
+                    {t("theme.register.terms_page_title")} ({lang.label})
                   </label>
                   <Input
                     id={`terms_page_title_${lang.id}`}

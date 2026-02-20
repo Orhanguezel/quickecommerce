@@ -35,11 +35,13 @@ interface StoreDetailTranslations {
 
 interface StoreDetailClientProps {
   store: StoreDetail;
+  locale: string;
   translations: StoreDetailTranslations;
 }
 
 export function StoreDetailClient({
   store,
+  locale,
   translations: t,
 }: StoreDetailClientProps) {
   const [activeTab, setActiveTab] = useState<"all" | "featured">(
@@ -49,6 +51,16 @@ export function StoreDetailClient({
   const products =
     activeTab === "featured" ? store.featured_products : store.all_products;
   const hasFeatured = store.featured_products.length > 0;
+  const formatStartedFrom = (value: string) => {
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return value;
+
+    return new Intl.DateTimeFormat(locale === "tr" ? "tr-TR" : "en-US", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }).format(parsed);
+  };
 
   return (
     <div className="container py-6">
@@ -155,7 +167,7 @@ export function StoreDetailClient({
           {/* Right: Started from (bottom-right) */}
           {store.started_from && (
             <span className="absolute bottom-4 right-6 text-sm text-white/60 sm:bottom-6 sm:right-8">
-              {t.started_from}: {store.started_from}
+              {t.started_from}: {formatStartedFrom(store.started_from)}
             </span>
           )}
         </div>

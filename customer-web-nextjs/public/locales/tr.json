@@ -375,7 +375,20 @@
     "status_on_hold": "Bekletiliyor",
     "payment_pending": "Ödeme Bekleniyor",
     "payment_paid": "Ödendi",
-    "payment_failed": "Ödeme Başarısız"
+    "payment_failed": "Ödeme Başarısız",
+    "request_refund": "İade Talebi",
+    "refund_request": "İade Talebi Oluştur",
+    "refund_reason": "İade Sebebi",
+    "refund_select_reason": "Sebep seçiniz",
+    "refund_note": "Açıklama",
+    "refund_note_placeholder": "İade talebiniz hakkında detayları yazınız...",
+    "refund_file": "Dosya Ekle",
+    "refund_file_optional": "isteğe bağlı",
+    "refund_submit": "Talebi Gönder",
+    "refund_status_requested": "İade Talep Edildi",
+    "refund_status_processing": "İade İşleniyor",
+    "refund_status_refunded": "İade Edildi",
+    "refund_status_rejected": "İade Reddedildi"
   },
   "account": {
     "my_account": "Hesabım",

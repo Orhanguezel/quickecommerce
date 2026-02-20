@@ -45,6 +45,44 @@ const GATEWAY_DEFAULT_AUTH_KEYS: Record<string, string[]> = {
   ],
 };
 
+// Field-level tooltip descriptions shown when admin clicks the (!) icon
+const FIELD_TOOLTIPS: Record<string, Record<string, string>> = {
+  iyzico: {
+    api_key:
+      "iyzico Merchant Portal → Ayarlar → Firma Ayarları → API Anahtarları → API Anahtarı",
+    secret_key:
+      "iyzico Merchant Portal → Ayarlar → Firma Ayarları → API Anahtarları → Güvenlik Anahtarı",
+    sub_merchant_key:
+      "iyzico Merchant Portal → Alt Üye İşyerleri sayfasından mağazanıza ait 'Alt Üye İşyeri Anahtarı' değerini buraya girin. Marketplace Mode açıkken tüm ödemeler için varsayılan sub-merchant key olarak kullanılır.",
+    store_sub_merchant_keys:
+      'Her mağazanın kendi iyzico sub-merchant hesabı varsa buraya JSON formatında girin. Örnek: {"5": "sub_merchant_key_1", "12": "sub_merchant_key_2"}. Anahtar olarak admin paneldeki Store ID kullanılır. Tek sub-merchant kullanıyorsanız boş bırakın.',
+  },
+  paytr: {
+    merchant_id:
+      "PayTR Merchant Panel → Hesap Bilgileri bölümünden Merchant ID değerini buraya girin.",
+    merchant_key:
+      "PayTR Merchant Panel → Hesap Bilgileri bölümünden Merchant Key değerini buraya girin.",
+    merchant_salt:
+      "PayTR Merchant Panel → Hesap Bilgileri bölümünden Merchant Salt değerini buraya girin.",
+  },
+  moka: {
+    dealer_code:
+      "Moka Pos tarafından size verilen Dealer Code (bayi kodu) değerini buraya girin.",
+    username:
+      "Moka Pos API erişimi için kullandığınız kullanıcı adını buraya girin.",
+    password:
+      "Moka Pos API erişimi için kullandığınız şifreyi buraya girin.",
+  },
+  ziraatpay: {
+    merchant_id:
+      "ZiraatPay tarafından size verilen Merchant ID (üye işyeri numarası) değerini buraya girin.",
+    terminal_id:
+      "ZiraatPay tarafından atanan Terminal ID değerini buraya girin.",
+    secret_key:
+      "ZiraatPay API erişimi için kullanılan Secret Key değerini buraya girin.",
+  },
+};
+
 type Props = {
   getwayname?: string;
   paymentgetway?: any;
@@ -96,7 +134,11 @@ const GetwaySettingsForm = ({
     setValue("description", getwaySettingsData?.description ?? "");
 
     authCredentialKeys.forEach((key) => {
-      setValue(key, getwaySettingsData?.auth_credentials?.[key] ?? "");
+      let value = getwaySettingsData?.auth_credentials?.[key] ?? "";
+      if (value && typeof value === "object") {
+        value = JSON.stringify(value);
+      }
+      setValue(key, value);
     });
 
     setLastSelectedLogo({
@@ -217,20 +259,20 @@ const GetwaySettingsForm = ({
       ) : (
         <form onSubmit={handleSubmit(onSubmit)}>
           <CardContent className="p-2 md:p-4">
-            <p className="text-lg md:text-2xl font-medium mb-4">Payment Getway</p>
+            <p className="text-lg md:text-2xl font-medium mb-4">{t("label.payment_gateway")}</p>
             <div dir={dir}>
               <div className="bg-gray-200 dark:bg-gray-700 p-4 border-l-8 border-blue-600">
-                If your currency is not available in{" "}
+                {t("common.payment_gateway_currency_note_prefix")}{" "}
                 <strong>
                   <i className="capitalize">{formatLabel(getwayname || "", "_")}</i>
                 </strong>
-                , it will convert you currency value to USD value based on your currency exchange rate.
+                {t("common.payment_gateway_currency_note_suffix")}
               </div>
 
               <div className="mt-6">
                 <div className=" grid grid-cols-2">
                   <p className="text-1xl font-medium mb-1">
-                    Enable/Disable{" "}
+                    {t("common.enable_disable")}{" "}
                     <strong>
                       <i className="capitalize">{formatLabel(getwayname || "", "_")}</i>
                     </strong>
@@ -244,7 +286,7 @@ const GetwaySettingsForm = ({
 
                 <div className="my-4 grid grid-cols-2">
                   <p className="text-1xl font-medium mb-1">
-                    Enable/Disable Test Mode{" "}
+                    {t("label.enable_disable_test_mode")}{" "}
                     <strong>
                       <i className="capitalize">{formatLabel(getwayname || "", "_")}</i>
                     </strong>
@@ -259,7 +301,7 @@ const GetwaySettingsForm = ({
                 {getwayname === "iyzico" && (
                   <div className="my-4 grid grid-cols-2">
                     <p className="text-1xl font-medium mb-1">
-                      Enable/Disable Marketplace Mode{" "}
+                      {t("label.enable_disable_marketplace_mode")}{" "}
                       <strong>
                         <i className="capitalize">{formatLabel(getwayname || "", "_")}</i>
                       </strong>
@@ -279,7 +321,7 @@ const GetwaySettingsForm = ({
                     <strong>
                       <i className="capitalize">{formatLabel(getwayname || "", "_")}</i>
                     </strong>{" "}
-                    Logo
+                    {t("label.logo")}
                   </p>
                   <div className="relative flex align-start gap-4">
                     <div className="relative w-32">
@@ -324,25 +366,40 @@ const GetwaySettingsForm = ({
                           <TooltipTrigger asChild>
                             <Info className="w-4 text-custom-dark-blue cursor-pointer" />
                           </TooltipTrigger>
-                          <TooltipContent className="bg-custom-dark-blue">
-                            <p className="p-1 text-sm font-medium">Please provide {formatLabel(key, "_")}</p>
+                          <TooltipContent className="bg-custom-dark-blue max-w-xs">
+                            <p className="p-1 text-sm font-medium">
+                              {FIELD_TOOLTIPS[getwayname]?.[key] ??
+                                t("common.please_provide_dynamic", {
+                                  field: formatLabel(key, "_"),
+                                })}
+                            </p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     </div>
                   </div>
-                  <Input
-                    id={key}
-                    {...register(key as keyof GetwaySettingsFormData)}
-                    className="app-input"
-                    placeholder="Enter value"
-                  />
+                  {key === "store_sub_merchant_keys" ? (
+                    <Textarea
+                      id={key}
+                      {...register(key as keyof GetwaySettingsFormData)}
+                      className="app-input font-mono text-sm"
+                      rows={4}
+                      placeholder={'{"store_id_1": "sub_merchant_key_1", "store_id_2": "sub_merchant_key_2"}'}
+                    />
+                  ) : (
+                    <Input
+                      id={key}
+                      {...register(key as keyof GetwaySettingsFormData)}
+                      className="app-input"
+                      placeholder={t("place_holder.enter_value")}
+                    />
+                  )}
                 </div>
               )})}
 
               <div className="mb-4">
                 <div className="text-sm font-medium mb-1 flex items-center gap-2">
-                  <span>Description</span>
+                  <span>{t("common.description")}</span>
                   <div>
                     <TooltipProvider>
                       <Tooltip>
@@ -350,7 +407,9 @@ const GetwaySettingsForm = ({
                           <Info className="w-4 text-custom-dark-blue cursor-pointer" />
                         </TooltipTrigger>
                         <TooltipContent className="bg-custom-dark-blue">
-                          <p className="p-1 text-sm font-medium">Please provide description</p>
+                          <p className="p-1 text-sm font-medium">
+                            {t("common.please_provide_description")}
+                          </p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -360,12 +419,12 @@ const GetwaySettingsForm = ({
                   id="description"
                   {...register("description" as keyof GetwaySettingsFormData)}
                   className="app-input"
-                  placeholder="Enter value"
+                  placeholder={t("place_holder.enter_value")}
                 />
               </div>
 
               <div className="mt-4">
-                <SubmitButton IsLoading={isUpdating} AddLabel="Update Changes" />
+                <SubmitButton IsLoading={isUpdating} AddLabel={t("button.update_changes")} />
               </div>
             </div>
           </CardContent>

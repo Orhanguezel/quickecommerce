@@ -94,7 +94,7 @@ export const useSellerGrowthOrderQuery = (options: Partial<SellerDashboardQueryO
   }, [error]);
 
   return {
-    SellerOrderGrowth: data?.data ?? [],
+    SellerOrderGrowth: Array.isArray(data?.data) ? data.data : Array.isArray((data?.data as any)?.data) ? (data?.data as any).data : [],
     error,
     isPending,
     refetch,

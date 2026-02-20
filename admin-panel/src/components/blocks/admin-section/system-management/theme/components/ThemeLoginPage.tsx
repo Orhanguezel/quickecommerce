@@ -10,7 +10,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui";
-import multiLang from "@/components/molecules/multiLang.json";
+import { getThemeLanguageData } from "../utils/themeLanguage";
 import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -48,7 +48,7 @@ const makeLoginSchema = () => {
     admin_subtitle_df: z.string().optional(),
   };
 
-  const langs = (multiLang as Array<{ id: string }>)
+  const langs = getThemeLanguageData()
     .map((l) => l.id)
     .filter((id) => id !== "df");
 
@@ -78,7 +78,7 @@ const ThemeLoginPage: React.FC<ThemeLoginPageProps> = ({
 }) => {
   const t = useTranslations();
   const multiLangData = useMemo(
-    () => multiLang as Array<{ id: string; label: string }>,
+    () => getThemeLanguageData(),
     []
   );
   const pathname = usePathname();

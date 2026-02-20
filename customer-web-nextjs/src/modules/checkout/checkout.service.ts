@@ -29,6 +29,8 @@ export function useAddressListQuery() {
       );
       return res.data?.data ?? [];
     },
+    staleTime: 1000 * 60 * 5,
+    retry: 1,
   });
 }
 

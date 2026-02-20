@@ -42,11 +42,11 @@ const CustomBarChart: React.FC<CustomBarChartProps> = ({ data, isPending }) => {
   const localeDir = pathname.split("/")[1];
   const dir = localeDir === "ar" ? "rtl" : "ltr";
 
-  const chartData = data.map((item, index) => ({
+  const chartData = Array.isArray(data) ? data.map((item, index) => ({
     name: item.month,
     uv: item.growth,
-    pv: item.orders, 
-  }));
+    pv: item.orders,
+  })) : [];
 
   const CustomRectangle = (props: any) => {
     const { fill, x, y, width, height, index } = props;

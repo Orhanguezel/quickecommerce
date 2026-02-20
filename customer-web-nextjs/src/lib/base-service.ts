@@ -101,7 +101,7 @@ export const useBaseService = <DataType, InputType = unknown>(
               refreshResp.data ?? {};
             if (!newToken) throw new Error("No new token returned");
 
-            Cookies.set(AUTH_TOKEN_KEY, newToken);
+            Cookies.set(AUTH_TOKEN_KEY, newToken, { expires: 30 });
             if (new_expires_at)
               localStorage.setItem("expires_at", new_expires_at);
 

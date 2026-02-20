@@ -1,6 +1,6 @@
 "use client";
 import { SubmitButton } from "@/components/blocks/shared";
-import multiLang from "@/components/molecules/multiLang.json";
+import { getThemeLanguageData } from "../utils/themeLanguage";
 import {
   Card,
   Input,
@@ -37,7 +37,7 @@ const makeLoginSchema = () => {
     related_title_df: z.string().optional(),
   };
 
-  const langs = (multiLang as Array<{ id: string }>)
+  const langs = getThemeLanguageData()
     .map((l) => l.id)
     .filter((id) => id !== "df");
 
@@ -65,7 +65,7 @@ const ThemeBlogPage: React.FC<ThemeBlogPageProps> = ({
 }) => {
   const t = useTranslations();
   const multiLangData = useMemo(
-    () => multiLang as Array<{ id: string; label: string }>,
+    () => getThemeLanguageData(),
     []
   );
   const pathname = usePathname();

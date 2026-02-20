@@ -375,7 +375,20 @@
     "status_on_hold": "On Hold",
     "payment_pending": "Payment Pending",
     "payment_paid": "Paid",
-    "payment_failed": "Payment Failed"
+    "payment_failed": "Payment Failed",
+    "request_refund": "Request Refund",
+    "refund_request": "Create Refund Request",
+    "refund_reason": "Refund Reason",
+    "refund_select_reason": "Select a reason",
+    "refund_note": "Note",
+    "refund_note_placeholder": "Describe the details of your refund request...",
+    "refund_file": "Attach File",
+    "refund_file_optional": "optional",
+    "refund_submit": "Submit Request",
+    "refund_status_requested": "Refund Requested",
+    "refund_status_processing": "Refund Processing",
+    "refund_status_refunded": "Refunded",
+    "refund_status_rejected": "Refund Rejected"
   },
   "account": {
     "my_account": "My Account",

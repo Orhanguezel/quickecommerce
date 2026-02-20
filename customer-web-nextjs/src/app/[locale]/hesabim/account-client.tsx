@@ -610,6 +610,14 @@ export function AccountClient({ translations: t }: Props) {
                     size="sm"
                     onClick={() => {
                       resetAddressForm();
+                      // Pre-fill email and phone from profile for new address
+                      if (profile) {
+                        setAddressForm((prev) => ({
+                          ...prev,
+                          email: profile.email || "",
+                          contact_number: profile.phone || "",
+                        }));
+                      }
                       setShowAddressForm(true);
                     }}
                   >
@@ -936,7 +944,7 @@ export function AccountClient({ translations: t }: Props) {
               ) : (
                 <div className="space-y-3">
                   {ordersData.orders.map((order: Order) => {
-                    const statusColorMap: Record<string, string> = {
+                    const statusColorMap: Record<OrderStatus, string> = {
                       pending: "bg-yellow-100 text-yellow-800",
                       confirmed: "bg-blue-100 text-blue-800",
                       processing: "bg-indigo-100 text-indigo-800",

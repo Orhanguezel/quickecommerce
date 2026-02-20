@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import multiLang from "@/components/molecules/multiLang.json";
+import { getThemeLanguageData } from "../utils/themeLanguage";
 import { Card, Input, Switch, Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui";
 import { useThemeStoreMutation } from "@/modules/admin-section/theme/theme.action";
 import { SubmitButton } from "@/components/blocks/shared";
@@ -51,7 +51,7 @@ const ThemeSideBannerSettings: React.FC<ThemeSideBannerSettingsProps> = ({ allDa
   const locale = pathname.split("/")[1];
   const dir = locale === "ar" ? "rtl" : "ltr";
   const multiLangData = useMemo(
-    () => multiLang as Array<{ id: string; label: string }>,
+    () => getThemeLanguageData(),
     []
   );
   const nonDefaultLangs = useMemo(
@@ -289,6 +289,9 @@ const ThemeSideBannerSettings: React.FC<ThemeSideBannerSettingsProps> = ({ allDa
                             }))
                           }
                         />
+                        <p className="mt-1 text-xs text-gray-500">
+                          Header'ın altından ekstra boşluk (px). 0 = header'a yapışık başlar, 16 = 16px aşağıdan başlar.
+                        </p>
                       </div>
                     </div>
 

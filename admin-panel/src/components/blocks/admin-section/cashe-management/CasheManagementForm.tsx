@@ -2,11 +2,13 @@
 import Loader from "@/components/molecules/Loader";
 import { Button, Card } from "@/components/ui";
 import { useCasheManagementStoreMutation } from "@/modules/admin-section/cashe-management/cashe-management.action";
+import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Settings2, DatabaseZap, Share2, Eye } from "lucide-react";
 
 const CasheManagementForm = () => {
+  const t = useTranslations();
   const pathname = usePathname();
   const locale = pathname.split("/")[1];
   const dir = locale === "ar" ? "rtl" : "ltr";
@@ -38,26 +40,26 @@ const CasheManagementForm = () => {
     {
       type: "config",
       icon: <Settings2 size={18} />,
-      label: "Config",
-      note: "Clears the configuration cache to apply new settings.",
+      label: t("label.cache_action_config"),
+      note: t("common.cache_note_config"),
     },
     {
       type: "cache",
       icon: <DatabaseZap size={18} />,
-      label: "Cache",
-      note: "Removes stored application data to refresh performance.",
+      label: t("label.cache_action_cache"),
+      note: t("common.cache_note_cache"),
     },
     {
       type: "route",
       icon: <Share2 size={18} />,
-      label: "Route",
-      note: "Clears route cache so new routes take effect.",
+      label: t("label.cache_action_route"),
+      note: t("common.cache_note_route"),
     },
     {
       type: "view",
       icon: <Eye size={18} />,
-      label: "View",
-      note: "Deletes compiled Blade view files for regeneration.",
+      label: t("label.cache_action_view"),
+      note: t("common.cache_note_view"),
     },
   ].map(({ type, icon, label, note }) => (
     <div

@@ -76,6 +76,12 @@ class UserSeeder extends Seeder
                 ]);
         }
 
+        // Also assign Super Admin role to developer user if exists
+        $devUser = User::where('email', 'orhanguzell@gmail.com')->first();
+        if ($devUser && $superAdminRole) {
+            $devUser->syncRoles([$superAdminRole]);
+        }
+
         // Assign Store Admin role to seller user
         $sellerUser = User::where('email', 'seller@sportoonline.com')->first();
         $storeAdminRole = Role::where('name', 'Store Admin')->first();

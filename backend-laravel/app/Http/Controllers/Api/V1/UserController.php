@@ -463,6 +463,7 @@ class UserController extends Controller
                 'status' => true,
                 'message' => 'Token refreshed.',
                 'token' => $newToken->plainTextToken,
+                'expires_at' => $accessToken->expires_at?->format('Y-m-d H:i:s'),
                 'new_expires_at' => $accessToken->expires_at?->format('Y-m-d H:i:s'),
             ]);
         }
@@ -472,6 +473,7 @@ class UserController extends Controller
             'message' => 'Token is still valid.',
             'token' => $plainToken,
             'expires_at' => $token->expires_at?->format('Y-m-d H:i:s'),
+            'new_expires_at' => $token->expires_at?->format('Y-m-d H:i:s'),
         ]);
     }
 

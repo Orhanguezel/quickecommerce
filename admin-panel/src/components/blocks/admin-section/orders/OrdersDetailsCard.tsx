@@ -42,6 +42,17 @@ const OrdersDetailsCard = ({ data, refetch, ID }: any) => {
   const router = useRouter();
   const locale = pathname.split("/")[1];
   const dir = locale === "ar" ? "rtl" : "ltr";
+  const getLocalizedCommonValue = (value?: string) => {
+    const raw = String(value || "").trim();
+    if (!raw) return "-";
+    const normalized = raw.toLowerCase().replace(/[\s-]+/g, "_");
+    const key = `common.${normalized}`;
+    const translator = t as any;
+    if (typeof translator?.has === "function" && translator.has(key)) {
+      return t(key as any);
+    }
+    return formatLabel(raw, "_");
+  };
   const OrderDetails = data?.order_data;
   const RefundOrder = data?.refund;
   const OrderTrackingTime = data?.order_tracking || [];
@@ -299,7 +310,7 @@ const OrdersDetailsCard = ({ data, refetch, ID }: any) => {
                         : "bg-red-500"
                     } capitalize py-1 px-2 rounded text-white`}
                   >
-                    {OrderDetails?.status}
+                    {getLocalizedCommonValue(OrderDetails?.status)}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -307,8 +318,7 @@ const OrdersDetailsCard = ({ data, refetch, ID }: any) => {
                     {t("orders.payment_getway")} :
                   </span>
                   <span className="rounded p-2 text-sm font-semibold text-gray-500 bg-gray-100">
-                    {order_master?.payment_gateway &&
-                      formatLabel(order_master?.payment_gateway || "", "_")}
+                    {getLocalizedCommonValue(order_master?.payment_gateway)}
                   </span>
                 </div>
 
@@ -331,8 +341,7 @@ const OrdersDetailsCard = ({ data, refetch, ID }: any) => {
                         : "border border-gray-500 bg-gray-50 text-gray-500"
                     } capitalize py-1 px-2 rounded`}
                   >
-                    {OrderDetails?.payment_status &&
-                      formatLabel(OrderDetails?.payment_status || "", "_")}
+                    {getLocalizedCommonValue(OrderDetails?.payment_status)}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">

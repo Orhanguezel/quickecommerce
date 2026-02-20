@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\PaymentGateways\app\Http\Controllers\Api\PaymentGatewaysController;
 use Modules\PaymentGateways\app\Http\Controllers\Api\PaymentGatewaySettingsController;
 
-Route::middleware(['auth:sanctum', 'permission:' . PermissionKey::ADMIN_PAYMENT_SETTINGS->value,'detect.platform'])->prefix('v1')->group(function () {
+Route::middleware(['auth:sanctum', 'permission:' . PermissionKey::ADMIN_PAYMENT_SETTINGS->value, 'detect.platform'])->prefix('v1')->group(function () {
     Route::group(['prefix' => 'admin/payment-gateways'], function () {
         Route::match(['GET', 'POST'], '/{gateway?}', [PaymentGatewaySettingsController::class, 'paymentGatewayUpdate']);
     });

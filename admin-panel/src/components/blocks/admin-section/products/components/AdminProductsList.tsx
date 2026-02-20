@@ -11,7 +11,7 @@ import { Routes } from "@/config/routes";
 import GlobalImageLoader from "@/lib/imageLoader";
 import { useCurrencyQuery } from "@/modules/common/com/com.action";
 import { MinusSquareIcon, PlusSquareIcon, Settings2 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -29,7 +29,18 @@ const AdminProductsList = ({
   loading,
 }: any) => {
   const t = useTranslations();
+  const locale = useLocale();
   const data = originalData;
+  const websiteBase = (process.env.NEXT_PUBLIC_WEBSITE_URL || "").replace(
+    /\/+$/,
+    ""
+  );
+  const defaultLang = process.env.NEXT_PUBLIC_DEFAULT_LANGUAGE || "tr";
+  const activeLocale = locale || defaultLang;
+  const buildWebsiteUrl = (path: string) => {
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    return websiteBase ? `${websiteBase}${normalizedPath}` : normalizedPath;
+  };
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const toggleRowExpansion = (key: string) => {
     setExpandedRow((prev) => (prev === key ? null : key));
@@ -337,7 +348,9 @@ const AdminProductsList = ({
                             </div>
                             <Link
                               className="text-blue-500 hover:underline dark:text-[#93c5fd] dark:hover:text-white"
-                              href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/product-details/${row.slug}`}
+                              href={buildWebsiteUrl(
+                                `/${activeLocale}/urun/${row.slug}`
+                              )}
                               target="_blank"
                               rel="noopener noreferrer"
                             >
@@ -353,7 +366,13 @@ const AdminProductsList = ({
                           <div className="flex items-center gap-2">
                             <Link
                               className="text-blue-500 hover:underline dark:text-[#93c5fd] dark:hover:text-white"
-                              href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/store/details/${row?.store?.slug}`}
+                              href={
+                                row?.store?.slug
+                                  ? buildWebsiteUrl(
+                                      `/${activeLocale}/magaza/${row.store.slug}`
+                                    )
+                                  : "#"
+                              }
                               target="_blank"
                               rel="noopener noreferrer"
                             >

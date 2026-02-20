@@ -10,7 +10,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui";
-import multiLang from "@/components/molecules/multiLang.json";
+import { getThemeLanguageData } from "../utils/themeLanguage";
 import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -53,7 +53,7 @@ const makeLoginSchema = () => {
     related_title_df: z.string().optional(),
   };
 
-  const langs = (multiLang as Array<{ id: string }>)
+  const langs = getThemeLanguageData()
     .map((l) => l.id)
     .filter((id) => id !== "df");
 
@@ -84,7 +84,7 @@ const ThemeProductDetailsPage: React.FC<ThemeLoginPageProps> = ({
 }) => {
   const t = useTranslations();
   const multiLangData = useMemo(
-    () => multiLang as Array<{ id: string; label: string }>,
+    () => getThemeLanguageData(),
     []
   );
   const pathname = usePathname();
@@ -188,12 +188,20 @@ const ThemeProductDetailsPage: React.FC<ThemeLoginPageProps> = ({
     }
 
     const updatedTranslations: Record<string, any> = JSON.parse(
-      JSON.stringify((allData as any).translations)
+      JSON.stringify((allData as any).translations || {})
     );
     if (Object.keys(updatedTranslations).length > 0) {
-      multiLangData.forEach((lang) => {
+      multiLangData
+        .filter((lang) => lang.id !== "df")
+        .forEach((lang) => {
         const langCode = lang.id;
 
+        if (!updatedTranslations[langCode]) {
+          updatedTranslations[langCode] = { theme_data: { theme_pages: { "0": {} } } };
+        }
+        if (!updatedTranslations[langCode].theme_data?.theme_pages) {
+          updatedTranslations[langCode].theme_data.theme_pages = { "0": {} };
+        }
         if (!updatedTranslations[langCode].theme_data.theme_pages["0"]) {
           updatedTranslations[langCode].theme_data.theme_pages["0"] = {};
         }

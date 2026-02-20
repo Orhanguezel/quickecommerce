@@ -13,6 +13,8 @@ import {
   MapPin,
   Mail,
   Phone,
+  CreditCard,
+  Banknote,
 } from "lucide-react";
 import { usePaymentGatewaysQuery } from "@/modules/checkout/checkout.service";
 
@@ -52,9 +54,8 @@ export function Footer() {
     footerData?.com_social_links_instagram_url ||
     footerData?.com_social_links_linkedin_url;
 
-  const activePaymentGateways = (paymentGateways ?? []).filter(
-    (gw) => gw.image_url
-  );
+  // Backend already filters status=1; show all active gateways, fallback icon for those without images
+  const activePaymentGateways = paymentGateways ?? [];
 
   const hasDownloadApp =
     footerData?.com_download_app_link_one ||
@@ -284,13 +285,27 @@ export function Footer() {
               {activePaymentGateways.map((gw) => (
                 <div
                   key={gw.id}
-                  className="flex h-8 items-center rounded bg-white px-2"
+                  className="flex h-8 items-center rounded bg-white px-2 gap-1.5"
+                  title={gw.name}
                 >
-                  <img
-                    src={gw.image_url!}
-                    alt={gw.name}
-                    className="h-5 w-auto max-w-[60px] object-contain"
-                  />
+                  {gw.image_url ? (
+                    <img
+                      src={gw.image_url}
+                      alt={gw.name}
+                      className="h-5 w-auto max-w-[60px] object-contain"
+                    />
+                  ) : (
+                    <>
+                      {gw.slug === "cash_on_delivery" ? (
+                        <Banknote className="h-4 w-4 text-gray-600 shrink-0" />
+                      ) : (
+                        <CreditCard className="h-4 w-4 text-gray-600 shrink-0" />
+                      )}
+                      <span className="text-[10px] font-medium text-gray-700 leading-tight max-w-[56px] truncate">
+                        {gw.name}
+                      </span>
+                    </>
+                  )}
                 </div>
               ))}
             </div>

@@ -312,7 +312,7 @@ export default function MaintenanceSettingsForm() {
         name: 'logo',
       } as any;
       setLastSelectedLogo(img);
-      setLogoErrorMessage(is1to1Image(img) ? '' : 'Image must have a 1:1 aspect ratio.');
+      setLogoErrorMessage(is1to1Image(img) ? '' : t('tooltip.aspect_ratio_1_1'));
     } else {
       setLastSelectedLogo(null);
       setLogoErrorMessage('');
@@ -368,7 +368,7 @@ export default function MaintenanceSettingsForm() {
       ...first,
       image_id: String(first.image_id ?? (first as any).id ?? ''),
     });
-    setLogoErrorMessage(is1to1Image(first) ? '' : 'Image must have a 1:1 aspect ratio.');
+    setLogoErrorMessage(is1to1Image(first) ? '' : t('tooltip.aspect_ratio_1_1'));
   };
 
   const removeLogo = () => {
@@ -380,7 +380,7 @@ export default function MaintenanceSettingsForm() {
 
   const onSubmit = async (values: MaintenanceSettingsFormData) => {
     if (lastSelectedLogo && !is1to1Image(lastSelectedLogo)) {
-      setLogoErrorMessage('Image must have a 1:1 aspect ratio.');
+      setLogoErrorMessage(t('tooltip.aspect_ratio_1_1'));
     }
 
     const v = safeObject(values);
@@ -476,7 +476,7 @@ export default function MaintenanceSettingsForm() {
         <Card className="mt-2">
           <CardContent className="p-2 md:p-4 flex items-center justify-between gap-3">
             <div className="text-sm font-semibold text-gray-700 dark:text-gray-200">
-              {t('label.maintenance_settings') ?? 'Maintenance Settings'}
+              {t('label.maintenance_settings')}
             </div>
 
             <div className="inline-flex rounded-md border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 overflow-hidden">
@@ -490,7 +490,7 @@ export default function MaintenanceSettingsForm() {
                     : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800',
                 ].join(' ')}
               >
-                Form
+                {t('label.form')}
               </button>
               <button
                 type="button"
@@ -502,7 +502,7 @@ export default function MaintenanceSettingsForm() {
                     : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800',
                 ].join(' ')}
               >
-                JSON
+                {t('label.json')}
               </button>
             </div>
           </CardContent>
@@ -512,7 +512,7 @@ export default function MaintenanceSettingsForm() {
           <Card className="mt-4">
             <CardContent className="p-2 md:p-6">
               <AdminI18nJsonPanel
-                label="Maintenance JSON"
+                label={t('label.maintenance_json')}
                 languages={scaffoldUiLangs}
                 value={translationsJson}
                 onChange={handleMaintenanceJsonChange}
@@ -520,7 +520,8 @@ export default function MaintenanceSettingsForm() {
                 showAllTab
                 helperText={
                   <span>
-                    JSON format: <code>{`{ tr:{title,description}, en:{title,description} }`}</code>
+                    {t('common.json_format')}:{' '}
+                    <code>{`{ tr:{title,description}, en:{title,description} }`}</code>
                   </span>
                 }
               />
@@ -531,7 +532,7 @@ export default function MaintenanceSettingsForm() {
             <CardContent className="p-2 md:p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4 mb-6">
                 <div className="mb-4">
-                  <p className="text-sm font-medium mb-1">Maintenance Start Time</p>
+                  <p className="text-sm font-medium mb-1">{t('label.maintenance_start_time')}</p>
                   <Controller
                     name="start_date"
                     control={control}
@@ -558,7 +559,7 @@ export default function MaintenanceSettingsForm() {
                 </div>
 
                 <div className="mb-4">
-                  <p className="text-sm font-medium mb-1">Maintenance End Time</p>
+                  <p className="text-sm font-medium mb-1">{t('label.maintenance_end_time')}</p>
                   <Controller
                     name="end_date"
                     control={control}
@@ -586,7 +587,7 @@ export default function MaintenanceSettingsForm() {
               </div>
 
               <div className="mb-6 grid grid-cols-2 lg:grid-cols-4 items-center">
-                <p className="text-sm font-medium mb-1">Maintenance Mode</p>
+                <p className="text-sm font-medium mb-1">{t('label.maintenance_mode')}</p>
                 <Switch
                   dir="ltr"
                   checked={maintenanceMode === 'on'}
@@ -650,25 +651,29 @@ export default function MaintenanceSettingsForm() {
                     <TabsContent key={lang.id} value={lang.id}>
                       <div className="mb-4">
                         <div className="text-sm font-medium mb-1 flex items-center gap-2">
-                          <span>Title ({lang.label})</span>
+                          <span>
+                            {t('label.title')} ({lang.label})
+                          </span>
                         </div>
                         <Input
                           id={`title_${lang.id}`}
                           {...register(`title_${lang.id}` as any)}
                           className="app-input"
-                          placeholder="Enter value"
+                          placeholder={t('place_holder.enter_value')}
                         />
                       </div>
 
                       <div className="mb-4">
                         <div className="text-sm font-medium mb-1 flex items-center gap-2">
-                          <span>Description ({lang.label})</span>
+                          <span>
+                            {t('label.description')} ({lang.label})
+                          </span>
                         </div>
                         <Textarea
                           id={`description_${lang.id}`}
                           {...register(`description_${lang.id}` as any)}
                           className="app-input"
-                          placeholder="Enter value"
+                          placeholder={t('place_holder.enter_value')}
                         />
                       </div>
                     </TabsContent>
@@ -680,7 +685,7 @@ export default function MaintenanceSettingsForm() {
         )}
 
         <Card className="mt-4 sticky bottom-0 w-full p-4">
-          <SubmitButton IsLoading={isPending || isFetchingData} AddLabel="Save Changes" />
+          <SubmitButton IsLoading={isPending || isFetchingData} AddLabel={t('button.save_changes')} />
         </Card>
       </form>
     </div>

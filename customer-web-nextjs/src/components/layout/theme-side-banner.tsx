@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useLocale } from "next-intl";
 import { usePathname } from "next/navigation";
@@ -14,6 +14,8 @@ export function ThemeSideBanner() {
   const { banners } = useBannerQuery();
   const { sideBannerConfig } = useThemeConfig();
   const [isDismissed, setIsDismissed] = useState(false);
+  const [headerHeight, setHeaderHeight] = useState(0);
+  const roRef = useRef<ResizeObserver | null>(null);
 
   const normalizedPath = (pathname || "").replace(/\/+$/, "");
   const segments = normalizedPath.split("/").filter(Boolean);
@@ -25,6 +27,23 @@ export function ThemeSideBanner() {
     () => `theme_side_banner_dismissed:${locale}:${sideBannerConfig?.id || "left_sticky_banner_1"}`,
     [locale, sideBannerConfig?.id]
   );
+
+  // Header yüksekliğini dinamik ölç — sticky wrapper'ı bul
+  useEffect(() => {
+    const measure = () => {
+      const el = document.querySelector<HTMLElement>(".sticky.w-full");
+      if (el) setHeaderHeight(el.getBoundingClientRect().height);
+    };
+    measure();
+    const el = document.querySelector<HTMLElement>(".sticky.w-full");
+    if (el) {
+      roRef.current = new ResizeObserver(measure);
+      roRef.current.observe(el);
+    }
+    return () => {
+      roRef.current?.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -149,11 +168,15 @@ export function ThemeSideBanner() {
     </div>
   );
 
+  // Header altından viewport sonuna kadar uzanan wrapper — banner bu alan içinde dikey ortalanır
+  const safeHeaderHeight = headerHeight > 0 ? headerHeight : 220;
+
   return (
     <div
-      className="pointer-events-none fixed left-3 z-[45] hidden xl:block"
+      className="pointer-events-none fixed left-3 z-[55] hidden xl:flex xl:flex-col xl:items-start xl:justify-center"
       style={{
-        top: `calc(var(--theme-popup-top-offset, 0px) + ${sideBannerConfig.topOffsetPx}px)`,
+        top: `calc(var(--theme-popup-top-offset, 0px) + ${safeHeaderHeight}px)`,
+        height: `calc(100svh - var(--theme-popup-top-offset, 0px) - ${safeHeaderHeight}px)`,
       }}
     >
       <div className="pointer-events-auto">

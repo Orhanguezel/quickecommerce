@@ -7,6 +7,7 @@ import {
 } from "@/modules/admin-section/payment-settings/payment-settings.action";
 import { useAppDispatch } from "@/redux/hooks";
 import { setRefetch } from "@/redux/slices/refetchSlice";
+import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import GetwaySettingsForm from "./GetwaySettingsForm";
 
@@ -21,6 +22,7 @@ const FALLBACK_SLUG = "cash_on_delivery";
 
 const PaymentSettingsForm = () => {
   const dispatch = useAppDispatch();
+  const t = useTranslations();
 
   const [sectionName, setSectionName] = useState<string>(FALLBACK_SLUG);
 
@@ -83,7 +85,9 @@ const PaymentSettingsForm = () => {
               >
                 <button className="text-sm font-semibold text-start">
                   {button.label}
-                  {!button.status ? " (Pasif)" : button.is_test_mode ? " (Test)" : " (Canli)"}
+                  {!button.status
+                    ? ` (${t("common.inactive")})`
+                    : ` (${t("common.live")})`}
                 </button>
               </div>
             ))}

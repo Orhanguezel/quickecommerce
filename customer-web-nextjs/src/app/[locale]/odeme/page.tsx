@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+import { Suspense } from "react";
 import { CheckoutClient } from "./checkout-client";
 
 interface Props {
@@ -27,6 +28,7 @@ export default async function CheckoutPage({ params }: Props) {
   const cartT = await getTranslations({ locale, namespace: "cart" });
 
   return (
+    <Suspense fallback={null}>
     <CheckoutClient
       translations={{
         title: t("title"),
@@ -73,5 +75,6 @@ export default async function CheckoutPage({ params }: Props) {
         home: commonT("home"),
       }}
     />
+    </Suspense>
   );
 }

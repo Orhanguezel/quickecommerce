@@ -1,7 +1,7 @@
 "use client";
 
 import { z } from "zod";
-import multiLang from "@/components/molecules/multiLang.json";
+import { getThemeLanguageData } from "@/components/blocks/admin-section/system-management/theme/utils/themeLanguage";
 
 const baseSchema = {
   name_df: z
@@ -10,7 +10,7 @@ const baseSchema = {
   order: z.string().optional()
 };
 
-const dynamicFields = multiLang
+const dynamicFields = getThemeLanguageData()
   .filter((lang) => lang.id !== "df")
   .reduce((fields, lang) => {
     fields[`name_${lang.id}`] = z.string().optional();
@@ -32,7 +32,7 @@ const baseSchemaRegister = {
   terms_page_url: z.string().optional(),
 };
 
-const dynamicFields2 = multiLang
+const dynamicFields2 = getThemeLanguageData()
   .filter((lang) => lang.id !== "df")
   .reduce((fields, lang) => {
     fields[`title_${lang.id}`] = z.string().optional();

@@ -21,6 +21,7 @@ class PaymentGatewaySeeder extends Seeder
         // Eski gateway'leri sil
         PaymentGateway::whereIn('slug', ['paypal', 'stripe', 'paytm'])->delete();
 
+        // cash_on_delivery has no credentials → safe to updateOrCreate
         PaymentGateway::updateOrCreate(['slug' => 'cash_on_delivery'], [
             'name' => 'Kapıda Ödeme',
             'description' => 'Siparişiniz kapınıza teslim edildiğinde nakit veya kart ile ödeme yapın.',
@@ -30,7 +31,11 @@ class PaymentGatewaySeeder extends Seeder
             'is_test_mode' => false,
         ]);
 
-        PaymentGateway::updateOrCreate(['slug' => 'paytr'], [
+        // Credential gateways use firstOrCreate to avoid wiping user-entered
+        // api_key / secret_key on every deployment. Admin panel is used to
+        // manage credentials after the initial install.
+
+        PaymentGateway::firstOrCreate(['slug' => 'paytr'], [
             'name' => 'PayTR',
             'description' => 'PayTR ile kredi kartı, banka kartı veya havale/EFT ile güvenli ödeme yapın.',
             'auth_credentials' => json_encode([
@@ -43,21 +48,29 @@ class PaymentGatewaySeeder extends Seeder
             'is_test_mode' => true,
         ]);
 
+        // iyzico: updateOrCreate so credentials stay in sync with .env
+        $frontendUrl    = rtrim(env('FRONTEND_URL', env('APP_URL', 'http://localhost')), '/');
+        $appUrl         = rtrim(env('APP_URL', 'http://localhost:8000'), '/');
+        $defaultLocale  = env('DEFAULT_LOCALE', 'tr');
         PaymentGateway::updateOrCreate(['slug' => 'iyzico'], [
             'name' => 'iyzico',
             'description' => 'iyzico ile kredi kartı, banka kartı veya BKM Express ile güvenli ödeme yapın.',
             'auth_credentials' => json_encode([
-                'api_key' => '',
-                'secret_key' => '',
-                'sub_merchant_key' => '',
-                'store_sub_merchant_keys' => '{}',
+                'api_key'              => env('IYZICO_API_KEY', ''),
+                'secret_key'           => env('IYZICO_SECRET_KEY', ''),
+                'marketplace_mode'     => filter_var(env('IYZICO_MARKETPLACE_MODE', false), FILTER_VALIDATE_BOOLEAN),
+                'sub_merchant_key'     => env('IYZICO_SUB_MERCHANT_KEY', ''),
+                'store_sub_merchant_keys' => env('IYZICO_STORE_SUB_MERCHANT_KEYS', '{}'),
+                'iyzico_callback_url'  => $appUrl . '/api/v1/iyzico/callback',
+                'iyzico_success_url'   => $frontendUrl . '/' . $defaultLocale . '/siparis-basarili?order={ORDER_MASTER_ID}',
+                'iyzico_cancel_url'    => $frontendUrl . '/' . $defaultLocale . '/odeme?payment=failed&order={ORDER_MASTER_ID}',
             ]),
             'image' => 'payment-logos/iyzico.svg',
             'status' => true,
-            'is_test_mode' => true,
+            'is_test_mode' => filter_var(env('IYZICO_TEST_MODE', true), FILTER_VALIDATE_BOOLEAN),
         ]);
 
-        PaymentGateway::updateOrCreate(['slug' => 'moka'], [
+        PaymentGateway::firstOrCreate(['slug' => 'moka'], [
             'name' => 'Moka Pos',
             'description' => 'Moka Pos ile kredi kartı ve banka kartı ile güvenli ödeme yapın.',
             'auth_credentials' => json_encode([
@@ -70,7 +83,7 @@ class PaymentGatewaySeeder extends Seeder
             'is_test_mode' => true,
         ]);
 
-        PaymentGateway::updateOrCreate(['slug' => 'ziraatpay'], [
+        PaymentGateway::firstOrCreate(['slug' => 'ziraatpay'], [
             'name' => 'ZiraatPay',
             'description' => 'Ziraat Bankası sanal pos ile güvenli ödeme yapın.',
             'auth_credentials' => json_encode([

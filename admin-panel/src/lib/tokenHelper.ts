@@ -64,7 +64,7 @@ export const refreshToken = async (): Promise<string | null> => {
 };
 
 export const checkTokenExpiration = async (): Promise<string> => {
-  const expiresAtStr = localStorage.getItem('token_expires_at');
+  const expiresAtStr = localStorage.getItem('token_expires_at') || localStorage.getItem('expires_at');
   if (!expiresAtStr) return currentToken;
 
   const expiresAt = new Date(expiresAtStr.replace(' ', 'T') + 'Z');

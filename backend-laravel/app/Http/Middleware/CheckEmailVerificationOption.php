@@ -20,11 +20,17 @@ class CheckEmailVerificationOption
         foreach ($roles as $role) {
             if ($role === 'customer') {
                 $authCustomer = auth('api_customer')->user();
+                if (!$authCustomer) {
+                    continue; // auth:api_customer middleware already handles unauthenticated requests
+                }
                 $isVerified = \App\Models\Customer::where('email', $authCustomer->email)
                     ->where('email_verified', 1)
                     ->exists();
             } elseif ($role === 'seller') {
                 $authSeller = auth('api')->user();
+                if (!$authSeller) {
+                    continue;
+                }
                 $isVerified = \App\Models\User::where('email', $authSeller->email)
                     ->where('email_verified', 1)
                     ->exists();

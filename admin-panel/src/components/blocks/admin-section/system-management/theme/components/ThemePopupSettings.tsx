@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import multiLang from "@/components/molecules/multiLang.json";
+import { getThemeLanguageData } from "../utils/themeLanguage";
 import PhotoUploadModal, { type UploadedImage } from "@/components/blocks/shared/PhotoUploadModal";
 import { Card, Input, Switch, Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui";
 import { useThemeStoreMutation } from "@/modules/admin-section/theme/theme.action";
@@ -102,7 +102,7 @@ const getPopupChannelBadgeClass = (displayType: PopupDisplayType): string => {
 const ThemePopupSettings: React.FC<ThemePopupSettingsProps> = ({ allData, refetch }) => {
   const t = useTranslations();
   const multiLangData = useMemo(
-    () => multiLang as Array<{ id: string; label: string }>,
+    () => getThemeLanguageData(),
     []
   );
   const nonDefaultLangs = useMemo(

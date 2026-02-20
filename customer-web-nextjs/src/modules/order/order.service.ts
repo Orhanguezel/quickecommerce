@@ -62,6 +62,44 @@ export function useOrderDetailQuery(orderId: number | null) {
   });
 }
 
+// --- Refund Reasons ---
+
+export function useRefundReasonsQuery() {
+  const { getAxiosInstance } = useBaseService(API_ENDPOINTS.REFUND_REASONS);
+
+  return useQuery({
+    queryKey: ["refund-reasons"],
+    queryFn: async () => {
+      const res = await getAxiosInstance().get<{ data: { id: number; label: string }[] }>(
+        API_ENDPOINTS.REFUND_REASONS,
+        { params: { per_page: 100 } }
+      );
+      return res.data?.data ?? [];
+    },
+    staleTime: 1000 * 60 * 10,
+  });
+}
+
+// --- Submit Refund Request ---
+
+export function useSubmitRefundMutation() {
+  const queryClient = useQueryClient();
+  const { getAxiosInstance } = useBaseService(API_ENDPOINTS.ORDER_REFUND);
+
+  return useMutation({
+    mutationFn: async (formData: FormData) => {
+      const res = await getAxiosInstance().post(API_ENDPOINTS.ORDER_REFUND, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["order"] });
+    },
+  });
+}
+
 // --- Cancel Order ---
 
 export function useCancelOrderMutation() {

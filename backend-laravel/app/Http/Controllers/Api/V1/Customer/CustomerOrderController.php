@@ -233,18 +233,11 @@ class CustomerOrderController extends Controller
         }
 
 
-        $currencyData = ComHelper::getCurrencyInfo($request->currency_code);
-        // subtotal → system currency
-        $subTotalInSystemCurrency = floor(($request->sub_total / $currencyData['exchange_rate']) * 100) / 100;
-
-        // check min_order status
-        if ($subTotalInSystemCurrency < $coupon->min_order_value) {
-            // convert system min_order_value → user currency for message
-            $minOrderInUserCurrency = round($coupon->min_order_value * $currencyData['exchange_rate'], 2);
-
+        // check min_order status — both sub_total and min_order_value are in the same currency (TRY)
+        if ($request->sub_total < $coupon->min_order_value) {
             return response()->json([
                 'message' => __('messages.coupon_min_order_amount', [
-                    'amount' => amount_with_symbol_format_for_response($minOrderInUserCurrency,$request->currency_code ?? $currencyData['currency_code']),
+                    'amount' => amount_with_symbol_format_for_response($coupon->min_order_value, $request->currency_code),
                     ]),
             ], 422);
         }

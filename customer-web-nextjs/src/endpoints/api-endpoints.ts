@@ -74,6 +74,7 @@ export const API_ENDPOINTS = {
   ORDER_CANCEL: "/customer/orders/cancel-order",
   ORDER_INVOICE: "/customer/orders/invoice",
   ORDER_REFUND: "/customer/orders/request-refund",
+  REFUND_REASONS: "/orders/refund-reason-list",
 
   // User (customer - auth required)
   PROFILE: "/customer/profile",

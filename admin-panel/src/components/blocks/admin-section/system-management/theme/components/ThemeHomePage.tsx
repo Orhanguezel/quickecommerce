@@ -10,7 +10,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui";
-import multiLang from "@/components/molecules/multiLang.json";
+import { getThemeLanguageData } from "../utils/themeLanguage";
 import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -129,7 +129,7 @@ const makeHomeSchema = () => {
     newsletters_subtitle_df: z.string().optional(),
   };
 
-  const langs = (multiLang as Array<{ id: string }>)
+  const langs = getThemeLanguageData()
     .map((l) => l.id)
     .filter((id) => id !== "df");
 
@@ -165,7 +165,7 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
 }) => {
   const t = useTranslations();
   const multiLangData = useMemo(
-    () => multiLang as Array<{ id: string; label: string }>,
+    () => getThemeLanguageData(),
     []
   );
   const pathname = usePathname();
@@ -282,21 +282,21 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
       return;
 
     const homeDefault =
-      (allData as any).theme_data?.theme_pages[0]?.theme_home_page[0] || {};
+      (allData as any).theme_data?.theme_pages?.[0]?.theme_home_page?.[0] || {};
 
-    setValue("category_title_df", homeDefault?.category[0]?.title || "");
-    setValue("flash_sale_title_df", homeDefault?.flash_sale[0]?.title || "");
+    setValue("category_title_df", homeDefault?.category?.[0]?.title || "");
+    setValue("flash_sale_title_df", homeDefault?.flash_sale?.[0]?.title || "");
     setValue(
       "product_featured_title_df",
-      homeDefault?.product_featured[0]?.title || ""
+      homeDefault?.product_featured?.[0]?.title || ""
     );
     setValue(
       "product_top_selling_title_df",
-      homeDefault?.product_top_selling[0]?.title || ""
+      homeDefault?.product_top_selling?.[0]?.title || ""
     );
     setValue(
       "product_latest_title_df",
-      homeDefault?.product_latest[0]?.title || ""
+      homeDefault?.product_latest?.[0]?.title || ""
     );
     setValue(
       "popular_product_section_title_df",
@@ -308,45 +308,45 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
     );
     setValue(
       "top_stores_section_title_df",
-      homeDefault?.top_stores_section[0]?.title || ""
+      homeDefault?.top_stores_section?.[0]?.title || ""
     );
     setValue(
       "newsletters_title_df",
-      homeDefault?.newsletters_section[0]?.title || ""
+      homeDefault?.newsletters_section?.[0]?.title || ""
     );
     setValue(
       "newsletters_subtitle_df",
-      homeDefault?.newsletters_section[0]?.subtitle || ""
+      homeDefault?.newsletters_section?.[0]?.subtitle || ""
     );
 
     // toggles (string "on" | "")
     setToggles({
-      slider: homeDefault?.slider[0]?.enabled_disabled === "on" ? "on" : "",
-      category: homeDefault?.category[0]?.enabled_disabled === "on" ? "on" : "",
+      slider: homeDefault?.slider?.[0]?.enabled_disabled === "on" ? "on" : "",
+      category: homeDefault?.category?.[0]?.enabled_disabled === "on" ? "on" : "",
       flash_sale:
-        homeDefault?.flash_sale[0]?.enabled_disabled === "on" ? "on" : "",
+        homeDefault?.flash_sale?.[0]?.enabled_disabled === "on" ? "on" : "",
       product_featured:
-        homeDefault?.product_featured[0]?.enabled_disabled === "on" ? "on" : "",
+        homeDefault?.product_featured?.[0]?.enabled_disabled === "on" ? "on" : "",
       banner_section:
-        homeDefault?.banner_section[0]?.enabled_disabled === "on" ? "on" : "",
+        homeDefault?.banner_section?.[0]?.enabled_disabled === "on" ? "on" : "",
       product_top_selling:
-        homeDefault?.product_top_selling[0]?.enabled_disabled === "on"
+        homeDefault?.product_top_selling?.[0]?.enabled_disabled === "on"
           ? "on"
           : "",
       product_latest:
-        homeDefault?.product_latest[0]?.enabled_disabled === "on" ? "on" : "",
+        homeDefault?.product_latest?.[0]?.enabled_disabled === "on" ? "on" : "",
       popular_product_section:
-        homeDefault?.popular_product_section[0]?.enabled_disabled === "on"
+        homeDefault?.popular_product_section?.[0]?.enabled_disabled === "on"
           ? "on"
           : "",
       blog_section:
         homeDefault?.blog_section?.[0]?.enabled_disabled === "on" ? "on" : "",
       top_stores_section:
-        homeDefault?.top_stores_section[0]?.enabled_disabled === "on"
+        homeDefault?.top_stores_section?.[0]?.enabled_disabled === "on"
           ? "on"
           : "",
       newsletters_section:
-        homeDefault?.newsletters_section[0]?.enabled_disabled === "on"
+        homeDefault?.newsletters_section?.[0]?.enabled_disabled === "on"
           ? "on"
           : "",
     });
@@ -362,31 +362,31 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
           const langCode = lang.id;
           const tObj =
             (allData as any).translations?.[langCode]?.theme_data
-              ?.theme_pages[0]?.theme_home_page[0] || {};
+              ?.theme_pages?.[0]?.theme_home_page?.[0] || {};
 
           setValue(
             `category_title_${langCode}`,
-            tObj?.category[0]?.title || ""
+            tObj?.category?.[0]?.title || ""
           );
           setValue(
             `flash_sale_title_${langCode}`,
-            tObj?.flash_sale[0]?.title || ""
+            tObj?.flash_sale?.[0]?.title || ""
           );
           setValue(
             `product_featured_title_${langCode}`,
-            tObj?.product_featured[0]?.title || ""
+            tObj?.product_featured?.[0]?.title || ""
           );
           setValue(
             `product_top_selling_title_${langCode}`,
-            tObj?.product_top_selling[0]?.title || ""
+            tObj?.product_top_selling?.[0]?.title || ""
           );
           setValue(
             `product_latest_title_${langCode}`,
-            tObj?.product_latest[0]?.title || ""
+            tObj?.product_latest?.[0]?.title || ""
           );
           setValue(
             `popular_product_section_title_${langCode}`,
-            tObj?.popular_product_section[0]?.title || ""
+            tObj?.popular_product_section?.[0]?.title || ""
           );
           setValue(
             `blog_section_title_${langCode}`,
@@ -394,15 +394,15 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
           );
           setValue(
             `top_stores_section_title_${langCode}`,
-            tObj?.top_stores_section[0]?.title || ""
+            tObj?.top_stores_section?.[0]?.title || ""
           );
           setValue(
             `newsletters_title_${langCode}`,
-            tObj?.newsletters_section[0]?.title || ""
+            tObj?.newsletters_section?.[0]?.title || ""
           );
           setValue(
             `newsletters_subtitle_${langCode}`,
-            tObj?.newsletters_section[0]?.subtitle || ""
+            tObj?.newsletters_section?.[0]?.subtitle || ""
           );
         });
     }

@@ -87,6 +87,18 @@ const OrdersTable = ({
   });
 
   const [selectStatus, setSelectStatus] = useState<string>("");
+  const getLocalizedStatusLabel = (value?: string) => {
+    const raw = String(value || "").trim().toLowerCase();
+    if (!raw) return "";
+    const normalized = raw.replace(/\s+/g, "_");
+    return t(`common.${normalized}` as any);
+  };
+  const getLocalizedFilterLabel = (value?: string, fallback?: string) => {
+    const raw = String(value || "").trim().toLowerCase();
+    if (!raw) return fallback || "";
+    if (raw === "all") return t("common.all");
+    return getLocalizedStatusLabel(raw) || fallback || raw;
+  };
 
   const statusFilter = selectStatus == "refunded" ? "" : selectStatus;
   const refundFilter = selectStatus !== "refunded" ? "" : selectStatus;
@@ -382,7 +394,7 @@ const OrdersTable = ({
                   <span
                     className={`${badgeClass} capitalize py-1 px-2 rounded`}
                   >
-                    {payment_status?.replace(/_/g, " ")}
+                    {getLocalizedStatusLabel(payment_status)}
                   </span>
                 </div>
                 <PaymentStatusUpdateModal
@@ -426,7 +438,7 @@ const OrdersTable = ({
                       : "bg-red-50 border border-red-500 text-red-500"
                   } capitalize`}
                 >
-                  {status}
+                  {getLocalizedStatusLabel(status)}
                 </Badge>
               </div>
               <div className="flex items-center gap-2">
@@ -491,8 +503,8 @@ const OrdersTable = ({
                 }
                 onSave={() => handleCancelSingleOrder(row.order_id)}
                 loading={loading}
-                title="Cancel Order!"
-                subTitle="Are you sure you want to cancel order?"
+                title={t("title.cancel_order")}
+                subTitle={t("sub_title.cancel_order")}
               />
             </div>
           ),
@@ -538,7 +550,8 @@ const OrdersTable = ({
                     selectStatus === status.value && "bg-blue-400 text-white"
                   }`}
                 >
-                  {status.label} ({status?.count})
+                  {getLocalizedFilterLabel(status.value, status.label)} (
+                  {status?.count})
                 </Button>
               ))}
             </div>

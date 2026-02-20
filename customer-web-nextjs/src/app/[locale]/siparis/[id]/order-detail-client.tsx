@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link } from "@/i18n/routing";
 import { ROUTES } from "@/config/routes";
 import {
   useOrderDetailQuery,
   useCancelOrderMutation,
+  useRefundReasonsQuery,
+  useSubmitRefundMutation,
 } from "@/modules/order/order.service";
 import type { OrderStatus } from "@/modules/order/order.type";
 import { Button } from "@/components/ui/button";
@@ -21,17 +23,45 @@ import {
   CheckCircle,
   Circle,
   Clock,
+  RotateCcw,
 } from "lucide-react";
 
 interface Props {
   orderId: number;
+  locale: string;
   translations: Record<string, string>;
 }
 
-export function OrderDetailClient({ orderId, translations: t }: Props) {
+export function OrderDetailClient({ orderId, locale, translations: t }: Props) {
   const { data, isLoading, isError } = useOrderDetailQuery(orderId);
   const cancelMutation = useCancelOrderMutation();
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+
+  // Refund state
+  const [showRefundDialog, setShowRefundDialog] = useState(false);
+  const [refundReasonId, setRefundReasonId] = useState<string>("");
+  const [refundNote, setRefundNote] = useState("");
+  const refundFileRef = useRef<HTMLInputElement>(null);
+  const { data: refundReasons } = useRefundReasonsQuery();
+  const submitRefundMutation = useSubmitRefundMutation();
+
+  const handleRefundSubmit = () => {
+    if (!refundReasonId) return;
+    const formData = new FormData();
+    formData.append("order_id", String(orderId));
+    formData.append("order_refund_reason_id", refundReasonId);
+    if (refundNote.trim()) formData.append("customer_note", refundNote);
+    const file = refundFileRef.current?.files?.[0];
+    if (file) formData.append("file", file);
+    submitRefundMutation.mutate(formData, {
+      onSuccess: () => {
+        setShowRefundDialog(false);
+        setRefundReasonId("");
+        setRefundNote("");
+        if (refundFileRef.current) refundFileRef.current.value = "";
+      },
+    });
+  };
 
   const getStatusLabel = (status: string) => {
     const key = `status_${status}`;
@@ -148,17 +178,42 @@ export function OrderDetailClient({ orderId, translations: t }: Props) {
             </span>
           </div>
         </div>
-        {order.status !== "cancelled" && order.status !== "delivered" && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-destructive hover:text-destructive"
-            onClick={() => setShowCancelDialog(true)}
-          >
-            <X className="mr-1.5 h-3.5 w-3.5" />
-            {t.cancel_order}
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {order.status !== "cancelled" && order.status !== "delivered" && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-destructive hover:text-destructive"
+              onClick={() => setShowCancelDialog(true)}
+            >
+              <X className="mr-1.5 h-3.5 w-3.5" />
+              {t.cancel_order}
+            </Button>
+          )}
+          {order.status === "delivered" && !order.refund_status && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowRefundDialog(true)}
+            >
+              <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+              {t.request_refund}
+            </Button>
+          )}
+          {order.refund_status && (
+            <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+              order.refund_status === "refunded"
+                ? "bg-blue-100 text-blue-800"
+                : order.refund_status === "rejected"
+                ? "bg-red-100 text-red-800"
+                : order.refund_status === "processing"
+                ? "bg-green-100 text-green-800"
+                : "bg-yellow-100 text-yellow-800"
+            }`}>
+              {t[`refund_status_${order.refund_status}`] || order.refund_status}
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -175,6 +230,10 @@ export function OrderDetailClient({ orderId, translations: t }: Props) {
                 {tracking.map((step, idx) => {
                   const isCompleted = step.timestamp != null;
                   const isCurrent = step.is_current;
+                  const stepLabel =
+                    locale === "tr"
+                      ? step.label || getStatusLabel(step.status)
+                      : getStatusLabel(step.status);
                   return (
                     <div key={idx} className="flex gap-3">
                       <div className="flex flex-col items-center">
@@ -203,7 +262,7 @@ export function OrderDetailClient({ orderId, translations: t }: Props) {
                               : "text-muted-foreground"
                           }`}
                         >
-                          {step.label || getStatusLabel(step.status)}
+                          {stepLabel}
                         </p>
                         {step.timestamp && (
                           <p className="text-xs text-muted-foreground">
@@ -402,6 +461,82 @@ export function OrderDetailClient({ orderId, translations: t }: Props) {
           )}
         </div>
       </div>
+
+      {/* Refund Request Dialog */}
+      {showRefundDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="mx-4 w-full max-w-md rounded-lg bg-card p-6 shadow-xl">
+            <h3 className="mb-4 text-lg font-bold">{t.refund_request}</h3>
+
+            <div className="mb-4">
+              <label className="mb-1 block text-sm font-medium">
+                {t.refund_reason} <span className="text-destructive">*</span>
+              </label>
+              <select
+                className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                value={refundReasonId}
+                onChange={(e) => setRefundReasonId(e.target.value)}
+              >
+                <option value="">{t.refund_select_reason}</option>
+                {(refundReasons ?? []).map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="mb-4">
+              <label className="mb-1 block text-sm font-medium">
+                {t.refund_note}
+              </label>
+              <textarea
+                className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                rows={3}
+                value={refundNote}
+                onChange={(e) => setRefundNote(e.target.value)}
+                placeholder={t.refund_note_placeholder}
+              />
+            </div>
+
+            <div className="mb-6">
+              <label className="mb-1 block text-sm font-medium">
+                {t.refund_file} <span className="text-xs text-muted-foreground">({t.refund_file_optional})</span>
+              </label>
+              <input
+                ref={refundFileRef}
+                type="file"
+                accept=".jpg,.jpeg,.png,.webp,.pdf,.zip"
+                className="w-full text-sm"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setShowRefundDialog(false);
+                  setRefundReasonId("");
+                  setRefundNote("");
+                }}
+              >
+                {t.cancel_no}
+              </Button>
+              <Button
+                size="sm"
+                disabled={!refundReasonId || submitRefundMutation.isPending}
+                onClick={handleRefundSubmit}
+              >
+                {submitRefundMutation.isPending ? (
+                  <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                ) : null}
+                {t.refund_submit}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Cancel Confirmation Dialog */}
       {showCancelDialog && (
