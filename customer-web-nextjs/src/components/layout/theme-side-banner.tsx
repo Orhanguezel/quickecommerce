@@ -8,6 +8,28 @@ import { useBannerQuery } from "@/modules/banner/banner.action";
 import { useThemeConfig } from "@/modules/theme/use-theme-config";
 import { X } from "lucide-react";
 
+const SUPPORTED_LOCALES = ["tr", "en"];
+
+/** URL'e locale ekler. Zaten varsa dokunmaz. */
+function injectLocaleIntoUrl(url: string, locale: string): string {
+  if (!url) return url;
+  const alreadyHasLocale = SUPPORTED_LOCALES.some(
+    (l) => url.includes(`/${l}/`) || url.endsWith(`/${l}`)
+  );
+  if (alreadyHasLocale) return url;
+  try {
+    if (url.startsWith("http://") || url.startsWith("https://")) {
+      const parsed = new URL(url);
+      parsed.pathname = `/${locale}${parsed.pathname}`;
+      return parsed.toString();
+    }
+    const path = url.startsWith("/") ? url : `/${url}`;
+    return `/${locale}${path}`;
+  } catch {
+    return url;
+  }
+}
+
 export function ThemeSideBanner() {
   const locale = useLocale();
   const pathname = usePathname();
@@ -91,7 +113,10 @@ export function ThemeSideBanner() {
     selectedBanner.thumbnail_image ||
     selectedBanner.background_image ||
     "/images/banner-illustration.png";
-  const linkHref = sideBannerConfig.linkUrl || selectedBanner.redirect_url || "";
+
+  // URL'ye aktif locale'yi enjekte et (eğer zaten yoksa)
+  const rawHref = sideBannerConfig.linkUrl || selectedBanner.redirect_url || "";
+  const linkHref = injectLocaleIntoUrl(rawHref, locale);
   const computedWidth = Math.max(220, Number(sideBannerConfig.widthPx || 220));
   const computedHeight = Math.max(420, Math.round(computedWidth * 2.1));
 

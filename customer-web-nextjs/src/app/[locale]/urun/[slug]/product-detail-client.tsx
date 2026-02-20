@@ -251,7 +251,7 @@ export function ProductDetailClient({
   };
 
   return (
-    <div className="container py-6 lg:py-8">
+    <div className="container py-6 lg:py-8 xl:pl-[248px] 2xl:pl-[248px]">
       {/* Breadcrumb */}
       <nav className="mb-6 flex items-center gap-1.5 text-sm text-muted-foreground">
         <Link href="/" className="hover:text-foreground">
