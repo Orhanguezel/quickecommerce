@@ -73,11 +73,29 @@ class GdeliveryService
             throw new \Exception('Gönderici adresi tanımlı değil. Lütfen Kurye Ayarları sayfasından Gönderici Adres ID\'yi girin.');
         }
 
+        // UUID formatını kontrol et (Geliver UUID bekliyor)
+        $uuidPattern = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i';
+        if (! preg_match($uuidPattern, (string) $senderAddressId)) {
+            throw new \Exception(
+                'Gönderici Adres ID geçersiz UUID formatında: "' . $senderAddressId . '". '
+                . 'Lütfen Kurye Ayarları\'ndan Geliver panelinizde bulunan gönderici adres UUID\'sini girin.'
+            );
+        }
+
+        // Alıcı adı null ise fallback: email → contact_number → "Müşteri"
+        $recipientName = $orderAddress->name
+            ?: ($orderAddress->email ?: ($orderAddress->contact_number ?: 'Müşteri'));
+
+        // Telefon numarası yoksa hata ver
+        if (! $orderAddress->contact_number) {
+            throw new \Exception('Alıcı telefon numarası bulunamadı. Lütfen sipariş adresini kontrol edin.');
+        }
+
         // Kargo bilgileri (ürün ağırlığı/boyutu için default değerler)
         $shipmentData = [
-            'senderAddressID' => $senderAddressId,
+            'senderAddressID' => (string) $senderAddressId,
             'recipientAddress' => [
-                'name'     => $orderAddress->name,
+                'name'     => $recipientName,
                 'phone'    => $orderAddress->contact_number,
                 'address1' => $orderAddress->address,
                 'cityCode'  => $this->getCityCode($orderAddress->address),

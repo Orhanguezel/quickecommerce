@@ -33,7 +33,17 @@ class AdminCargoController extends Controller
                 'message' => 'Kargo başarıyla oluşturuldu.',
                 'data'    => $this->formatCargo($cargo),
             ]);
+        } catch (\Geliver\ApiException $e) {
+            $detail = $e->additionalMessage ? " ({$e->additionalMessage})" : '';
+            $message = $e->getMessage() . $detail;
+            \Log::error('Geliver API error', ['order_id' => $orderId, 'status' => $e->status, 'code' => $e->codeStr, 'message' => $message]);
+            return response()->json(['success' => false, 'message' => $message], 422);
         } catch (\Exception $e) {
+            \Log::error('Geliver cargo create failed', [
+                'order_id' => $orderId,
+                'error'    => $e->getMessage(),
+                'file'     => $e->getFile() . ':' . $e->getLine(),
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
