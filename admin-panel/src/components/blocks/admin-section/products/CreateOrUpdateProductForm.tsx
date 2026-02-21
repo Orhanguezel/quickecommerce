@@ -558,7 +558,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
     }
   };
 
-  const [combinations, setCombinations] = useState<string[][]>([]);
+  const [combinations, setCombinations] = useState<string[]>([]);
 
   const { mutate: productStore, isPending } = useProductStoreMutation();
   const { mutate: productUpdate, isPending: isUpdating } = useProductUpdateMutation();
@@ -618,8 +618,12 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
     let hasError = false;
     const combinationData = combinations.map((combo, index) => {
       const attributes = selectedAttributes.reduce((acc, attribute) => {
+        const comboStr = combo as string;
         const value =
-          selectedValues[attribute.value]?.find((option) => combo.includes(option.label))?.label ||
+          selectedValues[attribute.value]?.find(
+            (option) =>
+              option.label === comboStr || comboStr.split('-').includes(option.label),
+          )?.label ||
           null;
         //@ts-ignore
         if (value) acc[attribute.label] = value;
