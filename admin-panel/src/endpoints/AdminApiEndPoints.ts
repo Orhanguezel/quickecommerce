@@ -76,6 +76,7 @@ export const API_ENDPOINTS = {
   FIREBASE_SETTINGS: "v1/admin/system-management/firebase-settings",
   GOOGLE_MAP_SETTINGS: "v1/admin/system-management/google-map-settings",
   RECAPTCHA_SETTINGS: "v1/admin/system-management/recaptcha-settings",
+  CARGO_SETTINGS: "v1/admin/system-management/cargo-settings",
 
   REGISTER_SETTINGS: "v1/admin/system-management/page-settings/register",
   LOGIN_SETTINGS: "v1/admin/system-management/page-settings/login",

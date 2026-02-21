@@ -24,7 +24,6 @@ export default async function OrderDetailPage({ params }: Props) {
   return (
     <OrderDetailClient
       orderId={Number(id)}
-      locale={locale}
       translations={{
         order_detail: orderT("order_detail"),
         order_number: orderT("order_number"),
@@ -86,6 +85,15 @@ export default async function OrderDetailPage({ params }: Props) {
         refund_status_processing: orderT("refund_status_processing"),
         refund_status_refunded: orderT("refund_status_refunded"),
         refund_status_rejected: orderT("refund_status_rejected"),
+        tracking_desc_pending: orderT("tracking_desc_pending"),
+        tracking_desc_confirmed: orderT("tracking_desc_confirmed"),
+        tracking_desc_processing: orderT("tracking_desc_processing"),
+        tracking_desc_pickup: orderT("tracking_desc_pickup"),
+        tracking_desc_shipped: orderT("tracking_desc_shipped"),
+        tracking_desc_delivered: orderT("tracking_desc_delivered"),
+        tracking_desc_cancelled: orderT("tracking_desc_cancelled"),
+        tracking_desc_on_hold: orderT("tracking_desc_on_hold"),
+        address_number: orderT("address_number"),
       }}
     />
   );

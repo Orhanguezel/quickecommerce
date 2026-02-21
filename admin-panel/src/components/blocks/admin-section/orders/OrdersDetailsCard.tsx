@@ -29,6 +29,7 @@ import { useEffect, useMemo, useState } from "react";
 import ApproveConfirmModal from "./modals/ApproveConfirmModal";
 import AssignDeliverymanFromDetails from "./modals/AssignDeliverymanFromDetails";
 import DeliverymanLocationModal from "./modals/DeliverymanLocationModal";
+import GdeliverCargoCard from "./GdeliverCargoCard";
 import OrderTrackerModal from "./modals/OrderTrackerModal";
 import PaymentStatusUpdateModal from "./modals/PaymentStatusUpdateModal";
 import RejectConfirmModal from "./modals/RejectConfirmModal";
@@ -951,6 +952,11 @@ const OrdersDetailsCard = ({ data, refetch, ID }: any) => {
               </div>
             </CardContent>
           </Card>
+          <GdeliverCargoCard
+            orderId={ID}
+            orderStatus={OrderDetails?.status}
+            refetch={refetch}
+          />
           <Card>
             <CardContent className="p-6 w-full">
               <div className="flex items-start justify-between ">

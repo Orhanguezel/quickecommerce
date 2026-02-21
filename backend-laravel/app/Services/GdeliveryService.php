@@ -10,14 +10,26 @@ use Geliver\Client;
 
 class GdeliveryService
 {
-    private Client $client;
+    private ?Client $client = null;
     private bool $testMode;
 
     public function __construct()
     {
-        $apiToken = config('services.geliver.api_token');
-        $this->testMode = (bool) config('services.geliver.test_mode', false);
-        $this->client = new Client($apiToken);
+        // Önce DB ayarlarından, yoksa .env'den oku
+        $apiToken = com_option_get('geliver_api_token') ?: config('services.geliver.api_token');
+        $this->testMode = com_option_get('geliver_test_mode') === 'on';
+
+        if ($apiToken) {
+            $this->client = new Client($apiToken);
+        }
+    }
+
+    private function getClient(): Client
+    {
+        if (! $this->client) {
+            throw new \Exception('Geliver API token tanımlı değil. Lütfen Kurye Ayarları sayfasından API token girin.');
+        }
+        return $this->client;
     }
 
     /**
@@ -40,22 +52,25 @@ class GdeliveryService
             return $existing;
         }
 
-        // Sipariş adresi
+        // Sipariş adresi: önce 'delivery', yoksa herhangi bir adres
         $orderAddress = OrderAddress::where('order_master_id', $order->order_master_id)
             ->where('type', 'delivery')
+            ->first()
+            ?? OrderAddress::where('order_master_id', $order->order_master_id)
             ->first();
 
         if (! $orderAddress) {
-            throw new \Exception('Sipariş teslimat adresi bulunamadı.');
+            throw new \Exception('Sipariş teslimat adresi bulunamadı. Lütfen müşterinin adres bilgilerini kontrol edin.');
         }
 
-        // Gönderici adresi (mağazanın geliver_sender_address_id'si)
+        // Gönderici adresi: mağaza → DB ayarları → config sırasıyla
         $store = Store::find($order->store_id);
         $senderAddressId = $store?->geliver_sender_address_id
-            ?? config('services.geliver.default_sender_address_id');
+            ?? com_option_get('geliver_sender_address_id')
+            ?: config('services.geliver.default_sender_address_id');
 
         if (! $senderAddressId) {
-            throw new \Exception('Gönderici adresi tanımlı değil. Lütfen mağaza ayarlarından Geliver gönderici adresini kaydedin.');
+            throw new \Exception('Gönderici adresi tanımlı değil. Lütfen Kurye Ayarları sayfasından Gönderici Adres ID\'yi girin.');
         }
 
         // Kargo bilgileri (ürün ağırlığı/boyutu için default değerler)
@@ -77,9 +92,9 @@ class GdeliveryService
 
         // Test ya da production
         if ($this->testMode) {
-            $shipment = $this->client->shipments()->createTest($shipmentData);
+            $shipment = $this->getClient()->shipments()->createTest($shipmentData);
         } else {
-            $shipment = $this->client->shipments()->create($shipmentData);
+            $shipment = $this->getClient()->shipments()->create($shipmentData);
         }
 
         // En ucuz teklifi seç
@@ -92,7 +107,7 @@ class GdeliveryService
         $carrierName = $offers['cheapest']['carrier']['name'] ?? null;
 
         // Teklifi kabul et
-        $transaction = $this->client->transactions()->acceptOffer($cheapestOfferId);
+        $transaction = $this->getClient()->transactions()->acceptOffer($cheapestOfferId);
 
         $barcode        = $transaction['shipment']['barcode'] ?? null;
         $trackingNumber = $transaction['shipment']['trackingNumber'] ?? null;
@@ -127,7 +142,7 @@ class GdeliveryService
     public function cancelShipment(CargoShipment $cargoShipment): bool
     {
         if ($cargoShipment->geliver_shipment_id) {
-            $this->client->shipments()->cancel($cargoShipment->geliver_shipment_id);
+            $this->getClient()->shipments()->cancel($cargoShipment->geliver_shipment_id);
         }
 
         $cargoShipment->update(['status' => 'cancelled']);
@@ -143,7 +158,7 @@ class GdeliveryService
             return ['status' => $cargoShipment->status];
         }
 
-        $shipment = $this->client->shipments()->get($cargoShipment->geliver_shipment_id);
+        $shipment = $this->getClient()->shipments()->get($cargoShipment->geliver_shipment_id);
         return $shipment;
     }
 
@@ -152,7 +167,7 @@ class GdeliveryService
      */
     public function createSenderAddress(array $data): array
     {
-        return $this->client->addresses()->createSender([
+        return $this->getClient()->addresses()->createSender([
             'name'         => $data['name'],
             'email'        => $data['email'],
             'phone'        => $data['phone'],
@@ -168,7 +183,7 @@ class GdeliveryService
      */
     public function listCities(): array
     {
-        return $this->client->geo()->listCities();
+        return $this->getClient()->geo()->listCities();
     }
 
     /**

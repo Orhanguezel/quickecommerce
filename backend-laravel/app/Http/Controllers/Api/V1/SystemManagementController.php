@@ -577,6 +577,51 @@ class SystemManagementController extends Controller
     }
 
 
+    public function cargoSettings(Request $request)
+    {
+        if ($request->isMethod('POST')) {
+            $validator = Validator::make($request->all(), [
+                'geliver_api_token'          => 'nullable|string',
+                'geliver_test_mode'          => 'nullable|string',
+                'geliver_sender_address_id'  => 'nullable|string',
+            ]);
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+            com_option_update('geliver_api_token', $request->geliver_api_token);
+            com_option_update('geliver_test_mode', $request->geliver_test_mode);
+            com_option_update('geliver_sender_address_id', $request->geliver_sender_address_id);
+
+            // .env dosyasını da güncelle
+            $this->updateEnvValue('GELIVER_API_TOKEN', $request->geliver_api_token ?? '');
+            $this->updateEnvValue('GELIVER_TEST_MODE', $request->geliver_test_mode === 'on' ? 'false' : 'true');
+            $this->updateEnvValue('GELIVER_SENDER_ADDRESS_ID', $request->geliver_sender_address_id ?? '');
+
+            return $this->success(translate('messages.update_success', ['name' => 'Cargo Settings']));
+        }
+
+        return $this->success([
+            'geliver_api_token'         => com_option_get('geliver_api_token'),
+            'geliver_test_mode'         => com_option_get('geliver_test_mode'),
+            'geliver_sender_address_id' => com_option_get('geliver_sender_address_id'),
+        ]);
+    }
+
+    private function updateEnvValue(string $key, string $value): void
+    {
+        $envPath = base_path('.env');
+        if (!file_exists($envPath)) return;
+        $env = file_get_contents($envPath);
+        $pattern = '/^' . preg_quote($key, '/') . '=.*/m';
+        $replacement = $key . '=' . $value;
+        if (preg_match($pattern, $env)) {
+            $env = preg_replace($pattern, $replacement, $env);
+        } else {
+            $env .= PHP_EOL . $replacement;
+        }
+        file_put_contents($envPath, $env);
+    }
+
     public function recaptchaSettings(Request $request)
     {
 

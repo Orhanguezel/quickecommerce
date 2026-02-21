@@ -109,6 +109,7 @@ enum PermissionKey: string
     case FIREBASE_SETTINGS = '/admin/system-management/firebase-settings';
     case SOCIAL_LOGIN_SETTINGS = '/admin/system-management/social-login-settings';
     case RECAPTCHA_SETTINGS = '/admin/system-management/recaptcha-settings';
+    case CARGO_SETTINGS = '/admin/system-management/cargo-settings';
     case ADMIN_STAFF_LIST = '/admin/staff/list';
     case ADMIN_STAFF_MANAGE = '/admin/staff/add';
     case ADMIN_BLOG_CATEGORY_MANAGE = '/admin/blog/category';

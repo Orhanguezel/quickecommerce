@@ -1589,6 +1589,17 @@ class PermissionAdminSeeder extends Seeder
                                         'en' => 'Recaptcha Settings',
                                         'tr' => 'Recaptcha Ayarları'
                                     ]
+                                ],
+                                [
+                                    'PermissionName' => PermissionKey::CARGO_SETTINGS->value,
+                                    'PermissionTitle' => 'Cargo Settings',
+                                    'activity_scope' => 'system_level',
+                                    'icon' => '',
+                                    'options' => ['view', 'update'],
+                                    'translations' => [
+                                        'en' => 'Cargo Settings (Geliver)',
+                                        'tr' => 'Kurye Ayarları (Geliver)'
+                                    ]
                                 ]
                             ]
                         ],

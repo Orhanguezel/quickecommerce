@@ -1,7 +1,7 @@
 
 import { AppModal } from "@/components/blocks/common/AppModal";
 import { Card, CardContent } from "@/components/ui";
-import { useGoogleMapForAllQuery } from "@/modules/admin-section/google-map-settings/google-map-settings.action";
+import { useGoogleMaps } from "@/contexts/GoogleMapsContext";
 import { useUpdateLiveLocation } from "@/modules/admin-section/orders/refund-request/refund-request.action";
 import { GoogleMap, Marker, Polyline } from "@react-google-maps/api";
 import { Check, RefreshCcw } from "lucide-react";
@@ -23,8 +23,9 @@ interface StatusUpdateModalProps {
   OrderTrackingTime?: any;
 }
 
+interface LatLng { lat: number; lng: number }
 interface RouteResult {
-  path: google.maps.LatLngLiteral[];
+  path: LatLng[];
 }
 
 const steps = [
@@ -56,19 +57,14 @@ const OrderTrackerModal: React.FC<StatusUpdateModalProps> = ({
 }) => {
   const t = useTranslations();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { GoogleMapData, isPending, error } = useGoogleMapForAllQuery({});
-
-  const GoogleMapSettingsMessage = (GoogleMapData as any)?.message;
-  const dynamicApiKey = GoogleMapSettingsMessage?.com_google_map_api_key;
-  const isMapEnabledBySettings =
-    GoogleMapSettingsMessage?.com_google_map_enable_disable === "on";
+  const { isLoaded, isEnabled: isMapEnabledBySettings, isPending } = useGoogleMaps();
 
   const [directionsResult, setDirectionsResult] = useState<RouteResult | null>(
     null
   );
   const [hasCenteredInitially, setHasCenteredInitially] = useState(false);
 
-  const mapRef = useRef<google.maps.Map | null>(null);
+  const mapRef = useRef<any>(null);
 
   function buildStepsWithTimes(
     steps: any,
@@ -199,11 +195,11 @@ const OrderTrackerModal: React.FC<StatusUpdateModalProps> = ({
   }, [isModalOpen, row, handleLiveLocation]);
 
   const showMap =
-    !isPending && !error && dynamicApiKey && isMapEnabledBySettings;
+    !isPending && isLoaded && isMapEnabledBySettings;
 
   useEffect(() => {
-    if (showMap && mapRef.current) {
-      google.maps.event.trigger(mapRef.current, "resize");
+    if (showMap && mapRef.current && window.google?.maps) {
+      window.google.maps.event.trigger(mapRef.current, "resize");
       const center = getMapCenter();
       mapRef.current.panTo(center);
     }
@@ -211,8 +207,8 @@ const OrderTrackerModal: React.FC<StatusUpdateModalProps> = ({
 
   const calculateRoute = useCallback(
     async (
-      origin: google.maps.LatLngLiteral,
-      destination: google.maps.LatLngLiteral,
+      origin: LatLng,
+      destination: LatLng,
       routeType: "live" | "store"
     ) => {
       if (
@@ -244,7 +240,7 @@ const OrderTrackerModal: React.FC<StatusUpdateModalProps> = ({
         const result = await directionsService.route({
           origin: origin,
           destination: destination,
-          travelMode: google.maps.TravelMode.DRIVING,
+          travelMode: window.google.maps.TravelMode.DRIVING,
         });
 
         if (result.routes && result.routes.length > 0) {
@@ -468,8 +464,8 @@ const OrderTrackerModal: React.FC<StatusUpdateModalProps> = ({
                                     <rect x="138" y="138" width="42" height="24" fill="#EE8700" stroke="#FF9811" strokeWidth="2"/>
                                   </svg>
                                                                   `)}`,
-                                  scaledSize: new google.maps.Size(40, 60),
-                                  anchor: new google.maps.Point(20, 60)
+                                  scaledSize: new window.google.maps.Size(40, 60),
+                                  anchor: new window.google.maps.Point(20, 60)
                                 }}
                               />
                               <Polyline

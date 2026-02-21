@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, ReactNode, useMemo } from "react";
+import { createContext, useContext, ReactNode, useMemo, useRef } from "react";
 import { useLoadScript } from "@react-google-maps/api";
 import { useGoogleMapForAllQuery } from "@/modules/admin-section/google-map-settings/google-map-settings.action";
 
@@ -30,7 +30,7 @@ type GoogleMapsProviderProps = {
   children: ReactNode;
 };
 
-// Inner component that loads the script only when API key is available
+// Loaded once and stays mounted — avoids repeated useLoadScript calls
 const GoogleMapsScriptLoader: React.FC<{
   apiKey: string;
   children: ReactNode;
@@ -43,13 +43,7 @@ const GoogleMapsScriptLoader: React.FC<{
   });
 
   const value = useMemo(
-    () => ({
-      isLoaded,
-      loadError,
-      isEnabled,
-      apiKey,
-      isPending,
-    }),
+    () => ({ isLoaded, loadError, isEnabled, apiKey, isPending }),
     [isLoaded, loadError, isEnabled, apiKey, isPending]
   );
 
@@ -60,7 +54,7 @@ const GoogleMapsScriptLoader: React.FC<{
   );
 };
 
-// Fallback provider when maps are not available
+// Used before maps are ready — no script injection
 const GoogleMapsNoScript: React.FC<{
   children: ReactNode;
   isEnabled: boolean;
@@ -68,13 +62,7 @@ const GoogleMapsNoScript: React.FC<{
   isPending: boolean;
 }> = ({ children, isEnabled, apiKey, isPending }) => {
   const value = useMemo(
-    () => ({
-      isLoaded: false,
-      loadError: undefined,
-      isEnabled,
-      apiKey,
-      isPending,
-    }),
+    () => ({ isLoaded: false, loadError: undefined, isEnabled, apiKey, isPending }),
     [isEnabled, apiKey, isPending]
   );
 
@@ -93,14 +81,25 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
 
   const apiKey = settings?.com_google_map_api_key || "";
   const isEnabled = settings?.com_google_map_enable_disable === "on";
+  const shouldLoad = !isPending && !error && !!apiKey && isEnabled;
 
-  // Only load script if we have a valid API key and maps are enabled
-  const shouldLoad = !isPending && !error && apiKey && isEnabled;
+  /**
+   * Once shouldLoad becomes true (settings loaded + maps enabled + key present),
+   * we latch it permanently. This prevents switching back to GoogleMapsNoScript
+   * on re-renders (stale data, refetch, etc.) which would cause useLoadScript
+   * to be called multiple times and produce intermittent console errors.
+   */
+  const latchedRef = useRef(false);
+  const latchedApiKeyRef = useRef("");
+  if (shouldLoad && apiKey) {
+    latchedRef.current = true;
+    latchedApiKeyRef.current = apiKey;
+  }
 
-  if (shouldLoad) {
+  if (latchedRef.current) {
     return (
       <GoogleMapsScriptLoader
-        apiKey={apiKey}
+        apiKey={latchedApiKeyRef.current}
         isEnabled={isEnabled}
         isPending={isPending}
       >
@@ -110,11 +109,7 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
   }
 
   return (
-    <GoogleMapsNoScript
-      isEnabled={isEnabled}
-      apiKey={apiKey}
-      isPending={isPending}
-    >
+    <GoogleMapsNoScript isEnabled={isEnabled} apiKey={apiKey} isPending={isPending}>
       {children}
     </GoogleMapsNoScript>
   );

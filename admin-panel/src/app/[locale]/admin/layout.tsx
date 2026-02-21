@@ -17,6 +17,7 @@ import { PublicNavbarSkeleton } from "@/components/molecules/PublicNavbarSkeleto
 import { useStore } from "@/hooks/use-store";
 import { useSidebarToggle } from "@/hooks/use-sidebar-toggle";
 import { cn } from "@/lib/utils";
+import GoogleMapsLoader from "@/components/molecules/GoogleMapsLoader";
 
 const Sidebar = dynamic(
   () => import("@/components/blocks/shared/sidebar").then((m) => m.Sidebar),
@@ -110,13 +111,15 @@ export default function AdminLayout({
 
 
   return (
-    <div dir={dir}>
-      <LoaderOverlay isLoading={isLoading} />
-      <Sidebar setIsLoading={setIsLoading} />
-      <Navbar setIsLoading={setIsLoading} MeData={MeData} />
-      <div className="flex-1 flex flex-col justify-between w-full mx-auto ">
-        {children}
+    <GoogleMapsLoader>
+      <div dir={dir}>
+        <LoaderOverlay isLoading={isLoading} />
+        <Sidebar setIsLoading={setIsLoading} />
+        <Navbar setIsLoading={setIsLoading} MeData={MeData} />
+        <div className="flex-1 flex flex-col justify-between w-full mx-auto ">
+          {children}
+        </div>
       </div>
-    </div>
+    </GoogleMapsLoader>
   );
 }

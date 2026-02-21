@@ -28,11 +28,10 @@ import {
 
 interface Props {
   orderId: number;
-  locale: string;
   translations: Record<string, string>;
 }
 
-export function OrderDetailClient({ orderId, locale, translations: t }: Props) {
+export function OrderDetailClient({ orderId, translations: t }: Props) {
   const { data, isLoading, isError } = useOrderDetailQuery(orderId);
   const cancelMutation = useCancelOrderMutation();
   const [showCancelDialog, setShowCancelDialog] = useState(false);
@@ -66,6 +65,11 @@ export function OrderDetailClient({ orderId, locale, translations: t }: Props) {
   const getStatusLabel = (status: string) => {
     const key = `status_${status}`;
     return t[key] || status;
+  };
+
+  const getTrackingDescription = (status: string, fallback?: string) => {
+    const key = `tracking_desc_${status}`;
+    return t[key] || fallback || "";
   };
 
   const getPaymentStatusLabel = (status: string) => {
@@ -230,10 +234,11 @@ export function OrderDetailClient({ orderId, locale, translations: t }: Props) {
                 {tracking.map((step, idx) => {
                   const isCompleted = step.timestamp != null;
                   const isCurrent = step.is_current;
-                  const stepLabel =
-                    locale === "tr"
-                      ? step.label || getStatusLabel(step.status)
-                      : getStatusLabel(step.status);
+                  const stepLabel = getStatusLabel(step.status);
+                  const stepDescription = getTrackingDescription(
+                    step.status,
+                    step.description
+                  );
                   return (
                     <div key={idx} className="flex gap-3">
                       <div className="flex flex-col items-center">
@@ -264,6 +269,11 @@ export function OrderDetailClient({ orderId, locale, translations: t }: Props) {
                         >
                           {stepLabel}
                         </p>
+                        {stepDescription && (
+                          <p className="text-sm text-muted-foreground">
+                            {stepDescription}
+                          </p>
+                        )}
                         {step.timestamp && (
                           <p className="text-xs text-muted-foreground">
                             {step.timestamp}
@@ -431,7 +441,7 @@ export function OrderDetailClient({ orderId, locale, translations: t }: Props) {
                   <p className="text-muted-foreground">
                     {master.shipping_address.road}
                     {master.shipping_address.house &&
-                      `, No: ${master.shipping_address.house}`}
+                      `, ${t.address_number}: ${master.shipping_address.house}`}
                     {master.shipping_address.floor &&
                       `, ${master.shipping_address.floor}`}
                   </p>
