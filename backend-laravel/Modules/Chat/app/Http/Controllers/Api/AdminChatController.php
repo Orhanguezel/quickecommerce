@@ -17,6 +17,31 @@ use Modules\Chat\app\Transformers\ChatMessageDetailsResource;
 
 class AdminChatController extends Controller
 {
+    protected function ensureStoreChatsExist(): void
+    {
+        $storeIds = Store::query()->pluck('id');
+        if ($storeIds->isEmpty()) {
+            return;
+        }
+
+        $existingStoreChatIds = Chat::query()
+            ->where('user_type', 'store')
+            ->whereIn('user_id', $storeIds)
+            ->pluck('user_id');
+
+        $missingStoreIds = $storeIds->diff($existingStoreChatIds)->values();
+        if ($missingStoreIds->isEmpty()) {
+            return;
+        }
+
+        foreach ($missingStoreIds as $storeId) {
+            Chat::query()->firstOrCreate([
+                'user_id' => $storeId,
+                'user_type' => 'store',
+            ]);
+        }
+    }
+
     protected function repairOrphanStoreChats(): void
     {
         $validStoreIds = Store::query()->pluck('id');
@@ -69,6 +94,9 @@ class AdminChatController extends Controller
             'user_id' => $auth_id,
             'user_type' => $auth_type,
         ]);
+
+        // Ensure every store appears in admin chat list even without messages.
+        $this->ensureStoreChatsExist();
 
         // Repair stale store chat rows caused by store reseeding/id changes.
         $this->repairOrphanStoreChats();

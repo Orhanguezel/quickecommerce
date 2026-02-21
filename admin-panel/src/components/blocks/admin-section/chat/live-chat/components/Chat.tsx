@@ -73,6 +73,8 @@ const Chat: React.FC<any> = ({
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
+  const pusherRef = useRef<Pusher | null>(null);
+  const pusherChannelRef = useRef<string | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [hasNewMessage, setHasNewMessage] = useState(false);
   const lastListRefreshRef = useRef(0);
@@ -198,13 +200,27 @@ const Chat: React.FC<any> = ({
   ]);
 
   useEffect(() => {
-    if (!activeChannel) return;
+    const senderId = currentUser?.sender_id;
+    if (!activeChannel || !senderId) return;
+
+    if (pusherRef.current) {
+      try {
+        if (pusherChannelRef.current) {
+          pusherRef.current.unsubscribe(pusherChannelRef.current);
+        }
+        if (pusherRef.current.connection.state !== "disconnected") {
+          pusherRef.current.disconnect();
+        }
+      } catch {}
+    }
+
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY as string, {
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER as string,
-      authEndpoint: "/api/pusher",
     });
-
-    const channel = pusher.subscribe(`activeChannel_${currentUser?.sender_id}`);
+    const channelName = `activeChannel_${senderId}`;
+    const channel = pusher.subscribe(channelName);
+    pusherRef.current = pusher;
+    pusherChannelRef.current = channelName;
 
     channel.bind("new-message", (data: PusherMessageData) => {
       //@ts-ignore
@@ -229,8 +245,17 @@ const Chat: React.FC<any> = ({
     });
 
     return () => {
-      channel?.unsubscribe();
-      pusher?.disconnect();
+      try {
+        channel.unbind("new-message");
+        pusher.unsubscribe(channelName);
+        if (pusher.connection.state !== "disconnected") {
+          pusher.disconnect();
+        }
+      } catch {}
+      if (pusherRef.current === pusher) {
+        pusherRef.current = null;
+        pusherChannelRef.current = null;
+      }
     };
   }, [activeChannel, currentUser?.sender_id]);
 

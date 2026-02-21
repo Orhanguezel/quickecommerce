@@ -39,5 +39,5 @@ export default function middleware(request: NextRequest) {
 
 export const config = {
   // Skip all paths that should not be internationalized
-  matcher: ['/((?!_next|.*\\..*).*)'],
+  matcher: ['/((?!api|_next|.*\\..*).*)'],
 };

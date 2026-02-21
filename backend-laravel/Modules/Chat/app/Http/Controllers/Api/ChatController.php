@@ -134,13 +134,13 @@ class ChatController extends Controller
         }
 
         // receiver chat id
-        $receiver_chat = Chat::select('id')->where('user_id', $receiver->id)->where('user_type', $receiver_type)->first();
-        if (empty($receiver_chat)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Receiver chat not found',
-            ], 422);
-        }
+        $receiver_chat = Chat::query()->firstOrCreate(
+            [
+                'user_id' => $receiver->id,
+                'user_type' => $receiver_type,
+            ],
+            []
+        );
 
 
         $data = [
@@ -154,7 +154,13 @@ class ChatController extends Controller
 
 
         // sender chat id
-        $sender_chat_id = Chat::where('user_id', $authUser->id)->first()->id;
+        $sender_chat_id = Chat::query()->firstOrCreate(
+            [
+                'user_id' => $authType === 'store' ? $authStore->id : $authUser->id,
+                'user_type' => $authType,
+            ],
+            []
+        )->id;
         $data['chat_id'] = $sender_chat_id;
 
         // upload file
