@@ -1,3 +1,6 @@
+# Admin panel deploy build artifacts (generated on server, not tracked)
+admin-panel/deploy/
+
 # Logs
 logs
 *.log
