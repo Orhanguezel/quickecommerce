@@ -34,7 +34,7 @@ class SliderSeeder extends Seeder
                 'button_text_color' => '#1565c0',
                 'button_bg_color' => '#ffffff',
                 'button_hover_color' => '#e3f2fd',
-                'redirect_url' => '/products',
+                'redirect_url' => '/urunler',
                 'order' => 1,
             ],
             [
@@ -60,7 +60,7 @@ class SliderSeeder extends Seeder
                 'button_text_color' => '#2e7d32',
                 'button_bg_color' => '#ffffff',
                 'button_hover_color' => '#c8e6c9',
-                'redirect_url' => '/products?category=supplements',
+                'redirect_url' => '/urunler?category=supplements',
                 'order' => 2,
             ],
             [
@@ -86,7 +86,7 @@ class SliderSeeder extends Seeder
                 'button_text_color' => '#e65100',
                 'button_bg_color' => '#ffffff',
                 'button_hover_color' => '#ffe0b2',
-                'redirect_url' => '/products?category=outdoor',
+                'redirect_url' => '/urunler?category=outdoor',
                 'order' => 3,
             ],
             [
@@ -112,7 +112,7 @@ class SliderSeeder extends Seeder
                 'button_text_color' => '#ffffff',
                 'button_bg_color' => '#212121',
                 'button_hover_color' => '#424242',
-                'redirect_url' => '/products?category=running-shoes',
+                'redirect_url' => '/urunler?category=running-shoes',
                 'order' => 4,
             ],
             [
@@ -138,7 +138,7 @@ class SliderSeeder extends Seeder
                 'button_text_color' => '#ad1457',
                 'button_bg_color' => '#ffffff',
                 'button_hover_color' => '#fce4ec',
-                'redirect_url' => '/products?category=fitness-apparel',
+                'redirect_url' => '/urunler?category=fitness-apparel',
                 'order' => 5,
             ],
 
@@ -192,7 +192,7 @@ class SliderSeeder extends Seeder
                 'button_text_color' => '#ffffff',
                 'button_bg_color' => '#1565c0',
                 'button_hover_color' => '#0d47a1',
-                'redirect_url' => '/products?category=smart-watches',
+                'redirect_url' => '/urunler?category=smart-watches',
                 'order' => 2,
             ],
             [
@@ -218,7 +218,7 @@ class SliderSeeder extends Seeder
                 'button_text_color' => '#00695c',
                 'button_bg_color' => '#ffffff',
                 'button_hover_color' => '#e0f2f1',
-                'redirect_url' => '/products?category=bicycles',
+                'redirect_url' => '/urunler?category=bicycles',
                 'order' => 3,
             ],
         ];

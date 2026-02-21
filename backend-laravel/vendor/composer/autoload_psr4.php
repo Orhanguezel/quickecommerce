@@ -144,6 +144,7 @@ return array(
     'Google\\Api\\' => array($vendorDir . '/google/common-protos/src/Api'),
     'Google\\ApiCore\\LongRunning\\' => array($vendorDir . '/google/longrunning/src/ApiCore/LongRunning'),
     'Google\\ApiCore\\' => array($vendorDir . '/google/gax/src'),
+    'Geliver\\' => array($vendorDir . '/geliver/sdk/src'),
     'GPBMetadata\\Google\\Type\\' => array($vendorDir . '/google/common-protos/metadata/Type'),
     'GPBMetadata\\Google\\Rpc\\' => array($vendorDir . '/google/common-protos/metadata/Rpc'),
     'GPBMetadata\\Google\\Protobuf\\' => array($vendorDir . '/google/protobuf/src/GPBMetadata/Google/Protobuf'),

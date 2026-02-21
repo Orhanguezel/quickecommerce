@@ -13,6 +13,7 @@
     "ext-fileinfo": "*",
     "ext-pdo": "*",
     "archtechx/enums": "^1.1",
+    "geliver/sdk": "^1.0",
     "intervention/image": "^2.5",
     "iyzico/iyzipay-php": "^2.0",
     "kreait/firebase-php": "^7.13",

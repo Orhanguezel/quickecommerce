@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\V1\Product\ProductAttributeController;
 use App\Http\Controllers\Api\V1\Product\ProductAuthorController;
 use App\Http\Controllers\Api\V1\Product\ProductVariantController;
 use App\Http\Controllers\Api\V1\Seller\SellerBannerManageController;
+use App\Http\Controllers\Api\V1\Seller\SellerCargoController;
 use App\Http\Controllers\Api\V1\Seller\SellerBusinessSettingsController;
 use App\Http\Controllers\Api\V1\Seller\SellerDeliverymanManageController;
 use App\Http\Controllers\Api\V1\Seller\SellerFlashSaleProductManageController;
@@ -103,6 +104,13 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => ['auth:sanctum', 'check.e
                     Route::get('refund-request', [SellerStoreOrderRefundManageController::class, 'orderRefundRequests'])->middleware('permission:' . PermissionKey::SELLER_ORDERS_RETURNED_OR_REFUND_REQUEST->value);
                     Route::post('refund-request/handle', [SellerStoreOrderRefundManageController::class, 'handleRefundRequest'])->middleware('permission:' . PermissionKey::SELLER_ORDERS_RETURNED_OR_REFUND_REQUEST->value);
                     Route::get('{order_id?}', [SellerStoreOrderController::class, 'allOrders']);
+
+                    // Cargo (Geliver) - sipariş bazlı
+                    Route::prefix('{orderId}/cargo')->group(function () {
+                        Route::post('/', [SellerCargoController::class, 'createShipment']);
+                        Route::get('/', [SellerCargoController::class, 'show']);
+                        Route::delete('/', [SellerCargoController::class, 'cancel']);
+                    });
                 });
             });
 

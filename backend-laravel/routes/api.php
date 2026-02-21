@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V1\Com\HeaderFooterController;
 use App\Http\Controllers\Api\V1\Com\LiveLocationController;
 use App\Http\Controllers\Api\V1\Com\SubscriberManageController;
 use App\Http\Controllers\Api\V1\ContactManageController;
+use App\Http\Controllers\Api\V1\Customer\CustomerCargoController;
 use App\Http\Controllers\Api\V1\Customer\CustomerOrderController;
 use Modules\Blog\app\Http\Controllers\Api\FrontendBlogController;
 use App\Http\Controllers\Api\V1\Customer\CustomerProductQueryController;
@@ -154,6 +155,8 @@ Route::group(['prefix' => 'v1/'], function () {
         // customer place order
         Route::group(['namespace' => 'Api\V1', 'middleware' => ['auth:api_customer', 'check.customer.account.status']], function () {
             Route::post('orders/checkout', [PlaceOrderController::class, 'placeOrder']);
+            // Kargo takip (müşteri)
+            Route::get('orders/{orderId}/cargo', [CustomerCargoController::class, 'show']);
             // create checkout session (returns stripe checkout url)
             Route::post('orders/create-stripe-session', [StripePaymentController::class, 'createCheckoutSession']);
             // create checkout session (returns iyzico payment url)

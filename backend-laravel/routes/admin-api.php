@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V1\Admin\AdminDashboardController;
 use App\Http\Controllers\Api\V1\Admin\AdminDeliverymanManageController;
 use App\Http\Controllers\Api\V1\Admin\AdminFlashSaleManageController;
 use App\Http\Controllers\Api\V1\Admin\AdminInventoryManageController;
+use App\Http\Controllers\Api\V1\Admin\AdminCargoController;
 use App\Http\Controllers\Api\V1\Admin\AdminOrderManageController;
 use App\Http\Controllers\Api\V1\Admin\AdminOrderRefundManageController;
 use App\Http\Controllers\Api\V1\Admin\AdminProductManageController;
@@ -111,8 +112,21 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => ['auth:sanctum']], functi
                 // Dynamic route should be last
                 Route::get('{order_id?}', [AdminOrderManageController::class, 'allOrders']);
             });
+
+            // Cargo (Geliver) - sipariş bazlı
+            Route::prefix('orders/{orderId}/cargo')->group(function () {
+                Route::post('/', [AdminCargoController::class, 'createShipment']);
+                Route::get('/', [AdminCargoController::class, 'show']);
+                Route::delete('/', [AdminCargoController::class, 'cancel']);
+            });
         });
 
+        // Cargo genel (gönderici adresi, şehirler, liste)
+        Route::prefix('cargo')->group(function () {
+            Route::get('/', [AdminCargoController::class, 'index']);
+            Route::post('sender-address', [AdminCargoController::class, 'createSenderAddress']);
+            Route::get('cities', [AdminCargoController::class, 'cities']);
+        });
 
         // Product manage
         Route::group(['prefix' => 'product/'], function () {

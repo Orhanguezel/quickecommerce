@@ -44,4 +44,10 @@ return [
         'redirect' => env('FACEBOOK_REDIRECT_URI'),
     ],
 
+    'geliver' => [
+        'api_token'                 => env('GELIVER_API_TOKEN'),
+        'test_mode'                 => env('GELIVER_TEST_MODE', true),
+        'default_sender_address_id' => env('GELIVER_SENDER_ADDRESS_ID'),
+    ],
+
 ];
