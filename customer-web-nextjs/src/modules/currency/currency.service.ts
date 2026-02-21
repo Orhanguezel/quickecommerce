@@ -2,10 +2,11 @@
 
 import axios from "axios";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
+import { getApiBaseUrl } from "@/lib/api-url";
 import type { Currency, CurrencyConvertRequest, CurrencyConvertResponse } from "./currency.type";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_REST_API_ENDPOINT || "http://localhost:8000/api/v1",
+  baseURL: getApiBaseUrl(),
   timeout: 15000,
   headers: {
     "Content-Type": "application/json",

@@ -9,6 +9,9 @@ class FlashSaleSeeder extends Seeder
 {
     public function run(): void
     {
+        $customerBaseUrl = rtrim((string) env('CUSTOMER_WEB_URL', 'http://localhost:3003'), '/');
+        $flashSaleTargetUrl = $customerBaseUrl . '/tr/urunler';
+
         $flashSales = [
             [
                 'tr' => [
@@ -27,7 +30,7 @@ class FlashSaleSeeder extends Seeder
                 'button_text_color' => '#1a73e8',
                 'button_hover_color' => '#0d5bba',
                 'button_bg_color' => '#ffffff',
-                'button_url' => '/products?category=sports',
+                'button_url' => $flashSaleTargetUrl,
                 'timer_bg_color' => '#ff5722',
                 'timer_text_color' => '#ffffff',
                 'image' => 'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=800',
@@ -54,7 +57,7 @@ class FlashSaleSeeder extends Seeder
                 'button_text_color' => '#2e7d32',
                 'button_hover_color' => '#1b5e20',
                 'button_bg_color' => '#ffffff',
-                'button_url' => '/products?category=supplements',
+                'button_url' => $flashSaleTargetUrl,
                 'timer_bg_color' => '#c62828',
                 'timer_text_color' => '#ffffff',
                 'image' => 'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=800',
@@ -81,7 +84,7 @@ class FlashSaleSeeder extends Seeder
                 'button_text_color' => '#e65100',
                 'button_hover_color' => '#bf360c',
                 'button_bg_color' => '#ffffff',
-                'button_url' => '/products?category=outdoor',
+                'button_url' => $flashSaleTargetUrl,
                 'timer_bg_color' => '#1565c0',
                 'timer_text_color' => '#ffffff',
                 'image' => 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=800',
@@ -108,7 +111,7 @@ class FlashSaleSeeder extends Seeder
                 'button_text_color' => '#ad1457',
                 'button_hover_color' => '#880e4f',
                 'button_bg_color' => '#ffffff',
-                'button_url' => '/products?category=fitness-apparel',
+                'button_url' => $flashSaleTargetUrl,
                 'timer_bg_color' => '#6a1b9a',
                 'timer_text_color' => '#ffffff',
                 'image' => 'https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=800',
@@ -135,7 +138,7 @@ class FlashSaleSeeder extends Seeder
                 'button_text_color' => '#ffffff',
                 'button_hover_color' => '#333333',
                 'button_bg_color' => '#212121',
-                'button_url' => '/products?category=running-shoes',
+                'button_url' => $flashSaleTargetUrl,
                 'timer_bg_color' => '#d32f2f',
                 'timer_text_color' => '#ffffff',
                 'image' => 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800',
@@ -162,7 +165,7 @@ class FlashSaleSeeder extends Seeder
                 'button_text_color' => '#0d47a1',
                 'button_hover_color' => '#1565c0',
                 'button_bg_color' => '#ffffff',
-                'button_url' => '/products?category=smart-watches',
+                'button_url' => $flashSaleTargetUrl,
                 'timer_bg_color' => '#00897b',
                 'timer_text_color' => '#ffffff',
                 'image' => 'https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=800',

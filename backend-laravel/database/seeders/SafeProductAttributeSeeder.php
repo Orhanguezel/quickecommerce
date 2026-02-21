@@ -32,18 +32,14 @@ class SafeProductAttributeSeeder extends Seeder
                 'Dil'        => ['Türkçe', 'İngilizce', 'Almanca', 'Fransızca', 'Arapça'],
                 'Kapak Türü' => ['Karton Kapak', 'Sert Kapak', 'Spiralli'],
             ],
-            // Giyim
+            // Giyim & Ayakkabı (footwear → clothing, both use the same type)
             'clothing' => [
                 'Renk'    => ['Siyah', 'Beyaz', 'Kırmızı', 'Mavi', 'Yeşil', 'Sarı', 'Gri', 'Lacivert', 'Pembe', 'Mor'],
                 'Beden'   => ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'],
                 'Malzeme' => ['Pamuk', 'Polyester', 'Naylon', 'Yün', 'Deri', 'Keten', 'İpek'],
+                'Numara'  => ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45'],
             ],
-            // Ayakkabı
-            'footwear' => [
-                'Renk'   => ['Siyah', 'Beyaz', 'Kahverengi', 'Gri', 'Lacivert'],
-                'Numara' => ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45'],
-            ],
-            // Teknoloji / Gadget
+            // Teknoloji / Gadget (electronics → gadgets)
             'gadgets' => [
                 'Renk'  => ['Siyah', 'Beyaz', 'Gümüş', 'Altın', 'Mavi', 'Kırmızı'],
                 'Boyut' => ['Küçük', 'Orta', 'Büyük', 'Kompakt'],
@@ -93,21 +89,14 @@ class SafeProductAttributeSeeder extends Seeder
                 'Ambalaj'       => ['Bütün Balık', 'Fileto', 'Dilimlendi', 'Dondurulmuş'],
                 'Saklama'       => ['Buzdolabı', 'Dondurucuda', 'Serin Ortam'],
             ],
-            // Bisiklet
-            'cycling' => [
+            // Spor (supplements + cycling + outdoor/sports birleştirildi — hepsi StoreType::sports)
+            'sports' => [
+                'Tat/Aroma'    => ['Çikolata', 'Vanilya', 'Çilek', 'Muz', 'Aromasız'],
+                'Ağırlık'      => ['300g', '500g', '1kg', '1.5kg', '2kg', '2.5kg'],
                 'Kadro Boyu'   => ['XS (13")', 'S (15")', 'M (17")', 'L (19")', 'XL (21")'],
                 'Tekerlek Boyu' => ['20"', '24"', '26"', '27.5"', '29"'],
-                'Renk'          => ['Siyah', 'Beyaz', 'Kırmızı', 'Mavi', 'Gri'],
-            ],
-            // Besin Takviyesi
-            'supplements' => [
-                'Tat/Aroma' => ['Çikolata', 'Vanilya', 'Çilek', 'Muz', 'Aromasız'],
-                'Ağırlık'   => ['300g', '500g', '1kg', '1.5kg', '2kg', '2.5kg'],
-            ],
-            // Elektronik
-            'electronics' => [
-                'Renk'  => ['Siyah', 'Beyaz', 'Gümüş', 'Altın'],
-                'Boyut' => ['Küçük', 'Orta', 'Büyük'],
+                'Renk'         => ['Siyah', 'Beyaz', 'Kırmızı', 'Mavi', 'Gri', 'Turuncu'],
+                'Beden'        => ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
             ],
         ];
 

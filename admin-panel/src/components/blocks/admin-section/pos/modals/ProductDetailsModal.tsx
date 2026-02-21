@@ -83,6 +83,13 @@ export default function ProductDetailsModal({ onClose, slug }: ProductDetailsMod
   }, [currency]);
   const CurrencyData = originalData.currencies_info;
 
+  const toSafeNumber = (value: unknown): number => {
+    if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+    if (value === null || value === undefined) return 0;
+    const parsed = Number(String(value).replace(/,/g, '').trim());
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
   function getEffectivePrice(price: number, special_price?: number, flash_sale?: any): number {
     const basePrice = special_price && special_price > 0 ? special_price : price;
 
@@ -103,20 +110,16 @@ export default function ProductDetailsModal({ onClose, slug }: ProductDetailsMod
     return basePrice;
   }
 
+  const variantPrice = toSafeNumber(selectedVariant?.price);
+  const variantSpecialPrice = toSafeNumber(selectedVariant?.special_price);
+  const effectivePrice = getEffectivePrice(
+    variantPrice,
+    variantSpecialPrice,
+    product.flash_sale,
+  );
   const finalPrice = CurrencyData
-    ? formatNumberOnly(
-        getEffectivePrice(
-          Number(selectedVariant?.price),
-          Number(selectedVariant?.special_price),
-          product.flash_sale,
-        ),
-        CurrencyData,
-      )
-    : getEffectivePrice(
-        Number(selectedVariant?.price),
-        Number(selectedVariant?.special_price),
-        product.flash_sale,
-      );
+    ? formatNumberOnly(effectivePrice, CurrencyData)
+    : effectivePrice;
 
   const galleryImages = [
     ...(product?.image_url ? [product.image_url] : []),
@@ -198,14 +201,22 @@ export default function ProductDetailsModal({ onClose, slug }: ProductDetailsMod
         (Number(product?.max_cart_qty) || 1) <= selectedVariant?.stock_quantity &&
         quantity >= product?.max_cart_qty
       ) {
-        showTooltip(`Maximum allowed quantity (${Number(product?.max_cart_qty) || 1}) reached.`);
+        showTooltip(
+          t('pos.maximum_allowed_quantity_reached', {
+            count: Number(product?.max_cart_qty) || 1,
+          }),
+        );
       } else if (
         selectedVariant?.stock_quantity < (Number(product?.max_cart_qty) || 1) &&
         quantity >= selectedVariant?.stock_quantity
       ) {
-        showTooltip(`Only ${selectedVariant?.stock_quantity} item(s) in stock.`);
+        showTooltip(
+          t('pos.only_items_in_stock', {
+            count: selectedVariant?.stock_quantity,
+          }),
+        );
       } else {
-        showTooltip('You have reached the limit.');
+        showTooltip(t('pos.limit_reached'));
       }
     }
   };
@@ -235,8 +246,8 @@ export default function ProductDetailsModal({ onClose, slug }: ProductDetailsMod
     store_delivery_time: product?.store?.delivery_time || '',
     store_tax: product?.store?.tax || '',
     area_id: product?.store?.area_id,
-    name: product?.name || 'Unknown Product',
-    price: Number(finalPrice.toString().replace(/,/g, '')),
+    name: product?.name || t('pos.unknown_product'),
+    price: toSafeNumber(finalPrice),
     max_cart_qty: Number(product?.max_cart_qty),
     stock: selectedVariant?.stock_quantity,
     quantity,
@@ -293,21 +304,36 @@ export default function ProductDetailsModal({ onClose, slug }: ProductDetailsMod
     setTimeout(() => {
       document.body.removeChild(clonedImage);
       dispatch(addToCart(item));
-      toast.success(`${product.name} has been added to your cart!`);
+      toast.success(
+        t('pos.added_to_cart', {
+          name: product.name,
+        }),
+      );
       setIsLoading(false);
       onClose();
     }, 800);
   };
 
   useEffect(() => {
-    if (product?.warranty) {
+    if (!product?.warranty) {
+      setWarranty('');
+      return;
+    }
+
+    try {
       const warrantyData = JSON.parse(product.warranty);
       if (warrantyData && warrantyData[0]) {
-        setWarranty(`${warrantyData[0].warranty_period} ${warrantyData[0].warranty_text}`);
+        const warrantyPeriod = warrantyData[0].warranty_period;
+        const warrantyText = warrantyData[0].warranty_text;
+        const warrantyLabel = [warrantyPeriod, warrantyText]
+          .filter((item) => Boolean(item))
+          .join(' ')
+          .trim();
+        setWarranty(warrantyLabel);
       } else {
         setWarranty('');
       }
-    } else {
+    } catch {
       setWarranty('');
     }
   }, [product]);
@@ -413,7 +439,7 @@ export default function ProductDetailsModal({ onClose, slug }: ProductDetailsMod
                 <div className="h-[380px] overflow-hidden lg:overflow-auto custom-scrollbar">
                   <div className="border-b pb-2 dark:border-gray-700">
                     <p className="text-[24px] font-bold line-clamp-2">
-                      {product.name || 'Unknown Product'}
+                      {product.name || t('pos.unknown_product')}
                     </p>
                     <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-100 mt-2">
                       <span className="flex items-center gap-1 text-[14px] ">
@@ -444,52 +470,52 @@ export default function ProductDetailsModal({ onClose, slug }: ProductDetailsMod
                               ? CurrencyData
                                 ? formatPrice(
                                     getEffectivePrice(
-                                      Number(selectedVariant?.price),
-                                      Number(selectedVariant?.special_price),
+                                      variantPrice,
+                                      variantSpecialPrice,
                                       product.flash_sale,
                                     ),
                                     CurrencyData,
                                   )
                                 : getEffectivePrice(
-                                    Number(selectedVariant?.price),
-                                    Number(selectedVariant?.special_price),
+                                    variantPrice,
+                                    variantSpecialPrice,
                                     product.flash_sale,
                                   )
                               : 0}
                           </p>
-                          {(product.flash_sale || selectedVariant?.special_price > 0) && (
+                          {(product.flash_sale || variantSpecialPrice > 0) && (
                             <p className="line-through text-[#5C5C5C] dark:text-gray-400 text-[18px] sm:text-[24px]">
                               {CurrencyData
                                 ? formatPrice(
                                     product.flash_sale
-                                      ? selectedVariant?.special_price > 0
-                                        ? Number(selectedVariant?.special_price)
-                                        : Number(selectedVariant?.price)
-                                      : Number(selectedVariant?.price),
+                                      ? variantSpecialPrice > 0
+                                        ? variantSpecialPrice
+                                        : variantPrice
+                                      : variantPrice,
                                     CurrencyData,
                                   )
                                 : product.flash_sale
-                                  ? selectedVariant?.special_price > 0
-                                    ? Number(selectedVariant?.special_price)
-                                    : Number(selectedVariant?.price)
-                                  : Number(selectedVariant?.price)}
+                                  ? variantSpecialPrice > 0
+                                    ? variantSpecialPrice
+                                    : variantPrice
+                                  : variantPrice}
                             </p>
                           )}
                         </div>
 
                         {product.flash_sale && (
                           <p className="text-[12px] text-[#EB5A25] px-2 bg-[#EB5A251A] border border-[#EB5A25] rounded-sm">
-                            Flash Deals
+                            {t('pos.flash_deals')}
                           </p>
                         )}
 
                         {selectedVariant?.stock_quantity > 0 && isVariantAvailable ? (
                           <p className="text-[14px] text-[#00A537] px-2 bg-[#F4F8F5] border border-[#C5E7C9] rounded-sm">
-                            In Stock
+                            {t('pos.in_stock')}
                           </p>
                         ) : (
                           <p className="text-[14px] text-[#FF0000] px-2 bg-[#F8D7DA] border border-[#F5C6CB] rounded-sm">
-                            Out of Stock
+                            {t('pos.out_of_stock')}
                           </p>
                         )}
                       </div>
@@ -499,14 +525,14 @@ export default function ProductDetailsModal({ onClose, slug }: ProductDetailsMod
                   <div className="space-y-3 py-3 text-[14px] sm:text-[16px] border-b">
                     {selectedVariant?.sku && (
                       <div className="flex gap-2">
-                        <label className="block font-semibold"> {t('label.sku')}</label>
+                        <label className="block font-semibold"> {t('pos.sku')}</label>
                         <p className="text-gray-700 dark:text-gray-300">{selectedVariant?.sku}</p>
                       </div>
                     )}
 
                     {product?.category?.category_name && (
                       <div className="flex gap-2">
-                        <label className="block font-semibold "> {t('label.categorys')}</label>
+                        <label className="block font-semibold "> {t('pos.category')}</label>
                         <p className="text-gray-700 dark:text-gray-300">
                           {product?.category?.category_name}
                         </p>
@@ -522,7 +548,7 @@ export default function ProductDetailsModal({ onClose, slug }: ProductDetailsMod
 
                     {warranty && (
                       <div className="flex gap-2">
-                        <label className="block font-semibold">{t('label.warranty')}:</label>
+                        <label className="block font-semibold">{t('pos.warranty')}:</label>
                         <p className="text-gray-700 dark:text-gray-300">{warranty}</p>
                       </div>
                     )}
@@ -569,7 +595,9 @@ export default function ProductDetailsModal({ onClose, slug }: ProductDetailsMod
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2 items-end rounded-md bg-white dark:bg-gray-800 mt-4">
                   <div className="w-full md:w-40">
-                    <p className="text-lg font-semibold dark:text-gray-100 mb-2">Quantity</p>
+                    <p className="text-lg font-semibold dark:text-gray-100 mb-2">
+                      {t('pos.quantity')}
+                    </p>
                     <div className="flex items-center justify-between border p-1 rounded-md min-w-[60%] sm:min-w-[50%]">
                       <button
                         onClick={handleDecrement}
@@ -609,7 +637,7 @@ export default function ProductDetailsModal({ onClose, slug }: ProductDetailsMod
                         disabled={isLoading || qty > 0}
                         className="app-button w-full md:w-40"
                       >
-                        <span>Add to Card</span>
+                        <span>{t('pos.add_to_cart')}</span>
                       </Button>
                     ) : (
                       <Button
@@ -617,7 +645,7 @@ export default function ProductDetailsModal({ onClose, slug }: ProductDetailsMod
                         disabled
                         className="app-button w-full md:w-40"
                       >
-                        <span>Add to Card</span>
+                        <span>{t('pos.add_to_cart')}</span>
                       </Button>
                     )}
                   </div>

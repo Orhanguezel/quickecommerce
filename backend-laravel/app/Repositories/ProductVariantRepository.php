@@ -39,11 +39,13 @@ class ProductVariantRepository implements ProductVariantInterface
         try {
             if (!empty($data['variants'])) {
                 foreach ($data['variants'] as $variantData) {
-
-                    // Create the product variant
                     ProductVariant::create($variantData);
                 }
+            } else {
+                // Direct variant data from standalone add variant form
+                ProductVariant::create($data);
             }
+            return true;
         } catch (\Throwable $th) {
             throw $th;
         }

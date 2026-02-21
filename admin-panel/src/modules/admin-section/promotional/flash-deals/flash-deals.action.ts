@@ -136,9 +136,9 @@ export const useFlashDealsQueryById = (id: string) => {
 
 export const useFlashDealsStoreMutation = () => {
   const router = useRouter();
-  const { update } = useFlashDealsStoreService();
+  const { create } = useFlashDealsStoreService();
   return useMutation({
-    mutationFn: (values: FlashDealsFormData) => update(values),
+    mutationFn: (values: FlashDealsFormData) => create(values as any),
     mutationKey: [API_ENDPOINTS.FLASH_DEALS_ADD],
     onSuccess: async (data) => {
       if (Boolean(data?.data)) {

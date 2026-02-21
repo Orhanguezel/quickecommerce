@@ -26,6 +26,8 @@ class AdminAiChatSettingsController extends Controller
                 'com_ai_chat_temperature' => 'nullable|numeric|min:0|max:2',
                 'com_ai_chat_system_prompt' => 'nullable|string',
                 'com_ai_chat_guest_enabled' => 'nullable|string',
+                'translations' => 'nullable|array',
+                'translations.*' => 'nullable|string',
             ]);
 
             $fields = [
@@ -49,15 +51,24 @@ class AdminAiChatSettingsController extends Controller
             if ($request->has('translations')) {
                 $settingOption = SettingOption::where('option_name', 'com_ai_chat_system_prompt')->first();
                 if ($settingOption) {
-                    foreach ($request->input('translations', []) as $lang => $value) {
+                    foreach ((array) $request->input('translations', []) as $lang => $value) {
+                        $normalizedValue = is_string($value) ? trim($value) : '';
+                        $where = [
+                            'translatable_type' => SettingOption::class,
+                            'translatable_id' => $settingOption->id,
+                            'language' => $lang,
+                            'key' => 'com_ai_chat_system_prompt',
+                        ];
+
+                        // Avoid inserting NULL into translations.value (NOT NULL column).
+                        if ($normalizedValue === '') {
+                            Translation::where($where)->delete();
+                            continue;
+                        }
+
                         Translation::updateOrCreate(
-                            [
-                                'translatable_type' => SettingOption::class,
-                                'translatable_id' => $settingOption->id,
-                                'language' => $lang,
-                                'key' => 'com_ai_chat_system_prompt',
-                            ],
-                            ['value' => $value]
+                            $where,
+                            ['value' => $normalizedValue]
                         );
                     }
                 }

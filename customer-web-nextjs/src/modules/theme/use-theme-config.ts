@@ -25,6 +25,7 @@ const DEFAULT_HOME_SECTION_ORDER = [
   "blog_section",
   "top_stores_section",
   "newsletters_section",
+  "all_products_section",
 ] as const;
 
 const DEFAULT_HOME_LAYOUT_BLOCKS = DEFAULT_HOME_SECTION_ORDER.map((type, idx) => ({
@@ -104,7 +105,7 @@ export function useThemeConfig() {
     const allowed = new Set(DEFAULT_HOME_SECTION_ORDER);
     const blocks = raw
       .filter((item) => item && typeof item === "object" && typeof item.type === "string")
-      .filter((item) => allowed.has(item.type))
+      .filter((item) => allowed.has(item.type as (typeof DEFAULT_HOME_SECTION_ORDER)[number]))
       .map((item, idx: number) => ({
         id: String(item.id || `${item.type}__${idx + 1}`),
         type: item.type,
@@ -173,6 +174,8 @@ export function useThemeConfig() {
     isNewsletterEnabled: isOn(homePage?.newsletters_section),
     newsletterTitle: firstOrNull(homePage?.newsletters_section)?.title,
     newsletterSubtitle: firstOrNull(homePage?.newsletters_section)?.subtitle,
+    isAllProductsEnabled: isOn(homePage?.all_products_section),
+    allProductsTitle: firstOrNull(homePage?.all_products_section)?.title,
   };
 
   // Giriş Sayfası

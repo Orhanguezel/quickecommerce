@@ -10,6 +10,7 @@ import React, {
 import { addMonths, subMonths, format, isAfter, isToday } from "date-fns";
 import { CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import Cancel from "../custom-icons/Cancel";
+import { useTranslations } from "next-intl";
 
 interface DateRange {
   from: Date | null;
@@ -29,6 +30,7 @@ const CustomDateRangePicker: React.FC<CustomDateRangePickerProps> = ({
   customSide = "left-0",
   customWidth,
 }) => {
+  const t = useTranslations();
   const [isOpen, setIsOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const calendarRef = useRef<HTMLDivElement>(null);
@@ -162,7 +164,7 @@ const CustomDateRangePicker: React.FC<CustomDateRangePickerProps> = ({
           <CalendarIcon className="w-4 h-4 mr-2" />
           {displayText || (
             <span className="text-black dark:text-white">
-              Select Date Range
+              {t("place_holder.select_date_range")}
             </span>
           )}
         </div>

@@ -113,7 +113,7 @@ const ProductFilter = ({
           <div className="py-2 md:py-0">
             <h1 className="text-md xl:text-2xl font-semibold text-black dark:text-white flex items-center gap-2">
               {" "}
-              <PackageSearch /> Products & Filter
+              <PackageSearch /> {t("pos.products_filter")}
             </h1>
           </div>
           <div className="space-y-4 pb-3">

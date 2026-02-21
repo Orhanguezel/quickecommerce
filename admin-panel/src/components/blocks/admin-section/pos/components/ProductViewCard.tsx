@@ -155,7 +155,7 @@ export default function ProductViewCard({
     store_tax: store_tax || "",
     area_id: area_id || 0,
     store_delivery_time: store_delivery_time || "",
-    name: title || "Unknown Product",
+    name: title || t("pos.unknown_product"),
     price: Number(finalPrice.toString().replace(/,/g, "")) || 0,
     quantity: 1,
     image: imageSrc,
@@ -216,7 +216,11 @@ export default function ProductViewCard({
         clonedImage.style.opacity = "0";
       }, 0);
       dispatch(addToCart(item));
-      toast.success(`${title} has been added to your cart!`);
+      toast.success(
+        t("pos.added_to_cart", {
+          name: title,
+        })
+      );
 
       setTimeout(() => {
         document.body.removeChild(clonedImage);
@@ -229,7 +233,7 @@ export default function ProductViewCard({
     if (quantity < stock) {
       dispatch(updateQuantity({ id: item.id, quantity: quantity + 1 }));
     } else {
-      toast.error("You have reached the maximum available stock!");
+      toast.error(t("pos.maximum_available_stock_reached"));
     }
   };
   const handleDecrement = (e: any) => {
@@ -280,11 +284,15 @@ export default function ProductViewCard({
 
   let maxTooltip = "";
   if (isCartLimit && MaxCartQty <= stock) {
-    maxTooltip = `Maximum ${MaxCartQty} allowed`;
+    maxTooltip = t("pos.maximum_allowed", {
+      count: MaxCartQty,
+    });
   } else if (isStockLimit && stock < MaxCartQty) {
-    maxTooltip = `Only ${stock} in stock`;
+    maxTooltip = t("pos.only_in_stock", {
+      count: stock,
+    });
   } else {
-    maxTooltip = "You have reached the limit";
+    maxTooltip = t("pos.limit_reached");
   }
 
   return (
@@ -394,7 +402,7 @@ export default function ProductViewCard({
             }`}
           >
             <span className="text-[14px]">
-              {Stock > 0 ? "In Stock" : "Out of Stock"}
+              {Stock > 0 ? t("pos.in_stock") : t("pos.out_of_stock")}
             </span>
           </div>
         </div>

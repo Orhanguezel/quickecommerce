@@ -4,311 +4,458 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class ProductCategorySeeder extends Seeder
 {
     public function run(): void
     {
         $categories = [
-            // ============ GİYİM & AYAKKABI ============
+
+            // ============ SPOR BESLENMESİ (sports) ============
             [
-                'slug' => 'giyim-ve-ayakkabi',
-                'type' => 'clothing',
-                'parent_id' => null,
-                'level' => 1,
-                'order' => 1,
-                'image' => 'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=400',
-                'tr' => ['name' => 'Giyim ve Ayakkabı', 'meta_title' => 'Giyim ve Ayakkabı', 'meta_description' => 'Kadın, erkek ve çocuklar için spor giyim ve ayakkabı ürünleri'],
-                'en' => ['name' => 'Clothing and Footwear', 'meta_title' => 'Clothing and Footwear', 'meta_description' => 'Sports clothing and footwear for women, men and children'],
+                'slug' => 'spor-beslenmesi',
+                'type' => 'sports',
+                'level' => 1, 'order' => 1,
+                'image' => 'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=400',
+                'tr' => ['name' => 'Spor Beslenmesi', 'meta_title' => 'Spor Beslenmesi', 'meta_description' => 'Protein, kreatin, BCAA ve spor takviyeleri'],
+                'en' => ['name' => 'Sports Nutrition', 'meta_title' => 'Sports Nutrition', 'meta_description' => 'Protein, creatine, BCAA and sports supplements'],
                 'children' => [
-                    ['slug' => 'kadin-giyim', 'image' => 'https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=400', 'tr' => ['name' => 'Kadın Giyim'], 'en' => ['name' => 'Women Clothing']],
-                    ['slug' => 'erkek-giyim', 'image' => 'https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=400', 'tr' => ['name' => 'Erkek Giyim'], 'en' => ['name' => 'Men Clothing']],
-                    ['slug' => 'cocuk-giyim', 'image' => 'https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=400', 'tr' => ['name' => 'Çocuk Giyim'], 'en' => ['name' => 'Kids Clothing']],
-                    ['slug' => 'spor-ayakkabi', 'image' => 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400', 'tr' => ['name' => 'Spor Ayakkabı'], 'en' => ['name' => 'Sports Shoes']],
-                    ['slug' => 'kosu-ayakkabisi', 'image' => 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400', 'tr' => ['name' => 'Koşu Ayakkabısı'], 'en' => ['name' => 'Running Shoes']],
-                    ['slug' => 'outdoor-bot', 'image' => 'https://images.unsplash.com/photo-1520219306100-ec4afeeefe58?w=400', 'tr' => ['name' => 'Outdoor Bot'], 'en' => ['name' => 'Outdoor Boots']],
+                    ['slug' => 'proteinler', 'image' => 'https://images.unsplash.com/photo-1576678927484-cc907957088c?w=400', 'tr' => ['name' => 'Proteinler'], 'en' => ['name' => 'Proteins']],
+                    ['slug' => 'bcaa-aminoasitler', 'image' => 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400', 'tr' => ['name' => 'BCAA & Aminoasitler'], 'en' => ['name' => 'BCAA & Amino Acids']],
+                    ['slug' => 'kreatin', 'image' => 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=400', 'tr' => ['name' => 'Kreatin'], 'en' => ['name' => 'Creatine']],
+                    ['slug' => 'pre-workout', 'image' => 'https://images.unsplash.com/photo-1544033527-b192daee1f5b?w=400', 'tr' => ['name' => 'Pre-Workout'], 'en' => ['name' => 'Pre-Workout']],
+                    ['slug' => 'vitamin-mineraller', 'image' => 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=400', 'tr' => ['name' => 'Vitamin & Mineraller'], 'en' => ['name' => 'Vitamins & Minerals']],
                 ],
             ],
 
-            // ============ KAMP & OUTDOOR ============
+            // ============ FITNESS & EGZERSIZ (sports) ============
             [
-                'slug' => 'kamp-ve-outdoor',
-                'type' => 'outdoor',
-                'parent_id' => null,
-                'level' => 1,
-                'order' => 2,
+                'slug' => 'fitness-egzersiz',
+                'type' => 'sports',
+                'level' => 1, 'order' => 2,
+                'image' => 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400',
+                'tr' => ['name' => 'Fitness & Egzersiz', 'meta_title' => 'Fitness Ekipmanları', 'meta_description' => 'Ağırlık, dambıl, yoga ve fitness ekipmanları'],
+                'en' => ['name' => 'Fitness & Exercise', 'meta_title' => 'Fitness Equipment', 'meta_description' => 'Weights, dumbbells, yoga and fitness equipment'],
+                'children' => [
+                    ['slug' => 'agirliklar-dambillar', 'image' => 'https://images.unsplash.com/photo-1517963879433-6ad2171073a4?w=400', 'tr' => ['name' => 'Ağırlıklar & Dambıllar'], 'en' => ['name' => 'Weights & Dumbbells']],
+                    ['slug' => 'yoga-pilates', 'image' => 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400', 'tr' => ['name' => 'Yoga & Pilates'], 'en' => ['name' => 'Yoga & Pilates']],
+                    ['slug' => 'fitness-aksesuarlari', 'image' => 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400', 'tr' => ['name' => 'Fitness Aksesuarları'], 'en' => ['name' => 'Fitness Accessories']],
+                    ['slug' => 'kardiyo-ekipmanlari', 'image' => 'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=400', 'tr' => ['name' => 'Kardiyo Ekipmanları'], 'en' => ['name' => 'Cardio Equipment']],
+                ],
+            ],
+
+            // ============ OUTDOOR & KAMP (sports) ============
+            [
+                'slug' => 'outdoor-kamp',
+                'type' => 'sports',
+                'level' => 1, 'order' => 3,
                 'image' => 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=400',
-                'tr' => ['name' => 'Kamp ve Outdoor', 'meta_title' => 'Kamp ve Outdoor Ürünleri', 'meta_description' => 'Kamp, doğa ve outdoor ekipmanları'],
-                'en' => ['name' => 'Camping and Outdoor', 'meta_title' => 'Camping and Outdoor Products', 'meta_description' => 'Camping, nature and outdoor equipment'],
+                'tr' => ['name' => 'Outdoor & Kamp', 'meta_title' => 'Outdoor ve Kamp Ekipmanları', 'meta_description' => 'Çadır, uyku tulumu ve kamp malzemeleri'],
+                'en' => ['name' => 'Outdoor & Camping', 'meta_title' => 'Outdoor and Camping Equipment', 'meta_description' => 'Tents, sleeping bags and camping gear'],
                 'children' => [
                     ['slug' => 'cadirlar', 'image' => 'https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?w=400', 'tr' => ['name' => 'Çadırlar'], 'en' => ['name' => 'Tents']],
-                    ['slug' => 'uyku-tulumlari', 'image' => 'https://images.unsplash.com/photo-1504851149312-7a075b496cc7?w=400', 'tr' => ['name' => 'Uyku Tulumları'], 'en' => ['name' => 'Sleeping Bags']],
+                    ['slug' => 'uyku-tulumlari', 'image' => 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=400', 'tr' => ['name' => 'Uyku Tulumları'], 'en' => ['name' => 'Sleeping Bags']],
+                    ['slug' => 'mataralar-termoslar', 'image' => 'https://images.unsplash.com/photo-1571864680000-b8c9c0b47b2d?w=400', 'tr' => ['name' => 'Matara & Termoslar'], 'en' => ['name' => 'Water Bottles & Thermoses']],
+                    ['slug' => 'sirt-cantalari', 'image' => 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400', 'tr' => ['name' => 'Sırt Çantaları'], 'en' => ['name' => 'Backpacks']],
                     ['slug' => 'kamp-aksesuarlari', 'image' => 'https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?w=400', 'tr' => ['name' => 'Kamp Aksesuarları'], 'en' => ['name' => 'Camping Accessories']],
-                    ['slug' => 'mataralar-termoslar', 'image' => 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=400', 'tr' => ['name' => 'Mataralar ve Termoslar'], 'en' => ['name' => 'Bottles and Thermoses']],
-                    ['slug' => 'trekking-malzemeleri', 'image' => 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=400', 'tr' => ['name' => 'Trekking Malzemeleri'], 'en' => ['name' => 'Trekking Gear']],
-                    ['slug' => 'outdoor-giyim', 'image' => 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400', 'tr' => ['name' => 'Outdoor Giyim'], 'en' => ['name' => 'Outdoor Clothing']],
                 ],
             ],
 
-            // ============ BESİN TAKVİYELERİ ============
+            // ============ TAKIM & BİREYSEL SPORLAR (sports) ============
             [
-                'slug' => 'besin-takviyeleri',
-                'type' => 'supplements',
-                'parent_id' => null,
-                'level' => 1,
-                'order' => 3,
-                'image' => 'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=400',
-                'tr' => ['name' => 'Besin Takviyeleri', 'meta_title' => 'Besin Takviyeleri', 'meta_description' => 'Vitamin, mineral ve sporcu takviyeleri'],
-                'en' => ['name' => 'Supplements', 'meta_title' => 'Supplements', 'meta_description' => 'Vitamins, minerals and sports supplements'],
+                'slug' => 'takim-bireysel-sporlar',
+                'type' => 'sports',
+                'level' => 1, 'order' => 4,
+                'image' => 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=400',
+                'tr' => ['name' => 'Takım & Bireysel Sporlar', 'meta_title' => 'Takım ve Bireysel Sporlar', 'meta_description' => 'Futbol, basketbol, tenis ve daha fazlası'],
+                'en' => ['name' => 'Team & Individual Sports', 'meta_title' => 'Team and Individual Sports', 'meta_description' => 'Football, basketball, tennis and more'],
                 'children' => [
-                    ['slug' => 'proteinler', 'image' => 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=400', 'tr' => ['name' => 'Proteinler'], 'en' => ['name' => 'Proteins']],
-                    ['slug' => 'bcaa-aminoasitler', 'image' => 'https://images.unsplash.com/photo-1594381898411-846e7d193883?w=400', 'tr' => ['name' => 'BCAA ve Aminoasitler'], 'en' => ['name' => 'BCAA and Amino Acids']],
-                    ['slug' => 'kreatin', 'image' => 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400', 'tr' => ['name' => 'Kreatin'], 'en' => ['name' => 'Creatine']],
-                    ['slug' => 'vitamin-mineraller', 'image' => 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400', 'tr' => ['name' => 'Vitamin ve Mineraller'], 'en' => ['name' => 'Vitamins and Minerals']],
-                    ['slug' => 'kilo-alma', 'image' => 'https://images.unsplash.com/photo-1532384748853-8f54a8f476e2?w=400', 'tr' => ['name' => 'Kilo Alma'], 'en' => ['name' => 'Weight Gain']],
-                    ['slug' => 'kilo-verme', 'image' => 'https://images.unsplash.com/photo-1538805060514-97d9cc17730c?w=400', 'tr' => ['name' => 'Kilo Verme'], 'en' => ['name' => 'Weight Loss']],
-                    ['slug' => 'pre-workout', 'image' => 'https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=400', 'tr' => ['name' => 'Pre-Workout'], 'en' => ['name' => 'Pre-Workout']],
-                    ['slug' => 'sporcu-gidalari', 'image' => 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400', 'tr' => ['name' => 'Sporcu Gıdaları'], 'en' => ['name' => 'Sports Nutrition']],
+                    ['slug' => 'futbol', 'image' => 'https://images.unsplash.com/photo-1575361204480-aadea25e6e68?w=400', 'tr' => ['name' => 'Futbol'], 'en' => ['name' => 'Football']],
+                    ['slug' => 'basketbol', 'image' => 'https://images.unsplash.com/photo-1546519638405-a9e55f4c4c4a?w=400', 'tr' => ['name' => 'Basketbol'], 'en' => ['name' => 'Basketball']],
+                    ['slug' => 'tenis', 'image' => 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=400', 'tr' => ['name' => 'Tenis'], 'en' => ['name' => 'Tennis']],
+                    ['slug' => 'yuzucu-gozlugu', 'image' => 'https://images.unsplash.com/photo-1530549387789-4c1017266635?w=400', 'tr' => ['name' => 'Yüzme & Su Sporları'], 'en' => ['name' => 'Swimming & Water Sports']],
+                    ['slug' => 'boks', 'image' => 'https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=400', 'tr' => ['name' => 'Boks & Dövüş Sporları'], 'en' => ['name' => 'Boxing & Martial Arts']],
+                    ['slug' => 'bisiklet', 'image' => 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?w=400', 'tr' => ['name' => 'Bisiklet'], 'en' => ['name' => 'Cycling']],
+                    ['slug' => 'kos-kosma', 'image' => 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=400', 'tr' => ['name' => 'Koşu'], 'en' => ['name' => 'Running']],
+                    ['slug' => 'dagcilik-tirmanis', 'image' => 'https://images.unsplash.com/photo-1522163182402-834f871fd851?w=400', 'tr' => ['name' => 'Dağcılık & Tırmanış'], 'en' => ['name' => 'Mountaineering & Climbing']],
                 ],
             ],
 
-            // ============ FİTNESS EKİPMANLARI ============
+            // ============ SPOR GİYİM & AYAKKABI (clothing) ============
             [
-                'slug' => 'fitness-ekipmanlari',
-                'type' => 'fitness',
-                'parent_id' => null,
-                'level' => 1,
-                'order' => 4,
-                'image' => 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400',
-                'tr' => ['name' => 'Fitness Ekipmanları', 'meta_title' => 'Fitness Ekipmanları', 'meta_description' => 'Ev ve profesyonel fitness ekipmanları'],
-                'en' => ['name' => 'Fitness Equipment', 'meta_title' => 'Fitness Equipment', 'meta_description' => 'Home and professional fitness equipment'],
+                'slug' => 'spor-giyim-ayakkabi',
+                'type' => 'clothing',
+                'level' => 1, 'order' => 5,
+                'image' => 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400',
+                'tr' => ['name' => 'Spor Giyim & Ayakkabı', 'meta_title' => 'Spor Giyim ve Ayakkabı', 'meta_description' => 'Spor kıyafeti, ayakkabı ve spor giyim'],
+                'en' => ['name' => 'Sports Clothing & Shoes', 'meta_title' => 'Sports Clothing and Shoes', 'meta_description' => 'Sports apparel, shoes and activewear'],
                 'children' => [
-                    ['slug' => 'agirliklar-dambillar', 'image' => 'https://images.unsplash.com/photo-1517963879433-6ad2b056d712?w=400', 'tr' => ['name' => 'Ağırlıklar ve Dambıllar'], 'en' => ['name' => 'Weights and Dumbbells']],
-                    ['slug' => 'kardiyo-ekipmanlari', 'image' => 'https://images.unsplash.com/photo-1576678927484-cc907957088c?w=400', 'tr' => ['name' => 'Kardiyo Ekipmanları'], 'en' => ['name' => 'Cardio Equipment']],
-                    ['slug' => 'yoga-pilates', 'image' => 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400', 'tr' => ['name' => 'Yoga ve Pilates'], 'en' => ['name' => 'Yoga and Pilates']],
-                    ['slug' => 'fitness-aksesuarlari', 'image' => 'https://images.unsplash.com/photo-1598289431512-b97b0917affc?w=400', 'tr' => ['name' => 'Fitness Aksesuarları'], 'en' => ['name' => 'Fitness Accessories']],
-                    ['slug' => 'kettlebell', 'image' => 'https://images.unsplash.com/photo-1517344884509-a0c97ec11bcc?w=400', 'tr' => ['name' => 'Kettlebell'], 'en' => ['name' => 'Kettlebell']],
-                    ['slug' => 'direnc-bantlari', 'image' => 'https://images.unsplash.com/photo-1434682881908-b43d0467b798?w=400', 'tr' => ['name' => 'Direnç Bantları'], 'en' => ['name' => 'Resistance Bands']],
+                    ['slug' => 'spor-ayakkabi', 'image' => 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400', 'tr' => ['name' => 'Spor Ayakkabı'], 'en' => ['name' => 'Sports Shoes']],
+                    ['slug' => 'erkek-giyim', 'image' => 'https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?w=400', 'tr' => ['name' => 'Erkek Spor Giyim'], 'en' => ['name' => "Men's Sportswear"]],
+                    ['slug' => 'kadin-giyim', 'image' => 'https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=400', 'tr' => ['name' => 'Kadın Spor Giyim'], 'en' => ['name' => "Women's Sportswear"]],
+                    ['slug' => 'spor-ic-giyim', 'image' => 'https://images.unsplash.com/photo-1571945153237-4929e783af4a?w=400', 'tr' => ['name' => 'Spor İç Giyim'], 'en' => ['name' => 'Sports Underwear']],
                 ],
             ],
 
-            // ============ TAKIM SPORLARI ============
+            // ============ SPOR TEKNOLOJİ (gadgets) ============
             [
-                'slug' => 'takim-sporlari',
-                'type' => 'team-sports',
-                'parent_id' => null,
-                'level' => 1,
-                'order' => 5,
-                'image' => 'https://images.unsplash.com/photo-1614632537423-1e6c2e7e0aab?w=400',
-                'tr' => ['name' => 'Takım Sporları', 'meta_title' => 'Takım Sporları Ekipmanları', 'meta_description' => 'Futbol, basketbol, voleybol ekipmanları'],
-                'en' => ['name' => 'Team Sports', 'meta_title' => 'Team Sports Equipment', 'meta_description' => 'Football, basketball, volleyball equipment'],
+                'slug' => 'spor-teknoloji',
+                'type' => 'gadgets',
+                'level' => 1, 'order' => 6,
+                'image' => 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=400',
+                'tr' => ['name' => 'Spor Teknoloji', 'meta_title' => 'Spor Teknoloji Ürünleri', 'meta_description' => 'Akıllı saat, aksiyon kamera ve spor teknolojisi'],
+                'en' => ['name' => 'Sports Technology', 'meta_title' => 'Sports Technology Products', 'meta_description' => 'Smartwatch, action camera and sports tech'],
                 'children' => [
-                    ['slug' => 'futbol', 'image' => 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=400', 'tr' => ['name' => 'Futbol'], 'en' => ['name' => 'Football']],
-                    ['slug' => 'basketbol', 'image' => 'https://images.unsplash.com/photo-1519861531473-9200262188bf?w=400', 'tr' => ['name' => 'Basketbol'], 'en' => ['name' => 'Basketball']],
-                    ['slug' => 'voleybol', 'image' => 'https://images.unsplash.com/photo-1547347298-4074fc3086f0?w=400', 'tr' => ['name' => 'Voleybol'], 'en' => ['name' => 'Volleyball']],
-                    ['slug' => 'hentbol', 'image' => 'https://images.unsplash.com/photo-1569517282132-25d22f4573e6?w=400', 'tr' => ['name' => 'Hentbol'], 'en' => ['name' => 'Handball']],
+                    ['slug' => 'akilli-saatler', 'image' => 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400', 'tr' => ['name' => 'Akıllı Saatler'], 'en' => ['name' => 'Smartwatches']],
+                    ['slug' => 'aksiyon-kameralari', 'image' => 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400', 'tr' => ['name' => 'Aksiyon Kameraları'], 'en' => ['name' => 'Action Cameras']],
+                    ['slug' => 'spor-kulakliklari', 'image' => 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400', 'tr' => ['name' => 'Spor Kulaklıkları'], 'en' => ['name' => 'Sports Headphones']],
+                    ['slug' => 'fitness-takip-bantlari', 'image' => 'https://images.unsplash.com/photo-1575311373937-040b8e1fd5b6?w=400', 'tr' => ['name' => 'Fitness Takip Bantları'], 'en' => ['name' => 'Fitness Trackers']],
                 ],
             ],
 
-            // ============ RAKET SPORLARI ============
-            [
-                'slug' => 'raket-sporlari',
-                'type' => 'racket-sports',
-                'parent_id' => null,
-                'level' => 1,
-                'order' => 6,
-                'image' => 'https://images.unsplash.com/photo-1617083934555-ac7d4c10cd50?w=400',
-                'tr' => ['name' => 'Raket Sporları', 'meta_title' => 'Raket Sporları Ekipmanları', 'meta_description' => 'Tenis, badminton, squash ekipmanları'],
-                'en' => ['name' => 'Racket Sports', 'meta_title' => 'Racket Sports Equipment', 'meta_description' => 'Tennis, badminton, squash equipment'],
-                'children' => [
-                    ['slug' => 'tenis', 'image' => 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?w=400', 'tr' => ['name' => 'Tenis'], 'en' => ['name' => 'Tennis']],
-                    ['slug' => 'badminton', 'image' => 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=400', 'tr' => ['name' => 'Badminton'], 'en' => ['name' => 'Badminton']],
-                    ['slug' => 'masa-tenisi', 'image' => 'https://images.unsplash.com/photo-1558287906-c20471dcc32b?w=400', 'tr' => ['name' => 'Masa Tenisi'], 'en' => ['name' => 'Table Tennis']],
-                    ['slug' => 'squash', 'image' => 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=400', 'tr' => ['name' => 'Squash'], 'en' => ['name' => 'Squash']],
-                ],
-            ],
-
-            // ============ YÜZME ============
-            [
-                'slug' => 'yuzme',
-                'type' => 'swimming',
-                'parent_id' => null,
-                'level' => 1,
-                'order' => 7,
-                'image' => 'https://images.unsplash.com/photo-1530549387789-4c1017266635?w=400',
-                'tr' => ['name' => 'Yüzme', 'meta_title' => 'Yüzme Ekipmanları', 'meta_description' => 'Yüzme kıyafetleri, gözlükler ve ekipmanları'],
-                'en' => ['name' => 'Swimming', 'meta_title' => 'Swimming Equipment', 'meta_description' => 'Swimwear, goggles and swimming equipment'],
-                'children' => [
-                    ['slug' => 'mayo-bikini', 'image' => 'https://images.unsplash.com/photo-1519315901367-f34ff9154487?w=400', 'tr' => ['name' => 'Mayo ve Bikini'], 'en' => ['name' => 'Swimsuits and Bikinis']],
-                    ['slug' => 'yuzucu-gozlugu', 'image' => 'https://images.unsplash.com/photo-1560089000-7433a4ebbd64?w=400', 'tr' => ['name' => 'Yüzücü Gözlüğü'], 'en' => ['name' => 'Swimming Goggles']],
-                    ['slug' => 'bone-kulaklik', 'image' => 'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=400', 'tr' => ['name' => 'Bone ve Kulaklık'], 'en' => ['name' => 'Caps and Ear Plugs']],
-                    ['slug' => 'palet-el-paleti', 'image' => 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400', 'tr' => ['name' => 'Palet ve El Paleti'], 'en' => ['name' => 'Fins and Hand Paddles']],
-                ],
-            ],
-
-            // ============ KOŞU & MARATON ============
-            [
-                'slug' => 'kosu-maraton',
-                'type' => 'running',
-                'parent_id' => null,
-                'level' => 1,
-                'order' => 8,
-                'image' => 'https://images.unsplash.com/photo-1571008887538-b36bb32f4571?w=400',
-                'tr' => ['name' => 'Koşu ve Maraton', 'meta_title' => 'Koşu ve Maraton Ekipmanları', 'meta_description' => 'Koşu ayakkabıları, kıyafetleri ve aksesuarları'],
-                'en' => ['name' => 'Running and Marathon', 'meta_title' => 'Running and Marathon Equipment', 'meta_description' => 'Running shoes, apparel and accessories'],
-                'children' => [
-                    ['slug' => 'kosu-ayakkabilari', 'image' => 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400', 'tr' => ['name' => 'Koşu Ayakkabıları'], 'en' => ['name' => 'Running Shoes']],
-                    ['slug' => 'kosu-kiyafetleri', 'image' => 'https://images.unsplash.com/photo-1483721310020-03333e577078?w=400', 'tr' => ['name' => 'Koşu Kıyafetleri'], 'en' => ['name' => 'Running Apparel']],
-                    ['slug' => 'kosu-aksesuarlari', 'image' => 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=400', 'tr' => ['name' => 'Koşu Aksesuarları'], 'en' => ['name' => 'Running Accessories']],
-                ],
-            ],
-
-            // ============ BİSİKLET ============
-            [
-                'slug' => 'bisiklet',
-                'type' => 'cycling',
-                'parent_id' => null,
-                'level' => 1,
-                'order' => 9,
-                'image' => 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=400',
-                'tr' => ['name' => 'Bisiklet', 'meta_title' => 'Bisiklet ve Aksesuarları', 'meta_description' => 'Bisikletler, bisiklet aksesuarları ve yedek parçalar'],
-                'en' => ['name' => 'Cycling', 'meta_title' => 'Bicycles and Accessories', 'meta_description' => 'Bicycles, cycling accessories and spare parts'],
-                'children' => [
-                    ['slug' => 'bisikletler', 'image' => 'https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?w=400', 'tr' => ['name' => 'Bisikletler'], 'en' => ['name' => 'Bicycles']],
-                    ['slug' => 'bisiklet-aksesuarlari', 'image' => 'https://images.unsplash.com/photo-1511994298241-608e28f14fde?w=400', 'tr' => ['name' => 'Bisiklet Aksesuarları'], 'en' => ['name' => 'Cycling Accessories']],
-                    ['slug' => 'bisiklet-giyim', 'image' => 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=400', 'tr' => ['name' => 'Bisiklet Giyim'], 'en' => ['name' => 'Cycling Apparel']],
-                    ['slug' => 'bisiklet-kask', 'image' => 'https://images.unsplash.com/photo-1557803175-2f8c4c4c3f4b?w=400', 'tr' => ['name' => 'Bisiklet Kaskları'], 'en' => ['name' => 'Cycling Helmets']],
-                ],
-            ],
-
-            // ============ DÖVÜŞ SPORLARI ============
-            [
-                'slug' => 'dovus-sporlari',
-                'type' => 'combat-sports',
-                'parent_id' => null,
-                'level' => 1,
-                'order' => 10,
-                'image' => 'https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=400',
-                'tr' => ['name' => 'Dövüş Sporları', 'meta_title' => 'Dövüş Sporları Ekipmanları', 'meta_description' => 'Boks, kickboks, MMA ekipmanları'],
-                'en' => ['name' => 'Combat Sports', 'meta_title' => 'Combat Sports Equipment', 'meta_description' => 'Boxing, kickboxing, MMA equipment'],
-                'children' => [
-                    ['slug' => 'boks', 'image' => 'https://images.unsplash.com/photo-1517438322307-e67111335449?w=400', 'tr' => ['name' => 'Boks'], 'en' => ['name' => 'Boxing']],
-                    ['slug' => 'kickboks', 'image' => 'https://images.unsplash.com/photo-1564415637254-92c66292cd64?w=400', 'tr' => ['name' => 'Kickboks'], 'en' => ['name' => 'Kickboxing']],
-                    ['slug' => 'mma', 'image' => 'https://images.unsplash.com/photo-1555597673-b21d5c935865?w=400', 'tr' => ['name' => 'MMA'], 'en' => ['name' => 'MMA']],
-                    ['slug' => 'judo-karate', 'image' => 'https://images.unsplash.com/photo-1555597906-a4d7cff0a6f5?w=400', 'tr' => ['name' => 'Judo ve Karate'], 'en' => ['name' => 'Judo and Karate']],
-                ],
-            ],
-
-            // ============ KIŞ SPORLARI ============
-            [
-                'slug' => 'kis-sporlari',
-                'type' => 'winter-sports',
-                'parent_id' => null,
-                'level' => 1,
-                'order' => 11,
-                'image' => 'https://images.unsplash.com/photo-1551524559-8af4e6624178?w=400',
-                'tr' => ['name' => 'Kış Sporları', 'meta_title' => 'Kış Sporları Ekipmanları', 'meta_description' => 'Kayak, snowboard ve kış sporları ekipmanları'],
-                'en' => ['name' => 'Winter Sports', 'meta_title' => 'Winter Sports Equipment', 'meta_description' => 'Ski, snowboard and winter sports equipment'],
-                'children' => [
-                    ['slug' => 'kayak', 'image' => 'https://images.unsplash.com/photo-1565992441121-4367c2967103?w=400', 'tr' => ['name' => 'Kayak'], 'en' => ['name' => 'Skiing']],
-                    ['slug' => 'snowboard', 'image' => 'https://images.unsplash.com/photo-1478700485868-972b69dc3fc4?w=400', 'tr' => ['name' => 'Snowboard'], 'en' => ['name' => 'Snowboard']],
-                    ['slug' => 'kis-giyim', 'image' => 'https://images.unsplash.com/photo-1544923246-77307dd628b8?w=400', 'tr' => ['name' => 'Kış Giyim'], 'en' => ['name' => 'Winter Clothing']],
-                    ['slug' => 'kis-aksesuarlari', 'image' => 'https://images.unsplash.com/photo-1516398977785-23492e20f835?w=400', 'tr' => ['name' => 'Kış Aksesuarları'], 'en' => ['name' => 'Winter Accessories']],
-                ],
-            ],
-
-            // ============ SPOR ELEKTRONİĞİ ============
-            [
-                'slug' => 'spor-elektronigi',
-                'type' => 'electronics',
-                'parent_id' => null,
-                'level' => 1,
-                'order' => 12,
-                'image' => 'https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=400',
-                'tr' => ['name' => 'Spor Elektroniği', 'meta_title' => 'Spor Elektroniği', 'meta_description' => 'Akıllı saatler, fitness bileklikleri ve spor elektronik cihazları'],
-                'en' => ['name' => 'Sports Electronics', 'meta_title' => 'Sports Electronics', 'meta_description' => 'Smart watches, fitness bands and sports electronic devices'],
-                'children' => [
-                    ['slug' => 'akilli-saatler', 'image' => 'https://images.unsplash.com/photo-1544117519-31a4b719223d?w=400', 'tr' => ['name' => 'Akıllı Saatler'], 'en' => ['name' => 'Smart Watches']],
-                    ['slug' => 'fitness-bileklikleri', 'image' => 'https://images.unsplash.com/photo-1575311373937-040b8e1fd5b6?w=400', 'tr' => ['name' => 'Fitness Bileklikleri'], 'en' => ['name' => 'Fitness Bands']],
-                    ['slug' => 'spor-kulakliklari', 'image' => 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400', 'tr' => ['name' => 'Spor Kulaklıkları'], 'en' => ['name' => 'Sports Headphones']],
-                    ['slug' => 'aksiyon-kameralari', 'image' => 'https://images.unsplash.com/photo-1564466809058-bf4114d55352?w=400', 'tr' => ['name' => 'Aksiyon Kameraları'], 'en' => ['name' => 'Action Cameras']],
-                    ['slug' => 'bisiklet-bilgisayarlari', 'image' => 'https://images.unsplash.com/photo-1505705694340-019e1e335916?w=400', 'tr' => ['name' => 'Bisiklet Bilgisayarları'], 'en' => ['name' => 'Bike Computers']],
-                    ['slug' => 'gps-cihazlari', 'image' => 'https://images.unsplash.com/photo-1551816230-ef5deaed4a26?w=400', 'tr' => ['name' => 'GPS Cihazları'], 'en' => ['name' => 'GPS Devices']],
-                ],
-            ],
-
-            // ============ ÇANTA & AKSESUAR ============
+            // ============ ÇANTA & AKSESUAR (bags) ============
             [
                 'slug' => 'canta-aksesuar',
                 'type' => 'bags',
-                'parent_id' => null,
-                'level' => 1,
-                'order' => 13,
+                'level' => 1, 'order' => 7,
                 'image' => 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400',
-                'tr' => ['name' => 'Çanta ve Aksesuar', 'meta_title' => 'Çanta ve Aksesuar', 'meta_description' => 'Spor çantaları, sırt çantaları ve aksesuarlar'],
-                'en' => ['name' => 'Bags and Accessories', 'meta_title' => 'Bags and Accessories', 'meta_description' => 'Sports bags, backpacks and accessories'],
+                'tr' => ['name' => 'Çanta & Aksesuar', 'meta_title' => 'Spor Çanta ve Aksesuar', 'meta_description' => 'Spor çantaları, gözlükler ve aksesuarlar'],
+                'en' => ['name' => 'Bags & Accessories', 'meta_title' => 'Sports Bags and Accessories', 'meta_description' => 'Sports bags, glasses and accessories'],
                 'children' => [
-                    ['slug' => 'spor-cantalari', 'image' => 'https://images.unsplash.com/photo-1544816155-12df9643f363?w=400', 'tr' => ['name' => 'Spor Çantaları'], 'en' => ['name' => 'Sports Bags']],
-                    ['slug' => 'sirt-cantalari', 'image' => 'https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?w=400', 'tr' => ['name' => 'Sırt Çantaları'], 'en' => ['name' => 'Backpacks']],
-                    ['slug' => 'gozlukler', 'image' => 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=400', 'tr' => ['name' => 'Gözlükler'], 'en' => ['name' => 'Sunglasses']],
-                    ['slug' => 'saatler', 'image' => 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=400', 'tr' => ['name' => 'Saatler'], 'en' => ['name' => 'Watches']],
-                    ['slug' => 'kaslar', 'image' => 'https://images.unsplash.com/photo-1582994254571-b4e90bd9d149?w=400', 'tr' => ['name' => 'Kasklar'], 'en' => ['name' => 'Helmets']],
+                    ['slug' => 'spor-cantalari', 'image' => 'https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=400', 'tr' => ['name' => 'Spor Çantaları'], 'en' => ['name' => 'Sports Bags']],
+                    ['slug' => 'gozlukler', 'image' => 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=400', 'tr' => ['name' => 'Güneş & Spor Gözlükleri'], 'en' => ['name' => 'Sunglasses & Sports Glasses']],
+                    ['slug' => 'bel-cantalari', 'image' => 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400', 'tr' => ['name' => 'Bel Çantaları'], 'en' => ['name' => 'Waist Bags']],
+                    ['slug' => 'spor-aksesuarlari', 'image' => 'https://images.unsplash.com/photo-1434682881908-b43d0467b798?w=400', 'tr' => ['name' => 'Spor Aksesuarları'], 'en' => ['name' => 'Sports Accessories']],
                 ],
             ],
 
-            // ============ KİŞİSEL BAKIM ============
+            // ============ SPOR KİTAPLARI (books) ============
             [
-                'slug' => 'kisisel-bakim',
-                'type' => 'cosmetics',
-                'parent_id' => null,
-                'level' => 1,
-                'order' => 14,
-                'image' => 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400',
-                'tr' => ['name' => 'Kişisel Bakım', 'meta_title' => 'Kişisel Bakım', 'meta_description' => 'Cilt, saç ve kişisel bakım ürünleri'],
-                'en' => ['name' => 'Personal Care', 'meta_title' => 'Personal Care', 'meta_description' => 'Skin, hair and personal care products'],
-                'children' => [
-                    ['slug' => 'cilt-bakimi', 'image' => 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=400', 'tr' => ['name' => 'Cilt Bakımı'], 'en' => ['name' => 'Skin Care']],
-                    ['slug' => 'sac-bakimi', 'image' => 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400', 'tr' => ['name' => 'Saç Bakımı'], 'en' => ['name' => 'Hair Care']],
-                    ['slug' => 'vucut-bakimi', 'image' => 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=400', 'tr' => ['name' => 'Vücut Bakımı'], 'en' => ['name' => 'Body Care']],
-                    ['slug' => 'spor-hijyen', 'image' => 'https://images.unsplash.com/photo-1584305574647-0cc949a2bb9f?w=400', 'tr' => ['name' => 'Spor Hijyen'], 'en' => ['name' => 'Sports Hygiene']],
-                ],
-            ],
-
-            // ============ DOĞAL & ORGANİK ============
-            [
-                'slug' => 'dogal-organik',
-                'type' => 'organic',
-                'parent_id' => null,
-                'level' => 1,
-                'order' => 15,
-                'image' => 'https://images.unsplash.com/photo-1490818387583-1baba5e638af?w=400',
-                'tr' => ['name' => 'Doğal ve Organik', 'meta_title' => 'Doğal ve Organik Ürünler', 'meta_description' => 'Organik gıda ve doğal ürünler'],
-                'en' => ['name' => 'Natural and Organic', 'meta_title' => 'Natural and Organic Products', 'meta_description' => 'Organic food and natural products'],
-                'children' => [
-                    ['slug' => 'organik-gida', 'image' => 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400', 'tr' => ['name' => 'Organik Gıda'], 'en' => ['name' => 'Organic Food']],
-                    ['slug' => 'dogal-takviyeler', 'image' => 'https://images.unsplash.com/photo-1550831107-1553da8c8464?w=400', 'tr' => ['name' => 'Doğal Takviyeler'], 'en' => ['name' => 'Natural Supplements']],
-                    ['slug' => 'aktariye', 'image' => 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400', 'tr' => ['name' => 'Aktariye'], 'en' => ['name' => 'Herbal Products']],
-                ],
-            ],
-
-            // ============ KİTAPLAR ============
-            [
-                'slug' => 'kitaplar',
+                'slug' => 'spor-kitaplari',
                 'type' => 'books',
-                'parent_id' => null,
-                'level' => 1,
-                'order' => 16,
-                'image' => 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400',
-                'tr' => ['name' => 'Kitaplar', 'meta_title' => 'Spor ve Outdoor Kitapları', 'meta_description' => 'Spor, fitness, outdoor ve macera kitapları'],
-                'en' => ['name' => 'Books', 'meta_title' => 'Sports and Outdoor Books', 'meta_description' => 'Sports, fitness, outdoor and adventure books'],
+                'level' => 1, 'order' => 8,
+                'image' => 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=400',
+                'tr' => ['name' => 'Spor Kitapları', 'meta_title' => 'Spor ve Fitness Kitapları', 'meta_description' => 'Spor, fitness, outdoor ve sağlık kitapları'],
+                'en' => ['name' => 'Sports Books', 'meta_title' => 'Sports and Fitness Books', 'meta_description' => 'Sports, fitness, outdoor and health books'],
                 'children' => [
-                    ['slug' => 'spor-fitness-kitaplari', 'image' => 'https://images.unsplash.com/photo-1476275466078-4007374efbbe?w=400', 'tr' => ['name' => 'Spor ve Fitness Kitapları'], 'en' => ['name' => 'Sports and Fitness Books']],
-                    ['slug' => 'outdoor-macera-kitaplari', 'image' => 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=400', 'tr' => ['name' => 'Outdoor ve Macera Kitapları'], 'en' => ['name' => 'Outdoor and Adventure Books']],
-                    ['slug' => 'dagcilik-tirmanis-kitaplari', 'image' => 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400', 'tr' => ['name' => 'Dağcılık ve Tırmanış Kitapları'], 'en' => ['name' => 'Mountaineering and Climbing Books']],
-                    ['slug' => 'beslenme-saglik-kitaplari', 'image' => 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=400', 'tr' => ['name' => 'Beslenme ve Sağlık Kitapları'], 'en' => ['name' => 'Nutrition and Health Books']],
+                    ['slug' => 'spor-fitness-kitaplari', 'image' => 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400', 'tr' => ['name' => 'Spor & Fitness Kitapları'], 'en' => ['name' => 'Sports & Fitness Books']],
+                    ['slug' => 'outdoor-macera-kitaplari', 'image' => 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=400', 'tr' => ['name' => 'Outdoor & Macera Kitapları'], 'en' => ['name' => 'Outdoor & Adventure Books']],
+                    ['slug' => 'dagcilik-tirmanis-kitaplari', 'image' => 'https://images.unsplash.com/photo-1522163182402-834f871fd851?w=400', 'tr' => ['name' => 'Dağcılık & Tırmanış Kitapları'], 'en' => ['name' => 'Mountaineering & Climbing Books']],
+                    ['slug' => 'saglik-beslenme-kitaplari', 'image' => 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400', 'tr' => ['name' => 'Sağlık & Beslenme Kitapları'], 'en' => ['name' => 'Health & Nutrition Books']],
                 ],
             ],
+
+            // ============ MARKET (grocery) ============
+            [
+                'slug' => 'market',
+                'type' => 'grocery',
+                'level' => 1, 'order' => 9,
+                'image' => 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400',
+                'tr' => ['name' => 'Market', 'meta_title' => 'Market Ürünleri', 'meta_description' => 'Temel gıda ve market ürünleri'],
+                'en' => ['name' => 'Grocery', 'meta_title' => 'Grocery Products', 'meta_description' => 'Essential food and grocery products'],
+                'children' => [
+                    ['slug' => 'temel-gida', 'image' => 'https://images.unsplash.com/photo-1490818387583-1baba5e638af?w=400', 'tr' => ['name' => 'Temel Gıda'], 'en' => ['name' => 'Basic Food']],
+                    ['slug' => 'sut-urunleri', 'image' => 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400', 'tr' => ['name' => 'Süt Ürünleri'], 'en' => ['name' => 'Dairy Products']],
+                    ['slug' => 'atistirmalik-market', 'image' => 'https://images.unsplash.com/photo-1621939514649-280e2ee25f60?w=400', 'tr' => ['name' => 'Atıştırmalık'], 'en' => ['name' => 'Snacks']],
+                ],
+            ],
+
+            // ============ FIRIN & PASTANE (bakery) ============
+            [
+                'slug' => 'firin-pastane',
+                'type' => 'bakery',
+                'level' => 1, 'order' => 10,
+                'image' => 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400',
+                'tr' => ['name' => 'Fırın & Pastane', 'meta_title' => 'Fırın ve Pastane', 'meta_description' => 'Ekmek, pasta ve fırın ürünleri'],
+                'en' => ['name' => 'Bakery', 'meta_title' => 'Bakery', 'meta_description' => 'Bread, cakes and bakery products'],
+                'children' => [
+                    ['slug' => 'ekmekler', 'image' => 'https://images.unsplash.com/photo-1549931319-a545dcf3bc73?w=400', 'tr' => ['name' => 'Ekmekler'], 'en' => ['name' => 'Breads']],
+                    ['slug' => 'pastalar', 'image' => 'https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=400', 'tr' => ['name' => 'Pastalar'], 'en' => ['name' => 'Cakes']],
+                    ['slug' => 'kurabiyeler', 'image' => 'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=400', 'tr' => ['name' => 'Kurabiyeler'], 'en' => ['name' => 'Cookies']],
+                ],
+            ],
+
+            // ============ ECZANE & SAĞLIK (medicine) ============
+            [
+                'slug' => 'eczane-saglik',
+                'type' => 'medicine',
+                'level' => 1, 'order' => 11,
+                'image' => 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400',
+                'tr' => ['name' => 'Eczane & Sağlık', 'meta_title' => 'Eczane ve Sağlık', 'meta_description' => 'Vitamin, sağlık ve tıbbi ürünler'],
+                'en' => ['name' => 'Pharmacy & Health', 'meta_title' => 'Pharmacy and Health', 'meta_description' => 'Vitamins, health and medical products'],
+                'children' => [
+                    ['slug' => 'vitaminler-mineraller', 'image' => 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=400', 'tr' => ['name' => 'Vitamin & Mineral'], 'en' => ['name' => 'Vitamins & Minerals']],
+                    ['slug' => 'saglik-urunleri', 'image' => 'https://images.unsplash.com/photo-1576671081837-49000212a370?w=400', 'tr' => ['name' => 'Sağlık Ürünleri'], 'en' => ['name' => 'Health Products']],
+                    ['slug' => 'tibbi-malzeme', 'image' => 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400', 'tr' => ['name' => 'Tıbbi Malzeme'], 'en' => ['name' => 'Medical Supplies']],
+                ],
+            ],
+
+            // ============ MAKYAJ & GÜZELLİK (makeup) ============
+            [
+                'slug' => 'makyaj-guzellik',
+                'type' => 'makeup',
+                'level' => 1, 'order' => 12,
+                'image' => 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=400',
+                'tr' => ['name' => 'Makyaj & Güzellik', 'meta_title' => 'Makyaj ve Güzellik', 'meta_description' => 'Makyaj, cilt bakımı ve güzellik ürünleri'],
+                'en' => ['name' => 'Makeup & Beauty', 'meta_title' => 'Makeup and Beauty', 'meta_description' => 'Makeup, skincare and beauty products'],
+                'children' => [
+                    ['slug' => 'yuz-makyaji', 'image' => 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400', 'tr' => ['name' => 'Yüz Makyajı'], 'en' => ['name' => 'Face Makeup']],
+                    ['slug' => 'cilt-bakimi', 'image' => 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=400', 'tr' => ['name' => 'Cilt Bakımı'], 'en' => ['name' => 'Skin Care']],
+                    ['slug' => 'parfum', 'image' => 'https://images.unsplash.com/photo-1541643600914-78b084683702?w=400', 'tr' => ['name' => 'Parfüm'], 'en' => ['name' => 'Perfume']],
+                ],
+            ],
+
+            // ============ MOBİLYA (furniture) ============
+            [
+                'slug' => 'mobilya',
+                'type' => 'furniture',
+                'level' => 1, 'order' => 13,
+                'image' => 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400',
+                'tr' => ['name' => 'Mobilya', 'meta_title' => 'Mobilya ve Ev Eşyaları', 'meta_description' => 'Ev mobilyası ve dekorasyon'],
+                'en' => ['name' => 'Furniture', 'meta_title' => 'Furniture and Home Items', 'meta_description' => 'Home furniture and decoration'],
+                'children' => [
+                    ['slug' => 'oturma-grubu', 'image' => 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400', 'tr' => ['name' => 'Oturma Grupları'], 'en' => ['name' => 'Living Room Sets']],
+                    ['slug' => 'yatak-odasi', 'image' => 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=400', 'tr' => ['name' => 'Yatak Odası'], 'en' => ['name' => 'Bedroom']],
+                    ['slug' => 'mutfak-mobilya', 'image' => 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400', 'tr' => ['name' => 'Mutfak Mobilyaları'], 'en' => ['name' => 'Kitchen Furniture']],
+                ],
+            ],
+
+            // ============ EV DEKORASYON (home-decor) ============
+            [
+                'slug' => 'ev-dekorasyon',
+                'type' => 'home-decor',
+                'level' => 1, 'order' => 14,
+                'image' => 'https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=400',
+                'tr' => ['name' => 'Ev Dekorasyon', 'meta_title' => 'Ev Dekorasyon Ürünleri', 'meta_description' => 'Ev dekorasyonu ve aksesuar'],
+                'en' => ['name' => 'Home Decor', 'meta_title' => 'Home Decoration Products', 'meta_description' => 'Home decoration and accessories'],
+                'children' => [
+                    ['slug' => 'hali-kilim', 'image' => 'https://images.unsplash.com/photo-1600166898405-da9535204843?w=400', 'tr' => ['name' => 'Halı & Kilim'], 'en' => ['name' => 'Rugs & Carpets']],
+                    ['slug' => 'perde-tekstil', 'image' => 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400', 'tr' => ['name' => 'Perde & Tekstil'], 'en' => ['name' => 'Curtains & Textiles']],
+                    ['slug' => 'dekor-aksesuar', 'image' => 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400', 'tr' => ['name' => 'Dekor Aksesuar'], 'en' => ['name' => 'Decor Accessories']],
+                ],
+            ],
+
+            // ============ HAYVANCıLIK & EV HAYVANı (animals-pet) ============
+            [
+                'slug' => 'evcil-hayvan',
+                'type' => 'animals-pet',
+                'level' => 1, 'order' => 15,
+                'image' => 'https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=400',
+                'tr' => ['name' => 'Evcil Hayvan', 'meta_title' => 'Evcil Hayvan Ürünleri', 'meta_description' => 'Köpek, kedi ve evcil hayvan malzemeleri'],
+                'en' => ['name' => 'Pet Supplies', 'meta_title' => 'Pet Products', 'meta_description' => 'Dog, cat and pet supplies'],
+                'children' => [
+                    ['slug' => 'kopek-urunleri', 'image' => 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400', 'tr' => ['name' => 'Köpek Ürünleri'], 'en' => ['name' => 'Dog Products']],
+                    ['slug' => 'kedi-urunleri', 'image' => 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=400', 'tr' => ['name' => 'Kedi Ürünleri'], 'en' => ['name' => 'Cat Products']],
+                    ['slug' => 'kus-balik-urunleri', 'image' => 'https://images.unsplash.com/photo-1545529468-b8fd5dc75e7c?w=400', 'tr' => ['name' => 'Kuş & Balık Ürünleri'], 'en' => ['name' => 'Bird & Fish Products']],
+                ],
+            ],
+
+            // ============ BALIKÇILIK (fish) ============
+            [
+                'slug' => 'balikcililik',
+                'type' => 'fish',
+                'level' => 1, 'order' => 16,
+                'image' => 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400',
+                'tr' => ['name' => 'Balıkçılık', 'meta_title' => 'Balıkçılık Ürünleri', 'meta_description' => 'Olta, olta malzemeleri ve balıkçılık ekipmanları'],
+                'en' => ['name' => 'Fishing', 'meta_title' => 'Fishing Products', 'meta_description' => 'Fishing rods, tackle and equipment'],
+                'children' => [
+                    ['slug' => 'olta-takimlari', 'image' => 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400', 'tr' => ['name' => 'Olta Takımları'], 'en' => ['name' => 'Fishing Rods & Reels']],
+                    ['slug' => 'balik-yem-aksesuar', 'image' => 'https://images.unsplash.com/photo-1545816250-8c75a78d4b72?w=400', 'tr' => ['name' => 'Yem & Aksesuar'], 'en' => ['name' => 'Bait & Accessories']],
+                ],
+            ],
+
+            // ============ RESTORAN (restaurant) ============
+            [
+                'slug' => 'restoran',
+                'type' => 'restaurant',
+                'level' => 1, 'order' => 17,
+                'image' => 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400',
+                'tr' => ['name' => 'Restoran', 'meta_title' => 'Restoran Menüsü', 'meta_description' => 'Ana yemekler, mezeler ve tatlılar'],
+                'en' => ['name' => 'Restaurant', 'meta_title' => 'Restaurant Menu', 'meta_description' => 'Main dishes, appetizers and desserts'],
+                'children' => [
+                    ['slug' => 'ana-yemekler', 'image' => 'https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=400', 'tr' => ['name' => 'Ana Yemekler'], 'en' => ['name' => 'Main Dishes']],
+                    ['slug' => 'mezeler-salatalar', 'image' => 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400', 'tr' => ['name' => 'Mezeler & Salatalar'], 'en' => ['name' => 'Appetizers & Salads']],
+                    ['slug' => 'tatlilar-restoran', 'image' => 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400', 'tr' => ['name' => 'Tatlılar'], 'en' => ['name' => 'Desserts']],
+                ],
+            ],
+
+            // ============ KAFE (cafe) ============
+            [
+                'slug' => 'kafe',
+                'type' => 'cafe',
+                'level' => 1, 'order' => 18,
+                'image' => 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400',
+                'tr' => ['name' => 'Kafe', 'meta_title' => 'Kafe Menüsü', 'meta_description' => 'Kahve, çay ve kafe içecekleri'],
+                'en' => ['name' => 'Cafe', 'meta_title' => 'Cafe Menu', 'meta_description' => 'Coffee, tea and cafe beverages'],
+                'children' => [
+                    ['slug' => 'kahve-cesitleri', 'image' => 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400', 'tr' => ['name' => 'Kahve Çeşitleri'], 'en' => ['name' => 'Coffee Varieties']],
+                    ['slug' => 'cay-sicak-icecekler', 'image' => 'https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?w=400', 'tr' => ['name' => 'Çay & Sıcak İçecekler'], 'en' => ['name' => 'Tea & Hot Drinks']],
+                    ['slug' => 'kafe-atistirmalik', 'image' => 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400', 'tr' => ['name' => 'Atıştırmalık'], 'en' => ['name' => 'Snacks']],
+                ],
+            ],
+
+            // ============ FAST FOOD (fast-food) ============
+            [
+                'slug' => 'fast-food',
+                'type' => 'fast-food',
+                'level' => 1, 'order' => 19,
+                'image' => 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400',
+                'tr' => ['name' => 'Fast Food', 'meta_title' => 'Fast Food Menüsü', 'meta_description' => 'Burger, pizza ve fast food'],
+                'en' => ['name' => 'Fast Food', 'meta_title' => 'Fast Food Menu', 'meta_description' => 'Burgers, pizza and fast food'],
+                'children' => [
+                    ['slug' => 'burgerler', 'image' => 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400', 'tr' => ['name' => 'Burgerler'], 'en' => ['name' => 'Burgers']],
+                    ['slug' => 'pizzalar', 'image' => 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400', 'tr' => ['name' => 'Pizzalar'], 'en' => ['name' => 'Pizzas']],
+                    ['slug' => 'sandvicler', 'image' => 'https://images.unsplash.com/photo-1553909489-cd47e0907980?w=400', 'tr' => ['name' => 'Sandviçler'], 'en' => ['name' => 'Sandwiches']],
+                ],
+            ],
+
+            // ============ ÇİÇEKÇİ (florist) ============
+            [
+                'slug' => 'cicekci',
+                'type' => 'florist',
+                'level' => 1, 'order' => 20,
+                'image' => 'https://images.unsplash.com/photo-1490750967868-88df5691cc37?w=400',
+                'tr' => ['name' => 'Çiçekçi', 'meta_title' => 'Çiçek ve Aranjman', 'meta_description' => 'Çiçek buketi, aranjman ve bitki'],
+                'en' => ['name' => 'Florist', 'meta_title' => 'Flowers and Arrangements', 'meta_description' => 'Flower bouquets, arrangements and plants'],
+                'children' => [
+                    ['slug' => 'cicek-buketleri', 'image' => 'https://images.unsplash.com/photo-1490750967868-88df5691cc37?w=400', 'tr' => ['name' => 'Çiçek Buketleri'], 'en' => ['name' => 'Flower Bouquets']],
+                    ['slug' => 'ev-bitkileri', 'image' => 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400', 'tr' => ['name' => 'Ev Bitkileri'], 'en' => ['name' => 'House Plants']],
+                ],
+            ],
+
+            // ============ OYUNCAK (toy) ============
+            [
+                'slug' => 'oyuncak',
+                'type' => 'toy',
+                'level' => 1, 'order' => 21,
+                'image' => 'https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=400',
+                'tr' => ['name' => 'Oyuncak', 'meta_title' => 'Oyuncaklar', 'meta_description' => 'Çocuk oyuncakları ve eğitim setleri'],
+                'en' => ['name' => 'Toys', 'meta_title' => 'Toys', 'meta_description' => 'Children toys and educational sets'],
+                'children' => [
+                    ['slug' => 'bebek-oyuncaklari', 'image' => 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=400', 'tr' => ['name' => 'Bebek Oyuncakları'], 'en' => ['name' => 'Baby Toys']],
+                    ['slug' => 'egitici-oyuncaklar', 'image' => 'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=400', 'tr' => ['name' => 'Eğitici Oyuncaklar'], 'en' => ['name' => 'Educational Toys']],
+                    ['slug' => 'spor-oyuncaklari', 'image' => 'https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=400', 'tr' => ['name' => 'Spor Oyuncakları'], 'en' => ['name' => 'Sports Toys']],
+                ],
+            ],
+
+            // ============ TAKI & MÜCEVHER (jewelry) ============
+            [
+                'slug' => 'taki-mucevher',
+                'type' => 'jewelry',
+                'level' => 1, 'order' => 22,
+                'image' => 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400',
+                'tr' => ['name' => 'Takı & Mücevher', 'meta_title' => 'Takı ve Mücevher', 'meta_description' => 'Altın, gümüş ve değerli takılar'],
+                'en' => ['name' => 'Jewelry', 'meta_title' => 'Jewelry', 'meta_description' => 'Gold, silver and precious jewelry'],
+                'children' => [
+                    ['slug' => 'altin-taki', 'image' => 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400', 'tr' => ['name' => 'Altın Takı'], 'en' => ['name' => 'Gold Jewelry']],
+                    ['slug' => 'gumus-taki', 'image' => 'https://images.unsplash.com/photo-1573408301185-9519f94797e0?w=400', 'tr' => ['name' => 'Gümüş Takı'], 'en' => ['name' => 'Silver Jewelry']],
+                    ['slug' => 'fantezi-taki', 'image' => 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400', 'tr' => ['name' => 'Fantezi Takı'], 'en' => ['name' => 'Fashion Jewelry']],
+                ],
+            ],
+
+            // ============ OTO YEDEK PARÇA (auto-parts) ============
+            [
+                'slug' => 'oto-yedek-parca',
+                'type' => 'auto-parts',
+                'level' => 1, 'order' => 23,
+                'image' => 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400',
+                'tr' => ['name' => 'Oto Yedek Parça', 'meta_title' => 'Oto Yedek Parça', 'meta_description' => 'Araç yedek parçaları ve aksesuar'],
+                'en' => ['name' => 'Auto Parts', 'meta_title' => 'Auto Parts', 'meta_description' => 'Vehicle spare parts and accessories'],
+                'children' => [
+                    ['slug' => 'motor-parcalari', 'image' => 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400', 'tr' => ['name' => 'Motor Parçaları'], 'en' => ['name' => 'Engine Parts']],
+                    ['slug' => 'ic-aksesuar-oto', 'image' => 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400', 'tr' => ['name' => 'İç Aksesuar'], 'en' => ['name' => 'Interior Accessories']],
+                ],
+            ],
+
+            // ============ ORGANİK (organic) ============
+            [
+                'slug' => 'organik',
+                'type' => 'organic',
+                'level' => 1, 'order' => 24,
+                'image' => 'https://images.unsplash.com/photo-1560493676-04071c5f467b?w=400',
+                'tr' => ['name' => 'Organik Ürünler', 'meta_title' => 'Organik Ürünler', 'meta_description' => 'Sertifikalı organik gıda ve ürünler'],
+                'en' => ['name' => 'Organic Products', 'meta_title' => 'Organic Products', 'meta_description' => 'Certified organic food and products'],
+                'children' => [
+                    ['slug' => 'organik-gida', 'image' => 'https://images.unsplash.com/photo-1490818387583-1baba5e638af?w=400', 'tr' => ['name' => 'Organik Gıda'], 'en' => ['name' => 'Organic Food']],
+                    ['slug' => 'organik-bakim', 'image' => 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=400', 'tr' => ['name' => 'Organik Bakım'], 'en' => ['name' => 'Organic Care']],
+                ],
+            ],
+
+            // ============ KASAP (butcher) ============
+            [
+                'slug' => 'kasap',
+                'type' => 'butcher',
+                'level' => 1, 'order' => 25,
+                'image' => 'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=400',
+                'tr' => ['name' => 'Kasap', 'meta_title' => 'Kasap Ürünleri', 'meta_description' => 'Et, tavuk ve şarküteri ürünleri'],
+                'en' => ['name' => 'Butcher', 'meta_title' => 'Butcher Products', 'meta_description' => 'Meat, chicken and deli products'],
+                'children' => [
+                    ['slug' => 'kirmizi-et', 'image' => 'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=400', 'tr' => ['name' => 'Kırmızı Et'], 'en' => ['name' => 'Red Meat']],
+                    ['slug' => 'tavuk-urunleri', 'image' => 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=400', 'tr' => ['name' => 'Tavuk Ürünleri'], 'en' => ['name' => 'Chicken Products']],
+                    ['slug' => 'sarkuteri', 'image' => 'https://images.unsplash.com/photo-1612192861309-e10ac3f84481?w=400', 'tr' => ['name' => 'Şarküteri'], 'en' => ['name' => 'Deli']],
+                ],
+            ],
+
+            // ============ MEYVE & SEBZE (fruit-vegetable) ============
+            [
+                'slug' => 'meyve-sebze',
+                'type' => 'fruit-vegetable',
+                'level' => 1, 'order' => 26,
+                'image' => 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=400',
+                'tr' => ['name' => 'Meyve & Sebze', 'meta_title' => 'Taze Meyve ve Sebze', 'meta_description' => 'Taze meyve, sebze ve kuru meyve'],
+                'en' => ['name' => 'Fruits & Vegetables', 'meta_title' => 'Fresh Fruits and Vegetables', 'meta_description' => 'Fresh fruit, vegetables and dried fruit'],
+                'children' => [
+                    ['slug' => 'taze-meyveler', 'image' => 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=400', 'tr' => ['name' => 'Taze Meyveler'], 'en' => ['name' => 'Fresh Fruits']],
+                    ['slug' => 'taze-sebzeler', 'image' => 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400', 'tr' => ['name' => 'Taze Sebzeler'], 'en' => ['name' => 'Fresh Vegetables']],
+                    ['slug' => 'kuru-meyve-kuruyemis', 'image' => 'https://images.unsplash.com/photo-1548907040-4d42bfc1a0e7?w=400', 'tr' => ['name' => 'Kuru Meyve & Kuruyemiş'], 'en' => ['name' => 'Dried Fruit & Nuts']],
+                ],
+            ],
+
+            // ============ DONDURMA (ice-cream) ============
+            [
+                'slug' => 'dondurma',
+                'type' => 'ice-cream',
+                'level' => 1, 'order' => 27,
+                'image' => 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400',
+                'tr' => ['name' => 'Dondurma', 'meta_title' => 'Dondurma ve Donuk Tatlılar', 'meta_description' => 'Dondurma çeşitleri ve donuk tatlılar'],
+                'en' => ['name' => 'Ice Cream', 'meta_title' => 'Ice Cream and Frozen Desserts', 'meta_description' => 'Ice cream varieties and frozen desserts'],
+                'children' => [
+                    ['slug' => 'geleneksel-dondurma', 'image' => 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400', 'tr' => ['name' => 'Geleneksel Dondurma'], 'en' => ['name' => 'Traditional Ice Cream']],
+                    ['slug' => 'donuk-tatlilar', 'image' => 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=400', 'tr' => ['name' => 'Donuk Tatlılar'], 'en' => ['name' => 'Frozen Desserts']],
+                ],
+            ],
+
+            // ============ HIRDAVAT (hardware) ============
+            [
+                'slug' => 'hirdavat',
+                'type' => 'hardware',
+                'level' => 1, 'order' => 28,
+                'image' => 'https://images.unsplash.com/photo-1504148455328-c376907d081c?w=400',
+                'tr' => ['name' => 'Hırdavat', 'meta_title' => 'Hırdavat ve Yapı Malzemeleri', 'meta_description' => 'El aletleri, elektrikli aletler ve yapı malzemeleri'],
+                'en' => ['name' => 'Hardware', 'meta_title' => 'Hardware and Building Materials', 'meta_description' => 'Hand tools, power tools and building materials'],
+                'children' => [
+                    ['slug' => 'el-aletleri', 'image' => 'https://images.unsplash.com/photo-1504148455328-c376907d081c?w=400', 'tr' => ['name' => 'El Aletleri'], 'en' => ['name' => 'Hand Tools']],
+                    ['slug' => 'elektrikli-aletler', 'image' => 'https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=400', 'tr' => ['name' => 'Elektrikli Aletler'], 'en' => ['name' => 'Power Tools']],
+                    ['slug' => 'yapi-malzemeleri', 'image' => 'https://images.unsplash.com/photo-1605152276897-4f618f831968?w=400', 'tr' => ['name' => 'Yapı Malzemeleri'], 'en' => ['name' => 'Building Materials']],
+                ],
+            ],
+
+            // ============ BEBEK & ÇOCUK (baby-kids) ============
+            [
+                'slug' => 'bebek-cocuk',
+                'type' => 'baby-kids',
+                'level' => 1, 'order' => 29,
+                'image' => 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=400',
+                'tr' => ['name' => 'Bebek & Çocuk', 'meta_title' => 'Bebek ve Çocuk Ürünleri', 'meta_description' => 'Bebek giyim, oyuncak ve bakım ürünleri'],
+                'en' => ['name' => 'Baby & Kids', 'meta_title' => 'Baby and Kids Products', 'meta_description' => 'Baby clothing, toys and care products'],
+                'children' => [
+                    ['slug' => 'bebek-giyim-kk', 'image' => 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=400', 'tr' => ['name' => 'Bebek Giyim'], 'en' => ['name' => 'Baby Clothing']],
+                    ['slug' => 'cocuk-giyim-kk', 'image' => 'https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=400', 'tr' => ['name' => 'Çocuk Giyim'], 'en' => ['name' => "Children's Clothing"]],
+                    ['slug' => 'bebek-bakimi-kk', 'image' => 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=400', 'tr' => ['name' => 'Bebek Bakımı'], 'en' => ['name' => 'Baby Care']],
+                    ['slug' => 'puset-karyola', 'image' => 'https://images.unsplash.com/photo-1586105449897-20b5efeb3233?w=400', 'tr' => ['name' => 'Puset & Karyola'], 'en' => ['name' => 'Strollers & Cribs']],
+                ],
+            ],
+
         ];
 
         DB::transaction(function () use ($categories) {
@@ -322,7 +469,6 @@ class ProductCategorySeeder extends Seeder
                 $parentId = $this->createCategory($category, null, null, null, $index + 1);
 
                 if (isset($category['children'])) {
-                    // Get parent category name for paths
                     $parentName = $category['tr']['name'];
 
                     foreach ($category['children'] as $childIndex => $child) {
@@ -330,13 +476,13 @@ class ProductCategorySeeder extends Seeder
                         $child['parent_id'] = $parentId;
                         $child['level'] = 2;
                         $child['order'] = $childIndex + 1;
-                        $this->createCategory($child, $parentId, $parentName, (string)$parentId, $childIndex + 1);
+                        $this->createCategory($child, $parentId, $parentName, (string) $parentId, $childIndex + 1);
                     }
                 }
             }
         });
 
-        echo "Categories seeded successfully!\n";
+        echo "Categories seeded successfully! (" . count($categories) . " root categories covering all 27 store types)\n";
     }
 
     private function createCategory(array $data, ?int $parentId, ?string $parentName, ?string $parentPath, int $order): int
@@ -344,14 +490,13 @@ class ProductCategorySeeder extends Seeder
         $trData = $data['tr'];
         $enData = $data['en'] ?? $data['tr'];
 
-        // Build category_name_paths and parent_path for children
         $categoryNamePaths = $parentName ?? null;
         $categoryParentPath = $parentPath ?? null;
 
         $categoryId = DB::table('product_category')->insertGetId([
             'category_name' => $trData['name'],
             'category_slug' => $data['slug'],
-            'type' => $data['type'] ?? 'ecommerce',
+            'type' => $data['type'] ?? 'general',
             'category_name_paths' => $categoryNamePaths,
             'parent_path' => $categoryParentPath,
             'parent_id' => $parentId,
@@ -366,21 +511,21 @@ class ProductCategorySeeder extends Seeder
             'updated_at' => now(),
         ]);
 
-        // TR translations (default)
+        // Default (df) translations
         $this->addTranslation($categoryId, 'df', 'category_name', $trData['name']);
         $this->addTranslation($categoryId, 'df', 'meta_title', $trData['meta_title'] ?? $trData['name']);
         if (isset($trData['meta_description'])) {
             $this->addTranslation($categoryId, 'df', 'meta_description', $trData['meta_description']);
         }
 
-        // TR translations
+        // Turkish translations
         $this->addTranslation($categoryId, 'tr', 'category_name', $trData['name']);
         $this->addTranslation($categoryId, 'tr', 'meta_title', $trData['meta_title'] ?? $trData['name']);
         if (isset($trData['meta_description'])) {
             $this->addTranslation($categoryId, 'tr', 'meta_description', $trData['meta_description']);
         }
 
-        // EN translations
+        // English translations
         $this->addTranslation($categoryId, 'en', 'category_name', $enData['name']);
         $this->addTranslation($categoryId, 'en', 'meta_title', $enData['meta_title'] ?? $enData['name']);
         if (isset($enData['meta_description'])) {

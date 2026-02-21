@@ -69,13 +69,13 @@ class ProductSeeder extends Seeder
     private function getProducts(): array
     {
         return [
-            // ============ SUPPLEMENT (Supplementler) ============
+            // ============ SPORCU BESİNLERİ ============
             [
                 'tr' => ['name' => 'Whey Protein 3 Matrix 2300g', 'description' => 'Yüksek kaliteli whey protein karışımı. Kas gelişimi ve toparlanma için ideal. Her serviste 24g protein.'],
                 'en' => ['name' => 'Whey Protein 3 Matrix 2300g', 'description' => 'High quality whey protein blend. Ideal for muscle growth and recovery. 24g protein per serving.'],
                 'category' => 'proteinler',
                 'brand' => 'hardline-nutrition',
-                'store' => 'supplementler',
+                'store' => 'sporcu-besinleri',
                 'unit' => 'kilogram',
                 'price' => 2500,
                 'image' => 'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=600',
@@ -92,7 +92,7 @@ class ProductSeeder extends Seeder
                 'en' => ['name' => 'BCAA Fusion 500g', 'description' => 'Branched chain amino acid blend. Formulated for muscle repair and endurance.'],
                 'category' => 'bcaa-aminoasitler',
                 'brand' => 'hardline-nutrition',
-                'store' => 'supplementler',
+                'store' => 'sporcu-besinleri',
                 'unit' => 'gram',
                 'price' => 1200,
                 'image' => 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=600',
@@ -108,7 +108,7 @@ class ProductSeeder extends Seeder
                 'en' => ['name' => 'Creatine Monohydrate 500g', 'description' => 'Pure creatine monohydrate. For strength, performance and muscle volume.'],
                 'category' => 'kreatin',
                 'brand' => 'olimp',
-                'store' => 'supplementler',
+                'store' => 'sporcu-besinleri',
                 'unit' => 'gram',
                 'price' => 900,
                 'image' => 'https://images.unsplash.com/photo-1594381898411-846e7d193883?w=600',
@@ -122,7 +122,7 @@ class ProductSeeder extends Seeder
                 'en' => ['name' => 'Pre-Workout Explosive 300g', 'description' => 'Pre-workout energy explosion. Contains caffeine, beta-alanine and citrulline malate.'],
                 'category' => 'pre-workout',
                 'brand' => 'bigjoy',
-                'store' => 'supplementler',
+                'store' => 'sporcu-besinleri',
                 'unit' => 'gram',
                 'price' => 800,
                 'image' => 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=600',
@@ -137,7 +137,7 @@ class ProductSeeder extends Seeder
                 'en' => ['name' => 'Omega-3 Fish Oil 120 Capsules', 'description' => 'Molecularly distilled fish oil with high EPA and DHA content.'],
                 'category' => 'vitamin-mineraller',
                 'brand' => 'solgar',
-                'store' => 'supplementler',
+                'store' => 'sporcu-besinleri',
                 'unit' => 'kapsul',
                 'price' => 550,
                 'image' => 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600',

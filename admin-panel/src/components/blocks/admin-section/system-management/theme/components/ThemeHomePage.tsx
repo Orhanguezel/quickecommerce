@@ -44,7 +44,8 @@ type ToggleKeys =
   | "popular_product_section"
   | "blog_section"
   | "top_stores_section"
-  | "newsletters_section";
+  | "newsletters_section"
+  | "all_products_section";
 
 type ToggleState = Record<ToggleKeys, string>;
 type LayoutBlockType = ToggleKeys;
@@ -78,6 +79,7 @@ const SECTION_KEYS: ToggleKeys[] = [
   "blog_section",
   "top_stores_section",
   "newsletters_section",
+  "all_products_section",
 ];
 
 const SECTION_LABELS: Record<ToggleKeys, string> = {
@@ -92,6 +94,7 @@ const SECTION_LABELS: Record<ToggleKeys, string> = {
   blog_section: "Blog",
   top_stores_section: "Top Stores",
   newsletters_section: "Bültene Abone Ol",
+  all_products_section: "Tüm Ürünler",
 };
 
 const REPEATABLE_BLOCKS: LayoutBlockType[] = ["banner_section", "flash_sale", "blog_section"];
@@ -127,6 +130,7 @@ const makeHomeSchema = () => {
     top_stores_section_title_df: z.string().optional(),
     newsletters_title_df: z.string().optional(),
     newsletters_subtitle_df: z.string().optional(),
+    all_products_section_title_df: z.string().optional(),
   };
 
   const langs = getThemeLanguageData()
@@ -145,6 +149,7 @@ const makeHomeSchema = () => {
     dyn[`top_stores_section_title_${id}`] = z.string().optional();
     dyn[`newsletters_title_${id}`] = z.string().optional();
     dyn[`newsletters_subtitle_${id}`] = z.string().optional();
+    dyn[`all_products_section_title_${id}`] = z.string().optional();
   });
 
   return z.object({
@@ -190,6 +195,7 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
     blog_section: "",
     top_stores_section: "",
     newsletters_section: "",
+    all_products_section: "",
   });
   const [layoutBlocks, setLayoutBlocks] = useState<LayoutBlock[]>(
     getDefaultLayoutBlocks()
@@ -254,8 +260,22 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
           .filter(Boolean) as LayoutBlock[]
       : [];
 
+    // Append any SECTION_KEYS not yet in the stored blocks (forward compatibility)
+    const appendMissing = (blocks: LayoutBlock[]): LayoutBlock[] => {
+      const existingTypes = new Set(blocks.map((b) => b.type));
+      const missing = SECTION_KEYS.filter(
+        (key) => !existingTypes.has(key as LayoutBlockType)
+      ).map((key) => ({
+        id: `${key}__auto_1`,
+        type: key as LayoutBlockType,
+        instance: 1,
+        enabled_disabled: "on" as const,
+      }));
+      return missing.length > 0 ? [...blocks, ...missing] : blocks;
+    };
+
     if (fromRaw.length > 0) {
-      return fromRaw;
+      return appendMissing(fromRaw);
     }
 
     const fromLegacy = Array.isArray(legacySectionOrder)
@@ -270,7 +290,7 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
           }))
       : [];
 
-    return fromLegacy.length > 0 ? fromLegacy : getDefaultLayoutBlocks();
+    return fromLegacy.length > 0 ? appendMissing(fromLegacy) : getDefaultLayoutBlocks();
   };
 
   useEffect(() => {
@@ -318,6 +338,10 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
       "newsletters_subtitle_df",
       homeDefault?.newsletters_section?.[0]?.subtitle || ""
     );
+    setValue(
+      "all_products_section_title_df",
+      homeDefault?.all_products_section?.[0]?.title || ""
+    );
 
     // toggles (string "on" | "")
     setToggles({
@@ -347,6 +371,10 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
           : "",
       newsletters_section:
         homeDefault?.newsletters_section?.[0]?.enabled_disabled === "on"
+          ? "on"
+          : "",
+      all_products_section:
+        homeDefault?.all_products_section?.[0]?.enabled_disabled === "on"
           ? "on"
           : "",
     });
@@ -403,6 +431,10 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
           setValue(
             `newsletters_subtitle_${langCode}`,
             tObj?.newsletters_section?.[0]?.subtitle || ""
+          );
+          setValue(
+            `all_products_section_title_${langCode}`,
+            tObj?.all_products_section?.[0]?.title || ""
           );
         });
     }
@@ -643,6 +675,7 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
       top_stores_section_title: string;
       newsletters_title: string;
       newsletters_subtitle: string;
+      all_products_section_title: string;
     }) => ({
       section_order: layoutBlocks.reduce((acc, block) => {
         if (!acc.includes(block.type)) acc.push(block.type);
@@ -717,6 +750,12 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
           enabled_disabled: toggles.newsletters_section,
         },
       ],
+      all_products_section: [
+        {
+          title: src.all_products_section_title,
+          enabled_disabled: toggles.all_products_section,
+        },
+      ],
     });
 
     const dfSource: any = {
@@ -731,6 +770,7 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
       top_stores_section_title: values.top_stores_section_title_df || "",
       newsletters_title: values.newsletters_title_df || "",
       newsletters_subtitle: values.newsletters_subtitle_df || "",
+      all_products_section_title: values.all_products_section_title_df || "",
     };
 
     if (!updatedThemeData.theme_pages) updatedThemeData.theme_pages = {};
@@ -784,6 +824,8 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
               (values as any)[`newsletters_title_${langCode}`] || "",
             newsletters_subtitle:
               (values as any)[`newsletters_subtitle_${langCode}`] || "",
+            all_products_section_title:
+              (values as any)[`all_products_section_title_${langCode}`] || "",
           };
 
           updatedTranslations[langCode].theme_data.theme_pages[
@@ -1261,6 +1303,26 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
                       onCheckedChange={() =>
                         handleToggle("newsletters_section")
                       }
+                    />
+                  </div>
+                </Card>
+
+                {/* All Products */}
+                <Card className="p-4">
+                  <h3 className="text-lg font-semibold mb-3">Tüm Ürünler (Sonsuz Scroll)</h3>
+                  <div className="space-y-3 border rounded p-4">
+                    <label className="block text-sm font-medium">
+                      {t("label.title")} ({t(`lang.${id}` as any)})
+                    </label>
+                    <Input
+                      className="app-input"
+                      {...register(field("all_products_section_title"))}
+                    />
+
+                    <p className="text-base">{t("common.enable_disable")}</p>
+                    <Switch
+                      checked={toggles.all_products_section === "on"}
+                      onCheckedChange={() => handleToggle("all_products_section")}
                     />
                   </div>
                 </Card>

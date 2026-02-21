@@ -31,6 +31,7 @@ interface Category {
   category_name: string;
   category_slug: string;
   parent_id: number | null;
+  product_count?: number;
 }
 
 interface ProductAttributeValue {
@@ -78,7 +79,7 @@ async function getProductsData(
       productParams,
       locale
     ),
-    fetchAPI<any>(API_ENDPOINTS.CATEGORIES, { per_page: 100, all: "true" }, locale),
+    fetchAPI<any>(API_ENDPOINTS.CATEGORIES, { per_page: 100, all: "true", language: locale }, locale),
     fetchAPI<any>(API_ENDPOINTS.BRANDS, { per_page: 100 }, locale),
     fetchAPI<ProductAttribute[]>(API_ENDPOINTS.PRODUCT_ATTRIBUTES, { language: locale }, locale),
   ]);
@@ -104,10 +105,24 @@ async function getProductsData(
       ? (productsRes.value?.meta?.per_page ?? productsRes.value?.per_page ?? 15)
       : 15;
 
-  const categories =
+  const categoriesRaw =
     categoriesRes.status === "fulfilled"
       ? ((categoriesRes.value?.data ?? []) as Category[])
       : [];
+  const hasProducts = (cat: Category) => Number(cat.product_count || 0) > 0;
+  const topCategories = categoriesRaw.filter((cat) => cat.parent_id === null);
+  const childCategories = categoriesRaw.filter((cat) => cat.parent_id !== null);
+
+  const categories: Category[] = [];
+  for (const parent of topCategories) {
+    const children = childCategories.filter(
+      (child) => Number(child.parent_id) === Number(parent.id)
+    );
+    const renderableChildren = children.filter((child) => hasProducts(child));
+    if (hasProducts(parent) || renderableChildren.length > 0) {
+      categories.push(parent, ...renderableChildren);
+    }
+  }
   const brands =
     brandsRes.status === "fulfilled"
       ? ((brandsRes.value?.data ?? []) as Brand[])

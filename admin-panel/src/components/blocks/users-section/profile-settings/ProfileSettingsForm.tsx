@@ -218,11 +218,72 @@ const ProfileSettingsForm = ({ data }: any) => {
     </div>
   );
 
+  // Role badge color mapping
+  const roleBadgeColor: Record<string, string> = {
+    "super-admin": "bg-purple-100 text-purple-700 border-purple-200",
+    "super_admin": "bg-purple-100 text-purple-700 border-purple-200",
+    "superadmin": "bg-purple-100 text-purple-700 border-purple-200",
+    "admin": "bg-blue-100 text-blue-700 border-blue-200",
+    "seller": "bg-green-100 text-green-700 border-green-200",
+    "deliveryman": "bg-orange-100 text-orange-700 border-orange-200",
+    "customer": "bg-gray-100 text-gray-700 border-gray-200",
+  };
+  const rawRole: string = (editData as any)?.role ?? "";
+  const roleLabel = rawRole
+    ? rawRole.replace(/-|_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+    : "";
+  const roleBadgeClass = roleBadgeColor[rawRole.toLowerCase()] ?? "bg-gray-100 text-gray-700 border-gray-200";
+
   return (
     <div dir={dir}>
       {isLoading ? (
         <CardSkletonLoader />
       ) : (
+        <>
+          {/* Profile Header Card */}
+          <Card className="mt-4">
+            <CardContent className="p-4 md:p-6">
+              <div className="flex items-center gap-4">
+                {/* Avatar */}
+                <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-gray-200 dark:border-gray-600 flex-shrink-0">
+                  {lastSelectedImages?.img_url ? (
+                    <Image
+                      loader={GlobalImageLoader}
+                      src={lastSelectedImages.img_url}
+                      alt={String(editData?.full_name ?? "profile")}
+                      fill
+                      sizes="64px"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold">
+                      {(editData?.first_name ?? "?")[0]?.toUpperCase()}
+                    </div>
+                  )}
+                </div>
+                {/* Info */}
+                <div className="flex flex-col gap-1">
+                  <p className="text-lg font-semibold text-gray-900 dark:text-white leading-tight">
+                    {editData?.full_name || `${editData?.first_name ?? ""} ${editData?.last_name ?? ""}`.trim() || "—"}
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{editData?.email ?? ""}</p>
+                  <div className="flex items-center gap-2 mt-1 flex-wrap">
+                    {roleLabel ? (
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${roleBadgeClass}`}>
+                        {roleLabel}
+                      </span>
+                    ) : null}
+                    {(editData as any)?.started_at ? (
+                      <span className="text-xs text-gray-400 dark:text-gray-500">
+                        {t("label.member_since")}: {(editData as any).started_at}
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
         <Tabs
           defaultValue="low_stock"
           value={activeTab}
@@ -505,6 +566,7 @@ const ProfileSettingsForm = ({ data }: any) => {
             </Card>
           </TabsContent>
         </Tabs>
+        </>
       )}
     </div>
   );

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Api\V1\Controller;
 use App\Http\Requests\StoreTypeRequest;
+use App\Http\Requests\StoreTypeCreateRequest;
 use App\Http\Resources\Admin\AdminStoreTypeDetailsResource;
 use App\Http\Resources\Com\Pagination\PaginationResource;
 use App\Http\Resources\Com\Store\StoreTypeResource;
@@ -31,6 +32,29 @@ class AdminStoreTypeManageController extends Controller
             'data' => StoreTypeResource::collection($store_types),
             'meta' => new PaginationResource($store_types)
         ], 200);
+    }
+
+    public function createStoreType(StoreTypeCreateRequest $request)
+    {
+        $additional_charge_type   = $request->get('additional_charge_type');
+        $additional_charge_amount = $request->get('additional_charge_amount');
+        $shouldRound = shouldRound();
+        if ($shouldRound && $additional_charge_type === 'fixed' && is_float($additional_charge_amount)) {
+            return response()->json([
+                'message' => __('messages.should_round', ['name' => 'Additional charge']),
+            ]);
+        }
+        $success = $this->storeTypeRepo->createStoreType($request->all());
+        if ($success) {
+            createOrUpdateTranslation($request, $success, 'App\Models\StoreType', $this->storeTypeRepo->translationKeys());
+            return response()->json([
+                'message' => __('messages.save_success', ['name' => 'Store Type']),
+            ], 201);
+        } else {
+            return response()->json([
+                'message' => __('messages.update_failed', ['name' => 'Store Type'])
+            ], 500);
+        }
     }
 
     public function updateStoreType(StoreTypeRequest $request)

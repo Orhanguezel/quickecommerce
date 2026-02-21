@@ -27,6 +27,13 @@ export function CurrencySwitcher() {
         setCurrencies(data);
       } catch (error) {
         console.error("Failed to load currencies:", error);
+        try {
+          const defaultCurrency = await CurrencyService.getDefault();
+          setCurrencies([defaultCurrency]);
+          setSelectedCurrency(defaultCurrency);
+        } catch (defaultError) {
+          console.error("Failed to load default currency:", defaultError);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -47,7 +54,14 @@ export function CurrencySwitcher() {
     );
   }
 
-  if (!selectedCurrency || currencies.length === 0) return null;
+  if (!selectedCurrency || currencies.length === 0) {
+    return (
+      <Button variant="ghost" size="sm" disabled className="gap-1 font-medium">
+        <span>TRY</span>
+        <span className="text-muted-foreground">(₺)</span>
+      </Button>
+    );
+  }
 
   return (
     <DropdownMenu>

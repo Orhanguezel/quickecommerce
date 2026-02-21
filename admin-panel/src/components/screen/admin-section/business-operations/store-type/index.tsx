@@ -7,8 +7,9 @@ import { useAppDispatch } from "@/redux/hooks";
 import { setDynamicValue } from "@/redux/slices/refetchSlice";
 import { Search } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import { Routes } from "@/config/routes";
 
 const StoreType = () => {
   const t = useTranslations();
@@ -16,6 +17,7 @@ const StoreType = () => {
   const [searchValue, setSearchValue] = useState("");
   const dispatch = useAppDispatch();
   const pathname = usePathname();
+  const router = useRouter();
 
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -82,6 +84,15 @@ const StoreType = () => {
               className="app-button "
             >
               {t("button.search")}
+            </Button>
+            <Button
+              onClick={() => {
+                setIsLoading(true);
+                router.push(Routes.addStoreType);
+              }}
+              className="app-button bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              + {t("button.add")}
             </Button>
           </div>
         </CardContent>

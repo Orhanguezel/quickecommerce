@@ -526,12 +526,7 @@ const PlaceOrder = ({ customerDetails }: any) => {
                             </p>
 
                             <div className="flex justify-end items-cneter">
-                              <button
-                                onClick={() => handleRemove(item.id)}
-                                className=" text-red-500 hover:text-red-700 dark:text-red-400"
-                              >
-                                <OrderCancel />
-                              </button>
+                              <OrderCancel onClick={() => handleRemove(item.id)} />
                             </div>
                           </div>
                         </div>

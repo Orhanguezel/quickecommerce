@@ -32,6 +32,8 @@ class UserDetailsResource extends JsonResource
             'account_status' => $this->deactivated_at ? 'deactivated' : 'active',
             'marketing_email' => (bool)$this->marketing_email,
             'started_at' => $this->created_at->format('F d, Y'),
+            'role' => $this->getRoleNames()->first(),
+            'roles' => $this->getRoleNames(),
         ];
     }
 

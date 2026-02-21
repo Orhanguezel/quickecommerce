@@ -26,6 +26,7 @@ export const ROUTES = {
   // Static Pages
   ABOUT: "/hakkimizda",
   CONTACT: "/iletisim",
+  CAMPAIGNS: "/kampanyalar",
   TERMS: "/kullanim-kosullari",
   PRIVACY: "/gizlilik-politikasi",
   COUPONS: "/kuponlar",

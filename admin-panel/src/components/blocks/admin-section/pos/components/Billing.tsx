@@ -51,13 +51,13 @@ const Billing = ({ setCustomerDetails }: any) => {
           <div className="py-2 md:py-0">
             <h1 className="text-md xl:text-2xl font-semibold text-black dark:text-white flex items-center gap-2">
               {" "}
-              <PackageSearch /> Billing
+              <PackageSearch /> {t("pos.billing")}
             </h1>
           </div>
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <AppSelectDetails
-                placeholder="Select Customer"
+                placeholder={t("pos.select_customer")}
                 value={String(selectStatus)}
                 onSelect={handleSelectStatus}
                 groups={CustomerList}
@@ -71,7 +71,7 @@ const Billing = ({ setCustomerDetails }: any) => {
               <AddCustomerModal
                 trigger={
                   <Button variant="outline" className="app-button w-full">
-                    Add Customer
+                    {t("pos.add_customer")}
                   </Button>
                 }
                 listRefetch={refetch}

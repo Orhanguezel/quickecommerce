@@ -9,12 +9,12 @@ import type { Banner } from "@/modules/banner/banner.type";
 const FALLBACK_IMAGE = "/images/banner-illustration.png";
 
 function BannerCard({ banner, tall = false }: { banner: Banner; tall?: boolean }) {
-  const bgColor = banner.background_color || "#EEF2F7";
-  const btnColor = banner.button_color || "#3F51B5";
-  const btnTextColor = banner.button_text_color || "#ffffff";
+  const bgColor = banner.background_color || "#F6F9FE";
+  const btnColor = banner.button_color || "#0E5ABC";
+  const btnTextColor = banner.button_text_color || "#FFFFFF";
   const btnHoverColor = banner.button_hover_color || btnColor;
   const titleColor = banner.title_color || "#1E293B";
-  const descColor = banner.description_color || "#64748B";
+  const descColor = banner.description_color || "#475569";
   const image = banner.thumbnail_image || FALLBACK_IMAGE;
 
   return (

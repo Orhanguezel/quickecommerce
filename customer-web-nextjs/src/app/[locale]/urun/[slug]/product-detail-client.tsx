@@ -392,7 +392,7 @@ export function ProductDetailClient({
                 {(product.variants ?? []).map((variant, idx) => (
                   <button
                     key={variant.id}
-                    onClick={() => setSelectedVariant(variant)}
+                    onClick={() => { setSelectedVariant(variant); setSelectedImage(0); }}
                     className={`rounded px-3 py-1.5 text-sm transition-colors ${
                       selectedVariant?.id === variant.id
                         ? "bg-primary text-primary-foreground"

@@ -11,22 +11,32 @@ interface Props {
 }
 
 async function getStoresData(locale: string, page: number, storeType?: string) {
+  const typesRes = await Promise.allSettled([fetchAPI<any>(API_ENDPOINTS.STORE_TYPES, {}, locale)]);
+  const typesData = typesRes[0].status === "fulfilled" ? typesRes[0].value : null;
+  const storeTypes = (typesData?.data ?? typesData ?? []) as StoreType[];
+
+  const validTypeSet = new Set(
+    storeTypes
+      .map((type) => String(type.value || "").trim())
+      .filter(Boolean)
+  );
+  const normalizedType =
+    storeType && (validTypeSet.size === 0 || validTypeSet.has(storeType))
+      ? storeType
+      : undefined;
+
   const storeParams: Record<string, string | number> = { per_page: 12, page };
-  if (storeType) storeParams.store_type = storeType;
+  if (normalizedType) storeParams.store_type = normalizedType;
 
-  const [storesRes, typesRes] = await Promise.allSettled([
-    fetchAPI<any>(API_ENDPOINTS.STORES, storeParams, locale),
-    fetchAPI<any>(API_ENDPOINTS.STORE_TYPES, {}, locale),
-  ]);
-
-  const storesData = storesRes.status === "fulfilled" ? storesRes.value : null;
-  const typesData = typesRes.status === "fulfilled" ? typesRes.value : null;
+  const storesRes = await Promise.allSettled([fetchAPI<any>(API_ENDPOINTS.STORES, storeParams, locale)]);
+  const storesData = storesRes[0].status === "fulfilled" ? storesRes[0].value : null;
 
   return {
     stores: (storesData?.data ?? []) as Store[],
     totalPages: storesData?.meta?.last_page ?? storesData?.last_page ?? 1,
     totalStores: storesData?.meta?.total ?? storesData?.total ?? 0,
-    storeTypes: (typesData?.data ?? typesData ?? []) as StoreType[],
+    storeTypes,
+    normalizedType,
   };
 }
 
@@ -97,7 +107,7 @@ export default async function StoresPage({ params, searchParams }: Props) {
         totalStores={data.totalStores}
         currentPage={page}
         storeTypes={data.storeTypes}
-        currentType={storeType}
+        currentType={data.normalizedType}
         translations={{
           stores: storeT("stores"),
           store_count: storeT("store_count"),

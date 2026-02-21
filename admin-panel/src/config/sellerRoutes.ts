@@ -27,6 +27,10 @@ export const SellerRoutes = {
   addAuthor: "/seller/store/product/author/add",
   editAuthor: "/seller/store/product/author/edit",
 
+  categoryList: "/seller/store/category/list",
+  addCategory: "/seller/store/category/add",
+  editCategory: "/seller/store/category/edit",
+
   AttributeList: "/seller/store/attribute/list",
   addAttribute: "/seller/store/attribute/add",
   editAttribute: "/seller/store/attribute/edit",

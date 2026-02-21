@@ -12,11 +12,13 @@ export type statusUpdateData = z.infer<typeof statusUpdateSchema> & {
   id: string;
 };
 
+const firstLang = multiLang[0]; // "tr"
+
 const baseSchema = {
-  name_df: z
+  [`name_${firstLang.id}`]: z
     .string()
     .min(2, "Name must be at least 2 characters long"),
-  description_df: z.string().optional(),
+  [`description_${firstLang.id}`]: z.string().optional(),
   type: z.string().min(2, "Type must be at least 2 characters long"),
   validity: z.string().min(1, "Validity must be at least 1 characters long"),
   price: z.string().optional(),
@@ -26,7 +28,7 @@ const baseSchema = {
 };
 
 const dynamicFields = multiLang
-  .filter((lang) => lang.id !== "df")
+  .filter((lang) => lang.id !== firstLang.id)
   .reduce((fields, lang) => {
     fields[`name_${lang.id}`] = z.string().optional();
     fields[`description_${lang.id}`] = z.string().optional();

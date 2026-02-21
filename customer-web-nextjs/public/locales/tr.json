@@ -87,7 +87,10 @@
     "newsletter_title": "Bültene Abone Ol",
     "newsletter_subtitle": "En son kampanya ve fırsatlardan haberdar olun",
     "discount": "İndirim",
-    "off": "indirim"
+    "off": "indirim",
+    "all_products_title": "Tüm Ürünler",
+    "all_products_subtitle": "Kaydırarak daha fazla ürün keşfet",
+    "all_products_loaded": "Tüm ürünler yüklendi"
   },
   "product": {
     "home": "Ana Sayfa",
@@ -231,6 +234,11 @@
     "valid_until": "Geçerlilik",
     "off": "indirim",
     "no_coupons": "Şu anda aktif kupon bulunmuyor."
+  },
+  "campaigns": {
+    "title": "Kampanyalar",
+    "subtitle": "Aktif fırsatları ve süreli indirimleri keşfedin",
+    "no_campaigns": "Şu anda aktif kampanya bulunmuyor."
   },
   "auth": {
     "email": "E-posta",
@@ -533,6 +541,8 @@
     "shipping_policy_description": "Sporto Online kargo süreleri ve teslimat koşulları",
     "coupons_title": "Kuponlar",
     "coupons_description": "Aktif kuponlar ve indirim kodları",
+    "campaigns_title": "Kampanyalar",
+    "campaigns_description": "Sporto Online'daki tüm aktif kampanyaları keşfedin",
     "login_title": "Giriş Yap",
     "login_description": "Sporto Online hesabınıza giriş yapın",
     "register_title": "Kayıt Ol",

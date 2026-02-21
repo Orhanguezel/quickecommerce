@@ -50,8 +50,11 @@ export function HeaderVariant1() {
   const [searchQuery, setSearchQuery] = useState('');
   const [catOpen, setCatOpen] = useState(false);
   const [hoveredCatId, setHoveredCatId] = useState<number | null>(null);
+  const [hoveredFlyoutTop, setHoveredFlyoutTop] = useState(0);
+  const [hoveredFlyoutMaxHeight, setHoveredFlyoutMaxHeight] = useState(0);
   const [logoError, setLogoError] = useState(false);
   const catDropdownRef = useRef<HTMLDivElement>(null);
+  const catListRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -66,12 +69,51 @@ export function HeaderVariant1() {
 
   const cartCount = cartCountLive;
 
-  // Build category tree from flat API data
+  // Build category tree: hide entries with no products and no valid child.
+  // If parent has no direct product but has valid child, keep parent visible.
   const allCats = categories as Category[];
-  const topCategories = allCats.filter((c) => !c.parent_id);
   const getChildren = (parentId: number) =>
-    allCats.filter((c) => c.parent_id === parentId);
-  const hoveredChildren = hoveredCatId ? getChildren(hoveredCatId) : [];
+    allCats.filter((c) => Number(c.parent_id) === Number(parentId));
+  const hasDirectProducts = (cat: Category) => Number(cat.product_count || 0) > 0;
+
+  const topCategories = allCats
+    .filter((c) => c.parent_id === null)
+    .filter((parent) => {
+      if (hasDirectProducts(parent)) return true;
+      return getChildren(parent.id).some((child) => hasDirectProducts(child));
+    });
+
+  const getRenderableChildren = (parentId: number) =>
+    getChildren(parentId).filter((child) => hasDirectProducts(child));
+
+  const hoveredChildren = hoveredCatId ? getRenderableChildren(hoveredCatId) : [];
+
+  const updateFlyoutTop = (catId: number) => {
+    const listEl = catListRef.current;
+    if (!listEl) return;
+    const rowEl = listEl.querySelector(`[data-cat-id="${catId}"]`) as HTMLElement | null;
+    if (!rowEl) return;
+
+    const rowRect = rowEl.getBoundingClientRect();
+    const container = listEl.parentElement!;
+    const containerRect = container.getBoundingClientRect();
+    const viewportBottomPadding = 12;
+    const minFlyoutHeight = 180;
+    // Ideal: align flyout top exactly with the hovered row
+    let flyoutTop = rowRect.top - containerRect.top;
+    // How much space is available below the row's top in the viewport
+    const spaceBelow = window.innerHeight - rowRect.top - viewportBottomPadding;
+    // Only shift up if there's not enough space for at least minFlyoutHeight
+    if (spaceBelow < minFlyoutHeight) {
+      flyoutTop = Math.max(0, flyoutTop - (minFlyoutHeight - spaceBelow));
+    }
+    const clampedTop = flyoutTop;
+    // Max height = space from the flyout's actual top to viewport bottom
+    const flyoutMaxHeight = Math.max(minFlyoutHeight, window.innerHeight - (containerRect.top + clampedTop) - viewportBottomPadding);
+
+    setHoveredFlyoutMaxHeight(flyoutMaxHeight);
+    setHoveredFlyoutTop(clampedTop);
+  };
 
   return (
     <>
@@ -245,78 +287,102 @@ export function HeaderVariant1() {
             {catOpen && (
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setCatOpen(false)} />
-                <div className="absolute left-0 top-full z-40 mt-2 rounded-xl border bg-background shadow-xl">
+                <div
+                  className="absolute left-0 top-full z-50 mt-2 rounded-xl border bg-background shadow-xl"
+                  onMouseLeave={() => setHoveredCatId(null)}
+                >
                   <div className="relative w-[340px] py-2">
-                    {topCategories.length > 0 ? (
-                      topCategories.slice(0, 14).map((cat) => {
-                        const hasChildren = getChildren(cat.id).length > 0;
-                        const isHovered = hoveredCatId === cat.id;
-                        return (
-                          <div
-                            key={cat.id}
-                            className="relative"
-                            onMouseEnter={() => setHoveredCatId(cat.id)}
-                          >
-                            <Link
-                              href={ROUTES.CATEGORY(cat.category_slug)}
-                              onClick={() => setCatOpen(false)}
-                              className={`flex items-center gap-4 px-6 py-4 text-base transition-colors ${
-                                isHovered ? 'bg-primary/5 text-primary' : 'text-foreground hover:bg-muted'
-                              }`}
+                    <div
+                      ref={catListRef}
+                      className="filter-sidebar-scroll max-h-[70vh] overflow-y-auto"
+                      onScroll={() => {
+                        if (hoveredCatId) updateFlyoutTop(hoveredCatId);
+                      }}
+                    >
+                      {topCategories.length > 0 ? (
+                        topCategories.map((cat) => {
+                          const renderableChildren = getRenderableChildren(cat.id);
+                          const hasChildren = renderableChildren.length > 0;
+                          const isHovered = hoveredCatId === cat.id;
+                          const targetSlug =
+                            hasDirectProducts(cat)
+                              ? cat.category_slug
+                              : hasChildren
+                                ? renderableChildren[0].category_slug
+                                : cat.category_slug;
+                          return (
+                            <div
+                              key={cat.id}
+                              data-cat-id={cat.id}
+                              className="relative"
+                              onMouseEnter={() => {
+                                setHoveredCatId(cat.id);
+                                updateFlyoutTop(cat.id);
+                              }}
                             >
-                              {cat.category_thumb_url ? (
-                                <Image
-                                  src={cat.category_thumb_url}
-                                  alt={cat.category_name}
-                                  width={32}
-                                  height={32}
-                                  className="h-8 w-8 shrink-0 rounded-lg object-cover"
-                                />
-                              ) : (
-                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                                  <Grid3X3 className="h-4 w-4" />
-                                </div>
-                              )}
-                              <span className="flex-1 font-medium">{cat.category_name}</span>
-                              {hasChildren && (
-                                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                              )}
-                            </Link>
+                              <Link
+                                href={ROUTES.CATEGORY(targetSlug)}
+                                onClick={() => setCatOpen(false)}
+                                className={`flex items-center gap-4 px-6 py-4 text-base transition-colors ${
+                                  isHovered ? 'bg-primary/5 text-primary' : 'text-foreground hover:bg-muted'
+                                }`}
+                              >
+                                {cat.category_thumb_url ? (
+                                  <Image
+                                    src={cat.category_thumb_url}
+                                    alt={cat.category_name}
+                                    width={32}
+                                    height={32}
+                                    className="h-8 w-8 shrink-0 rounded-lg object-cover"
+                                  />
+                                ) : (
+                                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                                    <Grid3X3 className="h-4 w-4" />
+                                  </div>
+                                )}
+                                <span className="min-w-0 flex-1 truncate font-medium">{cat.category_name}</span>
+                                {hasChildren && (
+                                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                                )}
+                              </Link>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="px-5 py-4 text-sm text-muted-foreground">
+                          {t('common.no_data')}
+                        </div>
+                      )}
+                    </div>
 
-                            {/* Subcategory flyout — aligned to hovered row */}
-                            {isHovered && hoveredChildren.length > 0 && (
-                              <div className="absolute left-full top-0 min-w-[280px] rounded-r-xl border border-l-0 bg-background py-2 shadow-xl">
-                                {hoveredChildren.map((child) => (
-                                  <Link
-                                    key={child.id}
-                                    href={ROUTES.CATEGORY(child.category_slug)}
-                                    onClick={() => setCatOpen(false)}
-                                    className="flex items-center gap-4 px-6 py-4 text-base text-foreground transition-colors hover:bg-primary/5 hover:text-primary"
-                                  >
-                                    {child.category_thumb_url ? (
-                                      <Image
-                                        src={child.category_thumb_url}
-                                        alt={child.category_name}
-                                        width={28}
-                                        height={28}
-                                        className="h-7 w-7 shrink-0 rounded-lg object-cover"
-                                      />
-                                    ) : (
-                                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                                        <Grid3X3 className="h-3.5 w-3.5" />
-                                      </div>
-                                    )}
-                                    <span>{child.category_name}</span>
-                                  </Link>
-                                ))}
+                    {hoveredCatId && hoveredChildren.length > 0 && (
+                      <div
+                        className="filter-sidebar-scroll absolute left-full z-[70] min-w-[280px] overflow-y-auto rounded-r-xl border border-l-0 bg-background py-2 shadow-xl"
+                        style={{ top: hoveredFlyoutTop, maxHeight: hoveredFlyoutMaxHeight || undefined }}
+                      >
+                        {hoveredChildren.map((child) => (
+                          <Link
+                            key={child.id}
+                            href={ROUTES.CATEGORY(child.category_slug)}
+                            onClick={() => setCatOpen(false)}
+                            className="flex items-center gap-4 px-6 py-4 text-base text-foreground transition-colors hover:bg-primary/5 hover:text-primary"
+                          >
+                            {child.category_thumb_url ? (
+                              <Image
+                                src={child.category_thumb_url}
+                                alt={child.category_name}
+                                width={28}
+                                height={28}
+                                className="h-7 w-7 shrink-0 rounded-lg object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                                <Grid3X3 className="h-3.5 w-3.5" />
                               </div>
                             )}
-                          </div>
-                        );
-                      })
-                    ) : (
-                      <div className="px-5 py-4 text-sm text-muted-foreground">
-                        {t('common.no_data')}
+                            <span className="min-w-0 truncate">{child.category_name}</span>
+                          </Link>
+                        ))}
                       </div>
                     )}
                   </div>

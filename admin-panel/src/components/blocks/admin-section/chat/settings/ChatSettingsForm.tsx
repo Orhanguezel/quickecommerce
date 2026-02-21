@@ -39,14 +39,14 @@ const emptyKnowledgeForm: AiChatKnowledgeFormData = {
   answer_en: "",
 };
 
-const buildEmptyKnowledgeTranslations = (langs: Array<any>) => {
+const buildEmptyKnowledgeTranslations = (langs: Array<any>, primaryLangId: string) => {
   const out: Record<string, { question: string; answer: string }> = {};
   langs.forEach((lang) => {
     const id = String(lang?.id || "");
     if (!id) return;
     out[id] = { question: "", answer: "" };
   });
-  if (!out.df) out.df = { question: "", answer: "" };
+  if (!out[primaryLangId]) out[primaryLangId] = { question: "", answer: "" };
   return out;
 };
 
@@ -55,6 +55,10 @@ const ChatSettingsForm = () => {
     const list = Array.isArray(multiLang) ? (multiLang as Array<any>) : [];
     return list.filter((l) => String(l?.id || "").length > 0);
   }, []);
+  const primaryLangId = useMemo(
+    () => String(languageTabs?.[0]?.id || "tr"),
+    [languageTabs]
+  );
 
   const {
     register,
@@ -79,7 +83,7 @@ const ChatSettingsForm = () => {
 
   const [knowledgeSearch, setKnowledgeSearch] = useState("");
   const [knowledgeViewMode, setKnowledgeViewMode] = useState<ViewMode>("form");
-  const [activeKnowledgeLang, setActiveKnowledgeLang] = useState("df");
+  const [activeKnowledgeLang, setActiveKnowledgeLang] = useState("tr");
   const [conversationPage, setConversationPage] = useState(1);
   const [conversationPerPage, setConversationPerPage] = useState(20);
   const [selectedConversationId, setSelectedConversationId] = useState<number | null>(null);
@@ -119,9 +123,9 @@ const ChatSettingsForm = () => {
     com_ai_chat_model: "",
     com_ai_chat_max_tokens: "1024",
     com_ai_chat_temperature: "0.7",
-    prompt_by_lang: { df: "", en: "" } as Record<string, string>,
+    prompt_by_lang: {} as Record<string, string>,
   });
-  const [activePromptLang, setActivePromptLang] = useState("df");
+  const [activePromptLang, setActivePromptLang] = useState("tr");
 
   const [knowledgeForm, setKnowledgeForm] = useState<AiChatKnowledgeFormData>(emptyKnowledgeForm);
   const [knowledgeTranslations, setKnowledgeTranslations] = useState<
@@ -166,11 +170,9 @@ const ChatSettingsForm = () => {
     const promptByLang: Record<string, string> = {};
     languageTabs.forEach((lang) => {
       const langId = String(lang.id);
-      if (langId === "df") {
-        promptByLang[langId] = data?.com_ai_chat_system_prompt || firstTranslationValue || "";
-      } else {
-        promptByLang[langId] = translations?.[langId] || "";
-      }
+      const fallbackPrompt = data?.com_ai_chat_system_prompt || firstTranslationValue || "";
+      promptByLang[langId] =
+        translations?.[langId] || (langId === primaryLangId ? fallbackPrompt : "");
     });
 
     return {
@@ -194,6 +196,7 @@ const ChatSettingsForm = () => {
     (AiChatSettingsData as any)?.com_ai_chat_system_prompt,
     JSON.stringify((AiChatSettingsData as any)?.translations || {}),
     JSON.stringify(languageTabs),
+    primaryLangId,
   ]);
 
   useEffect(() => {
@@ -205,13 +208,13 @@ const ChatSettingsForm = () => {
 
   useEffect(() => {
     if (!languageTabs.some((l) => String(l.id) === activePromptLang)) {
-      setActivePromptLang(String(languageTabs?.[0]?.id || "df"));
+      setActivePromptLang(primaryLangId);
     }
-  }, [languageTabs, activePromptLang]);
+  }, [languageTabs, activePromptLang, primaryLangId]);
 
   useEffect(() => {
     setKnowledgeTranslations((prev) => {
-      const base = buildEmptyKnowledgeTranslations(languageTabs);
+      const base = buildEmptyKnowledgeTranslations(languageTabs, primaryLangId);
       Object.keys(base).forEach((langId) => {
         if (prev?.[langId]) {
           base[langId] = {
@@ -222,13 +225,13 @@ const ChatSettingsForm = () => {
       });
       return base;
     });
-  }, [languageTabs]);
+  }, [languageTabs, primaryLangId]);
 
   useEffect(() => {
     if (!languageTabs.some((l) => String(l.id) === activeKnowledgeLang)) {
-      setActiveKnowledgeLang(String(languageTabs?.[0]?.id || "df"));
+      setActiveKnowledgeLang(primaryLangId);
     }
-  }, [languageTabs, activeKnowledgeLang]);
+  }, [languageTabs, activeKnowledgeLang, primaryLangId]);
 
   const knowledgeItems: AiChatKnowledgeItem[] = useMemo(
     () => (Array.isArray(KnowledgeList) ? (KnowledgeList as AiChatKnowledgeItem[]) : []),
@@ -248,11 +251,11 @@ const ChatSettingsForm = () => {
     const translationPayload = Object.fromEntries(
       languageTabs
         .map((lang) => String(lang.id))
-        .filter((id) => id !== "df")
+        .filter((id) => id !== primaryLangId)
         .map((id) => [id, aiForm.prompt_by_lang?.[id] || ""])
     );
     const defaultPrompt =
-      aiForm.prompt_by_lang?.df ||
+      aiForm.prompt_by_lang?.[primaryLangId] ||
       Object.values(translationPayload).find(
         (v) => typeof v === "string" && v.trim().length > 0
       ) ||
@@ -279,8 +282,8 @@ const ChatSettingsForm = () => {
   };
 
   const onEditKnowledge = (item: AiChatKnowledgeItem) => {
-    const byLang = buildEmptyKnowledgeTranslations(languageTabs);
-    byLang.df = {
+    const byLang = buildEmptyKnowledgeTranslations(languageTabs, primaryLangId);
+    byLang[primaryLangId] = {
       question: item.question || "",
       answer: item.answer || "",
     };
@@ -292,21 +295,21 @@ const ChatSettingsForm = () => {
       byLang[langId][key as "question" | "answer"] = tr?.value || "";
     });
 
-    if (!byLang.df.question) {
+    if (!byLang[primaryLangId].question) {
       const fallbackQ = Object.values(byLang).find((v) => v.question?.trim()?.length > 0)?.question || "";
-      byLang.df.question = fallbackQ;
+      byLang[primaryLangId].question = fallbackQ;
     }
-    if (!byLang.df.answer) {
+    if (!byLang[primaryLangId].answer) {
       const fallbackA = Object.values(byLang).find((v) => v.answer?.trim()?.length > 0)?.answer || "";
-      byLang.df.answer = fallbackA;
+      byLang[primaryLangId].answer = fallbackA;
     }
 
     setEditingKnowledgeId(item.id);
     setKnowledgeForm({
       id: item.id,
       category: item.category,
-      question: byLang.df.question,
-      answer: byLang.df.answer,
+      question: byLang[primaryLangId].question,
+      answer: byLang[primaryLangId].answer,
       sort_order: item.sort_order || 0,
       is_active: Boolean(item.is_active),
       question_en: byLang.en?.question || "",
@@ -318,12 +321,12 @@ const ChatSettingsForm = () => {
   const onResetKnowledgeForm = () => {
     setEditingKnowledgeId(null);
     setKnowledgeForm(emptyKnowledgeForm);
-    setKnowledgeTranslations(buildEmptyKnowledgeTranslations(languageTabs));
+    setKnowledgeTranslations(buildEmptyKnowledgeTranslations(languageTabs, primaryLangId));
   };
 
   const onSaveKnowledge = (e: FormEvent) => {
     e.preventDefault();
-    const normalizedTranslations = buildEmptyKnowledgeTranslations(languageTabs);
+    const normalizedTranslations = buildEmptyKnowledgeTranslations(languageTabs, primaryLangId);
     Object.keys(normalizedTranslations).forEach((langId) => {
       const src = knowledgeTranslations?.[langId];
       if (src) {
@@ -334,18 +337,18 @@ const ChatSettingsForm = () => {
       }
     });
 
-    const dfQuestion =
-      normalizedTranslations.df?.question ||
+    const primaryQuestion =
+      normalizedTranslations[primaryLangId]?.question ||
       Object.values(normalizedTranslations).find((v) => v.question?.trim()?.length > 0)?.question ||
       "";
-    const dfAnswer =
-      normalizedTranslations.df?.answer ||
+    const primaryAnswer =
+      normalizedTranslations[primaryLangId]?.answer ||
       Object.values(normalizedTranslations).find((v) => v.answer?.trim()?.length > 0)?.answer ||
       "";
 
     const translationPayload = Object.fromEntries(
       Object.entries(normalizedTranslations)
-        .filter(([langId]) => langId !== "df")
+        .filter(([langId]) => langId !== primaryLangId)
         .map(([langId, values]) => [
           langId,
           {
@@ -358,8 +361,8 @@ const ChatSettingsForm = () => {
     const payload = {
       id: editingKnowledgeId || undefined,
       category: knowledgeForm.category,
-      question: dfQuestion,
-      answer: dfAnswer,
+      question: primaryQuestion,
+      answer: primaryAnswer,
       sort_order: Number(knowledgeForm.sort_order || 0),
       is_active: Boolean(knowledgeForm.is_active),
       translations: translationPayload,
@@ -388,7 +391,7 @@ const ChatSettingsForm = () => {
     langId: string,
     key: "question" | "answer"
   ) => {
-    if (langId === "df") {
+    if (langId === primaryLangId) {
       return (item as any)?.[key] || "";
     }
     const row = (item?.translations || []).find(
@@ -712,7 +715,7 @@ const ChatSettingsForm = () => {
                     value={knowledgeTranslations}
                     onChange={(next: any) => {
                       const safe = typeof next === "object" && next ? next : {};
-                      const base = buildEmptyKnowledgeTranslations(languageTabs);
+                      const base = buildEmptyKnowledgeTranslations(languageTabs, primaryLangId);
                       Object.keys(base).forEach((langId) => {
                         const cur = safe?.[langId];
                         if (cur && typeof cur === "object") {

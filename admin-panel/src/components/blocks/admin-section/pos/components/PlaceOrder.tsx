@@ -56,9 +56,9 @@ const PlaceOrder = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const PaymentType = [
-    { label: "Cash", value: "cash" },
-    { label: "Card", value: "card" },
-    { label: "Wallet", value: "wallet" },
+    { label: t("pos.cash"), value: "cash" },
+    { label: t("pos.card"), value: "card" },
+    { label: t("pos.wallet"), value: "wallet" },
   ];
 
   const cart = useSelector((state: RootState) => state.cart.cart);
@@ -243,7 +243,7 @@ const PlaceOrder = ({
     return `
   <html>
     <head>
-      <title>Invoice ${invoice.invoice_number}</title>
+      <title>${t("pos.invoice")} ${invoice.invoice_number}</title>
       <style>
         body {
           font-family: Arial, sans-serif;
@@ -292,23 +292,23 @@ const PlaceOrder = ({
         }, ${storeDetails?.email}</p>
         <h3 style="margin: 5px 0; font-size: ${
           isThermal ? "14px" : "18px"
-        };">INVOICE PAID</h3>
+        };">${t("pos.invoice_paid")}</h3>
       </div>
 
       <!-- Invoice Details -->
-      <p><b>Invoice:</b> ${invoice.invoice_number}</p>
-      <p><b>Customer:</b> ${invoice.customer?.name}</p>
-      <p><b>Date:</b> ${invoice.invoice_date}</p>
+      <p><b>${t("pos.invoice")}:</b> ${invoice.invoice_number}</p>
+      <p><b>${t("pos.customer")}:</b> ${invoice.customer?.name}</p>
+      <p><b>${t("pos.date")}:</b> ${invoice.invoice_date}</p>
       <div class="line"></div>
 
       <!-- Items Table -->
       <table>
         <thead>
           <tr>
-            <th>PRODUCT</th>
-            <th class="center">QTY</th>
-            <th class="right">PRICE</th>
-            <th class="right">TOTAL</th>
+            <th>${t("pos.product")}</th>
+            <th class="center">${t("pos.qty")}</th>
+            <th class="right">${t("pos.price")}</th>
+            <th class="right">${t("pos.total")}</th>
           </tr>
         </thead>
         <tbody>
@@ -343,12 +343,12 @@ const PlaceOrder = ({
 
       <!-- Totals -->
       <div class="totals">
-        <p><b>Sub Total:</b> ${
+        <p><b>${t("pos.sub_total")}:</b> ${
           CurrencyData
             ? formatPrice(invoice.subtotal, CurrencyData)
             : invoice.subtotal
         }</p>
-        <p><b>Tax ${
+        <p><b>${t("common.tax")} ${
           cart[0]?.store_tax
             ? `(${formatNumberOnly(Number(cart[0].store_tax), CurrencyData)}%)`
             : ""
@@ -357,13 +357,13 @@ const PlaceOrder = ({
         ? formatPrice(invoice.total_tax_amount, CurrencyData)
         : invoice.total_tax_amount
     }</p>
-        <p><b>Coupon Discount:</b> ${
+        <p><b>${t("pos.coupon_discount")}:</b> ${
           CurrencyData
             ? formatPrice(invoice.coupon_discount, CurrencyData)
             : invoice.coupon_discount
         }</p>
         <div class="line"></div>
-        <p><b>Total:</b> ${
+        <p><b>${t("pos.total")}:</b> ${
           CurrencyData
             ? formatPrice(invoice.total_amount, CurrencyData)
             : invoice.total_amount
@@ -373,8 +373,8 @@ const PlaceOrder = ({
       <div class="line"></div>
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <div class="center">
-          <p>Thank you for shopping!</p>
-          <small>Powered by POS System</small>
+          <p>${t("pos.thank_you_for_shopping")}</p>
+          <small>${t("pos.powered_by_pos_system")}</small>
         </div>
         <div class="qr-code">
           <img src="${cleanQRCode}" alt="QR Code" />
@@ -395,11 +395,11 @@ const PlaceOrder = ({
             <div className="w-full rounded-lg  cart-icon">
               <>
                 <div className="border-b pb-4 border-slate-300 grid grid-cols-7 text-sm font-semibold sm:font-bold">
-                  <h2 className="col-span-3">Item</h2>
-                  <h2 className="text-center">Price</h2>
-                  <h2 className="text-center">Qty</h2>
-                  <h2 className="text-end">Sub Total</h2>
-                  <h2 className="text-end">Actions</h2>
+                  <h2 className="col-span-3">{t("pos.item")}</h2>
+                  <h2 className="text-center">{t("pos.price")}</h2>
+                  <h2 className="text-center">{t("pos.qty")}</h2>
+                  <h2 className="text-end">{t("pos.sub_total")}</h2>
+                  <h2 className="text-end">{t("pos.actions")}</h2>
                 </div>
 
                 <div className=" max-h-[350px] min-h-[200px] overflow-y-auto custom-scrollbar">
@@ -419,14 +419,18 @@ const PlaceOrder = ({
 
                       let maxTooltip = "";
                       if (isCartLimit && item.max_cart_qty <= item.stock) {
-                        maxTooltip = `Maximum ${item.max_cart_qty} allowed per cart`;
+                        maxTooltip = t("pos.maximum_allowed_per_cart", {
+                          count: item.max_cart_qty,
+                        });
                       } else if (
                         isStockLimit &&
                         item.stock < item.max_cart_qty
                       ) {
-                        maxTooltip = `Only ${item.stock} in stock`;
+                        maxTooltip = t("pos.only_in_stock", {
+                          count: item.stock,
+                        });
                       } else {
-                        maxTooltip = "You have reached the limit";
+                        maxTooltip = t("pos.limit_reached");
                       }
                       return (
                         <div className="border-b border-slate-300" key={index}>
@@ -533,12 +537,7 @@ const PlaceOrder = ({
                             </p>
 
                             <div className="flex justify-end items-cneter">
-                              <button
-                                onClick={() => handleRemove(item.id)}
-                                className=" text-red-500 hover:text-red-700 dark:text-red-400"
-                              >
-                                <OrderCancel />
-                              </button>
+                              <OrderCancel onClick={() => handleRemove(item.id)} />
                             </div>
                           </div>
                         </div>
@@ -548,7 +547,7 @@ const PlaceOrder = ({
                     <div className="flex flex-col items-center justify-center text-gray-500 py-10">
                       {/* <NoDataFoundIcon /> */}
                       <p className="mt-2 text-lg  text-gray-500 dark:text-white font-bold">
-                        Empty Cart
+                        {t("pos.empty_cart")}
                       </p>
                     </div>
                   )}
@@ -557,7 +556,7 @@ const PlaceOrder = ({
                 <div className="pt-4">
                   <div className="flex justify-between items-center">
                     <label className="block text-blue-500 font-semibold text-[16px]">
-                      Coupon
+                      {t("pos.coupon")}
                     </label>
                     <button
                       onClick={() => setShowCouponField(!showCouponField)}
@@ -584,7 +583,7 @@ const PlaceOrder = ({
                           onClick={handleCouponApply}
                           disabled={cart.length === 0 || !inputValue}
                         >
-                          Apply
+                          {t("pos.apply")}
                         </button>
                       </div>
                     </>
@@ -593,7 +592,7 @@ const PlaceOrder = ({
 
                 <div className="mt-6 space-y-2">
                   <div className="flex justify-between text-sm ">
-                    <span>Sub Total</span>
+                    <span>{t("pos.sub_total")}</span>
                     <span>
                       {CurrencyData
                         ? formatPrice(SubTotalPrice, CurrencyData)
@@ -602,7 +601,7 @@ const PlaceOrder = ({
                   </div>
 
                   <div className="flex justify-between text-sm">
-                    <span>Coupon Discount</span>
+                    <span>{t("pos.coupon_discount")}</span>
                     <span>
                       (-){" "}
                       {CurrencyData
@@ -629,7 +628,7 @@ const PlaceOrder = ({
                     </span>
                   </div>
                   <div className="flex justify-between items-center mt-6 text-md font-semibold text-blue-600 border-t pt-2">
-                    <span>Total Amount</span>
+                    <span>{t("pos.total_amount")}</span>
                     <span>
                       {CurrencyData
                         ? formatPrice(total, CurrencyData)
@@ -638,7 +637,7 @@ const PlaceOrder = ({
                   </div>
                   <div className="pt-8 pb-4 flex items-center gap-2 border-t border-slate-300 ">
                     <h2 className="text-lg font-semibold text-black dark:text-white">
-                      Paid By:
+                      {t("pos.paid_by")}:
                     </h2>
                     {PaymentType.map((payment, index) => {
                       const isSelected = selectedPayment === payment.value;
@@ -659,7 +658,7 @@ const PlaceOrder = ({
                     {customerDetails?.wallet_balance !== undefined &&
                       selectedPayment === "wallet" && (
                         <div className="ml-auto flex items-center gap-2 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium shadow-sm">
-                          <span>Available Balance:</span>
+                          <span>{t("pos.available_balance")}:</span>
                           <span className="font-bold">
                             {CurrencyData
                               ? formatPrice(
@@ -680,7 +679,7 @@ const PlaceOrder = ({
                         disabled={!customerDetails || !customerDetails.id}
                         className={`w-full py-3 rounded mt-4 bg-blue-500 hover:bg-blue-600 text-white`}
                       >
-                        Place Order
+                        {t("pos.place_order")}
                       </Button>
                     }
                     total={
@@ -697,7 +696,7 @@ const PlaceOrder = ({
                       <Button
                         className={`w-full py-3 rounded mt-4 bg-red-500 hover:bg-red-600 text-white`}
                       >
-                        Clear Cart
+                        {t("pos.clear_cart")}
                       </Button>
                     }
                     onSave={() => {
@@ -705,8 +704,8 @@ const PlaceOrder = ({
                       setTota_tax(0);
                       setSelectedPayment("cash");
                     }}
-                    title="Clear Cart!"
-                    subTitle="Are you sure you want to Clear Cart?"
+                    title={t("pos.clear_cart_title")}
+                    subTitle={t("pos.clear_cart_subtitle")}
                   />
                 </div>
               </>

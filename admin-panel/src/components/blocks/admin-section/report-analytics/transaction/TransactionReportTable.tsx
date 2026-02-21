@@ -48,23 +48,7 @@ import Link from "next/link";
 import VectorIcon from "@/assets/icons/VectorIcon";
 import MuteVectorIcon from "@/assets/icons/MuteVectorIcon";
 import TableSkeletonLoader from "@/components/molecules/TableSkeletonLoader";
-const StatusList = [
-  { label: "Pending", value: "pending" },
-  { label: "Confirmed", value: "confirmed" },
-  { label: "Processing", value: "processing" },
-  { label: "Pick-Up", value: "pickup" },
-  { label: "Shipped", value: "shipped" },
-  { label: "Cancelled", value: "cancelled" },
-  { label: "Delivered", value: "delivered" },
-];
-const PaymentStatusList = [
-  { label: "Pending", value: "pending" },
-  { label: "Partially Paid", value: "partially_paid" },
-  { label: "Paid", value: "paid" },
-  { label: "Cancelled", value: "cancelled" },
-  { label: "Failed", value: "failed" },
-  { label: "Refunded", value: "refunded" },
-];
+
 interface RecordType {
   id: string;
   serial: string;
@@ -91,6 +75,23 @@ type ColumnsType<RecordType> = ColumnType<RecordType>[];
 const TransactionReportTable = () => {
   const t = useTranslations();
   const locale = useLocale();
+  const StatusList = [
+    { label: t("common.pending"), value: "pending" },
+    { label: t("common.confirmed"), value: "confirmed" },
+    { label: t("common.processing"), value: "processing" },
+    { label: t("common.pickup"), value: "pickup" },
+    { label: t("common.shipped"), value: "shipped" },
+    { label: t("common.cancelled"), value: "cancelled" },
+    { label: t("common.delivered"), value: "delivered" },
+  ];
+  const PaymentStatusList = [
+    { label: t("common.pending"), value: "pending" },
+    { label: t("common.partially_paid"), value: "partially_paid" },
+    { label: t("common.paid"), value: "paid" },
+    { label: t("common.cancelled"), value: "cancelled" },
+    { label: t("common.failed"), value: "failed" },
+    { label: t("common.refunded"), value: "refunded" },
+  ];
   const [itemsPerPage, setItemsPerPage] = useState<number>(() => {
     return parseInt(localStorage.getItem("itemsPerPage") || "10");
   });
@@ -263,6 +264,23 @@ const TransactionReportTable = () => {
     return data;
   }, [currency]);
   const CurrencyData = currencyData.currencies_info;
+  const paymentStatusLabelMap: Record<string, string> = {
+    pending: t("common.pending"),
+    partially_paid: t("common.partially_paid"),
+    paid: t("common.paid"),
+    cancelled: t("common.cancelled"),
+    failed: t("common.failed"),
+    refunded: t("common.refunded"),
+  };
+  const orderStatusLabelMap: Record<string, string> = {
+    pending: t("common.pending"),
+    confirmed: t("common.confirmed"),
+    processing: t("common.processing"),
+    pickup: t("common.pickup"),
+    shipped: t("common.shipped"),
+    cancelled: t("common.cancelled"),
+    delivered: t("common.delivered"),
+  };
 
   useEffect(() => {
     if (Number(currentPage) > Number(LastPage)) {
@@ -354,7 +372,8 @@ const TransactionReportTable = () => {
                   <span
                     className={`${badgeClass} capitalize py-1 px-2 rounded`}
                   >
-                    {payment_status?.replace(/_/g, " ")}
+                    {paymentStatusLabelMap[payment_status] ||
+                      payment_status?.replace(/_/g, " ")}
                   </span>
                 </div>
               </div>
@@ -453,7 +472,7 @@ const TransactionReportTable = () => {
               {row?.additional_charge_name && (
                 <div className="flex items-center gap-2">
                   <span className=" text-sm font-semibold capitalize">
-                    Name
+                    {t("table_header.name")}
                   </span>
                   <span className=" text-sm text-black dark:text-white font-semibold capitalize">
                     : {row?.additional_charge_name}
@@ -463,7 +482,7 @@ const TransactionReportTable = () => {
               {row?.additional_charge_amount && (
                 <div className="flex items-center gap-2">
                   <span className=" text-sm font-semibold capitalize">
-                    Order Amount
+                    {t("table_header.order_amount")}
                   </span>
                   <span className=" text-sm text-black dark:text-white font-semibold capitalize">
                     :{" "}
@@ -481,7 +500,7 @@ const TransactionReportTable = () => {
               {row?.admin_additional_charge_commission && (
                 <div className="flex items-center gap-2">
                   <span className=" text-sm font-semibold capitalize">
-                    Admin Commission
+                    {t("table_header.admin_commission_amount")}
                   </span>
                   <span className=" text-sm text-black dark:text-white font-semibold capitalize">
                     : {row?.admin_additional_charge_commission}%
@@ -491,7 +510,7 @@ const TransactionReportTable = () => {
               {row?.additional_charge_store_amount && (
                 <div className="flex items-center gap-2">
                   <span className=" text-sm font-semibold capitalize">
-                    Store Amount
+                    {t("table_header.store_amount")}
                   </span>
                   <span className=" text-sm text-black dark:text-white font-semibold capitalize">
                     :{" "}
@@ -534,7 +553,7 @@ const TransactionReportTable = () => {
                       : "bg-red-50 border border-red-500 text-red-500"
                   } capitalize`}
                 >
-                  {status}
+                  {orderStatusLabelMap[status] || status}
                 </Badge>
               </div>
             </div>
@@ -566,7 +585,7 @@ const TransactionReportTable = () => {
           ),
         },
       ],
-      [fixLeft, CurrencyData]
+      [fixLeft, CurrencyData, t, paymentStatusLabelMap, orderStatusLabelMap]
     );
 
     const renderColumns = columns.map((col) => {
@@ -627,7 +646,8 @@ const TransactionReportTable = () => {
                   <span
                     className={`${badgeClass} capitalize py-1 px-2 rounded`}
                   >
-                    {payment_status?.replace(/_/g, " ")}
+                    {paymentStatusLabelMap[payment_status] ||
+                      payment_status?.replace(/_/g, " ")}
                   </span>
                 </div>
               </div>
@@ -687,10 +707,10 @@ const TransactionReportTable = () => {
                   } capitalize`}
                 >
                   {status == "1"
-                    ? "Active"
+                    ? t("common.active")
                     : status == "0"
-                    ? "Pending"
-                    : "Cancelled"}
+                    ? t("common.pending")
+                    : t("common.cancelled")}
                 </Badge>
               </div>
             </div>
@@ -708,7 +728,7 @@ const TransactionReportTable = () => {
           ),
         },
       ],
-      [fixLeft, CurrencyData]
+      [fixLeft, CurrencyData, t, paymentStatusLabelMap]
     );
 
     const renderColumns = columns.map((col) => {
@@ -765,7 +785,7 @@ const TransactionReportTable = () => {
                       <h1 className="flex items-center gap-1">
                         <LayoutGrid className="w-5" />{" "}
                         <span className="text-start text-sm lg:text-lg font-semibold">
-                          Order
+                          {t("orders.orders")}
                         </span>
                       </h1>
                     </div>
@@ -782,7 +802,7 @@ const TransactionReportTable = () => {
                       <h1 className="flex items-center gap-1">
                         <List className="w-5" />{" "}
                         <span className="text-start text-sm lg:text-lg font-semibold">
-                          Subscription
+                          {t("table_header.subscription")}
                         </span>
                       </h1>
                     </div>
@@ -807,7 +827,7 @@ const TransactionReportTable = () => {
                     />
                     {activeTab === "order" && (
                       <AppSearchSelect
-                        placeholder="Select Area"
+                        placeholder={t("place_holder.select_area")}
                         value={String(selectAreaId)}
                         onSelect={handleSelectAreaID}
                         groups={AreaList}
@@ -815,14 +835,14 @@ const TransactionReportTable = () => {
                       />
                     )}
                     <AppSearchSelect
-                      placeholder="Select Customer"
+                      placeholder={t("place_holder.select_customer")}
                       value={String(selectCustomerId)}
                       onSelect={handleSelectCustomerID}
                       groups={customerData}
                       customClass="w-full"
                     />
                     <AppSelect
-                      placeholder="Select Gateway"
+                      placeholder={t("place_holder.select_gateway")}
                       value={String(selectPaymentGateway)}
                       onSelect={handleSelectPaymentGateway}
                       groups={PaymentGateways}
@@ -864,8 +884,8 @@ const TransactionReportTable = () => {
                         type="text"
                         placeholder={`${
                           activeTab === "order"
-                            ? "Search by invoice id..."
-                            : "Search by store..."
+                            ? t("place_holder.search_by_invoice")
+                            : t("place_holder.search_by_store")
                         }`}
                         value={searchQuery}
                         onKeyDown={handleKeyDown}
@@ -893,7 +913,7 @@ const TransactionReportTable = () => {
                         <div className="">
                           <Link href={Routes.ordersList}>
                             <div className="text-md ">
-                              {total_transactions_amount?.title}
+                              {t("report.total_transactions_amount")}
                             </div>
                           </Link>
 
@@ -917,7 +937,7 @@ const TransactionReportTable = () => {
                         </div>
                         <div>
                           <div className="text-md ">
-                            {admin_earnings?.title}
+                            {t("report.admin_earnings")}
                           </div>
                           <div className="text-xl font-bold ">
                             {admin_earnings?.count
@@ -936,7 +956,7 @@ const TransactionReportTable = () => {
                         </div>
                         <div>
                           <div className="text-md ">
-                            {store_earnings?.title}
+                            {t("report.store_earnings")}
                           </div>
                           <div className="text-xl font-bold">
                             {store_earnings?.count
@@ -956,7 +976,7 @@ const TransactionReportTable = () => {
                         </div>
                         <div>
                           <div className="text-md ">
-                            {deliveryman_earnings?.title}
+                            {t("report.deliveryman_earnings")}
                           </div>
                           <div className="text-xl font-bold">
                             {deliveryman_earnings?.count
@@ -979,7 +999,7 @@ const TransactionReportTable = () => {
                         </div>
                         <div>
                           <div className="text-md ">
-                            {total_refund_amount?.title}
+                            {t("report.total_refund_amount")}
                           </div>
                           <div className="text-xl font-bold">
                             {total_refund_amount?.count

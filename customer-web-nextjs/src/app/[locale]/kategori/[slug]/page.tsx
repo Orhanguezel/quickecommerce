@@ -30,7 +30,7 @@ async function findCategoryBySlug(slug: string, locale: string) {
   try {
     const res = await fetchAPI<any>(
       API_ENDPOINTS.CATEGORIES,
-      { per_page: 200, all: "true" },
+      { per_page: 200, all: "true", language: locale },
       locale
     );
     const categories = (res?.data ?? []) as Category[];
@@ -94,7 +94,7 @@ async function getCategoryData(
       ),
       fetchAPI<any>(
         API_ENDPOINTS.CATEGORIES,
-        { parent_id: category.id, per_page: 50 },
+        { parent_id: category.id, per_page: 50, has_products: true, language: locale },
         locale
       ),
       fetchAPI<any>(API_ENDPOINTS.BRANDS, { per_page: 100 }, locale),

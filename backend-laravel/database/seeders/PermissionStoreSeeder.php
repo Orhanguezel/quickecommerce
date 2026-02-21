@@ -242,6 +242,17 @@ class PermissionStoreSeeder extends Seeder
                             ]
                         ],
                         [
+                            'PermissionName' => PermissionKey::SELLER_STORE_CATEGORY_MANAGE->value,
+                            'PermissionTitle' => 'Categories',
+                            'activity_scope' => 'store_level',
+                            'icon' => 'LayoutGrid',
+                            'options' => ['view', 'insert', 'update', 'delete'],
+                            'translations' => [
+                                'en' => 'Category List',
+                                'tr' => 'Kategori Listesi'
+                            ]
+                        ],
+                        [
                             'PermissionName' => PermissionKey::SELLER_PRODUCT_ATTRIBUTE_ADD->value,
                             'PermissionTitle' => 'Attributes',
                             'activity_scope' => 'store_level',

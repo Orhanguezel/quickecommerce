@@ -147,9 +147,16 @@ export default function CreateOrUpdateCategoryForm({ data }: any) {
   const [lastSelectedLogo, setLastSelectedLogo] = useState<any>(null);
   const [errorLogoMessage, setLogoErrorMessage] = useState<string>("");
 
-  // type list
+  // type list — API returns { value, label, name, image_url }; map explicitly for AppSelect
   const { storeType } = useStoreTypeQuery({});
-  const typeData = (storeType as any) || [];
+  const typeData = useMemo(
+    () =>
+      ((storeType as any) || []).map((t: any) => ({
+        label: t.label || t.name || String(t.value ?? t.slug ?? ""),
+        value: String(t.value || t.slug || t.type || ""),
+      })),
+    [storeType],
+  );
 
   // parent categories (depends on type)
   const typeValue = watch("type");

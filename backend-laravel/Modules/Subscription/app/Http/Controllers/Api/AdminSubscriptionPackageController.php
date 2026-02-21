@@ -86,13 +86,13 @@ class AdminSubscriptionPackageController extends Controller
     public function update(Request $request)
     {
         $subscription = Subscription::find($request->id);
-        createOrUpdateTranslation($request, $subscription->id, Subscription::class, $this->translationKeys());
         if (!$subscription) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Subscription package not found',
             ], 404);
         }
+        createOrUpdateTranslation($request, $subscription->id, Subscription::class, $this->translationKeys());
 
         // Validate the incoming request data
         $validator = Validator::make($request->all(), [

@@ -62,7 +62,7 @@ export const useCategoryQuery = () => {
 
   const { data, isPending, error } = useQuery({
     queryKey: [API_ENDPOINTS.CATEGORIES, locale],
-    queryFn: () => findAll({ per_page: 100, all: false }),
+    queryFn: () => findAll({ per_page: 500, all: true, language: locale }),
     staleTime: 1000 * 60 * 30,
   });
 

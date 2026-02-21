@@ -84,5 +84,6 @@ export interface Category {
   category_name_paths: string;
   parent_path: string;
   display_order: number;
+  product_count: number;
   children?: Category[];
 }

@@ -9,12 +9,12 @@ interface CategorySectionProps {
   categories: Category[];
 }
 
-function CategoryItem({ cat }: { cat: Category }) {
+function CategoryItem({ cat, targetSlug }: { cat: Category; targetSlug: string }) {
   const bgColor = cat.category_banner || undefined;
 
   return (
     <Link
-      href={`/kategori/${cat.category_slug}`}
+      href={`/kategori/${targetSlug}`}
       className="group flex shrink-0 flex-col items-center px-4 sm:px-5"
     >
       <div
@@ -44,7 +44,28 @@ function CategoryItem({ cat }: { cat: Category }) {
 }
 
 export function CategorySection({ categories }: CategorySectionProps) {
-  if (!categories.length) return null;
+  const allCats = categories;
+  const hasDirectProducts = (cat: Category) => Number(cat.product_count || 0) > 0;
+  const getChildren = (parentId: number) => {
+    const flatChildren = allCats.filter((c) => Number(c.parent_id) === Number(parentId));
+    if (flatChildren.length > 0) return flatChildren;
+    const parent = allCats.find((c) => c.id === parentId);
+    return parent?.children ?? [];
+  };
+
+  const renderableCategories = allCats
+    .filter((c) => c.parent_id === null)
+    .map((parent) => {
+      const renderableChildren = getChildren(parent.id).filter((child) =>
+        hasDirectProducts(child)
+      );
+      const keep = hasDirectProducts(parent) || renderableChildren.length > 0;
+      const targetSlug = hasDirectProducts(parent)
+        ? parent.category_slug
+        : renderableChildren[0]?.category_slug ?? parent.category_slug;
+      return { parent, keep, targetSlug };
+    })
+    .filter((item) => item.keep);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
@@ -91,6 +112,8 @@ export function CategorySection({ categories }: CategorySectionProps) {
     isDragging.current = false;
   };
 
+  if (!categories.length || !renderableCategories.length) return null;
+
   return (
     <div
       ref={scrollRef}
@@ -107,11 +130,15 @@ export function CategorySection({ categories }: CategorySectionProps) {
       }}
     >
       <div className="flex w-max gap-0 py-1">
-        {categories.map((cat) => (
-          <CategoryItem key={cat.id} cat={cat} />
+        {renderableCategories.map((item) => (
+          <CategoryItem key={item.parent.id} cat={item.parent} targetSlug={item.targetSlug} />
         ))}
-        {categories.map((cat) => (
-          <CategoryItem key={`dup-${cat.id}`} cat={cat} />
+        {renderableCategories.map((item) => (
+          <CategoryItem
+            key={`dup-${item.parent.id}`}
+            cat={item.parent}
+            targetSlug={item.targetSlug}
+          />
         ))}
       </div>
     </div>

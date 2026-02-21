@@ -37,6 +37,11 @@ class ProductionSeeder extends Seeder
         // Product Attributes (SAFE - firstOrCreate)
         $this->call(SafeProductAttributeSeeder::class);
 
+        // Permissions & Roles (SAFE - updateOrCreate + super admin full access)
+        $this->call(RolesSeeder::class);
+        $this->call(PermissionAdminSeeder::class);
+        $this->call(PermissionStoreSeeder::class);
+
         // System Settings (SAFE - updateOrCreate)
         $this->call(GeneralSettingsSeeder::class);
         $this->call(ThemeSeeder::class);
@@ -49,6 +54,7 @@ class ProductionSeeder extends Seeder
         $this->call(LocationSeeder::class);
         $this->call(AiChatSeeder::class);
         $this->call(StoreLoginAccountSeeder::class);
+        $this->call(StoreTypeSeeder::class);       // SAFE - updateOrInsert by type
         $this->call(StoreAreaSeeder::class);
         $this->call(StoreAreaSettingsSeeder::class);
         $this->call(StoreAreaSettingStoreTypeSeeder::class);
@@ -57,6 +63,7 @@ class ProductionSeeder extends Seeder
         $this->call(StoreSubscriptionSeeder::class);
         $this->call(UniversalNotificationSeeder::class);
         $this->call(OrderRefundReasonSeeder::class);
+        $this->call(WithdrawGatewaySeeder::class);
 
         $this->command->info('✅ Production seeders completed successfully!');
         $this->command->info('ℹ️  Safe to run on every deployment.');

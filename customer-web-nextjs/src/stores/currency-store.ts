@@ -22,9 +22,13 @@ export const useCurrencyStore = create<CurrencyState>()(
 
       setCurrencies: (currencies) => {
         const defaultCurrency = currencies.find((c) => c.is_default) || currencies[0];
+        const currentSelected = get().selectedCurrency;
+        const matchedSelected = currentSelected
+          ? currencies.find((c) => c.code === currentSelected.code)
+          : null;
         set({
           currencies,
-          selectedCurrency: get().selectedCurrency || defaultCurrency,
+          selectedCurrency: matchedSelected || defaultCurrency || null,
         });
       },
 

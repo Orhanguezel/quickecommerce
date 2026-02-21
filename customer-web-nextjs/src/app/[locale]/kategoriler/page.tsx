@@ -13,7 +13,7 @@ async function getCategories(locale: string) {
   try {
     const res = await fetchAPI<any>(
       API_ENDPOINTS.CATEGORIES,
-      { per_page: 200, all: "true" },
+      { per_page: 200, all: "true", language: locale },
       locale
     );
     return (res?.data ?? []) as Category[];
@@ -58,10 +58,20 @@ export default async function CategoriesPage({ params }: Props) {
 
   // Build parent categories with children
   const topCategories = allCategories.filter((c) => !c.parent_id);
-  const categoriesWithChildren = topCategories.map((parent) => ({
-    ...parent,
-    children: allCategories.filter((c) => c.parent_id === parent.id),
-  }));
+  const categoriesWithChildren = topCategories
+    .map((parent) => ({
+      ...parent,
+      children: allCategories.filter((c) => c.parent_id === parent.id),
+    }))
+    // Only show categories that have products directly or in any child
+    .filter((cat) => {
+      const direct = cat.product_count ?? 0;
+      const fromChildren = (cat.children ?? []).reduce(
+        (sum, c) => sum + (c.product_count ?? 0),
+        0
+      );
+      return direct + fromChildren > 0;
+    });
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",

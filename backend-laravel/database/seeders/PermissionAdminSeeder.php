@@ -1750,7 +1750,16 @@ class PermissionAdminSeeder extends Seeder
                 $role->givePermissionTo($permissions);
                 $user->assignRole($role);
 
-                DB::table('role_has_permissions')->update(['view' => true]);
+                // Super admin gets ALL permission flags (view, insert, update, delete, others)
+                DB::table('role_has_permissions')
+                    ->where('role_id', $role->id)
+                    ->update([
+                        'view'   => true,
+                        'insert' => true,
+                        'update' => true,
+                        'delete' => true,
+                        'others' => true,
+                    ]);
             }
         }
     }

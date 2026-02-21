@@ -87,7 +87,10 @@
     "newsletter_title": "Subscribe to Newsletter",
     "newsletter_subtitle": "Stay informed about latest campaigns and deals",
     "discount": "Discount",
-    "off": "off"
+    "off": "off",
+    "all_products_title": "All Products",
+    "all_products_subtitle": "Scroll to discover more products",
+    "all_products_loaded": "All products loaded"
   },
   "product": {
     "home": "Home",
@@ -231,6 +234,11 @@
     "valid_until": "Valid until",
     "off": "off",
     "no_coupons": "No active coupons available."
+  },
+  "campaigns": {
+    "title": "Campaigns",
+    "subtitle": "Discover active deals and limited-time offers",
+    "no_campaigns": "There are no active campaigns right now."
   },
   "auth": {
     "email": "Email",
@@ -533,6 +541,8 @@
     "shipping_policy_description": "Sporto Online shipping and delivery conditions",
     "coupons_title": "Coupons",
     "coupons_description": "Active coupons and discount codes",
+    "campaigns_title": "Campaigns",
+    "campaigns_description": "Discover all active campaigns on Sporto Online",
     "login_title": "Login",
     "login_description": "Login to your Sporto Online account",
     "register_title": "Register",

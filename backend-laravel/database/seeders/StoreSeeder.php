@@ -11,23 +11,23 @@ class StoreSeeder extends Seeder
     public function run(): void
     {
         $stores = [
-            // ============ SUPPLEMENT MAĞAZALARI ============
+            // ============ SPORCU BESİNLERİ MAĞAZALARI ============
             [
                 'tr' => [
-                    'name' => 'Supplementler',
+                    'name' => 'Sporcu Besinleri',
                     'address' => 'Maslak, Büyükdere Caddesi No: 255, Sarıyer, İstanbul',
-                    'meta_title' => 'Supplementler - Türkiye\'nin En Büyük Sporcu Gıdası Mağazası',
+                    'meta_title' => 'Sporcu Besinleri - Protein, Kreatin ve Besin Takviyeleri',
                     'meta_description' => 'Whey protein, kreatin, BCAA ve tüm sporcu takviyeleri. Hardline, BigJoy, Olimp, Weider ve daha fazlası.',
                 ],
                 'en' => [
-                    'name' => 'Supplementler',
+                    'name' => 'Sports Nutrition',
                     'address' => 'Maslak, Buyukdere Avenue No: 255, Sariyer, Istanbul',
-                    'meta_title' => 'Supplementler - Turkey\'s Largest Sports Nutrition Store',
+                    'meta_title' => 'Sports Nutrition - Protein, Creatine and Dietary Supplements',
                     'meta_description' => 'Whey protein, creatine, BCAA and all sports supplements. Hardline, BigJoy, Olimp, Weider and more.',
                 ],
-                'store_type' => 'medicine',
+                'store_type' => 'sports',
                 'phone' => '2122800000',
-                'email' => 'info@supplementler.com',
+                'email' => 'info@sporcubesinleri.com',
                 'latitude' => '41.1082',
                 'longitude' => '29.0260',
                 'opening_time' => '09:00:00',
@@ -49,7 +49,7 @@ class StoreSeeder extends Seeder
                     'meta_title' => 'Protein34 - Sports Nutrition and Supplements',
                     'meta_description' => 'BigJoy, Hardline, Kingsize and domestic sports nutrition products. Reliable shopping.',
                 ],
-                'store_type' => 'medicine',
+                'store_type' => 'sports',
                 'phone' => '2164500034',
                 'email' => 'info@protein34.com',
                 'latitude' => '40.9833',

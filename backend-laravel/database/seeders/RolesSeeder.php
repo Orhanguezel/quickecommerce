@@ -23,7 +23,7 @@ class RolesSeeder extends Seeder
                 'available_for' => 'system_level',
                 'name' => 'Super Admin',
                 'guard_name' => 'api',
-                'locked' => true,
+                'locked' => false,
                 'created_at' => '2023-08-11 11:57:33',
                 'updated_at' => '2023-08-11 11:57:33',
             ]
@@ -35,7 +35,7 @@ class RolesSeeder extends Seeder
                 'available_for' => 'store_level',
                 'name' => 'Store Admin',
                 'guard_name' => 'api',
-                'locked' => true,
+                'locked' => false,
                 'created_at' => '2023-08-11 11:57:33',
                 'updated_at' => '2023-08-11 11:57:33',
             ]
@@ -71,7 +71,7 @@ class RolesSeeder extends Seeder
                 'available_for' => 'delivery_level',
                 'name' => 'Delivery Man',
                 'guard_name' => 'api',
-                'locked' => true,
+                'locked' => false,
                 'created_at' => '2023-08-11 11:57:33',
                 'updated_at' => '2023-08-11 11:57:33',
             ]

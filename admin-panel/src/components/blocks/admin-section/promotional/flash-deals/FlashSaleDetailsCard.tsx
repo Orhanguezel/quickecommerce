@@ -3,7 +3,7 @@ import RCTable from "@/components/molecules/RCTable";
 import { Card, CardContent } from "@/components/ui";
 import GlobalImageLoader from "@/lib/imageLoader";
 import { useAppDispatch } from "@/redux/hooks";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -30,9 +30,22 @@ type ColumnsType<RecordType> = ColumnType<RecordType>[];
 
 const FlashSaleDetailsCard = ({ data }: any) => {
   const t = useTranslations();
+  const locale = useLocale();
   const dispatch = useAppDispatch();
   const pathname = usePathname();
   const editData = data;
+
+  // Pick locale-aware title/description from related_translations
+  // Backend returns an object keyed by language (groupBy result), so convert to array
+  const translations: any[] = editData?.related_translations
+    ? Object.values(editData.related_translations)
+    : [];
+  const localeTrans = translations.find(
+    (tr: any) => tr.language_code === locale
+  );
+  const displayTitle = localeTrans?.title || editData?.title || "";
+  const displayDescription = localeTrans?.description || editData?.description || "";
+  const displayButtonText = localeTrans?.button_text || editData?.button_text || "";
 
   const [sortedInfo, setSortedInfo] = useState<{
     columnKey: string;
@@ -42,19 +55,23 @@ const FlashSaleDetailsCard = ({ data }: any) => {
     order: "",
   });
 
-  const [start_date, startTime] = data?.start_time.split(" ");
-  const [end_date, end_time] = data?.end_time.split(" ");
+  const [start_date, startTime] = (data?.start_time ?? " ").split(" ");
+  const [end_date, end_time] = (data?.end_time ?? " ").split(" ");
 
-  const formattedStartDate = new Date(start_date).toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-  const formattedEndDate = new Date(end_date).toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  const formattedStartDate = start_date
+    ? new Date(start_date).toLocaleDateString("tr-TR", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : "-";
+  const formattedEndDate = end_date
+    ? new Date(end_date).toLocaleDateString("tr-TR", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : "-";
 
   const originalData = useMemo(() => {
     const data = (editData?.products as any) || [];
@@ -91,7 +108,7 @@ const FlashSaleDetailsCard = ({ data }: any) => {
           dataIndex: "image",
           width: 100,
           render: (image: string) =>
-            image == "" ? (
+            image && image !== "" ? (
               <div className="relative w-12 h-12">
                 <Image
                   loader={GlobalImageLoader}
@@ -99,8 +116,8 @@ const FlashSaleDetailsCard = ({ data }: any) => {
                   alt="product image"
                   fill
                   sizes="48px"
-                  className="w-full h-full"
-                />{" "}
+                  className="w-full h-full object-cover"
+                />
               </div>
             ) : (
               <div className="relative w-12 h-12">
@@ -110,7 +127,7 @@ const FlashSaleDetailsCard = ({ data }: any) => {
                   fill
                   sizes="48px"
                   className="w-full h-full"
-                />{" "}
+                />
               </div>
             ),
         },
@@ -151,14 +168,20 @@ const FlashSaleDetailsCard = ({ data }: any) => {
 
           <CardContent className="p-2 md:p-6">
             <p className="text-lg md:text-2xl font-medium text-blue-500 mb-4">
-              {editData?.title}
+              {displayTitle}
             </p>
 
             <div className="flex items-center justify-start gap-4">
               <div className="space-y-2">
                 <div className="text-md font-medium text-gray-500 dark:text-white mb-2">
-                  <span>{editData?.description}</span>
+                  <span>{displayDescription}</span>
                 </div>
+                {displayButtonText ? (
+                  <div className="flex items-center justify-start gap-2 text-black dark:text-white text-md font-semibold">
+                    <span>{t("label.button_title")}:</span>
+                    <span className="text-gray-500 dark:text-white">{displayButtonText}</span>
+                  </div>
+                ) : null}
                 <div className="flex items-center justify-start gap-2 text-black dark:text-white text-md font-semibold">
                   <span>{t("label.active_date")}:</span>
                   <span className="text-gray-500 dark:text-white">

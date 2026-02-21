@@ -68,10 +68,10 @@ const emptyPopup = (sortOrder: number): PopupItem => ({
   page_target: "all",
   display_type: "modal_center",
   text_behavior: "static",
-  popup_bg_color: "#0E5ABC",
-  popup_text_color: "#FFFFFF",
-  popup_button_bg_color: "#FFFFFF",
-  popup_button_text_color: "#0E5ABC",
+  popup_bg_color: "#F6F9FE",
+  popup_text_color: "#1E293B",
+  popup_button_bg_color: "#0E5ABC",
+  popup_button_text_color: "#FFFFFF",
 });
 
 const popupChannelPrefix = (displayType: PopupDisplayType): "Top" | "Modal" | "Bottom" => {
@@ -157,10 +157,10 @@ const ThemePopupSettings: React.FC<ThemePopupSettingsProps> = ({ allData, refetc
               ? item.display_type
               : "modal_center",
           text_behavior: item?.text_behavior === "marquee" ? "marquee" : "static",
-          popup_bg_color: item?.popup_bg_color || "#0E5ABC",
-          popup_text_color: item?.popup_text_color || "#FFFFFF",
-          popup_button_bg_color: item?.popup_button_bg_color || "#FFFFFF",
-          popup_button_text_color: item?.popup_button_text_color || "#0E5ABC",
+          popup_bg_color: item?.popup_bg_color || "#F6F9FE",
+          popup_text_color: item?.popup_text_color || "#1E293B",
+          popup_button_bg_color: item?.popup_button_bg_color || "#0E5ABC",
+          popup_button_text_color: item?.popup_button_text_color || "#FFFFFF",
         }))
       : [emptyPopup(1)];
 
@@ -564,7 +564,7 @@ const ThemePopupSettings: React.FC<ThemePopupSettingsProps> = ({ allData, refetc
                               <Input
                                 type="color"
                                 className="app-input h-10 w-full p-1"
-                                value={item.popup_bg_color || "#0E5ABC"}
+                                value={item.popup_bg_color || "#F6F9FE"}
                                 onChange={(e) =>
                                   updateDefaultField(idx, "popup_bg_color", e.target.value)
                                 }
@@ -575,7 +575,7 @@ const ThemePopupSettings: React.FC<ThemePopupSettingsProps> = ({ allData, refetc
                               <Input
                                 type="color"
                                 className="app-input h-10 w-full p-1"
-                                value={item.popup_text_color || "#FFFFFF"}
+                                value={item.popup_text_color || "#1E293B"}
                                 onChange={(e) =>
                                   updateDefaultField(idx, "popup_text_color", e.target.value)
                                 }
@@ -586,7 +586,7 @@ const ThemePopupSettings: React.FC<ThemePopupSettingsProps> = ({ allData, refetc
                               <Input
                                 type="color"
                                 className="app-input h-10 w-full p-1"
-                                value={item.popup_button_bg_color || "#FFFFFF"}
+                                value={item.popup_button_bg_color || "#0E5ABC"}
                                 onChange={(e) =>
                                   updateDefaultField(idx, "popup_button_bg_color", e.target.value)
                                 }
@@ -597,7 +597,7 @@ const ThemePopupSettings: React.FC<ThemePopupSettingsProps> = ({ allData, refetc
                               <Input
                                 type="color"
                                 className="app-input h-10 w-full p-1"
-                                value={item.popup_button_text_color || "#0E5ABC"}
+                                value={item.popup_button_text_color || "#FFFFFF"}
                                 onChange={(e) =>
                                   updateDefaultField(idx, "popup_button_text_color", e.target.value)
                                 }

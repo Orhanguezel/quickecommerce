@@ -59,7 +59,10 @@ import {
 import { FlashDealsFormData, flashDealsSchema } from "@/modules/admin-section/promotional/flash-deals/flash-deals.schema";
 
 import { useStoreTypeQuery } from "@/modules/common/store-type/store-type.action";
-import { useStoreWiseProductQuery } from "@/modules/common/store-wise-product/store-wise-product.action";
+import { useStoreWiseProductService } from "@/modules/common/store-wise-product/store-wise-product.service";
+import { useCategoriesQuery } from "@/modules/common/category/category.action";
+import { useQuery } from "@tanstack/react-query";
+import { API_ENDPOINTS } from "@/endpoints/AdminApiEndPoints";
 import { useAppDispatch } from "@/redux/hooks";
 import { setRefetch } from "@/redux/slices/refetchSlice";
 
@@ -89,10 +92,6 @@ const DiscountTypeList = [
   { label: "Fixed ($)", value: "amount" },
 ];
 
-const ProductFilterList = [
-  { id: "1", label: "Handpicked products", value: "handpicked_products" },
-  { id: "2", label: "Filter products by store", value: "filter_products_by_store" },
-];
 
 function safeStr(x: any) {
   return String(x ?? "").trim();
@@ -223,14 +222,65 @@ export default function CreateOrUpdateFlashDealsForm({ data }: any) {
     setValueAny(colorField, color, { shouldValidate: true });
   };
 
+  // Product filter modes (i18n labels)
+  const ProductFilterList = useMemo(() => [
+    { id: "1", label: t("label.all_products"), value: "all_products" },
+    { id: "2", label: t("label.filter_by_store"), value: "filter_by_store" },
+    { id: "3", label: t("label.filter_by_category"), value: "filter_by_category" },
+    { id: "4", label: t("label.filter_by_store_type"), value: "filter_by_store_type" },
+  ], [t]);
+
+  // New local filter states (for modes 3 & 4 — separate from RHF store_type/store_id)
+  const [selectedPaymentOption, setSelectedPaymentOption] = useState<string>("1");
+  const [filterCategoryId, setFilterCategoryId] = useState<string>("");
+  const [filterStoreType, setFilterStoreType] = useState<string>("");
+
   // external queries
   const { storeType } = useStoreTypeQuery({});
   const { TypeWiseStoreList } = useTypeWiseStoreQuery({ store_type: watchedStoreType });
-  const { StoreWiseProductList, refetch } = useStoreWiseProductQuery({ store_id: watchedStoreId });
+
+  // Categories for mode 3 dropdown
+  const { categories } = useCategoriesQuery({ pagination: false } as any);
+
+  // Unified product query — queryKey includes all filter params so it refetches on changes
+  const { findAll: findAllProducts } = useStoreWiseProductService();
+  const { data: filteredProductsData } = useQuery({
+    queryKey: [
+      API_ENDPOINTS.STORE_WISE_PRODUCT_LIST,
+      selectedPaymentOption,
+      watchedStoreId,
+      filterCategoryId,
+      filterStoreType,
+    ],
+    queryFn: () => {
+      if (selectedPaymentOption === "2" && watchedStoreId)
+        return findAllProducts({ store_id: watchedStoreId, per_page: "200" });
+      if (selectedPaymentOption === "3" && filterCategoryId)
+        return findAllProducts({ category_id: filterCategoryId, per_page: "200" } as any);
+      if (selectedPaymentOption === "4" && filterStoreType)
+        return findAllProducts({ store_type: filterStoreType, per_page: "200" } as any);
+      // Mode 1 or mode with no sub-filter selected yet
+      if (selectedPaymentOption === "1")
+        return findAllProducts({ per_page: "500" } as any);
+      return Promise.resolve(null);
+    },
+    refetchOnWindowFocus: false,
+  });
 
   const StoreTypeData = (storeType as any) || [];
   const TypeWiseStoreData = (TypeWiseStoreList as any)?.data || [];
-  const StoreWiseProductData = (StoreWiseProductList as any)?.data || [];
+
+  // Active product options based on selected filter mode
+  const activeProductOptions: Option[] = useMemo(() => {
+    const raw = (filteredProductsData as any)?.data?.data || (filteredProductsData as any)?.data || [];
+    return Array.isArray(raw) ? raw : [];
+  }, [filteredProductsData]);
+
+  // Category dropdown options
+  const CategoryData = useMemo(() => {
+    const raw = (categories as any)?.data || [];
+    return raw.map((c: any) => ({ label: c.category_name || c.name || "", value: String(c.id) }));
+  }, [categories]);
 
   // GLOBAL local state
   const [lastSelectedImages, setLastSelectedImages] = useState<any>(null); // cover_image
@@ -238,14 +288,28 @@ export default function CreateOrUpdateFlashDealsForm({ data }: any) {
   const [errorLogoMessage, setLogoErrorMessage] = useState<string>("");
   const [errorImagesMessage, setImagesErrorMessage] = useState<string>("");
   const [selectedProducts, setSelectedProducts] = useState<Option[]>([]);
-  const [selectedPaymentOption, setSelectedPaymentOption] = useState<string | null>("1");
+  // Guard: only auto-populate when user explicitly changed the filter (not on edit init)
+  const shouldAutoPopulate = React.useRef(false);
+
+  // Auto-populate selectedProducts when filter mode or filter value changes (user-triggered only)
+  useEffect(() => {
+    if (!shouldAutoPopulate.current) return;
+    const options: Option[] = activeProductOptions;
+    if (options.length > 0) {
+      setSelectedProducts(options);
+    }
+  }, [activeProductOptions]);
 
   const handleCardClick = (optionId: string) => {
-    setSelectedPaymentOption(optionId === selectedPaymentOption ? null : optionId);
-
-    if (optionId === "1") {
-      setValueAny("store_id", "", { shouldDirty: false, shouldTouch: false, shouldValidate: false });
-      refetch?.();
+    shouldAutoPopulate.current = true;
+    setSelectedPaymentOption(optionId);
+    setSelectedProducts([]);
+    // Reset filter sub-selections
+    setFilterCategoryId("");
+    setFilterStoreType("");
+    if (optionId !== "2") {
+      setValueAny("store_type", "", { shouldDirty: false });
+      setValueAny("store_id", "", { shouldDirty: false });
     }
   };
 
@@ -860,7 +924,7 @@ export default function CreateOrUpdateFlashDealsForm({ data }: any) {
                               )}
                             />
                           </div>
-                          <Input type="time" {...register("start_time" as any)} className="app-input" />
+                          <Input type="time" step="1" {...register("start_time" as any)} className="app-input" />
                         </div>
                       </div>
 
@@ -891,7 +955,7 @@ export default function CreateOrUpdateFlashDealsForm({ data }: any) {
                               }}
                             />
                           </div>
-                          <Input type="time" {...register("end_time" as any)} className="app-input" />
+                          <Input type="time" step="1" {...register("end_time" as any)} className="app-input" />
                         </div>
                       </div>
                     </div>
@@ -983,6 +1047,7 @@ export default function CreateOrUpdateFlashDealsForm({ data }: any) {
                   ))}
                 </div>
 
+                {/* Mode 2: by specific store */}
                 {selectedPaymentOption === "2" ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-1 mb-4">
                     <div>
@@ -999,7 +1064,6 @@ export default function CreateOrUpdateFlashDealsForm({ data }: any) {
                         )}
                       />
                     </div>
-
                     <div>
                       <p className="text-sm font-medium mb-1">{t("label.store")}</p>
                       <Controller
@@ -1017,9 +1081,44 @@ export default function CreateOrUpdateFlashDealsForm({ data }: any) {
                   </div>
                 ) : null}
 
+                {/* Mode 3: by category */}
+                {selectedPaymentOption === "3" ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-1 mb-4">
+                    <div>
+                      <p className="text-sm font-medium mb-1">{t("label.category")}</p>
+                      <AppSelect
+                        value={filterCategoryId}
+                        onSelect={(value) => setFilterCategoryId(String(value))}
+                        groups={CategoryData}
+                      />
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* Mode 4: by store type only */}
+                {selectedPaymentOption === "4" ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-1 mb-4">
+                    <div>
+                      <p className="text-sm font-medium mb-1">{t("label.store_type")}</p>
+                      <AppSelect
+                        value={filterStoreType}
+                        onSelect={(value) => setFilterStoreType(String(value))}
+                        groups={StoreTypeData}
+                      />
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* Selected products count badge */}
+                {selectedProducts.length > 0 ? (
+                  <p className="text-sm text-blue-600 mb-2 font-medium">
+                    {selectedProducts.length} {t("label.products_selected")}
+                  </p>
+                ) : null}
+
                 <Select
                   isMulti
-                  options={StoreWiseProductData}
+                  options={activeProductOptions}
                   styles={customStyles as any}
                   classNamePrefix="select"
                   closeMenuOnSelect={false}

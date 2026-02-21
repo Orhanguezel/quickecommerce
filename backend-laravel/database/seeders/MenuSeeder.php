@@ -191,6 +191,21 @@ class MenuSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
+            [
+                'id' => 12,
+                'name' => 'Campaigns',
+                'url' => 'kampanyalar',
+                'icon' => null,
+                'position' => 6,
+                'parent_id' => 5,
+                'parent_path' => '5',
+                'menu_level' => 1,
+                'menu_path' => 'Pages',
+                'is_visible' => true,
+                'status' => 0,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ];
 
         DB::table('menus')->insert($menus);
@@ -240,6 +255,10 @@ class MenuSeeder extends Seeder
             // Menu ID 11 - Privacy Policy
             ['translatable_type' => 'App\\Models\\Menu', 'translatable_id' => 11, 'language' => 'tr', 'key' => 'name', 'value' => 'Gizlilik Politikası'],
             ['translatable_type' => 'App\\Models\\Menu', 'translatable_id' => 11, 'language' => 'en', 'key' => 'name', 'value' => 'Privacy Policy'],
+
+            // Menu ID 12 - Campaigns
+            ['translatable_type' => 'App\\Models\\Menu', 'translatable_id' => 12, 'language' => 'tr', 'key' => 'name', 'value' => 'Kampanyalar'],
+            ['translatable_type' => 'App\\Models\\Menu', 'translatable_id' => 12, 'language' => 'en', 'key' => 'name', 'value' => 'Campaigns'],
         ];
 
         DB::table('translations')->insert($translations);

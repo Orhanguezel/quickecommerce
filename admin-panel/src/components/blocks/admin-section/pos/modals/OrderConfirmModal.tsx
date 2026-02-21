@@ -28,7 +28,7 @@ const OrderConfirmModal = ({
   return (
     <AppModal
       trigger={trigger}
-      actionButtonLabel="Confirm"
+      actionButtonLabel={t("button.confirm")}
       customClass="inset-x-0p md:inset-x-30p lg:inset-x-35p 2xl:inset-x-40p top-[200px] bg-white"
       onSave={handlePlaceOrder}
       isOpen={isModalOpen}
@@ -48,17 +48,21 @@ const OrderConfirmModal = ({
             </div>
           </div>
           <div className="py-2 flex itmes-center justify-center w-full">
-            <h1 className="text-2xl font-bold text-black dark:text-white">Confirm Order!</h1>
+            <h1 className="text-2xl font-bold text-black dark:text-white">
+              {t("pos.confirm_order")}
+            </h1>
           </div>
           <div className="my-6 text-md font-semibold text-gray-500 mx-4">
             <div className="border-b border-slate-300 flex items-center justify-between py-3">
               <h1>
-                {payemtMethod === "cash" ? "Received Amount" : "Total Amount"}
+                {payemtMethod === "cash"
+                  ? t("pos.received_amount")
+                  : t("pos.total_amount")}
               </h1>
               <h1 className="text-lg font-bold text-black dark:text-white">{total}</h1>
             </div>
             <div className="border-b border-slate-300 flex items-center justify-between py-3">
-              <h1>Payment Method</h1>
+              <h1>{t("label.payment_method")}</h1>
               <h1 className="uppercase text-lg font-bold text-black dark:text-white">
                 {payemtMethod}
               </h1>

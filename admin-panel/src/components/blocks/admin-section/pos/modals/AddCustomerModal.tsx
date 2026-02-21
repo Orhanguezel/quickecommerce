@@ -70,14 +70,16 @@ const AddCustomerModal = ({ trigger, listRefetch }: any) => {
   return (
     <AppModal
       trigger={trigger}
-      actionButtonLabel={isDeliverymanStorePending ? "Adding..." : "Add"}
+      actionButtonLabel={
+        isDeliverymanStorePending ? t("pos.adding") : t("button.add")
+      }
       customClass="inset-x-35p top-[200px] bg-white"
       onSave={handleSubmit(onSubmit)}
       isOpen={isModalOpen}
       onOpenChange={setIsModalOpen}
     >
       <>
-        <h1 className="text-2xl font-semibold mb-4">Add Customer</h1>
+        <h1 className="text-2xl font-semibold mb-4">{t("pos.add_customer")}</h1>
         <div dir={dir}>
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="mt-4 p-4">

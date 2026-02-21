@@ -7,6 +7,7 @@ use App\Models\StoreType;
 use App\Models\StoreAreaSetting;
 use App\Models\Translation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class StoreTypeManageRepository implements StoreTypeManageInterface
 {
@@ -47,6 +48,29 @@ class StoreTypeManageRepository implements StoreTypeManageInterface
         } else {
             return null;
         }
+    }
+
+    public function createStoreType(array $data)
+    {
+        if (empty($data)) {
+            return false;
+        }
+        $storeType = new StoreType();
+        // 'type' is guarded so we assign it directly before saving
+        $storeType->type = Str::slug($data['name'], '_');
+        $storeType->fill([
+            'name'                             => $data['name'],
+            'description'                      => $data['description'] ?? null,
+            'status'                           => $data['status'] ?? 1,
+            'image'                            => $data['image'] ?? null,
+            'additional_charge_enable_disable' => $data['additional_charge_enable_disable'] ?? 0,
+            'additional_charge_name'           => $data['additional_charge_name'] ?? null,
+            'additional_charge_amount'         => $data['additional_charge_amount'] ?? 0,
+            'additional_charge_type'           => $data['additional_charge_type'] ?? 'fixed',
+            'additional_charge_commission'     => $data['additional_charge_commission'] ?? 0,
+        ]);
+        $storeType->save();
+        return $storeType->id;
     }
 
     public function updateStoreType(array $data)

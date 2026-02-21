@@ -88,6 +88,7 @@ export function CheckoutClient({ translations: t }: Props) {
     title: string;
   } | null>(null);
   const [orderNotes, setOrderNotes] = useState("");
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   // Address form state
   const [addressForm, setAddressForm] = useState({
@@ -181,8 +182,8 @@ export function CheckoutClient({ translations: t }: Props) {
     );
   }
 
-  // Empty cart check
-  if (items.length === 0) {
+  // Empty cart check (skip if redirecting to payment)
+  if (items.length === 0 && !isRedirecting) {
     return (
       <div className="container mx-auto px-4 py-16 text-center">
         <ShoppingBag className="mx-auto mb-4 h-16 w-16 text-muted-foreground" />
@@ -302,6 +303,7 @@ export function CheckoutClient({ translations: t }: Props) {
                 return;
               }
 
+              setIsRedirecting(true);
               clearCart();
               window.location.href = checkoutUrl;
             },

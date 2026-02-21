@@ -8,6 +8,14 @@ export const SELLER_API_ENDPOINTS = {
   RESEND_VERIFICATION_EMAIL: "v1/seller/resend-verification-email",
   VERIFY_TOKEN_BY_EMAIL: "v1/seller/verify-email",
 
+  // store categories (seller-managed)
+  SELLER_CATEGORY_LIST: "v1/seller/store/category/list",
+  SELLER_CATEGORY_ADD: "v1/seller/store/category/add",
+  SELLER_CATEGORY_UPDATE: "v1/seller/store/category/update",
+  SELLER_CATEGORY_EDIT: "v1/seller/store/category/details",
+  SELLER_CATEGORY_STATUS: "v1/seller/store/category/change-status",
+  SELLER_CATEGORY_REMOVE: "v1/seller/store/category/remove",
+
   // product attribute
   ATTRIBUTE_LIST: "v1/seller/store/attribute/list",
   ATTRIBUTE_ADD: "v1/seller/store/attribute/add",

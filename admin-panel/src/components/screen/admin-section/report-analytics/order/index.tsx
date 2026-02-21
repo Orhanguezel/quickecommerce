@@ -176,21 +176,21 @@ const ReportAnalytics = () => {
               customClass="w-full"
             />
             <AppSearchSelect
-              placeholder="Select Area"
+              placeholder={t("place_holder.select_area")}
               value={String(selectAreaId)}
               onSelect={handleSelectAreaID}
               groups={AreaList}
               customClass="w-full"
             />
             <AppSearchSelect
-              placeholder="Select Customer"
+              placeholder={t("place_holder.select_customer")}
               value={String(selectCustomerId)}
               onSelect={handleSelectCustomerID}
               groups={customerData}
               customClass="w-full"
             />
             <AppSelect
-              placeholder="Select Gateway"
+              placeholder={t("place_holder.select_gateway")}
               value={String(selectPaymentGateway)}
               onSelect={handleSelectPaymentGateway}
               groups={PaymentGateways}

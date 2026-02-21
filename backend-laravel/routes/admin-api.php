@@ -532,6 +532,7 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => ['auth:sanctum']], functi
             Route::group(['prefix' => 'store-type/', 'middleware' => 'permission:' . PermissionKey::ADMIN_STORE_TYPE_MANAGE->value], function () {
                 Route::get('list', [AdminStoreTypeManageController::class, 'allStoreTypes']);
                 Route::get('details/{id}', [AdminStoreTypeManageController::class, 'storeTypeDetails']);
+                Route::post('add', [AdminStoreTypeManageController::class, 'createStoreType']);
                 Route::post('update', [AdminStoreTypeManageController::class, 'updateStoreType']);
                 Route::post('change-status', [AdminStoreTypeManageController::class, 'changeStatus']);
             });

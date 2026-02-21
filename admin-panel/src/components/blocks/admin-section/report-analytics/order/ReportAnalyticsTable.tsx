@@ -130,6 +130,23 @@ const ReportAnalyticsTable = ({
     return data;
   }, [currency]);
   const CurrencyData = currencyData.currencies_info;
+  const paymentStatusLabelMap: Record<string, string> = {
+    pending: t("common.pending"),
+    partially_paid: t("common.partially_paid"),
+    paid: t("common.paid"),
+    cancelled: t("common.cancelled"),
+    failed: t("common.failed"),
+    refunded: t("common.refunded"),
+  };
+  const orderStatusLabelMap: Record<string, string> = {
+    pending: t("common.pending"),
+    confirmed: t("common.confirmed"),
+    processing: t("common.processing"),
+    pickup: t("common.pickup"),
+    shipped: t("common.shipped"),
+    cancelled: t("common.cancelled"),
+    delivered: t("common.delivered"),
+  };
 
   useEffect(() => {
     if (Number(currentPage) > Number(LastPage)) {
@@ -226,7 +243,8 @@ const ReportAnalyticsTable = ({
                   <span
                     className={`${badgeClass} capitalize py-1 px-2 rounded`}
                   >
-                    {payment_status?.replace(/_/g, " ")}
+                    {paymentStatusLabelMap[payment_status] ||
+                      payment_status?.replace(/_/g, " ")}
                   </span>
                 </div>
               </div>
@@ -302,7 +320,7 @@ const ReportAnalyticsTable = ({
               {row?.additional_charge_name && (
                 <div className="flex items-center gap-2">
                   <span className=" text-sm font-semibold capitalize">
-                    Name
+                    {t("table_header.name")}
                   </span>
                   <span className=" text-sm text-black dark:text-white font-semibold capitalize">
                     : {row?.additional_charge_name}
@@ -312,7 +330,7 @@ const ReportAnalyticsTable = ({
               {row?.additional_charge_amount && (
                 <div className="flex items-center gap-2">
                   <span className=" text-sm font-semibold capitalize">
-                    Order Amount
+                    {t("table_header.order_amount")}
                   </span>
                   <span className=" text-sm text-black dark:text-white font-semibold capitalize">
                     :{" "}
@@ -330,7 +348,7 @@ const ReportAnalyticsTable = ({
               {row?.admin_additional_charge_commission && (
                 <div className="flex items-center gap-2">
                   <span className=" text-sm font-semibold capitalize">
-                    Admin Commission
+                    {t("table_header.admin_commission_amount")}
                   </span>
                   <span className=" text-sm text-black dark:text-white font-semibold capitalize">
                     : {row?.admin_additional_charge_commission}%
@@ -340,7 +358,7 @@ const ReportAnalyticsTable = ({
               {row?.additional_charge_store_amount && (
                 <div className="flex items-center gap-2">
                   <span className=" text-sm font-semibold capitalize">
-                    Store Amount
+                    {t("table_header.store_amount")}
                   </span>
                   <span className=" text-sm text-black dark:text-white font-semibold capitalize">
                     :{" "}
@@ -383,7 +401,7 @@ const ReportAnalyticsTable = ({
                       : "bg-red-50 border border-red-500 text-red-500"
                   } capitalize`}
                 >
-                  {status}
+                  {orderStatusLabelMap[status] || status}
                 </Badge>
               </div>
             </div>
@@ -504,7 +522,7 @@ const ReportAnalyticsTable = ({
           ),
         },
       ],
-      [fixLeft, CurrencyData]
+      [fixLeft, CurrencyData, t, paymentStatusLabelMap, orderStatusLabelMap]
     );
 
     const renderColumns = columns.map((col) => {
@@ -552,7 +570,7 @@ const ReportAnalyticsTable = ({
                     </div>
                     <div className="">
                       <Link href={Routes.ordersList}>
-                        <div className="text-md ">{total_orders?.title}</div>
+                        <div className="text-md ">{t("report.total_orders")}</div>
                       </Link>
 
                       <div className="text-xl font-bold ">
@@ -567,7 +585,7 @@ const ReportAnalyticsTable = ({
                       <TotalInProcessOrderIcon />
                     </div>
                     <div>
-                      <div className="text-md ">{pending_orders?.title}</div>
+                      <div className="text-md ">{t("report.pending_orders")}</div>
                       <div className="text-xl font-bold">
                         {pending_orders?.count}
                       </div>
@@ -580,7 +598,7 @@ const ReportAnalyticsTable = ({
                       <TotalEarningsIcon />
                     </div>
                     <div>
-                      <div className="text-md ">{confirmed_orders?.title}</div>
+                      <div className="text-md ">{t("report.confirmed_orders")}</div>
                       <div className="text-xl font-bold ">
                         {confirmed_orders?.count}
                       </div>
@@ -593,7 +611,7 @@ const ReportAnalyticsTable = ({
                       <TotalTicketsIcon />
                     </div>
                     <div>
-                      <div className="text-md ">{processing_orders?.title}</div>
+                      <div className="text-md ">{t("report.processing_orders")}</div>
                       <div className="text-xl font-bold">
                         {processing_orders?.count}
                       </div>
@@ -606,7 +624,7 @@ const ReportAnalyticsTable = ({
                       <TotalWithdrawIcon />
                     </div>
                     <div>
-                      <div className="text-md ">{shipped_orders?.title}</div>
+                      <div className="text-md ">{t("report.shipped_orders")}</div>
                       <div className="text-xl font-bold">
                         {shipped_orders?.count}
                       </div>
@@ -619,7 +637,7 @@ const ReportAnalyticsTable = ({
                       <TotalCompletedOrderIcon />
                     </div>
                     <div>
-                      <div className="text-md ">{completed_orders?.title}</div>
+                      <div className="text-md ">{t("report.completed_orders")}</div>
                       <div className="text-xl font-bold">
                         {completed_orders?.count}
                       </div>
@@ -632,7 +650,7 @@ const ReportAnalyticsTable = ({
                       <TotalCanceledOrderIcon />
                     </div>
                     <div>
-                      <div className="text-md ">{cancelled_orders?.title}</div>
+                      <div className="text-md ">{t("report.cancelled_orders")}</div>
                       <div className="text-xl font-bold">
                         {cancelled_orders?.count}
                       </div>
@@ -645,7 +663,7 @@ const ReportAnalyticsTable = ({
                       <TotalQueueOrderIcon />
                     </div>
                     <div>
-                      <div className="text-md ">{unassigned_orders?.title}</div>
+                      <div className="text-md ">{t("report.unassigned_orders")}</div>
                       <div className="text-xl font-bold">
                         {unassigned_orders?.count}
                       </div>
@@ -658,7 +676,7 @@ const ReportAnalyticsTable = ({
                       <TotalRefundedOrderIcon />
                     </div>
                     <div>
-                      <div className="text-md ">{refunded_orders?.title}</div>
+                      <div className="text-md ">{t("report.refunded_orders")}</div>
                       <div className="text-xl font-bold">
                         {refunded_orders?.count}
                       </div>

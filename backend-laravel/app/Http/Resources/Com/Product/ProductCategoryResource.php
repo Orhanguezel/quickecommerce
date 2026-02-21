@@ -39,6 +39,7 @@ class ProductCategoryResource extends JsonResource
             'category_name_paths' => $this->category_name_paths,
             'parent_path' => $this->parent_path,
             'display_order' => $this->display_order,
+            'product_count' => (int) ($this->products_count ?? 0),
             'created_by' => $this->created_by,
             'updated_by' => $this->updated_by,
             'status' => $this->status,

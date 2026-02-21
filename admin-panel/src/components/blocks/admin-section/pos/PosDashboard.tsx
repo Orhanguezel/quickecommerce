@@ -38,7 +38,7 @@ const PosDashboard = () => {
 
       return {
         id: item.id,
-        title: item.name || "Unknown Product",
+        title: item.name || t("pos.unknown_product"),
         imageSrc: item.image_url || "",
         price: item.price || 0,
         special_price: item.special_price || 0,
@@ -49,7 +49,7 @@ const PosDashboard = () => {
         slug: item.slug,
         Stock: item.stock || 0,
         max_cart_qty: item.max_cart_qty || 1,
-        status: item.is_featured ? "Featured" : "",
+        status: item.is_featured ? t("pos.featured") : "",
         discount: item.discount_percentage,
         variantsList: item.singleVariant,
         store_id: item.store_id,
@@ -164,10 +164,10 @@ const PosDashboard = () => {
                         {isFetching ? (
                           <>
                             <Loader size="small" />{" "}
-                            <span className="px-2">Loading more...</span>
+                            <span className="px-2">{t("pos.loading_more")}</span>
                           </>
                         ) : (
-                          "Load More"
+                          t("pos.load_more")
                         )}
                       </Button>
                     </div>

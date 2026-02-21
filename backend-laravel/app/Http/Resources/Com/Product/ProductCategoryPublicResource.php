@@ -31,6 +31,7 @@ class ProductCategoryPublicResource extends JsonResource
             'category_name_paths' => $this->category_name_paths,
             'parent_path' => $this->parent_path,
             'display_order' => $this->display_order,
+            'product_count' => (int) ($this->products_count ?? 0),
         ];
     }
 

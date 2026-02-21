@@ -12,6 +12,7 @@ import { SectionHeader } from "@/components/home/section-header";
 import { NewsletterSection } from "@/components/home/newsletter-section";
 import { TopStoresSection } from "@/components/home/top-stores-section";
 import { CountdownTimer } from "@/components/home/countdown-timer";
+import { InfiniteProductsSection } from "@/components/home/infinite-products-section";
 import { useThemeConfig } from "@/modules/theme/use-theme-config";
 import { useBannerQuery } from "@/modules/banner/banner.action";
 import { Link } from "@/i18n/routing";
@@ -69,7 +70,8 @@ type HomeSectionKey =
   | "popular_product_section"
   | "blog_section"
   | "top_stores_section"
-  | "newsletters_section";
+  | "newsletters_section"
+  | "all_products_section";
 
 interface HomeLayoutBlock {
   id?: string;
@@ -159,7 +161,7 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
   const BannerGridItem = ({ banner }: { banner: Banner }) => (
     <div
       className="group overflow-hidden rounded-2xl"
-      style={{ backgroundColor: banner.background_color || "#EEF2F7" }}
+      style={{ backgroundColor: banner.background_color || "#F6F9FE" }}
     >
       <div className="flex min-h-[170px] items-center">
         <div className="flex flex-1 flex-col justify-center px-6 py-6 md:px-8">
@@ -172,7 +174,7 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
           {banner.description && (
             <p
               className="mb-4 line-clamp-2 text-xs md:text-sm"
-              style={{ color: banner.description_color || "#64748B" }}
+              style={{ color: banner.description_color || "#475569" }}
             >
               {banner.description}
             </p>
@@ -183,8 +185,8 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
                 href={banner.redirect_url}
                 className="inline-flex items-center rounded-full px-5 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
                 style={{
-                  backgroundColor: banner.button_color || "#3F51B5",
-                  color: banner.button_text_color || "#ffffff",
+                  backgroundColor: banner.button_color || "#0E5ABC",
+                  color: banner.button_text_color || "#FFFFFF",
                 }}
               >
                 {banner.button_text || "Shop Now"}
@@ -355,6 +357,12 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
           <NewsletterSection
             title={homeConfig.newsletterTitle || t.newsletter_title}
             subtitle={homeConfig.newsletterSubtitle || t.newsletter_subtitle}
+          />
+        ) : null;
+      case "all_products_section":
+        return homeConfig.isAllProductsEnabled ? (
+          <InfiniteProductsSection
+            title={homeConfig.allProductsTitle}
           />
         ) : null;
       default:

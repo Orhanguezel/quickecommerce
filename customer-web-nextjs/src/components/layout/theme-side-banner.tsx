@@ -126,7 +126,7 @@ export function ThemeSideBanner() {
       style={{
         width: `${computedWidth}px`,
         minHeight: `${computedHeight}px`,
-        backgroundColor: selectedBanner.background_color || "#EEF2F7",
+        backgroundColor: selectedBanner.background_color || "#F6F9FE",
       }}
     >
       {sideBannerConfig.dismissible ? (
@@ -159,7 +159,7 @@ export function ThemeSideBanner() {
           {selectedBanner.description ? (
             <p
               className="line-clamp-4 text-xs leading-relaxed"
-              style={{ color: selectedBanner.description_color || "#64748B" }}
+              style={{ color: selectedBanner.description_color || "#475569" }}
             >
               {selectedBanner.description}
             </p>
@@ -170,8 +170,8 @@ export function ThemeSideBanner() {
           <span
             className="inline-flex w-full items-center justify-center rounded-full px-3 py-2 text-xs font-semibold transition-opacity hover:opacity-90"
             style={{
-              backgroundColor: selectedBanner.button_color || "#3F51B5",
-              color: selectedBanner.button_text_color || "#ffffff",
+              backgroundColor: selectedBanner.button_color || "#0E5ABC",
+              color: selectedBanner.button_text_color || "#FFFFFF",
             }}
           >
             {selectedBanner.button_text}

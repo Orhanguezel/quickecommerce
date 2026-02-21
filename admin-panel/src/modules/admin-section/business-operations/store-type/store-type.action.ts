@@ -85,7 +85,7 @@ export const useStoreTypeStoreMutation = () => {
     onSuccess: async (data) => {
       if (Boolean(data?.data)) {
         toast.success(data?.data?.message);
-        router.push(Routes.areaList);
+        router.push(Routes.storeTypeList);
       } else {
         toast.error(data?.data?.message);
       }

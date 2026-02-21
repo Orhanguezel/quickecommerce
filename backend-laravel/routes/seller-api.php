@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\V1\Seller\SellerManageController;
 use App\Http\Controllers\Api\V1\Seller\SellerProductManageController;
 use App\Http\Controllers\Api\V1\Seller\SellerProductQueryController;
 use App\Http\Controllers\Api\V1\Seller\SellerReviewController;
+use App\Http\Controllers\Api\V1\Seller\SellerProductCategoryController;
 use App\Http\Controllers\Api\V1\Seller\SellerStoreDashboardManageController;
 use App\Http\Controllers\Api\V1\Seller\SellerStoreManageController;
 use App\Http\Controllers\Api\V1\Seller\SellerStoreNoticeController;
@@ -154,6 +155,16 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => ['auth:sanctum', 'check.e
                     Route::post('remove', [ProductAuthorController::class, 'deleteAuthors']);
                 });
             });
+            // Seller Category Management
+            Route::group(['prefix' => 'category/', 'middleware' => ['permission:' . PermissionKey::SELLER_STORE_CATEGORY_MANAGE->value]], function () {
+                Route::get('list', [SellerProductCategoryController::class, 'index']);
+                Route::get('details/{id}', [SellerProductCategoryController::class, 'show']);
+                Route::post('add', [SellerProductCategoryController::class, 'store']);
+                Route::post('update', [SellerProductCategoryController::class, 'update']);
+                Route::post('change-status', [SellerProductCategoryController::class, 'statusChange']);
+                Route::delete('remove/{id}', [SellerProductCategoryController::class, 'destroy']);
+            });
+
             //Product Attribute Management
             Route::group(['prefix' => 'attribute/', 'middleware/' => ['permission:' . PermissionKey::SELLER_PRODUCT_ATTRIBUTE_ADD->value]], function () {
                 Route::get('list', [ProductAttributeController::class, 'listAttributes']);

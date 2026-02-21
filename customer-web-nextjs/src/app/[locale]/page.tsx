@@ -50,7 +50,7 @@ async function getHomeData(locale: string) {
     blogsRes,
   ] = await Promise.allSettled([
     fetchAPI<any>(API_ENDPOINTS.SLIDER_LIST, { platform: "web" }, locale),
-    fetchAPI<any>(API_ENDPOINTS.CATEGORIES, { per_page: 20, all: "false" }, locale),
+    fetchAPI<any>(API_ENDPOINTS.CATEGORIES, { per_page: 20, all: "false", language: locale }, locale),
     fetchAPI<any>(API_ENDPOINTS.FEATURED_PRODUCTS, { per_page: 10 }, locale),
     fetchAPI<any>(API_ENDPOINTS.NEW_ARRIVALS, { per_page: 10 }, locale),
     fetchAPI<any>(API_ENDPOINTS.BEST_SELLING, { per_page: 10 }, locale),

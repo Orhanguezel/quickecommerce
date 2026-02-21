@@ -1759,19 +1759,26 @@ class FrontendController extends Controller
             $search = $request->search;
             $sort = $request->sort ?? 'asc';
             $sortField = $request->sortField ?? 'id';
-            $type = $request->type; // Get the type filter
+            $type = $request->type;
             $all = $request->all ?? false;
+            $parentId = $request->parent_id;
+            $hasProducts = $request->boolean('has_products', false);
+
             $categories = ProductCategory::leftJoin('translations', function ($join) use ($language) {
                 $join->on('product_category.id', '=', 'translations.translatable_id')
                     ->where('translations.translatable_type', '=', ProductCategory::class)
                     ->where('translations.language', '=', $language)
                     ->where('translations.key', '=', 'category_name');
-            })->select('product_category.*', DB::raw('COALESCE(translations.value, product_category.category_name) as category_name'));
-            // Apply type filter if type is provided
+            })->select(
+                'product_category.*',
+                DB::raw('COALESCE(translations.value, product_category.category_name) as category_name'),
+                DB::raw('(SELECT COUNT(*) FROM products WHERE products.category_id = product_category.id) as products_count')
+            );
+
             if ($type) {
                 $categories->where('product_category.type', $type);
             }
-            // Apply search filter if search parameter exists
+
             if ($search) {
                 $categories->where(function ($query) use ($search) {
                     $query->where('translations.value', 'like', "%{$search}%")
@@ -1782,7 +1789,7 @@ class FrontendController extends Controller
             // Apply sorting and pagination
             if ($all) {
                 $categories = $categories
-                    ->where('status', 1)
+                    ->where('product_category.status', 1)
                     ->orderBy($sortField, $sort)
                     ->paginate($per_page);
                 return response()->json([
@@ -1792,8 +1799,20 @@ class FrontendController extends Controller
                 ], 200);
             }
 
-            $categories = $categories->whereNull('parent_id')
-                ->where('status', 1)
+            // Non-all mode: filter by parent_id or root categories
+            if ($parentId) {
+                $categories->where('product_category.parent_id', $parentId);
+            } else {
+                $categories->whereNull('product_category.parent_id');
+            }
+
+            // Optionally filter to only categories that have products directly
+            if ($hasProducts) {
+                $categories->having('products_count', '>', 0);
+            }
+
+            $categories = $categories
+                ->where('product_category.status', 1)
                 ->orderBy($sortField, $sort)
                 ->paginate($per_page);
 
@@ -1993,7 +2012,17 @@ class FrontendController extends Controller
     public
     function storeTypes()
     {
-        $storeTypes = StoreType::where('status', 1)->get();
+        $activeStoreTypes = Store::validForCustomerView()
+            ->where('status', 1)
+            ->whereNull('deleted_at')
+            ->whereNotNull('store_type')
+            ->distinct()
+            ->pluck('store_type');
+
+        $storeTypes = StoreType::where('status', 1)
+            ->whereIn('type', $activeStoreTypes)
+            ->get();
+
         return response()->json(StoreTypeDropdownPublicResource::collection($storeTypes));
     }
 
@@ -2255,8 +2284,20 @@ class FrontendController extends Controller
             $query->where('store_id', $request->store_id);
         }
 
+        // Apply category filter
+        if ($request->has('category_id') && !empty($request->category_id)) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        // Apply store type filter
+        if ($request->has('store_type') && !empty($request->store_type)) {
+            $query->whereHas('store', function ($q) use ($request) {
+                $q->where('store_type', $request->store_type);
+            });
+        }
+
         // Select specific fields
-        $query->select('id', 'name', 'store_id');
+        $query->select('id', 'name', 'store_id', 'category_id');
 
         // Paginate results dynamically
         $perPage = $request->per_page ?? 20;
