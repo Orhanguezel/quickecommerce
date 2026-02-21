@@ -17,6 +17,46 @@ use Modules\Chat\app\Transformers\ChatMessageDetailsResource;
 
 class AdminChatController extends Controller
 {
+    protected function repairOrphanStoreChats(): void
+    {
+        $validStoreIds = Store::query()->pluck('id');
+        if ($validStoreIds->isEmpty()) {
+            return;
+        }
+
+        $existingStoreChatStoreIds = Chat::query()
+            ->where('user_type', 'store')
+            ->whereIn('user_id', $validStoreIds)
+            ->pluck('user_id');
+
+        $orphanStoreChats = Chat::query()
+            ->where('user_type', 'store')
+            ->whereNotIn('user_id', $validStoreIds)
+            ->orderBy('id')
+            ->get(['id', 'user_id']);
+
+        if ($orphanStoreChats->isEmpty()) {
+            return;
+        }
+
+        $missingStoreIds = Store::query()
+            ->whereNotIn('id', $existingStoreChatStoreIds)
+            ->orderBy('id')
+            ->pluck('id')
+            ->values();
+
+        if ($missingStoreIds->count() !== $orphanStoreChats->count()) {
+            return;
+        }
+
+        foreach ($orphanStoreChats->values() as $index => $chat) {
+            $targetStoreId = $missingStoreIds->get($index);
+            if (empty($targetStoreId)) {
+                continue;
+            }
+            Chat::query()->where('id', $chat->id)->update(['user_id' => $targetStoreId]);
+        }
+    }
 
     public function adminChatList(Request $request)
     {
@@ -30,13 +70,17 @@ class AdminChatController extends Controller
             'user_type' => $auth_type,
         ]);
 
+        // Repair stale store chat rows caused by store reseeding/id changes.
+        $this->repairOrphanStoreChats();
+
         $name = $request->input('search');
         $type = $request->input('type');
 
         // Main query
         $query = Chat::query()
             ->with('user')
-            ->whereIn('user_type', ['store', 'deliveryman']);
+            ->whereIn('user_type', ['store', 'deliveryman'])
+            ->whereHasMorph('user', [Store::class, User::class]);
 
         // Apply search filter
         if ($name) {
@@ -56,7 +100,7 @@ class AdminChatController extends Controller
 
             // Store matches
             $storeChats = Chat::where('user_type', 'store')
-                ->whereHasMorph('user', ['store'], function ($q) use ($name) {
+                ->whereHasMorph('user', [Store::class], function ($q) use ($name) {
                     $q->where('name', 'like', "%{$name}%");
                 })->pluck('id');
             $matchingChatIds = $matchingChatIds->merge($storeChats);
