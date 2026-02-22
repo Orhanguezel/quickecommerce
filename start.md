@@ -20,6 +20,11 @@ npm run dev
 
 sportoonline.comEngin10001453.
 
+# Geliver Kargo Entegrasyonu
+GELIVER_API_TOKEN=6992e2db-47ab-4181-9f2e-d9c2a0ffba79
+GELIVER_TEST_MODE=false
+GELIVER_SENDER_ADDRESS_ID=8ff49546-56da-4a6f-b287-3424c6366bb1
+
 
 d
 
@@ -35,6 +40,10 @@ Kart No : 4766620000000001
 Son Kul.: 12/30
 CVV     : 123
 3D Şifre: a
+
+getiriver aa8700da-f32a-4b90-acd2-702a7cf1d045
+
+9b79d5d1-5b57-41ff-aec5-0b8477a00d12
 
 
 +1 sonsuz scroll kaydirkca yeni urunler gelecek. bu tamam

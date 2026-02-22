@@ -95,10 +95,11 @@ class GdeliveryService
         $shipmentData = [
             'senderAddressID' => (string) $senderAddressId,
             'recipientAddress' => [
-                'name'     => $recipientName,
-                'phone'    => $orderAddress->contact_number,
-                'address1' => $orderAddress->address,
-                'cityCode'  => $this->getCityCode($orderAddress->address),
+                'name'        => $recipientName,
+                'phone'       => $orderAddress->contact_number,
+                'address1'    => $orderAddress->address,
+                'cityName'    => $this->getCityName($orderAddress->address),
+                'countryCode' => 'TR',
             ],
             'length'       => '20.0',
             'width'        => '15.0',
@@ -110,10 +111,13 @@ class GdeliveryService
 
         // Test ya da production
         if ($this->testMode) {
-            $shipment = $this->getClient()->shipments()->createTest($shipmentData);
+            $response = $this->getClient()->shipments()->createTest($shipmentData);
         } else {
-            $shipment = $this->getClient()->shipments()->create($shipmentData);
+            $response = $this->getClient()->shipments()->create($shipmentData);
         }
+
+        // SDK envelope dönebilir: { result, data: {...} } veya doğrudan obje
+        $shipment = $response['data'] ?? $response;
 
         // En ucuz teklifi seç
         $offers = $shipment['offers'] ?? null;
@@ -125,7 +129,8 @@ class GdeliveryService
         $carrierName = $offers['cheapest']['carrier']['name'] ?? null;
 
         // Teklifi kabul et
-        $transaction = $this->getClient()->transactions()->acceptOffer($cheapestOfferId);
+        $txResponse  = $this->getClient()->transactions()->acceptOffer($cheapestOfferId);
+        $transaction = $txResponse['data'] ?? $txResponse;
 
         $barcode        = $transaction['shipment']['barcode'] ?? null;
         $trackingNumber = $transaction['shipment']['trackingNumber'] ?? null;
@@ -149,7 +154,7 @@ class GdeliveryService
         ]);
 
         // Sipariş durumunu güncelle
-        $order->update(['status' => 'on_the_way']);
+        $order->update(['status' => 'shipped']);
 
         return $cargoShipment;
     }
@@ -201,35 +206,42 @@ class GdeliveryService
      */
     public function listCities(): array
     {
-        return $this->getClient()->geo()->listCities();
+        return $this->getClient()->geo()->listCities('TR');
     }
 
     /**
-     * Adres metninden şehir kodu tahmin et (basit fallback).
-     * Gerçekte kullanıcıdan city_code alınmalı ya da geocoding kullanılmalı.
+     * Adres metninden şehir adı tahmin et.
+     * Geliver cityCode değil cityName kabul etmektedir.
      */
-    private function getCityCode(string $address): string
+    private function getCityName(string $address): string
     {
         $cityMap = [
-            'istanbul'  => '34',
-            'ankara'    => '06',
-            'izmir'     => '35',
-            'bursa'     => '16',
-            'antalya'   => '07',
-            'adana'     => '01',
-            'konya'     => '42',
-            'gaziantep' => '27',
-            'mersin'    => '33',
-            'kayseri'   => '38',
+            'istanbul'  => 'Istanbul',
+            'ankara'    => 'Ankara',
+            'izmir'     => 'Izmir',
+            'bursa'     => 'Bursa',
+            'antalya'   => 'Antalya',
+            'adana'     => 'Adana',
+            'konya'     => 'Konya',
+            'gaziantep' => 'Gaziantep',
+            'mersin'    => 'Mersin',
+            'kayseri'   => 'Kayseri',
+            'eskişehir' => 'Eskisehir',
+            'diyarbakır'=> 'Diyarbakir',
+            'samsun'    => 'Samsun',
+            'denizli'   => 'Denizli',
+            'şanlıurfa' => 'Sanliurfa',
+            'trabzon'   => 'Trabzon',
+            'malatya'   => 'Malatya',
         ];
 
         $lower = mb_strtolower($address, 'UTF-8');
-        foreach ($cityMap as $city => $code) {
-            if (str_contains($lower, $city)) {
-                return $code;
+        foreach ($cityMap as $keyword => $name) {
+            if (str_contains($lower, $keyword)) {
+                return $name;
             }
         }
 
-        return '34'; // Default Istanbul
+        return 'Istanbul'; // Default
     }
 }

@@ -583,7 +583,9 @@ class SystemManagementController extends Controller
             $validator = Validator::make($request->all(), [
                 'geliver_api_token'          => 'nullable|string',
                 'geliver_test_mode'          => 'nullable|string',
-                'geliver_sender_address_id'  => 'nullable|string',
+                'geliver_sender_address_id'  => ['nullable', 'string', 'regex:/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i'],
+            ], [
+                'geliver_sender_address_id.regex' => 'Gönderici Adres ID geçerli bir UUID formatında olmalıdır (örn: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx).',
             ]);
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 422);
@@ -594,7 +596,7 @@ class SystemManagementController extends Controller
 
             // .env dosyasını da güncelle
             $this->updateEnvValue('GELIVER_API_TOKEN', $request->geliver_api_token ?? '');
-            $this->updateEnvValue('GELIVER_TEST_MODE', $request->geliver_test_mode === 'on' ? 'false' : 'true');
+            $this->updateEnvValue('GELIVER_TEST_MODE', $request->geliver_test_mode === 'on' ? 'true' : 'false');
             $this->updateEnvValue('GELIVER_SENDER_ADDRESS_ID', $request->geliver_sender_address_id ?? '');
 
             return $this->success(translate('messages.update_success', ['name' => 'Cargo Settings']));
