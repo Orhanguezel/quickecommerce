@@ -13,7 +13,7 @@ export interface Product {
   wishlist: boolean;
   rating: string;
   review_count: number;
-  flash_sale: boolean;
+  flash_sale: FlashSaleInfo | null;
   is_featured?: boolean;
   max_cart_qty?: number;
   singleVariant?: ProductVariant[];

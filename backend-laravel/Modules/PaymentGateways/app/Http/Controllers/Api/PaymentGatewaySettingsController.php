@@ -20,7 +20,7 @@ class PaymentGatewaySettingsController extends Controller
     {
         if ($request->isMethod('POST')) {
             $validator = Validator::make($request->all(), [
-                'name' => 'required|string|exists:payment_gateways,slug',
+                'name' => 'nullable|string|exists:payment_gateways,slug',
                 'image' => 'nullable|string',
                 'description' => 'nullable|string',
                 'auth_credentials' => 'nullable|array',
@@ -37,7 +37,15 @@ class PaymentGatewaySettingsController extends Controller
 
             // Get validated data
             $validatedData = $validator->validated();
-            $gateway = PaymentGateway::where('slug', $validatedData['name'])->first();
+            $gatewaySlug = $validatedData['name'] ?? $gateway;
+            if (empty($gatewaySlug)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Gateway slug is required.'
+                ], 422);
+            }
+
+            $gateway = PaymentGateway::where('slug', $gatewaySlug)->first();
 
             if (!$gateway) {
                 return response()->json([

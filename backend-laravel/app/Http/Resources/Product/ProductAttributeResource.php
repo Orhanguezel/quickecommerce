@@ -23,6 +23,8 @@ class ProductAttributeResource extends JsonResource
             'value' => $this->id,
             'label' => $translation?->where('key', 'name')->first()?->value ?? $this->name,
             'product_type' => $this->product_type,
+            'category_id' => $this->category_id,
+            'category_name' => $this->category?->category_name,
             'attribute_values' => ProductAttributeValueResource::collection($this->attribute_values)
         ];
     }

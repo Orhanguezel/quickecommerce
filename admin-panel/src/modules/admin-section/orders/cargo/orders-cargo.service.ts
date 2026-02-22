@@ -5,7 +5,10 @@ export const useOrdersCargoService = (orderId: string | number) => {
 
   return {
     getCargo: base.findAll,
-    createCargo: base.postEmpty,
+    getOffers: () =>
+      base.getAxiosInstance().get(`v1/admin/orders/${orderId}/cargo/offers`),
+    createCargo: (payload?: { offer_id?: string }) =>
+      base.getAxiosInstance().post(`v1/admin/orders/${orderId}/cargo`, payload ?? {}),
     cancelCargo: () =>
       base.getAxiosInstance().delete(`v1/admin/orders/${orderId}/cargo`),
   };

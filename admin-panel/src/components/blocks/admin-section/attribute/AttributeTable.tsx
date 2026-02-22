@@ -24,6 +24,7 @@ interface RecordType {
   serial: string;
   label?: string;
   product_type?: string;
+  category_name?: string;
   attribute_values?: any;
   actions?: any;
   status?: number;
@@ -161,6 +162,14 @@ const AttributeTable = ({ searchValue }: any) => {
           width: 100,
           render: (product_type: any, row: RecordType) => (
             <div className="capitalize">{product_type}</div>
+          ),
+        },
+        {
+          title: t("table_header.category"),
+          dataIndex: "category_name",
+          width: 120,
+          render: (category_name: any) => (
+            <div className="capitalize">{category_name ?? "-"}</div>
           ),
         },
         {

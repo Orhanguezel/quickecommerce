@@ -36,6 +36,7 @@ interface ThemeHomePageProps {
 type ToggleKeys =
   | "slider"
   | "flash_sale"
+  | "flash_sale_products"
   | "category"
   | "product_featured"
   | "banner_section"
@@ -71,6 +72,7 @@ const SECTION_KEYS: ToggleKeys[] = [
   "slider",
   "category",
   "flash_sale",
+  "flash_sale_products",
   "product_featured",
   "banner_section",
   "product_top_selling",
@@ -85,7 +87,8 @@ const SECTION_KEYS: ToggleKeys[] = [
 const SECTION_LABELS: Record<ToggleKeys, string> = {
   slider: "Slider",
   category: "Kategoriler",
-  flash_sale: "Flash Sale",
+  flash_sale: "⚡ Flash Satış",
+  flash_sale_products: "⚡ Flash Satış Ürünleri",
   product_featured: "Öne Çıkan Ürünler",
   banner_section: "Banner",
   product_top_selling: "En Çok Satanlar",
@@ -122,6 +125,8 @@ const makeHomeSchema = () => {
   const baseDf: Record<string, z.ZodTypeAny> = {
     category_title_df: z.string().optional(),
     flash_sale_title_df: z.string().optional(),
+    flash_sale_subtitle_df: z.string().optional(),
+    flash_sale_products_title_df: z.string().optional(),
     product_featured_title_df: z.string().optional(),
     product_top_selling_title_df: z.string().optional(),
     product_latest_title_df: z.string().optional(),
@@ -141,6 +146,8 @@ const makeHomeSchema = () => {
   langs.forEach((id) => {
     dyn[`category_title_${id}`] = z.string().optional();
     dyn[`flash_sale_title_${id}`] = z.string().optional();
+    dyn[`flash_sale_subtitle_${id}`] = z.string().optional();
+    dyn[`flash_sale_products_title_${id}`] = z.string().optional();
     dyn[`product_featured_title_${id}`] = z.string().optional();
     dyn[`product_top_selling_title_${id}`] = z.string().optional();
     dyn[`product_latest_title_${id}`] = z.string().optional();
@@ -187,6 +194,7 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
     slider: "",
     category: "",
     flash_sale: "",
+    flash_sale_products: "",
     product_featured: "",
     banner_section: "",
     product_top_selling: "",
@@ -306,6 +314,8 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
 
     setValue("category_title_df", homeDefault?.category?.[0]?.title || "");
     setValue("flash_sale_title_df", homeDefault?.flash_sale?.[0]?.title || "");
+    setValue("flash_sale_subtitle_df", homeDefault?.flash_sale?.[0]?.subtitle || "");
+    setValue("flash_sale_products_title_df", homeDefault?.flash_sale_products?.[0]?.title || "");
     setValue(
       "product_featured_title_df",
       homeDefault?.product_featured?.[0]?.title || ""
@@ -349,6 +359,8 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
       category: homeDefault?.category?.[0]?.enabled_disabled === "on" ? "on" : "",
       flash_sale:
         homeDefault?.flash_sale?.[0]?.enabled_disabled === "on" ? "on" : "",
+      flash_sale_products:
+        homeDefault?.flash_sale_products?.[0]?.enabled_disabled === "on" ? "on" : "",
       product_featured:
         homeDefault?.product_featured?.[0]?.enabled_disabled === "on" ? "on" : "",
       banner_section:
@@ -399,6 +411,14 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
           setValue(
             `flash_sale_title_${langCode}`,
             tObj?.flash_sale?.[0]?.title || ""
+          );
+          setValue(
+            `flash_sale_subtitle_${langCode}`,
+            tObj?.flash_sale?.[0]?.subtitle || ""
+          );
+          setValue(
+            `flash_sale_products_title_${langCode}`,
+            tObj?.flash_sale_products?.[0]?.title || ""
           );
           setValue(
             `product_featured_title_${langCode}`,
@@ -667,6 +687,8 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
     const buildHomeObject = (src: {
       category_title: string;
       flash_sale_title: string;
+      flash_sale_subtitle: string;
+      flash_sale_products_title: string;
       product_featured_title: string;
       product_top_selling_title: string;
       product_latest_title: string;
@@ -704,7 +726,10 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
         { title: src.category_title, enabled_disabled: toggles.category },
       ],
       flash_sale: [
-        { title: src.flash_sale_title, enabled_disabled: toggles.flash_sale },
+        { title: src.flash_sale_title, subtitle: src.flash_sale_subtitle, enabled_disabled: toggles.flash_sale },
+      ],
+      flash_sale_products: [
+        { title: src.flash_sale_products_title, enabled_disabled: toggles.flash_sale_products },
       ],
       product_featured: [
         {
@@ -761,6 +786,8 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
     const dfSource: any = {
       category_title: values.category_title_df || "",
       flash_sale_title: values.flash_sale_title_df || "",
+      flash_sale_subtitle: values.flash_sale_subtitle_df || "",
+      flash_sale_products_title: values.flash_sale_products_title_df || "",
       product_featured_title: values.product_featured_title_df || "",
       product_top_selling_title: values.product_top_selling_title_df || "",
       product_latest_title: values.product_latest_title_df || "",
@@ -807,6 +834,10 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
             category_title: (values as any)[`category_title_${langCode}`] || "",
             flash_sale_title:
               (values as any)[`flash_sale_title_${langCode}`] || "",
+            flash_sale_subtitle:
+              (values as any)[`flash_sale_subtitle_${langCode}`] || "",
+            flash_sale_products_title:
+              (values as any)[`flash_sale_products_title_${langCode}`] || "",
             product_featured_title:
               (values as any)[`product_featured_title_${langCode}`] || "",
             product_top_selling_title:
@@ -1118,11 +1149,35 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
                       className="app-input"
                       {...register(field("flash_sale_title"))}
                     />
+                    <label className="block text-sm font-medium">
+                      {t("label.subtitle")} ({t(`lang.${id}` as any)})
+                    </label>
+                    <Input
+                      className="app-input"
+                      {...register(field("flash_sale_subtitle"))}
+                    />
 
                     <p className="text-base">{t("common.enable_disable")}</p>
                     <Switch
                       checked={toggles.flash_sale === "on"}
                       onCheckedChange={() => handleToggle("flash_sale")}
+                    />
+                  </div>
+                </Card>
+                <Card className="p-4">
+                  <h3 className="text-lg font-semibold mb-3">⚡ Flash Satış Ürünleri</h3>
+                  <div className="space-y-3 border rounded p-4">
+                    <label className="block text-sm font-medium">
+                      {t("label.title")} ({t(`lang.${id}` as any)})
+                    </label>
+                    <Input
+                      className="app-input"
+                      {...register(field("flash_sale_products_title"))}
+                    />
+                    <p className="text-base">{t("common.enable_disable")}</p>
+                    <Switch
+                      checked={toggles.flash_sale_products === "on"}
+                      onCheckedChange={() => handleToggle("flash_sale_products")}
                     />
                   </div>
                 </Card>

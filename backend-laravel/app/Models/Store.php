@@ -23,7 +23,7 @@ class Store extends Model
     protected $fillable = [
         'area_id',
         'store_seller_id',
-        'store_type',
+        'store_type', // primary type (backward-compat)
         'name',
         'slug',
         'phone',
@@ -123,6 +123,11 @@ class Store extends Model
         return $this->hasOne(StoreSubscription::class, 'store_id', 'id')
             ->where('status', 1)
             ->latest(); // Ensure the latest subscription is retrieved
+    }
+
+    public function storeTypes()
+    {
+        return $this->belongsToMany(StoreType::class, 'store_store_types', 'store_id', 'store_type_id');
     }
 
     public function products()

@@ -8,6 +8,7 @@ import type { BlogPost } from "@/modules/blog/blog.type";
 import { HeroSlider } from "@/components/home/hero-slider";
 import { CategorySection } from "@/components/home/category-section";
 import { ProductSection } from "@/components/home/product-section";
+import { ProductCard } from "@/components/product/product-card";
 import { SectionHeader } from "@/components/home/section-header";
 import { NewsletterSection } from "@/components/home/newsletter-section";
 import { TopStoresSection } from "@/components/home/top-stores-section";
@@ -17,7 +18,38 @@ import { useThemeConfig } from "@/modules/theme/use-theme-config";
 import { useBannerQuery } from "@/modules/banner/banner.action";
 import { Link } from "@/i18n/routing";
 import Image from "next/image";
-import { Fragment, type ReactNode } from "react";
+import { Fragment, useRef, type ReactNode } from "react";
+import { Zap, ChevronLeft, ChevronRight } from "lucide-react";
+
+function FlashSaleProductsCarousel({ products }: { products: Product[] }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const scroll = (dir: "left" | "right") =>
+    scrollRef.current?.scrollBy({ left: dir === "left" ? -260 : 260, behavior: "smooth" });
+  if (!products.length) return null;
+  return (
+    <div className="group/fsp relative">
+      <button
+        onClick={() => scroll("left")}
+        aria-label="Önceki ürünler"
+        className="absolute -left-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border bg-background shadow-md opacity-0 transition-opacity hover:bg-muted group-hover/fsp:opacity-100"
+      >
+        <ChevronLeft className="h-5 w-5" />
+      </button>
+      <div ref={scrollRef} className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-hide">
+        {products.map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </div>
+      <button
+        onClick={() => scroll("right")}
+        aria-label="Sonraki ürünler"
+        className="absolute -right-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border bg-background shadow-md opacity-0 transition-opacity hover:bg-muted group-hover/fsp:opacity-100"
+      >
+        <ChevronRight className="h-5 w-5" />
+      </button>
+    </div>
+  );
+}
 
 interface HomeData {
   sliders: Slider[];
@@ -63,6 +95,7 @@ type HomeSectionKey =
   | "slider"
   | "category"
   | "flash_sale"
+  | "flash_sale_products"
   | "product_featured"
   | "banner_section"
   | "product_latest"
@@ -208,64 +241,82 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
     </div>
   );
 
-  const FlashSaleGridItem = ({ deal }: { deal: FlashDeal }) => (
-    <div
-      className="relative overflow-hidden rounded-[8px] p-4 min-h-[240px]"
-      style={{ backgroundColor: deal.background_color || "#ffffff" }}
-    >
-      {deal.cover_image_url && (
-        <div className="absolute inset-0">
-          <Image
-            src={deal.cover_image_url}
-            alt={deal.title}
-            fill
-            className="object-cover"
-            unoptimized
-          />
-        </div>
-      )}
-      <div className="relative z-[1] flex h-full items-center gap-3">
-        {deal.image_url && (
-          <div className="relative h-[180px] w-[140px] shrink-0">
+  const getFlashDealDiscountLabel = (deal: FlashDeal): string => {
+    const amount = Number(deal.discount_amount ?? 0);
+    if (!amount) return "";
+    if (deal.discount_type === "percentage") return `%${Math.round(amount)} INDIRIM`;
+    return `${Number.isInteger(amount) ? amount : amount.toFixed(2)} TL INDIRIM`;
+  };
+
+  const FlashSaleGridItem = ({ deal }: { deal: FlashDeal }) => {
+    const discountLabel = getFlashDealDiscountLabel(deal);
+    return (
+      <div
+        className="relative overflow-hidden rounded-[8px] p-4 min-h-[240px]"
+        style={{ backgroundColor: deal.background_color || "#ffffff" }}
+      >
+        {discountLabel && (
+          <div className="pointer-events-none absolute right-3 top-3 z-20">
+            <div className="rounded-full bg-[radial-gradient(circle_at_30%_20%,#fff7b1_0%,#f59e0b_40%,#dc2626_100%)] px-3 py-1.5 text-center text-xs font-black tracking-[0.06em] text-white shadow-[0_10px_24px_rgba(220,38,38,0.45)] ring-2 ring-white/90 sm:px-4 sm:py-2 sm:text-sm">
+              {discountLabel}
+            </div>
+          </div>
+        )}
+        {deal.cover_image_url && (
+          <div className="absolute inset-0">
             <Image
-              src={deal.image_url}
+              src={deal.cover_image_url}
               alt={deal.title}
               fill
-              className="object-contain"
+              className="object-cover"
               unoptimized
             />
           </div>
         )}
-        <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <h3
-            className="line-clamp-2 text-base font-semibold tracking-wide"
-            style={{ color: deal.title_color || "#000000" }}
-          >
-            {deal.title}
-          </h3>
-          <CountdownTimer
-            endTime={deal.end_time}
-            bgColor={deal.timer_bg_color}
-            textColor={deal.timer_text_color}
-            labelColor={deal.title_color}
-          />
-          {deal.button_text && deal.button_url && (
-            <Link href={deal.button_url}>
-              <span
-                className="inline-block rounded-[5px] px-3 py-2 text-sm font-semibold tracking-wide shadow-[0_4px_8px_rgba(0,0,0,0.1)]"
-                style={{
-                  backgroundColor: deal.button_bg_color || "#1A73E8",
-                  color: deal.button_text_color || "#ffffff",
-                }}
-              >
-                {deal.button_text}
-              </span>
-            </Link>
+
+        <div className="relative z-[1] flex h-full items-center gap-3">
+          {deal.image_url && (
+            <div className="relative h-[180px] w-[140px] shrink-0">
+              <Image
+                src={deal.image_url}
+                alt={deal.title}
+                fill
+                className="object-contain"
+                unoptimized
+              />
+            </div>
           )}
+          <div className="flex min-w-0 flex-1 flex-col gap-2">
+            <h3
+              className="line-clamp-2 text-base font-semibold tracking-wide"
+              style={{ color: deal.title_color || "#000000" }}
+            >
+              {deal.title}
+            </h3>
+            <CountdownTimer
+              endTime={deal.end_time}
+              bgColor={deal.timer_bg_color}
+              textColor={deal.timer_text_color}
+              labelColor={deal.title_color}
+            />
+            {deal.button_text && deal.button_url && (
+              <Link href={deal.button_url}>
+                <span
+                  className="inline-block rounded-[5px] px-3 py-2 text-sm font-semibold tracking-wide shadow-[0_4px_8px_rgba(0,0,0,0.1)]"
+                  style={{
+                    backgroundColor: deal.button_bg_color || "#1A73E8",
+                    color: deal.button_text_color || "#ffffff",
+                  }}
+                >
+                  {deal.button_text}
+                </span>
+              </Link>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const BlogGridItem = ({ post }: { post: BlogPost }) => (
     <Link
@@ -308,6 +359,17 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
         ) : null;
       case "flash_sale":
         return null;
+      case "flash_sale_products":
+        if (!homeConfig.isFlashSaleProductsEnabled || !data.topDeals.length) return null;
+        return (
+          <section>
+            <SectionHeader
+              title={homeConfig.flashSaleProductsTitle || t.top_deals_title}
+              subtitle={homeConfig.flashSaleProductsSubtitle}
+            />
+            <FlashSaleProductsCarousel products={data.topDeals} />
+          </section>
+        );
       case "product_featured":
         return homeConfig.isFeaturedEnabled ? (
           <ProductSection
@@ -396,12 +458,24 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
         );
       if (!deals.length) return null;
 
+      const sectionTitle = homeConfig.flashSaleTitle || t.top_deals_title;
+      const sectionSubtitle = homeConfig.flashSaleSubtitle || t.top_deals_subtitle;
+
       return (
         <section key={key} className="space-y-4">
-          <SectionHeader
-            title={homeConfig.flashSaleTitle || t.top_deals_title}
-            subtitle={homeConfig.flashSaleSubtitle || t.top_deals_subtitle}
-          />
+          <div className="mb-6 flex items-end justify-between">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-red-600 to-orange-500 shadow-sm">
+                <Zap className="h-5 w-5 fill-white text-white" />
+              </span>
+              <div>
+                <h2 className="text-xl font-semibold tracking-tight">{sectionTitle}</h2>
+                {sectionSubtitle && (
+                  <p className="mt-1 text-sm text-muted-foreground">{sectionSubtitle}</p>
+                )}
+              </div>
+            </div>
+          </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
             {deals.map((item) => (
               <div key={`flash_${item.key}_${item.deal.id}`} className={spanClassMap[item.span]}>

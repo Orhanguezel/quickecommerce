@@ -36,6 +36,7 @@ class ProductionSeeder extends Seeder
 
         // Product Attributes (SAFE - firstOrCreate)
         $this->call(SafeProductAttributeSeeder::class);
+        $this->call(CategoryProductAttributeSeeder::class); // Category-specific attributes (SAFE)
 
         // Permissions & Roles (SAFE - updateOrCreate + super admin full access)
         $this->call(RolesSeeder::class);

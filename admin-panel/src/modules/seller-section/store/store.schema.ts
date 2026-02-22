@@ -60,7 +60,7 @@ const baseSchema = {
     }),
   area_id: z.string().optional(),
   module: z.string().optional(),
-  store_type: z.string().min(1, {
+  store_types: z.array(z.string()).min(1, {
     message: "Store type is required",
   }),
   time_type: z.string().optional(),

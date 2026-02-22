@@ -3,11 +3,13 @@ import { Button, Card, CardContent } from "@/components/ui";
 import {
   useCreateCargoMutation,
   useCancelCargoMutation,
+  useOrderCargoOffersQuery,
   useOrderCargoQuery,
 } from "@/modules/admin-section/orders/cargo/orders-cargo.action";
 import { ExternalLink, Package, Settings, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 
 interface GdeliverCargoCardProps {
   orderId: string | number;
@@ -44,7 +46,8 @@ const GdeliverCargoCard = ({
     useCancelCargoMutation(orderId);
 
   const handleCreate = () => {
-    createCargo(undefined as any, {
+    const payload = selectedOfferId ? { offer_id: selectedOfferId } : undefined;
+    createCargo(payload as any, {
       onSuccess: () => {
         refetchCargo();
         refetch();
@@ -77,6 +80,28 @@ const GdeliverCargoCard = ({
     cargoData &&
     cargoData.status !== "cancelled" &&
     cargoData.status !== "delivered";
+
+  const {
+    offersData,
+    isPending: isOffersLoading,
+    refetch: refetchOffers,
+  } = useOrderCargoOffersQuery(orderId, false);
+
+  const offers = useMemo(() => {
+    const list = offersData?.offers;
+    return Array.isArray(list) ? list : [];
+  }, [offersData]);
+
+  const [selectedOfferId, setSelectedOfferId] = useState<string>("");
+
+  useEffect(() => {
+    if (!offers.length) {
+      setSelectedOfferId("");
+      return;
+    }
+    const defaultId = String(offersData?.default_offer_id ?? offers[0]?.id ?? "");
+    setSelectedOfferId(defaultId);
+  }, [offers, offersData?.default_offer_id]);
 
   return (
     <Card>
@@ -164,6 +189,43 @@ const GdeliverCargoCard = ({
                   <Settings width={12} height={12} />
                   Kurye Ayarları → API token ve gönderici adres ID gerekli
                 </Link>
+
+                <div className="mt-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs text-gray-500">Kargo firması seçimi</p>
+                    <button
+                      type="button"
+                      onClick={() => refetchOffers()}
+                      className="text-xs text-blue-500 hover:underline"
+                      disabled={!canCreate || isOffersLoading || isCreating}
+                    >
+                      {offers.length ? "Teklifleri yenile" : "Teklifleri getir"}
+                    </button>
+                  </div>
+                  <select
+                    className="w-full border rounded px-2 py-2 text-sm bg-white"
+                    value={selectedOfferId}
+                    onChange={(e) => setSelectedOfferId(e.target.value)}
+                    disabled={isOffersLoading || !offers.length || isCreating}
+                  >
+                    {!offers.length && (
+                      <option value="">
+                        {isOffersLoading
+                          ? "Teklifler yükleniyor..."
+                          : "Teklif bulunamadı (en ucuz otomatik seçilir)"}
+                      </option>
+                    )}
+                    {offers.map((offer: any) => (
+                      <option key={String(offer.id)} value={String(offer.id)}>
+                        {offer.carrier_name ?? "Bilinmeyen Kurye"}
+                        {offer.price_text ? ` - ${offer.price_text}` : ""}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[11px] text-gray-400 mt-1">
+                    Seçim yapılmazsa sistem varsayılan olarak en uygun teklifi kullanır.
+                  </p>
+                </div>
               </>
             ) : (
               <p className="text-xs text-gray-400">

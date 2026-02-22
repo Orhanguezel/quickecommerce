@@ -3,6 +3,7 @@ import CloudIcon from '@/assets/icons/CloudIcon';
 import Loader from '@/components/molecules/Loader';
 import multiLang from '@/components/molecules/multiLang.json';
 import { AppSelect } from '@/components/blocks/common';
+import { AppStoreTypeMultiSelect } from '@/components/blocks/common/AppStoreTypeMultiSelect';
 import {
   Button,
   Card,
@@ -110,7 +111,9 @@ export default function UpdateStoreForm({ data }: any) {
       setValue('opening_time', formatTime(editData?.opening_time ?? ''));
       setValue('closing_time', formatTime(editData?.closing_time ?? ''));
       setValue('address_df', editData?.address ?? '');
-      setValue('store_type', editData?.store_type ?? '');
+      setValue('store_types', Array.isArray(editData?.store_types) && editData.store_types.length > 0
+        ? editData.store_types.filter(Boolean).map(String)
+        : editData?.store_type ? [String(editData.store_type)] : []);
       setActiveTab(editData?.subscription_type ?? '');
       setSelectedCard(editData?.subscription_id ?? '');
 
@@ -486,18 +489,19 @@ export default function UpdateStoreForm({ data }: any) {
                                   </p>
                                   <Controller
                                     control={control}
-                                    name="store_type"
-                                    defaultValue={editData?.store_type || ''}
-                                    render={({ field }) => (
+                                    name="store_types"
+                                    render={({ field, fieldState: { error } }) => (
                                       <>
-                                        <AppSelect
-                                          value={field.value || ''}
-                                          onSelect={(value) => {
-                                            field.onChange(value);
-                                            handleSelectItem(value, 'store_type');
-                                          }}
-                                          groups={StoreTypeList}
+                                        <AppStoreTypeMultiSelect
+                                          options={StoreTypeList}
+                                          value={Array.isArray(field.value) ? field.value : []}
+                                          onChange={(vals) => field.onChange(vals)}
                                         />
+                                        {error && (
+                                          <p className="text-sm text-red-500 mt-1">
+                                            {error.message}
+                                          </p>
+                                        )}
                                       </>
                                     )}
                                   />

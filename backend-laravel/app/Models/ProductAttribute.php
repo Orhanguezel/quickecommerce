@@ -18,6 +18,11 @@ class ProductAttribute extends Model
         'name'
     ];
 
+    public function category()
+    {
+        return $this->belongsTo(ProductCategory::class, 'category_id');
+    }
+
     public function attribute_values()
     {
         return $this->hasMany(ProductAttributeValue::class, 'attribute_id');

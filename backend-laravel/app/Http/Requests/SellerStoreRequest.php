@@ -30,7 +30,8 @@ class SellerStoreRequest extends FormRequest
             'payment_gateway' => 'nullable',
             'area_id' => 'nullable|exists:store_areas,id',
             'id' => 'nullable|exists:stores,id',
-            'store_type' => 'required|in:' . $this->getEnumValues(StoreType::class),
+            'store_types'   => 'required|array|min:1',
+            'store_types.*' => 'in:' . $this->getEnumValues(StoreType::class),
             'name' => 'required|string|max:255',
             'slug' => ($this->id ? 'nullable' : 'required') . '|string|unique:stores,slug,' . $this->id,
             'phone' => 'nullable|string|max:15',
@@ -62,8 +63,9 @@ class SellerStoreRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'store_type.required' => 'Store type is required.',
-            'store_type.in' => 'The store type must be one of the following: ' . $this->getEnumValues(StoreType::class),
+            'store_types.required' => 'At least one store type is required.',
+            'store_types.min'      => 'At least one store type is required.',
+            'store_types.*.in'     => 'Each store type must be one of the following: ' . $this->getEnumValues(StoreType::class),
             'name.required' => 'The name field is required.',
             'name.max' => 'The name may not be greater than 255 characters.',
             'slug.required' => 'The slug field is required.',

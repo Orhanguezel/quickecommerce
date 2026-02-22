@@ -202,7 +202,8 @@ const GetwaySettingsForm = ({
 
     const submissionData = {
       id: getwaySettingsData?.id ? getwaySettingsData.id : 0,
-      name: getwaySettingsData?.name || formatLabel(getwayname || "", "_"),
+      // Backend validates this field against payment_gateways.slug.
+      name: getwaySettingsData?.slug || getwayname || "",
       description: values.description,
       auth_credentials: authCredentialKeys.length ? filteredCredentialObject : null,
       status: toggles.status,

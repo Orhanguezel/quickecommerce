@@ -20,4 +20,5 @@ export interface Attribute {
 
 export interface AttributeTypeWiseQueryOptions {
   type?: string;
+  category_id?: string | number;
 }

@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\OrderAddress;
 use App\Models\Store;
 use Geliver\Client;
+use Illuminate\Support\Facades\Cache;
 
 class GdeliveryService
 {
@@ -33,15 +34,54 @@ class GdeliveryService
     }
 
     /**
-     * Kargo oluştur: sipariş için Geliver'da shipment yarat, en ucuz teklifi al, kabul et.
+     * Sipariş için teklifler oluştur ve normalize ederek döndür.
      *
-     * @param Order  $order
-     * @param string $createdByType  'admin' | 'seller'
-     * @param int    $createdById
+     * @throws \Exception
+     */
+    public function getShipmentOffers(Order $order): array
+    {
+        $shipment = $this->createGeliverShipment($this->buildShipmentData($order));
+        $offers = $this->normalizeOffers($shipment['offers'] ?? null);
+
+        if (empty($offers)) {
+            throw new \Exception('Geliver\'dan teklif alınamadı. Lütfen tekrar deneyin.');
+        }
+
+        foreach ($offers as $offer) {
+            if (!empty($offer['id'])) {
+                Cache::put(
+                    $this->offerCacheKey($order->id, (string) $offer['id']),
+                    [
+                        'carrier_name' => $offer['carrier_name'] ?? null,
+                    ],
+                    now()->addMinutes(15)
+                );
+            }
+        }
+
+        return [
+            'shipment_id' => $shipment['id'] ?? null,
+            'offers' => $offers,
+            'default_offer_id' => $this->resolveDefaultOfferId($shipment, $offers),
+        ];
+    }
+
+    /**
+     * Kargo oluştur: sipariş için Geliver'da shipment yarat, teklif kabul et ve kaydet.
+     *
+     * @param Order $order
+     * @param string|null $offerId Seçilen teklif ID (yoksa en ucuz)
+     * @param string $createdByType 'admin' | 'seller'
+     * @param int $createdById
      * @return CargoShipment
      * @throws \Exception
      */
-    public function createShipment(Order $order, string $createdByType = 'admin', int $createdById = 0): CargoShipment
+    public function createShipment(
+        Order $order,
+        ?string $offerId = null,
+        string $createdByType = 'admin',
+        int $createdById = 0
+    ): CargoShipment
     {
         // Mevcut kargo varsa döndür
         $existing = CargoShipment::where('order_id', $order->id)
@@ -52,6 +92,78 @@ class GdeliveryService
             return $existing;
         }
 
+        $shipment = null;
+        $selectedOfferId = null;
+        $carrierName = null;
+
+        if (!empty($offerId)) {
+            $selectedOfferId = (string) $offerId;
+            $offerMeta = Cache::get($this->offerCacheKey($order->id, $selectedOfferId), []);
+            $carrierName = $offerMeta['carrier_name'] ?? null;
+            $txResponse = $this->getClient()->transactions()->acceptOffer($selectedOfferId);
+            $transaction = $txResponse['data'] ?? $txResponse;
+        } else {
+            $shipment = $this->createGeliverShipment($this->buildShipmentData($order));
+
+            $offers = $this->normalizeOffers($shipment['offers'] ?? null);
+            if (empty($offers)) {
+                throw new \Exception('Geliver\'dan teklif alınamadı. Lütfen tekrar deneyin.');
+            }
+
+            $selectedOfferId = $this->resolveDefaultOfferId($shipment, $offers);
+            if (! $selectedOfferId) {
+                throw new \Exception('Uygun kargo teklifi bulunamadı.');
+            }
+
+            $selectedOffer = collect($offers)->firstWhere('id', $selectedOfferId);
+            $carrierName = $selectedOffer['carrier_name'] ?? null;
+
+            // Teklifi kabul et
+            $txResponse  = $this->getClient()->transactions()->acceptOffer($selectedOfferId);
+            $transaction = $txResponse['data'] ?? $txResponse;
+        }
+
+        $transactionShipment = $transaction['shipment'] ?? [];
+        $barcode        = $transactionShipment['barcode'] ?? null;
+        $trackingNumber = $transactionShipment['trackingNumber'] ?? null;
+        $labelUrl       = $transactionShipment['labelURL'] ?? null;
+        $transactionId  = $transaction['id'] ?? null;
+        $geliverShipmentId = $transactionShipment['id'] ?? ($shipment['id'] ?? null);
+        $carrierName = $carrierName
+            ?? ($transactionShipment['carrier']['name'] ?? null)
+            ?? ($transaction['carrier']['name'] ?? null);
+
+        // Kaydet
+        $cargoShipment = CargoShipment::create([
+            'order_id'               => $order->id,
+            'store_id'               => $order->store_id,
+            'geliver_shipment_id'    => $geliverShipmentId,
+            'geliver_transaction_id' => $transactionId,
+            'carrier_name'           => $carrierName,
+            'barcode'                => $barcode,
+            'tracking_number'        => $trackingNumber,
+            'label_url'              => $labelUrl,
+            'status'                 => 'shipped',
+            'created_by_type'        => $createdByType,
+            'created_by_id'          => $createdById,
+            'raw_response'           => [
+                'shipment' => $shipment,
+                'transaction' => $transaction,
+                'selected_offer_id' => $selectedOfferId,
+            ],
+        ]);
+
+        // Sipariş durumunu güncelle
+        $order->update(['status' => 'shipped']);
+
+        return $cargoShipment;
+    }
+
+    /**
+     * Siparişe göre Geliver shipment payload üretir.
+     */
+    private function buildShipmentData(Order $order): array
+    {
         // Sipariş adresi: önce 'delivery', yoksa herhangi bir adres
         $orderAddress = OrderAddress::where('order_master_id', $order->order_master_id)
             ->where('type', 'delivery')
@@ -91,8 +203,7 @@ class GdeliveryService
             throw new \Exception('Alıcı telefon numarası bulunamadı. Lütfen sipariş adresini kontrol edin.');
         }
 
-        // Kargo bilgileri (ürün ağırlığı/boyutu için default değerler)
-        $shipmentData = [
+        return [
             'senderAddressID' => (string) $senderAddressId,
             'recipientAddress' => [
                 'name'        => $recipientName,
@@ -108,8 +219,13 @@ class GdeliveryService
             'massUnit'     => 'kg',
             'distanceUnit' => 'cm',
         ];
+    }
 
-        // Test ya da production
+    /**
+     * Geliver shipment yaratır.
+     */
+    private function createGeliverShipment(array $shipmentData): array
+    {
         if ($this->testMode) {
             $response = $this->getClient()->shipments()->createTest($shipmentData);
         } else {
@@ -117,46 +233,83 @@ class GdeliveryService
         }
 
         // SDK envelope dönebilir: { result, data: {...} } veya doğrudan obje
-        $shipment = $response['data'] ?? $response;
+        return $response['data'] ?? $response;
+    }
 
-        // En ucuz teklifi seç
-        $offers = $shipment['offers'] ?? null;
-        if (empty($offers) || empty($offers['cheapest'])) {
-            throw new \Exception('Geliver\'dan teklif alınamadı. Lütfen tekrar deneyin.');
+    /**
+     * Geliver offers yapısını tek bir listeye normalize et.
+     */
+    private function normalizeOffers(mixed $offers): array
+    {
+        if (!is_array($offers)) {
+            return [];
         }
 
-        $cheapestOfferId = $offers['cheapest']['id'];
-        $carrierName = $offers['cheapest']['carrier']['name'] ?? null;
+        $result = [];
+        $pushOffer = function (mixed $offer) use (&$result): void {
+            if (!is_array($offer) || empty($offer['id'])) {
+                return;
+            }
+            $priceRaw = $offer['price'] ?? $offer['totalPrice'] ?? null;
+            $currency = $offer['currency'] ?? 'TRY';
+            $result[] = [
+                'id' => (string) $offer['id'],
+                'carrier_name' => $offer['carrier']['name'] ?? null,
+                'price' => is_numeric($priceRaw) ? (float) $priceRaw : null,
+                'currency' => (string) $currency,
+                'price_text' => is_numeric($priceRaw) ? number_format((float) $priceRaw, 2, ',', '.') . ' ' . $currency : null,
+            ];
+        };
 
-        // Teklifi kabul et
-        $txResponse  = $this->getClient()->transactions()->acceptOffer($cheapestOfferId);
-        $transaction = $txResponse['data'] ?? $txResponse;
+        if (isset($offers['cheapest']) && is_array($offers['cheapest'])) {
+            $pushOffer($offers['cheapest']);
+        }
 
-        $barcode        = $transaction['shipment']['barcode'] ?? null;
-        $trackingNumber = $transaction['shipment']['trackingNumber'] ?? null;
-        $labelUrl       = $transaction['shipment']['labelURL'] ?? null;
-        $transactionId  = $transaction['id'] ?? null;
+        foreach (['all', 'list', 'offers', 'items'] as $key) {
+            if (!empty($offers[$key]) && is_array($offers[$key])) {
+                foreach ($offers[$key] as $offer) {
+                    $pushOffer($offer);
+                }
+            }
+        }
 
-        // Kaydet
-        $cargoShipment = CargoShipment::create([
-            'order_id'               => $order->id,
-            'store_id'               => $order->store_id,
-            'geliver_shipment_id'    => $shipment['id'] ?? null,
-            'geliver_transaction_id' => $transactionId,
-            'carrier_name'           => $carrierName,
-            'barcode'                => $barcode,
-            'tracking_number'        => $trackingNumber,
-            'label_url'              => $labelUrl,
-            'status'                 => 'shipped',
-            'created_by_type'        => $createdByType,
-            'created_by_id'          => $createdById,
-            'raw_response'           => ['shipment' => $shipment, 'transaction' => $transaction],
-        ]);
+        // Bazı cevaplarda offers direkt dizi olabilir.
+        if (array_is_list($offers)) {
+            foreach ($offers as $offer) {
+                $pushOffer($offer);
+            }
+        }
 
-        // Sipariş durumunu güncelle
-        $order->update(['status' => 'shipped']);
+        // ID bazlı unique
+        $unique = [];
+        foreach ($result as $offer) {
+            $unique[$offer['id']] = $offer;
+        }
 
-        return $cargoShipment;
+        return array_values($unique);
+    }
+
+    /**
+     * Varsayılan teklif ID'sini çözer (önce cheapest, yoksa en düşük fiyat).
+     */
+    private function resolveDefaultOfferId(array $shipment, array $offers): ?string
+    {
+        $cheapestId = $shipment['offers']['cheapest']['id'] ?? null;
+        if (!empty($cheapestId)) {
+            return (string) $cheapestId;
+        }
+
+        $sorted = collect($offers)
+            ->filter(fn ($item) => isset($item['price']) && is_numeric($item['price']))
+            ->sortBy('price')
+            ->values();
+
+        return !empty($sorted[0]['id']) ? (string) $sorted[0]['id'] : ($offers[0]['id'] ?? null);
+    }
+
+    private function offerCacheKey(int $orderId, string $offerId): string
+    {
+        return "geliver_offer_meta:order:{$orderId}:offer:{$offerId}";
     }
 
     /**

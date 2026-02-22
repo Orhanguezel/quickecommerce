@@ -34,7 +34,7 @@ export const useCreateCargoMutation = (orderId: string | number) => {
   const { createCargo } = useOrdersCargoService(orderId);
 
   return useMutation({
-    mutationFn: () => createCargo(),
+    mutationFn: (payload?: { offer_id?: string }) => createCargo(payload),
     mutationKey: ["orders-cargo-create", orderId],
     onSuccess: (data: any) => {
       toast.success(data?.data?.message || "Kargo başarıyla oluşturuldu.");
@@ -45,6 +45,28 @@ export const useCreateCargoMutation = (orderId: string | number) => {
       );
     },
   });
+};
+
+export const useOrderCargoOffersQuery = (
+  orderId: string | number,
+  enabled: boolean = true
+) => {
+  const { getOffers } = useOrdersCargoService(orderId);
+
+  const { data, isPending, error, refetch } = useQuery({
+    queryKey: ["orders-cargo-offers", orderId],
+    queryFn: () => getOffers(),
+    enabled: Boolean(orderId) && enabled,
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  return {
+    offersData: (data?.data as any)?.data ?? null,
+    isPending,
+    error,
+    refetch,
+  };
 };
 
 export const useCancelCargoMutation = (orderId: string | number) => {

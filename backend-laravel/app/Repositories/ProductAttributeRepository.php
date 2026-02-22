@@ -38,7 +38,8 @@ class ProductAttributeRepository extends BaseRepository
         // Prepare data for Attribute
         $data = [
             'name' => $request['name'],
-            'product_type' => $request['product_type'],
+            'product_type' => $request['product_type'] ?? null,
+            'category_id' => $request['category_id'] ?? null,
             'created_by' => auth('api')->id(),
         ];
 
@@ -92,7 +93,11 @@ class ProductAttributeRepository extends BaseRepository
     public function storeAttributeValues(array $data, int $attributeId)
     {
         try {
-            $values = $data['value']; // Assuming 'value' is an array of values
+            $values = $data['value'] ?? [];
+
+            if (empty($values)) {
+                return true;
+            }
 
             $insertData = collect($values)->map(function ($value) use ($attributeId) {
                 return [

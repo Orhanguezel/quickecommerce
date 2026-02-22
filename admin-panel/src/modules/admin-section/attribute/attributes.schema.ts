@@ -11,6 +11,7 @@ const baseSchema = {
     .array(z.string())
     .optional(),
     product_type: z.string().optional(),
+    category_id: z.string().optional(),
 };
 
 const dynamicFields = multiLang

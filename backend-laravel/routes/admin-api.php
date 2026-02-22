@@ -115,6 +115,7 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => ['auth:sanctum']], functi
 
             // Cargo (Geliver) - sipariş bazlı
             Route::prefix('orders/{orderId}/cargo')->group(function () {
+                Route::get('offers', [AdminCargoController::class, 'offers']);
                 Route::post('/', [AdminCargoController::class, 'createShipment']);
                 Route::get('/', [AdminCargoController::class, 'show']);
                 Route::delete('/', [AdminCargoController::class, 'cancel']);

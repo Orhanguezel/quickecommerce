@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Store;
+use App\Models\StoreType;
 use App\Models\User;
 use App\Http\Resources\Seller\SellerStoreDetailsResource;
 use App\Interfaces\StoreManageInterface;
@@ -42,6 +43,22 @@ class StoreManageRepository implements StoreManageInterface
     public function model(): string
     {
         return Store::class;
+    }
+
+    /**
+     * Sync store_types pivot and set primary store_type.
+     * Extracts store_types from $data, syncs pivot, updates store_type column.
+     */
+    private function syncStoreTypes(Store $store, array $data): void
+    {
+        if (empty($data['store_types'])) {
+            return;
+        }
+        $types = (array) $data['store_types'];
+        $typeIds = StoreType::whereIn('type', $types)->pluck('id');
+        $store->storeTypes()->sync($typeIds);
+        // Keep primary store_type for backward-compat (OrderService, ProductAttributes, etc.)
+        $store->updateQuietly(['store_type' => $types[0]]);
     }
 
     public function getAllStores(
@@ -116,9 +133,14 @@ class StoreManageRepository implements StoreManageInterface
     public function storeForAuthSeller(array $data)
     {
         try {
-            $data = Arr::except($data, ['translations']);
+            $storeTypes = $data['store_types'] ?? [];
+            $data = Arr::except($data, ['translations', 'store_types']);
+            if (!empty($storeTypes)) {
+                $data['store_type'] = $storeTypes[0];
+            }
             $data['store_seller_id'] = auth('api')->id();
             $store = Store::create($data);
+            $this->syncStoreTypes($store, ['store_types' => $storeTypes]);
 
             // modified media for this store
             $user_id = $store->id;
@@ -223,8 +245,13 @@ class StoreManageRepository implements StoreManageInterface
     {
         $data['created_by'] = auth('api')->id();
         try {
-            $data = Arr::except($data, ['translations']);
+            $storeTypes = $data['store_types'] ?? [];
+            $data = Arr::except($data, ['translations', 'store_types']);
+            if (!empty($storeTypes)) {
+                $data['store_type'] = $storeTypes[0];
+            }
             $store = Store::create($data);
+            $this->syncStoreTypes($store, ['store_types' => $storeTypes]);
 
             $seller = User::find($store->store_seller_id);
 
@@ -298,7 +325,7 @@ class StoreManageRepository implements StoreManageInterface
     public function getStoreById(int|string $id)
     {
         try {
-            $store = Store::with(['related_translations', 'seller', 'area', 'activeSubscription'])->find($id);
+            $store = Store::with(['related_translations', 'seller', 'area', 'activeSubscription', 'storeTypes'])->find($id);
             if ($store) {
                 return response()->json(new SellerStoreDetailsResource($store));
             } else {
@@ -317,8 +344,13 @@ class StoreManageRepository implements StoreManageInterface
         try {
             $store = Store::findOrFail($data['id']);
             if ($store) {
-                $data = Arr::except($data, ['translations']);
+                $storeTypes = $data['store_types'] ?? [];
+                $data = Arr::except($data, ['translations', 'store_types']);
+                if (!empty($storeTypes)) {
+                    $data['store_type'] = $storeTypes[0];
+                }
                 $store->update($data);
+                $this->syncStoreTypes($store, ['store_types' => $storeTypes]);
 
                 // If logo media exists, update its relation
                 if (!empty($store->logo)) {
@@ -370,8 +402,13 @@ class StoreManageRepository implements StoreManageInterface
         try {
             $store = Store::findOrFail($data['id']);
             if ($store) {
-                $data = Arr::except($data, ['translations']);
+                $storeTypes = $data['store_types'] ?? [];
+                $data = Arr::except($data, ['translations', 'store_types']);
+                if (!empty($storeTypes)) {
+                    $data['store_type'] = $storeTypes[0];
+                }
                 $store->update($data);
+                $this->syncStoreTypes($store, ['store_types' => $storeTypes]);
 
                 // modified media for this store
                 $user_id = $store->id;
@@ -1161,7 +1198,7 @@ class StoreManageRepository implements StoreManageInterface
             $query->where('name', 'like', '%' . $search . '%');
         }
 
-        return $query->orderBy('name')->get();
+        return $query->with('storeTypes')->orderBy('name')->get();
     }
 
     public function approveStores(array $ids)

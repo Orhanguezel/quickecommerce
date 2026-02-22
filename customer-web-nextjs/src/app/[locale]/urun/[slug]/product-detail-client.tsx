@@ -16,6 +16,7 @@ import {
   Minus,
   Plus,
   ShoppingCart,
+  Zap,
 } from "lucide-react";
 import type {
   ProductDetail,
@@ -26,7 +27,7 @@ import { ProductCard } from "@/components/product/product-card";
 import { useThemeConfig } from "@/modules/theme/use-theme-config";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCartStore, type CartItem } from "@/stores/cart-store";
-import { useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import {
   useWishlistRemoveMutation,
   useWishlistToggleMutation,
@@ -102,7 +103,7 @@ export function ProductDetailClient({
   const [isWishlisted, setIsWishlisted] = useState(Boolean(product.wishlist));
   const { productDetailsConfig } = useThemeConfig();
   const router = useRouter();
-  const locale = useLocale();
+
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const addItem = useCartStore((s) => s.addItem);
   const wishlistToggle = useWishlistToggleMutation();
@@ -136,8 +137,17 @@ export function ProductDetailClient({
       ? Number(product.special_price)
       : null;
 
-  const hasDiscount = specialPrice != null && price != null && specialPrice < price;
-  const displayPrice = hasDiscount ? specialPrice : price;
+  const hasSpecialPriceDiscount = specialPrice != null && price != null && specialPrice < price;
+  let displayPrice: number | null = hasSpecialPriceDiscount ? specialPrice : price;
+  if (displayPrice != null && product.flash_sale && product.flash_sale.discount_amount > 0) {
+    const fs = product.flash_sale;
+    const fsDiscount =
+      fs.discount_type === "percentage"
+        ? Math.round((displayPrice * fs.discount_amount) / 100)
+        : fs.discount_amount;
+    displayPrice = Math.max(0, displayPrice - fsDiscount);
+  }
+  const hasDiscount = displayPrice != null && price != null && displayPrice < price;
 
   const stock = selectedVariant
     ? selectedVariant.stock_quantity
@@ -305,9 +315,18 @@ export function ProductDetailClient({
               />
             </button>
 
-            {hasDiscount && product.discount_percentage > 0 && (
-              <span className="absolute left-3 top-3 rounded-md bg-destructive px-2.5 py-1 text-sm font-semibold text-destructive-foreground">
-                -%{Math.round(product.discount_percentage)}
+            {hasDiscount && (
+              <span className="absolute left-3 top-3 flex items-center gap-1 rounded-md bg-destructive px-2.5 py-1 text-sm font-semibold text-destructive-foreground">
+                {product.flash_sale ? (
+                  <>
+                    <Zap className="h-3.5 w-3.5 fill-white" />
+                    %{product.flash_sale.discount_type === "percentage"
+                      ? Math.round(product.flash_sale.discount_amount)
+                      : Math.round(product.discount_percentage)}
+                  </>
+                ) : (
+                  product.discount_percentage > 0 && `-%${Math.round(product.discount_percentage)}`
+                )}
               </span>
             )}
           </div>
@@ -364,13 +383,30 @@ export function ProductDetailClient({
             </div>
           </div>
 
+          {/* Flash Sale Banner */}
+          {product.flash_sale && (
+            <div className="mt-4 flex items-center gap-3 overflow-hidden rounded-lg bg-gradient-to-r from-red-600 to-orange-500 px-4 py-2.5 text-white shadow-sm">
+              <Zap className="h-6 w-6 shrink-0 fill-white" />
+              <div className="flex flex-col leading-tight">
+                <span className="text-xs font-bold uppercase tracking-widest opacity-90">
+                  Flash Satış
+                </span>
+                <span className="text-base font-extrabold">
+                  {product.flash_sale.discount_type === "percentage"
+                    ? `%${Math.round(product.flash_sale.discount_amount)} İndirim`
+                    : `₺${product.flash_sale.discount_amount} İndirim`}
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Price */}
-          <div className="mt-4 flex items-baseline gap-3">
-            <span className="text-5xl font-bold text-foreground">
+          <div className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <span className="text-3xl font-bold text-foreground sm:text-4xl md:text-5xl">
               {displayPrice != null ? `₺${displayPrice.toFixed(2)}` : ""}
             </span>
             {hasDiscount && price != null && (
-              <span className="text-4xl text-muted-foreground line-through">
+              <span className="text-xl text-muted-foreground line-through sm:text-2xl md:text-3xl">
                 ₺{price.toFixed(2)}
               </span>
             )}

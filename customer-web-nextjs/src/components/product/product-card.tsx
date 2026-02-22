@@ -11,7 +11,7 @@ import {
   useWishlistToggleMutation,
 } from "@/modules/wishlist/wishlist.service";
 import Image from "next/image";
-import { Star, Heart, Eye } from "lucide-react";
+import { Star, Heart, Eye, Zap } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { usePrice } from "@/hooks/use-price";
 
@@ -52,10 +52,21 @@ export function ProductCard({
   const { formatPrice } = usePrice();
   const price = product.price != null ? Number(product.price) : null;
   const specialPrice =
-    product.special_price != null ? Number(product.special_price) : null;
-  const hasDiscount =
+    product.special_price != null && Number(product.special_price) > 0
+      ? Number(product.special_price)
+      : null;
+  const hasSpecialPriceDiscount =
     specialPrice != null && price != null && specialPrice < price;
-  const displayPrice = hasDiscount ? specialPrice : price;
+  let displayPrice: number | null = hasSpecialPriceDiscount ? specialPrice : price;
+  if (displayPrice != null && product.flash_sale && product.flash_sale.discount_amount > 0) {
+    const fs = product.flash_sale;
+    const fsDiscount =
+      fs.discount_type === "percentage"
+        ? Math.round((displayPrice * fs.discount_amount) / 100)
+        : fs.discount_amount;
+    displayPrice = Math.max(0, displayPrice - fsDiscount);
+  }
+  const hasDiscount = displayPrice != null && price != null && displayPrice < price;
 
   const addItem = useCartStore((s) => s.addItem);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -134,13 +145,48 @@ export function ProductCard({
     </div>
   ) : null;
 
+  /* ── Flash sale computed discount % ── */
+  const flashSaleDiscountPct =
+    product.flash_sale && product.flash_sale.discount_type === "percentage" && product.flash_sale.discount_amount > 0
+      ? Math.round(product.flash_sale.discount_amount)
+      : null;
+  const displayDiscountPct = flashSaleDiscountPct ?? Math.round(product.discount_percentage);
+  const flashSaleFixedDiscountText =
+    product.flash_sale &&
+    product.flash_sale.discount_type === "amount" &&
+    Number(product.flash_sale.discount_amount) > 0
+      ? `${Number(product.flash_sale.discount_amount)} TL`
+      : null;
+  const discountText =
+    flashSaleFixedDiscountText ??
+    (displayDiscountPct > 0 ? `%${displayDiscountPct}` : null);
+
   /* ── Discount badge (shared) ── */
   const discountBadge =
-    hasDiscount && product.discount_percentage > 0 ? (
-      <span className="absolute right-2 top-2.5 z-10 rounded bg-[#EB5A25] px-1.5 py-0.5 text-[11px] font-bold text-white">
-        {Math.round(product.discount_percentage)}%
+    hasDiscount && discountText ? (
+      <span className="absolute right-2 top-2.5 z-10 flex items-center gap-0.5 rounded bg-[#EB5A25] px-1.5 py-0.5 text-[11px] font-bold text-white">
+        {flashSaleDiscountPct != null && <Zap className="h-2.5 w-2.5 fill-white" />}
+        {discountText}
       </span>
     ) : null;
+
+  /* ── Flash sale strip (bottom of image, grid only) ── */
+  const flashSaleStrip = product.flash_sale ? (
+    <div className="absolute bottom-0 left-0 right-0 z-10 flex items-center justify-center gap-1.5 bg-gradient-to-r from-red-600 to-orange-500 py-1.5">
+      <Zap className="h-3 w-3 fill-white text-white" />
+      <span className="text-[10px] font-bold uppercase tracking-wider text-white">
+        Flash Satış
+      </span>
+    </div>
+  ) : null;
+
+  /* ── Flash sale badge (list variant) ── */
+  const flashSaleListBadge = product.flash_sale ? (
+    <div className="absolute bottom-0 left-0 right-0 z-10 flex items-center justify-center gap-1 bg-gradient-to-r from-red-600 to-orange-500 py-1">
+      <Zap className="h-2.5 w-2.5 fill-white text-white" />
+      <span className="text-[9px] font-bold uppercase text-white">Flash</span>
+    </div>
+  ) : null;
 
   /* ── Product image ── */
   const productImage = product.image_url ? (
@@ -223,6 +269,7 @@ export function ProductCard({
           {productImage}
           {featuredBadge}
           {discountBadge}
+          {flashSaleListBadge}
         </div>
 
         {/* Info */}
@@ -263,9 +310,10 @@ export function ProductCard({
         {productImage}
         {featuredBadge}
         {discountBadge}
+        {flashSaleStrip}
 
         {/* Hover action buttons */}
-        <div className="absolute bottom-3 left-0 right-0 flex items-center justify-center gap-2 opacity-0 transition-all duration-200 group-hover:opacity-100">
+        <div className="absolute bottom-11 left-0 right-0 z-20 flex items-center justify-center gap-2 opacity-0 transition-all duration-200 group-hover:opacity-100">
           <span className="flex h-8 w-8 items-center justify-center rounded-md border bg-card shadow-sm">
             <Eye className="h-3.5 w-3.5 text-muted-foreground" />
           </span>

@@ -25,6 +25,18 @@ function isExternalUrl(url: string) {
   return /^https?:\/\//i.test(url);
 }
 
+function getDiscountLabel(campaign: FlashDeal): string {
+  const amount = Number(campaign.discount_amount ?? 0);
+  if (!amount) return "";
+
+  if (campaign.discount_type === "percentage") {
+    return `%${Math.round(amount)} INDIRIM`;
+  }
+
+  const fixed = Number.isInteger(amount) ? String(amount) : amount.toFixed(2);
+  return `${fixed} TL INDIRIM`;
+}
+
 function CampaignAction({
   href,
   text,
@@ -59,11 +71,20 @@ function CampaignAction({
 }
 
 function CampaignCard({ campaign }: { campaign: FlashDeal }) {
+  const discountLabel = getDiscountLabel(campaign);
+
   return (
     <div
-      className="group overflow-hidden rounded-2xl border border-border/60"
+      className="group relative overflow-hidden rounded-2xl border border-border/60"
       style={{ backgroundColor: campaign.background_color || "#F6F9FE" }}
     >
+      {discountLabel && (
+        <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
+          <div className="rounded-2xl bg-[radial-gradient(circle_at_30%_20%,#fff7b1_0%,#f59e0b_38%,#dc2626_100%)] px-7 py-4 text-center text-xl font-black tracking-[0.08em] text-white shadow-[0_16px_36px_rgba(220,38,38,0.45)] ring-2 ring-white/90 backdrop-blur-[1px] animate-pulse">
+            {discountLabel}
+          </div>
+        </div>
+      )}
       <div className="relative p-5">
         {campaign.cover_image_url && (
           <div

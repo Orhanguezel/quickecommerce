@@ -17,13 +17,17 @@ class AdminCargoController extends Controller
      * Sipariş için kargo oluştur.
      * POST /admin/orders/{orderId}/cargo
      */
-    public function createShipment(int $orderId): JsonResponse
+    public function createShipment(Request $request, int $orderId): JsonResponse
     {
         $order = Order::findOrFail($orderId);
+        $validated = $request->validate([
+            'offer_id' => 'nullable|string',
+        ]);
 
         try {
             $cargo = $this->gdelivery->createShipment(
                 order: $order,
+                offerId: $validated['offer_id'] ?? null,
                 createdByType: 'admin',
                 createdById: auth()->id()
             );
@@ -40,6 +44,33 @@ class AdminCargoController extends Controller
             return response()->json(['success' => false, 'message' => $message], 422);
         } catch (\Exception $e) {
             \Log::error('Geliver cargo create failed', [
+                'order_id' => $orderId,
+                'error'    => $e->getMessage(),
+                'file'     => $e->getFile() . ':' . $e->getLine(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * Sipariş için Geliver tekliflerini getir.
+     * GET /admin/orders/{orderId}/cargo/offers
+     */
+    public function offers(int $orderId): JsonResponse
+    {
+        $order = Order::findOrFail($orderId);
+
+        try {
+            $offers = $this->gdelivery->getShipmentOffers($order);
+            return response()->json([
+                'success' => true,
+                'data' => $offers,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Geliver offers fetch failed', [
                 'order_id' => $orderId,
                 'error'    => $e->getMessage(),
                 'file'     => $e->getFile() . ':' . $e->getLine(),

@@ -54,6 +54,7 @@ export interface ThemeBannerSection {
 export type ThemeHomeBlockType =
   | "slider"
   | "flash_sale"
+  | "flash_sale_products"
   | "category"
   | "product_featured"
   | "banner_section"
@@ -85,6 +86,7 @@ export interface ThemeHomePage {
   slider: [ThemeSliderSection];
   category: [ThemeSectionConfig];
   flash_sale: [ThemeSectionConfig];
+  flash_sale_products?: [ThemeSectionConfig];
   product_featured: [ThemeSectionConfig];
   banner_section: [ThemeBannerSection];
   product_top_selling: [ThemeSectionConfig];

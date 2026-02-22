@@ -13,9 +13,7 @@ class StoreObserver
      */
     public function created(Store $store): void
     {
-        if ($store->store_type) {
-            StoreType::where('type', $store->store_type)->increment('total_stores');
-        }
+        // total_stores is auto-updated via StoreType::booted() retrieved event using pivot relationship
     }
 
     /**
@@ -31,9 +29,7 @@ class StoreObserver
      */
     public function deleted(Store $store): void
     {
-        if ($store->store_type) {
-            StoreType::where('type', $store->store_type)->decrement('total_stores');
-        }
+        // total_stores is auto-updated via StoreType::booted() retrieved event using pivot relationship
     }
 
     /**

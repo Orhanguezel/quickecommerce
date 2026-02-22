@@ -23,7 +23,8 @@ class StoreListResource extends JsonResource
             'id' => $this->id,
             'area' => $this->area->name ?? null,
             'seller' => $this->seller ? $this->seller->first_name . '' . $this->seller->last_name : null,
-            'store_type' => $this->store_type,
+            'store_type'  => $this->store_type,
+            'store_types' => $this->whenLoaded('storeTypes', fn() => $this->storeTypes->pluck('type')->toArray(), []),
             'name' => !empty($translation) && $translation->where('key', 'name')->first()
                 ? $translation->where('key', 'name')->first()->value
                 : $this->name, // If language is empty or not provided attribute

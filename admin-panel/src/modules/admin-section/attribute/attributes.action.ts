@@ -23,9 +23,9 @@ import { useEffect, useRef } from "react";
 export const useProductAttributeQuery = (options: Partial<AttributeTypeWiseQueryOptions>) => {
   const { findAll } = useAttributeTypeWiseService();
   const { data, isPending, error, refetch, isFetching } = useQuery({
-    queryKey: [API_ENDPOINTS.ATTRIBUTE_TYPE_WISE, options?.type],
-    queryFn: () => findAll(options),
-    enabled: !!options?.type,
+    queryKey: [API_ENDPOINTS.ATTRIBUTE_TYPE_WISE, options?.type, options?.category_id],
+    queryFn: () => findAll({ type: options?.type, category_id: options?.category_id }),
+    enabled: !!options?.type || !!options?.category_id,
   });
   const raw = (data?.data as any);
   return {

@@ -27,6 +27,7 @@ class ProductAttributeRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'product_type' => 'nullable|in:' . implode(',', array_column(StoreType::cases(), 'value')),
+            'category_id' => 'nullable|exists:product_category,id',
             'value' => 'required'
         ];
     }

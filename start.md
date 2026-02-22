@@ -87,3 +87,6 @@ genel magaza olsun. her magaza kendi kategorisini ekleyebilsin.bu mumkun mu? bu 
 
 ---magaza ekle tur eksik. 
 ---- kargo modulunde ayar belli miktara kadar ucretsiz.
+
+
+fiyatlar türkiye sartlarina uygun olarak vergi dahil hesaplanmali. faturada vergiyi ayri hesaplayalim. 

@@ -33,6 +33,7 @@ import {
 } from "@/components/ui";
 
 import { useStoreTypeQuery } from "@/modules/common/store-type/store-type.action";
+import { useCategoriesQuery } from "@/modules/common/category/category.action";
 import {
   useAttributeStoreMutation,
   useAttributeUpdateMutation,
@@ -154,6 +155,20 @@ const CreateOrUpdateAttributeForm = ({ data }: any) => {
 
   const { storeType } = useStoreTypeQuery({});
   const typeData = (storeType as any) || [];
+
+  const [categoryId, setCategoryId] = useState<string>(
+    data?.category_id ? String(data.category_id) : ""
+  );
+
+  const { categories } = useCategoriesQuery({ pagination: false });
+  const allCategoryData: any[] = (categories as any)?.data || [];
+
+  const categoryOptions = useMemo(() => {
+    return allCategoryData.map((cat: any) => ({
+      label: cat.category_name ?? cat.name ?? "",
+      value: String(cat.id),
+    }));
+  }, [allCategoryData]);
 
   const [attributeValues, setAttributeValues] = useState<string[]>(
     data?.attribute_values?.length > 0
@@ -329,16 +344,14 @@ const CreateOrUpdateAttributeForm = ({ data }: any) => {
   const { mutate: attributeUpdate, isPending: isUpdating } = useAttributeUpdateMutation();
 
   const onSubmit = async (values: AttributeFormData) => {
-    if (!attributeValues.length) {
-      return toast.error(t("toast.one_attribute_value_is_required"));
-    }
-    if (!values.product_type) {
+    if (!values.product_type && !categoryId) {
       return toast.error(t("toast.one_type_is_required"));
     }
 
     const defaultData = {
       name: values.attribute_name_df,
-      product_type: values.product_type,
+      product_type: values.product_type || null,
+      category_id: categoryId || null,
       value: attributeValues,
     };
 
@@ -354,8 +367,6 @@ const CreateOrUpdateAttributeForm = ({ data }: any) => {
       ...defaultData,
       id: data ? data.id : "",
       translations,
-      // if you later add backend support:
-      // translations_json: normalizeAttributeJson(translationsJson, uiLangs),
     };
 
     const onSuccess = () => {
@@ -468,7 +479,7 @@ const CreateOrUpdateAttributeForm = ({ data }: any) => {
                       )}
                     </div>
 
-                    {/* product_type + values her dilde aynı: tek yerde gösteririz (SEO pattern değil ama pratik) */}
+                    {/* product_type + category_id + values her dilde aynı: tek yerde gösteririz */}
                     <div className="my-4">
                       <p className="text-sm font-medium mb-1">{t("label.type")}</p>
 
@@ -486,6 +497,18 @@ const CreateOrUpdateAttributeForm = ({ data }: any) => {
                             groups={typeData}
                           />
                         )}
+                      />
+                    </div>
+
+                    <div className="my-4">
+                      <p className="text-sm font-medium mb-1">{t("label.category")}</p>
+                      <AppSelect
+                        value={categoryId}
+                        onSelect={(value) => {
+                          setCategoryId(value === "none" ? "" : String(value));
+                        }}
+                        groups={categoryOptions}
+                        placeholder={t("label.category")}
                       />
                     </div>
 

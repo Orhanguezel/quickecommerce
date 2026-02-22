@@ -41,9 +41,15 @@ class ProductCategoryController extends Controller
                 DB::raw('COALESCE(translations.value, product_category.category_name) as category_name')
             );
 
-        // Apply type filter if type is provided
+        // Apply type filter if type is provided (supports comma-separated multi-type)
         if ($type) {
-            $categories->where('product_category.type', $type);
+            $types = array_filter(array_map('trim', explode(',', $type)));
+            if (!empty($types)) {
+                $categories->where(function ($q) use ($types) {
+                    $q->whereIn('product_category.type', $types)
+                      ->orWhereNull('product_category.type');
+                });
+            }
         }
 
         // Apply search filter if search parameter exists

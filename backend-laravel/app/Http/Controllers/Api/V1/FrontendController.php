@@ -1776,7 +1776,13 @@ class FrontendController extends Controller
             );
 
             if ($type) {
-                $categories->where('product_category.type', $type);
+                $types = array_filter(array_map('trim', explode(',', $type)));
+                if (!empty($types)) {
+                    $categories->where(function ($q) use ($types) {
+                        $q->whereIn('product_category.type', $types)
+                          ->orWhereNull('product_category.type');
+                    });
+                }
             }
 
             if ($search) {

@@ -18,7 +18,8 @@ class SellerWiseStoreForDropdownResource extends JsonResource
             "id" => $this->id,
             "value" => $this->id,
             "label" => $this->name,
-            "store_type" => $this->store_type
+            "store_type" => $this->store_type,
+            "store_types" => $this->whenLoaded('storeTypes', fn() => $this->storeTypes->pluck('type')->toArray(), []),
         ];
     }
 }

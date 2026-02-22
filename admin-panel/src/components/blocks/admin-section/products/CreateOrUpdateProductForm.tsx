@@ -229,6 +229,8 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
   const [logoData, setLogoData] = useState<Record<string, UploadedImage | null>>({});
   const [lastSelectedLogo, setLastSelectedLogo] = useState<any>(null);
   const [errorLogoMessage, setLogoErrorMessage] = useState<string>('');
+  // All store types for category filtering (includes all types of the selected store)
+  const [storeAllTypes, setStoreAllTypes] = useState<string[]>([]);
   const [galleryImages, setGalleryImages] = useState<UploadedImage[]>([]);
 
   const watchedType = useWatch({ control, name: 'type' });
@@ -265,14 +267,19 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
   const [options, setOptions] = useState<SelectCategory>({});
 
   const { sellerList } = useSellerQuery({});
+  // Category filter: use all store types if available, fall back to primary type
+  const categoryTypeFilter = storeAllTypes.length > 0 ? storeAllTypes.join(',') : watchedType;
   const { categories, refetch: CategoryRefetch } = useCategoriesQuery({
     pagination: false,
-    type: watchedType,
+    type: categoryTypeFilter,
   });
   const { brands } = useBrandsQuery({});
   const { units } = useUnitQuery({});
   const { productAttribute, refetch, isPending: isAttributesPending } = useProductAttributeQuery({
     type: watchedType,
+    category_id: Array.isArray(finalSelectedID) && finalSelectedID.length > 0
+      ? String(finalSelectedID[0])
+      : (finalSelectedID && !Array.isArray(finalSelectedID) ? String(finalSelectedID) : undefined),
   });
 
   const { sellerStoreList, refetch: sellerStoreRefetch } = useSellerStoreQuery(
@@ -540,7 +547,15 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
         (store: { value: number }) => store.value === parseInt(value),
       );
       if (selectedStore) {
-        setValueAny('type', selectedStore.store_type);
+        // Set primary store_type as the product's type (single value for product record)
+        setValueAny('type', selectedStore.store_type || '');
+        // Store all types for category filtering
+        const allTypes: string[] = Array.isArray(selectedStore.store_types) && selectedStore.store_types.length > 0
+          ? selectedStore.store_types
+          : selectedStore.store_type
+          ? [selectedStore.store_type]
+          : [];
+        setStoreAllTypes(allTypes);
       }
       setValueAny('category', '');
       setSelectedItems([]);
@@ -1268,9 +1283,18 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                   <div className="">
                     <div className="">
                       <p className="text-sm font-medium mb-1">{t('label.type')}</p>
-                      <p className="bg-gray-50 min-h-10 dark:bg-gray-900 w-full rounded-md px-2 p-1.5 border border-slate-300 dark:border-[#475569] capitalize">
-                        {watchedType && watchedType}
-                      </p>
+                      <div className="bg-gray-50 min-h-10 dark:bg-gray-900 w-full rounded-md px-2 p-1.5 border border-slate-300 dark:border-[#475569] flex flex-wrap gap-1">
+                        {storeAllTypes.length > 0
+                          ? storeAllTypes.map((t) => (
+                              <span key={t} className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 text-xs font-medium px-2 py-0.5 rounded capitalize">
+                                {t}
+                              </span>
+                            ))
+                          : watchedType
+                          ? <span className="capitalize text-sm">{watchedType}</span>
+                          : null
+                        }
+                      </div>
                     </div>
                   </div>
                 </CardContent>

@@ -60,7 +60,7 @@ class ProductAttributeController extends Controller
                 ->where('status', 1);
         }
         $attributes = $attributes
-            ->with(['related_translations', 'attribute_values'])
+            ->with(['related_translations', 'attribute_values', 'category'])
             ->orderBy($request->sortField ?? 'id', $request->sort ?? 'asc')
             ->paginate($limit);
         // Return a collection of ProductBrandResource (including the image)
@@ -84,7 +84,7 @@ class ProductAttributeController extends Controller
 
     public function getAttributeById(Request $request)
     {
-        $attribute = ProductAttribute::with(['attribute_values', 'related_translations'])->findOrFail($request->id);
+        $attribute = ProductAttribute::with(['attribute_values', 'related_translations', 'category'])->findOrFail($request->id);
         return response()->json(new AdminAttributeDetailsResource($attribute));
     }
 
@@ -140,21 +140,51 @@ class ProductAttributeController extends Controller
 
     public function typeWiseAttributes(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'type' => 'required|in:' . implode(',', array_column(StoreType::cases(), 'value')),
-        ]);
-        if ($validator->fails()) {
+        $rawType = $request->type ?? '';
+        // Support comma-separated multi-type (e.g. "grocery,pharmacy")
+        $validValues = array_column(StoreType::cases(), 'value');
+        $types = array_filter(array_map('trim', explode(',', $rawType)));
+
+        foreach ($types as $t) {
+            if (!in_array($t, $validValues)) {
+                return response()->json([
+                    'status' => false,
+                    'status_code' => 500,
+                    'errors' => 'Invalid request! Type must be one of: ' . implode(',', $validValues),
+                ]);
+            }
+        }
+
+        $categoryId = $request->category_id ?: null;
+
+        // Type is required only when category_id is also not provided
+        if (empty($types) && !$categoryId) {
             return response()->json([
                 'status' => false,
                 'status_code' => 500,
-                'errors' => 'Invalid request! Type must be one of: ' . implode(',', array_column(StoreType::cases(), 'value')),
+                'errors' => 'Type or category_id is required.',
             ]);
         }
+
         try {
-            $attributes = ProductAttribute::with('attribute_values')
-                ->where(function ($q) use ($request) {
-                    $q->where('product_type', $request->type)
-                      ->orWhereNull('product_type');
+            $attributes = ProductAttribute::with(['attribute_values', 'category', 'related_translations'])
+                ->where(function ($q) use ($types, $categoryId) {
+                    // Category-specific attributes
+                    if ($categoryId) {
+                        $q->orWhere('category_id', $categoryId);
+                    }
+                    // Type-specific attributes (no category assigned)
+                    if (!empty($types)) {
+                        $q->orWhere(function ($q2) use ($types) {
+                            $q2->whereIn('product_type', $types)
+                               ->whereNull('category_id');
+                        });
+                    }
+                    // General attributes (no type, no category)
+                    $q->orWhere(function ($q2) {
+                        $q2->whereNull('product_type')
+                           ->whereNull('category_id');
+                    });
                 })
                 ->where('status', 1)
                 ->get();

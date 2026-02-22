@@ -27,11 +27,16 @@ class StoreType extends Model
         'additional_charge_name',
     ];
 
+    public function stores()
+    {
+        return $this->belongsToMany(Store::class, 'store_store_types', 'store_type_id', 'store_id');
+    }
+
     // everytime checks the count of stores of the type when data fetching
     protected static function booted()
     {
         static::retrieved(function ($storeType) {
-            $count = Store::where('store_type', $storeType->type)->count();
+            $count = $storeType->stores()->count();
 
             if ($storeType->total_stores !== $count) {
                 $storeType->updateQuietly(['total_stores' => $count]);

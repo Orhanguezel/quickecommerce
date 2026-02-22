@@ -18,6 +18,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Loader from '@/components/molecules/Loader';
 import multiLang from '@/components/molecules/multiLang.json';
 import { AppSelect } from '@/components/blocks/common';
+import { AppStoreTypeMultiSelect } from '@/components/blocks/common/AppStoreTypeMultiSelect';
 import {
   Button,
   Card,
@@ -262,7 +263,7 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
       closing_time: '',
       area_id: '',
       store_seller_id: '',
-      store_type: '',
+      store_types: [],
       time_type: '',
       amount: '',
     } as any,
@@ -291,7 +292,7 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
       'closing_time',
       'area_id',
       'store_seller_id',
-      'store_type',
+      'store_types',
       'time_type',
       'amount',
       'address',
@@ -315,7 +316,7 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
   // Minimal watches
   const watchedNameDefault = useWatch({ control, name: defaultNameField as any }) as string;
   const watchedSellerId = useWatch({ control, name: 'store_seller_id' as any }) as string;
-  const watchedStoreType = useWatch({ control, name: 'store_type' as any }) as string;
+  const watchedStoreTypes = useWatch({ control, name: 'store_types' as any }) as string[];
   const watchedAreaId = useWatch({ control, name: 'area_id' as any }) as string;
   const watchedLongitude = useWatch({ control, name: 'longitude' as any });
   const watchedLatitude = useWatch({ control, name: 'latitude' as any });
@@ -368,35 +369,14 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
     [editData],
   );
 
-  const storeTypeIdCandidates = useMemo(
-    () =>
-      [
-        editData?.store_type_id,
-        editData?.type_id,
-        editData?.storeTypeId,
-        editData?.typeId,
-        editData?.type?.id,
-        editData?.store_type?.id,
-        editData?.store_type,
-        typeof editData?.type === 'string' ? editData?.type : '',
-      ].map((x) => String(x ?? '')),
-    [editData],
-  );
-  const storeTypeLabelCandidates = useMemo(
-    () =>
-      [
-        editData?.store_type_name,
-        typeof editData?.store_type === 'string' ? editData?.store_type : '',
-        editData?.store_type,
-        typeof editData?.type === 'string' ? editData?.type : '',
-        editData?.type?.name,
-        editData?.type?.label,
-        editData?.type?.store_type,
-        editData?.store_type?.name,
-        editData?.store_type?.label,
-      ].map((x) => String(x ?? '')),
-    [editData],
-  );
+  // store_types: prefer pivot array, fall back to single store_type for backward-compat
+  const editStoreTypes = useMemo<string[]>(() => {
+    if (Array.isArray(editData?.store_types) && editData.store_types.length > 0) {
+      return editData.store_types.filter(Boolean);
+    }
+    const single = editData?.store_type;
+    return single ? [String(single)] : [];
+  }, [editData]);
   const areaIdCandidates = useMemo(
     () =>
       [
@@ -424,10 +404,6 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
     () => resolveOptionValue(rawSellerOptions, sellerIdCandidates, sellerLabelCandidates),
     [rawSellerOptions, sellerIdCandidates, sellerLabelCandidates],
   );
-  const resolvedStoreTypeValue = useMemo(
-    () => resolveOptionValue(rawStoreTypeOptions, storeTypeIdCandidates, storeTypeLabelCandidates),
-    [rawStoreTypeOptions, storeTypeIdCandidates, storeTypeLabelCandidates],
-  );
   const resolvedAreaValue = useMemo(
     () => resolveOptionValue(AreaOptions, areaIdCandidates, areaLabelCandidates),
     [AreaOptions, areaIdCandidates, areaLabelCandidates],
@@ -436,10 +412,6 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
   const fallbackSellerValue = useMemo(
     () => firstNonEmpty(...sellerIdCandidates, ...sellerLabelCandidates),
     [sellerIdCandidates, sellerLabelCandidates],
-  );
-  const fallbackStoreTypeValue = useMemo(
-    () => firstNonEmpty(...storeTypeIdCandidates, ...storeTypeLabelCandidates),
-    [storeTypeIdCandidates, storeTypeLabelCandidates],
   );
   const fallbackAreaValue = useMemo(
     () => firstNonEmpty(...areaIdCandidates, ...areaLabelCandidates),
@@ -455,15 +427,14 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
       ),
     [rawSellerOptions, resolvedSellerValue, fallbackSellerValue, sellerLabelCandidates],
   );
-  const StoreTypeOptions = useMemo(
-    () =>
-      mergeSelectedOption(
-        rawStoreTypeOptions,
-        resolvedStoreTypeValue || fallbackStoreTypeValue,
-        firstNonEmpty(...storeTypeLabelCandidates),
-      ),
-    [rawStoreTypeOptions, resolvedStoreTypeValue, fallbackStoreTypeValue, storeTypeLabelCandidates],
-  );
+  // Multi-select: use API's `value` (= type string like "grocery") directly, not the DB ID
+  const StoreTypeOptions = useMemo(() => {
+    const raw = Array.isArray(storeType) ? storeType : Array.isArray((storeType as any)?.data) ? (storeType as any).data : [];
+    return (raw as any[]).map((item) => ({
+      value: String(item?.value ?? item?.type ?? ''),
+      label: String(item?.label ?? item?.name ?? item?.type ?? ''),
+    })).filter((o) => o.value);
+  }, [storeType]);
   const EffectiveAreaOptions = useMemo(
     () =>
       mergeSelectedOption(
@@ -479,10 +450,6 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
     [watchedSellerId, resolvedSellerValue, fallbackSellerValue],
   );
 
-  const effectiveStoreTypeValue = useMemo(
-    () => safeStr(watchedStoreType) || safeStr(resolvedStoreTypeValue) || safeStr(fallbackStoreTypeValue),
-    [watchedStoreType, resolvedStoreTypeValue, fallbackStoreTypeValue],
-  );
   const effectiveAreaValue = useMemo(
     () => safeStr(watchedAreaId) || safeStr(resolvedAreaValue) || safeStr(fallbackAreaValue),
     [watchedAreaId, resolvedAreaValue, fallbackAreaValue],
@@ -576,14 +543,9 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
       },
     );
 
-    setValueAny(
-      'store_type',
-      resolvedStoreTypeValue ? String(resolvedStoreTypeValue) : String(fallbackStoreTypeValue || ''),
-      {
-        shouldDirty: false,
-        shouldTouch: false,
-      },
-    );
+    if (editStoreTypes.length > 0) {
+      setValueAny('store_types', editStoreTypes, { shouldDirty: false, shouldTouch: false });
+    }
 
     setValueAny('area_id', resolvedAreaValue ? String(resolvedAreaValue) : String(fallbackAreaValue || ''), {
       shouldDirty: false,
@@ -639,9 +601,7 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
     editData?.id,
     firstUILangId,
     resolvedSellerValue,
-    resolvedStoreTypeValue,
     fallbackSellerValue,
-    fallbackStoreTypeValue,
     resolvedAreaValue,
     fallbackAreaValue,
     fallbackAddressValue,
@@ -650,17 +610,9 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
   useEffect(() => {
     if (!editData?.id) return;
     const currentSeller = String(getValues('store_seller_id' as any) ?? '');
-    const currentType = String(getValues('store_type' as any) ?? '');
 
     if (!currentSeller && (resolvedSellerValue || fallbackSellerValue)) {
       setValueAny('store_seller_id', resolvedSellerValue || fallbackSellerValue, {
-        shouldDirty: false,
-        shouldTouch: false,
-      });
-    }
-
-    if (!currentType && (resolvedStoreTypeValue || fallbackStoreTypeValue)) {
-      setValueAny('store_type', resolvedStoreTypeValue || fallbackStoreTypeValue, {
         shouldDirty: false,
         shouldTouch: false,
       });
@@ -669,9 +621,7 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
     editData?.id,
     getValues,
     resolvedSellerValue,
-    resolvedStoreTypeValue,
     fallbackSellerValue,
-    fallbackStoreTypeValue,
     setValueAny,
   ]);
 
@@ -683,13 +633,7 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
         shouldTouch: false,
       });
     }
-    if (!safeStr(getValues('store_type' as any)) && effectiveStoreTypeValue) {
-      setValueAny('store_type', effectiveStoreTypeValue, {
-        shouldDirty: false,
-        shouldTouch: false,
-      });
-    }
-  }, [editData?.id, getValues, setValueAny, effectiveSellerValue, effectiveStoreTypeValue]);
+  }, [editData?.id, getValues, setValueAny, effectiveSellerValue]);
 
   useEffect(() => {
     if (!editData?.id) return;
@@ -866,8 +810,8 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
     if (!safeStr(v.store_seller_id) && effectiveSellerValue) {
       setValueAny('store_seller_id', effectiveSellerValue, { shouldDirty: false, shouldTouch: false });
     }
-    if (!safeStr(v.store_type) && effectiveStoreTypeValue) {
-      setValueAny('store_type', effectiveStoreTypeValue, { shouldDirty: false, shouldTouch: false });
+    if ((!Array.isArray(v.store_types) || v.store_types.length === 0) && editStoreTypes.length > 0) {
+      setValueAny('store_types', editStoreTypes, { shouldDirty: false, shouldTouch: false });
     }
     const latest: any = getValues();
 
@@ -1104,12 +1048,12 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
                       <p className="text-sm font-medium mb-1">{t('label.store_type')}</p>
                       <Controller
                         control={control}
-                        name="store_type"
+                        name="store_types"
                         render={({ field }) => (
-                          <AppSelect
-                            value={String(field.value || effectiveStoreTypeValue || '')}
-                            onSelect={(value) => field.onChange(toSelectValue(value))}
-                            groups={StoreTypeOptions}
+                          <AppStoreTypeMultiSelect
+                            options={StoreTypeOptions}
+                            value={Array.isArray(field.value) ? field.value : []}
+                            onChange={(vals) => field.onChange(vals)}
                           />
                         )}
                       />

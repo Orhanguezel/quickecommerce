@@ -5,6 +5,7 @@ import VectorIcon from '@/assets/icons/VectorIcon';
 import Loader from '@/components/molecules/Loader';
 import multiLang from '@/components/molecules/multiLang.json';
 import { AppSelect } from '@/components/blocks/common';
+import { AppStoreTypeMultiSelect } from '@/components/blocks/common/AppStoreTypeMultiSelect';
 import {
   Button,
   Card,
@@ -85,7 +86,14 @@ export default function CreateOrUpdateStoreForm({ data }: any) {
   const { isLoaded, isEnabled: isMapEnabled, apiKey: googleMapKey } = useGoogleMaps();
 
   const [polygonCoords, setPolygonCoords] = useState<any>(null);
-  const selectedStoreType = editData && editData?.store_type ? editData?.store_type : '';
+  const editStoreTypes: string[] = useMemo(() => {
+    if (Array.isArray(editData?.store_types) && editData.store_types.length > 0) {
+      return editData.store_types.filter(Boolean);
+    }
+    const single = editData?.store_type;
+    return single ? [String(single)] : [];
+  }, [editData]);
+
   const {
     watch,
     control,
@@ -97,7 +105,7 @@ export default function CreateOrUpdateStoreForm({ data }: any) {
   } = useForm<StoreFormData>({
     resolver: zodResolver(storeSchema),
     defaultValues: {
-      store_type: selectedStoreType,
+      store_types: editStoreTypes,
     },
   });
   const watchedValues = watch();
@@ -119,7 +127,14 @@ export default function CreateOrUpdateStoreForm({ data }: any) {
   const { storeType } = useStoreTypeQuery({});
   let PaymentGateways = (PaymentGatewayList as any)?.paymentGateways || [];
   let AreaList = (AreaDropdownList as any) || [];
-  let StoreTypeList = (storeType as any) || [];
+  const StoreTypeList = useMemo(() => {
+    const raw = (storeType as any) || [];
+    const list = Array.isArray(raw) ? raw : [];
+    return list.map((item: any) => ({
+      value: String(item?.value ?? item?.type ?? item?.id ?? ''),
+      label: String(item?.label ?? item?.name ?? item?.type ?? ''),
+    })).filter((o: any) => o.value);
+  }, [storeType]);
   const formatTime = (time: string) => {
     if (!time) return '';
     return time.split(':').slice(0, 2).join(':');
@@ -265,7 +280,7 @@ export default function CreateOrUpdateStoreForm({ data }: any) {
       setValue('opening_time', formatTime(editData?.opening_time || ''));
       setValue('closing_time', formatTime(editData?.closing_time || ''));
       setValue('address_df', editData?.address);
-      setValue('store_type', editData?.store_type);
+      setValue('store_types', editStoreTypes);
       setActiveTab(editData?.subscription_type);
       setSelectedCard(editData?.subscription_id);
       const translations = safeObject(editData?.translations);
@@ -337,9 +352,6 @@ export default function CreateOrUpdateStoreForm({ data }: any) {
   const [zoom, setZoom] = useState(8);
   const handleSelectItem = async (value: string, inputType: string) => {
     setValue(inputType as any, value);
-    if (inputType == 'store_type' && value == 'none') {
-      setValue(inputType as any, '');
-    }
     if (inputType === 'area_id') {
       const selectedZone = AreaList.find((z: any) => String(z.value) === String(value));
       if (selectedZone && selectedZone.coordinates) {
@@ -690,7 +702,7 @@ export default function CreateOrUpdateStoreForm({ data }: any) {
                       } ? "text-start text-blue-500" : "text-start text-gray-500 dark:text-white"`}
                     >
                       <div className="flex items-center gap-2 ">
-                        {(activeStep === 'business_plan' && watchedValues.store_type !== '') ||
+                        {(activeStep === 'business_plan' && Array.isArray(watchedValues.store_types) && watchedValues.store_types.length > 0) ||
                         (activeStep === 'business_plan' && watchedValues.name_df !== '') ||
                         (activeStep === 'business_plan' && watchedValues.area_id !== '') ||
                         activeStep === 'confirm' ? (
@@ -811,17 +823,13 @@ export default function CreateOrUpdateStoreForm({ data }: any) {
                                       </p>
                                       <Controller
                                         control={control}
-                                        name="store_type"
-                                        defaultValue={editData?.store_type || ''}
+                                        name="store_types"
                                         render={({ field, fieldState: { error } }) => (
                                           <>
-                                            <AppSelect
-                                              value={field.value || ''}
-                                              onSelect={(value) => {
-                                                field.onChange(value);
-                                                handleSelectItem(value, 'store_type');
-                                              }}
-                                              groups={StoreTypeList}
+                                            <AppStoreTypeMultiSelect
+                                              options={StoreTypeList}
+                                              value={Array.isArray(field.value) ? field.value : []}
+                                              onChange={(vals) => field.onChange(vals)}
                                             />
                                             {error && (
                                               <p className="text-sm text-red-500 mt-1">
@@ -1292,7 +1300,7 @@ export default function CreateOrUpdateStoreForm({ data }: any) {
                   selectedCard === '') ||
                 watchedValues?.longitude === '' ||
                 watchedValues?.latitude === '' ||
-                watchedValues?.store_type === '' ||
+                !Array.isArray(watchedValues?.store_types) || watchedValues.store_types.length === 0 ||
                 errorMessage ||
                 isPending ||
                 isUpdating
