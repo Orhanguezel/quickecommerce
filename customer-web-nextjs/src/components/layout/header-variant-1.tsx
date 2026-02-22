@@ -175,27 +175,27 @@ export function HeaderVariant1() {
 
       {/* ══════════ ROW 2 — Main Bar (Dynamic from theme) ══════════ */}
       <div className="border-b shadow-sm" style={{ backgroundColor: 'hsl(var(--header-main-bg))' }}>
-        <div className="container flex h-[100px] items-center gap-2 lg:gap-6">
+        <div className="container flex h-[64px] items-center gap-2 lg:h-[100px] lg:gap-6">
           {/* Mobile hamburger */}
           <button
-            className="flex items-center justify-center rounded-lg p-2 text-foreground lg:hidden"
+            className="flex shrink-0 items-center justify-center rounded-lg p-1.5 text-foreground lg:hidden"
             onClick={() => setMobileOpen(true)}
           >
-            <Menu className="h-6 w-6" />
+            <Menu className="h-5 w-5 lg:h-6 lg:w-6" />
           </button>
 
           {/* Logo */}
-          <Link href={ROUTES.HOME} className="flex flex-1 min-w-0 shrink items-center justify-center lg:flex-none lg:justify-start">
+          <Link href={ROUTES.HOME} className="flex min-w-0 shrink items-center justify-center lg:flex-none lg:justify-start">
             {siteInfo?.com_site_logo && !logoError ? (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={siteInfo.com_site_logo}
                 alt={siteInfo?.com_site_title || 'Logo'}
-                className="h-16 w-auto max-w-[180px] object-contain lg:max-w-none"
+                className="h-10 w-auto max-w-[130px] object-contain lg:h-16 lg:max-w-none"
                 onError={() => setLogoError(true)}
               />
             ) : (
-              <span className="truncate text-2xl font-bold text-primary lg:text-[28px]">
+              <span className="truncate text-lg font-bold text-primary lg:text-[28px]">
                 {siteInfo?.com_site_title || 'Sportoonline'}
               </span>
             )}
@@ -234,37 +234,37 @@ export function HeaderVariant1() {
           </form>
 
           {/* Right Action Icons */}
-          <div className="ml-auto flex items-center gap-3">
-            {/* Language switcher (mobile only — icon mode) */}
-            <div className="lg:hidden">
-              <LanguageSwitcher iconOnly />
-            </div>
-
+          <div className="ml-auto flex items-center gap-1.5 lg:gap-3">
             {/* Wishlist */}
             <Link
               href={ROUTES.WISHLIST}
-              className="hidden h-11 w-11 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground sm:flex"
+              className="hidden h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground sm:flex lg:h-11 lg:w-11"
             >
-              <Heart className="h-5 w-5" strokeWidth={1.5} />
+              <Heart className="h-4 w-4 lg:h-5 lg:w-5" strokeWidth={1.5} />
             </Link>
 
             {/* Cart — always show badge */}
             <button
               onClick={openCartDrawer}
-              className="relative flex h-11 w-11 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground"
+              className="relative flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground lg:h-11 lg:w-11"
             >
-              <ShoppingCart className="h-5 w-5" strokeWidth={1.5} />
-              <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+              <ShoppingCart className="h-4 w-4 lg:h-5 lg:w-5" strokeWidth={1.5} />
+              <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground lg:h-5 lg:w-5 lg:text-[10px]">
                 {cartCount}
               </span>
             </button>
 
+            {/* Language switcher (mobile only — icon mode) */}
+            <div className="lg:hidden">
+              <LanguageSwitcher iconOnly />
+            </div>
+
             {/* User / Profile */}
             <Link
               href={isAuthenticated ? ROUTES.PROFILE : ROUTES.LOGIN}
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground lg:h-11 lg:w-11"
             >
-              <User className="h-5 w-5" strokeWidth={1.5} />
+              <User className="h-4 w-4 lg:h-5 lg:w-5" strokeWidth={1.5} />
             </Link>
           </div>
         </div>
