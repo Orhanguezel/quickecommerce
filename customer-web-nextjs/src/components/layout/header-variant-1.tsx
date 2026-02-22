@@ -175,8 +175,8 @@ export function HeaderVariant1() {
 
       {/* ══════════ ROW 2 — Main Bar (Dynamic from theme) ══════════ */}
       <div className="border-b shadow-sm" style={{ backgroundColor: 'hsl(var(--header-main-bg))' }}>
-        <div className="container flex h-[64px] items-center gap-2 lg:h-[100px] lg:gap-6">
-          {/* Mobile hamburger */}
+        <div className="container flex h-[64px] items-center gap-2 md:h-[72px] md:gap-3 lg:h-[100px] lg:gap-6">
+          {/* Mobile/Tablet hamburger */}
           <button
             className="flex shrink-0 items-center justify-center rounded-lg p-1.5 text-foreground lg:hidden"
             onClick={() => setMobileOpen(true)}
@@ -185,13 +185,13 @@ export function HeaderVariant1() {
           </button>
 
           {/* Logo */}
-          <Link href={ROUTES.HOME} className="flex min-w-0 shrink items-center justify-center lg:flex-none lg:justify-start">
+          <Link href={ROUTES.HOME} className="flex shrink-0 items-center justify-start">
             {siteInfo?.com_site_logo && !logoError ? (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={siteInfo.com_site_logo}
                 alt={siteInfo?.com_site_title || 'Logo'}
-                className="h-10 w-auto max-w-[130px] object-contain lg:h-16 lg:max-w-none"
+                className="h-10 w-auto max-w-[120px] object-contain md:max-w-[150px] lg:h-16 lg:max-w-none"
                 onError={() => setLogoError(true)}
               />
             ) : (
@@ -201,7 +201,7 @@ export function HeaderVariant1() {
             )}
           </Link>
 
-          {/* Location Selector Pill */}
+          {/* Location Selector Pill — desktop only */}
           <button
             onClick={openSelector}
             className="hidden items-center gap-2.5 rounded-full border border-border bg-background/50 px-6 py-3 text-[15px] transition-colors hover:border-primary/40 lg:flex"
@@ -213,28 +213,28 @@ export function HeaderVariant1() {
             <ChevronDown className="h-4 w-4 text-muted-foreground" />
           </button>
 
-          {/* Search Bar — wide */}
-          <form onSubmit={handleSearch} className="hidden flex-1 lg:flex">
+          {/* Search Bar — tablet (md) + desktop (lg) */}
+          <form onSubmit={handleSearch} className="hidden flex-1 md:flex">
             <div className="flex w-full overflow-hidden rounded-lg border border-border bg-background/50 transition-colors focus-within:border-primary">
               <input
                 type="search"
                 placeholder={t('common.search_placeholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-12 flex-1 border-none bg-transparent px-5 text-sm text-foreground outline-none placeholder:text-muted-foreground"
+                className="h-10 flex-1 border-none bg-transparent px-4 text-sm text-foreground outline-none placeholder:text-muted-foreground lg:h-12 lg:px-5"
               />
               <button
                 type="submit"
-                className="flex shrink-0 items-center gap-2 bg-primary px-6 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+                className="flex shrink-0 items-center gap-2 bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 lg:px-6"
               >
-                {t('common.search')}
+                <span className="hidden lg:inline">{t('common.search')}</span>
                 <Search className="h-4 w-4" />
               </button>
             </div>
           </form>
 
           {/* Right Action Icons */}
-          <div className="ml-auto flex items-center gap-1.5 lg:gap-3">
+          <div className="ml-auto flex items-center gap-1.5 md:ml-0 lg:gap-3">
             {/* Wishlist */}
             <Link
               href={ROUTES.WISHLIST}
@@ -256,7 +256,7 @@ export function HeaderVariant1() {
               </span>
             </button>
 
-            {/* Language switcher (mobile only — icon mode) */}
+            {/* Language switcher (below lg — icon mode) */}
             <div className="lg:hidden">
               <LanguageSwitcher iconOnly />
             </div>
@@ -476,8 +476,8 @@ export function HeaderVariant1() {
       </nav>
       </div>{/* end sticky wrapper */}
 
-      {/* ══════════ Mobile Search Bar ══════════ */}
-      <div className="border-b bg-background px-4 py-2 lg:hidden">
+      {/* ══════════ Mobile Search Bar (only < md) ══════════ */}
+      <div className="border-b bg-background px-4 py-2 md:hidden">
         <form onSubmit={handleSearch} className="flex overflow-hidden rounded-lg border border-border">
           <input
             type="search"
