@@ -2012,16 +2012,7 @@ class FrontendController extends Controller
     public
     function storeTypes()
     {
-        $activeStoreTypes = Store::validForCustomerView()
-            ->where('status', 1)
-            ->whereNull('deleted_at')
-            ->whereNotNull('store_type')
-            ->distinct()
-            ->pluck('store_type');
-
-        $storeTypes = StoreType::where('status', 1)
-            ->whereIn('type', $activeStoreTypes)
-            ->get();
+        $storeTypes = StoreType::where('status', 1)->get();
 
         return response()->json(StoreTypeDropdownPublicResource::collection($storeTypes));
     }

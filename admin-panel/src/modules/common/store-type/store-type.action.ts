@@ -10,7 +10,7 @@ export const useStoreTypeQuery = (options: Partial<StoreTypeQueryOptions>) => {
   const { findAll } = useStoreTypeService();
   const locale = useLocale();
   const language = options?.language || locale;
-  
+
   const { data, isPending, error, refetch, isFetching } = useQuery({
     queryKey: [API_ENDPOINTS.STORE_TYPE_LIST, options?.merchant_id, language],
     queryFn: () => findAll({ ...options, language }),

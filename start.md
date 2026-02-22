@@ -83,3 +83,7 @@ genel magaza olsun. her magaza kendi kategorisini ekleyebilsin.bu mumkun mu? bu 
 11 elestik search kurulumu yapilacak.
 12 kargo ucretleri kismi var. 
 
+
+
+---magaza ekle tur eksik. 
+---- kargo modulunde ayar belli miktara kadar ucretsiz.
