@@ -12,7 +12,7 @@ export const useSiteInfoQuery = () => {
   const { data, isPending, error } = useQuery({
     queryKey: [API_ENDPOINTS.SITE_GENERAL_INFO, locale],
     queryFn: () => findAll(),
-    staleTime: 1000 * 60 * 30,
+    staleTime: 1000 * 60 * 2, // 2 dakika — logo/site adı değişimlerinin hızlı yansıması için
   });
 
   return {

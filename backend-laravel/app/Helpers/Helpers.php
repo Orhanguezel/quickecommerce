@@ -601,7 +601,14 @@ function com_option_update($key, $value)
         ['option_name' => $key],
         ['option_value' => $value]
     );
+    // com_option_get() cache key'i "{$key}_{$locale}" formatında saklar,
+    // ancak bu fonksiyon sadece $key ile siler — cache temizlenmiyor.
+    // Desteklenen tüm locale varyantları için cache temizle.
     Cache::forget($key);
+    $locales = config('app.available_locales', ['tr', 'en', 'de', 'fr', 'ar']);
+    foreach ($locales as $locale) {
+        Cache::forget("{$key}_{$locale}");
+    }
     return $option ? true : false;
 }
 
