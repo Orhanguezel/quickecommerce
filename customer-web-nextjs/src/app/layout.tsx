@@ -25,8 +25,10 @@ async function fetchSiteInfo(): Promise<SiteInfo | null> {
 
 export async function generateMetadata(): Promise<Metadata> {
   const siteInfo = await fetchSiteInfo();
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://sportoonline.com';
 
   return {
+    metadataBase: new URL(siteUrl),
     title: siteInfo?.com_site_title || "Sportoonline",
     description: siteInfo?.com_site_subtitle || "Modern e-commerce platform",
     icons: {
