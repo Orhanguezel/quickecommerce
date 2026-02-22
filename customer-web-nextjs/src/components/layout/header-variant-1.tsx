@@ -191,11 +191,11 @@ export function HeaderVariant1() {
               <img
                 src={siteInfo.com_site_logo}
                 alt={siteInfo?.com_site_title || 'Logo'}
-                className="h-10 w-auto max-w-[120px] object-contain md:max-w-[150px] lg:h-16 lg:max-w-none"
+                className="h-14 w-auto max-w-[160px] object-contain lg:h-16 lg:max-w-none"
                 onError={() => setLogoError(true)}
               />
             ) : (
-              <span className="truncate text-lg font-bold text-primary lg:text-[28px]">
+              <span className="truncate text-xl font-bold text-primary lg:text-[28px]">
                 {siteInfo?.com_site_title || 'Sportoonline'}
               </span>
             )}
@@ -474,26 +474,30 @@ export function HeaderVariant1() {
           </Link>
         </div>
       </nav>
-      </div>{/* end sticky wrapper */}
 
-      {/* ══════════ Mobile Search Bar (only < md) ══════════ */}
-      <div className="border-b bg-background px-4 py-2 md:hidden">
-        <form onSubmit={handleSearch} className="flex overflow-hidden rounded-lg border border-border">
-          <input
-            type="search"
-            placeholder={t('common.search_placeholder')}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-11 flex-1 border-none bg-transparent px-4 text-sm text-foreground outline-none placeholder:text-muted-foreground"
-          />
-          <button
-            type="submit"
-            className="flex shrink-0 items-center justify-center bg-primary px-4 text-primary-foreground"
-          >
-            <Search className="h-4 w-4" />
-          </button>
-        </form>
+      {/* ══════════ Mobile Search Bar (only < md) — sticky wrapper içinde ══════════ */}
+      <div className="border-b bg-background md:hidden">
+        <div className="container py-2">
+          <form onSubmit={handleSearch} className="flex overflow-hidden rounded-lg border border-border">
+            <input
+              type="search"
+              placeholder={t('common.search_placeholder')}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-11 flex-1 border-none bg-transparent px-4 text-sm text-foreground outline-none placeholder:text-muted-foreground"
+            />
+            <button
+              type="submit"
+              aria-label={t('common.search')}
+              className="flex shrink-0 items-center justify-center bg-primary px-4 text-primary-foreground"
+            >
+              <Search className="h-4 w-4" />
+            </button>
+          </form>
+        </div>
       </div>
+
+      </div>{/* end sticky wrapper */}
 
       <MobileNav open={mobileOpen} onClose={() => setMobileOpen(false)} />
     </>
