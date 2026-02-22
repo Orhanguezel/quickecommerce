@@ -238,6 +238,7 @@ export function HeaderVariant1() {
             {/* Wishlist */}
             <Link
               href={ROUTES.WISHLIST}
+              aria-label="Favorilerim"
               className="hidden h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground sm:flex lg:h-11 lg:w-11"
             >
               <Heart className="h-4 w-4 lg:h-5 lg:w-5" strokeWidth={1.5} />
@@ -246,6 +247,7 @@ export function HeaderVariant1() {
             {/* Cart — always show badge */}
             <button
               onClick={openCartDrawer}
+              aria-label="Sepetim"
               className="relative flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground lg:h-11 lg:w-11"
             >
               <ShoppingCart className="h-4 w-4 lg:h-5 lg:w-5" strokeWidth={1.5} />
@@ -262,6 +264,7 @@ export function HeaderVariant1() {
             {/* User / Profile */}
             <Link
               href={isAuthenticated ? ROUTES.PROFILE : ROUTES.LOGIN}
+              aria-label="Hesabım"
               className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground lg:h-11 lg:w-11"
             >
               <User className="h-4 w-4 lg:h-5 lg:w-5" strokeWidth={1.5} />

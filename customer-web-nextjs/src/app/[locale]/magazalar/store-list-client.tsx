@@ -193,7 +193,7 @@ function StoreCard({
         {/* Phone */}
         {store.phone && (
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <Image src="/assets/icons/suport_ticket.png" alt="" width={20} height={20} className="h-5 w-5 shrink-0" />
+            <Image src="/assets/icons/suport_ticket.png" alt="" aria-hidden="true" width={20} height={20} className="h-5 w-5 shrink-0" />
             <span className="truncate">{store.phone}</span>
           </div>
         )}
@@ -204,6 +204,7 @@ function StoreCard({
             <Image
               src="/assets/icons/email.png"
               alt=""
+              aria-hidden="true"
               width={20}
               height={20}
               className="h-5 w-5 shrink-0 brightness-0 saturate-100"
@@ -216,7 +217,7 @@ function StoreCard({
         {/* Address */}
         {store.address && (
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <Image src="/assets/icons/address.png" alt="" width={20} height={20} className="h-5 w-5 shrink-0" />
+            <Image src="/assets/icons/address.png" alt="" aria-hidden="true" width={20} height={20} className="h-5 w-5 shrink-0" />
             <span className="line-clamp-1">{store.address}</span>
           </div>
         )}

@@ -10,6 +10,7 @@ const apiUrl = process.env.NEXT_PUBLIC_REST_API_ENDPOINT ?? "https://sportoonlin
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   output: "standalone",
+  poweredByHeader: false,
   async redirects() {
     return [];
   },

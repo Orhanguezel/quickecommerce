@@ -145,6 +145,7 @@ export async function generateMetadata({ params }: LayoutProps): Promise<Metadat
     },
     icons: {
       icon: settings?.com_site_favicon || '/favicon.ico',
+      apple: '/apple-touch-icon.png',
     },
   };
 }

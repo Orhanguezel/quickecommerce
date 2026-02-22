@@ -40,6 +40,7 @@ export function ProductSection({
         {/* Left Arrow */}
         <button
           onClick={() => scroll("left")}
+          aria-label="Önceki ürünler"
           className="absolute -left-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border bg-background shadow-md opacity-0 transition-opacity hover:bg-muted group-hover/section:opacity-100"
         >
           <ChevronLeft className="h-5 w-5" />
@@ -58,6 +59,7 @@ export function ProductSection({
         {/* Right Arrow */}
         <button
           onClick={() => scroll("right")}
+          aria-label="Sonraki ürünler"
           className="absolute -right-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border bg-background shadow-md opacity-100 transition-opacity hover:bg-muted group-hover/section:opacity-100"
         >
           <ChevronRight className="h-5 w-5" />

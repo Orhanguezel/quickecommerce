@@ -527,6 +527,7 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
 
   return (
     <div className="container space-y-10 py-6">
+      <h1 className="sr-only">Sportoonline — Online Alışveriş</h1>
       {renderedBlocks}
     </div>
   );
