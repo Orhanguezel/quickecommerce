@@ -185,17 +185,17 @@ export function HeaderVariant1() {
           </button>
 
           {/* Logo */}
-          <Link href={ROUTES.HOME} className="flex min-w-0 shrink items-center">
+          <Link href={ROUTES.HOME} className="flex flex-1 min-w-0 shrink items-center justify-center lg:flex-none lg:justify-start">
             {siteInfo?.com_site_logo && !logoError ? (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={siteInfo.com_site_logo}
                 alt={siteInfo?.com_site_title || 'Logo'}
-                className="h-12 w-auto max-w-[140px] object-contain lg:h-16 lg:max-w-none"
+                className="h-16 w-auto max-w-[180px] object-contain lg:max-w-none"
                 onError={() => setLogoError(true)}
               />
             ) : (
-              <span className="truncate text-xl font-bold text-primary lg:text-[28px]">
+              <span className="truncate text-2xl font-bold text-primary lg:text-[28px]">
                 {siteInfo?.com_site_title || 'Sportoonline'}
               </span>
             )}
@@ -235,9 +235,9 @@ export function HeaderVariant1() {
 
           {/* Right Action Icons */}
           <div className="ml-auto flex items-center gap-3">
-            {/* Language switcher (mobile only) */}
+            {/* Language switcher (mobile only — icon mode) */}
             <div className="lg:hidden">
-              <LanguageSwitcher />
+              <LanguageSwitcher iconOnly />
             </div>
 
             {/* Wishlist */}

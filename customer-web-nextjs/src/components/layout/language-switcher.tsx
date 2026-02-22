@@ -15,7 +15,7 @@ const languages = [
   { code: 'en', flag: '🇬🇧' },
 ] as const;
 
-export function LanguageSwitcher() {
+export function LanguageSwitcher({ iconOnly = false }: { iconOnly?: boolean }) {
   const t = useTranslations();
   const locale = useLocale();
   const pathname = usePathname();
@@ -30,7 +30,11 @@ export function LanguageSwitcher() {
           size="sm"
           className="h-8 gap-1 text-xs font-medium"
         >
-          <span>{currentLanguage ? t(`lang_${currentLanguage.code}` as "lang_tr" | "lang_en") : ''}</span>
+          {iconOnly ? (
+            <span className="text-base leading-none">{currentLanguage?.flag ?? '🌐'}</span>
+          ) : (
+            <span>{currentLanguage ? t(`lang_${currentLanguage.code}` as "lang_tr" | "lang_en") : ''}</span>
+          )}
           <ChevronDown className="h-3 w-3" />
         </Button>
       </DropdownMenuTrigger>
