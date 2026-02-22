@@ -144,7 +144,14 @@ export async function generateMetadata({ params }: LayoutProps): Promise<Metadat
       card: 'summary_large_image',
     },
     icons: {
-      icon: settings?.com_site_favicon || '/favicon.ico',
+      icon: settings?.com_site_favicon
+        ? [{ url: settings.com_site_favicon }]
+        : [
+            { url: '/favicon/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+            { url: '/favicon/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+            { url: '/favicon/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+          ],
+      shortcut: settings?.com_site_favicon || '/favicon/favicon.ico',
       apple: [
         { url: '/apple/apple-touch-icon-120x120.png', sizes: '120x120' },
         { url: '/apple/apple-touch-icon-152x152.png', sizes: '152x152' },

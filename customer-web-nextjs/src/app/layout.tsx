@@ -32,9 +32,22 @@ export async function generateMetadata(): Promise<Metadata> {
     title: siteInfo?.com_site_title || "Sportoonline",
     description: siteInfo?.com_site_subtitle || "Modern e-commerce platform",
     icons: {
-      icon: siteInfo?.com_site_favicon || "/favicon.ico",
-      shortcut: siteInfo?.com_site_favicon || "/favicon.ico",
-      apple: siteInfo?.com_site_favicon || "/favicon.ico",
+      icon: siteInfo?.com_site_favicon
+        ? [{ url: siteInfo.com_site_favicon }]
+        : [
+            { url: '/favicon/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+            { url: '/favicon/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+            { url: '/favicon/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+          ],
+      shortcut: siteInfo?.com_site_favicon || '/favicon/favicon.ico',
+      apple: siteInfo?.com_site_favicon
+        ? [{ url: siteInfo.com_site_favicon }]
+        : [
+            { url: '/apple/apple-touch-icon-120x120.png', sizes: '120x120' },
+            { url: '/apple/apple-touch-icon-152x152.png', sizes: '152x152' },
+            { url: '/apple/apple-touch-icon-167x167.png', sizes: '167x167' },
+            { url: '/apple/apple-touch-icon-180x180.png', sizes: '180x180' },
+          ],
     },
   };
 }
