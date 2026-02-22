@@ -175,7 +175,7 @@ export function HeaderVariant1() {
 
       {/* ══════════ ROW 2 — Main Bar (Dynamic from theme) ══════════ */}
       <div className="border-b shadow-sm" style={{ backgroundColor: 'hsl(var(--header-main-bg))' }}>
-        <div className="container flex h-[100px] items-center gap-6">
+        <div className="container flex h-[100px] items-center gap-2 lg:gap-6">
           {/* Mobile hamburger */}
           <button
             className="flex items-center justify-center rounded-lg p-2 text-foreground lg:hidden"
@@ -185,17 +185,17 @@ export function HeaderVariant1() {
           </button>
 
           {/* Logo */}
-          <Link href={ROUTES.HOME} className="flex shrink-0 items-center">
+          <Link href={ROUTES.HOME} className="flex min-w-0 shrink items-center">
             {siteInfo?.com_site_logo && !logoError ? (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={siteInfo.com_site_logo}
                 alt={siteInfo?.com_site_title || 'Logo'}
-                className="h-16 w-auto object-contain"
+                className="h-12 w-auto max-w-[140px] object-contain lg:h-16 lg:max-w-none"
                 onError={() => setLogoError(true)}
               />
             ) : (
-              <span className="text-[28px] font-bold text-primary">
+              <span className="truncate text-xl font-bold text-primary lg:text-[28px]">
                 {siteInfo?.com_site_title || 'Sportoonline'}
               </span>
             )}
@@ -234,7 +234,7 @@ export function HeaderVariant1() {
           </form>
 
           {/* Right Action Icons */}
-          <div className="flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-3">
             {/* Language switcher (mobile only) */}
             <div className="lg:hidden">
               <LanguageSwitcher />

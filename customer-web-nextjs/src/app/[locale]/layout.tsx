@@ -222,7 +222,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
           <QueryProvider>
             <NextThemesProvider attribute="class" defaultTheme="light" enableSystem={false}>
               <ThemeProvider>
-                <div className="flex min-h-screen flex-col">
+                <div className="flex min-h-screen flex-col overflow-x-hidden">
                   <Header />
                   <main className="flex-1">{children}</main>
                   <Footer />
