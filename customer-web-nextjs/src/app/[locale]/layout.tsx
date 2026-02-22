@@ -145,7 +145,12 @@ export async function generateMetadata({ params }: LayoutProps): Promise<Metadat
     },
     icons: {
       icon: settings?.com_site_favicon || '/favicon.ico',
-      apple: '/apple-touch-icon.png',
+      apple: [
+        { url: '/apple/apple-touch-icon-120x120.png', sizes: '120x120' },
+        { url: '/apple/apple-touch-icon-152x152.png', sizes: '152x152' },
+        { url: '/apple/apple-touch-icon-167x167.png', sizes: '167x167' },
+        { url: '/apple/apple-touch-icon-180x180.png', sizes: '180x180' },
+      ],
     },
   };
 }
