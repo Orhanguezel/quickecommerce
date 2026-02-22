@@ -184,8 +184,8 @@ export function HeaderVariant1() {
             <Menu className="h-5 w-5 lg:h-6 lg:w-6" />
           </button>
 
-          {/* Logo */}
-          <Link href={ROUTES.HOME} className="flex shrink-0 items-center justify-start">
+          {/* Logo — mobile: flex-1 centered | tablet+: fixed left */}
+          <Link href={ROUTES.HOME} className="flex flex-1 items-center justify-center md:flex-none md:justify-start">
             {siteInfo?.com_site_logo && !logoError ? (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img
@@ -234,7 +234,7 @@ export function HeaderVariant1() {
           </form>
 
           {/* Right Action Icons */}
-          <div className="ml-auto flex items-center gap-1.5 md:ml-0 lg:gap-3">
+          <div className="flex shrink-0 items-center gap-1.5 lg:gap-3">
             {/* Wishlist */}
             <Link
               href={ROUTES.WISHLIST}
