@@ -96,7 +96,7 @@ class GdeliveryService
             'senderAddressID' => (string) $senderAddressId,
             'recipientAddress' => [
                 'name'        => $recipientName,
-                'phone'       => $orderAddress->contact_number,
+                'phone'       => $this->normalizePhone($orderAddress->contact_number),
                 'address1'    => $orderAddress->address,
                 'cityName'    => $this->getCityName($orderAddress->address),
                 'countryCode' => 'TR',
@@ -207,6 +207,25 @@ class GdeliveryService
     public function listCities(): array
     {
         return $this->getClient()->geo()->listCities('TR');
+    }
+
+    /**
+     * Telefon numarasını Geliver'ın beklediği +90XXXXXXXXXX formatına normalize et.
+     */
+    private function normalizePhone(string $phone): string
+    {
+        $phone = preg_replace('/[\s\-\(\)]/', '', $phone);
+
+        // 05XXXXXXXXX → +905XXXXXXXXX
+        if (preg_match('/^0(\d{10})$/', $phone, $m)) {
+            return '+90' . $m[1];
+        }
+        // 5XXXXXXXXX → +905XXXXXXXXX
+        if (preg_match('/^(\d{10})$/', $phone, $m)) {
+            return '+90' . $m[1];
+        }
+
+        return $phone;
     }
 
     /**
