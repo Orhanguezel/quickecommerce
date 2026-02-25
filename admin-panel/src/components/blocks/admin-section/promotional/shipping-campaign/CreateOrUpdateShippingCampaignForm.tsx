@@ -79,7 +79,7 @@ export default function CreateOrUpdateShippingCampaignForm({ data }: { data?: an
     COLOR_FIELDS.reduce((acc, f) => ({ ...acc, [f.key]: false }), {} as any)
   );
   const [campaignImage, setCampaignImage] = useState<UploadedImage | null>(
-    data?.image_url ? { url: data.image_url, id: 0 } : null
+    data?.image_url ? { url: data.image_url, id: "0" } : null
   );
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
 
