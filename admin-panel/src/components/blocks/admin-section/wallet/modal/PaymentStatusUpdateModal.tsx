@@ -9,18 +9,18 @@ interface StatusUpdateModalProps {
   refetch: () => void;
   row: any;
 }
-const StatusList = [
-  { label: "Paid", value: "paid" },
-  { label: "Pending", value: "pending" },
-  { label: "Failed", value: "failed" },
-];
-
 const PaymentStatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
   trigger,
   refetch,
   row,
 }) => {
   const t = useTranslations();
+
+  const StatusList = [
+    { label: t("common.paid"),    value: "paid" },
+    { label: t("common.pending"), value: "pending" },
+    { label: t("common.failed"),  value: "failed" },
+  ];
   const { mutate: updateStoreStatus } = usePaymentStatusChange();
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);

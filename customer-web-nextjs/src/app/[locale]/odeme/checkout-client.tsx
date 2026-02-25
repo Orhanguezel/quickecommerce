@@ -10,10 +10,12 @@ import {
   useAddressListQuery,
   useAddAddressMutation,
   useCheckCouponMutation,
+  useCheckoutExtraInfoQuery,
   useCreateIyzicoSessionMutation,
   usePlaceOrderMutation,
   usePaymentGatewaysQuery,
 } from "@/modules/checkout/checkout.service";
+import { useWalletInfoQuery } from "@/modules/wallet/wallet.service";
 import { useProfileQuery } from "@/modules/profile/profile.service";
 import type {
   CustomerAddress,
@@ -74,6 +76,8 @@ export function CheckoutClient({ translations: t }: Props) {
   const items = useCartStore((s) => s.items);
   const totalPrice = useCartStore((s) => s.totalPrice);
   const clearCart = useCartStore((s) => s.clearCart);
+  const productIds = items.map((item) => item.product_id).filter(Boolean) as number[];
+  const { data: checkoutExtraInfo } = useCheckoutExtraInfoQuery(productIds);
 
   // State
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(
@@ -113,6 +117,7 @@ export function CheckoutClient({ translations: t }: Props) {
   const createIyzicoSessionMutation = useCreateIyzicoSessionMutation();
   const { data: paymentGateways, isLoading: gatewaysLoading } =
     usePaymentGatewaysQuery();
+  const { data: walletData } = useWalletInfoQuery();
 
   const checkoutPaymentGateways = useMemo(
     () =>
@@ -152,7 +157,18 @@ export function CheckoutClient({ translations: t }: Props) {
   // Calculations
   const subtotal = totalPrice();
   const couponDiscount = appliedCoupon?.discount ?? 0;
-  const total = Math.max(0, subtotal - couponDiscount);
+  const payableSubtotal = Math.max(0, subtotal - couponDiscount);
+  const freeShippingThreshold = Number(
+    checkoutExtraInfo?.shipping_campaign?.free_shipping_min_order_value ?? 0
+  );
+  const minimumShippingCharge = Number(
+    checkoutExtraInfo?.shipping_campaign?.minimum_shipping_charge ?? 0
+  );
+  const shippingAmount =
+    freeShippingThreshold > 0 && payableSubtotal >= freeShippingThreshold
+      ? 0
+      : minimumShippingCharge;
+  const total = payableSubtotal + shippingAmount;
 
   // Payment failed redirect
   if (paymentStatus === "failed") {
@@ -584,36 +600,57 @@ export function CheckoutClient({ translations: t }: Props) {
                 {t.unsupported_payment_methods_for_checkout}
               </p>
             ) : (
-              <div className="grid gap-3 sm:grid-cols-3">
-                {checkoutPaymentGateways.map((gw: PaymentGateway) => {
-                  const IconComponent = gatewayIconMap[gw.slug] ?? CreditCard;
-                  return (
-                    <button
-                      key={gw.slug}
-                      type="button"
-                      onClick={() => setPaymentMethod(gw.slug)}
-                      className={`flex items-center gap-3 rounded-lg border p-4 transition-colors ${
-                        paymentMethod === gw.slug
-                          ? "border-primary bg-primary/5 ring-1 ring-primary"
-                          : "hover:border-primary/50"
-                      }`}
-                    >
-                      {gw.image_url ? (
-                        <Image
-                          src={gw.image_url}
-                          alt={gw.name}
-                          width={24}
-                          height={24}
-                          className="h-6 w-6 object-contain"
-                        />
-                      ) : (
-                        <IconComponent className="h-5 w-5" />
-                      )}
-                      <span className="text-sm font-medium">{gw.name}</span>
-                    </button>
-                  );
-                })}
-              </div>
+              <>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {checkoutPaymentGateways.map((gw: PaymentGateway) => {
+                    const IconComponent = gatewayIconMap[gw.slug] ?? CreditCard;
+                    const walletBalance = walletData?.wallets?.total_balance ?? 0;
+                    const isWallet = gw.slug === "wallet";
+                    const hasInsufficientBalance = isWallet && walletBalance < total;
+                    return (
+                      <button
+                        key={gw.slug}
+                        type="button"
+                        onClick={() => setPaymentMethod(gw.slug)}
+                        className={`flex flex-col items-start gap-1 rounded-lg border p-4 transition-colors ${
+                          paymentMethod === gw.slug
+                            ? "border-primary bg-primary/5 ring-1 ring-primary"
+                            : "hover:border-primary/50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          {gw.image_url ? (
+                            <Image
+                              src={gw.image_url}
+                              alt={gw.name}
+                              width={24}
+                              height={24}
+                              className="h-6 w-6 object-contain"
+                            />
+                          ) : (
+                            <IconComponent className="h-5 w-5" />
+                          )}
+                          <span className="text-sm font-medium">{gw.name}</span>
+                        </div>
+                        {isWallet && (
+                          <span className={`text-xs ${hasInsufficientBalance ? "text-destructive" : "text-muted-foreground"}`}>
+                            {t.currency}{walletBalance.toFixed(2)}
+                            {hasInsufficientBalance ? " (Yetersiz)" : ""}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {paymentMethod === "wallet" && (walletData?.wallets?.total_balance ?? 0) < total && (
+                  <div className="mt-3 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                    {"Cüzdan bakiyeniz ("}{t.currency}{(walletData?.wallets?.total_balance ?? 0).toFixed(2)}
+                    {") sipariş tutarından ("}{t.currency}{total.toFixed(2)}
+                    {") düşük. Lütfen önce cüzdanınıza para yükleyin."}
+                  </div>
+                )}
+              </>
             )}
           </section>
 
@@ -729,7 +766,10 @@ export function CheckoutClient({ translations: t }: Props) {
                 )}
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">{t.shipping}</span>
-                  <span className="text-sm text-muted-foreground">-</span>
+                  <span>
+                    {t.currency}
+                    {shippingAmount.toFixed(2)}
+                  </span>
                 </div>
                 <hr />
                 <div className="flex justify-between text-lg font-bold">
@@ -749,7 +789,8 @@ export function CheckoutClient({ translations: t }: Props) {
                   placeOrderMutation.isPending ||
                   createIyzicoSessionMutation.isPending ||
                   !paymentMethod ||
-                  (!selectedAddressId && paymentMethod !== "takeaway")
+                  (!selectedAddressId && paymentMethod !== "takeaway") ||
+                  (paymentMethod === "wallet" && (walletData?.wallets?.total_balance ?? 0) < total)
                 }
               >
                 {placeOrderMutation.isPending ||

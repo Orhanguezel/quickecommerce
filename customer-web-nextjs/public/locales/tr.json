@@ -129,6 +129,7 @@
     "share_connect": "Paylas ve Baglan",
     "days": "gun",
     "cash_on_delivery_note": "Siparisinizi teslimatta odeyebilirsiniz.",
+    "free_shipping_note": "Bu ürün ücretsiz kargo ile gönderilmektedir.",
     "questions_coming_soon": "Soru alani yakinda aktif olacak.",
     "anonymous": "Anonim",
     "decrease_quantity": "Adedi Azalt",
@@ -452,7 +453,13 @@
     "type_debit": "Giden",
     "status_pending": "Beklemede",
     "status_paid": "Tamamlandı",
-    "status_failed": "Başarısız"
+    "status_failed": "Başarısız",
+    "add_money": "Para Yükle",
+    "deposit_amount": "Yüklenecek Tutar",
+    "max_deposit": "Maksimum",
+    "pay": "Ödemeye Geç",
+    "pay_with_card": "Kredi / Banka Kartı",
+    "deposit_success": "Ödeme başarıyla tamamlandı. Bakiyeniz güncellendi."
   },
   "support": {
     "support": "Destek",

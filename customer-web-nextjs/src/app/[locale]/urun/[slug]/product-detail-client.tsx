@@ -13,6 +13,7 @@ import {
   Truck,
   RotateCcw,
   ShieldCheck,
+  PackageCheck,
   Minus,
   Plus,
   ShoppingCart,
@@ -27,7 +28,6 @@ import { ProductCard } from "@/components/product/product-card";
 import { useThemeConfig } from "@/modules/theme/use-theme-config";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCartStore, type CartItem } from "@/stores/cart-store";
-import { useTranslations } from "next-intl";
 import {
   useWishlistRemoveMutation,
   useWishlistToggleMutation,
@@ -70,6 +70,7 @@ interface ProductDetailTranslations {
   share_connect: string;
   days: string;
   cash_on_delivery_note: string;
+  free_shipping_note: string;
   questions_coming_soon: string;
   anonymous: string;
   decrease_quantity: string;
@@ -131,9 +132,9 @@ export function ProductDetailClient({
       ? Number(product.price)
       : null;
 
-  const specialPrice = selectedVariant?.special_price
+  const specialPrice = selectedVariant?.special_price && Number(selectedVariant.special_price) > 0
     ? Number(selectedVariant.special_price)
-    : product.special_price != null
+    : product.special_price != null && Number(product.special_price) > 0
       ? Number(product.special_price)
       : null;
 
@@ -169,32 +170,18 @@ export function ProductDetailClient({
     Math.max(allImages.length - 1, 0)
   );
 
+  const isChangeOfMindEnabled = product.allow_change_in_mind === 1 || product.allow_change_in_mind === "1";
+  const isCashOnDeliveryEnabled = product.cash_on_delivery === 1 || product.cash_on_delivery === "1";
+  const isFreeShippingEnabled = product.free_shipping === 1 || product.free_shipping === "1";
+
   const infoRows = [
     { label: t.sku, value: selectedVariant?.sku || String(product.id) },
     { label: t.category, value: product.category?.category_name || "-" },
-    { label: t.stock, value: String(stock) },
-    {
-      label: t.change_of_mind_allowed,
-      value:
-        product.allow_change_in_mind === 1 || product.allow_change_in_mind === "1"
-          ? t.yes
-          : t.no,
-    },
-    {
-      label: t.cash_on_delivery,
-      value:
-        product.cash_on_delivery === 1 || product.cash_on_delivery === "1"
-          ? t.yes
-          : t.no,
-    },
-    {
-      label: t.available_start_time,
-      value: product.available_time_starts || "-",
-    },
-    {
-      label: t.available_end_time,
-      value: product.available_time_ends || "-",
-    },
+    ...(isChangeOfMindEnabled ? [{ label: t.change_of_mind_allowed, value: t.yes }] : []),
+    ...(isCashOnDeliveryEnabled ? [{ label: t.cash_on_delivery, value: t.yes }] : []),
+    ...(isFreeShippingEnabled ? [{ label: t.free_shipping, value: t.yes }] : []),
+    ...(product.available_time_starts ? [{ label: t.available_start_time, value: product.available_time_starts }] : []),
+    ...(product.available_time_ends ? [{ label: t.available_end_time, value: product.available_time_ends }] : []),
   ];
 
   const variantOptions = useMemo(() => {
@@ -615,13 +602,24 @@ export function ProductDetailClient({
                   </div>
                 </div>
               )}
-              {(product.cash_on_delivery === 1 || product.cash_on_delivery === "1") && (
+              {isCashOnDeliveryEnabled && (
                 <div className="flex items-start gap-3">
                   <ShieldCheck className="mt-0.5 h-4 w-4 text-primary" />
                   <div>
                     <p className="text-sm font-semibold">{t.cash_on_delivery}</p>
                     <p className="text-sm text-muted-foreground">
                       {t.cash_on_delivery_note}
+                    </p>
+                  </div>
+                </div>
+              )}
+              {isFreeShippingEnabled && (
+                <div className="flex items-start gap-3">
+                  <PackageCheck className="mt-0.5 h-4 w-4 text-primary" />
+                  <div>
+                    <p className="text-sm font-semibold">{t.free_shipping}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t.free_shipping_note}
                     </p>
                   </div>
                 </div>

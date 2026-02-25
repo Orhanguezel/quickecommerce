@@ -24,6 +24,7 @@ SystemCommissionSeeder extends Seeder
                 'default_order_commission_rate' => 1.00,
                 'default_delivery_commission_charge' => 1.00,
                 'order_shipping_charge' => 1.00,
+                'free_shipping_min_order_value' => 1000.00,
                 'order_confirmation_by' => "store",
                 'order_include_tax_amount' => true,
                 'order_additional_charge_enable_disable' => true,

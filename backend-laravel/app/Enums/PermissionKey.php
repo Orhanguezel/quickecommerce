@@ -32,6 +32,7 @@ enum PermissionKey: string
     case ADMIN_STORE_APPROVAL = '/admin/store/approval';
     case ADMIN_PROMOTIONAL_FLASH_SALE_MANAGE = '/admin/promotional/flash-deals/list';
     case ADMIN_PROMOTIONAL_FLASH_SALE_JOIN_DEALS = '/admin/promotional/flash-deals/join-request';
+    case ADMIN_PROMOTIONAL_SHIPPING_CAMPAIGN = '/admin/promotional/shipping-campaign/list';
     case ADMIN_PROMOTIONAL_BANNER_MANAGE = '/admin/promotional/banner/list';
     case ADMIN_AREA_LIST = '/admin/area';
     case ADMIN_AREA_ADD = '/admin/area/add-area';

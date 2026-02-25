@@ -237,6 +237,14 @@ export const API_ENDPOINTS = {
   JOIN_REQUEST_APPROVE: "v1/admin/promotional/flash-deals/join-request/approve",
   JOIN_REQUEST_REJECT: "v1/admin/promotional/flash-deals/join-request/reject",
 
+  // admin shipping campaigns
+  SHIPPING_CAMPAIGN_LIST: "v1/admin/promotional/shipping-campaign/list",
+  SHIPPING_CAMPAIGN_ADD: "v1/admin/promotional/shipping-campaign/add",
+  SHIPPING_CAMPAIGN_EDIT: "v1/admin/promotional/shipping-campaign/details",
+  SHIPPING_CAMPAIGN_UPDATE: "v1/admin/promotional/shipping-campaign/update",
+  SHIPPING_CAMPAIGN_STATUS_UPDATE: "v1/admin/promotional/shipping-campaign/change-status",
+  SHIPPING_CAMPAIGN_DELETE: "v1/admin/promotional/shipping-campaign/remove",
+
   DELIVERYMAN_LIST: "v1/admin/deliveryman/list",
   DELIVERYMAN_REQUEST_LIST: "v1/admin/deliveryman/request",
   DELIVERYMAN_APPROVE: "v1/admin/deliveryman/handle-request",

@@ -27,7 +27,7 @@ import {
   Store,
   MapPin,
 } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef, useSyncExternalStore } from 'react';
 import Image from 'next/image';
 import type { Category, MenuItem } from '@/modules/site/site.type';
 
@@ -45,7 +45,7 @@ export function HeaderVariant1() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const { selectedArea, openSelector } = useLocationStore();
 
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [catOpen, setCatOpen] = useState(false);
@@ -55,10 +55,6 @@ export function HeaderVariant1() {
   const [logoError, setLogoError] = useState(false);
   const catDropdownRef = useRef<HTMLDivElement>(null);
   const catListRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

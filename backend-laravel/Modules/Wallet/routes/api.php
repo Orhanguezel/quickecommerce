@@ -2,6 +2,7 @@
 
 use App\Enums\PermissionKey;
 use App\Http\Controllers\Api\V1\HmacGenerateController;
+use App\Http\Controllers\Api\V1\IyzicoPaymentController;
 use App\Http\Controllers\Api\V1\StripePaymentController;
 use App\Http\Controllers\Api\V1\StripeWebhookController;
 use Illuminate\Support\Facades\Route;
@@ -52,7 +53,9 @@ Route::middleware(['auth:sanctum','detect.platform'])->prefix('v1')->group(funct
         Route::get('/generate-hmac', [HmacGenerateController::class, 'generateHmac']);
         Route::post('/create-stripe-session', [StripePaymentController::class, 'createCheckoutSessionForWallet']);
         Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhookForWallet']);
+        Route::post('/create-iyzico-session', [IyzicoPaymentController::class, 'createCheckoutSessionForWallet']);
     });
+
 
     Route::get('withdraw/gateway-method-list', [SellerAndDeliverymanWithdrawController::class, 'withdrawGatewayList']);
 });

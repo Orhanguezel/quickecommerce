@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { FlashDeal } from "@/modules/flash-deal/flash-deal.type";
+import type { ShippingCampaign } from "@/modules/shipping-campaign/shipping-campaign.type";
 import { CampaignsPageClient } from "./campaigns-client";
 
 interface Props {
@@ -16,6 +17,10 @@ interface FlashDealsResponse {
     last_page?: number;
   };
   last_page?: number;
+}
+
+interface ShippingCampaignsResponse {
+  data?: ShippingCampaign[];
 }
 
 async function getCampaigns(locale: string, page: number) {
@@ -32,6 +37,19 @@ async function getCampaigns(locale: string, page: number) {
     };
   } catch {
     return { campaigns: [] as FlashDeal[], totalPages: 0 };
+  }
+}
+
+async function getShippingCampaigns(locale: string): Promise<ShippingCampaign[]> {
+  try {
+    const res = await fetchAPI<ShippingCampaignsResponse>(
+      API_ENDPOINTS.SHIPPING_CAMPAIGNS_ACTIVE,
+      {},
+      locale
+    );
+    return (res?.data ?? []) as ShippingCampaign[];
+  } catch {
+    return [];
   }
 }
 
@@ -54,7 +72,10 @@ export default async function CampaignsPage({ params, searchParams }: Props) {
   const sp = await searchParams;
   const page = Number(sp.page) || 1;
 
-  const data = await getCampaigns(locale, page);
+  const [data, shippingCampaigns] = await Promise.all([
+    getCampaigns(locale, page),
+    getShippingCampaigns(locale),
+  ]);
 
   const commonT = await getTranslations({ locale, namespace: "common" });
   const campaignsT = await getTranslations({ locale, namespace: "campaigns" });
@@ -62,6 +83,7 @@ export default async function CampaignsPage({ params, searchParams }: Props) {
   return (
     <CampaignsPageClient
       campaigns={data.campaigns}
+      shippingCampaigns={shippingCampaigns}
       currentPage={page}
       totalPages={data.totalPages}
       translations={{

@@ -20,32 +20,21 @@ class StoreAreaSettingsSeeder extends Seeder
         }
 
         $defaults = [
-            'delivery_time_per_km' => 2,
-            'min_order_delivery_fee' => 10,
-            'out_of_area_delivery_charge' => 500,
-            'delivery_charge_method' => 'fixed',
-            'fixed_charge_amount' => 100,
-            'per_km_charge_amount' => 10,
+            'delivery_time_per_km'       => 2,
+            'min_order_delivery_fee'     => 0,    // No forced minimum — let fixed_charge_amount take effect
+            'out_of_area_delivery_charge' => 0,   // No extra charge for out-of-area (national shipping via cargo)
+            'delivery_charge_method'     => 'fixed',
+            'fixed_charge_amount'        => 49,   // 49 TL flat shipping fee
+            'per_km_charge_amount'       => 5,    // Per-km rate (used only if method=per_km)
         ];
 
         $areas = StoreArea::query()->select('id')->get();
 
         foreach ($areas as $area) {
-            $setting = StoreAreaSetting::firstOrCreate(
+            StoreAreaSetting::updateOrCreate(
                 ['store_area_id' => $area->id],
                 $defaults
             );
-
-            $updates = [];
-            foreach ($defaults as $key => $value) {
-                if ($setting->{$key} === null || $setting->{$key} === '') {
-                    $updates[$key] = $value;
-                }
-            }
-
-            if (!empty($updates)) {
-                $setting->fill($updates)->save();
-            }
         }
 
         $this->command->info('StoreAreaSettingsSeeder: area settings ensured for all store areas.');

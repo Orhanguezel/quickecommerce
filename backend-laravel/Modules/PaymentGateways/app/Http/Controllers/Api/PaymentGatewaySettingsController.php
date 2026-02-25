@@ -54,8 +54,8 @@ class PaymentGatewaySettingsController extends Controller
                 ], 400);
             }
 
-            // if cash on delivery update
-            if ($gateway->slug === 'cash_on_delivery') {
+            // if cash on delivery or wallet (no credentials) update
+            if (in_array($gateway->slug, ['cash_on_delivery', 'wallet'], true)) {
                 $gateway->update([
                     'image' => $request->get('image', $gateway->image),
                     'description' => $request->get('description', $gateway->description),

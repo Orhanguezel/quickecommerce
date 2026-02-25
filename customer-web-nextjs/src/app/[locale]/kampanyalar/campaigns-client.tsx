@@ -3,6 +3,7 @@
 import { Link } from "@/i18n/routing";
 import { ChevronRight, Megaphone } from "lucide-react";
 import type { FlashDeal } from "@/modules/flash-deal/flash-deal.type";
+import type { ShippingCampaign } from "@/modules/shipping-campaign/shipping-campaign.type";
 import { CountdownTimer } from "@/components/home/countdown-timer";
 
 interface CampaignsTranslations {
@@ -16,6 +17,7 @@ interface CampaignsTranslations {
 
 interface CampaignsPageClientProps {
   campaigns: FlashDeal[];
+  shippingCampaigns?: ShippingCampaign[];
   currentPage: number;
   totalPages: number;
   translations: CampaignsTranslations;
@@ -67,6 +69,69 @@ function CampaignAction({
     <Link href={href} className={className} style={style}>
       {text}
     </Link>
+  );
+}
+
+function ShippingCampaignCard({ campaign }: { campaign: ShippingCampaign }) {
+  const minOrderFormatted = Number.isInteger(campaign.min_order_value)
+    ? String(campaign.min_order_value)
+    : campaign.min_order_value.toFixed(0);
+
+  return (
+    <div
+      className="group relative overflow-hidden rounded-2xl border border-border/60"
+      style={{ backgroundColor: campaign.background_color || "#1B4B8B" }}
+    >
+      {/* Free shipping badge — same style as flash deal discount badge */}
+      <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
+        <div className="rounded-2xl bg-[radial-gradient(circle_at_30%_20%,#bfdbfe_0%,#2563eb_38%,#1e3a8a_100%)] px-7 py-4 text-center text-xl font-black tracking-[0.08em] text-white shadow-[0_16px_36px_rgba(30,58,138,0.45)] ring-2 ring-white/90 backdrop-blur-[1px] animate-pulse">
+          KARGO BEDAVA!
+        </div>
+      </div>
+
+      <div className="relative p-5">
+        {campaign.image_url && (
+          <div
+            className="absolute inset-0 opacity-20"
+            style={{
+              backgroundImage: `url(${campaign.image_url})`,
+              backgroundPosition: "center",
+              backgroundSize: "cover",
+            }}
+          />
+        )}
+
+        <div className="relative z-10 flex min-h-[230px] flex-col justify-between">
+          <div>
+            <h2
+              className="text-xl font-bold leading-tight"
+              style={{ color: campaign.title_color || "#FFFFFF" }}
+            >
+              {campaign.title}
+            </h2>
+            {campaign.description && (
+              <p
+                className="mt-2 line-clamp-3 text-sm"
+                style={{ color: campaign.description_color || "#E8F0FE" }}
+              >
+                {campaign.description}
+              </p>
+            )}
+          </div>
+
+          <div className="mt-5 flex flex-wrap items-center justify-end gap-3">
+            {campaign.button_text && campaign.button_url && (
+              <CampaignAction
+                href={campaign.button_url}
+                text={campaign.button_text}
+                backgroundColor={campaign.button_bg_color}
+                textColor={campaign.button_text_color}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -140,6 +205,7 @@ function CampaignCard({ campaign }: { campaign: FlashDeal }) {
 
 export function CampaignsPageClient({
   campaigns,
+  shippingCampaigns = [],
   currentPage,
   totalPages,
   translations: t,
@@ -150,6 +216,8 @@ export function CampaignsPageClient({
     const query = params.toString();
     return `/kampanyalar${query ? `?${query}` : ""}`;
   }
+
+  const hasAnyCampaign = shippingCampaigns.length > 0 || campaigns.length > 0;
 
   return (
     <div className="container py-8">
@@ -166,8 +234,13 @@ export function CampaignsPageClient({
         <p className="mt-1 text-sm text-muted-foreground">{t.subtitle}</p>
       </div>
 
-      {campaigns.length > 0 ? (
+      {hasAnyCampaign ? (
         <div className="grid gap-5 md:grid-cols-2">
+          {/* Shipping campaigns first */}
+          {shippingCampaigns.map((campaign) => (
+            <ShippingCampaignCard key={`shipping-${campaign.id}`} campaign={campaign} />
+          ))}
+          {/* Flash deal campaigns */}
           {campaigns.map((campaign) => (
             <CampaignCard key={campaign.id} campaign={campaign} />
           ))}

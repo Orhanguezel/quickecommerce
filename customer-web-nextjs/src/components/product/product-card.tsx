@@ -69,6 +69,7 @@ export function ProductCard({
   const hasDiscount = displayPrice != null && price != null && displayPrice < price;
 
   const addItem = useCartStore((s) => s.addItem);
+  const openDrawer = useCartStore((s) => s.openDrawer);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const router = useRouter();
   const wishlistToggle = useWishlistToggleMutation();
@@ -85,15 +86,10 @@ export function ProductCard({
     e.stopPropagation();
     if (displayPrice == null) return;
     const defaultVariant = product.singleVariant?.[0];
-    // Multi-variant products: go to detail page to pick variant
-    if (!defaultVariant) {
-      router.push(`/urun/${product.slug}`);
-      return;
-    }
     const cartItem: CartItem = {
       id: product.id,
       product_id: product.id,
-      variant_id: defaultVariant.id,
+      variant_id: defaultVariant?.id,
       store_id: product.store_id ?? product.store?.id ?? undefined,
       name: product.name,
       slug: product.slug,
@@ -104,6 +100,7 @@ export function ProductCard({
       max_cart_qty: product.max_cart_qty || 99,
     };
     addItem(cartItem);
+    openDrawer();
   };
 
   const handleWishlistToggle = (e: React.MouseEvent) => {

@@ -20,6 +20,7 @@ class AdminCommissionManageController extends Controller
                 'default_order_commission_rate' => 'nullable|numeric|min:0',
                 'default_delivery_commission_charge' => 'nullable|numeric|min:0',
                 'order_shipping_charge' => 'nullable|numeric|min:0',
+                'free_shipping_min_order_value' => 'nullable|numeric|min:0',
                 'order_confirmation_by' => 'nullable|string|max:255',
                 'order_include_tax_amount' => 'nullable|boolean',
                 'order_additional_charge_enable_disable' => 'nullable|boolean',

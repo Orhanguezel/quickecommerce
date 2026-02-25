@@ -14,6 +14,7 @@ use App\Services\OrderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Modules\Wallet\app\Models\Wallet;
+use Modules\Wallet\app\Models\WalletTransaction;
 
 class PlaceOrderController extends Controller
 {
@@ -78,7 +79,7 @@ class PlaceOrderController extends Controller
         try {
             if ($orders) {
                 if ($order_master['payment_gateway'] === 'wallet') {
-                    $success = $this->updateWallet($order_master['order_amount']);
+                    $success = $this->updateWallet($order_master['order_amount'], $order_master);
                     if ($success) {
                         OrderMaster::where('id', $order_master['id'])->update([
                             'payment_gateway' => 'wallet',
@@ -144,7 +145,7 @@ class PlaceOrderController extends Controller
         return true;
     }
 
-    private function updateWallet($order_amount)
+    private function updateWallet($order_amount, $order_master = null)
     {
         $customer = auth()->guard('api_customer')->user();
 
@@ -164,8 +165,26 @@ class PlaceOrderController extends Controller
             ], 422);
         }
 
-        $wallet->balance -= $order_amount;
+        $wallet->balance   -= $order_amount;
+        $wallet->withdrawn  = ($wallet->withdrawn ?? 0) + $order_amount;
         $wallet->save();
+
+        $orderId      = $order_master?->id ?? null;
+        $currencyCode = $order_master?->currency_code ?? $order_master?->default_currency_code ?? 'TRY';
+
+        WalletTransaction::create([
+            'wallet_id'           => $wallet->id,
+            'transaction_ref'     => $orderId ? 'ORDER-' . $orderId : null,
+            'transaction_details' => $orderId ? 'Sipariş #' . $orderId . ' ödemesi' : 'Sipariş ödemesi',
+            'amount'              => $order_amount,
+            'type'                => 'debit',
+            'purpose'             => 'order_payment',
+            'payment_gateway'     => 'wallet',
+            'payment_status'      => 'paid',
+            'status'              => 1,
+            'currency_code'       => $currencyCode,
+            'exchange_rate'       => 1,
+        ]);
 
         return $wallet;
     }

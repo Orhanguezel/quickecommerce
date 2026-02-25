@@ -97,6 +97,10 @@ export const Routes = {
   addStoreType: "/admin/business-operations/store-type/add",
   editStoreType: "/admin/business-operations/store-type/update",
 
+  commissionSettings: "/admin/business-operations/commission/settings",
+  shippingChargeSettings: "/admin/business-operations/commission/shipping",
+  taxSettings: "/admin/business-operations/commission/tax",
+
   attributeList: "/admin/attribute/list",
   addAttribute: "/admin/attribute/add",
   editAttribute: "/admin/attribute/edit",
@@ -105,6 +109,10 @@ export const Routes = {
   addFlashDeals: "/admin/promotional/flash-deals/add",
   editFlashDeals: "/admin/promotional/flash-deals/edit",
   flashDealDetails: "/admin/promotional/flash-deals/details",
+
+  shippingCampaignList: "/admin/promotional/shipping-campaign/list",
+  addShippingCampaign: "/admin/promotional/shipping-campaign/add",
+  editShippingCampaign: "/admin/promotional/shipping-campaign/edit",
 
   deliverymanList: "/admin/deliveryman/list",
   addDeliveryman: "/admin/deliveryman/add",

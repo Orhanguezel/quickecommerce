@@ -27,6 +27,7 @@ export default async function AccountPage({ params }: Props) {
   const checkoutT = await getTranslations({ locale, namespace: "checkout" });
   const orderT = await getTranslations({ locale, namespace: "order" });
   const supportT = await getTranslations({ locale, namespace: "support" });
+  const walletT = await getTranslations({ locale, namespace: "wallet" });
 
   return (
     <AccountClient
@@ -113,6 +114,24 @@ export default async function AccountPage({ params }: Props) {
         view_conversation: supportT("view_conversation"),
         type_message: supportT("type_message"),
         resolve_ticket: supportT("resolve_ticket"),
+        // Wallet
+        wallet: walletT("wallet"),
+        wallet_balance: walletT("balance"),
+        wallet_total_earnings: walletT("total_earnings"),
+        wallet_total_withdrawn: walletT("total_withdrawn"),
+        wallet_transactions: walletT("transactions"),
+        wallet_no_transactions: walletT("no_transactions"),
+        wallet_credit: walletT("filter_credit"),
+        wallet_debit: walletT("filter_debit"),
+        wallet_status_pending: walletT("status_pending"),
+        wallet_status_paid: walletT("status_paid"),
+        wallet_status_failed: walletT("status_failed"),
+        wallet_add_money: walletT("add_money"),
+        wallet_deposit_amount: walletT("deposit_amount"),
+        wallet_max_deposit: walletT("max_deposit"),
+        wallet_pay: walletT("pay"),
+        wallet_pay_with_card: walletT("pay_with_card"),
+        wallet_deposit_success: walletT("deposit_success"),
         // Common
         home: commonT("home"),
         loading: commonT("loading"),

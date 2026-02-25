@@ -59,6 +59,7 @@ use App\Models\Slider;
 use App\Models\Store;
 use App\Models\StoreArea;
 use App\Models\StoreType;
+use App\Models\ShippingCampaign;
 use App\Models\SystemCommission;
 use App\Models\Tag;
 use App\Models\Translation;
@@ -1052,6 +1053,28 @@ class FrontendController extends Controller
             'data' => FlashSaleWithProductPublicResource::collection($flashSaleProducts)
         ], 200);
 
+    }
+
+    public function getActiveShippingCampaigns()
+    {
+        $campaigns = ShippingCampaign::where('status', true)->get()->map(function ($c) {
+            return [
+                'id'               => $c->id,
+                'title'            => $c->title,
+                'description'      => $c->description,
+                'image_url'        => $c->image_url,
+                'background_color' => $c->background_color,
+                'title_color'      => $c->title_color,
+                'description_color'=> $c->description_color,
+                'button_text'      => $c->button_text,
+                'button_text_color'=> $c->button_text_color,
+                'button_bg_color'  => $c->button_bg_color,
+                'button_url'       => $c->button_url,
+                'min_order_value'  => (float) $c->min_order_value,
+            ];
+        });
+
+        return response()->json(['data' => $campaigns]);
     }
 
     public function flashDealProducts(Request $request)
@@ -2331,11 +2354,31 @@ class FrontendController extends Controller
             ->get();
 
         $systemCommissionSettings = SystemCommission::first();
+        if (!$systemCommissionSettings) {
+            $systemCommissionSettings = new SystemCommission([
+                'order_additional_charge_enable_disable' => false,
+                'order_additional_charge_name' => null,
+                'order_additional_charge_amount' => 0,
+                'order_include_tax_amount' => false,
+                'order_shipping_charge' => 0,
+                'free_shipping_min_order_value' => 0,
+            ]);
+        }
 
         $additionalCharge = [
             'order_additional_charge_enable_disable' => $systemCommissionSettings->order_additional_charge_enable_disable,
             'order_additional_charge_name' => $systemCommissionSettings->order_additional_charge_name,
             'order_additional_charge_amount' => $systemCommissionSettings->order_additional_charge_amount,
+        ];
+
+        $activeShippingCampaign = ShippingCampaign::where('status', true)->first();
+        $freeShippingMinValue = $activeShippingCampaign
+            ? (float) $activeShippingCampaign->min_order_value
+            : (float) ($systemCommissionSettings->free_shipping_min_order_value ?? 0);
+
+        $shippingCampaign = [
+            'minimum_shipping_charge' => (float) ($systemCommissionSettings->order_shipping_charge ?? 0),
+            'free_shipping_min_order_value' => $freeShippingMinValue,
         ];
 
         return response()->json([
@@ -2351,6 +2394,7 @@ class FrontendController extends Controller
                 ->values(),
             'flash_sale_products' => FlashSaleAllProductPublicResource::collection($flashDealProducts),
             'additional_charge' => $additionalCharge,
+            'shipping_campaign' => $shippingCampaign,
             'order_include_tax_amount' => $systemCommissionSettings->order_include_tax_amount,
         ]);
     }

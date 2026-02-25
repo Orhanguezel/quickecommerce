@@ -207,7 +207,13 @@ const TransactionHistoryList = ({ startDate, endDate }: any) => {
                         : "bg-gray-50 border border-gray-500 text-gray-500"
                     } capitalize`}
                   >
-                    {payment_status}
+                    {payment_status === "paid"
+                      ? t("common.paid")
+                      : payment_status === "pending"
+                      ? t("common.pending")
+                      : payment_status === "failed"
+                      ? t("common.failed")
+                      : payment_status}
                   </Badge>
                 )}
               </div>

@@ -34,6 +34,7 @@ class Product extends Model
         "return_text",
         "allow_change_in_mind",
         "cash_on_delivery",
+        "free_shipping",
         "delivery_time_min",
         "delivery_time_max",
         "delivery_time_text",

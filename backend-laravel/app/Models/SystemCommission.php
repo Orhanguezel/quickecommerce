@@ -16,6 +16,7 @@ class SystemCommission extends Model
         'default_order_commission_rate',        // Default commission for orders
         'default_delivery_commission_charge',   // Default commission for deliveries
         'order_shipping_charge',                // Shipping charge for orders
+        'free_shipping_min_order_value',        // Free shipping threshold for cart subtotal
         'order_confirmation_by',                // Manual or automatic confirmation
         'order_include_tax_amount',                          // Include tax in order calculations
         'order_additional_charge_enable_disable',            // Enable or disable additional charge

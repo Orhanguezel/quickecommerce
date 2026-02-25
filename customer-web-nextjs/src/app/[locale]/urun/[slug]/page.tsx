@@ -217,6 +217,7 @@ export default async function ProductDetailPage({ params }: Props) {
           share_connect: t("share_connect"),
           days: t("days"),
           cash_on_delivery_note: t("cash_on_delivery_note"),
+          free_shipping_note: t("free_shipping_note"),
           questions_coming_soon: t("questions_coming_soon"),
           anonymous: t("anonymous"),
           decrease_quantity: t("decrease_quantity"),

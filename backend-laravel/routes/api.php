@@ -101,6 +101,7 @@ Route::group(['prefix' => 'v1/'], function () {
         Route::get('/department-list', [FrontendController::class, 'departments']);
         Route::get('/flash-deals', [FrontendController::class, 'flashDeals']);
         Route::get('/flash-deal-products', [FrontendController::class, 'flashDealProducts']);
+        Route::get('/shipping-campaigns/active', [FrontendController::class, 'getActiveShippingCampaigns']);
         Route::get('/product-suggestion', [FrontendController::class, 'searchSuggestions']);
         Route::get('/keyword-suggestion', [FrontendController::class, 'keywordSuggestions']);
         Route::get('/orders/refund-reason-list', [FrontendController::class, 'orderRefundReasons']);
@@ -109,7 +110,7 @@ Route::group(['prefix' => 'v1/'], function () {
         Route::get('/become-a-seller', [FrontendController::class, 'becomeASeller']);
         Route::get('/all/pages', [FrontendController::class, 'pages']);
         Route::get('/store-wise-products', [FrontendController::class, 'storeWiseProducts']);
-        Route::get('/get-check-out-page-extra-info', [FrontendController::class, 'checkOutPageExtraInfo']);
+        Route::post('/get-check-out-page-extra-info', [FrontendController::class, 'checkOutPageExtraInfo']);
         Route::get('/menu', [MenuManageController::class, 'menus']);
         Route::put('/update-location', [LiveLocationController::class, 'updateLocation']);
         Route::post('/track-order-location', [LiveLocationController::class, 'trackOrder']);
@@ -167,6 +168,8 @@ Route::group(['prefix' => 'v1/'], function () {
 
         // iyzico callback (Iyzipay redirects customer here)
         Route::match(['GET', 'POST'], 'iyzico/callback', [IyzicoPaymentController::class, 'callback']);
+        // iyzico wallet deposit callback
+        Route::match(['GET', 'POST'], 'iyzico/wallet-callback', [IyzicoPaymentController::class, 'walletCallback']);
     });
 });
 

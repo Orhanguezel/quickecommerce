@@ -129,6 +129,7 @@
     "share_connect": "Share & Connect",
     "days": "days",
     "cash_on_delivery_note": "You can pay when your order arrives.",
+    "free_shipping_note": "This product ships for free.",
     "questions_coming_soon": "Questions section will be available soon.",
     "anonymous": "Anonymous",
     "decrease_quantity": "Decrease quantity",
@@ -452,7 +453,13 @@
     "type_debit": "Debit",
     "status_pending": "Pending",
     "status_paid": "Completed",
-    "status_failed": "Failed"
+    "status_failed": "Failed",
+    "add_money": "Add Money",
+    "deposit_amount": "Amount to Deposit",
+    "max_deposit": "Maximum",
+    "pay": "Proceed to Payment",
+    "pay_with_card": "Credit / Debit Card",
+    "deposit_success": "Payment completed successfully. Your balance has been updated."
   },
   "support": {
     "support": "Support",

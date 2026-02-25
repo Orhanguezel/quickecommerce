@@ -207,6 +207,232 @@ class IyzicoPaymentController extends Controller
         }
     }
 
+    public function createCheckoutSessionForWallet(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'wallet_id'         => 'required|integer',
+            'wallet_history_id' => 'required|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        $customer = auth()->guard('api_customer')->user();
+
+        $walletHistory = \Modules\Wallet\app\Models\WalletTransaction::with('wallet')
+            ->find((int) $request->wallet_history_id);
+
+        if (! $walletHistory) {
+            return response()->json(['success' => false, 'message' => __('messages.data_not_found')], 404);
+        }
+
+        $wallet = $walletHistory->wallet;
+        if (! $wallet || (int) $wallet->owner_id !== (int) $customer->id) {
+            return response()->json(['success' => false, 'message' => __('messages.access_denied')], 403);
+        }
+
+        if ($walletHistory->payment_status === 'paid') {
+            return response()->json(['success' => false, 'message' => __('messages.order_already_paid')], 400);
+        }
+
+        $gateway         = PaymentGateway::where('slug', 'iyzico')->first();
+        $rawCredentials  = json_decode($gateway?->auth_credentials ?? '{}', true);
+        $rawCredentials  = is_array($rawCredentials) ? $rawCredentials : [];
+
+        $hasApiKey    = $this->hasAnyCredential($rawCredentials, ['api_key', 'iyzico_api_key', 'apiKey']);
+        $hasSecretKey = $this->hasAnyCredential($rawCredentials, ['secret_key', 'iyzico_secret_key', 'secretKey', 'api_secret']);
+
+        if (! $hasApiKey || ! $hasSecretKey) {
+            return response()->json(['success' => false, 'message' => __('messages.iyzico_configuration_missing')], 422);
+        }
+
+        try {
+            $config      = $this->iyzicoService->getCredentials();
+            $credentials = $config['credentials'];
+
+            $callbackUrl = rtrim(config('app.url'), '/') . '/api/v1/iyzico/wallet-callback'
+                . '?wallet_history_id=' . $walletHistory->id;
+
+            $fullName    = trim(($customer->first_name ?? '') . ' ' . ($customer->last_name ?? ''));
+            $addressText = 'Adres belirtilmedi';
+            $city        = 'Istanbul';
+            $country     = 'Turkey';
+            $zipCode     = '34000';
+            $gsm         = (string) ($customer->phone ?? '+905000000000');
+
+            $conversationId = 'wallet_' . $walletHistory->id . '_' . now()->timestamp;
+
+            // Reconstruct the original user-facing amount (stored amount is in system currency)
+            $exchangeRate       = max((float) ($walletHistory->exchange_rate ?? 1), 0.000001);
+            $originalUserAmount = round((float) $walletHistory->amount * $exchangeRate, 2);
+            if ($originalUserAmount <= 0) {
+                $originalUserAmount = (float) $walletHistory->amount;
+            }
+            $amount   = number_format($originalUserAmount, 2, '.', '');
+            $currency = strtoupper((string) ($walletHistory->currency_code ?? 'TRY'));
+            if (! in_array($currency, ['TRY', 'EUR', 'USD', 'GBP', 'IRR', 'NOK', 'RUB', 'CHF'], true)) {
+                $currency = 'TRY';
+            }
+
+            $session = $this->iyzicoService->createCheckoutForm([
+                'locale'          => app()->getLocale() === 'tr' ? 'tr' : 'en',
+                'conversation_id' => $conversationId,
+                'price'           => $amount,
+                'paid_price'      => $amount,
+                'currency'        => $currency,
+                'basket_id'       => 'wallet_' . $walletHistory->id,
+                'callback_url'    => $callbackUrl,
+                'buyer'           => [
+                    'id'                  => (string) $customer->id,
+                    'name'                => (string) ($customer->first_name ?: 'Musteri'),
+                    'surname'             => (string) ($customer->last_name ?: 'User'),
+                    'gsm_number'          => $gsm,
+                    'email'               => (string) ($customer->email ?? 'customer@example.com'),
+                    'identity_number'     => '11111111111',
+                    'last_login_date'     => now()->format('Y-m-d H:i:s'),
+                    'registration_date'   => ($customer->created_at ?? now())->format('Y-m-d H:i:s'),
+                    'registration_address'=> $addressText,
+                    'ip'                  => (string) $request->ip(),
+                    'city'                => $city,
+                    'country'             => $country,
+                    'zip_code'            => $zipCode,
+                ],
+                'shipping_address' => [
+                    'contact_name' => $fullName !== '' ? $fullName : 'Musteri',
+                    'city'         => $city,
+                    'country'      => $country,
+                    'address'      => $addressText,
+                    'zip_code'     => $zipCode,
+                ],
+                'billing_address' => [
+                    'contact_name' => $fullName !== '' ? $fullName : 'Musteri',
+                    'city'         => $city,
+                    'country'      => $country,
+                    'address'      => $addressText,
+                    'zip_code'     => $zipCode,
+                ],
+                'basket_items' => [
+                    [
+                        'id'         => 'WALLET-' . $walletHistory->id,
+                        'name'       => 'Wallet Recharge #' . $walletHistory->id,
+                        'category_1' => 'Wallet',
+                        'category_2' => 'Deposit',
+                        'item_type'  => 'VIRTUAL',
+                        'price'      => $amount,
+                    ],
+                ],
+            ]);
+
+            if ($session->getStatus() !== 'success' || ! $session->getPaymentPageUrl()) {
+                Log::error('Iyzico wallet checkout init failed', [
+                    'wallet_history_id' => $walletHistory->id,
+                    'customer_id'       => $customer->id,
+                    'status'            => $session->getStatus(),
+                    'error_code'        => $session->getErrorCode(),
+                    'error_message'     => $session->getErrorMessage(),
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => __('messages.iyzico_session_create_failed'),
+                    'error'   => $session->getErrorMessage(),
+                ], 422);
+            }
+
+            $walletHistory->payment_gateway = 'iyzico';
+            $walletHistory->transaction_ref = $session->getToken();
+            $walletHistory->save();
+
+            return response()->json([
+                'success' => true,
+                'data'    => [
+                    'checkout_url'      => $session->getPaymentPageUrl(),
+                    'token'             => $session->getToken(),
+                    'wallet_history_id' => $walletHistory->id,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Iyzico wallet session exception', [
+                'wallet_history_id' => $walletHistory->id ?? null,
+                'customer_id'       => $customer->id ?? null,
+                'message'           => $e->getMessage(),
+            ]);
+
+            return response()->json(['success' => false, 'message' => __('messages.iyzico_session_create_failed')], 500);
+        }
+    }
+
+    public function walletCallback(Request $request)
+    {
+        $walletHistoryId = (int) $request->get('wallet_history_id');
+        $token           = (string) $request->get('token', '');
+        $conversationId  = (string) $request->get('conversationId', 'wallet_' . $walletHistoryId);
+
+        $frontendUrl = rtrim(config('app.frontend_url'), '/');
+        $successUrl  = $frontendUrl . '/tr/hesabim?tab=wallet&wallet_success=1';
+        $cancelUrl   = $frontendUrl . '/tr/hesabim?tab=wallet&payment=failed';
+
+        if ($token === '' || $walletHistoryId <= 0) {
+            Log::warning('Iyzico wallet callback missing token/id', [
+                'wallet_history_id' => $walletHistoryId,
+                'has_token'         => $token !== '',
+            ]);
+
+            return redirect()->to($cancelUrl);
+        }
+
+        $walletHistory = \Modules\Wallet\app\Models\WalletTransaction::with('wallet')->find($walletHistoryId);
+        if (! $walletHistory) {
+            return redirect()->to($cancelUrl);
+        }
+
+        try {
+            $result = $this->iyzicoService->retrieveCheckoutForm($token, $conversationId);
+
+            if ($result->getStatus() === 'success' && strtoupper((string) $result->getPaymentStatus()) === 'SUCCESS') {
+                $walletHistory->payment_status = 'paid';
+                $walletHistory->status         = 1;
+                $walletHistory->transaction_ref = (string) ($result->getPaymentId() ?: $token);
+                $walletHistory->save();
+
+                $wallet = $walletHistory->wallet;
+                if ($wallet) {
+                    $wallet->balance  = (float) $wallet->balance + (float) $walletHistory->amount;
+                    $wallet->earnings = (float) $wallet->earnings + (float) $walletHistory->amount;
+                    $wallet->save();
+                }
+
+                Log::info('Iyzico wallet payment verified', [
+                    'wallet_history_id' => $walletHistory->id,
+                    'payment_id'        => $result->getPaymentId(),
+                ]);
+
+                return redirect()->to($successUrl);
+            }
+
+            $walletHistory->payment_status = 'failed';
+            $walletHistory->save();
+
+            Log::warning('Iyzico wallet payment not completed', [
+                'wallet_history_id' => $walletHistory->id,
+                'status'            => $result->getStatus(),
+                'payment_status'    => $result->getPaymentStatus(),
+                'error_code'        => $result->getErrorCode(),
+                'error_message'     => $result->getErrorMessage(),
+            ]);
+
+            return redirect()->to($cancelUrl);
+        } catch (\Throwable $e) {
+            Log::error('Iyzico wallet callback exception', [
+                'wallet_history_id' => $walletHistoryId,
+                'message'           => $e->getMessage(),
+            ]);
+
+            return redirect()->to($cancelUrl);
+        }
+    }
+
     public function callback(Request $request)
     {
         $orderMasterId = (int)$request->get('order_master_id');

@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useBaseService } from "@/lib/base-service";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type {
@@ -51,6 +51,63 @@ export function useWalletTransactionsQuery(params: {
           total: 0,
         },
       };
+    },
+  });
+}
+
+export function useWalletDepositMutation() {
+  const { getAxiosInstance } = useBaseService(API_ENDPOINTS.WALLET_DEPOSIT);
+
+  return useMutation({
+    mutationFn: async (payload: {
+      wallet_id: number;
+      amount: number;
+      payment_gateway: string;
+      currency_code: string;
+    }) => {
+      const res = await getAxiosInstance().post<{
+        message: string;
+        wallet_history_id: number;
+      }>(API_ENDPOINTS.WALLET_DEPOSIT, payload);
+      return res.data;
+    },
+  });
+}
+
+export function useWalletStripeSessionMutation() {
+  const { getAxiosInstance } = useBaseService(
+    API_ENDPOINTS.WALLET_STRIPE_SESSION
+  );
+
+  return useMutation({
+    mutationFn: async (payload: {
+      wallet_id: number;
+      wallet_history_id: number;
+    }) => {
+      const res = await getAxiosInstance().post<{
+        success: boolean;
+        data: { checkout_url: string; session_id: string };
+      }>(API_ENDPOINTS.WALLET_STRIPE_SESSION, payload);
+      return res.data;
+    },
+  });
+}
+
+export function useWalletIyzicoSessionMutation() {
+  const { getAxiosInstance } = useBaseService(
+    API_ENDPOINTS.WALLET_IYZICO_SESSION
+  );
+
+  return useMutation({
+    mutationFn: async (payload: {
+      wallet_id: number;
+      wallet_history_id: number;
+    }) => {
+      const res = await getAxiosInstance().post<{
+        success: boolean;
+        data: { checkout_url: string; token: string; wallet_history_id: number };
+      }>(API_ENDPOINTS.WALLET_IYZICO_SESSION, payload);
+      return res.data;
     },
   });
 }

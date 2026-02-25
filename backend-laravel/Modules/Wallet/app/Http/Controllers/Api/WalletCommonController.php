@@ -50,8 +50,14 @@ class WalletCommonController extends Controller
         $wallet_settings = com_option_get('max_deposit_per_transaction');
 
         return response()->json([
-            'wallets' => $wallets ? new UserWalletDetailsResource($wallets) : null,
-            'max_deposit_per_transaction' => $wallet_settings,
+            'wallets'                      => $wallets ? new UserWalletDetailsResource($wallets) : null,
+            'max_deposit_per_transaction'  => $wallet_settings,
+            'bank_account'                 => [
+                'bank_name'      => com_option_get('bank_transfer_bank_name') ?? '',
+                'account_holder' => com_option_get('bank_transfer_account_holder') ?? '',
+                'iban'           => com_option_get('bank_transfer_iban') ?? '',
+                'description'    => com_option_get('bank_transfer_description') ?? '',
+            ],
         ]);
     }
 
@@ -350,8 +356,9 @@ class WalletCommonController extends Controller
             'status' => 1,
         ]);
 
-        // Update the wallet balance
-        $wallet->balance += $wallet_history->amount;
+        // Update the wallet balance and earnings
+        $wallet->balance  += $wallet_history->amount;
+        $wallet->earnings += $wallet_history->amount;
         $wallet->save();
 
         // Return success response

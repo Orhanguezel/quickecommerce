@@ -13,6 +13,9 @@ const baseSchema = {
   order_shipping_charge: z
     .number()
     .min(0, "Minimum shipping charge must be at least 0"),
+  free_shipping_min_order_value: z
+    .number()
+    .min(0, "Free shipping threshold must be at least 0"),
   order_additional_charge_name: z.string().optional(),
   order_additional_charge_amount: z.number().optional(),
   commission_amount: z.number().optional(),

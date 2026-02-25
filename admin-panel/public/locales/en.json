@@ -129,6 +129,7 @@
   "tooltip": {
     "please_select_attribute": "You must select at least one attribute value for each variant to create a product.",
     "allow_change_in_mind": "Customers can request a return or exchange within a limited time if they change their mind about the purchase.",
+    "free_shipping": "This product will be shipped for free, no shipping fee will be charged.",
     "ensure_products_are_eligible_cah_on_delivery": "Ensure that the selected products are eligible for Cash on Delivery before placing the order.",
     "view": "View",
     "package_info": "Give Subscriptions Package Information",
@@ -301,6 +302,7 @@
     "subscription_history": "Subscription History"
   },
   "title": {
+    "delete_confirmation": "Delete Confirmation",
     "restore_data": "Restore {type}",
     "permanent_delete": "Permanent Delete",
     "reject_deliveryman": "Reject Deliveryman",
@@ -355,6 +357,7 @@
     "read_notifications": "Mark Notifications as Read?"
   },
   "sub_title": {
+    "delete_confirmation": "This action cannot be undone.",
     "permanent_delete": "Are you sure you want to delete {type} permanently? ",
     "restore_data": "Are you sure you want to restore {type} ? ",
     "reject_deliveryman": "Are You Sure You Want to reject Deliveryman?",
@@ -871,6 +874,7 @@
     "delivery_note": "Delivery Note",
     "cash_on_delivery": "Cash On Delivery",
     "allow_change_in_mind": "Allow Change in Mind",
+    "free_shipping": "Free Shipping",
     "product_variants": "Product Variants",
     "attribute": "Attribute",
     "variant": "Variant",
@@ -968,6 +972,11 @@
     "enter_button_text": "Enter Button Text",
     "enter_button_url": "Enter Button URL",
     "enter_display_order": "Enter Display Order",
+    "enter_commission_amount": "Enter commission amount",
+    "enter_default_order_commission_rate": "Enter default order commission rate",
+    "enter_default_delivery_commission_charge": "Enter default delivery commission charge",
+    "enter_order_shipping_charge": "Enter order shipping charge",
+    "enter_free_shipping_threshold": "Enter free shipping threshold",
     "enter_vat_tax_number": "Enter Vat/Tax Number",
     "enter_vat_tax": "Enter Vat/Tax(%)",
     "enter_min_order": "Enter Min Order",
@@ -1296,6 +1305,13 @@
     "tax_settings": "Tax Settings",
     "minimum_shipping_charge": "Minimum shipping charge",
     "shipping_charge": "Shipping Charge",
+    "free_shipping_min_cart_subtotal": "Free shipping min. cart subtotal",
+    "commission_subscription_settings": "Commission & Subscription",
+    "shipping_settings": "Shipping Settings",
+    "shipping_campaigns": "Shipping Campaigns",
+    "min_order_value": "Min. Order Value",
+    "order_shipping_charge_hint": "This fee is charged to the customer on every order (e.g. 25 TL shipping fee).",
+    "free_shipping_min_order_hint": "Orders above this amount get free shipping. Set to 0 to disable. Note: active shipping campaigns override this value.",
     "smtp_settings": "SMTP Settings",
     "smtp_test": "SMTP Test",
     "global_mail": "Global Mail",

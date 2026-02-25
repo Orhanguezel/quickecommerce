@@ -43,6 +43,7 @@ export const API_ENDPOINTS = {
   WEEK_BEST: "/week-best-products",
   FLASH_DEALS: "/flash-deals",
   FLASH_DEAL_PRODUCTS: "/flash-deal-products",
+  SHIPPING_CAMPAIGNS_ACTIVE: "/shipping-campaigns/active",
 
   // Search
   SEARCH: "/search",
@@ -65,6 +66,7 @@ export const API_ENDPOINTS = {
   CHECK_COUPON: "/check-coupon",
   DELIVERY_CHARGE: "/calculate-delivery-charge",
   CHECKOUT_INFO: "/checkout-info",
+  CHECKOUT_EXTRA_INFO: "/get-check-out-page-extra-info",
   STRIPE_SESSION: "/orders/create-stripe-session",
   IYZICO_SESSION: "/orders/create-iyzico-session",
   PAYMENT_STATUS: "/customer/orders/payment-status-update",
@@ -86,6 +88,9 @@ export const API_ENDPOINTS = {
   WALLET: "/customer/wallet",
   WALLET_DEPOSIT: "/customer/wallet/deposit",
   WALLET_TRANSACTIONS: "/customer/wallet/transactions",
+  WALLET_STRIPE_SESSION: "/wallet/create-stripe-session",
+  WALLET_IYZICO_SESSION: "/wallet/create-iyzico-session",
+  WALLET_GENERATE_HMAC: "/wallet/generate-hmac",
 
   // Blog
   BLOGS: "/blogs",

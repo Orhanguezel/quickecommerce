@@ -20,11 +20,19 @@ class WalletManageAdminController extends Controller
     {
         if ($request->isMethod('post')) {
             com_option_update('max_deposit_per_transaction', $request->max_deposit_per_transaction);
+            com_option_update('bank_transfer_bank_name', $request->bank_transfer_bank_name ?? '');
+            com_option_update('bank_transfer_account_holder', $request->bank_transfer_account_holder ?? '');
+            com_option_update('bank_transfer_iban', $request->bank_transfer_iban ?? '');
+            com_option_update('bank_transfer_description', $request->bank_transfer_description ?? '');
             return response()->json(['message' => 'Wallet settings successfully']);
         }
         $wallet_settings = com_option_get('max_deposit_per_transaction');
         return response()->json([
-            'wallet_settings' => $wallet_settings
+            'wallet_settings'              => $wallet_settings,
+            'bank_transfer_bank_name'      => com_option_get('bank_transfer_bank_name') ?? '',
+            'bank_transfer_account_holder' => com_option_get('bank_transfer_account_holder') ?? '',
+            'bank_transfer_iban'           => com_option_get('bank_transfer_iban') ?? '',
+            'bank_transfer_description'    => com_option_get('bank_transfer_description') ?? '',
         ]);
     }
 
@@ -99,8 +107,9 @@ class WalletManageAdminController extends Controller
         try {
             // Find the wallet where the deposit will be made
             $wallet = Wallet::findOrFail($validated['wallet_id']);
-            // Update the wallet balance
-            $wallet->balance += $validated['amount'];
+            // Update the wallet balance and earnings
+            $wallet->balance  += $validated['amount'];
+            $wallet->earnings += $validated['amount'];
             $wallet->save();
 
             // Create
@@ -193,10 +202,11 @@ class WalletManageAdminController extends Controller
         $transaction->status = 1;
         $transaction->save();
 
-        // Update wallet balance only if status is now "paid" and wasn't already
+        // Update wallet balance and earnings only if status is now "paid" and wasn't already
         if ($request->payment_status === 'paid') {
             $wallet = Wallet::findOrFail($transaction->wallet_id);
-            $wallet->balance += $transaction->amount;
+            $wallet->balance  += $transaction->amount;
+            $wallet->earnings += $transaction->amount;
             $wallet->save();
         }
 

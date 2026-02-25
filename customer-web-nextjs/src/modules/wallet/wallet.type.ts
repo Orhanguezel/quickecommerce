@@ -26,9 +26,17 @@ export interface WalletTransaction {
   updated_at: string;
 }
 
+export interface WalletBankAccount {
+  bank_name: string;
+  account_holder: string;
+  iban: string;
+  description: string;
+}
+
 export interface WalletInfoResponse {
   wallets: WalletInfo;
   max_deposit_per_transaction: number;
+  bank_account: WalletBankAccount | null;
 }
 
 export interface WalletTransactionsResponse {

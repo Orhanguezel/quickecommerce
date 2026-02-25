@@ -5,8 +5,8 @@ import { usePrice } from "@/hooks/use-price";
 import { Link } from "@/i18n/routing";
 import { ROUTES } from "@/config/routes";
 import { useCartStore } from "@/stores/cart-store";
+import { useCheckoutExtraInfoQuery } from "@/modules/checkout/checkout.service";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import Image from "next/image";
 import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
 
@@ -35,6 +35,22 @@ export function CartClient({ translations: t }: Props) {
   const totalItems = useCartStore((s) => s.totalItems);
   const { formatPrice } = usePrice();
   const [mounted, setMounted] = useState(false);
+  const productIds = items.map((item) => item.product_id).filter(Boolean) as number[];
+  const { data: checkoutExtraInfo } = useCheckoutExtraInfoQuery(productIds);
+
+  const shippingCampaign = checkoutExtraInfo?.shipping_campaign;
+  const freeShippingThreshold = Number(
+    shippingCampaign?.free_shipping_min_order_value ?? 0
+  );
+  const minimumShippingCharge = Number(
+    shippingCampaign?.minimum_shipping_charge ?? 0
+  );
+  const subtotal = totalPrice();
+  const shippingAmount =
+    freeShippingThreshold > 0 && subtotal >= freeShippingThreshold
+      ? 0
+      : minimumShippingCharge;
+  const totalAmount = subtotal + shippingAmount;
 
   useEffect(() => {
     setMounted(true);
@@ -183,12 +199,16 @@ export function CartClient({ translations: t }: Props) {
                 <span className="text-muted-foreground">{t.subtotal}</span>
                 <span className="font-medium">
                   
-                  {mounted ? formatPrice(totalPrice()) : totalPrice().toFixed(2)}
+                  {mounted ? formatPrice(subtotal) : subtotal.toFixed(2)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{t.shipping}</span>
-                <span className="text-sm text-muted-foreground">-</span>
+                <span className="font-medium">
+                  {mounted
+                    ? formatPrice(shippingAmount)
+                    : shippingAmount.toFixed(2)}
+                </span>
               </div>
 
               <hr />
@@ -197,7 +217,7 @@ export function CartClient({ translations: t }: Props) {
                 <span>{t.total}</span>
                 <span>
                   
-                  {mounted ? formatPrice(totalPrice()) : totalPrice().toFixed(2)}
+                  {mounted ? formatPrice(totalAmount) : totalAmount.toFixed(2)}
                 </span>
               </div>
             </div>

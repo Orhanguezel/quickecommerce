@@ -70,14 +70,16 @@ import {
 import type { LangKeys, ViewMode } from '@/lib/json';
 
 /** Simple CSS tooltip — replaces Radix Tooltip (compose-refs crash in React 19) */
-const InfoTooltip = ({ text, side = 'top' }: { text: string; side?: 'top' | 'right' }) => (
+const InfoTooltip = ({ text, side = 'top' }: { text: string; side?: 'top' | 'right' | 'left' }) => (
   <div className="relative group inline-flex">
     <Info className="w-4 text-custom-dark-blue dark:text-white cursor-pointer" />
     <div
-      className={`absolute z-50 invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-opacity px-3 py-2 text-sm font-medium rounded-md shadow-md pointer-events-none bg-custom-dark-blue dark:bg-white text-white dark:text-black max-w-sm w-max ${
+      className={`absolute z-50 invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-opacity px-3 py-2 text-sm font-medium rounded-md shadow-md pointer-events-none bg-custom-dark-blue dark:bg-white text-white dark:text-black max-w-[220px] whitespace-normal break-words ${
         side === 'right'
           ? 'left-full top-1/2 -translate-y-1/2 ml-2'
-          : 'bottom-full left-1/2 -translate-x-1/2 mb-2'
+          : side === 'left'
+          ? 'right-full top-1/2 -translate-y-1/2 mr-2'
+          : 'bottom-full right-0 mb-2'
       }`}
     >
       {text}
@@ -261,6 +263,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
 
   const [isOrganic, setIsOrganic] = useState(false);
   const [isHalal, setIsHalal] = useState(false);
+  const [isFreeShipping, setIsFreeShipping] = useState(false);
   const [attributeValuesKey, setAttributeValuesKey] = useState('');
   const [selectedAttributes, setSelectedAttributes] = useState<Option[]>([]);
   const [selectedValues, setSelectedValues] = useState<Record<string, Option[]>>({});
@@ -473,8 +476,10 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
     }
     const cashOnDelivery = editData?.cash_on_delivery == 1 ? true : false;
     const allowChangeInMind = editData?.allow_change_in_mind == 1 ? true : false;
+    const freeShipping = editData?.free_shipping == 1 ? true : false;
     setIsOrganic(cashOnDelivery);
     setIsHalal(allowChangeInMind);
+    setIsFreeShipping(freeShipping);
 
     // Populate gallery images
     // gallery_images may contain comma-separated IDs (ProductListResource)
@@ -612,6 +617,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
       delivery_time_text: values.delivery_time_text_df,
       cash_on_delivery: isOrganic ? 1 : 0,
       allow_change_in_mind: isHalal ? 1 : 0,
+      free_shipping: isFreeShipping ? 1 : 0,
     };
 
     const translations = uiLangs
@@ -661,12 +667,6 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
       const specialPrice = Number(spPrices[index] ?? 0);
       const Stock = Number(stocks[index] ?? 0);
 
-      if (Object.keys(attributes).length <= 0) {
-        toast.error(`Minimum one variant must be required`);
-        hasError = true;
-        return null;
-      }
-
       if (isNaN(Stock) || Stock < 0) {
         toast.error(`Stock quantity cannot be negative for each variant.`);
         hasError = true;
@@ -698,9 +698,6 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
       return;
     }
 
-    if (combinationData.length <= 0) {
-      return toast.error(`Minimum one variant must be required`);
-    }
     const specifications = DynamicValues?.length > 0 ? buildSpecificationsPayload() : [];
     const submissionData = {
       ...defaultData,
@@ -1521,7 +1518,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                               >
                                 {t('label.cash_on_delivery')}
                               </label>
-                              <InfoTooltip text={t('tooltip.ensure_products_are_eligible_cah_on_delivery')} side="right" />
+                              <InfoTooltip text={t('tooltip.ensure_products_are_eligible_cah_on_delivery')} />
                             </div>
                             <div className="flex items-center space-x-2">
                               <Checkbox
@@ -1535,7 +1532,21 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                               >
                                 {t('label.allow_change_in_mind')}
                               </label>
-                              <InfoTooltip text={t('tooltip.allow_change_in_mind')} side="right" />
+                              <InfoTooltip text={t('tooltip.allow_change_in_mind')} />
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Checkbox
+                                id="free_shipping"
+                                checked={isFreeShipping}
+                                onCheckedChange={(checked: boolean) => setIsFreeShipping(checked)}
+                              />
+                              <label
+                                htmlFor="free_shipping"
+                                className="text-md font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                              >
+                                {t('label.free_shipping')}
+                              </label>
+                              <InfoTooltip text={t('tooltip.free_shipping')} side="left" />
                             </div>
                           </div>
                         </div>
@@ -1553,9 +1564,9 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
               <div>
                 <div className="text-sm font-medium mb-1 flex items-center gap-1">
                   <p className="flex items-center">
-                    {t('label.attribute')} <span className="text-red-500 mx-0.5">*</span>
+                    {t('label.attribute')}
                   </p>
-                  <InfoTooltip text={t('tooltip.please_select_attribute')} side="right" />{' '}
+                  <InfoTooltip text={t('tooltip.please_select_attribute')} />{' '}
                 </div>
                 <Select
                   isMulti

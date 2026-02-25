@@ -129,6 +129,7 @@
   "tooltip": {
     "please_select_attribute": "Bir ürün oluşturmak için her varyant için en az bir özellik değeri seçmelisiniz.",
     "allow_change_in_mind": "Müşteriler, satın alma kararlarını değiştirirlerse sınırlı bir süre içinde iade veya değişim talep edebilir.",
+    "free_shipping": "Bu ürün ücretsiz kargo ile gönderilecektir, kargo ücreti alınmayacaktır.",
     "ensure_products_are_eligible_cah_on_delivery": "Siparişi vermeden önce seçilen ürünlerin Kapıda Ödeme için uygun olduğundan emin olun.",
     "view": "Görüntüle",
     "package_info": "Abonelik Paket Bilgilerini Ver",
@@ -301,6 +302,7 @@
     "subscription_history": "Abonelik Geçmişi"
   },
   "title": {
+    "delete_confirmation": "Silme Onayı",
     "restore_data": "{type} Geri Yükle",
     "permanent_delete": "Kalıcı Sil",
     "reject_deliveryman": "Kuryeyi Reddet",
@@ -355,6 +357,7 @@
     "read_notifications": "Bildirimler Okundu Olarak İşaretlensin mi?"
   },
   "sub_title": {
+    "delete_confirmation": "Bu işlem geri alınamaz.",
     "permanent_delete": "{type} kalıcı olarak silmek istediğinize emin misiniz?",
     "restore_data": "{type} geri yüklemek istediğinize emin misiniz?",
     "reject_deliveryman": "Kuryeyi reddetmek istediğinize emin misiniz?",
@@ -871,6 +874,7 @@
     "delivery_note": "Teslimat Notu",
     "cash_on_delivery": "Kapıda Ödeme",
     "allow_change_in_mind": "Fikir Değiştirmeye İzin Ver",
+    "free_shipping": "Ücretsiz Kargo",
     "product_variants": "Ürün Varyantları",
     "attribute": "Özellik",
     "variant": "Varyant",
@@ -968,6 +972,11 @@
     "enter_button_text": "Buton metnini girin",
     "enter_button_url": "Buton URL girin",
     "enter_display_order": "Gösterim sırasını girin",
+    "enter_commission_amount": "Komisyon miktarını girin",
+    "enter_default_order_commission_rate": "Varsayılan sipariş komisyon oranını girin",
+    "enter_default_delivery_commission_charge": "Varsayılan teslimat komisyon ücretini girin",
+    "enter_order_shipping_charge": "Kargo ücretini girin",
+    "enter_free_shipping_threshold": "Ücretsiz kargo alt limitini girin",
     "enter_vat_tax_number": "KDV/Vergi numarasını girin",
     "enter_vat_tax": "KDV/Vergi(%) girin",
     "enter_min_order": "Min siparişi girin",
@@ -1296,6 +1305,13 @@
     "tax_settings": "Vergi Ayarları",
     "minimum_shipping_charge": "Minimum kargo ücreti",
     "shipping_charge": "Kargo Ücreti",
+    "free_shipping_min_cart_subtotal": "Ücretsiz kargo için min. sepet tutarı",
+    "commission_subscription_settings": "Komisyon & Abonelik",
+    "shipping_settings": "Kargo Ayarları",
+    "shipping_campaigns": "Kargo Kampanyaları",
+    "min_order_value": "Min. Sipariş Tutarı",
+    "order_shipping_charge_hint": "Müşteriden her siparişte alınan kargo ücreti (örn: 25 TL kargo ücreti).",
+    "free_shipping_min_order_hint": "Bu tutarın üzerindeki siparişlerde kargo ücretsiz olur. 0 yazılırsa devre dışı kalır. Not: Aktif kargo kampanyaları bu değerin önüne geçer.",
     "smtp_settings": "SMTP Ayarları",
     "smtp_test": "SMTP Test",
     "global_mail": "Genel Mail",

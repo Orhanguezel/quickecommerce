@@ -60,6 +60,7 @@ export interface ProductDetail {
   return_text: string | null;
   allow_change_in_mind: string | number;
   cash_on_delivery: string | number;
+  free_shipping: string | number | null;
   delivery_time_min: number | null;
   delivery_time_max: number | null;
   delivery_time_text: string | null;

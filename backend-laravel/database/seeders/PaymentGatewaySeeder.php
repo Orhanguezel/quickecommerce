@@ -21,6 +21,16 @@ class PaymentGatewaySeeder extends Seeder
         // Eski gateway'leri sil
         PaymentGateway::whereIn('slug', ['paypal', 'stripe', 'paytm'])->delete();
 
+        // wallet has no credentials → safe to updateOrCreate
+        PaymentGateway::updateOrCreate(['slug' => 'wallet'], [
+            'name' => 'Cüzdan',
+            'description' => 'Hesabınızdaki cüzdan bakiyesini kullanarak ödeme yapın.',
+            'auth_credentials' => null,
+            'image' => 'payment-logos/wallet.svg',
+            'status' => true,
+            'is_test_mode' => false,
+        ]);
+
         // cash_on_delivery has no credentials → safe to updateOrCreate
         PaymentGateway::updateOrCreate(['slug' => 'cash_on_delivery'], [
             'name' => 'Kapıda Ödeme',
@@ -96,6 +106,6 @@ class PaymentGatewaySeeder extends Seeder
             'is_test_mode' => true,
         ]);
 
-        $this->command->info('PaymentGatewaySeeder: 5 Turkish payment gateways seeded.');
+        $this->command->info('PaymentGatewaySeeder: 6 Turkish payment gateways seeded.');
     }
 }

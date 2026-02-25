@@ -279,6 +279,10 @@ class OrderService
             // system commission
             // shipping charge calculate
             $order_shipping_charge = $system_commission->order_shipping_charge;
+            $free_shipping_min_order_value = (float) ($system_commission->free_shipping_min_order_value ?? 0);
+            $cart_subtotal_for_shipping = (float) ($coupon_data['final_order_amount'] ?? $totalBasePrice);
+            $is_free_shipping_eligible = $free_shipping_min_order_value > 0
+                && $cart_subtotal_for_shipping >= $free_shipping_min_order_value;
 
 
             //  packages and details
@@ -316,6 +320,10 @@ class OrderService
                 // If area-wise delivery charge is 0 or not set, use the default order shipping charge
                 if (empty($deliveryChargeData['delivery_charge']) || $deliveryChargeData['delivery_charge'] == 0) {
                     $final_shipping_charge = $order_shipping_charge;
+                }
+
+                if ($packageData['delivery_option'] === 'home_delivery' && $is_free_shipping_eligible) {
+                    $final_shipping_charge = 0;
                 }
 
                 // delivery time

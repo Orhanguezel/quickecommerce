@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\V1\Admin\AdminContactManageController;
 use App\Http\Controllers\Api\V1\Admin\AdminDashboardController;
 use App\Http\Controllers\Api\V1\Admin\AdminDeliverymanManageController;
 use App\Http\Controllers\Api\V1\Admin\AdminFlashSaleManageController;
+use App\Http\Controllers\Api\V1\Admin\ShippingCampaignController;
 use App\Http\Controllers\Api\V1\Admin\AdminInventoryManageController;
 use App\Http\Controllers\Api\V1\Admin\AdminCargoController;
 use App\Http\Controllers\Api\V1\Admin\AdminOrderManageController;
@@ -205,6 +206,15 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => ['auth:sanctum']], functi
                     Route::patch('join-request/approve', [AdminFlashSaleManageController::class, 'approveFlashSaleProduct']);
                     Route::patch('join-request/reject', [AdminFlashSaleManageController::class, 'rejectFlashSaleProduct']);
                 });
+            });
+            // Shipping Campaign Management
+            Route::group(['prefix' => 'shipping-campaign/', 'middleware' => ['permission:' . PermissionKey::ADMIN_PROMOTIONAL_SHIPPING_CAMPAIGN->value]], function () {
+                Route::get('list', [ShippingCampaignController::class, 'index']);
+                Route::post('add', [ShippingCampaignController::class, 'store']);
+                Route::get('details/{id}', [ShippingCampaignController::class, 'show']);
+                Route::put('update/{id}', [ShippingCampaignController::class, 'update']);
+                Route::delete('remove/{id}', [ShippingCampaignController::class, 'destroy']);
+                Route::patch('change-status', [ShippingCampaignController::class, 'changeStatus']);
             });
             // Banner Management
             Route::group(['prefix' => 'banner/', 'middleware' => ['permission:' . PermissionKey::ADMIN_PROMOTIONAL_BANNER_MANAGE->value]], function () {

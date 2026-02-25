@@ -566,6 +566,19 @@ class PermissionAdminSeeder extends Seeder
                             ]
                         ],
 
+                        // Shipping Campaign Management
+                        [
+                            'PermissionName' => PermissionKey::ADMIN_PROMOTIONAL_SHIPPING_CAMPAIGN->value,
+                            'PermissionTitle' => 'Shipping Campaigns',
+                            'activity_scope' => 'system_level',
+                            'icon' => 'Truck',
+                            'options' => ['view', 'insert', 'update', 'delete', 'others'],
+                            'translations' => [
+                                'en' => 'Shipping Campaigns',
+                                'tr' => 'Kargo Kampanyaları'
+                            ]
+                        ],
+
                         // Banner Management
                         [
                             'PermissionName' => PermissionKey::ADMIN_PROMOTIONAL_BANNER_MANAGE->value,
@@ -712,8 +725,8 @@ class PermissionAdminSeeder extends Seeder
                             'icon' => 'History',
                             'options' => ['view', 'insert', 'update', 'delete', 'others'],
                             'translations' => [
-                                'en' => 'Wallet Lists',
-                                'tr' => 'Cüzdan Listeleri'
+                                'en' => 'Transaction History',
+                                'tr' => 'İşlem Geçmişi'
                             ]
                         ],
                         [
@@ -723,8 +736,8 @@ class PermissionAdminSeeder extends Seeder
                             'icon' => 'Settings',
                             'options' => ['view', 'insert', 'update', 'delete', 'others'],
                             'translations' => [
-                                'en' => 'Wallet Lists',
-                                'tr' => 'Cüzdan Listeleri'
+                                'en' => 'Wallet Settings',
+                                'tr' => 'Cüzdan Ayarları'
                             ]
                         ]
                     ]

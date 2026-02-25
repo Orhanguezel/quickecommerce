@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "@/i18n/routing";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useLocale } from "next-intl";
 import { ROUTES } from "@/config/routes";
 import { useAuthStore } from "@/stores/auth-store";
@@ -17,8 +17,9 @@ import {
   useAddAddressMutation,
   useUpdateAddressMutation,
   useDeleteAddressMutation,
+  usePaymentGatewaysQuery,
 } from "@/modules/checkout/checkout.service";
-import type { CustomerAddress } from "@/modules/checkout/checkout.type";
+import type { CustomerAddress, PaymentGateway } from "@/modules/checkout/checkout.type";
 import {
   useOrderListQuery,
   useCancelOrderMutation,
@@ -33,6 +34,14 @@ import {
 } from "@/modules/support/support.service";
 import type { SupportTicket, TicketMessage } from "@/modules/support/support.type";
 import { useWishlistQuery, useWishlistRemoveMutation } from "@/modules/wishlist/wishlist.service";
+import {
+  useWalletInfoQuery,
+  useWalletTransactionsQuery,
+  useWalletDepositMutation,
+  useWalletStripeSessionMutation,
+  useWalletIyzicoSessionMutation,
+} from "@/modules/wallet/wallet.service";
+import type { WalletTransaction } from "@/modules/wallet/wallet.type";
 import { useRecentlyViewedStore } from "@/stores/recently-viewed-store";
 import { usePrice } from "@/hooks/use-price";
 import { useForm } from "react-hook-form";
@@ -70,6 +79,7 @@ import {
   Package,
   Headphones,
   ChevronLeft,
+  ChevronDown,
   ChevronRight,
   X,
   MessageSquare,
@@ -81,21 +91,41 @@ import {
   Heart,
   Clock,
   Star,
+  Wallet,
+  CreditCard,
+  Banknote,
+  PlusCircle,
+  TrendingUp,
+  TrendingDown,
+  ArrowDownCircle,
+  ArrowUpCircle,
 } from "lucide-react";
 import Cookies from "js-cookie";
 import { AUTH_TOKEN_KEY, AUTH_USER } from "@/lib/constants";
+
+const SUPPORTED_WALLET_GATEWAYS = new Set(["stripe", "iyzico"]);
+
+const walletGatewayIconMap: Record<string, typeof CreditCard> = {
+  stripe: CreditCard,
+  iyzico: CreditCard,
+  paytr: CreditCard,
+  moka: CreditCard,
+  bank_transfer: Banknote,
+};
 
 interface Props {
   translations: Record<string, string>;
 }
 
-type Tab = "profile" | "orders" | "wishlist" | "recently_viewed" | "support" | "addresses" | "password";
+type Tab = "profile" | "orders" | "wishlist" | "recently_viewed" | "support" | "addresses" | "password" | "wallet";
 
 export function AccountClient({ translations: t }: Props) {
   const locale = useLocale();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const logout = useAuthStore((s) => s.logout);
   const [activeTab, setActiveTab] = useState<Tab>("profile");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState(false);
   const [passwordSuccess, setPasswordSuccess] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -137,6 +167,17 @@ export function AccountClient({ translations: t }: Props) {
     department_id: 1,
   });
 
+  // Wallet state
+  const [walletPage, setWalletPage] = useState(1);
+  const [walletTypeFilter, setWalletTypeFilter] = useState<"" | "credit" | "debit">("");
+  const [depositOpen, setDepositOpen] = useState(false);
+  const [depositAmount, setDepositAmount] = useState("");
+  const [depositError, setDepositError] = useState("");
+  const [depositProcessing, setDepositProcessing] = useState(false);
+  const [walletSuccess, setWalletSuccess] = useState(false);
+  const [selectedWalletGateway, setSelectedWalletGateway] = useState<string>("");
+  const [bankTransferPending, setBankTransferPending] = useState(false);
+
   // Queries
   const {
     data: profile,
@@ -171,6 +212,32 @@ export function AccountClient({ translations: t }: Props) {
   const { data: wishlistData, isLoading: wishlistLoading } = useWishlistQuery(wishlistPage);
   const wishlistRemoveMutation = useWishlistRemoveMutation();
 
+  // Wallet queries
+  const { data: walletData, refetch: refetchWallet } = useWalletInfoQuery();
+  const { data: walletTxData, isLoading: walletTxLoading } = useWalletTransactionsQuery({
+    page: walletPage,
+    type: walletTypeFilter || undefined,
+  });
+  const walletDepositMutation = useWalletDepositMutation();
+  const walletStripeMutation = useWalletStripeSessionMutation();
+  const walletIyzicoMutation = useWalletIyzicoSessionMutation();
+  const { data: paymentGateways, isLoading: gatewaysLoading } = usePaymentGatewaysQuery();
+
+  const walletGateways = useMemo(() => {
+    const apiGateways = (paymentGateways ?? []).filter((gw) => SUPPORTED_WALLET_GATEWAYS.has(gw.slug));
+    const bankTransfer: PaymentGateway = {
+      id: 0,
+      value: "bank_transfer",
+      label: "Banka Havalesi / EFT",
+      name: "Banka Havalesi / EFT",
+      slug: "bank_transfer",
+      image: "",
+      image_url: "",
+      description: "Banka hesabına havale yapın, admin onayladıktan sonra bakiyenize yansır.",
+    };
+    return [...apiGateways, bankTransfer];
+  }, [paymentGateways]);
+
   // Recently viewed
   const recentlyViewedItems = useRecentlyViewedStore((s) => s.items);
   const clearRecentlyViewed = useRecentlyViewedStore((s) => s.clearAll);
@@ -188,6 +255,30 @@ export function AccountClient({ translations: t }: Props) {
   const deleteAddressMutation = useDeleteAddressMutation();
 
   useEffect(() => { setMounted(true); }, []);
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    const validTabs: Tab[] = ["profile", "orders", "wishlist", "recently_viewed", "support", "addresses", "password", "wallet"];
+    if (tab && validTabs.includes(tab as Tab)) {
+      setActiveTab(tab as Tab);
+    }
+    if (searchParams.get("wallet_success") === "1") {
+      setWalletSuccess(true);
+      refetchWallet();
+    }
+  }, [searchParams]);
+
+  // Auto-select first available wallet gateway
+  useEffect(() => {
+    const validSlugs = new Set(walletGateways.map((gw) => gw.slug));
+    if (!walletGateways.length) {
+      if (selectedWalletGateway) setSelectedWalletGateway("");
+      return;
+    }
+    if (!selectedWalletGateway || !validSlugs.has(selectedWalletGateway)) {
+      setSelectedWalletGateway(walletGateways[0].slug);
+    }
+  }, [walletGateways, selectedWalletGateway]);
 
   // Profile form
   const profileForm = useForm<UpdateProfileFormData>({
@@ -310,8 +401,54 @@ export function AccountClient({ translations: t }: Props) {
     }
   };
 
+  const handleDeposit = async () => {
+    const wallet = walletData?.wallets;
+    if (!wallet?.id || !depositAmount || Number(depositAmount) <= 0 || !selectedWalletGateway) return;
+    setDepositError("");
+    setDepositProcessing(true);
+    setBankTransferPending(false);
+    try {
+      const depositResult = await walletDepositMutation.mutateAsync({
+        wallet_id: wallet.id,
+        amount: Number(depositAmount),
+        payment_gateway: selectedWalletGateway,
+        currency_code: "TRY",
+      });
+
+      if (selectedWalletGateway === "stripe") {
+        const sessionResult = await walletStripeMutation.mutateAsync({
+          wallet_id: wallet.id,
+          wallet_history_id: depositResult.wallet_history_id,
+        });
+        if (sessionResult.data?.checkout_url) {
+          window.location.href = sessionResult.data.checkout_url;
+        }
+      } else if (selectedWalletGateway === "iyzico") {
+        const sessionResult = await walletIyzicoMutation.mutateAsync({
+          wallet_id: wallet.id,
+          wallet_history_id: depositResult.wallet_history_id,
+        });
+        if (sessionResult.data?.checkout_url) {
+          window.location.href = sessionResult.data.checkout_url;
+        }
+      } else if (selectedWalletGateway === "bank_transfer") {
+        // Pending bank transfer — show instructions, no redirect
+        setBankTransferPending(true);
+        setDepositProcessing(false);
+      }
+    } catch (err: any) {
+      setDepositError(
+        err?.response?.data?.errors?.amount?.[0] ||
+        err?.response?.data?.message ||
+        t.error
+      );
+      setDepositProcessing(false);
+    }
+  };
+
   const tabs: { key: Tab; label: string; icon: typeof User }[] = [
     { key: "profile", label: t.profile, icon: User },
+    { key: "wallet", label: t.wallet || "Cüzdan", icon: Wallet },
     { key: "orders", label: t.my_orders, icon: Package },
     { key: "wishlist", label: t.wishlist, icon: Heart },
     { key: "recently_viewed", label: t.recently_viewed, icon: Clock },
@@ -331,7 +468,7 @@ export function AccountClient({ translations: t }: Props) {
   if (profileError || !profile) {
     return (
       <div className="container mx-auto px-4 py-10">
-        <div className="mx-auto max-w-xl rounded-lg border bg-card p-6 text-center">
+        <div className="mx-auto max-w-xl rounded-lg border bg-card p-4 sm:p-6 text-center">
           <p className="text-sm text-muted-foreground">{t.error}</p>
           <div className="mt-4 flex items-center justify-center gap-2">
             <Button variant="outline" onClick={() => refetchProfile()}>
@@ -347,9 +484,9 @@ export function AccountClient({ translations: t }: Props) {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
       {/* Breadcrumb */}
-      <nav className="mb-6 text-sm text-muted-foreground">
+      <nav className="mb-4 sm:mb-6 text-sm text-muted-foreground">
         <Link href={ROUTES.HOME} className="hover:text-foreground">
           {t.home}
         </Link>
@@ -357,15 +494,70 @@ export function AccountClient({ translations: t }: Props) {
         <span className="text-foreground">{t.my_account}</span>
       </nav>
 
-      <h1 className="mb-6 text-2xl font-bold">
-        <User className="mr-2 inline-block h-6 w-6" />
+      <h1 className="mb-4 sm:mb-6 text-xl sm:text-2xl font-bold">
+        <User className="mr-2 inline-block h-5 w-5 sm:h-6 sm:w-6" />
         {t.my_account}
       </h1>
 
-      <div className="grid gap-8 lg:grid-cols-4">
+      <div className="grid gap-4 lg:gap-8 lg:grid-cols-4">
         {/* Sidebar Tabs */}
         <div className="lg:col-span-1">
-          <nav className="flex gap-1 lg:flex-col">
+          {/* Mobile: Dropdown Menu */}
+          <div className="relative lg:hidden">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="flex w-full items-center justify-between rounded-lg border bg-card px-4 py-3 text-sm font-medium shadow-sm"
+            >
+              <span className="flex items-center gap-2">
+                {tabs.filter((tab) => tab.key === activeTab).map(({ key, label, icon: Icon }) => (
+                  <span key={key} className="flex items-center gap-2">
+                    <Icon className="h-4 w-4" />
+                    {label}
+                  </span>
+                ))}
+              </span>
+              <ChevronDown
+                className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${
+                  mobileMenuOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+            {mobileMenuOpen && (
+              <div className="absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden rounded-lg border bg-card shadow-xl">
+                {tabs.map(({ key, label, icon: Icon }) => (
+                  <button
+                    key={key}
+                    onClick={() => {
+                      setActiveTab(key);
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`flex w-full items-center gap-3 px-4 py-3.5 text-sm font-medium transition-colors ${
+                      activeTab === key
+                        ? "bg-primary/10 text-primary"
+                        : "hover:bg-muted"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    {label}
+                  </button>
+                ))}
+                <div className="border-t" />
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="flex w-full items-center gap-3 px-4 py-3.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
+                >
+                  <LogOut className="h-4 w-4 shrink-0" />
+                  {t.logout}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Desktop: Sidebar Nav */}
+          <nav className="hidden lg:flex lg:flex-col gap-1">
             {tabs.map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
@@ -380,7 +572,7 @@ export function AccountClient({ translations: t }: Props) {
                 {label}
               </button>
             ))}
-            <div className="my-1 border-t lg:block hidden" />
+            <div className="my-1 border-t" />
             <button
               onClick={handleLogout}
               className="flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
@@ -395,7 +587,7 @@ export function AccountClient({ translations: t }: Props) {
         <div className="lg:col-span-3">
           {/* Profile Tab */}
           {activeTab === "profile" && (
-            <div className="rounded-lg border bg-card p-6">
+            <div className="rounded-lg border bg-card p-4 sm:p-6">
               <h2 className="mb-6 text-lg font-bold">{t.profile}</h2>
 
               {profileSuccess && (
@@ -504,7 +696,7 @@ export function AccountClient({ translations: t }: Props) {
 
           {/* Password Tab */}
           {activeTab === "password" && (
-            <div className="rounded-lg border bg-card p-6">
+            <div className="rounded-lg border bg-card p-4 sm:p-6">
               <h2 className="mb-6 text-lg font-bold">{t.change_password}</h2>
 
               {passwordSuccess && (
@@ -601,7 +793,7 @@ export function AccountClient({ translations: t }: Props) {
 
           {/* Addresses Tab */}
           {activeTab === "addresses" && (
-            <div className="rounded-lg border bg-card p-6">
+            <div className="rounded-lg border bg-card p-4 sm:p-6">
               <div className="mb-6 flex items-center justify-between">
                 <h2 className="text-lg font-bold">{t.addresses}</h2>
                 {!showAddressForm && (
@@ -882,12 +1074,12 @@ export function AccountClient({ translations: t }: Props) {
 
           {/* Orders Tab */}
           {activeTab === "orders" && (
-            <div className="rounded-lg border bg-card p-6">
+            <div className="rounded-lg border bg-card p-4 sm:p-6">
               <h2 className="mb-4 text-lg font-bold">{t.my_orders}</h2>
 
               {/* Search & Filters */}
               <div className="mb-4 space-y-3">
-                <div className="relative max-w-sm">
+                <div className="relative w-full sm:max-w-sm">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     value={orderSearch}
@@ -1069,7 +1261,7 @@ export function AccountClient({ translations: t }: Props) {
 
           {/* Wishlist Tab */}
           {activeTab === "wishlist" && (
-            <div className="rounded-lg border bg-card p-6">
+            <div className="rounded-lg border bg-card p-4 sm:p-6">
               <h2 className="mb-4 text-lg font-bold">{t.wishlist}</h2>
 
               {wishlistLoading ? (
@@ -1191,7 +1383,7 @@ export function AccountClient({ translations: t }: Props) {
 
           {/* Recently Viewed Tab */}
           {activeTab === "recently_viewed" && (
-            <div className="rounded-lg border bg-card p-6">
+            <div className="rounded-lg border bg-card p-4 sm:p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-bold">{t.recently_viewed}</h2>
                 {recentlyViewedItems.length > 0 && (
@@ -1274,7 +1466,7 @@ export function AccountClient({ translations: t }: Props) {
 
           {/* Support Tab */}
           {activeTab === "support" && (
-            <div className="rounded-lg border bg-card p-6">
+            <div className="rounded-lg border bg-card p-4 sm:p-6">
               {/* LIST */}
               {supportView === "list" && (
                 <>
@@ -1651,8 +1843,343 @@ export function AccountClient({ translations: t }: Props) {
               )}
             </div>
           )}
+
+          {/* Wallet Tab */}
+          {activeTab === "wallet" && (
+            <div className="space-y-4">
+              {/* Success Banner */}
+              {walletSuccess && (
+                <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800 dark:border-green-800 dark:bg-green-950/30 dark:text-green-400">
+                  <CheckCircle className="h-5 w-5 shrink-0" />
+                  <span>{t.wallet_deposit_success || "Ödeme başarıyla tamamlandı. Bakiyeniz güncellendi."}</span>
+                </div>
+              )}
+
+              {/* Balance Cards */}
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div className="rounded-lg border bg-card p-4">
+                  <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
+                    <Wallet className="h-4 w-4 text-primary" />
+                    {t.wallet_balance || "Mevcut Bakiye"}
+                  </div>
+                  <p className="text-2xl font-bold text-primary">
+                    {t.currency}{Number(walletData?.wallets?.total_balance ?? 0).toFixed(2)}
+                  </p>
+                </div>
+                <div className="rounded-lg border bg-card p-4">
+                  <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                    {t.wallet_total_earnings || "Toplam Kazanç"}
+                  </div>
+                  <p className="text-xl font-bold text-green-600">
+                    {t.currency}{Number(walletData?.wallets?.total_earnings ?? 0).toFixed(2)}
+                  </p>
+                </div>
+                <div className="rounded-lg border bg-card p-4">
+                  <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
+                    <TrendingDown className="h-4 w-4 text-orange-600" />
+                    {t.wallet_total_withdrawn || "Toplam Çekilen"}
+                  </div>
+                  <p className="text-xl font-bold text-orange-600">
+                    {t.currency}{Number(walletData?.wallets?.total_withdrawn ?? 0).toFixed(2)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Transactions */}
+              <div className="rounded-lg border bg-card p-4 sm:p-6">
+                <div className="mb-4 space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <h2 className="text-lg font-bold">{t.wallet_transactions || "İşlem Geçmişi"}</h2>
+                    {walletData?.wallets && (
+                      <Button
+                        size="sm"
+                        className="shrink-0"
+                        onClick={() => { setDepositError(""); setDepositAmount(""); setBankTransferPending(false); setDepositOpen(true); }}
+                      >
+                        <PlusCircle className="mr-1.5 h-4 w-4" />
+                        {t.wallet_add_money || "Para Yükle"}
+                      </Button>
+                    )}
+                  </div>
+                  <div className="flex gap-1">
+                    {(["", "credit", "debit"] as const).map((f) => (
+                      <button
+                        key={f}
+                        onClick={() => { setWalletTypeFilter(f); setWalletPage(1); }}
+                        className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                          walletTypeFilter === f
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-muted-foreground hover:bg-muted/80"
+                        }`}
+                      >
+                        {f === "" ? t.filter_all : f === "credit" ? t.wallet_credit : t.wallet_debit}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {walletTxLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  </div>
+                ) : !walletTxData?.transactions || walletTxData.transactions.length === 0 ? (
+                  <div className="py-10 text-center">
+                    <Wallet className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
+                    <p className="text-muted-foreground">{t.wallet_no_transactions || "Henüz işlem bulunmuyor."}</p>
+                  </div>
+                ) : (
+                  <div className="divide-y">
+                    {walletTxData.transactions.map((tx: WalletTransaction) => (
+                      <div key={tx.id} className="flex items-center justify-between py-4">
+                        <div className="flex items-center gap-3">
+                          {tx.type === "credit" ? (
+                            <ArrowDownCircle className="h-8 w-8 shrink-0 text-green-600" />
+                          ) : (
+                            <ArrowUpCircle className="h-8 w-8 shrink-0 text-orange-600" />
+                          )}
+                          <div>
+                            <p className="text-sm font-medium">
+                              {tx.type === "credit" ? t.wallet_credit || "Gelen" : t.wallet_debit || "Giden"}
+                              {tx.purpose && (
+                                <span className="ml-1 text-muted-foreground">({tx.purpose})</span>
+                              )}
+                            </p>
+                            <div className="flex items-center gap-2">
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(tx.created_at).toLocaleDateString("tr-TR", {
+                                  day: "2-digit", month: "2-digit", year: "numeric",
+                                  hour: "2-digit", minute: "2-digit",
+                                })}
+                              </p>
+                              <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
+                                tx.payment_status === "paid" ? "bg-green-100 text-green-800" :
+                                tx.payment_status === "pending" ? "bg-yellow-100 text-yellow-800" :
+                                "bg-red-100 text-red-800"
+                              }`}>
+                                {tx.payment_status === "paid" ? t.wallet_status_paid || "Tamamlandı" :
+                                 tx.payment_status === "pending" ? t.wallet_status_pending || "Beklemede" :
+                                 t.wallet_status_failed || "Başarısız"}
+                              </span>
+                            </div>
+                            {tx.transaction_ref && (
+                              <p className="text-xs text-muted-foreground">Ref: {tx.transaction_ref}</p>
+                            )}
+                          </div>
+                        </div>
+                        <p className={`text-base font-bold ${tx.type === "credit" ? "text-green-600" : "text-orange-600"}`}>
+                          {tx.type === "credit" ? "+" : "-"}{t.currency}{Number(tx.amount).toFixed(2)}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {(walletTxData?.meta?.last_page ?? 1) > 1 && (
+                  <div className="mt-4 flex items-center justify-center gap-2 border-t pt-4">
+                    <Button variant="outline" size="sm" disabled={walletPage <= 1}
+                      onClick={() => setWalletPage(walletPage - 1)}>
+                      <ChevronLeft className="mr-1 h-4 w-4" />{t.previous}
+                    </Button>
+                    <span className="px-3 text-sm text-muted-foreground">
+                      {walletPage} / {walletTxData?.meta?.last_page ?? 1}
+                    </span>
+                    <Button variant="outline" size="sm"
+                      disabled={walletPage >= (walletTxData?.meta?.last_page ?? 1)}
+                      onClick={() => setWalletPage(walletPage + 1)}>
+                      {t.next}<ChevronRight className="ml-1 h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Deposit Modal */}
+      {depositOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="mx-4 w-full max-w-sm rounded-lg bg-card p-6 shadow-xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-bold">{t.wallet_add_money || "Para Yükle"}</h3>
+              <button
+                onClick={() => { setDepositOpen(false); setDepositError(""); }}
+                className="rounded p-1 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mb-4 space-y-2">
+              <Label>{t.wallet_deposit_amount || "Yüklenecek Tutar"}</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                  {t.currency}
+                </span>
+                <Input
+                  type="number"
+                  min="1"
+                  max={walletData?.max_deposit_per_transaction}
+                  step="1"
+                  value={depositAmount}
+                  onChange={(e) => setDepositAmount(e.target.value)}
+                  className="pl-8"
+                  placeholder="0"
+                  autoFocus
+                />
+              </div>
+              {walletData?.max_deposit_per_transaction && (
+                <p className="text-xs text-muted-foreground">
+                  {t.wallet_max_deposit || "Maksimum"}: {t.currency}{walletData.max_deposit_per_transaction}
+                </p>
+              )}
+            </div>
+
+            {/* Payment Gateway Selection */}
+            <div className="mb-4 space-y-2">
+              <Label>{t.wallet_pay_with_card || "Ödeme Yöntemi"}</Label>
+              {gatewaysLoading ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  {t.loading}
+                </div>
+              ) : walletGateways.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Ödeme yöntemi bulunamadı.</p>
+              ) : (
+                <div className="grid gap-2">
+                  {walletGateways.map((gw: PaymentGateway) => {
+                    const IconComponent = walletGatewayIconMap[gw.slug] ?? CreditCard;
+                    const isSelected = selectedWalletGateway === gw.slug;
+                    return (
+                      <button
+                        key={gw.slug}
+                        type="button"
+                        onClick={() => setSelectedWalletGateway(gw.slug)}
+                        className={`flex items-center gap-3 rounded-lg border p-3 transition-colors ${
+                          isSelected
+                            ? "border-primary bg-primary/5 ring-1 ring-primary"
+                            : "hover:border-primary/50"
+                        }`}
+                      >
+                        {gw.image_url ? (
+                          <Image
+                            src={gw.image_url}
+                            alt={gw.name}
+                            width={24}
+                            height={24}
+                            className="h-6 w-6 object-contain"
+                          />
+                        ) : (
+                          <IconComponent className="h-5 w-5 shrink-0" />
+                        )}
+                        <span className="text-sm font-medium">{gw.name}</span>
+                        {isSelected && <Check className="ml-auto h-4 w-4 text-primary" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Bank account preview when bank_transfer selected */}
+            {selectedWalletGateway === "bank_transfer" && !bankTransferPending && walletData?.bank_account?.iban && (
+              <div className="mb-4 rounded-lg border bg-muted/30 p-3 text-xs space-y-1.5">
+                <p className="font-semibold text-sm mb-2">Havale Bilgileri</p>
+                {walletData.bank_account.bank_name && (
+                  <div className="flex justify-between gap-2">
+                    <span className="text-muted-foreground">Banka:</span>
+                    <span className="font-medium">{walletData.bank_account.bank_name}</span>
+                  </div>
+                )}
+                {walletData.bank_account.account_holder && (
+                  <div className="flex justify-between gap-2">
+                    <span className="text-muted-foreground">Hesap Sahibi:</span>
+                    <span className="font-medium">{walletData.bank_account.account_holder}</span>
+                  </div>
+                )}
+                <div className="flex justify-between gap-2">
+                  <span className="text-muted-foreground shrink-0">IBAN:</span>
+                  <span className="font-mono font-semibold break-all text-right">{walletData.bank_account.iban}</span>
+                </div>
+              </div>
+            )}
+
+            {depositError && (
+              <p className="mb-3 rounded-md bg-destructive/10 p-2 text-xs text-destructive">{depositError}</p>
+            )}
+
+            {bankTransferPending && (
+              <div className="mb-4 space-y-3">
+                <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-800 dark:border-green-800 dark:bg-green-950/30 dark:text-green-400">
+                  <p className="font-semibold">Havale Talebi Oluşturuldu</p>
+                  <p className="text-xs mt-1">Aşağıdaki hesaba havale/EFT yapın. Admin onayından sonra bakiyenize yansır.</p>
+                </div>
+                {walletData?.bank_account?.iban ? (
+                  <div className="rounded-lg border bg-muted/30 p-3 space-y-2 text-sm">
+                    {walletData.bank_account.bank_name && (
+                      <div className="flex justify-between gap-2">
+                        <span className="text-muted-foreground shrink-0">Banka:</span>
+                        <span className="font-medium text-right">{walletData.bank_account.bank_name}</span>
+                      </div>
+                    )}
+                    {walletData.bank_account.account_holder && (
+                      <div className="flex justify-between gap-2">
+                        <span className="text-muted-foreground shrink-0">Hesap Sahibi:</span>
+                        <span className="font-medium text-right">{walletData.bank_account.account_holder}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between gap-2">
+                      <span className="text-muted-foreground shrink-0">IBAN:</span>
+                      <span className="font-mono text-xs font-semibold text-right break-all">{walletData.bank_account.iban}</span>
+                    </div>
+                    {walletData.bank_account.description && (
+                      <div className="flex justify-between gap-2">
+                        <span className="text-muted-foreground shrink-0">Açıklama:</span>
+                        <span className="text-xs text-right">{walletData.bank_account.description}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between gap-2 border-t pt-2 mt-1">
+                      <span className="text-muted-foreground shrink-0">Tutar:</span>
+                      <span className="font-bold text-primary">{t.currency}{depositAmount}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">Banka bilgileri için admin ile iletişime geçin.</p>
+                )}
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              {!bankTransferPending ? (
+                <Button
+                  className="flex-1"
+                  onClick={handleDeposit}
+                  disabled={depositProcessing || !depositAmount || Number(depositAmount) <= 0 || !selectedWalletGateway}
+                >
+                  {depositProcessing ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : null}
+                  {selectedWalletGateway === "bank_transfer"
+                    ? "Talep Oluştur"
+                    : (t.wallet_pay || "Ödemeye Geç")}
+                </Button>
+              ) : null}
+              <Button
+                variant="outline"
+                className={bankTransferPending ? "flex-1" : ""}
+                onClick={() => {
+                  setDepositOpen(false);
+                  setDepositError("");
+                  setBankTransferPending(false);
+                }}
+              >
+                {bankTransferPending ? "Kapat" : t.cancel}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Cancel Order Dialog */}
       {cancellingOrderId && (

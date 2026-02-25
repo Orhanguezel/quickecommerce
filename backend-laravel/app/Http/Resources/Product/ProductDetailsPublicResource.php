@@ -55,6 +55,7 @@ class ProductDetailsPublicResource extends JsonResource
             'return_text' => $this->return_text,
             'allow_change_in_mind' => $this->allow_change_in_mind,
             'cash_on_delivery' => $this->cash_on_delivery,
+            'free_shipping' => $this->free_shipping,
             'delivery_time_min' => $this->delivery_time_min,
             'delivery_time_max' => $this->delivery_time_max,
             'delivery_time_text' => $this->delivery_time_text,

@@ -124,3 +124,10 @@ export interface CreateGatewaySessionResponse {
     order_master_id?: number;
   };
 }
+
+export interface CheckoutExtraInfoResponse {
+  shipping_campaign?: {
+    minimum_shipping_charge?: number;
+    free_shipping_min_order_value?: number;
+  };
+}

@@ -12,11 +12,7 @@ cd /home/orhan/Documents/quickecommerce/admin-panel
 npm run dev
 
 
-### Terminal 3 - Customer Web (port 3003):
-
-
-cd /home/orhan/Documents/quickecommerce/customer-web-nextjs
-npm run dev
+o
 
 sportoonline.comEngin10001453.
 
@@ -28,6 +24,7 @@ GELIVER_SENDER_ADDRESS_ID=8ff49546-56da-4a6f-b287-3424c6366bb1
 
 d
 
+Lütfen isim ve sipariş numarasini belirtiniz.
 
 {"10": "K3bKwMeayD/5NUIr92VoltewMI4="}
 

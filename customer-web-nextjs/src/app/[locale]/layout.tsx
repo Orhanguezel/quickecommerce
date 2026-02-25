@@ -235,9 +235,9 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
           <QueryProvider>
             <NextThemesProvider attribute="class" defaultTheme="light" enableSystem={false}>
               <ThemeProvider>
-                <div className="flex min-h-screen flex-col overflow-x-hidden">
+                <div className="flex min-h-screen flex-col">
                   <Header />
-                  <main className="flex-1">{children}</main>
+                  <main className="flex-1 overflow-x-hidden" style={{ paddingTop: "var(--theme-popup-top-offset, 0px)" }}>{children}</main>
                   <Footer />
                 </div>
                 <FloatingCart />

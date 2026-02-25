@@ -12,6 +12,7 @@ import type {
   PlaceOrderInput,
   PlaceOrderResponse,
   PaymentGateway,
+  CheckoutExtraInfoResponse,
 } from "./checkout.type";
 
 // --- Address Hooks ---
@@ -136,6 +137,28 @@ export function usePlaceOrderMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
     },
+  });
+}
+
+export function useCheckoutExtraInfoQuery(productIds: number[]) {
+  const { getAxiosInstance } = useBaseService<CheckoutExtraInfoResponse>(
+    API_ENDPOINTS.CHECKOUT_EXTRA_INFO
+  );
+  const sortedProductIds = [...productIds].sort((a, b) => a - b);
+
+  return useQuery({
+    queryKey: ["checkout-extra-info", sortedProductIds.join(",")],
+    queryFn: async () => {
+      const res = await getAxiosInstance().post<CheckoutExtraInfoResponse>(
+        API_ENDPOINTS.CHECKOUT_EXTRA_INFO,
+        {
+          product_ids: sortedProductIds,
+        }
+      );
+      return res.data;
+    },
+    staleTime: 1000 * 60 * 5,
+    enabled: sortedProductIds.length > 0,
   });
 }
 
