@@ -17,6 +17,7 @@ import {
 } from "@/modules/checkout/checkout.service";
 import { useWalletInfoQuery } from "@/modules/wallet/wallet.service";
 import { useProfileQuery } from "@/modules/profile/profile.service";
+import { useBaseService } from "@/lib/base-service";
 import type {
   CustomerAddress,
   PlaceOrderInput,
@@ -118,6 +119,7 @@ export function CheckoutClient({ translations: t }: Props) {
   const { data: paymentGateways, isLoading: gatewaysLoading } =
     usePaymentGatewaysQuery();
   const { data: walletData } = useWalletInfoQuery();
+  const { getAxiosInstance } = useBaseService("/product");
 
   const checkoutPaymentGateways = useMemo(
     () =>
@@ -261,24 +263,47 @@ export function CheckoutClient({ translations: t }: Props) {
     );
   };
 
-  const handlePlaceOrder = () => {
-    // Validate cart items have required IDs
-    const missingVariant = items.filter((i) => !i.variant_id);
-    const missingStore = items.filter((i) => !i.store_id);
-    if (missingVariant.length > 0 || missingStore.length > 0) {
-      const names = [...missingVariant, ...missingStore]
-        .map((i) => i.name)
-        .filter((v, idx, arr) => arr.indexOf(v) === idx)
-        .join(", ");
+  const handlePlaceOrder = async () => {
+    // Auto-resolve items missing variant_id or store_id (stale localStorage data)
+    const needsResolve = items.filter((i) => !i.variant_id || !i.store_id);
+    let resolvedItems = [...items];
+
+    if (needsResolve.length > 0) {
+      const axios = getAxiosInstance();
+      for (const item of needsResolve) {
+        try {
+          const res = await axios.get(`/product/${item.slug}`);
+          const pd = res.data?.data;
+          const firstVariant = pd?.variants?.[0];
+          if (firstVariant || pd?.store?.id) {
+            resolvedItems = resolvedItems.map((i) =>
+              i.id === item.id
+                ? {
+                    ...i,
+                    variant_id: i.variant_id ?? firstVariant?.id,
+                    store_id: i.store_id ?? pd?.store?.id,
+                  }
+                : i
+            );
+          }
+        } catch {
+          // keep item as-is, will fail validation below
+        }
+      }
+    }
+
+    // Final validation after resolution
+    const stillMissing = resolvedItems.filter((i) => !i.variant_id || !i.store_id);
+    if (stillMissing.length > 0) {
       alert(
-        `Sepetinizdeki bazı ürünlerde eksik bilgi var: ${names}\n\nLütfen bu ürünleri sepetten kaldırıp ürün detay sayfasından tekrar ekleyin.`
+        `Sepetinizdeki bazı ürünler güncellenemedi: ${stillMissing.map((i) => i.name).join(", ")}\n\nLütfen bu ürünleri sepetten kaldırıp tekrar ekleyin.`
       );
       return;
     }
 
     // Group items by store
-    const storeMap = new Map<number, typeof items>();
-    for (const item of items) {
+    const storeMap = new Map<number, typeof resolvedItems>();
+    for (const item of resolvedItems) {
       if (!storeMap.has(item.store_id!)) storeMap.set(item.store_id!, []);
       storeMap.get(item.store_id!)!.push(item);
     }
