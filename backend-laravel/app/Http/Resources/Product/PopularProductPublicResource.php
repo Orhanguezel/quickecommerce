@@ -38,7 +38,7 @@ class  PopularProductPublicResource extends JsonResource
             'price' => optional($this->variants->first())->price,
             'special_price' => optional($this->variants->first())->special_price,
             'singleVariant' => $this->variants->count() === 1 ? [$this->variants->first()] : [],
-            'default_variant_id' => optional($firstVariant)->id,
+            'default_variant_id' => optional($this->variants->first())->id,
             'discount_percentage' => $this->variants->isNotEmpty() && optional($this->variants->first())->price > 0 && optional($this->variants->first())->special_price > 0
                 ? round(((optional($this->variants->first())->price - optional($this->variants->first())->special_price) / optional($this->variants->first())->price) * 100, 2)
                 : 0,

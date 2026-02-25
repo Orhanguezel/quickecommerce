@@ -28,7 +28,7 @@ class WishListResource extends JsonResource
             'price' => optional($this->product->variants->first())->price,
             'special_price' => optional($this->product->variants->first())->special_price,
             'singleVariant' => $this->product->variants->count() === 1 ? [$this->product->variants->first()] : [],
-            'default_variant_id' => optional($firstVariant)->id,
+            'default_variant_id' => optional($this->product->variants->first())->id,
             'discount_percentage' => $this->product->variants->isNotEmpty() && optional($this->product->variants->first())->price > 0
                 ? round(((optional($this->product->variants->first())->price - optional($this->product->variants->first())->special_price) / optional($this->product->variants->first())->price) * 100, 2)
                 : null,

@@ -37,7 +37,7 @@ class RelatedProductPublicResource extends JsonResource
             'max_cart_qty' => $this->max_cart_qty,
             'views' => $this->views,
             'singleVariant' => $this->variants->count() === 1 ? [$this->variants->first()] : [],
-            'default_variant_id' => optional($firstVariant)->id,
+            'default_variant_id' => optional($this->variants->first())->id,
             'stock' => $this->variants->isNotEmpty() ? $this->variants->sum('stock_quantity') : null,
             'price' => $this->variants->isNotEmpty() ? $this->variants[0]->price : null,
             'special_price' => $this->variants->isNotEmpty() ? $this->variants[0]->special_price : null,

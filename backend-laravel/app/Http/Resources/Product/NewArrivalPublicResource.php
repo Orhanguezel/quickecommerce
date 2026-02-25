@@ -39,7 +39,7 @@ class NewArrivalPublicResource extends JsonResource
             'special_price' => optional($this->variants->first())->special_price,
             'max_cart_qty' => $this->max_cart_qty,
             'singleVariant' => $this->variants->count() === 1 ? [$this->variants->first()] : [],
-            'default_variant_id' => optional($firstVariant)->id,
+            'default_variant_id' => optional($this->variants->first())->id,
             'discount_percentage' => $this->variants->isNotEmpty() && optional($this->variants->first())->price > 0 && optional($this->variants->first())->special_price > 0
                 ? round(((optional($this->variants->first())->price - optional($this->variants->first())->special_price) / optional($this->variants->first())->price) * 100, 2)
                 : 0,

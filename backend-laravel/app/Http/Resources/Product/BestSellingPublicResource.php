@@ -37,7 +37,7 @@ class BestSellingPublicResource extends JsonResource
             'price' => optional($this->variants->first())->price,
             'special_price' => optional($this->variants->first())->special_price,
             'singleVariant' => $this->variants->count() === 1 ? [$this->variants->first()] : [],
-            'default_variant_id' => optional($firstVariant)->id,
+            'default_variant_id' => optional($this->variants->first())->id,
             'attributes' => $this->variants->pluck('attributes')->map(function ($attribute) {
                 return json_decode($attribute, true);
             })->toArray(),
