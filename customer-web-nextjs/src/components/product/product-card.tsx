@@ -86,10 +86,11 @@ export function ProductCard({
     e.stopPropagation();
     if (displayPrice == null) return;
     const defaultVariant = product.singleVariant?.[0];
+    const variantId = defaultVariant?.id ?? product.default_variant_id;
     const cartItem: CartItem = {
       id: product.id,
       product_id: product.id,
-      variant_id: defaultVariant?.id,
+      variant_id: variantId,
       store_id: product.store_id ?? product.store?.id ?? undefined,
       name: product.name,
       slug: product.slug,

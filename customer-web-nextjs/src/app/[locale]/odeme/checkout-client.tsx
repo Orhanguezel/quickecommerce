@@ -263,10 +263,15 @@ export function CheckoutClient({ translations: t }: Props) {
 
   const handlePlaceOrder = () => {
     // Validate cart items have required IDs
-    const invalidItems = items.filter((i) => !i.store_id || !i.variant_id);
-    if (invalidItems.length > 0) {
+    const missingVariant = items.filter((i) => !i.variant_id);
+    const missingStore = items.filter((i) => !i.store_id);
+    if (missingVariant.length > 0 || missingStore.length > 0) {
+      const names = [...missingVariant, ...missingStore]
+        .map((i) => i.name)
+        .filter((v, idx, arr) => arr.indexOf(v) === idx)
+        .join(", ");
       alert(
-        "Sepetinizdeki bazı ürünlerde eksik bilgi var. Lütfen ürünleri kaldırıp tekrar ekleyin."
+        `Sepetinizdeki bazı ürünlerde eksik bilgi var: ${names}\n\nLütfen bu ürünleri sepetten kaldırıp ürün detay sayfasından tekrar ekleyin.`
       );
       return;
     }

@@ -55,6 +55,7 @@ class ProductPublicResource extends JsonResource
             'price' => shouldRound() ? round(optional($firstVariant)->price) : round(optional($firstVariant)->price, 2),
             'special_price' => shouldRound() ? round(optional($firstVariant)->special_price) : round(optional($firstVariant)->special_price, 2),
             'singleVariant' => $this->variants->count() === 1 ? [$firstVariant] : [],
+            'default_variant_id' => optional($firstVariant)->id,
             'discount_percentage' => $firstVariant && $firstVariant->price > 0 && $firstVariant->special_price > 0
                 ? round((($firstVariant->price - $firstVariant->special_price) / $firstVariant->price) * 100, 2)
                 : 0,

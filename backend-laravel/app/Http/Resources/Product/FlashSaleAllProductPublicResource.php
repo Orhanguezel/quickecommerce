@@ -48,6 +48,7 @@ class FlashSaleAllProductPublicResource extends JsonResource
             'price' => optional($firstVariant)->price,
             'special_price' => optional($firstVariant)->special_price,
             'singleVariant' => $filteredVariants->count() === 1 ? [$firstVariant] : [],
+            'default_variant_id' => optional($firstVariant)->id,
             'discount_percentage' => $firstVariant && $firstVariant->price > 0 && $firstVariant->special_price > 0
                 ? round((($firstVariant->price - $firstVariant->special_price) / $firstVariant->price) * 100, 2)
                 : 0,

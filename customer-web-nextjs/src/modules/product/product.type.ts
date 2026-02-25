@@ -17,6 +17,7 @@ export interface Product {
   is_featured?: boolean;
   max_cart_qty?: number;
   singleVariant?: ProductVariant[];
+  default_variant_id?: number;
   category_name?: {
     id: number;
     category_name: string;
