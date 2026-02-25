@@ -10,21 +10,20 @@ interface StatusUpdateModalProps {
   refetch: () => void;
   row: any;
 }
-const StatusList = [
-  { label: "Pending", value: "pending" },
-  { label: "Partially Paid", value: "partially_paid" },
-  { label: "Paid", value: "paid" },
-  { label: "Cancelled", value: "cancelled" },
-  { label: "Failed", value: "failed" },
-  { label: "Refunded", value: "refunded" },
-];
-
 const PaymentStatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
   trigger,
   refetch,
   row,
 }) => {
   const t = useTranslations();
+  const StatusList = [
+    { label: t("common.pending"), value: "pending" },
+    { label: t("common.partially_paid"), value: "partially_paid" },
+    { label: t("common.paid"), value: "paid" },
+    { label: t("common.cancelled"), value: "cancelled" },
+    { label: t("common.failed"), value: "failed" },
+    { label: t("common.refunded"), value: "refunded" },
+  ];
   const { mutate: updateStoreStatus } = useOrdersPaymentStatusUpdate();
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);

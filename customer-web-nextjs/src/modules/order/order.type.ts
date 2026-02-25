@@ -101,6 +101,7 @@ export interface OrderSummary {
   coupon_discount: number;
   tax_rate: number;
   total_tax_amount: number;
+  tax_included_in_price: boolean;
   product_discount_amount: number;
   shipping_charge: number;
   additional_charge: number;

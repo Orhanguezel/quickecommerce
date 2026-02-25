@@ -1234,6 +1234,7 @@
     "replied_at": "Reply At",
     "roles": "Roles",
     "tax": "Tax",
+    "tax_included": "included",
     "additional_charge": "Additional Charge",
     "delivery_fee": "Delivery Fee",
     "coupon_discount": "Coupon Discount",
@@ -1301,7 +1302,7 @@
     "additional_charge_enable": "Additional Charge Enable",
     "additional_charge_amount": "Additional Charge Amount",
     "additional_charge": "Additional Charge",
-    "include_tax_amount": "Include TAX Amount",
+    "include_tax_amount": "Prices Include VAT",
     "tax_settings": "Tax Settings",
     "minimum_shipping_charge": "Minimum shipping charge",
     "shipping_charge": "Shipping Charge",
@@ -1327,7 +1328,7 @@
     "postmark": "Postmark",
     "ssl": "SSL",
     "tls": "TLS",
-    "tax_note_in_commission_settings": "If you disable it, customers will see the product or service price without the tax during checkout.",
+    "tax_note_in_commission_settings": "When enabled, product prices already include VAT and no additional tax is added. When disabled, VAT is calculated and added separately to the order total.",
     "area_settings_note": "This configuration ensures that sellers can only select areas that are linked to the chosen store type when creating a new store.",
     "create_connect_dot": "Create & connect dots in a specific area on the map to add a new business zone.",
     "use_hand_tool": "Use this Hand Tool to find your target zone.",
@@ -1845,6 +1846,7 @@
     "admin_earnings": "Admin Earnings",
     "store_earnings": "Store Earnings",
     "deliveryman_earnings": "Deliveryman Earnings",
-    "total_refund_amount": "Total Refund Amount"
+    "total_refund_amount": "Total Refund Amount",
+    "totals": "Totals"
   }
 }

@@ -220,6 +220,7 @@ class AdminReportAnalyticsManageController extends Controller
             }
 
             $filteredQuery = (clone $query); // Clone for the dashboard summary
+            $totalsQuery = (clone $query); // Clone for column totals
             $orderDetails = $query
                 ->latest()
                 ->paginate($filters['per_page'] ?? 20);
@@ -229,10 +230,32 @@ class AdminReportAnalyticsManageController extends Controller
                 return Excel::download(new OrderReportExport($orderDetails), 'order_report_' . time() . '.' . $request->export);
             }
 
+            // Calculate column totals from all filtered data (not just current page)
+            $totalsData = $totalsQuery->get();
+            $totals = [
+                'order_amount' => round($totalsData->sum('order_amount'), 2),
+                'coupon_discount_amount_admin' => round($totalsData->sum(function ($order) {
+                    return $order->orderDetail?->sum('coupon_discount_amount') ?? 0;
+                }), 2),
+                'product_discount_amount' => round($totalsData->sum('product_discount_amount'), 2),
+                'flash_discount_amount_admin' => round($totalsData->sum('flash_discount_amount_admin'), 2),
+                'shipping_charge' => round($totalsData->sum('shipping_charge'), 2),
+                'delivery_charge_admin' => round($totalsData->sum('delivery_charge_admin'), 2),
+                'delivery_charge_admin_commission' => round($totalsData->sum('delivery_charge_admin_commission'), 2),
+                'total_tax_amount' => round($totalsData->sum(function ($order) {
+                    return $order->orderDetail?->sum('total_tax_amount') ?? 0;
+                }), 2),
+                'total_product_amount' => round($totalsData->sum(function ($order) {
+                    return ($order->orderDetail?->sum('line_total_price_with_qty') ?? 0) + ($order->orderDetail?->sum('admin_discount_amount') ?? 0);
+                }), 2),
+                'additional_charge_amount' => round($totalsData->sum('order_additional_charge_amount'), 2),
+            ];
+
             return response()->json([
                 'dashboard' => new AdminTransactionDashboardReportResource($filteredQuery),
                 'data' => AdminTransactionReportResource::collection($orderDetails),
-                'meta' => new PaginationResource($orderDetails)
+                'meta' => new PaginationResource($orderDetails),
+                'totals' => $totals,
             ]);
         } elseif ($request->transaction_type === 'subscription') {
             $query = SubscriptionHistory::with(['store']);
@@ -265,12 +288,19 @@ class AdminReportAnalyticsManageController extends Controller
             } elseif (isset($filters['end_date'])) {
                 $query->whereDate('created_at', '<=', $filters['end_date']);
             }
+            $totalsQuery = (clone $query); // Clone for column totals
             $subscriptionHistory = $query->latest()->paginate($filters['per_page'] ?? 20);
             $filteredQuery = (clone $query); // Clone for the dashboard summary
+
+            $subscriptionTotals = [
+                'price' => round($totalsQuery->sum('price'), 2),
+            ];
+
             return response()->json([
                 'dashboard' => new AdminSubscriptionTransactionDashboardReport($filteredQuery),
                 'data' => AdminSubscriptionTransactionReport::collection($subscriptionHistory),
-                'meta' => new PaginationResource($subscriptionHistory)
+                'meta' => new PaginationResource($subscriptionHistory),
+                'totals' => $subscriptionTotals,
             ]);
         }
     }

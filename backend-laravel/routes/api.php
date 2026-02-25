@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\V1\StripePaymentController;
 use App\Http\Controllers\Api\V1\StripeWebhookController;
 use App\Http\Controllers\Api\V1\TaxInfoController;
 use App\Http\Controllers\Api\V1\UserController;
+use App\Http\Controllers\Api\V1\Webhooks\GdeliverWebhookController;
 use App\Http\Middleware\ApiAuthMiddleware;
 use Illuminate\Support\Facades\Route;
 
@@ -171,6 +172,9 @@ Route::group(['prefix' => 'v1/'], function () {
         // iyzico wallet deposit callback
         Route::match(['GET', 'POST'], 'iyzico/wallet-callback', [IyzicoPaymentController::class, 'walletCallback']);
     });
+
+    // Geliver kargo takip webhook (Geliver bu endpoint'i çağırır)
+    Route::post('webhooks/geliver', [GdeliverWebhookController::class, 'handleWebhook']);
 });
 
 // Admin Currency Management Routes

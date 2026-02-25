@@ -581,9 +581,11 @@ class SystemManagementController extends Controller
     {
         if ($request->isMethod('POST')) {
             $validator = Validator::make($request->all(), [
-                'geliver_api_token'          => 'nullable|string',
-                'geliver_test_mode'          => 'nullable|string',
-                'geliver_sender_address_id'  => ['nullable', 'string', 'regex:/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i'],
+                'geliver_api_token'             => 'nullable|string',
+                'geliver_test_mode'             => 'nullable|string',
+                'geliver_sender_address_id'     => ['nullable', 'string', 'regex:/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i'],
+                'geliver_webhook_header_name'   => 'nullable|string|max:100',
+                'geliver_webhook_header_secret'  => 'nullable|string|max:255',
             ], [
                 'geliver_sender_address_id.regex' => 'Gönderici Adres ID geçerli bir UUID formatında olmalıdır (örn: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx).',
             ]);
@@ -593,6 +595,8 @@ class SystemManagementController extends Controller
             com_option_update('geliver_api_token', $request->geliver_api_token);
             com_option_update('geliver_test_mode', $request->geliver_test_mode);
             com_option_update('geliver_sender_address_id', $request->geliver_sender_address_id);
+            com_option_update('geliver_webhook_header_name', $request->geliver_webhook_header_name);
+            com_option_update('geliver_webhook_header_secret', $request->geliver_webhook_header_secret);
 
             // .env dosyasını da güncelle
             $this->updateEnvValue('GELIVER_API_TOKEN', $request->geliver_api_token ?? '');
@@ -603,9 +607,12 @@ class SystemManagementController extends Controller
         }
 
         return $this->success([
-            'geliver_api_token'         => com_option_get('geliver_api_token'),
-            'geliver_test_mode'         => com_option_get('geliver_test_mode'),
-            'geliver_sender_address_id' => com_option_get('geliver_sender_address_id'),
+            'geliver_api_token'             => com_option_get('geliver_api_token'),
+            'geliver_test_mode'             => com_option_get('geliver_test_mode'),
+            'geliver_sender_address_id'     => com_option_get('geliver_sender_address_id'),
+            'geliver_webhook_header_name'   => com_option_get('geliver_webhook_header_name'),
+            'geliver_webhook_header_secret'  => com_option_get('geliver_webhook_header_secret'),
+            'geliver_webhook_url'           => url('/api/v1/webhooks/geliver'),
         ]);
     }
 

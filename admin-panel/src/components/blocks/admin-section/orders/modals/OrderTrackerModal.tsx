@@ -28,27 +28,6 @@ interface RouteResult {
   path: LatLng[];
 }
 
-const steps = [
-  { title: "Pending", value: "pending", icon: <Check className="w-6 h-6" /> },
-  {
-    title: "Confirmed",
-    value: "confirmed",
-    icon: <Check className="w-6 h-6" />,
-  },
-  {
-    title: "Processing",
-    value: "processing",
-    icon: <Check className="w-6 h-6" />,
-  },
-  { title: "Pick-Up", value: "pickup", icon: <Check className="w-6 h-6" /> },
-  { title: "Shipped", value: "shipped", icon: <Check className="w-6 h-6" /> },
-  {
-    title: "Delivered",
-    value: "delivered",
-    icon: <Check className="w-6 h-6" />,
-  },
-];
-
 const OrderTrackerModal: React.FC<StatusUpdateModalProps> = ({
   trigger,
   refetch,
@@ -56,6 +35,29 @@ const OrderTrackerModal: React.FC<StatusUpdateModalProps> = ({
   OrderTrackingTime,
 }) => {
   const t = useTranslations();
+  const steps = useMemo(
+    () => [
+      { title: t("common.pending"), value: "pending", icon: <Check className="w-6 h-6" /> },
+      {
+        title: t("common.confirmed"),
+        value: "confirmed",
+        icon: <Check className="w-6 h-6" />,
+      },
+      {
+        title: t("common.processing"),
+        value: "processing",
+        icon: <Check className="w-6 h-6" />,
+      },
+      { title: t("common.pickup"), value: "pickup", icon: <Check className="w-6 h-6" /> },
+      { title: t("common.shipped"), value: "shipped", icon: <Check className="w-6 h-6" /> },
+      {
+        title: t("common.delivered"),
+        value: "delivered",
+        icon: <Check className="w-6 h-6" />,
+      },
+    ],
+    [t]
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { isLoaded, isEnabled: isMapEnabledBySettings, isPending } = useGoogleMaps();
 
@@ -94,7 +96,7 @@ const OrderTrackerModal: React.FC<StatusUpdateModalProps> = ({
 
   const stepsWithTimes = React.useMemo(
     () => buildStepsWithTimes(steps, OrderTrackingTime),
-    [OrderTrackingTime]
+    [steps, OrderTrackingTime]
   );
 
   const [liveLocation, setLiveLocation] = useState<{

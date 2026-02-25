@@ -11,8 +11,11 @@ php artisan serve
 cd /home/orhan/Documents/quickecommerce/admin-panel
 npm run dev
 
+### Terminal 3 - Customer Nextjs (port 3003):
 
-o
+cd /home/orhan/Documents/quickecommerce/customer-web-nextjs$ 
+npm run dev
+
 
 sportoonline.comEngin10001453.
 
@@ -40,7 +43,17 @@ CVV     : 123
 
 getiriver aa8700da-f32a-4b90-acd2-702a7cf1d045
 
+
 9b79d5d1-5b57-41ff-aec5-0b8477a00d12
+
+
+sportoonline_test
+6523c2eb-e40e-47b2-a3a9-b133957f9e77
+
+adres id
+a9bfa771-3c98-4ee2-8d74-9c0d666ce33d
+
+https://sportoonline.com/api/v1/webhooks/geliver
 
 
 +1 sonsuz scroll kaydirkca yeni urunler gelecek. bu tamam
@@ -87,3 +100,7 @@ genel magaza olsun. her magaza kendi kategorisini ekleyebilsin.bu mumkun mu? bu 
 
 
 fiyatlar türkiye sartlarina uygun olarak vergi dahil hesaplanmali. faturada vergiyi ayri hesaplayalim. 
+
+
+
+1000 lira ustu. sepette kargo ucreti yok. ama sonradan kargo ucreti cikti. 

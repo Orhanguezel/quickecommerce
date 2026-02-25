@@ -1234,6 +1234,7 @@
     "replied_at": "Yanıt Tarihi",
     "roles": "Roller",
     "tax": "Vergi",
+    "tax_included": "dahil",
     "additional_charge": "Ek Ücret",
     "delivery_fee": "Teslimat Ücreti",
     "coupon_discount": "Kupon İndirimi",
@@ -1301,7 +1302,7 @@
     "additional_charge_enable": "Ek Ücreti Etkinleştir",
     "additional_charge_amount": "Ek Ücret Tutarı",
     "additional_charge": "Ek Ücret",
-    "include_tax_amount": "Vergi Tutarını Dahil Et",
+    "include_tax_amount": "Fiyatlara KDV Dahil",
     "tax_settings": "Vergi Ayarları",
     "minimum_shipping_charge": "Minimum kargo ücreti",
     "shipping_charge": "Kargo Ücreti",
@@ -1327,7 +1328,7 @@
     "postmark": "Postmark",
     "ssl": "SSL",
     "tls": "TLS",
-    "tax_note_in_commission_settings": "Devre dışı bırakırsanız, müşteriler ödeme sırasında ürün/hizmet fiyatını vergi hariç görür.",
+    "tax_note_in_commission_settings": "Aktif olduğunda ürün fiyatları KDV dahildir, ayrıca vergi eklenmez. Devre dışı bırakılırsa, ürün fiyatlarına KDV ayrıca eklenir.",
     "area_settings_note": "Bu yapılandırma, satıcıların yeni mağaza oluştururken yalnızca seçilen mağaza türüne bağlı bölgeleri seçebilmesini sağlar.",
     "create_connect_dot": "Yeni bir iş bölgesi eklemek için haritada belirli bir alanda noktalar oluşturup birbirine bağlayın.",
     "use_hand_tool": "Hedef bölgenizi bulmak için El aracını kullanın.",
@@ -1845,6 +1846,7 @@
     "admin_earnings": "Yönetici Kazancı",
     "store_earnings": "Mağaza Kazancı",
     "deliveryman_earnings": "Kurye Kazancı",
-    "total_refund_amount": "Toplam İade Tutarı"
+    "total_refund_amount": "Toplam İade Tutarı",
+    "totals": "Toplamlar"
   }
 }

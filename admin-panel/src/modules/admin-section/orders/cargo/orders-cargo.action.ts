@@ -53,7 +53,7 @@ export const useOrderCargoOffersQuery = (
 ) => {
   const { getOffers } = useOrdersCargoService(orderId);
 
-  const { data, isPending, error, refetch } = useQuery({
+  const { data, isFetching, error, refetch } = useQuery({
     queryKey: ["orders-cargo-offers", orderId],
     queryFn: () => getOffers(),
     enabled: Boolean(orderId) && enabled,
@@ -63,7 +63,7 @@ export const useOrderCargoOffersQuery = (
 
   return {
     offersData: (data?.data as any)?.data ?? null,
-    isPending,
+    isPending: isFetching,
     error,
     refetch,
   };

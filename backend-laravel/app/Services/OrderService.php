@@ -148,7 +148,9 @@ class OrderService
             }
 
             $system_commission = SystemCommission::latest()->first();
-            $tax_disabled = $system_commission->order_include_tax_amount == 0;
+            // When order_include_tax_amount is true, prices are KDV dahil (tax included in price)
+            // so we should NOT add tax on top
+            $tax_disabled = (bool) $system_commission->order_include_tax_amount;
 
             DB::beginTransaction();
 
@@ -279,7 +281,13 @@ class OrderService
             // system commission
             // shipping charge calculate
             $order_shipping_charge = $system_commission->order_shipping_charge;
-            $free_shipping_min_order_value = (float) ($system_commission->free_shipping_min_order_value ?? 0);
+
+            // Use active ShippingCampaign threshold first (same logic as frontend checkout info)
+            // Falls back to SystemCommission setting if no active campaign exists
+            $activeShippingCampaign = \App\Models\ShippingCampaign::where('status', true)->first();
+            $free_shipping_min_order_value = $activeShippingCampaign
+                ? (float) $activeShippingCampaign->min_order_value
+                : (float) ($system_commission->free_shipping_min_order_value ?? 0);
             $cart_subtotal_for_shipping = (float) ($coupon_data['final_order_amount'] ?? $totalBasePrice);
             $is_free_shipping_eligible = $free_shipping_min_order_value > 0
                 && $cart_subtotal_for_shipping >= $free_shipping_min_order_value;
@@ -440,7 +448,7 @@ class OrderService
                         $finalPrice = $basePrice - $flash_sale_admin_discount;
 
                         // line total price with qty
-                        $line_total_price_with_qty = $finalPrice - $itemData['quantity'];
+                        $line_total_price_with_qty = $finalPrice * $itemData['quantity'];
 
                         // after flash sale discount
                         $after_flash_sale_discount_final_price = $finalPrice;
@@ -455,18 +463,36 @@ class OrderService
                         $line_total_excluding_tax = $after_discount_final_price_with_qty;
 
                         // vat/tax calculate
-                        $store_tax_amount = $product->store?->tax;
-                        $taxAmount = ($after_any_discount_final_price / 100) * $store_tax_amount;
+                        $store_tax_amount = $product->store?->tax ?? 0;
 
-                        // Total tax amount based on quantity
-                        $total_tax_amount = $taxAmount * $itemData['quantity'];
                         if ($tax_disabled) {
-                            $store_tax_amount = 0;
-                            $taxAmount = 0;
-                            $total_tax_amount = 0;
+                            // KDV dahil: prices already include tax
+                            // Back-calculate tax from inclusive price for display/accounting
+                            if ($store_tax_amount > 0) {
+                                $taxAmount = ($after_any_discount_final_price * $store_tax_amount) / (100 + $store_tax_amount);
+                                $taxAmount = $shouldRound ? round($taxAmount) : round($taxAmount, 2);
+                                $total_tax_amount = $shouldRound
+                                    ? round($taxAmount * $itemData['quantity'])
+                                    : round($taxAmount * $itemData['quantity'], 2);
+                            } else {
+                                $taxAmount = 0;
+                                $total_tax_amount = 0;
+                            }
+                            // Net amount (KDV hariç) for accounting
+                            $line_total_excluding_tax = $after_discount_final_price_with_qty - $total_tax_amount;
+                            // Gross stays same - no extra tax added (KDV already in price)
+                            $line_total_price = $shouldRound
+                                ? round($after_discount_final_price_with_qty)
+                                : round($after_discount_final_price_with_qty, 2);
+                        } else {
+                            // KDV hariç: add tax on top
+                            $taxAmount = ($after_any_discount_final_price / 100) * $store_tax_amount;
+                            $total_tax_amount = $taxAmount * $itemData['quantity'];
+                            // line_total_excluding_tax stays as the net amount
+                            $line_total_price = $shouldRound
+                                ? round($line_total_excluding_tax + $total_tax_amount)
+                                : round($line_total_excluding_tax + $total_tax_amount, 2);
                         }
-                        // Final line total price based on quantity
-                        $line_total_price = shouldRound() ? round($line_total_excluding_tax + $total_tax_amount) : round($line_total_excluding_tax + $total_tax_amount, 2);
 
                         // Initialize commission variables
                         $system_commission_type = null;
@@ -651,6 +677,9 @@ class OrderService
     {
         DB::transaction(function () use ($orderMaster) {
 
+            $system_commission = SystemCommission::latest()->first();
+            $tax_included_in_price = (bool) ($system_commission->order_include_tax_amount ?? false);
+
             $orderDetails = $orderMaster->orders()->with('orderDetail')->get()->flatMap->orderDetail;
             $totalLineAmount = $orderDetails->sum('line_total_price_with_qty');
 
@@ -671,16 +700,41 @@ class OrderService
                         $distributedTotal += $discount;
                     }
 
-                    $detail->update([
-                        'coupon_discount_amount' => $discount,
-                        'line_total_excluding_tax' => $lineTotal - $discount,
-                        'tax_amount' => ($lineTotal / 100 * $detail->tax_rate) / $detail->quantity,
-                        'total_tax_amount' => $lineTotal / 100 * $detail->tax_rate,
-                        'line_total_price' => ($lineTotal - $discount) + round($lineTotal / 100 * $detail->tax_rate, 2),
-                        'admin_commission_amount' => $detail->admin_commission_type === 'percentage'
-                            ? $lineTotal / 100 * $detail->admin_commission_rate
-                            : $detail->admin_commission_rate,
-                    ]);
+                    $taxRate = $detail->tax_rate;
+
+                    if ($tax_included_in_price) {
+                        // KDV dahil: back-calculate tax from discounted gross
+                        $discountedGross = $lineTotal - $discount;
+                        $totalTax = $taxRate > 0 ? round(($discountedGross * $taxRate) / (100 + $taxRate), 2) : 0;
+                        $taxPerUnit = $detail->quantity > 0 ? round($totalTax / $detail->quantity, 2) : 0;
+
+                        $detail->update([
+                            'coupon_discount_amount' => $discount,
+                            'line_total_excluding_tax' => $discountedGross - $totalTax,
+                            'tax_amount' => $taxPerUnit,
+                            'total_tax_amount' => $totalTax,
+                            'line_total_price' => round($discountedGross, 2), // No extra tax (already in price)
+                            'admin_commission_amount' => $detail->admin_commission_type === 'percentage'
+                                ? round(($discountedGross - $totalTax) / 100 * $detail->admin_commission_rate, 2)
+                                : $detail->admin_commission_rate,
+                        ]);
+                    } else {
+                        // KDV hariç: calculate tax on discounted amount and add on top
+                        $discountedNet = $lineTotal - $discount;
+                        $totalTax = round($discountedNet / 100 * $taxRate, 2);
+                        $taxPerUnit = $detail->quantity > 0 ? round($totalTax / $detail->quantity, 2) : 0;
+
+                        $detail->update([
+                            'coupon_discount_amount' => $discount,
+                            'line_total_excluding_tax' => $discountedNet,
+                            'tax_amount' => $taxPerUnit,
+                            'total_tax_amount' => $totalTax,
+                            'line_total_price' => round($discountedNet + $totalTax, 2),
+                            'admin_commission_amount' => $detail->admin_commission_type === 'percentage'
+                                ? round($discountedNet / 100 * $detail->admin_commission_rate, 2)
+                                : $detail->admin_commission_rate,
+                        ]);
+                    }
                 }
             }
 

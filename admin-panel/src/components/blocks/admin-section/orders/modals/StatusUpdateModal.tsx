@@ -9,22 +9,21 @@ interface StatusUpdateModalProps {
   refetch: () => void;
   row: any;
 }
-const StatusList = [
-  { label: "Pending", value: "pending" },
-  { label: "Confirmed", value: "confirmed" },
-  { label: "Processing", value: "processing" },
-  { label: "Pick-Up", value: "pickup" },
-  { label: "Shipped", value: "shipped" },
-  { label: "Cancelled", value: "cancelled" },
-  { label: "Delivered", value: "delivered" },
-];
-
 const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
   trigger,
   refetch,
   row,
 }) => {
   const t = useTranslations();
+  const StatusList = [
+    { label: t("common.pending"), value: "pending" },
+    { label: t("common.confirmed"), value: "confirmed" },
+    { label: t("common.processing"), value: "processing" },
+    { label: t("common.pickup"), value: "pickup" },
+    { label: t("common.shipped"), value: "shipped" },
+    { label: t("common.cancelled"), value: "cancelled" },
+    { label: t("common.delivered"), value: "delivered" },
+  ];
   const { mutate: updateStoreStatus } = useOrdersStatusUpdate();
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);

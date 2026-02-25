@@ -6,7 +6,7 @@ import {
   useOrderCargoOffersQuery,
   useOrderCargoQuery,
 } from "@/modules/admin-section/orders/cargo/orders-cargo.action";
-import { ExternalLink, Package, Settings, X } from "lucide-react";
+import { ExternalLink, Package, Settings, X, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -52,12 +52,6 @@ const GdeliverCargoCard = ({
         refetchCargo();
         refetch();
       },
-      onError: (err: any) => {
-        const msg = err?.response?.data?.message ?? "";
-        if (msg.includes("token") || msg.includes("API")) {
-          // Toast already shown by mutation, no extra action needed
-        }
-      },
     });
   };
 
@@ -84,8 +78,14 @@ const GdeliverCargoCard = ({
   const {
     offersData,
     isPending: isOffersLoading,
+    error: offersError,
     refetch: refetchOffers,
   } = useOrderCargoOffersQuery(orderId, false);
+
+  const offersErrorMessage = useMemo(() => {
+    if (!offersError) return null;
+    return (offersError as any)?.response?.data?.message ?? "Teklifler yüklenirken hata oluştu.";
+  }, [offersError]);
 
   const offers = useMemo(() => {
     const list = offersData?.offers;
@@ -174,34 +174,27 @@ const GdeliverCargoCard = ({
             </p>
             {canCreate ? (
               <>
-                <Button
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white"
-                  onClick={handleCreate}
-                  disabled={isCreating}
-                >
-                  <Package width={14} height={14} className="mr-1" />
-                  {isCreating ? "Kargo oluşturuluyor..." : "Geliver ile Kargo Oluştur"}
-                </Button>
-                <Link
-                  href={settingsUrl}
-                  className="flex items-center gap-1 text-xs text-gray-400 hover:text-blue-500 mt-2"
-                >
-                  <Settings width={12} height={12} />
-                  Kurye Ayarları → API token ve gönderici adres ID gerekli
-                </Link>
-
-                <div className="mt-3">
+                {/* Kargo firması seçimi */}
+                <div className="mb-3">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-xs text-gray-500">Kargo firması seçimi</p>
+                    <p className="text-xs font-medium text-gray-600">Kargo firması seçimi</p>
                     <button
                       type="button"
                       onClick={() => refetchOffers()}
-                      className="text-xs text-blue-500 hover:underline"
-                      disabled={!canCreate || isOffersLoading || isCreating}
+                      className="text-xs text-blue-500 hover:underline disabled:text-gray-300"
+                      disabled={isOffersLoading || isCreating}
                     >
-                      {offers.length ? "Teklifleri yenile" : "Teklifleri getir"}
+                      {isOffersLoading ? "Yükleniyor..." : offers.length ? "Teklifleri yenile" : "Teklifleri getir"}
                     </button>
                   </div>
+
+                  {offersErrorMessage && (
+                    <div className="flex items-start gap-1.5 text-xs text-red-600 bg-red-50 rounded p-2 mb-2">
+                      <AlertTriangle width={14} height={14} className="shrink-0 mt-0.5" />
+                      <span>{offersErrorMessage}</span>
+                    </div>
+                  )}
+
                   <select
                     className="w-full border rounded px-2 py-2 text-sm bg-white"
                     value={selectedOfferId}
@@ -226,6 +219,22 @@ const GdeliverCargoCard = ({
                     Seçim yapılmazsa sistem varsayılan olarak en uygun teklifi kullanır.
                   </p>
                 </div>
+
+                <Button
+                  className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+                  onClick={handleCreate}
+                  disabled={isCreating}
+                >
+                  <Package width={14} height={14} className="mr-1" />
+                  {isCreating ? "Kargo oluşturuluyor..." : "Geliver ile Kargo Oluştur"}
+                </Button>
+                <Link
+                  href={settingsUrl}
+                  className="flex items-center gap-1 text-xs text-gray-400 hover:text-blue-500 mt-2"
+                >
+                  <Settings width={12} height={12} />
+                  Kurye Ayarları
+                </Link>
               </>
             ) : (
               <p className="text-xs text-gray-400">

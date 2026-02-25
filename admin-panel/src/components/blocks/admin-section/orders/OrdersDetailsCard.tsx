@@ -54,6 +54,13 @@ const OrdersDetailsCard = ({ data, refetch, ID }: any) => {
     }
     return formatLabel(raw, "_");
   };
+  const getMessageOrFallback = (key: string, fallback: string) => {
+    const translator = t as any;
+    if (typeof translator?.has === "function" && translator.has(key)) {
+      return t(key as any);
+    }
+    return fallback;
+  };
   const OrderDetails = data?.order_data;
   const RefundOrder = data?.refund;
   const OrderTrackingTime = data?.order_tracking || [];
@@ -546,7 +553,14 @@ const OrdersDetailsCard = ({ data, refetch, ID }: any) => {
                 <div className="text-gray-500 dark:text-white text-sm text-start space-y-1">
                   <p>{t("orders.sub_total")}</p>
                   <p>{t("orders.coupon_discount")}</p>
-                  <p>{t("orders.tax")}</p>
+                  <p>
+                    {t("orders.tax")}
+                    {OrderSummary?.tax_included_in_price && (
+                      <span className="text-xs ml-1">
+                        ({getMessageOrFallback("orders.tax_included", "dahil")})
+                      </span>
+                    )}
+                  </p>
                   <p>
                     {t("orders.additional_charge")}
                     <span className="px-1">({additional_charge_name})</span>
@@ -658,7 +672,7 @@ const OrdersDetailsCard = ({ data, refetch, ID }: any) => {
                             : "text-white border-yellow-500 bg-yellow-500"
                         } capitalize px-2 py-1 rounded`}
                       >
-                        {status}
+                        {getLocalizedCommonValue(status)}
                       </span>
                     </p>
                     <div className="flex">

@@ -376,7 +376,7 @@ export function OrderDetailClient({ orderId, translations: t }: Props) {
                   </span>
                 </div>
               )}
-              {summary.total_tax_amount > 0 && (
+              {!summary.tax_included_in_price && summary.total_tax_amount > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">{t.tax}</span>
                   <span>

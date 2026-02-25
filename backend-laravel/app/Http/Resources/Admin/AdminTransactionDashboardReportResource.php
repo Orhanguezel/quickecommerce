@@ -12,7 +12,7 @@ class AdminTransactionDashboardReportResource extends JsonResource
 
     public function __construct(Builder $query)
     {
-        parent::__construct(null); // We don’t need to call parent with a model
+        parent::__construct(null); // We don't need to call parent with a model
         $this->query = $query;
     }
 
@@ -23,60 +23,48 @@ class AdminTransactionDashboardReportResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        // Total transaction amount: all orders matching current filters (excluding refunded)
         $total_transactions_amount = (clone $this->query)
-            ->where('status', 'delivered')
             ->whereNull('refund_status')
-            ->whereHas('orderMaster', function ($query) {
-                $query->where('payment_status', 'paid');
-            })
             ->sum('order_amount');
-        $total_refund_amount = (clone $this->query)->where('refund_status', 'refunded')->sum('order_amount');
+
+        // Total refund amount: only refunded orders
+        $total_refund_amount = (clone $this->query)
+            ->where('refund_status', 'refunded')
+            ->sum('order_amount');
+
+        // Admin earnings: commission from all non-refunded orders
         $admin_order_earnings = (clone $this->query)
-            ->where('status', 'delivered')
             ->whereNull('refund_status')
-            ->whereHas('orderMaster', function ($query) {
-                $query->where('payment_status', 'paid');
-            })->sum('order_amount_admin_commission');
+            ->sum('order_amount_admin_commission');
         $admin_delivery_earnings = (clone $this->query)
-            ->where('status', 'delivered')
             ->whereNull('refund_status')
-            ->whereHas('orderMaster', function ($query) {
-                $query->where('payment_status', 'paid');
-            })->sum('delivery_charge_admin_commission');
+            ->sum('delivery_charge_admin_commission');
         $admin_additional_charge_earnings = (clone $this->query)
-            ->where('status', 'delivered')
             ->whereNull('refund_status')
-            ->whereHas('orderMaster', function ($query) {
-                $query->where('payment_status', 'paid');
-            })->sum('order_admin_additional_charge_commission');
+            ->sum('order_admin_additional_charge_commission');
         $admin_earnings = round($admin_order_earnings + $admin_delivery_earnings + $admin_additional_charge_earnings, 2);
 
+        // Store earnings: store value from all non-refunded orders
         $store_order_earnings = (clone $this->query)
-            ->where('status', 'delivered')
             ->whereNull('refund_status')
-            ->whereHas('orderMaster', function ($query) {
-                $query->where('payment_status', 'paid');
-            })->sum('order_amount_store_value');
+            ->sum('order_amount_store_value');
         $store_additional_charge_earnings = (clone $this->query)
-            ->where('status', 'delivered')
             ->whereNull('refund_status')
-            ->whereHas('orderMaster', function ($query) {
-                $query->where('payment_status', 'paid');
-            })->sum('order_additional_charge_store_amount');
+            ->sum('order_additional_charge_store_amount');
         $store_earnings = round($store_order_earnings + $store_additional_charge_earnings, 2);
 
+        // Deliveryman earnings: delivery charges from all non-refunded orders
         $deliveryman_earnings = (clone $this->query)
-            ->where('status', 'delivered')
             ->whereNull('refund_status')
-            ->whereHas('orderMaster', function ($query) {
-                $query->where('payment_status', 'paid');
-            })->sum('delivery_charge_admin');
+            ->sum('delivery_charge_admin');
+
         return [
-            'total_transactions_amount' => $this->buildItem('pending-icon', 'Total Transaction Amount', round($total_transactions_amount)),
-            'total_refund_amount' => $this->buildItem('pending-icon', 'Total Refund Amount', $total_refund_amount),
+            'total_transactions_amount' => $this->buildItem('pending-icon', 'Total Transaction Amount', round($total_transactions_amount, 2)),
+            'total_refund_amount' => $this->buildItem('pending-icon', 'Total Refund Amount', round($total_refund_amount, 2)),
             'admin_earnings' => $this->buildItem('pending-icon', 'Admin Earnings', $admin_earnings),
             'store_earnings' => $this->buildItem('pending-icon', 'Store Earnings', $store_earnings),
-            'deliveryman_earnings' => $this->buildItem('pending-icon', 'Deliveryman Earnings', round($deliveryman_earnings)),
+            'deliveryman_earnings' => $this->buildItem('pending-icon', 'Deliveryman Earnings', round($deliveryman_earnings, 2)),
         ];
     }
 

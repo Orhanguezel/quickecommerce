@@ -127,6 +127,13 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        'geliver_webhook' => [
+            'driver' => 'daily',
+            'path'   => storage_path('logs/geliver-webhook.log'),
+            'level'  => env('LOG_LEVEL', 'debug'),
+            'days'   => 30,
+        ],
+
     ],
 
 ];

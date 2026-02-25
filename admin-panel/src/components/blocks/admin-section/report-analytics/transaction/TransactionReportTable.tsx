@@ -258,6 +258,8 @@ const TransactionReportTable = () => {
     deliveryman_earnings,
   } = (TransactionReportData as any)?.dashboard || {};
 
+  const totals = (TransactionReportData as any)?.totals || {};
+
   const { currency } = useCurrencyQuery({});
   const currencyData = useMemo(() => {
     const data = (currency as any) || {};
@@ -1026,6 +1028,77 @@ const TransactionReportTable = () => {
                   handleSort={handleSort}
                   maxWidth={3000}
                 />
+                {originalData.length > 0 && (
+                  <Card className="mt-4">
+                    <CardContent className="p-4">
+                      <h2 className="text-lg font-bold mb-3">
+                        {t("report.totals")}
+                      </h2>
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                        <div className="space-y-1">
+                          <p className="text-xs text-gray-500">{t("table_header.order_amount")}</p>
+                          <p className="text-sm font-semibold">
+                            {CurrencyData ? formatPrice(totals.order_amount, CurrencyData) : totals.order_amount}
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs text-gray-500">{t("table_header.coupon_discount_amount_admin")}</p>
+                          <p className="text-sm font-semibold">
+                            {CurrencyData ? formatPrice(totals.coupon_discount_amount_admin, CurrencyData) : totals.coupon_discount_amount_admin}
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs text-gray-500">{t("table_header.product_discount_amount")}</p>
+                          <p className="text-sm font-semibold">
+                            {CurrencyData ? formatPrice(totals.product_discount_amount, CurrencyData) : totals.product_discount_amount}
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs text-gray-500">{t("table_header.flash_discount_amount_admin")}</p>
+                          <p className="text-sm font-semibold">
+                            {CurrencyData ? formatPrice(totals.flash_discount_amount_admin, CurrencyData) : totals.flash_discount_amount_admin}
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs text-gray-500">{t("table_header.shipping_charge")}</p>
+                          <p className="text-sm font-semibold">
+                            {CurrencyData ? formatPrice(totals.shipping_charge, CurrencyData) : totals.shipping_charge}
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs text-gray-500">{t("table_header.delivery_charge_admin")}</p>
+                          <p className="text-sm font-semibold">
+                            {CurrencyData ? formatPrice(totals.delivery_charge_admin, CurrencyData) : totals.delivery_charge_admin}
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs text-gray-500">{t("table_header.delivery_charge_admin_commission")}</p>
+                          <p className="text-sm font-semibold">
+                            {CurrencyData ? formatPrice(totals.delivery_charge_admin_commission, CurrencyData) : totals.delivery_charge_admin_commission}
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs text-gray-500">{t("table_header.total_tax_amount")}</p>
+                          <p className="text-sm font-semibold">
+                            {CurrencyData ? formatPrice(totals.total_tax_amount, CurrencyData) : totals.total_tax_amount}
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs text-gray-500">{t("table_header.total_product_price")}</p>
+                          <p className="text-sm font-semibold">
+                            {CurrencyData ? formatPrice(totals.total_product_amount, CurrencyData) : totals.total_product_amount}
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs text-gray-500">{t("table_header.additional_charge_info")}</p>
+                          <p className="text-sm font-semibold">
+                            {CurrencyData ? formatPrice(totals.additional_charge_amount, CurrencyData) : totals.additional_charge_amount}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </>
             </TabsContent>
             <TabsContent className="rounded-xl" value="subscription">
@@ -1037,6 +1110,23 @@ const TransactionReportTable = () => {
                   handleSort={handleSort}
                   maxWidth={1500}
                 />
+                {originalData.length > 0 && totals.price !== undefined && (
+                  <Card className="mt-4">
+                    <CardContent className="p-4">
+                      <h2 className="text-lg font-bold mb-3">
+                        {t("report.totals")}
+                      </h2>
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                        <div className="space-y-1">
+                          <p className="text-xs text-gray-500">{t("table_header.price")}</p>
+                          <p className="text-sm font-semibold">
+                            {CurrencyData ? formatPrice(totals.price, CurrencyData) : totals.price}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </>
             </TabsContent>
           </Tabs>

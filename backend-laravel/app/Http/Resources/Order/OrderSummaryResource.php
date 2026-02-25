@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Order;
 
+use App\Models\SystemCommission;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -14,6 +15,9 @@ class OrderSummaryResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $system_commission = SystemCommission::latest()->first();
+        $tax_included_in_price = (bool) ($system_commission->order_include_tax_amount ?? false);
+
         $subtotal = round($this->orderDetail->sum('line_total_price_with_qty'), 2);
         $coupon_discount = round($this->orderDetail->sum('coupon_discount_amount'), 2);
         $total_tax_amount = round($this->orderDetail->sum('total_tax_amount'), 2);
@@ -27,6 +31,7 @@ class OrderSummaryResource extends JsonResource
             'coupon_discount' => $coupon_discount,
             'tax_rate' => round($this->orderDetail->sum('tax_rate'), 2) ?? 0,
             'total_tax_amount' => $total_tax_amount,
+            'tax_included_in_price' => $tax_included_in_price,
             'product_discount_amount' => $product_discount_amount,
             'shipping_charge' => $shipping_charge,
             'additional_charge' => $additional_charge,
