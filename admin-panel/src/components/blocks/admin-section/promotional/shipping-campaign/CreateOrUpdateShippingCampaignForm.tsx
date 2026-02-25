@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
@@ -81,7 +81,9 @@ export default function CreateOrUpdateShippingCampaignForm({ data }: { data?: an
   const [campaignImage, setCampaignImage] = useState<UploadedImage | null>(
     data?.image_url ? { url: data.image_url, id: "0" } : null
   );
-  const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
+  const [lastSelectedImage, setLastSelectedImage] = useState<UploadedImage | undefined>(
+    campaignImage ? { ...campaignImage, image_id: campaignImage.id } : undefined
+  );
 
   const { mutate: storeItem, isPending: isStoring } = useShippingCampaignStoreMutation();
   const { mutate: updateItem, isPending: isUpdating } = useShippingCampaignUpdateMutation();
@@ -175,8 +177,8 @@ export default function CreateOrUpdateShippingCampaignForm({ data }: { data?: an
           <Card>
             <CardContent className="p-4">
               <h2 className="text-lg font-semibold mb-3">{t("label.image") || "Kampanya Görseli"}</h2>
-              {campaignImage?.url ? (
-                <div className="relative">
+              {campaignImage?.url && (
+                <div className="relative mb-2">
                   <Image
                     src={campaignImage.url}
                     alt="campaign"
@@ -190,33 +192,40 @@ export default function CreateOrUpdateShippingCampaignForm({ data }: { data?: an
                     className="absolute top-2 right-2 bg-white rounded-full p-1 shadow"
                     onClick={() => {
                       setCampaignImage(null);
+                      setLastSelectedImage(undefined);
                       setValue("image", "");
                     }}
                   >
                     <Cancel />
                   </button>
                 </div>
-              ) : (
-                <button
-                  type="button"
-                  className="w-full border-2 border-dashed border-gray-300 rounded-lg p-8 flex flex-col items-center justify-center gap-2 hover:border-primary transition-colors"
-                  onClick={() => setIsPhotoModalOpen(true)}
-                >
-                  <CloudIcon />
-                  <span className="text-sm text-gray-500">{t("label.upload_image") || "Görsel Yükle"}</span>
-                </button>
               )}
-              {campaignImage?.url && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="mt-2 w-full"
-                  onClick={() => setIsPhotoModalOpen(true)}
-                >
-                  {t("button.change_image") || "Görseli Değiştir"}
-                </Button>
-              )}
+              <PhotoUploadModal
+                trigger={
+                  <button
+                    type="button"
+                    className="w-full border-2 border-dashed border-gray-300 rounded-lg p-8 flex flex-col items-center justify-center gap-2 hover:border-primary transition-colors"
+                  >
+                    <CloudIcon />
+                    <span className="text-sm text-gray-500">
+                      {campaignImage?.url
+                        ? (t("button.change_image") || "Görseli Değiştir")
+                        : (t("label.upload_image") || "Görsel Yükle")}
+                    </span>
+                  </button>
+                }
+                isMultiple={false}
+                usageType="shipping_campaign"
+                selectedImage={lastSelectedImage}
+                onSave={(images: UploadedImage[]) => {
+                  const img = images[0];
+                  if (img) {
+                    setCampaignImage(img);
+                    setLastSelectedImage(img);
+                    setValue("image", img.url);
+                  }
+                }}
+              />
             </CardContent>
           </Card>
 
@@ -301,16 +310,6 @@ export default function CreateOrUpdateShippingCampaignForm({ data }: { data?: an
         </div>
       </div>
 
-      {/* Photo Upload Modal */}
-      <PhotoUploadModal
-        isOpen={isPhotoModalOpen}
-        onClose={() => setIsPhotoModalOpen(false)}
-        onSelect={(img: UploadedImage) => {
-          setCampaignImage(img);
-          setValue("image", img.url);
-          setIsPhotoModalOpen(false);
-        }}
-      />
     </form>
   );
 }
