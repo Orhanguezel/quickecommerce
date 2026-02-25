@@ -1,4 +1,4 @@
-import type { QueryOptions } from "@/modules/core/types";
+import type { QueryOptions } from "@/types";
 
 export interface ShippingCampaignQueryOptions extends QueryOptions {
   search?: string;
