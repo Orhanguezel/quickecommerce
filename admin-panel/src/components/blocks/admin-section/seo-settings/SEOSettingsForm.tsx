@@ -181,6 +181,9 @@ const SEOSettingsForm = () => {
       SEOSettingsMessage?.com_meta_description ?? '',
     );
     setValue('canonical_url', SEOSettingsMessage?.com_canonical_url ?? '');
+    setValue('meta_author', SEOSettingsMessage?.com_meta_author ?? '');
+    setValue('meta_robots', SEOSettingsMessage?.com_meta_robots ?? '');
+    setValue('meta_publisher', SEOSettingsMessage?.com_meta_publisher ?? '');
     setValue(
       `og_title_${firstLangId}` as keyof SEOSettingsFormData,
       SEOSettingsMessage?.com_og_title ?? '',
@@ -304,6 +307,9 @@ const SEOSettingsForm = () => {
       com_meta_tags: ((((values as any)[`meta_tag_${firstLangId}`] || []) as string[]) || []).join(
         ', ',
       ),
+      com_meta_author: values.meta_author ?? '',
+      com_meta_robots: values.meta_robots ?? '',
+      com_meta_publisher: values.meta_publisher ?? '',
     };
 
     const translations = multiLangData
@@ -638,6 +644,36 @@ const SEOSettingsForm = () => {
                               {...register('canonical_url' as keyof SEOSettingsFormData)}
                               className="app-input"
                               placeholder={t('seo.enter_value')}
+                            />
+                          </div>
+
+                          <div className="mt-4">
+                            <p className="text-sm font-medium mb-1">{t('seo.meta_author') || 'Meta Author'}</p>
+                            <Input
+                              id="meta_author"
+                              {...register('meta_author')}
+                              className="app-input"
+                              placeholder="Sportoonline"
+                            />
+                          </div>
+
+                          <div className="mt-4">
+                            <p className="text-sm font-medium mb-1">{t('seo.meta_robots') || 'Meta Robots'}</p>
+                            <Input
+                              id="meta_robots"
+                              {...register('meta_robots')}
+                              className="app-input"
+                              placeholder="index,follow"
+                            />
+                          </div>
+
+                          <div className="mt-4">
+                            <p className="text-sm font-medium mb-1">{t('seo.meta_publisher') || 'Meta Publisher'}</p>
+                            <Input
+                              id="meta_publisher"
+                              {...register('meta_publisher')}
+                              className="app-input"
+                              placeholder="Sportoonline"
                             />
                           </div>
 

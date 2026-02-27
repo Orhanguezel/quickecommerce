@@ -41,6 +41,16 @@ class SiteGeneralInfoResource extends JsonResource
             'com_openai_enable_disable' => com_option_get('com_openai_enable_disable'),
             'com_claude_enable_disable' => com_option_get('com_claude_enable_disable'),
             'com_ai_chat_enabled' => com_option_get('com_ai_chat_enabled'),
+            'com_meta_title' => com_option_get('com_meta_title'),
+            'com_meta_description' => com_option_get('com_meta_description'),
+            'com_meta_tags' => com_option_get('com_meta_tags'),
+            'com_og_title' => com_option_get('com_og_title'),
+            'com_og_description' => com_option_get('com_og_description'),
+            'com_canonical_url' => com_option_get('com_canonical_url'),
+            'com_og_image' => ImageModifier::generateImageUrl(com_option_get('com_og_image')),
+            'com_meta_author' => com_option_get('com_meta_author'),
+            'com_meta_robots' => com_option_get('com_meta_robots'),
+            'com_meta_publisher' => com_option_get('com_meta_publisher'),
         ];
     }
 }

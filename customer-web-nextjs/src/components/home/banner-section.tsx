@@ -43,6 +43,7 @@ function BannerCard({ banner, tall = false }: { banner: Banner; tall?: boolean }
             <div>
               <Link
                 href={banner.redirect_url}
+                title={banner.button_text || banner.title}
                 className="group/btn inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
                 style={{ backgroundColor: btnColor, color: btnTextColor }}
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = btnHoverColor)}

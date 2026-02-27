@@ -209,7 +209,7 @@ export function ThemeSideBanner() {
           <a
             href={linkHref}
             target={sideBannerConfig.openInNewTab ? "_blank" : "_self"}
-            rel={sideBannerConfig.openInNewTab ? "noopener noreferrer" : undefined}
+            rel={sideBannerConfig.openInNewTab ? "nofollow noopener noreferrer" : "nofollow"}
             className="block"
           >
             {content}

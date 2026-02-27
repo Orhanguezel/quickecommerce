@@ -203,15 +203,32 @@ class GdeliveryService
             throw new \Exception('Alıcı telefon numarası bulunamadı. Lütfen sipariş adresini kontrol edin.');
         }
 
+        // store_areas üzerinden il/ilçe bilgisini al
+        $storeArea = $orderAddress->area_id
+            ? \DB::table('store_areas')->where('id', $orderAddress->area_id)->first()
+            : null;
+
+        // store_areas.state = il (İstanbul), store_areas.city = ilçe (Kadıköy)
+        $cityName     = $storeArea
+            ? $this->normalizeAscii($storeArea->state)
+            : $this->getCityName($orderAddress->address);
+        $districtName = $storeArea ? $this->normalizeAscii($storeArea->city) : null;
+        $cityCode     = $this->getCityCode($cityName);
+
+        $recipientAddress = [
+            'name'        => $recipientName,
+            'phone'       => $this->normalizePhone($orderAddress->contact_number),
+            'address1'    => $orderAddress->address,
+            'cityName'    => $cityName,
+            'countryCode' => 'TR',
+        ];
+        if ($cityCode)     $recipientAddress['cityCode']     = $cityCode;
+        if ($districtName) $recipientAddress['districtName'] = $districtName;
+        if ($orderAddress->postal_code) $recipientAddress['zip'] = $orderAddress->postal_code;
+
         return [
-            'senderAddressID' => (string) $senderAddressId,
-            'recipientAddress' => [
-                'name'        => $recipientName,
-                'phone'       => $this->normalizePhone($orderAddress->contact_number),
-                'address1'    => $orderAddress->address,
-                'cityName'    => $this->getCityName($orderAddress->address),
-                'countryCode' => 'TR',
-            ],
+            'senderAddressID'  => (string) $senderAddressId,
+            'recipientAddress' => $recipientAddress,
             'length'       => '20.0',
             'width'        => '15.0',
             'height'       => '10.0',
@@ -250,14 +267,16 @@ class GdeliveryService
             if (!is_array($offer) || empty($offer['id'])) {
                 return;
             }
-            $priceRaw = $offer['price'] ?? $offer['totalPrice'] ?? null;
-            $currency = $offer['currency'] ?? 'TRY';
+            // Geliver Offer model: amountLocal (TRY), amount (USD), providerAccountName, providerCode
+            $priceRaw = $offer['amountLocal'] ?? $offer['amount'] ?? $offer['totalAmountLocal'] ?? $offer['totalAmount'] ?? $offer['price'] ?? $offer['totalPrice'] ?? null;
+            $currency = $offer['currencyLocal'] ?? $offer['currency'] ?? 'TRY';
+            $carrierName = $offer['providerAccountName'] ?? $offer['providerCode'] ?? ($offer['carrier']['name'] ?? null);
             $result[] = [
                 'id' => (string) $offer['id'],
-                'carrier_name' => $offer['carrier']['name'] ?? null,
+                'carrier_name' => $carrierName,
                 'price' => is_numeric($priceRaw) ? (float) $priceRaw : null,
                 'currency' => (string) $currency,
-                'price_text' => is_numeric($priceRaw) ? number_format((float) $priceRaw, 2, ',', '.') . ' ' . $currency : null,
+                'price_text' => is_numeric($priceRaw) ? number_format((float) $priceRaw, 2, ',', '.') . ' ₺' : null,
             ];
         };
 
@@ -314,11 +333,20 @@ class GdeliveryService
 
     /**
      * Kargo iptal et.
+     * Geliver API hatası olsa bile yerel DB'de cancelled olarak işaretlenir (best-effort).
      */
     public function cancelShipment(CargoShipment $cargoShipment): bool
     {
         if ($cargoShipment->geliver_shipment_id) {
-            $this->getClient()->shipments()->cancel($cargoShipment->geliver_shipment_id);
+            try {
+                $this->getClient()->shipments()->cancel($cargoShipment->geliver_shipment_id);
+            } catch (\Exception $e) {
+                \Log::warning('Geliver cancel API failed (local cancel still applied)', [
+                    'cargo_id'            => $cargoShipment->id,
+                    'geliver_shipment_id' => $cargoShipment->geliver_shipment_id,
+                    'error'               => $e->getMessage(),
+                ]);
+            }
         }
 
         $cargoShipment->update(['status' => 'cancelled']);
@@ -343,13 +371,18 @@ class GdeliveryService
      */
     public function createSenderAddress(array $data): array
     {
+        // Geliver: address1 mahalle ile başlamalı ("Mahalle Adı Mahallesi, Cadde/Sokak No:X")
+        $address1 = trim($data['neighborhood'] . ' Mahallesi, ' . $data['address']);
+
         return $this->getClient()->addresses()->createSender([
             'name'         => $data['name'],
             'email'        => $data['email'],
             'phone'        => $data['phone'],
-            'address1'     => $data['address'],
+            'address1'     => $address1,
+            'countryCode'  => 'TR',
             'cityCode'     => $data['city_code'],
-            'districtName' => $data['district'] ?? '',
+            'cityName'     => $data['city_name'],
+            'districtName' => $data['district'],
             'zip'          => $data['zip'] ?? '',
         ]);
     }
@@ -415,5 +448,108 @@ class GdeliveryService
         }
 
         return 'Istanbul'; // Default
+    }
+
+    /**
+     * Türkçe karakterleri ASCII'ye çevirir (Geliver şehir/ilçe ismi için).
+     */
+    private function normalizeAscii(string $text): string
+    {
+        $from = ['İ', 'ı', 'Ş', 'ş', 'Ğ', 'ğ', 'Ü', 'ü', 'Ö', 'ö', 'Ç', 'ç'];
+        $to   = ['I', 'i', 'S', 's', 'G', 'g', 'U', 'u', 'O', 'o', 'C', 'c'];
+        return str_replace($from, $to, $text);
+    }
+
+    /**
+     * Şehir adından Türkiye plaka kodunu döndürür (SURAT gibi taşıyıcılar için gerekli).
+     * cityName normalizeAscii() ile işlenmiş olmalıdır.
+     */
+    private function getCityCode(string $cityName): ?string
+    {
+        $map = [
+            'Adana'          => '01',
+            'Adiyaman'       => '02',
+            'Afyonkarahisar' => '03',
+            'Agri'           => '04',
+            'Amasya'         => '05',
+            'Ankara'         => '06',
+            'Antalya'        => '07',
+            'Artvin'         => '08',
+            'Aydin'          => '09',
+            'Balikesir'      => '10',
+            'Bilecik'        => '11',
+            'Bingol'         => '12',
+            'Bitlis'         => '13',
+            'Bolu'           => '14',
+            'Burdur'         => '15',
+            'Bursa'          => '16',
+            'Canakkale'      => '17',
+            'Cankiri'        => '18',
+            'Corum'          => '19',
+            'Denizli'        => '20',
+            'Diyarbakir'     => '21',
+            'Edirne'         => '22',
+            'Elazig'         => '23',
+            'Erzincan'       => '24',
+            'Erzurum'        => '25',
+            'Eskisehir'      => '26',
+            'Gaziantep'      => '27',
+            'Giresun'        => '28',
+            'Gumushane'      => '29',
+            'Hakkari'        => '30',
+            'Hatay'          => '31',
+            'Isparta'        => '32',
+            'Mersin'         => '33',
+            'Istanbul'       => '34',
+            'Izmir'          => '35',
+            'Kars'           => '36',
+            'Kastamonu'      => '37',
+            'Kayseri'        => '38',
+            'Kirklareli'     => '39',
+            'Kirsehir'       => '40',
+            'Kocaeli'        => '41',
+            'Konya'          => '42',
+            'Kutahya'        => '43',
+            'Malatya'        => '44',
+            'Manisa'         => '45',
+            'Kahramanmaras'  => '46',
+            'Mardin'         => '47',
+            'Mugla'          => '48',
+            'Mus'            => '49',
+            'Nevsehir'       => '50',
+            'Nigde'          => '51',
+            'Ordu'           => '52',
+            'Rize'           => '53',
+            'Sakarya'        => '54',
+            'Samsun'         => '55',
+            'Siirt'          => '56',
+            'Sinop'          => '57',
+            'Sivas'          => '58',
+            'Tekirdag'       => '59',
+            'Tokat'          => '60',
+            'Trabzon'        => '61',
+            'Tunceli'        => '62',
+            'Sanliurfa'      => '63',
+            'Usak'           => '64',
+            'Van'            => '65',
+            'Yozgat'         => '66',
+            'Zonguldak'      => '67',
+            'Aksaray'        => '68',
+            'Bayburt'        => '69',
+            'Karaman'        => '70',
+            'Kirikkale'      => '71',
+            'Batman'         => '72',
+            'Sirnak'         => '73',
+            'Bartin'         => '74',
+            'Ardahan'        => '75',
+            'Igdir'          => '76',
+            'Yalova'         => '77',
+            'Karabuk'        => '78',
+            'Kilis'          => '79',
+            'Osmaniye'       => '80',
+            'Duzce'          => '81',
+        ];
+
+        return $map[$cityName] ?? null;
     }
 }

@@ -38,7 +38,7 @@ function StarRating({ rating, count }: { rating: number; count: number }) {
           />
         ))}
       </div>
-      <span className="text-[11px] text-muted-foreground">({count})</span>
+      <span className="text-xs text-muted-foreground">({count})</span>
     </div>
   );
 }
@@ -131,12 +131,13 @@ export function ProductCard({
       <div className="relative flex h-[22px] w-[78px] items-center">
         <Image
           src="/assets/images/featured.png"
-          alt=""
+          alt={t("featured")}
+          aria-hidden="true"
           fill
           className="object-contain object-left"
           unoptimized
         />
-        <span className="relative z-10 pl-2 text-[10px] font-bold text-white">
+        <span className="relative z-10 pl-2 text-[11px] font-bold text-white">
           {t("featured")}
         </span>
       </div>
@@ -162,7 +163,7 @@ export function ProductCard({
   /* ── Discount badge (shared) ── */
   const discountBadge =
     hasDiscount && discountText ? (
-      <span className="absolute right-2 top-2.5 z-10 flex items-center gap-0.5 rounded bg-[#EB5A25] px-1.5 py-0.5 text-[11px] font-bold text-white">
+      <span className="absolute right-2 top-2.5 z-10 flex items-center gap-0.5 rounded bg-[#EB5A25] px-1.5 py-0.5 text-xs font-bold text-white">
         {flashSaleDiscountPct != null && <Zap className="h-2.5 w-2.5 fill-white" />}
         {discountText}
       </span>
@@ -172,7 +173,7 @@ export function ProductCard({
   const flashSaleStrip = product.flash_sale ? (
     <div className="absolute bottom-0 left-0 right-0 z-10 flex items-center justify-center gap-1.5 bg-gradient-to-r from-red-600 to-orange-500 py-1.5">
       <Zap className="h-3 w-3 fill-white text-white" />
-      <span className="text-[10px] font-bold uppercase tracking-wider text-white">
+      <span className="text-[11px] font-bold uppercase tracking-wider text-white">
         Flash Satış
       </span>
     </div>
@@ -182,7 +183,7 @@ export function ProductCard({
   const flashSaleListBadge = product.flash_sale ? (
     <div className="absolute bottom-0 left-0 right-0 z-10 flex items-center justify-center gap-1 bg-gradient-to-r from-red-600 to-orange-500 py-1">
       <Zap className="h-2.5 w-2.5 fill-white text-white" />
-      <span className="text-[9px] font-bold uppercase text-white">Flash</span>
+      <span className="text-[11px] font-bold uppercase text-white">Flash</span>
     </div>
   ) : null;
 
@@ -241,6 +242,8 @@ export function ProductCard({
   const cartIconButton = isInStock && displayPrice != null ? (
     <button
       onClick={handleAddToCart}
+      title={t("add_to_cart")}
+      aria-label={t("add_to_cart")}
       className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-md border bg-card transition-colors hover:border-primary hover:bg-primary/5"
     >
       <Image
@@ -260,6 +263,7 @@ export function ProductCard({
     return (
       <Link
         href={`/urun/${product.slug}`}
+        title={product.name}
         className="group flex items-stretch overflow-hidden rounded-lg border bg-card transition-all hover:border-primary/50 hover:shadow-md"
       >
         {/* Image */}
@@ -295,6 +299,7 @@ export function ProductCard({
   return (
     <Link
       href={`/urun/${product.slug}`}
+      title={product.name}
       className={`group relative flex flex-col overflow-hidden rounded-xl border bg-card transition-all duration-200 hover:border-primary/50 hover:shadow-lg ${
         compact ? "h-full w-full" : "h-[380px] w-[260px] shrink-0"
       }`}
@@ -319,6 +324,8 @@ export function ProductCard({
             <button
               onClick={handleWishlistToggle}
               type="button"
+              aria-label={isWishlisted ? t("remove_from_wishlist") : t("add_to_wishlist")}
+              title={isWishlisted ? t("remove_from_wishlist") : t("add_to_wishlist")}
               disabled={wishlistToggle.isPending || wishlistRemove.isPending}
               className="flex h-8 w-8 items-center justify-center rounded-md border bg-card shadow-sm"
             >

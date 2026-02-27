@@ -157,7 +157,7 @@ export function NewsletterSection({ title, subtitle }: NewsletterSectionProps) {
       <FloatingIcon className="right-[8%] top-[12%]">
         <div className="relative">
           <Mail className="h-6 w-6 text-blue-400" />
-          <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[9px] font-bold text-white">
+          <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[11px] font-bold text-white">
             1
           </span>
         </div>

@@ -27,10 +27,10 @@ export function FloatingCart() {
     >
       <div className="flex flex-col items-center gap-1.5">
         <ShoppingBag className="h-5 w-5 text-primary-foreground" />
-        <span className="text-[11px] font-medium text-primary-foreground">
+        <span className="text-xs font-medium text-primary-foreground">
           {itemCount} {t("items")}
         </span>
-        <span className="rounded-md border border-primary-foreground/30 px-2 py-0.5 text-[11px] font-semibold text-primary-foreground">
+        <span className="rounded-md border border-primary-foreground/30 px-2 py-0.5 text-xs font-semibold text-primary-foreground">
           {mounted ? formatPrice(priceTotal) : "--"}
         </span>
       </div>

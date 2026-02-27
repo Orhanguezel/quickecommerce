@@ -135,7 +135,7 @@ export function HeaderVariant2() {
                 className="absolute right-1.5 top-2 flex items-center justify-center rounded-full bg-red-500 p-0.5"
                 style={{ minWidth: 14, minHeight: 14 }}
               >
-                <span className="text-[8px] font-bold leading-none text-white">0</span>
+                <span className="text-[11px] font-bold leading-none text-white">0</span>
               </span>
             </button>
             <div className="w-0.5" />
@@ -147,7 +147,7 @@ export function HeaderVariant2() {
                 className="absolute -right-px top-px flex items-center justify-center rounded-full bg-red-500 p-1"
                 style={{ minWidth: 16, minHeight: 16 }}
               >
-                <span className="text-[10px] font-bold leading-none text-white">{cartCount}</span>
+                <span className="text-xs font-bold leading-none text-white">{cartCount}</span>
               </span>
             </button>
             <div className="w-2.5" />

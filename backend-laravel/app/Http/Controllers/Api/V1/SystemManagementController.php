@@ -176,9 +176,12 @@ class SystemManagementController extends Controller
                 'com_og_title' => 'nullable|string',
                 'com_og_description' => 'nullable|string',
                 'com_og_image' => 'nullable|string',
+                'com_meta_author' => 'nullable|string',
+                'com_meta_robots' => 'nullable|string',
+                'com_meta_publisher' => 'nullable|string',
             ]);
 
-            $fields = ['com_meta_title', 'com_meta_description', 'com_meta_tags', 'com_canonical_url', 'com_og_title', 'com_og_description', 'com_og_image'];
+            $fields = ['com_meta_title', 'com_meta_description', 'com_meta_tags', 'com_canonical_url', 'com_og_title', 'com_og_description', 'com_og_image', 'com_meta_author', 'com_meta_robots', 'com_meta_publisher'];
 
             foreach ($fields as $field) {
                 $value = $request->input($field) ?? null;
@@ -224,6 +227,9 @@ class SystemManagementController extends Controller
             $com_og_description = com_option_get('com_og_description');
             $com_og_image = com_option_get('com_og_image');
             $com_og_image_url = $imageModifier->generateImageUrl(com_option_get('com_og_image'));
+            $com_meta_author = com_option_get('com_meta_author');
+            $com_meta_robots = com_option_get('com_meta_robots');
+            $com_meta_publisher = com_option_get('com_meta_publisher');
 
             return $this->success([
                 'com_meta_title' => $com_meta_title,
@@ -234,6 +240,9 @@ class SystemManagementController extends Controller
                 'com_og_description' => $com_og_description,
                 'com_og_image' => $com_og_image,
                 'com_og_image_url' => $com_og_image_url,
+                'com_meta_author' => $com_meta_author,
+                'com_meta_robots' => $com_meta_robots,
+                'com_meta_publisher' => $com_meta_publisher,
                 'translations' => $transformedData,
             ]);
         }

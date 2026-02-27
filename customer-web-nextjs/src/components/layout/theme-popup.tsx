@@ -231,7 +231,7 @@ export function ThemePopup() {
                 </button>
               ) : null}
               {currentTopPopup.buttonText && currentTopPopup.buttonUrl ? (
-                <a href={currentTopPopup.buttonUrl} onClick={dismissTop} className="rounded border bg-white px-3 py-1 text-xs font-semibold text-primary" style={buttonStyle}>
+                <a href={currentTopPopup.buttonUrl} onClick={dismissTop} target="_blank" rel="nofollow noopener noreferrer" className="rounded border bg-white px-3 py-1 text-xs font-semibold text-primary" style={buttonStyle}>
                   {currentTopPopup.buttonText}
                 </a>
               ) : null}
@@ -255,7 +255,7 @@ export function ThemePopup() {
                 </button>
               ) : null}
               {currentBottomPopup.buttonText && currentBottomPopup.buttonUrl ? (
-                <a href={currentBottomPopup.buttonUrl} onClick={dismissBottom} className="rounded border bg-white px-3 py-1 text-xs font-semibold text-primary" style={buttonStyle}>
+                <a href={currentBottomPopup.buttonUrl} onClick={dismissBottom} target="_blank" rel="nofollow noopener noreferrer" className="rounded border bg-white px-3 py-1 text-xs font-semibold text-primary" style={buttonStyle}>
                   {currentBottomPopup.buttonText}
                 </a>
               ) : null}

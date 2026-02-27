@@ -126,13 +126,15 @@ class AdminCargoController extends Controller
     public function createSenderAddress(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'name'     => 'required|string',
-            'email'    => 'required|email',
-            'phone'    => 'required|string',
-            'address'  => 'required|string',
-            'city_code' => 'required|string',
-            'district' => 'nullable|string',
-            'zip'      => 'nullable|string',
+            'name'         => 'required|string',
+            'email'        => 'required|email',
+            'phone'        => 'required|string',
+            'neighborhood' => 'required|string',
+            'address'      => 'required|string',
+            'city_code'    => 'required|string',
+            'city_name'    => 'required|string',
+            'district'     => 'required|string',
+            'zip'          => 'nullable|string',
         ]);
 
         try {

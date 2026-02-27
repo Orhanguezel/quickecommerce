@@ -184,7 +184,7 @@ export function WalletClient({ translations: t }: Props) {
                         })}
                       </p>
                       <span
-                        className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${getPaymentStatusColor(tx.payment_status)}`}
+                        className={`rounded-full px-1.5 py-0.5 text-xs font-medium ${getPaymentStatusColor(tx.payment_status)}`}
                       >
                         {getPaymentStatusLabel(tx.payment_status)}
                       </span>

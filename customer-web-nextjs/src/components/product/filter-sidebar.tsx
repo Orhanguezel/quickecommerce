@@ -460,7 +460,7 @@ export function FilterSidebar({
         <SlidersHorizontal className="h-4 w-4" />
         {t.filter_options}
         {hasActiveFilters && (
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] text-primary-foreground">
             {
               [
                 minPrice,

@@ -77,6 +77,8 @@ export const API_ENDPOINTS = {
   GOOGLE_MAP_SETTINGS: "v1/admin/system-management/google-map-settings",
   RECAPTCHA_SETTINGS: "v1/admin/system-management/recaptcha-settings",
   CARGO_SETTINGS: "v1/admin/system-management/cargo-settings",
+  CARGO_SENDER_ADDRESS: "v1/admin/cargo/sender-address",
+  CARGO_CITIES: "v1/admin/cargo/cities",
 
   REGISTER_SETTINGS: "v1/admin/system-management/page-settings/register",
   LOGIN_SETTINGS: "v1/admin/system-management/page-settings/login",

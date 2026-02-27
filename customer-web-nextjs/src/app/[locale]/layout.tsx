@@ -124,25 +124,46 @@ export async function generateMetadata({ params }: LayoutProps): Promise<Metadat
   const settings = await getSiteSettings(locale);
 
   const siteName = settings?.com_site_title || 'Sporto Online';
-  const description =
-    settings?.com_site_subtitle || 'Online alışveriş platformu — Binlerce üründe en uygun fiyatlar';
+  const metaTitle = settings?.com_meta_title || siteName;
+  const description = settings?.com_meta_description || settings?.com_site_subtitle || 'Online alışveriş platformu';
+  const keywords = settings?.com_meta_tags || undefined;
+  const ogTitle = settings?.com_og_title || metaTitle;
+  const ogDescription = settings?.com_og_description || description;
+  const ogImage = settings?.com_og_image || undefined;
+  const canonicalUrl = settings?.com_canonical_url || siteUrl;
+  const author = settings?.com_meta_author || undefined;
+  const robots = settings?.com_meta_robots || 'index,follow';
+  const publisher = settings?.com_meta_publisher || undefined;
 
   return {
     title: {
-      default: siteName,
+      default: metaTitle,
       template: `%s | ${siteName}`,
     },
     description,
+    keywords,
+    authors: author ? [{ name: author }] : undefined,
+    robots,
     metadataBase: new URL(siteUrl),
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       type: 'website',
       siteName,
+      title: ogTitle,
+      description: ogDescription,
       locale: locale === 'en' ? 'en_US' : 'tr_TR',
       alternateLocale: locale === 'en' ? 'tr_TR' : 'en_US',
+      ...(ogImage ? { images: [{ url: ogImage }] } : {}),
     },
     twitter: {
       card: 'summary_large_image',
+      title: ogTitle,
+      description: ogDescription,
+      ...(ogImage ? { images: [ogImage] } : {}),
     },
+    ...(publisher ? { other: { publisher } } : {}),
     icons: {
       icon: settings?.com_site_favicon
         ? [{ url: settings.com_site_favicon }]

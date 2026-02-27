@@ -66,6 +66,7 @@ class ProductionSeeder extends Seeder
         $this->call(OrderRefundReasonSeeder::class);
         $this->call(WithdrawGatewaySeeder::class);
         $this->call(ShippingCampaignSeeder::class); // SAFE - updateOrCreate
+        $this->call(CargoSettingsSeeder::class);    // SAFE - updateOrCreate
 
         $this->command->info('✅ Production seeders completed successfully!');
         $this->command->info('ℹ️  Safe to run on every deployment.');

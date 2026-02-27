@@ -82,7 +82,7 @@ export function CountdownTimer({
           </div>
           {/* Flutter: label 8px w600, letterSpacing 0.2, mt 6 */}
           <span
-            className="mt-1.5 text-[7px] font-semibold uppercase tracking-wide md:text-[8px]"
+            className="mt-1.5 text-[11px] font-semibold uppercase tracking-wide md:text-xs"
             style={{ color: labelColor || textColor }}
           >
             {t(unit.label)}

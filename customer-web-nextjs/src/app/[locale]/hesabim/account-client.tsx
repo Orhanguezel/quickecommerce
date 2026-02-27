@@ -1158,7 +1158,7 @@ export function AccountClient({ translations: t }: Props) {
                                 #{order.invoice_number}
                               </span>
                               <span
-                                className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${statusColorMap[order.status] || "bg-gray-100 text-gray-800"}`}
+                                className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusColorMap[order.status] || "bg-gray-100 text-gray-800"}`}
                               >
                                 {t[`status_${order.status}`] || order.status}
                               </span>
@@ -1309,7 +1309,7 @@ export function AccountClient({ translations: t }: Props) {
                               </div>
                             )}
                             {product.discount_percentage > 0 && (
-                              <span className="absolute left-1 top-1 rounded bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                              <span className="absolute left-1 top-1 rounded bg-red-500 px-1.5 py-0.5 text-xs font-bold text-white">
                                 -{Math.round(product.discount_percentage)}%
                               </span>
                             )}
@@ -1430,7 +1430,7 @@ export function AccountClient({ translations: t }: Props) {
                             </div>
                           )}
                           {item.discount_percentage > 0 && (
-                            <span className="absolute left-1 top-1 rounded bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                            <span className="absolute left-1 top-1 rounded bg-red-500 px-1.5 py-0.5 text-xs font-bold text-white">
                               -{Math.round(item.discount_percentage)}%
                             </span>
                           )}
@@ -1535,13 +1535,13 @@ export function AccountClient({ translations: t }: Props) {
                                   {ticket.title}
                                 </span>
                                 <span
-                                  className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${priorityColorMap[ticket.priority] || "bg-gray-100 text-gray-800"}`}
+                                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${priorityColorMap[ticket.priority] || "bg-gray-100 text-gray-800"}`}
                                 >
                                   {t[`priority_${ticket.priority}`] ||
                                     ticket.priority}
                                 </span>
                                 <span
-                                  className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                                     ticket.status === 1
                                       ? "bg-green-100 text-green-800"
                                       : "bg-gray-100 text-gray-800"
@@ -1773,7 +1773,7 @@ export function AccountClient({ translations: t }: Props) {
                                   {msg.message.message}
                                 </p>
                               )}
-                              <p className="mt-1 text-[10px] opacity-50">
+                              <p className="mt-1 text-xs opacity-50">
                                 {msg.message.timestamp}
                               </p>
                             </div>
@@ -1952,7 +1952,7 @@ export function AccountClient({ translations: t }: Props) {
                                   hour: "2-digit", minute: "2-digit",
                                 })}
                               </p>
-                              <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
+                              <span className={`rounded-full px-1.5 py-0.5 text-xs font-medium ${
                                 tx.payment_status === "paid" ? "bg-green-100 text-green-800" :
                                 tx.payment_status === "pending" ? "bg-yellow-100 text-yellow-800" :
                                 "bg-red-100 text-red-800"

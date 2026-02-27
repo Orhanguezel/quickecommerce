@@ -300,7 +300,7 @@ export function ChatClient({ translations: t }: Props) {
                               )}
                               {msg.message && <p>{msg.message}</p>}
                               <p
-                                className={`mt-1 text-[10px] ${
+                                className={`mt-1 text-[11px] ${
                                   isSender
                                     ? "text-primary-foreground/60"
                                     : "text-muted-foreground"

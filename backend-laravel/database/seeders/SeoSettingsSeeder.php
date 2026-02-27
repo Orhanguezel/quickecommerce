@@ -28,6 +28,9 @@ class SeoSettingsSeeder extends Seeder
             'com_og_title'         => 'Sportoonline — Spor Giyim & Ekipman',
             'com_og_description'   => 'Türkiye\'nin en geniş spor ürünleri mağazasında binlerce ürün arasından seçiminizi yapın. Ücretsiz kargo fırsatları!',
             'com_og_image'         => '',
+            'com_meta_author'      => 'Sportoonline',
+            'com_meta_robots'      => 'index,follow',
+            'com_meta_publisher'   => 'Sportoonline',
         ];
 
         foreach ($settings as $key => $value) {

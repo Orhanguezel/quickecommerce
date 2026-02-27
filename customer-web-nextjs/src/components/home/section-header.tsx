@@ -24,6 +24,7 @@ export function SectionHeader({ title, subtitle, viewAllHref }: SectionHeaderPro
       {viewAllHref && (
         <Link
           href={viewAllHref}
+          title={`${t("view_all")} — ${title}`}
           className="flex items-center gap-1.5 rounded-full border border-primary/30 px-4 py-1.5 text-[13px] font-normal text-primary transition-colors hover:bg-primary/5"
         >
           {t("view_all")}

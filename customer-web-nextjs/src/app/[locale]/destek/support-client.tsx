@@ -395,7 +395,7 @@ export function SupportClient({ translations: t }: Props) {
                             📎 Dosya
                           </a>
                         )}
-                        <p className="mt-1 text-[10px] opacity-50">
+                        <p className="mt-1 text-[11px] opacity-50">
                           {msg.message.timestamp}
                         </p>
                       </div>

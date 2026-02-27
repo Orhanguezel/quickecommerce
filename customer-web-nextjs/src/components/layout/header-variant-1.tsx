@@ -181,7 +181,7 @@ export function HeaderVariant1() {
           </button>
 
           {/* Logo — mobile: flex-1 centered | tablet+: fixed left */}
-          <Link href={ROUTES.HOME} className="flex flex-1 items-center justify-center md:flex-none md:justify-start">
+          <Link href={ROUTES.HOME} title={siteInfo?.com_site_title || 'Sportoonline'} aria-label={siteInfo?.com_site_title || 'Sportoonline'} className="flex flex-1 items-center justify-center md:flex-none md:justify-start">
             {siteInfo?.com_site_logo && !logoError ? (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img
@@ -235,6 +235,7 @@ export function HeaderVariant1() {
             <Link
               href={ROUTES.WISHLIST}
               aria-label="Favorilerim"
+              title="Favorilerim"
               className="hidden h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground sm:flex lg:h-11 lg:w-11"
             >
               <Heart className="h-4 w-4 lg:h-5 lg:w-5" strokeWidth={1.5} />
@@ -247,7 +248,7 @@ export function HeaderVariant1() {
               className="relative flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground lg:h-11 lg:w-11"
             >
               <ShoppingCart className="h-4 w-4 lg:h-5 lg:w-5" strokeWidth={1.5} />
-              <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground lg:h-5 lg:w-5 lg:text-[10px]">
+              <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground lg:h-5 lg:w-5 lg:text-xs">
                 {cartCount}
               </span>
             </button>
@@ -260,7 +261,8 @@ export function HeaderVariant1() {
             {/* User / Profile */}
             <Link
               href={isAuthenticated ? ROUTES.PROFILE : ROUTES.LOGIN}
-              aria-label="Hesabım"
+              aria-label={isAuthenticated ? "Hesabım" : "Giriş Yap"}
+              title={isAuthenticated ? "Hesabım" : "Giriş Yap"}
               className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground lg:h-11 lg:w-11"
             >
               <User className="h-4 w-4 lg:h-5 lg:w-5" strokeWidth={1.5} />
@@ -428,6 +430,7 @@ export function HeaderVariant1() {
                     <Link
                       key={menu.id}
                       href={menu.url ? `/${menu.url}` : '/'}
+                      title={menu.name}
                       className="transition-colors hover:opacity-80"
                       style={{ color: 'hsl(var(--header-nav-text))' }}
                     >
@@ -437,22 +440,22 @@ export function HeaderVariant1() {
                 })
             ) : (
               <>
-                <Link href={ROUTES.HOME} className="transition-colors hover:opacity-80" style={{ color: 'hsl(var(--header-nav-text))' }}>
+                <Link href={ROUTES.HOME} title={t('common.home')} className="transition-colors hover:opacity-80" style={{ color: 'hsl(var(--header-nav-text))' }}>
                   {t('common.home')}
                 </Link>
-                <Link href={ROUTES.STORES} className="transition-colors hover:opacity-80" style={{ color: 'hsl(var(--header-nav-text))' }}>
+                <Link href={ROUTES.STORES} title={t('nav.stores')} className="transition-colors hover:opacity-80" style={{ color: 'hsl(var(--header-nav-text))' }}>
                   {t('nav.stores')}
                 </Link>
-                <Link href={ROUTES.BLOG} className="transition-colors hover:opacity-80" style={{ color: 'hsl(var(--header-nav-text))' }}>
+                <Link href={ROUTES.BLOG} title={t('nav.blog')} className="transition-colors hover:opacity-80" style={{ color: 'hsl(var(--header-nav-text))' }}>
                   {t('nav.blog')}
                 </Link>
-                <Link href={ROUTES.COUPONS} className="transition-colors hover:opacity-80" style={{ color: 'hsl(var(--header-nav-text))' }}>
+                <Link href={ROUTES.COUPONS} title={t('nav.coupons')} className="transition-colors hover:opacity-80" style={{ color: 'hsl(var(--header-nav-text))' }}>
                   {t('nav.coupons')}
                 </Link>
-                <Link href={ROUTES.ABOUT} className="transition-colors hover:opacity-80" style={{ color: 'hsl(var(--header-nav-text))' }}>
+                <Link href={ROUTES.ABOUT} title={t('nav.about')} className="transition-colors hover:opacity-80" style={{ color: 'hsl(var(--header-nav-text))' }}>
                   {t('nav.about')}
                 </Link>
-                <Link href={ROUTES.CONTACT} className="transition-colors hover:opacity-80" style={{ color: 'hsl(var(--header-nav-text))' }}>
+                <Link href={ROUTES.CONTACT} title={t('nav.contact')} className="transition-colors hover:opacity-80" style={{ color: 'hsl(var(--header-nav-text))' }}>
                   {t('nav.contact')}
                 </Link>
               </>
@@ -462,6 +465,7 @@ export function HeaderVariant1() {
           {/* Explore Store Types — button */}
           <Link
             href={ROUTES.STORES}
+            title={t('nav.explore_store_types')}
             className="flex items-center gap-3 rounded-lg px-7 py-3.5 text-[15px] font-semibold transition-colors hover:opacity-90"
             style={{ backgroundColor: 'hsl(var(--header-nav-button-bg))', color: 'hsl(var(--header-nav-button-text))' }}
           >

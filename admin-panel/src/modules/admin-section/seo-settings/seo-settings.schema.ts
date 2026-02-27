@@ -19,6 +19,9 @@ const baseSchema = {
   og_title_df: z.string().optional(),
   og_description_df: z.string().optional(),
   meta_tag_df: z.array(z.string()).optional(),
+  meta_author: z.string().optional(),
+  meta_robots: z.string().optional(),
+  meta_publisher: z.string().optional(),
   og_image: z
     .instanceof(File)
     .refine(

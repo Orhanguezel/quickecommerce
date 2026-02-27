@@ -59,7 +59,7 @@ function CampaignAction({
 
   if (isExternalUrl(href)) {
     return (
-      <a href={href} className={className} style={style}>
+      <a href={href} target="_blank" rel="nofollow noopener noreferrer" className={className} style={style}>
         {text}
       </a>
     );

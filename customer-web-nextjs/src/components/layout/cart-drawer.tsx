@@ -113,7 +113,7 @@ export function CartDrawer() {
                         className="object-cover"
                       />
                     ) : (
-                      <div className="flex h-full items-center justify-center text-[10px] text-muted-foreground">
+                      <div className="flex h-full items-center justify-center text-[11px] text-muted-foreground">
                         No Image
                       </div>
                     )}
@@ -197,6 +197,7 @@ export function CartDrawer() {
           <Link
             href={ROUTES.CHECKOUT}
             onClick={closeDrawer}
+            title={t("proceed_checkout")}
             className="flex h-12 w-full items-center justify-center rounded-lg bg-primary text-base font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
           >
             {t("proceed_checkout")}

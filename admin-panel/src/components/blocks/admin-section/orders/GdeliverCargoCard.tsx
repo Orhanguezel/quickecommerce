@@ -93,6 +93,15 @@ const GdeliverCargoCard = ({
   }, [offersData]);
 
   const [selectedOfferId, setSelectedOfferId] = useState<string>("");
+  const [offersLoadedOnce, setOffersLoadedOnce] = useState(false);
+
+  // Kargo verisi yüklendikten sonra canCreate ise teklifleri otomatik yükle (bir kez)
+  useEffect(() => {
+    if (!isLoading && canCreate && !offersLoadedOnce && !isOffersLoading) {
+      setOffersLoadedOnce(true);
+      refetchOffers();
+    }
+  }, [isLoading, canCreate, offersLoadedOnce, isOffersLoading, refetchOffers]);
 
   useEffect(() => {
     if (!offers.length) {

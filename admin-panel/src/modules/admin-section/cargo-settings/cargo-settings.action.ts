@@ -1,7 +1,7 @@
 import { API_ENDPOINTS } from "@/endpoints/AdminApiEndPoints";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "react-toastify";
-import { useCargoSettingsService } from "./cargo-settings.service";
+import { useCargoSettingsService, useCargoSenderAddressService } from "./cargo-settings.service";
 
 export const useCargoSettingsQuery = (options: Record<string, any> = {}) => {
   const { findAll } = useCargoSettingsService();
@@ -35,6 +35,21 @@ export const useCargoSettingsMutation = () => {
     },
     onError: (data: any) => {
       toast.error(data?.response?.data?.message || "Bir hata oluştu.");
+    },
+  });
+};
+
+export const useCreateSenderAddressMutation = () => {
+  const { create } = useCargoSenderAddressService();
+
+  return useMutation({
+    mutationFn: (values: Record<string, any>) => create(values),
+    mutationKey: [API_ENDPOINTS.CARGO_SENDER_ADDRESS],
+    onSuccess: (data: any) => {
+      toast.success(data?.data?.message || "Gönderici adresi oluşturuldu.");
+    },
+    onError: (data: any) => {
+      toast.error(data?.response?.data?.message || "Adres oluşturulamadı.");
     },
   });
 };
