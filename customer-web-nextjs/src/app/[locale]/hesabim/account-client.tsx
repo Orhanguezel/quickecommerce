@@ -399,7 +399,7 @@ export function AccountClient({ translations: t }: Props) {
         }
       );
     } else {
-      addAddressMutation.mutate(payload, {
+      addAddressMutation.mutate(payload as any, {
         onSuccess: () => {
           resetAddressForm();
           setAddressSuccess(true);
