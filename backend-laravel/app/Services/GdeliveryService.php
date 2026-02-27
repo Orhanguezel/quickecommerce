@@ -203,17 +203,26 @@ class GdeliveryService
             throw new \Exception('Alıcı telefon numarası bulunamadı. Lütfen sipariş adresini kontrol edin.');
         }
 
-        // store_areas üzerinden il/ilçe bilgisini al
-        $storeArea = $orderAddress->area_id
-            ? \DB::table('store_areas')->where('id', $orderAddress->area_id)->first()
-            : null;
+        // 1. Önce müşteri adresindeki city_name/district_name alanlarını dene
+        // 2. Yoksa store_areas üzerinden il/ilçe bul
+        // 3. Yoksa adres metninden şehir tahmin et
+        if ($orderAddress->city_name) {
+            $cityName     = $this->normalizeAscii($orderAddress->city_name);
+            $districtName = $orderAddress->district_name
+                ? $this->normalizeAscii($orderAddress->district_name)
+                : null;
+        } else {
+            $storeArea = $orderAddress->area_id
+                ? \DB::table('store_areas')->where('id', $orderAddress->area_id)->first()
+                : null;
 
-        // store_areas.state = il (İstanbul), store_areas.city = ilçe (Kadıköy)
-        $cityName     = $storeArea
-            ? $this->normalizeAscii($storeArea->state)
-            : $this->getCityName($orderAddress->address);
-        $districtName = $storeArea ? $this->normalizeAscii($storeArea->city) : null;
-        $cityCode     = $this->getCityCode($cityName);
+            $cityName     = $storeArea
+                ? $this->normalizeAscii($storeArea->state)
+                : $this->getCityName($orderAddress->address);
+            $districtName = $storeArea ? $this->normalizeAscii($storeArea->city) : null;
+        }
+
+        $cityCode = $this->getCityCode($cityName);
 
         $recipientAddress = [
             'name'        => $recipientName,

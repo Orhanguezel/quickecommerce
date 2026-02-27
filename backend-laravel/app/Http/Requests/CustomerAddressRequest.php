@@ -31,6 +31,8 @@ class CustomerAddressRequest extends FormRequest
             'contact_number' => 'required|string|max:20',
             'address' => 'required|string|max:255',
             'area_id' => 'nullable|exists:store_areas,id',
+            'city_name' => 'nullable|string|max:100',
+            'district_name' => 'nullable|string|max:100',
             'road' => 'nullable|string|max:255',
             'house' => 'nullable|string|max:255',
             'floor' => 'nullable|string|max:255',

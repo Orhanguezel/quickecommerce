@@ -8,6 +8,8 @@ export interface CustomerAddress {
   lat: number | null;
   long: number | null;
   area_id: number | null;
+  city_name: string | null;
+  district_name: string | null;
   area: string | null;
   road: string | null;
   house: string | null;
@@ -25,6 +27,8 @@ export interface AddressInput {
   contact_number: string;
   address: string;
   area_id?: number;
+  city_name?: string;
+  district_name?: string;
   road?: string;
   house?: string;
   floor?: string;

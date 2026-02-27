@@ -43,7 +43,7 @@ import {
 } from "@/modules/wallet/wallet.service";
 import type { WalletTransaction } from "@/modules/wallet/wallet.type";
 import { useRecentlyViewedStore } from "@/stores/recently-viewed-store";
-import { useAreaListQuery } from "@/modules/area/area.service";
+import { TURKEY_CITIES } from "@/data/turkey-cities";
 import { usePrice } from "@/hooks/use-price";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -143,7 +143,8 @@ export function AccountClient({ translations: t }: Props) {
     email: "",
     contact_number: "",
     address: "",
-    area_id: undefined as number | undefined,
+    city_name: "",
+    district_name: "",
     road: "",
     house: "",
     floor: "",
@@ -189,7 +190,6 @@ export function AccountClient({ translations: t }: Props) {
   } = useProfileQuery();
   const { data: addresses, isLoading: addressesLoading } =
     useAddressListQuery();
-  const { data: areas } = useAreaListQuery();
 
   // Order queries & mutations
   const { data: ordersData, isLoading: ordersLoading } = useOrderListQuery({
@@ -353,7 +353,8 @@ export function AccountClient({ translations: t }: Props) {
       email: "",
       contact_number: "",
       address: "",
-      area_id: undefined,
+      city_name: "",
+      district_name: "",
       road: "",
       house: "",
       floor: "",
@@ -369,7 +370,8 @@ export function AccountClient({ translations: t }: Props) {
       email: addr.email || "",
       contact_number: addr.contact_number || "",
       address: addr.address || "",
-      area_id: addr.area_id ?? undefined,
+      city_name: addr.city_name || "",
+      district_name: addr.district_name || "",
       road: addr.road || "",
       house: addr.house || "",
       floor: addr.floor || "",
@@ -385,7 +387,6 @@ export function AccountClient({ translations: t }: Props) {
       status: 1,
       is_default: !addresses || addresses.length === 0,
     };
-    if (payload.area_id === undefined) delete payload.area_id;
 
     if (editingAddressId) {
       updateAddressMutation.mutate(
@@ -995,32 +996,60 @@ export function AccountClient({ translations: t }: Props) {
                         />
                       </div>
 
-                      {/* Teslimat Bölgesi (il/ilçe için area_id) */}
-                      <div className="space-y-2">
-                        <Label>Teslimat Bölgesi</Label>
-                        <Select
-                          value={addressForm.area_id?.toString() ?? ""}
-                          onValueChange={(v) =>
-                            setAddressForm({
-                              ...addressForm,
-                              area_id: v ? Number(v) : undefined,
-                            })
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Bölge seçiniz..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {(areas ?? []).map((area) => (
-                              <SelectItem
-                                key={area.id}
-                                value={area.id.toString()}
-                              >
-                                {area.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                      {/* İl / İlçe */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>İl</Label>
+                          <Select
+                            value={addressForm.city_name}
+                            onValueChange={(v) =>
+                              setAddressForm({
+                                ...addressForm,
+                                city_name: v,
+                                district_name: "",
+                              })
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="İl seçiniz..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {TURKEY_CITIES.map((city) => (
+                                <SelectItem key={city.value} value={city.value}>
+                                  {city.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>İlçe</Label>
+                          <Select
+                            value={addressForm.district_name}
+                            onValueChange={(v) =>
+                              setAddressForm({
+                                ...addressForm,
+                                district_name: v,
+                              })
+                            }
+                            disabled={!addressForm.city_name}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="İlçe seçiniz..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {(
+                                TURKEY_CITIES.find(
+                                  (c) => c.value === addressForm.city_name
+                                )?.districts ?? []
+                              ).map((district) => (
+                                <SelectItem key={district} value={district}>
+                                  {district}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">

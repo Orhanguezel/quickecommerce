@@ -195,18 +195,19 @@ class OrderService
             } else {
                 $shipping_address = OrderAddress::create([
                     'order_master_id' => $order_master->id,
-                    'area_id' => 0, // main zone id
-                    'shipping_address_id' => $customer_address->id,
-                    'type' => $customer_address->type,
-                    'email' => $customer_address->email,
-                    'contact_number' => $customer_address->contact_number,
-                    'address' => $customer_address->address,
-                    'latitude' => $customer_address->latitude,
-                    'longitude' => $customer_address->longitude,
-                    'road' => $customer_address->road,
-                    'house' => $customer_address->house,
-                    'floor' => $customer_address->floor,
-                    'postal_code' => $customer_address->postal_code,
+                    'area_id'         => $customer_address->area_id,
+                    'city_name'       => $customer_address->city_name,
+                    'district_name'   => $customer_address->district_name,
+                    'type'            => $customer_address->type,
+                    'email'           => $customer_address->email,
+                    'contact_number'  => $customer_address->contact_number,
+                    'address'         => $customer_address->address,
+                    'latitude'        => $customer_address->latitude,
+                    'longitude'       => $customer_address->longitude,
+                    'road'            => $customer_address->road,
+                    'house'           => $customer_address->house,
+                    'floor'           => $customer_address->floor,
+                    'postal_code'     => $customer_address->postal_code,
                 ]);
             }
 

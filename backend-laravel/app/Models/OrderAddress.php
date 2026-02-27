@@ -9,6 +9,8 @@ class OrderAddress extends Model
     protected $fillable = [
         'order_master_id',
         'area_id',
+        'city_name',
+        'district_name',
         'type',
         'name',
         'email',

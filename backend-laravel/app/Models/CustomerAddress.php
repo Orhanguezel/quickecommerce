@@ -18,6 +18,8 @@ class CustomerAddress extends Model
         'latitude',
         'longitude',
         'area_id',
+        'city_name',
+        'district_name',
         'road',
         'house',
         'floor',
