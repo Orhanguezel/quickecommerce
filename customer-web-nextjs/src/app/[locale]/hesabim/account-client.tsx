@@ -833,13 +833,31 @@ export function AccountClient({ translations: t }: Props) {
                 </div>
               )}
 
-              {(addAddressMutation.isError || updateAddressMutation.isError) && (
-                <div className="mb-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-                  {(addAddressMutation.error as any)?.response?.data?.message ||
-                    (updateAddressMutation.error as any)?.response?.data?.message ||
-                    t.error}
-                </div>
-              )}
+              {(addAddressMutation.isError || updateAddressMutation.isError) && (() => {
+                const errData =
+                  (addAddressMutation.error as any)?.response?.data ||
+                  (updateAddressMutation.error as any)?.response?.data;
+                const msg = errData?.message;
+                // Laravel validation: message is an object {field: [errors]}
+                const lines: string[] =
+                  msg && typeof msg === "object"
+                    ? Object.values(msg as Record<string, string[]>).flat()
+                    : msg
+                    ? [String(msg)]
+                    : [t.error || "Bir hata oluştu"];
+                return (
+                  <div className="mb-4 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                      <ul className="space-y-0.5">
+                        {lines.map((line, i) => (
+                          <li key={i}>{line}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {addressesLoading ? (
                 <div className="flex items-center gap-2 text-muted-foreground">
