@@ -386,7 +386,7 @@ class GdeliveryService
         return $this->getClient()->addresses()->createSender([
             'name'         => $data['name'],
             'email'        => $data['email'],
-            'phone'        => $data['phone'],
+            'phone'        => $this->normalizePhone($data['phone']),
             'address1'     => $address1,
             'countryCode'  => 'TR',
             'cityCode'     => $data['city_code'],

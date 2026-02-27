@@ -232,7 +232,13 @@ const CargoSettingsForm = () => {
                   </div>
                   <div>
                     <label className="text-xs font-medium mb-1 block">Telefon *</label>
-                    <Input {...regAddr("phone")} className="app-input text-sm" placeholder="05xxxxxxxxx" />
+                    <Input {...regAddr("phone")} className="app-input text-sm" placeholder="05550907070" />
+                    <p className="text-[10px] text-slate-400 mt-0.5">
+                      Format: <strong>05XXXXXXXXX</strong> — 11 haneli, başında 0, tire/boşluk olmadan
+                      <br />
+                      ❌ Yanlış: <span className="text-red-400">555-0907070</span> &nbsp;
+                      ✅ Doğru: <span className="text-green-600">05550907070</span>
+                    </p>
                   </div>
                   <div>
                     <label className="text-xs font-medium mb-1 block">
