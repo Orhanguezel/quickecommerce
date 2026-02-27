@@ -30,6 +30,7 @@ class CustomerAddressResource extends JsonResource
             "address" => $this->address,
             "lat" => $this->latitude,
             "long" => $this->longitude,
+            "area_id" => $this->area_id,
             "area" => $this->area->name ?? null,
             "road" => $this->road,
             "house" => $this->house,

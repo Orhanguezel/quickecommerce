@@ -7,6 +7,7 @@ export interface CustomerAddress {
   address: string;
   lat: number | null;
   long: number | null;
+  area_id: number | null;
   area: string | null;
   road: string | null;
   house: string | null;
