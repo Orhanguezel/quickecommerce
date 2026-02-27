@@ -28,7 +28,7 @@ const CargoSettingsForm = () => {
   const { mutate: saveSettings, isPending: isSaving } = useCargoSettingsMutation();
   const { mutate: createAddress, isPending: isCreatingAddress } = useCreateSenderAddressMutation();
 
-  const { register, setValue, handleSubmit } = useForm<{
+  const { register, setValue, getValues, handleSubmit } = useForm<{
     geliver_api_token: string;
     geliver_sender_address_id: string;
     geliver_webhook_header_name: string;
@@ -91,8 +91,22 @@ const CargoSettingsForm = () => {
   const onCreateAddress = (values: any) => {
     createAddress(values, {
       onSuccess: (data: any) => {
-        const newId = data?.data?.data?.id;
-        if (newId) setValue("geliver_sender_address_id", newId);
+        const newId = data?.data?.data?.id ?? data?.data?.id;
+        if (newId) {
+          setValue("geliver_sender_address_id", newId);
+          // Yeni ID'yi otomatik kaydet — admin manuel kaydetmek zorunda kalmasın
+          const current = getValues();
+          saveSettings(
+            {
+              geliver_api_token: current.geliver_api_token,
+              geliver_sender_address_id: newId,
+              geliver_test_mode: testMode ? "on" : "",
+              geliver_webhook_header_name: current.geliver_webhook_header_name,
+              geliver_webhook_header_secret: current.geliver_webhook_header_secret,
+            },
+            { onSuccess: () => refetch() }
+          );
+        }
         setShowAddrForm(false);
       },
     });
@@ -201,9 +215,10 @@ const CargoSettingsForm = () => {
             {showAddrForm && (
               <div className="mt-3 border rounded-lg p-4 bg-slate-50 space-y-3">
                 <p className="text-xs text-slate-500">
-                  Geliver&apos;da yeni gönderici adresi oluşturur — ID otomatik dolar.
+                  Geliver&apos;da yeni gönderici adresi oluşturur —{" "}
+                  <strong>ID otomatik kaydedilir, ayrıca kaydet butonuna basmana gerek yok.</strong>
                   <br />
-                  <strong>Not:</strong> Mahalle alanı Geliver tarafından zorunludur.
+                  <strong>Not:</strong> Mahalle alanı SURAT için zorunludur.
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
