@@ -19,7 +19,7 @@ import {
   useDeleteAddressMutation,
   usePaymentGatewaysQuery,
 } from "@/modules/checkout/checkout.service";
-import type { CustomerAddress, PaymentGateway } from "@/modules/checkout/checkout.type";
+import type { AddressInput, CustomerAddress, PaymentGateway } from "@/modules/checkout/checkout.type";
 import {
   useOrderListQuery,
   useCancelOrderMutation,
@@ -103,6 +103,10 @@ import {
 } from "lucide-react";
 import Cookies from "js-cookie";
 import { AUTH_TOKEN_KEY, AUTH_USER } from "@/lib/constants";
+
+type ApiError = {
+  response?: { data?: { message?: string | Record<string, string[]>; errors?: Record<string, string[]> } };
+};
 
 const SUPPORTED_WALLET_GATEWAYS = new Set(["stripe", "iyzico"]);
 
@@ -269,7 +273,7 @@ export function AccountClient({ translations: t }: Props) {
       setWalletSuccess(true);
       refetchWallet();
     }
-  }, [searchParams]);
+  }, [searchParams, refetchWallet]);
 
   // Auto-select first available wallet gateway
   useEffect(() => {
@@ -382,7 +386,7 @@ export function AccountClient({ translations: t }: Props) {
 
   const handleSaveAddress = () => {
     setAddressSuccess(false);
-    const payload: Record<string, any> = {
+    const payload: AddressInput = {
       ...addressForm,
       status: 1,
       is_default: !addresses || addresses.length === 0,
@@ -390,7 +394,7 @@ export function AccountClient({ translations: t }: Props) {
 
     if (editingAddressId) {
       updateAddressMutation.mutate(
-        { ...payload, id: editingAddressId } as any,
+        { ...payload, id: editingAddressId },
         {
           onSuccess: () => {
             resetAddressForm();
@@ -399,7 +403,7 @@ export function AccountClient({ translations: t }: Props) {
         }
       );
     } else {
-      addAddressMutation.mutate(payload as any, {
+      addAddressMutation.mutate(payload, {
         onSuccess: () => {
           resetAddressForm();
           setAddressSuccess(true);
@@ -443,10 +447,11 @@ export function AccountClient({ translations: t }: Props) {
         setBankTransferPending(true);
         setDepositProcessing(false);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const apiErr = err as ApiError;
       setDepositError(
-        err?.response?.data?.errors?.amount?.[0] ||
-        err?.response?.data?.message ||
+        apiErr?.response?.data?.errors?.["amount"]?.[0] ||
+        (typeof apiErr?.response?.data?.message === "string" ? apiErr.response.data.message : undefined) ||
         t.error
       );
       setDepositProcessing(false);
@@ -606,8 +611,8 @@ export function AccountClient({ translations: t }: Props) {
 
               {updateProfileMutation.isError && (
                 <div className="mb-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-                  {(updateProfileMutation.error as any)?.response?.data
-                    ?.message || t.error}
+                  {(updateProfileMutation.error as ApiError)?.response?.data
+                    ?.message as string || t.error}
                 </div>
               )}
 
@@ -715,8 +720,8 @@ export function AccountClient({ translations: t }: Props) {
 
               {changePasswordMutation.isError && (
                 <div className="mb-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-                  {(changePasswordMutation.error as any)?.response?.data
-                    ?.message || t.error}
+                  {(changePasswordMutation.error as ApiError)?.response?.data
+                    ?.message as string || t.error}
                 </div>
               )}
 
@@ -835,8 +840,8 @@ export function AccountClient({ translations: t }: Props) {
 
               {(addAddressMutation.isError || updateAddressMutation.isError) && (() => {
                 const errData =
-                  (addAddressMutation.error as any)?.response?.data ||
-                  (updateAddressMutation.error as any)?.response?.data;
+                  (addAddressMutation.error as ApiError)?.response?.data ||
+                  (updateAddressMutation.error as ApiError)?.response?.data;
                 const msg = errData?.message;
                 // Laravel validation: message is an object {field: [errors]}
                 const lines: string[] =
@@ -936,8 +941,8 @@ export function AccountClient({ translations: t }: Props) {
                           <Label>{t.address_type}</Label>
                           <Select
                             value={addressForm.type}
-                            onValueChange={(v: any) =>
-                              setAddressForm({ ...addressForm, type: v })
+                            onValueChange={(v: string) =>
+                              setAddressForm({ ...addressForm, type: v as "home" | "office" | "others" })
                             }
                           >
                             <SelectTrigger>
@@ -1730,10 +1735,10 @@ export function AccountClient({ translations: t }: Props) {
                       <Label>{t.ticket_priority}</Label>
                       <Select
                         value={createTicketForm.priority}
-                        onValueChange={(v: any) =>
+                        onValueChange={(v: string) =>
                           setCreateTicketForm({
                             ...createTicketForm,
-                            priority: v,
+                            priority: v as "low" | "medium" | "high" | "urgent",
                           })
                         }
                       >
@@ -1759,8 +1764,8 @@ export function AccountClient({ translations: t }: Props) {
 
                     {createTicketMutation.isError && (
                       <p className="text-sm text-destructive">
-                        {(createTicketMutation.error as any)?.response?.data
-                          ?.message || t.error}
+                        {(createTicketMutation.error as ApiError)?.response?.data
+                          ?.message as string || t.error}
                       </p>
                     )}
 
