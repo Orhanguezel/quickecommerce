@@ -9,7 +9,7 @@ import {
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslations } from "next-intl";
-import { ChevronDown, ChevronUp, MapPin, Copy, Check } from "lucide-react";
+import { ChevronDown, ChevronUp, MapPin, Copy, Check, AlertTriangle } from "lucide-react";
 
 const TR_CITIES = [
   { code: "01", name: "Adana" }, { code: "06", name: "Ankara" },
@@ -137,6 +137,19 @@ const CargoSettingsForm = () => {
                 app.geliver.io/apitokens
               </a>
             </p>
+          </div>
+
+          {/* Mahalle uyarısı */}
+          <div className="rounded-md border border-amber-200 bg-amber-50 p-3 flex items-start gap-2 text-sm text-amber-800">
+            <AlertTriangle width={16} height={16} className="shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold">Gönderici Adresinde Mahalle Zorunlu</p>
+              <p className="text-xs mt-0.5">
+                SURAT kargosunda adresin başında mahalle bilgisi olmak zorunda.
+                Eğer &quot;mahalle bilgisi bulunamadı&quot; hatası alıyorsanız aşağıdan
+                yeni bir gönderici adresi oluşturun — mahalle alanını doldurun.
+              </p>
+            </div>
           </div>
 
           {/* Sender Address ID */}

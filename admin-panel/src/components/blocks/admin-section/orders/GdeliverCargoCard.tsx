@@ -46,11 +46,19 @@ const GdeliverCargoCard = ({
     useCancelCargoMutation(orderId);
 
   const handleCreate = () => {
+    setCreateError(null);
     const payload = selectedOfferId ? { offer_id: selectedOfferId } : undefined;
     createCargo(payload as any, {
       onSuccess: () => {
         refetchCargo();
         refetch();
+      },
+      onError: (err: any) => {
+        const msg =
+          err?.response?.data?.message ??
+          err?.message ??
+          "Kargo oluşturulurken hata oluştu.";
+        setCreateError(typeof msg === "string" ? msg : JSON.stringify(msg));
       },
     });
   };
@@ -94,6 +102,7 @@ const GdeliverCargoCard = ({
 
   const [selectedOfferId, setSelectedOfferId] = useState<string>("");
   const [offersLoadedOnce, setOffersLoadedOnce] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   // Kargo verisi yüklendikten sonra canCreate ise teklifleri otomatik yükle (bir kez)
   useEffect(() => {
@@ -228,6 +237,39 @@ const GdeliverCargoCard = ({
                     Seçim yapılmazsa sistem varsayılan olarak en uygun teklifi kullanır.
                   </p>
                 </div>
+
+                {createError && (() => {
+                  const isMahalleError = createError.toLowerCase().includes("mahalle");
+                  return (
+                    <div className="rounded-md border border-red-200 bg-red-50 p-3 mb-3 text-sm text-red-700">
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle width={16} height={16} className="shrink-0 mt-0.5" />
+                        <div className="space-y-1.5">
+                          <p className="font-medium">Kargo oluşturulamadı</p>
+                          <p className="text-xs">{createError}</p>
+                          {isMahalleError && (
+                            <div className="mt-2 rounded bg-amber-50 border border-amber-200 p-2 text-xs text-amber-800 space-y-1">
+                              <p className="font-semibold">Ne yapmalısınız?</p>
+                              <ol className="list-decimal list-inside space-y-0.5">
+                                <li>Kargo Ayarları sayfasına gidin</li>
+                                <li>&quot;Geliver&apos;da Yeni Adres Oluştur&quot; formunu açın</li>
+                                <li>Mahalle alanını doldurup yeni adres oluşturun</li>
+                                <li>Yeni adres ID otomatik kaydedilir — tekrar deneyin</li>
+                              </ol>
+                              <Link
+                                href={settingsUrl}
+                                className="inline-flex items-center gap-1 mt-1 font-semibold text-blue-600 hover:underline"
+                              >
+                                <Settings width={12} height={12} />
+                                Kargo Ayarlarına Git →
+                              </Link>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 <Button
                   className="w-full bg-orange-500 hover:bg-orange-600 text-white"
