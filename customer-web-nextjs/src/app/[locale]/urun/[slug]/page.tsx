@@ -88,7 +88,7 @@ async function getBanners(locale: string): Promise<BannerGroupedResponse> {
 async function getActiveCoupons(locale: string): Promise<PublicCoupon[]> {
   try {
     const res = await fetchAPI<{ data?: PublicCoupon[] }>(
-      API_ENDPOINTS.COUPONS,
+      `${API_ENDPOINTS.COUPONS}?per_page=50`,
       {},
       locale
     );
