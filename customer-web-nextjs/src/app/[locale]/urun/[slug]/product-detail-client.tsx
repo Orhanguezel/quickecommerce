@@ -1074,11 +1074,17 @@ export function ProductDetailClient({
             </button>
 
             {/* Kupon */}
-            {productDetailsConfig.isCouponEnabled && coupons.length > 0 && (
-              <div className="mt-4">
-                <CouponSection coupons={coupons.slice(0, productDetailsConfig.couponCount)} />
-              </div>
-            )}
+            {productDetailsConfig.isCouponEnabled && coupons.length > 0 && (() => {
+              const themeCouponCode = productDetailsConfig.couponCode;
+              const filteredCoupons = themeCouponCode
+                ? coupons.filter((c) => c.coupon_code === themeCouponCode)
+                : coupons;
+              return filteredCoupons.length > 0 ? (
+                <div className="mt-4">
+                  <CouponSection coupons={filteredCoupons.slice(0, productDetailsConfig.couponCount)} />
+                </div>
+              ) : null;
+            })()}
 
             <div className="mt-5">
               <p className="text-sm font-semibold">{t.share_connect}</p>
