@@ -105,7 +105,7 @@ class PayTRPaymentController extends Controller
                 'merchant_fail_url' => $merchantFailUrl,
                 'user_name' => $fullName,
                 'user_address' => (string)($shippingAddress?->address ?? 'Adres belirtilmedi'),
-                'user_phone' => (string)($customer->phone ?? $shippingAddress?->contact_number ?? '+905000000000'),
+                'user_phone' => $this->sanitizePhone($customer->phone ?? $shippingAddress?->contact_number ?? '05000000000'),
                 'no_installment' => $credentials['no_installment'] ?? '0',
                 'max_installment' => $credentials['max_installment'] ?? '0',
             ]);
@@ -221,7 +221,7 @@ class PayTRPaymentController extends Controller
                 'merchant_fail_url' => $merchantFailUrl,
                 'user_name' => $fullName,
                 'user_address' => 'Adres belirtilmedi',
-                'user_phone' => (string)($customer->phone ?? '+905000000000'),
+                'user_phone' => $this->sanitizePhone($customer->phone ?? '05000000000'),
                 'no_installment' => '0',
                 'max_installment' => '0',
             ]);
@@ -456,5 +456,38 @@ class PayTRPaymentController extends Controller
         }
 
         return $basketItems;
+    }
+
+    /**
+     * PayTR telefon formatı: sadece rakam, 10-11 hane, başında 0 ile.
+     * +90xxx, 0090xxx, 90xxx gibi formatları 0xxx'e çevirir.
+     */
+    private function sanitizePhone(?string $phone): string
+    {
+        if (!$phone) {
+            return '05000000000';
+        }
+
+        // Sadece rakamları al
+        $digits = preg_replace('/\D/', '', $phone);
+
+        // Email veya geçersiz veri geldiyse fallback
+        if (strlen($digits) < 7) {
+            return '05000000000';
+        }
+
+        // +90 veya 0090 prefix'ini kaldır
+        if (str_starts_with($digits, '0090')) {
+            $digits = '0' . substr($digits, 4);
+        } elseif (str_starts_with($digits, '90') && strlen($digits) >= 12) {
+            $digits = '0' . substr($digits, 2);
+        }
+
+        // Başında 0 yoksa ekle
+        if (!str_starts_with($digits, '0') && strlen($digits) === 10) {
+            $digits = '0' . $digits;
+        }
+
+        return $digits;
     }
 }
