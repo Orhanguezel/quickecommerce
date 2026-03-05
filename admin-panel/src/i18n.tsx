@@ -1,13 +1,13 @@
 import { headers } from "next/headers";
-import { notFound } from "next/navigation";
 import { getRequestConfig } from "next-intl/server";
 import defaultMessages from "../public/locales/tr.json";
 import { routing } from "./routing";
 
 export default getRequestConfig(async (context: any) => {
-  const locale = await context.requestLocale;
-
-  if (!routing.locales.includes(locale as any)) notFound();
+  const requestedLocale = await context.requestLocale;
+  const locale = routing.locales.includes(requestedLocale as any)
+    ? requestedLocale
+    : routing.defaultLocale;
 
   const now = (await headers()).get("x-now");
   const timeZone = (await headers()).get("x-time-zone") ?? "Europe/Vienna";

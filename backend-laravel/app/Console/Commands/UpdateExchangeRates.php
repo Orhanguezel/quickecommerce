@@ -35,6 +35,9 @@ class UpdateExchangeRates extends Command
         if ($result['success']) {
             $this->info("✅ Successfully updated {$result['updated_count']} / {$result['total_count']} currencies");
             $this->info("Base currency: {$result['base_currency']}");
+            if (isset($result['variant_price_synced'])) {
+                $this->info("Variant prices re-synced: {$result['variant_price_synced']}");
+            }
             $this->info("Timestamp: {$result['timestamp']}");
 
             if (!empty($result['errors'])) {

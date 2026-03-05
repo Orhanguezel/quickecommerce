@@ -380,6 +380,20 @@ class EmailTemplateSeeder extends Seeder
                 'created_at' => $now,
                 'updated_at' => $now,
             ],
+            [
+                'type' => 'seller-application-rejected',
+                'name' => 'Satıcı Başvurusu Reddedildi',
+                'subject' => '@site_name - Satıcı Başvurunuz Hakkında',
+                'body' => '<h1>Merhaba @name,</h1>
+<p>@site_name platformuna yaptığınız satıcı başvurusu incelenmiş ve maalesef bu aşamada onaylanamamıştır.</p>
+<h2>Red Gerekçesi</h2>
+<p>@reason</p>
+<p>Başvurunuzu düzenleyerek tekrar gönderebilirsiniz. Sorularınız için bizimle iletişime geçebilirsiniz.</p>
+<p>Saygılarımızla,<br>@site_name Ekibi</p>',
+                'status' => 1,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
         ];
 
         EmailTemplate::insert($templates);
@@ -630,6 +644,16 @@ class EmailTemplateSeeder extends Seeder
 <p><strong>Order Amount:</strong> @order_amount</p>
 <p><strong>Earnings:</strong> @earnings_amount</p>
 <p>Thank you for your hard work!</p>',
+            ],
+            'seller-application-rejected' => [
+                'name' => 'Seller Application Rejected',
+                'subject' => '@site_name - About Your Seller Application',
+                'body' => '<h1>Hello @name,</h1>
+<p>Your seller application on @site_name has been reviewed and unfortunately could not be approved at this time.</p>
+<h2>Reason</h2>
+<p>@reason</p>
+<p>You can edit your application and resubmit. Feel free to contact us with any questions.</p>
+<p>Best regards,<br>@site_name Team</p>',
             ],
         ];
 

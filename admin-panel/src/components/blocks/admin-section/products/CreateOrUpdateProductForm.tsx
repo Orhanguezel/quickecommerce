@@ -39,7 +39,7 @@ import {
 import { ProductFormData, productSchema } from '@/modules/admin-section/products/product.schema';
 import { useSellerStoreQuery } from '@/modules/admin-section/seller-store/seller-store.action';
 import { useSellerQuery } from '@/modules/admin-section/seller/seller.action';
-import { useGeneralQuery } from '@/modules/common/com/com.action';
+import { useCurrencyQuery, useGeneralQuery } from '@/modules/common/com/com.action';
 import { useProductAttributeQuery } from '@/modules/admin-section/attribute/attributes.action';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks/index';
 import { setRefetch } from '@/redux/slices/refetchSlice';
@@ -95,6 +95,13 @@ interface SelectCategory {
   [key: string]: ReadonlyArray<Option>;
 }
 
+interface CurrencyRow {
+  code: string;
+  symbol?: string;
+  exchange_rate: number;
+  is_default?: boolean;
+}
+
 const I18N_FIELDS = [
   'name',
   'description',
@@ -110,6 +117,42 @@ const splitTags = (raw: any) =>
     .split(',')
     .map((x) => x.trim())
     .filter(Boolean);
+
+const normalizeSelectGroups = (raw: any, fallbackLabelKeys: string[] = []) => {
+  const arr = Array.isArray(raw) ? raw : Array.isArray(raw?.data) ? raw.data : [];
+  return arr
+    .map((item: any) => {
+      const value = item?.value ?? item?.id ?? '';
+      const labelFromFallback = fallbackLabelKeys
+        .map((k) => item?.[k])
+        .find((v) => v !== undefined && v !== null && String(v).trim() !== '');
+      const label = item?.label ?? labelFromFallback ?? value;
+      return { value: String(value), label: String(label) };
+    })
+    .filter((x: any) => x.value && x.label);
+};
+
+const parseGeneratedJson = (raw: string): any | null => {
+  const text = String(raw ?? '').trim();
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {}
+  const first = text.indexOf('{');
+  const last = text.lastIndexOf('}');
+  if (first >= 0 && last > first) {
+    try {
+      return JSON.parse(text.slice(first, last + 1));
+    } catch {}
+  }
+  return null;
+};
+
+const toKeywordsArray = (value: any): string[] => {
+  if (Array.isArray(value)) return value.map((x) => String(x).trim()).filter(Boolean);
+  if (typeof value === 'string') return splitTags(value);
+  return [];
+};
 
 const CreateOrUpdateProductForm = ({ data }: any) => {
   const t = useTranslations();
@@ -264,6 +307,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
   const [isOrganic, setIsOrganic] = useState(false);
   const [isHalal, setIsHalal] = useState(false);
   const [isFreeShipping, setIsFreeShipping] = useState(false);
+  const [priceInputCurrency, setPriceInputCurrency] = useState<string>('');
   const [attributeValuesKey, setAttributeValuesKey] = useState('');
   const [selectedAttributes, setSelectedAttributes] = useState<Option[]>([]);
   const [selectedValues, setSelectedValues] = useState<Record<string, Option[]>>({});
@@ -293,10 +337,13 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
 
   let originalData = (categories as any)?.data || [];
 
-  let brandData = (brands as any) || [];
+  const brandData = useMemo(
+    () => normalizeSelectGroups(brands, ['brand_name', 'name']),
+    [brands],
+  );
   let sellerData = (sellerList as any) || [];
   let sellerStoreData = (sellerStoreList as any) || [];
-  let unitData = (units as any) || [];
+  const unitData = useMemo(() => normalizeSelectGroups(units, ['name']), [units]);
   const attributeOptions = useMemo(() => {
     const raw = (productAttribute as any);
     if (Array.isArray(raw)) return raw;
@@ -306,6 +353,54 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
   const { general, refetch: generalRefetch } = useGeneralQuery({
     language: localeMain,
   });
+  const { currency } = useCurrencyQuery({});
+  const currencyRows = useMemo<CurrencyRow[]>(() => {
+    const raw = Array.isArray(currency) ? currency : Array.isArray((currency as any)?.data) ? (currency as any).data : [];
+    return raw
+      .map((c: any) => ({
+        code: String(c?.code ?? c?.value ?? '').toUpperCase(),
+        symbol: c?.symbol ?? '',
+        exchange_rate: Number(c?.exchange_rate ?? 1),
+        is_default: Boolean(c?.is_default),
+      }))
+      .filter((c: CurrencyRow) => c.code && Number.isFinite(c.exchange_rate) && c.exchange_rate > 0);
+  }, [currency]);
+  const defaultCurrency = useMemo(
+    () => currencyRows.find((c) => c.is_default) ?? currencyRows[0],
+    [currencyRows],
+  );
+  const selectedPriceCurrency = useMemo(
+    () => currencyRows.find((c) => c.code === priceInputCurrency) ?? defaultCurrency,
+    [currencyRows, defaultCurrency, priceInputCurrency],
+  );
+  useEffect(() => {
+    if (!priceInputCurrency && defaultCurrency?.code) {
+      setPriceInputCurrency(defaultCurrency.code);
+    }
+  }, [defaultCurrency, priceInputCurrency]);
+  const toDefaultCurrency = (amountInSelected: number) => {
+    if (!selectedPriceCurrency || !defaultCurrency) return amountInSelected;
+    return amountInSelected * (defaultCurrency.exchange_rate / selectedPriceCurrency.exchange_rate);
+  };
+  const fromDefaultCurrency = (amountInDefault: number) => {
+    if (!selectedPriceCurrency || !defaultCurrency) return amountInDefault;
+    return amountInDefault * (selectedPriceCurrency.exchange_rate / defaultCurrency.exchange_rate);
+  };
+  const formatEditableAmount = (amountInDefault: any) => {
+    if (amountInDefault === '' || amountInDefault === null || amountInDefault === undefined) return '';
+    const n = Number(amountInDefault);
+    if (!Number.isFinite(n)) return '';
+    const converted = fromDefaultCurrency(n);
+    return Number.isFinite(converted) ? Number(converted.toFixed(6)) : '';
+  };
+  const currencySelectOptions = useMemo(
+    () =>
+      currencyRows.map((c) => ({
+        value: c.code,
+        label: `${c.code}${c.symbol ? ` (${c.symbol})` : ''}`,
+      })),
+    [currencyRows],
+  );
   const originalDataGeneral = useMemo(() => {
     const data = (general as any) || {};
     return data;
@@ -344,6 +439,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
 
     const newSelectedAttributes: Option[] = [];
     const newSelectedValues: Record<string, Option[]> = {};
+    let firstVariantCurrencyCode = '';
 
     apiData.forEach((variant, index) => {
       const parsedAttributes =
@@ -407,12 +503,16 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
           img_url: variant.image_url,
         };
       }
+      if (!firstVariantCurrencyCode && variant?.price_input_currency_code) {
+        firstVariantCurrencyCode = String(variant.price_input_currency_code).toUpperCase();
+      }
       const firstObject = Object.values(initialLogoData)[0];
       setLogoData((prev) => ({ ...prev, [index]: firstObject }));
     });
 
     setSelectedAttributes(newSelectedAttributes);
     setSelectedValues(newSelectedValues);
+    if (firstVariantCurrencyCode) setPriceInputCurrency(firstVariantCurrencyCode);
   };
 
   useEffect(() => {
@@ -686,7 +786,13 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
         id: matchingEditData?.id || null,
         variant: combo,
         price: prices[index] || 0,
+        price_input_currency_code: selectedPriceCurrency?.code || defaultCurrency?.code || null,
+        price_input_amount: Number(fromDefaultCurrency(Number(prices[index] || 0)).toFixed(6)),
         special_price: spPrices[index] || 0,
+        special_price_input_currency_code: selectedPriceCurrency?.code || defaultCurrency?.code || null,
+        special_price_input_amount: Number(
+          fromDefaultCurrency(Number(spPrices[index] || 0)).toFixed(6),
+        ),
         sku: sku[index] || 0,
         stock_quantity: stocks[index] || 0,
         image_url: logoData[index]?.img_url || null,
@@ -949,13 +1055,59 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
   const [loading, setLoading] = useState(false);
   const { mutate: GenerateDescription } = useProductDescriptionGenerate();
   const handleGenerateDescription = (prompt: string, langId: string) => {
-    const payload = { prompt };
+    const langIds = uiLangs.map((l) => l.id).join(', ');
+    const aiPrompt = `${prompt}
+
+Return ONLY valid JSON. Do not add markdown.
+Output schema must be:
+{
+  "${uiLangs?.[0]?.id ?? 'tr'}": {
+    "name": "",
+    "description": "",
+    "meta_title": "",
+    "meta_description": "",
+    "meta_keywords": [],
+    "return_text": "",
+    "delivery_time_text": ""
+  }
+}
+Rules:
+- Include these language keys: ${langIds}
+- Improve ${langId} content quality and generate/complete all fields.
+- Translate/adapt all fields for the other languages.
+- meta_keywords must be an array of strings.`;
+    const payload = { prompt: aiPrompt };
     setLoading(true);
 
     GenerateDescription(payload as any, {
       onSuccess: (res: any) => {
         const generatedText = res?.data?.generated_content ?? '';
-        setValueAny(`description_${langId}`, generatedText);
+        const parsed = parseGeneratedJson(generatedText);
+        const parsedRoot =
+          parsed && typeof parsed === 'object'
+            ? (parsed?.translations && typeof parsed.translations === 'object'
+                ? parsed.translations
+                : parsed)
+            : null;
+        let hasApplied = false;
+        if (parsedRoot && typeof parsedRoot === 'object') {
+          for (const lang of uiLangs) {
+            const block = (parsedRoot as any)?.[lang.id];
+            if (!block || typeof block !== 'object') continue;
+            hasApplied = true;
+            setValueAny(`name_${lang.id}`, String(block?.name ?? ''));
+            setValueAny(`description_${lang.id}`, String(block?.description ?? ''));
+            setValueAny(`meta_title_${lang.id}`, String(block?.meta_title ?? ''));
+            setValueAny(`meta_description_${lang.id}`, String(block?.meta_description ?? ''));
+            setValueAny(`meta_keywords_${lang.id}`, toKeywordsArray(block?.meta_keywords));
+            setValueAny(`return_text_${lang.id}`, String(block?.return_text ?? ''));
+            setValueAny(`delivery_time_text_${lang.id}`, String(block?.delivery_time_text ?? ''));
+          }
+        }
+        if (!hasApplied) {
+          setValueAny(`description_${langId}`, generatedText);
+        }
+        rebuildJsonNow();
         setLoading(false);
         setIsModalOpen(false);
       },
@@ -1161,6 +1313,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                                 //@ts-ignore
                                 name={watch(`name_${lang.id}`)}
                                 lang={t(`lang.${lang.id}`)}
+                                allLangs={uiLangs.map((l) => t(`lang.${l.id}` as `lang.${LangKeys}`))}
                                 categories={selectedItems}
                                 setIsModalOpen={setIsModalOpen}
                                 isModalOpen={isModalOpen}
@@ -1505,8 +1658,8 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                               placeholder={t('place_holder.enter_value')}
                             />
                           </div>
-                          <div className="mt-2 col-span-2 flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between">
-                            <div className="flex items-center space-x-2">
+                          <div className="mt-2 col-span-2 flex flex-wrap items-start gap-x-6 gap-y-3">
+                            <div className="flex items-start gap-2 min-w-0">
                               <Checkbox
                                 id="organic"
                                 checked={isOrganic}
@@ -1514,13 +1667,13 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                               />
                               <label
                                 htmlFor="organic"
-                                className="text-md font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                className="text-md font-medium leading-5 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                               >
                                 {t('label.cash_on_delivery')}
                               </label>
                               <InfoTooltip text={t('tooltip.ensure_products_are_eligible_cah_on_delivery')} />
                             </div>
-                            <div className="flex items-center space-x-2">
+                            <div className="flex items-start gap-2 min-w-0">
                               <Checkbox
                                 id="halal"
                                 checked={isHalal}
@@ -1528,13 +1681,13 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                               />
                               <label
                                 htmlFor="halal"
-                                className="text-md font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                className="text-md font-medium leading-5 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                               >
                                 {t('label.allow_change_in_mind')}
                               </label>
                               <InfoTooltip text={t('tooltip.allow_change_in_mind')} />
                             </div>
-                            <div className="flex items-center space-x-2">
+                            <div className="flex items-start gap-2 min-w-0">
                               <Checkbox
                                 id="free_shipping"
                                 checked={isFreeShipping}
@@ -1542,7 +1695,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                               />
                               <label
                                 htmlFor="free_shipping"
-                                className="text-md font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                className="text-md font-medium leading-5 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                               >
                                 {t('label.free_shipping')}
                               </label>
@@ -1628,6 +1781,20 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                 ))}
               </div>
               <div className="mt-4">
+                <div className="mb-3 grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div>
+                    <p className="text-sm font-medium mb-1">Price Input Currency</p>
+                    <AppSearchSelect
+                      value={priceInputCurrency || defaultCurrency?.code || ''}
+                      onSelect={(value) => setPriceInputCurrency(String(value || ''))}
+                      groups={currencySelectOptions}
+                      hideNone
+                    />
+                  </div>
+                  <div className="md:col-span-2 text-xs text-gray-500 dark:text-gray-300 flex items-end">
+                    Saved in base currency: {defaultCurrency?.code || '-'}
+                  </div>
+                </div>
                 {!isSelectedValuesEmpty && combinations.length > 0 && (
                   <div className="overflow-x-auto custom-scrollbar">
                     <div className="min-w-[800px] grid grid-cols-1 gap-2">
@@ -1695,26 +1862,34 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                                 className="app-input"
                                 placeholder={t('place_holder.enter_value')}
                                 min={0}
-                                value={prices[index] ?? ''}
-                                onChange={(e) =>
+                                value={formatEditableAmount(prices[index])}
+                                onChange={(e) => {
+                                  const newValue = e.target.value;
                                   setPrices((prev) => ({
                                     ...prev,
-                                    [index]: e.target.value,
-                                  }))
-                                }
+                                    [index]:
+                                      newValue === ''
+                                        ? ('' as any)
+                                        : Number(toDefaultCurrency(Number(newValue)).toFixed(6)),
+                                  }));
+                                }}
                               />
                               <Input
                                 type="number"
                                 className="app-input"
                                 min={0}
                                 placeholder={t('place_holder.enter_value')}
-                                value={spPrices[index] ?? ''}
-                                onChange={(e) =>
+                                value={formatEditableAmount(spPrices[index])}
+                                onChange={(e) => {
+                                  const newValue = e.target.value;
                                   setSpPrices((prev) => ({
                                     ...prev,
-                                    [index]: e.target.value,
-                                  }))
-                                }
+                                    [index]:
+                                      newValue === ''
+                                        ? ('' as any)
+                                        : Number(toDefaultCurrency(Number(newValue)).toFixed(6)),
+                                  }));
+                                }}
                               />
                               <Input
                                 type="number"

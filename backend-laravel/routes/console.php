@@ -9,4 +9,5 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote')->daily();
 
 Schedule::command('subscription:expire')->everyMinute();
+Schedule::command('currency:update-rates --base=USD')->hourly();
 

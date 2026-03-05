@@ -104,6 +104,14 @@ const Seller = () => {
                 </Button>
               </div>
             </div>
+            <Link href={Routes.SellerApplications}>
+              <Button
+                variant="outline"
+                className="app-button border-yellow-500 text-yellow-600 hover:bg-yellow-50"
+              >
+                Başvurular
+              </Button>
+            </Link>
             <Link href={Routes.addSeller}>
               <Button
                 variant="outline"

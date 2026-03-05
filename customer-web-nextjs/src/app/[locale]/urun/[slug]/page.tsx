@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { ProductDetailResponse } from "@/modules/product/product.type";
@@ -8,6 +9,51 @@ import { ProductDetailClient } from "./product-detail-client";
 
 interface Props {
   params: Promise<{ locale: string; slug: string }>;
+}
+
+interface CurrencyListItem {
+  value: string;
+  exchange_rate: number;
+  is_default: boolean;
+}
+
+interface CurrencyListResponse {
+  data?: CurrencyListItem[];
+}
+
+const getCurrencyList = cache(async (locale: string): Promise<CurrencyListItem[]> => {
+  try {
+    const res = await fetchAPI<CurrencyListResponse>(API_ENDPOINTS.CURRENCY_LIST, {}, locale);
+    return Array.isArray(res?.data) ? res.data : [];
+  } catch {
+    return [];
+  }
+});
+
+async function getSeoCurrencyCodeAndRates(locale: string) {
+  const currencies = await getCurrencyList(locale);
+  const defaultCurrency = currencies.find((c) => c.is_default) ?? currencies[0] ?? null;
+  const tryCurrency = currencies.find((c) => c.value === "TRY");
+
+  const targetCurrency =
+    locale === "tr" ? (tryCurrency ?? defaultCurrency) : defaultCurrency;
+
+  return {
+    code: targetCurrency?.value || (locale === "tr" ? "TRY" : "USD"),
+    defaultRate: Number(defaultCurrency?.exchange_rate ?? 1),
+    targetRate: Number(targetCurrency?.exchange_rate ?? 1),
+  };
+}
+
+function convertPriceFromDefault(
+  amount: number | null,
+  defaultRate: number,
+  targetRate: number
+): number | null {
+  if (amount == null || !Number.isFinite(amount)) return null;
+  if (!defaultRate || !targetRate) return amount;
+  const converted = amount * (targetRate / defaultRate);
+  return Number(converted.toFixed(2));
 }
 
 async function getProductDetail(slug: string, locale: string) {
@@ -33,11 +79,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const product = res.data;
-  const price = product.special_price
+  const rawPrice = product.special_price
     ? Number(product.special_price)
     : product.price
       ? Number(product.price)
       : null;
+  const seoCurrency = await getSeoCurrencyCodeAndRates(locale);
+  const price = convertPriceFromDefault(
+    rawPrice,
+    seoCurrency.defaultRate,
+    seoCurrency.targetRate
+  );
   const title = product.meta_title || product.name;
   const description =
     product.meta_description ||
@@ -68,7 +120,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     other: price
       ? {
           "product:price:amount": String(price),
-          "product:price:currency": "TRY",
+          "product:price:currency": seoCurrency.code,
         }
       : undefined,
   };
@@ -86,11 +138,17 @@ export default async function ProductDetailPage({ params }: Props) {
   const relatedProducts = res.related_products ?? [];
   const t = await getTranslations({ locale, namespace: "product" });
 
-  const price = product.special_price
+  const rawPrice = product.special_price
     ? Number(product.special_price)
     : product.price
       ? Number(product.price)
       : null;
+  const seoCurrency = await getSeoCurrencyCodeAndRates(locale);
+  const price = convertPriceFromDefault(
+    rawPrice,
+    seoCurrency.defaultRate,
+    seoCurrency.targetRate
+  );
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -108,7 +166,7 @@ export default async function ProductDetailPage({ params }: Props) {
     offers: {
       "@type": "Offer",
       url: `https://sportoonline.com/${locale}/urun/${slug}`,
-      priceCurrency: "TRY",
+      priceCurrency: seoCurrency.code,
       price: price ?? 0,
       availability:
         product.stock != null && product.stock > 0

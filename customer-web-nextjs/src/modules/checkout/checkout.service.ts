@@ -192,3 +192,19 @@ export function useCreateIyzicoSessionMutation() {
     },
   });
 }
+
+export function useCreatePaytrSessionMutation() {
+  const { getAxiosInstance } = useBaseService(API_ENDPOINTS.PAYTR_SESSION);
+
+  return useMutation({
+    mutationFn: async (orderMasterId: number) => {
+      const res = await getAxiosInstance().post<CreateGatewaySessionResponse>(
+        API_ENDPOINTS.PAYTR_SESSION,
+        {
+          order_master_id: orderMasterId,
+        }
+      );
+      return res.data;
+    },
+  });
+}

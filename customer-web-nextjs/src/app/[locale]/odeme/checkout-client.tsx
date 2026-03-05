@@ -6,12 +6,14 @@ import { useLocale } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ROUTES } from "@/config/routes";
 import { useCartStore } from "@/stores/cart-store";
+import { useCurrencyStore } from "@/stores/currency-store";
 import {
   useAddressListQuery,
   useAddAddressMutation,
   useCheckCouponMutation,
   useCheckoutExtraInfoQuery,
   useCreateIyzicoSessionMutation,
+  useCreatePaytrSessionMutation,
   usePlaceOrderMutation,
   usePaymentGatewaysQuery,
 } from "@/modules/checkout/checkout.service";
@@ -61,6 +63,7 @@ const gatewayIconMap: Record<string, typeof CreditCard> = {
 const SUPPORTED_CHECKOUT_GATEWAYS = new Set([
   "cash_on_delivery",
   "iyzico",
+  "paytr",
   "wallet",
 ]);
 
@@ -77,6 +80,7 @@ export function CheckoutClient({ translations: t }: Props) {
   const items = useCartStore((s) => s.items);
   const totalPrice = useCartStore((s) => s.totalPrice);
   const clearCart = useCartStore((s) => s.clearCart);
+  const selectedCurrencyCode = useCurrencyStore((s) => s.getSelectedCurrencyCode());
   const productIds = items.map((item) => item.product_id).filter(Boolean) as number[];
   const { data: checkoutExtraInfo } = useCheckoutExtraInfoQuery(productIds);
 
@@ -116,6 +120,7 @@ export function CheckoutClient({ translations: t }: Props) {
   const couponMutation = useCheckCouponMutation();
   const placeOrderMutation = usePlaceOrderMutation();
   const createIyzicoSessionMutation = useCreateIyzicoSessionMutation();
+  const createPaytrSessionMutation = useCreatePaytrSessionMutation();
   const { data: paymentGateways, isLoading: gatewaysLoading } =
     usePaymentGatewaysQuery();
   const { data: walletData } = useWalletInfoQuery();
@@ -248,7 +253,7 @@ export function CheckoutClient({ translations: t }: Props) {
     couponMutation.mutate(
       {
         coupon_code: couponCode.trim(),
-        currency_code: "TRY",
+        currency_code: selectedCurrencyCode || "TRY",
         sub_total: subtotal,
       },
       {
@@ -324,7 +329,7 @@ export function CheckoutClient({ translations: t }: Props) {
 
     const orderData: PlaceOrderInput = {
       shipping_address_id: selectedAddressId ?? undefined,
-      currency_code: "TRY",
+      currency_code: selectedCurrencyCode || "TRY",
       payment_gateway: paymentMethod,
       order_notes: orderNotes || undefined,
       order_amount: total,
@@ -352,6 +357,22 @@ export function CheckoutClient({ translations: t }: Props) {
               setIsRedirecting(true);
               clearCart();
               window.location.href = checkoutUrl;
+            },
+          });
+          return;
+        }
+
+        if (paymentMethod === "paytr") {
+          createPaytrSessionMutation.mutate(orderId, {
+            onSuccess: (session) => {
+              const iframeUrl = (session?.data as any)?.iframe_url;
+              if (!iframeUrl) {
+                return;
+              }
+
+              setIsRedirecting(true);
+              clearCart();
+              window.location.href = iframeUrl;
             },
           });
           return;
@@ -389,6 +410,12 @@ export function CheckoutClient({ translations: t }: Props) {
       {createIyzicoSessionMutation.isError && (
         <div className="mb-6 rounded-md bg-destructive/10 p-4 text-sm text-destructive">
           {(createIyzicoSessionMutation.error as any)?.response?.data?.message ||
+            t.error}
+        </div>
+      )}
+      {createPaytrSessionMutation.isError && (
+        <div className="mb-6 rounded-md bg-destructive/10 p-4 text-sm text-destructive">
+          {(createPaytrSessionMutation.error as any)?.response?.data?.message ||
             t.error}
         </div>
       )}
@@ -818,13 +845,15 @@ export function CheckoutClient({ translations: t }: Props) {
                 disabled={
                   placeOrderMutation.isPending ||
                   createIyzicoSessionMutation.isPending ||
+                  createPaytrSessionMutation.isPending ||
                   !paymentMethod ||
                   (!selectedAddressId && paymentMethod !== "takeaway") ||
                   (paymentMethod === "wallet" && (walletData?.wallets?.total_balance ?? 0) < total)
                 }
               >
                 {placeOrderMutation.isPending ||
-                createIyzicoSessionMutation.isPending ? (
+                createIyzicoSessionMutation.isPending ||
+                createPaytrSessionMutation.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     {t.placing_order}

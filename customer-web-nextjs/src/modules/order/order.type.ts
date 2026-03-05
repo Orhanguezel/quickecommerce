@@ -136,6 +136,16 @@ export interface OrderDetailResponse {
   order_refund_tracking: OrderTracking[];
 }
 
+// --- Return Shipment ---
+export interface ReturnShipment {
+  carrier_name: string | null;
+  tracking_number: string | null;
+  barcode: string | null;
+  label_url: string | null;
+  status: "pending" | "label_created" | "in_transit" | "delivered" | "cancelled";
+  created_at: string;
+}
+
 // --- Order List Response ---
 export interface OrderListResponse {
   message: string;

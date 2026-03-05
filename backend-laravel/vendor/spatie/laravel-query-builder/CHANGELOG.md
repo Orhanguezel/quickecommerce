@@ -2,6 +2,36 @@
 
 All notable changes to `laravel-query-builder` will be documented in this file
 
+## 6.4.2 - 2026-02-18
+
+- Add generics to QueryBuilder class (#1044)
+
+## 6.4.1 - 2026-01-27
+
+### What's Changed
+
+#### Fixed
+
+- Fix typo in docs by @zigzagdev in https://github.com/spatie/laravel-query-builder/pull/1040
+
+**Full Changelog**: https://github.com/spatie/laravel-query-builder/compare/6.4.0...6.4.1
+
+## 6.4.0 - 2026-01-09
+
+### What's Changed
+
+* Update README.md to reference v6 documentation pages by @cezar-popa in https://github.com/spatie/laravel-query-builder/pull/1033
+* Compatibility of Laravel 12 scopes with model binding by @lorenzolosa in https://github.com/spatie/laravel-query-builder/pull/1036
+* fix typo in docs by @lorenzolosa in https://github.com/spatie/laravel-query-builder/pull/1035
+* Bump actions/checkout from 5 to 6 by @dependabot[bot] in https://github.com/spatie/laravel-query-builder/pull/1030
+* fix: use instanceof for relation detection by @zigzagdev in https://github.com/spatie/laravel-query-builder/pull/1027
+
+### New Contributors
+
+* @cezar-popa made their first contribution in https://github.com/spatie/laravel-query-builder/pull/1033
+
+**Full Changelog**: https://github.com/spatie/laravel-query-builder/compare/6.3.6...6.4.0
+
 ## 6.3.6 - 2025-10-20
 
 ### What's Changed

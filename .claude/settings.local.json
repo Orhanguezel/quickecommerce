@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php artisan db:seed:*)",
+      "Bash(php artisan cache:clear:*)",
+      "Bash(php artisan config:clear:*)",
+      "Bash(php artisan:*)",
+      "Bash(curl:*)",
+      "Bash(python3:*)",
+      "Bash(npx tsc:*)",
+      "Bash(command -v:*)",
+      "Bash(node --version:*)",
+      "Bash(grep:*)",
+      "Bash(git rm:*)"
+    ]
+  }
+}

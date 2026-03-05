@@ -9,6 +9,7 @@ interface CurrencyState {
   setCurrencies: (currencies: Currency[]) => void;
   setSelectedCurrency: (currency: Currency) => void;
   getSelectedCurrency: () => Currency | null;
+  getSelectedCurrencyCode: () => string;
   convertPrice: (price: number) => number;
   formatPrice: (price: number) => string;
 }
@@ -38,6 +39,12 @@ export const useCurrencyStore = create<CurrencyState>()(
 
       getSelectedCurrency: () => {
         return get().selectedCurrency;
+      },
+      getSelectedCurrencyCode: () => {
+        const { selectedCurrency, currencies } = get();
+        if (selectedCurrency?.code) return selectedCurrency.code;
+        const fallback = currencies.find((c) => c.is_default) || currencies[0];
+        return fallback?.code || "TRY";
       },
 
       convertPrice: (price: number) => {

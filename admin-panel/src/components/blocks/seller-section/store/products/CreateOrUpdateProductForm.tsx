@@ -28,7 +28,7 @@ import { TagsInput } from '@/components/ui/tags-input';
 import GlobalImageLoader from '@/lib/imageLoader';
 import { useBrandsQuery } from '@/modules/common/brand/brand.action';
 import { useCategoriesQuery } from '@/modules/common/category/category.action';
-import { useGeneralQuery } from '@/modules/common/com/com.action';
+import { useCurrencyQuery, useGeneralQuery } from '@/modules/common/com/com.action';
 import { useUnitQuery } from '@/modules/common/unit/unit.action';
 import { useProductAttributeQuery } from '@/modules/seller-section/product-attribute/product-attribute.action';
 import {
@@ -46,7 +46,7 @@ import { Check, CloudUploadIcon, Info } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import Select, { ActionMeta, MultiValue } from 'react-select';
 import { toast } from 'react-toastify';
@@ -54,15 +54,13 @@ import ProductDescriptionGenerateModal from './modal/ProductDescriptionGenerateM
 // JSON scaffold stack (standard)
 import {
   AdminI18nJsonPanel,
-  buildI18nJsonFromFlatValues,
-  applyI18nJsonToFlatForm,
   makeRHFSetValueAny,
   safeObject,
   ensureLangKeys,
   useFormI18nScaffold,
-  initI18nFlatFormFromEntity,
+  normalizeTranslationsMap,
 } from '@/lib/json';
-import type { LangKeys, ViewMode, LangType } from '@/lib/json';
+import type { LangKeys, ViewMode } from '@/lib/json';
 interface Option {
   value: string;
   label: string;
@@ -71,11 +69,80 @@ interface SelectCategory {
   [key: string]: ReadonlyArray<Option>;
 }
 
-const InfoTooltip = ({ text, side = 'top' }: { text: string; side?: 'top' | 'right' }) => (
+interface CurrencyRow {
+  code: string;
+  symbol?: string;
+  exchange_rate: number;
+  is_default?: boolean;
+}
+
+const I18N_FIELDS = [
+  'name',
+  'description',
+  'meta_title',
+  'meta_description',
+  'meta_keywords',
+  'return_text',
+  'delivery_time_text',
+] as const;
+
+const splitTags = (raw: any) =>
+  String(raw ?? '')
+    .split(',')
+    .map((x) => x.trim())
+    .filter(Boolean);
+
+const normalizeSelectGroups = (raw: any, fallbackLabelKeys: string[] = []) => {
+  const arr = Array.isArray(raw) ? raw : Array.isArray(raw?.data) ? raw.data : [];
+  return arr
+    .map((item: any) => {
+      const value = item?.value ?? item?.id ?? '';
+      const labelFromFallback = fallbackLabelKeys
+        .map((k) => item?.[k])
+        .find((v) => v !== undefined && v !== null && String(v).trim() !== '');
+      const label = item?.label ?? labelFromFallback ?? value;
+      return { value: String(value), label: String(label) };
+    })
+    .filter((x: any) => x.value && x.label);
+};
+
+const parseGeneratedJson = (raw: string): any | null => {
+  const text = String(raw ?? '').trim();
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {}
+  const first = text.indexOf('{');
+  const last = text.lastIndexOf('}');
+  if (first >= 0 && last > first) {
+    try {
+      return JSON.parse(text.slice(first, last + 1));
+    } catch {}
+  }
+  return null;
+};
+
+const toKeywordsArray = (value: any): string[] => {
+  if (Array.isArray(value)) return value.map((x) => String(x).trim()).filter(Boolean);
+  if (typeof value === 'string') return splitTags(value);
+  return [];
+};
+
+const InfoTooltip = ({
+  text,
+  side = 'top',
+}: {
+  text: string;
+  side?: 'top' | 'right' | 'left';
+}) => (
   <div className="relative group inline-flex">
     <Info className="w-4 text-custom-dark-blue dark:text-white cursor-pointer" />
     <div className={`absolute z-50 invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-opacity px-3 py-2 text-sm font-medium rounded-md shadow-md pointer-events-none bg-custom-dark-blue dark:bg-white text-white dark:text-black max-w-sm w-max ${
-      side === 'right' ? 'left-full top-1/2 -translate-y-1/2 ml-2' : 'bottom-full left-1/2 -translate-x-1/2 mb-2'
+      side === 'right'
+        ? 'left-full top-1/2 -translate-y-1/2 ml-2'
+        : side === 'left'
+          ? 'right-full top-1/2 -translate-y-1/2 mr-2'
+          : 'bottom-full left-1/2 -translate-x-1/2 mb-2'
     }`}>{text}</div>
   </div>
 );
@@ -92,9 +159,11 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
   const selectedStore = useAppSelector((state) => state.store.selectedStore);
   const store_id = selectedStore?.id;
   const store_type = selectedStore?.type;
+  const [viewMode, setViewMode] = useState<ViewMode>('form');
 
   const {
     watch,
+    getValues,
     control,
     register,
     setValue,
@@ -107,6 +176,66 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
       type: store_type ?? '',
     },
   });
+  const setValueAny = useMemo(() => makeRHFSetValueAny<ProductFormData>(setValue), [setValue]);
+  const {
+    uiLangs,
+    firstUILangId,
+    translationsJson,
+    handleTranslationsJsonChange,
+    rebuildJsonNow,
+  } = useFormI18nScaffold<ProductFormData>({
+    languages: multiLangData as any,
+    excludeLangIds: ['df'],
+    fields: [...I18N_FIELDS],
+    control,
+    getValues,
+    setValueAny,
+    keyOf: (field, langId) => `${field}_${langId}`,
+    dfSync: {
+      enabled: true,
+      pairs: [
+        { dfField: 'name_df', srcField: (l) => `name_${l}`, validate: true },
+        { dfField: 'description_df', srcField: (l) => `description_${l}`, validate: false },
+        { dfField: 'meta_title_df', srcField: (l) => `meta_title_${l}`, validate: false },
+        { dfField: 'meta_description_df', srcField: (l) => `meta_description_${l}`, validate: false },
+        { dfField: 'return_text_df', srcField: (l) => `return_text_${l}`, validate: false },
+        {
+          dfField: 'delivery_time_text_df',
+          srcField: (l) => `delivery_time_text_${l}`,
+          validate: false,
+        },
+      ],
+    },
+  });
+  const [activeLangId, setActiveLangId] = useState<string>(() => {
+    const fromLocale = uiLangs.find((l) => l.id === locale)?.id;
+    return fromLocale ?? uiLangs?.[0]?.id ?? 'tr';
+  });
+  const handleProductJsonChange = (next: any) => {
+    const safe = ensureLangKeys(safeObject(next), uiLangs as any);
+    const base =
+      safe?.[firstUILangId] && typeof safe[firstUILangId] === 'object'
+        ? safe[firstUILangId]
+        : {};
+    const out: Record<string, any> = { ...safe };
+    for (const lang of uiLangs) {
+      const cur = safe?.[lang.id] && typeof safe[lang.id] === 'object' ? safe[lang.id] : {};
+      const merged: Record<string, any> = { ...cur };
+      for (const f of I18N_FIELDS) {
+        if (merged[f] === undefined) merged[f] = (base as any)?.[f];
+      }
+      out[lang.id] = merged;
+    }
+    handleTranslationsJsonChange(out);
+  };
+  useEffect(() => {
+    const exists = uiLangs.some((l) => l.id === activeLangId);
+    if (!exists) setActiveLangId(uiLangs?.[0]?.id ?? 'tr');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [uiLangs.map((l) => l.id).join('|')]);
+  useEffect(() => {
+    if (viewMode === 'json') rebuildJsonNow();
+  }, [viewMode, rebuildJsonNow]);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [selectedIDs, setSelectedIDs] = useState<string[]>([]);
   const [finalSelectedID, setfinalSelectedID] = useState<number[]>([]);
@@ -118,11 +247,14 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
   const [lastSelectedLogo, setLastSelectedLogo] = useState<any>(null);
   const [errorLogoMessage, setLogoErrorMessage] = useState<string>('');
   const [attributeValuesKey, setAttributeValuesKey] = useState('');
+  const initializedProductIdRef = useRef<string | number | null>(null);
 
   const checkedValue = watch();
 
   const [cashOnDelivery, setCashOnDelivery] = useState(false);
   const [allowChange, setAllowChange] = useState(false);
+  const [freeShipping, setFreeShipping] = useState(false);
+  const [priceInputCurrency, setPriceInputCurrency] = useState<string>('');
   const { categories } = useCategoriesQuery({
     pagination: false,
     type: checkedValue?.type,
@@ -134,8 +266,11 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
     type: checkedValue?.type,
   });
   let originalData = (categories as any)?.data || [];
-  let brandData = (brands as any) || [];
-  let unitData = (units as any) || [];
+  const brandData = useMemo(
+    () => normalizeSelectGroups(brands, ['brand_name', 'name']),
+    [brands],
+  );
+  const unitData = useMemo(() => normalizeSelectGroups(units, ['name']), [units]);
   const attributeOptions = useMemo(() => {
     return (productAttribute as any) || [];
   }, [productAttribute]);
@@ -143,6 +278,54 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
   const { general, refetch: generalRefetch } = useGeneralQuery({
     language: localeMain,
   });
+  const { currency } = useCurrencyQuery({});
+  const currencyRows = useMemo<CurrencyRow[]>(() => {
+    const raw = Array.isArray(currency) ? currency : Array.isArray((currency as any)?.data) ? (currency as any).data : [];
+    return raw
+      .map((c: any) => ({
+        code: String(c?.code ?? c?.value ?? '').toUpperCase(),
+        symbol: c?.symbol ?? '',
+        exchange_rate: Number(c?.exchange_rate ?? 1),
+        is_default: Boolean(c?.is_default),
+      }))
+      .filter((c: CurrencyRow) => c.code && Number.isFinite(c.exchange_rate) && c.exchange_rate > 0);
+  }, [currency]);
+  const defaultCurrency = useMemo(
+    () => currencyRows.find((c) => c.is_default) ?? currencyRows[0],
+    [currencyRows],
+  );
+  const selectedPriceCurrency = useMemo(
+    () => currencyRows.find((c) => c.code === priceInputCurrency) ?? defaultCurrency,
+    [currencyRows, defaultCurrency, priceInputCurrency],
+  );
+  useEffect(() => {
+    if (!priceInputCurrency && defaultCurrency?.code) {
+      setPriceInputCurrency(defaultCurrency.code);
+    }
+  }, [defaultCurrency, priceInputCurrency]);
+  const toDefaultCurrency = (amountInSelected: number) => {
+    if (!selectedPriceCurrency || !defaultCurrency) return amountInSelected;
+    return amountInSelected * (defaultCurrency.exchange_rate / selectedPriceCurrency.exchange_rate);
+  };
+  const fromDefaultCurrency = (amountInDefault: number) => {
+    if (!selectedPriceCurrency || !defaultCurrency) return amountInDefault;
+    return amountInDefault * (selectedPriceCurrency.exchange_rate / defaultCurrency.exchange_rate);
+  };
+  const formatEditableAmount = (amountInDefault: any) => {
+    if (amountInDefault === '' || amountInDefault === null || amountInDefault === undefined) return '';
+    const n = Number(amountInDefault);
+    if (!Number.isFinite(n)) return '';
+    const converted = fromDefaultCurrency(n);
+    return Number.isFinite(converted) ? Number(converted.toFixed(6)) : '';
+  };
+  const currencySelectOptions = useMemo(
+    () =>
+      currencyRows.map((c) => ({
+        value: c.code,
+        label: `${c.code}${c.symbol ? ` (${c.symbol})` : ''}`,
+      })),
+    [currencyRows],
+  );
   const originalDataGeneral = useMemo(() => {
     const data = (general as any) || {};
     return data;
@@ -176,6 +359,8 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
 
     const newSelectedAttributes: Option[] = [];
     const newSelectedValues: Record<string, Option[]> = {};
+    let firstAttributeKey = '';
+    let firstVariantCurrencyCode = '';
 
     apiData.forEach((variant, index) => {
       const parsedAttributes =
@@ -189,7 +374,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
             value: key,
             label: key,
           });
-          setAttributeValuesKey(key);
+          if (!firstAttributeKey) firstAttributeKey = key;
         }
       });
 
@@ -239,22 +424,34 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
           img_url: variant.image_url,
         };
       }
+      if (!firstVariantCurrencyCode && variant?.price_input_currency_code) {
+        firstVariantCurrencyCode = String(variant.price_input_currency_code).toUpperCase();
+      }
       const firstObject = Object.values(initialLogoData)[0];
       setLogoData((prev) => ({ ...prev, [index]: firstObject }));
     });
 
     setSelectedAttributes(newSelectedAttributes);
     setSelectedValues(newSelectedValues);
+    if (firstAttributeKey) setAttributeValuesKey(firstAttributeKey);
+    if (firstVariantCurrencyCode) setPriceInputCurrency(firstVariantCurrencyCode);
   };
 
   useEffect(() => {
-    if (!data) return;
+    const currentProductId = data?.id ?? null;
+    if (initializedProductIdRef.current === currentProductId) return;
+    initializedProductIdRef.current = currentProductId;
+
+    if (!data) {
+      rebuildJsonNow();
+      return;
+    }
     populateStatesFromApi(data?.variants);
     const categoryData = data?.category;
-    setValue('name_df', data?.label ?? '');
+    setValue('name_df', data?.name ?? data?.label ?? '');
     setValue('description_df', data?.description ?? '');
     setValue('meta_title_df', data?.meta_title ?? '');
-    const tagsArray = data?.meta_keywords?.split(',').map((tag: string) => tag.trim());
+    const tagsArray = splitTags(data?.meta_keywords);
     setValue('meta_keywords_df', tagsArray ?? []);
     setValue('meta_description_df', data?.meta_description ?? '');
     setValue('return_text_df', data?.return_text ?? '');
@@ -271,31 +468,37 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
       const pathIDsArray = pathIds === null ? [] : pathIds?.split('/');
       setSelectedIDs(pathIDsArray);
     }
-    if (data && data.translations) {
-      Object?.keys(data?.translations)?.forEach((language) => {
-        const translation = data?.translations[language];
-        setValue(`name_${language}` as keyof ProductFormData, translation?.name ?? '');
-        setValue(
-          `description_${language}` as keyof ProductFormData,
-          translation?.description ?? '',
-        );
-        setValue(`meta_title_${language}` as keyof ProductFormData, translation?.meta_title ?? '');
-        setValue(
-          `meta_description_${language}` as keyof ProductFormData,
-          translation?.meta_description ?? '',
-        );
-        setValue(
-          `return_text_${language}` as keyof ProductFormData,
-          translation?.return_text ?? '',
-        );
-        setValue(
-          `delivery_time_text_${language}` as keyof ProductFormData,
-          translation?.delivery_time_text ?? '',
-        );
-        const tagsArray = translation?.meta_keywords?.split(',').map((tag: string) => tag.trim());
-        setValue(`meta_keywords_${language}` as keyof ProductFormData, tagsArray ?? []);
-      });
+    const rootByField: Record<string, any> = {
+      name: data?.name ?? data?.label ?? '',
+      description: data?.description ?? '',
+      meta_title: data?.meta_title ?? '',
+      meta_description: data?.meta_description ?? '',
+      return_text: data?.return_text ?? '',
+      delivery_time_text: data?.delivery_time_text ?? '',
+      meta_keywords: splitTags(data?.meta_keywords),
+    };
+    for (const f of I18N_FIELDS) {
+      const v = f === 'meta_keywords' ? rootByField[f] ?? [] : rootByField[f] ?? '';
+      setValue(`${f}_${firstUILangId}` as keyof ProductFormData, v as any);
     }
+    const trMap = normalizeTranslationsMap(data?.translations, I18N_FIELDS);
+    Object.keys(trMap).forEach((language) => {
+      const translation = trMap[language] ?? {};
+      setValue(`name_${language}` as keyof ProductFormData, translation?.name ?? '');
+      setValue(`description_${language}` as keyof ProductFormData, translation?.description ?? '');
+      setValue(`meta_title_${language}` as keyof ProductFormData, translation?.meta_title ?? '');
+      setValue(
+        `meta_description_${language}` as keyof ProductFormData,
+        translation?.meta_description ?? '',
+      );
+      setValue(`return_text_${language}` as keyof ProductFormData, translation?.return_text ?? '');
+      setValue(
+        `delivery_time_text_${language}` as keyof ProductFormData,
+        translation?.delivery_time_text ?? '',
+      );
+      const tagsArray = splitTags(translation?.meta_keywords);
+      setValue(`meta_keywords_${language}` as keyof ProductFormData, tagsArray ?? []);
+    });
     if (data?.image !== 0 && data?.image !== null) {
       setLastSelectedLogo({
         image_id: data?.image ? data?.image : '',
@@ -306,9 +509,13 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
 
     const cashOnDelivery = data?.cash_on_delivery == 1 ? true : false;
     const allowChangeInMind = data?.allow_change_in_mind == 1 ? true : false;
+    const freeShippingEnabled = data?.free_shipping == 1 ? true : false;
     setCashOnDelivery(cashOnDelivery);
     setAllowChange(allowChangeInMind);
-  }, [data, setValue, data?.translations, data?.brand, data?.unit]);
+    setFreeShipping(freeShippingEnabled);
+    rebuildJsonNow();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.id]);
 
   const handleSaveLogo = (images: UploadedImage[]) => {
     setLastSelectedLogo(images[0]);
@@ -378,9 +585,11 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
       meta_keywords: values.meta_keywords_df,
       cash_on_delivery: cashOnDelivery ? 1 : 0,
       allow_change_in_mind: allowChange ? 1 : 0,
+      free_shipping: freeShipping ? 1 : 0,
     };
 
-    const translations = multiLangData
+    const translations = uiLangs
+      .filter((lang) => lang.id !== firstUILangId)
       .filter((lang) => (values as any)[`name_${lang.id}`])
       .map((lang) => ({
         language_code: lang.id,
@@ -390,6 +599,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
         meta_description: (values as any)[`meta_description_${lang.id}`],
         meta_keywords: ((values as any)[`meta_keywords_${lang.id}`] || []).join(', '),
       }));
+    const translations_json = ensureLangKeys(safeObject(translationsJson), uiLangs as any);
 
     let hasError = false;
     const combinationData = combinations.map((combo, index) => {
@@ -445,7 +655,13 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
         id: matchingEditData?.id || null,
         variant: combo,
         price: prices[index] || 0,
+        price_input_currency_code: selectedPriceCurrency?.code || defaultCurrency?.code || null,
+        price_input_amount: Number(fromDefaultCurrency(Number(prices[index] || 0)).toFixed(6)),
         special_price: spPrices[index] || 0,
+        special_price_input_currency_code: selectedPriceCurrency?.code || defaultCurrency?.code || null,
+        special_price_input_amount: Number(
+          fromDefaultCurrency(Number(spPrices[index] || 0)).toFixed(6),
+        ),
         sku: sku[index] || 0,
         stock_quantity: stocks[index] || 0,
         image_url: logoData[index]?.img_url || null,
@@ -465,6 +681,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
       ...defaultData,
       image: lastSelectedLogo ? lastSelectedLogo?.image_id : null,
       translations,
+      translations_json,
       variants: combinationData,
       specifications: specifications,
     };
@@ -699,13 +916,79 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
   const [loading, setLoading] = useState(false);
   const { mutate: GenerateDescription } = useProductDescriptionGenerate();
   const handleGenerateDescription = (prompt: string, langId: string) => {
-    const payload = { prompt };
+    const langIds = uiLangs.map((l) => l.id).join(', ');
+    const aiPrompt = `${prompt}
+
+Return ONLY valid JSON. Do not add markdown.
+Output schema must be:
+{
+  "${uiLangs?.[0]?.id ?? 'tr'}": {
+    "name": "",
+    "description": "",
+    "meta_title": "",
+    "meta_description": "",
+    "meta_keywords": [],
+    "return_text": "",
+    "delivery_time_text": ""
+  }
+}
+Rules:
+- Include these language keys: ${langIds}
+- Improve ${langId} content quality and generate/complete all fields.
+- Translate/adapt all fields for the other languages.
+- meta_keywords must be an array of strings.`;
+    const payload = { prompt: aiPrompt };
     setLoading(true);
 
     GenerateDescription(payload as any, {
       onSuccess: (res: any) => {
         const generatedText = res?.data?.generated_content ?? '';
-        setValue(`description_${langId}` as keyof ProductFormData, generatedText);
+        const parsed = parseGeneratedJson(generatedText);
+        const parsedRoot =
+          parsed && typeof parsed === 'object'
+            ? (parsed?.translations && typeof parsed.translations === 'object'
+                ? parsed.translations
+                : parsed)
+            : null;
+
+        let hasApplied = false;
+        if (parsedRoot && typeof parsedRoot === 'object') {
+          for (const lang of uiLangs) {
+            const block = (parsedRoot as any)?.[lang.id];
+            if (!block || typeof block !== 'object') continue;
+            hasApplied = true;
+            setValue(`name_${lang.id}` as keyof ProductFormData, String(block?.name ?? ''));
+            setValue(
+              `description_${lang.id}` as keyof ProductFormData,
+              String(block?.description ?? ''),
+            );
+            setValue(
+              `meta_title_${lang.id}` as keyof ProductFormData,
+              String(block?.meta_title ?? ''),
+            );
+            setValue(
+              `meta_description_${lang.id}` as keyof ProductFormData,
+              String(block?.meta_description ?? ''),
+            );
+            setValue(
+              `meta_keywords_${lang.id}` as keyof ProductFormData,
+              toKeywordsArray(block?.meta_keywords),
+            );
+            setValue(
+              `return_text_${lang.id}` as keyof ProductFormData,
+              String(block?.return_text ?? ''),
+            );
+            setValue(
+              `delivery_time_text_${lang.id}` as keyof ProductFormData,
+              String(block?.delivery_time_text ?? ''),
+            );
+          }
+        }
+
+        if (!hasApplied) {
+          setValue(`description_${langId}` as keyof ProductFormData, generatedText);
+        }
+        rebuildJsonNow();
         setLoading(false);
         setIsModalOpen(false);
       },
@@ -717,8 +1000,64 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
 
   return (
     <div>
-      <Tabs defaultValue="df" className="">
-        <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <input type="hidden" {...register('name_df' as any)} />
+        <input type="hidden" {...register('description_df' as any)} />
+        <input type="hidden" {...register('meta_title_df' as any)} />
+        <input type="hidden" {...register('meta_description_df' as any)} />
+        <input type="hidden" {...register('meta_keywords_df' as any)} />
+        <input type="hidden" {...register('return_text_df' as any)} />
+        <input type="hidden" {...register('delivery_time_text_df' as any)} />
+
+        <Card className="mt-2">
+          <CardContent className="p-2 md:p-4 flex items-center justify-between gap-3">
+            <div className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+              {data ? t('button.update_product') : t('button.add_product')}
+            </div>
+            <div className="inline-flex rounded-md border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setViewMode('form')}
+                className={[
+                  'px-4 py-2 text-sm font-medium transition',
+                  viewMode === 'form'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800',
+                ].join(' ')}
+              >
+                Form
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('json')}
+                className={[
+                  'px-4 py-2 text-sm font-medium transition',
+                  viewMode === 'json'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800',
+                ].join(' ')}
+              >
+                JSON
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {viewMode === 'json' ? (
+          <Card className="mt-4">
+            <CardContent className="p-2 md:p-6">
+              <AdminI18nJsonPanel
+                label="Product JSON"
+                languages={uiLangs as any}
+                value={translationsJson}
+                onChange={handleProductJsonChange}
+                perLanguage={true}
+                showAllTab={true}
+              />
+            </CardContent>
+          </Card>
+        ) : (
+      <Tabs value={activeLangId} onValueChange={(v) => setActiveLangId(String(v))} className="">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
             <div className="col-span-1 lg:col-span-2 space-y-4">
               <Card className="">
@@ -728,7 +1067,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                   </p>
                   <div className="">
                     <TabsList dir={dir} className="flex justify-start bg-white dark:bg-[#1f2937]">
-                      {multiLangData.map((lang) => (
+                      {uiLangs.map((lang) => (
                         <TabsTrigger key={lang.id} value={lang.id}>
                           {lang.label}
                         </TabsTrigger>
@@ -736,7 +1075,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                     </TabsList>
                     <div dir={dir} className="grid grid-cols-1 gap-4">
                       <div>
-                        {multiLangData.map((lang) => {
+                        {uiLangs.map((lang) => {
                           return (
                             <TabsContent key={lang.id} value={lang.id}>
                               <div className="mb-4">
@@ -792,6 +1131,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                                   //@ts-ignore
                                   name={watch(`name_${lang.id}`)}
                                   lang={t(`lang.${lang.id}`)}
+                                  allLangs={uiLangs.map((l) => t(`lang.${l.id}` as `lang.${LangKeys}`))}
                                   categories={selectedItems}
                                   setIsModalOpen={setIsModalOpen}
                                   isModalOpen={isModalOpen}
@@ -1253,7 +1593,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                   <p className="text-base md:text-lg font-medium mb-2">
                     {t('label.return_delivery_information')}
                   </p>
-                  {multiLangData.map((lang) => {
+                  {uiLangs.map((lang) => {
                     return (
                       <TabsContent key={lang.id} value={lang.id}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-1">
@@ -1332,8 +1672,8 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                               placeholder={t('place_holder.enter_value')}
                             />
                           </div>
-                          <div className="my-2 col-span-2 flex flex-col lg:flex-row items-start lg:items-center space-x-0 lg:space-x-12">
-                            <div className="flex items-center space-x-2">
+                          <div className="mt-2 col-span-2 flex flex-wrap items-start gap-x-6 gap-y-3">
+                            <div className="flex items-start gap-2 min-w-0">
                               <Checkbox
                                 id="organic"
                                 checked={cashOnDelivery}
@@ -1341,13 +1681,13 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                               />
                               <label
                                 htmlFor="organic"
-                                className="text-md font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                className="text-md font-medium leading-5 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                               >
                                 {t('label.cash_on_delivery')}
                               </label>
                               <InfoTooltip text={t('tooltip.ensure_products_are_eligible_cah_on_delivery')} side="right" />
                             </div>
-                            <div className="flex items-center space-x-2">
+                            <div className="flex items-start gap-2 min-w-0">
                               <Checkbox
                                 id="halal"
                                 checked={allowChange}
@@ -1355,11 +1695,25 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                               />
                               <label
                                 htmlFor="halal"
-                                className="text-md font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                className="text-md font-medium leading-5 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                               >
                                 {t('label.allow_change_in_mind')}
                               </label>
                               <InfoTooltip text={t('tooltip.allow_change_in_mind')} side="right" />
+                            </div>
+                            <div className="flex items-start gap-2 min-w-0">
+                              <Checkbox
+                                id="free_shipping"
+                                checked={freeShipping}
+                                onCheckedChange={(checked: boolean) => setFreeShipping(checked)}
+                              />
+                              <label
+                                htmlFor="free_shipping"
+                                className="text-md font-medium leading-5 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                              >
+                                {t('label.free_shipping')}
+                              </label>
+                              <InfoTooltip text={t('tooltip.free_shipping')} side="left" />
                             </div>
                           </div>
                         </div>
@@ -1426,6 +1780,20 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                 ))}
               </div>
               <div className="mt-4">
+                <div className="mb-3 grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div>
+                    <p className="text-sm font-medium mb-1">Price Input Currency</p>
+                    <AppSearchSelect
+                      value={priceInputCurrency || defaultCurrency?.code || ''}
+                      onSelect={(value) => setPriceInputCurrency(String(value || ''))}
+                      groups={currencySelectOptions}
+                      hideNone
+                    />
+                  </div>
+                  <div className="md:col-span-2 text-xs text-gray-500 dark:text-gray-300 flex items-end">
+                    Saved in base currency: {defaultCurrency?.code || '-'}
+                  </div>
+                </div>
                 {!isSelectedValuesEmpty && combinations.length > 0 && (
                   <div className="overflow-x-auto custom-scrollbar">
                     <div className="min-w-[800px] grid grid-cols-1 gap-2">
@@ -1493,12 +1861,15 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                                 min={0}
                                 className="app-input"
                                 placeholder={t('place_holder.enter_value')}
-                                value={prices[index] === 0 ? '' : (prices[index] ?? '')}
+                                value={formatEditableAmount(prices[index])}
                                 onChange={(e) => {
                                   const newValue = e.target.value;
                                   setPrices((prev) => ({
                                     ...prev,
-                                    [index]: newValue === '' ? '' : Number(newValue),
+                                    [index]:
+                                      newValue === ''
+                                        ? ('' as any)
+                                        : Number(toDefaultCurrency(Number(newValue)).toFixed(6)),
                                   }));
                                 }}
                               />
@@ -1508,13 +1879,17 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                                 min={0}
                                 className="app-input"
                                 placeholder={t('place_holder.enter_value')}
-                                value={spPrices[index] ?? ''}
-                                onChange={(e) =>
+                                value={formatEditableAmount(spPrices[index])}
+                                onChange={(e) => {
+                                  const newValue = e.target.value;
                                   setSpPrices((prev) => ({
                                     ...prev,
-                                    [index]: e.target.value,
-                                  }))
-                                }
+                                    [index]:
+                                      newValue === ''
+                                        ? ('' as any)
+                                        : Number(toDefaultCurrency(Number(newValue)).toFixed(6)),
+                                  }));
+                                }}
                               />
                               <Input
                                 type="number"
@@ -1742,8 +2117,9 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
               UpdateLabel={t('button.update_product')}
             />
           </Card>
-        </form>
       </Tabs>
+      )}
+      </form>
     </div>
   );
 };

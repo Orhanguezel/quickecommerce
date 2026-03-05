@@ -19,15 +19,14 @@ export const useFirebaseNotifications = (onNewNotification?: () => void) => {
   useEffect(() => {
     const initFCM = async () => {
       try {
+        const messaging = getClientMessaging();
+        if (!messaging) return;
+
         const permission = await Notification.requestPermission();
 
         if (permission !== "granted") {
           return;
         }
-
-        const messaging = getClientMessaging();
-
-        if (!messaging) return;
 
         const swRegistration = await navigator.serviceWorker.ready;
         const fcmToken = await getToken(messaging, {

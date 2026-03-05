@@ -406,7 +406,18 @@
     "refund_status_requested": "İade Talep Edildi",
     "refund_status_processing": "İade İşleniyor",
     "refund_status_refunded": "İade Edildi",
-    "refund_status_rejected": "İade Reddedildi"
+    "refund_status_rejected": "İade Reddedildi",
+    "return_cargo_title": "İade Kargonuz Hazır",
+    "return_cargo_carrier": "Kargo Firması",
+    "return_cargo_tracking": "Takip Numarası",
+    "return_cargo_barcode": "Barkod",
+    "return_cargo_status_label": "Durum",
+    "return_cargo_download_label": "İade Etiketini İndir",
+    "return_cargo_info": "Ürünü orijinal ambalajında paketleyerek belirtilen kargo firmasının herhangi bir şubesine bu etiketle teslim edin.",
+    "return_status_label_created": "Etiket Oluşturuldu",
+    "return_status_in_transit": "Yolda",
+    "return_status_delivered": "Teslim Edildi",
+    "return_status_pending": "Bekliyor"
   },
   "account": {
     "my_account": "Hesabım",
@@ -609,7 +620,7 @@
     "registering": "Kaydediliyor...",
     "already_have_account": "Zaten hesabınız var mı?",
     "registration_success_title": "Başvurunuz Alındı!",
-    "registration_success_message": "Satıcı hesabınız başarıyla oluşturuldu. E-posta adresinize gönderilen bilgileri kontrol ediniz.",
+    "registration_success_message": "Başvurunuz incelemeye alınmıştır. Onay sonucu e-posta adresinize bildirilecektir.",
     "benefit_free": "Ücretsiz kayıt ve kolay kurulum",
     "benefit_reach": "Binlerce müşteriye ulaşın",
     "benefit_support": "7/24 satıcı desteği",

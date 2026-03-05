@@ -434,6 +434,17 @@ class PermissionAdminSeeder extends Seeder
                                     ]
                                 ],
                                 [
+                                    'PermissionName' => PermissionKey::ADMIN_SELLER_APPLICATIONS->value,
+                                    'PermissionTitle' => 'Seller Applications',
+                                    'activity_scope' => 'system_level',
+                                    'icon' => '',
+                                    'options' => ['view', 'insert', 'update', 'delete', 'others'],
+                                    'translations' => [
+                                        'en' => 'Applications',
+                                        'tr' => 'Başvurular'
+                                    ]
+                                ],
+                                [
                                     'PermissionName' => PermissionKey::ADMIN_SELLER_TRASH_MANAGEMENT->value,
                                     'PermissionTitle' => 'Trash',
                                     'activity_scope' => 'system_level',

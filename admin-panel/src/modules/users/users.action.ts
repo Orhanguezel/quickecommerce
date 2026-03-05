@@ -37,7 +37,7 @@ import { setSelectedStore } from '@/redux/slices/storeSlice';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAtom } from 'jotai';
 import Cookies from 'js-cookie';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/routing';
 import { toast } from 'react-toastify';
 import { UsersQueryOptions } from './users.type';
 

@@ -1,6 +1,6 @@
 // lib/firebase.ts
 
-import { initializeApp, getApps } from "firebase/app";
+import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
 import { getMessaging, Messaging } from "firebase/messaging";
 
 const firebaseConfig = {
@@ -12,12 +12,27 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+const hasMessagingConfig = Boolean(
+  firebaseConfig.apiKey &&
+  firebaseConfig.projectId &&
+  firebaseConfig.messagingSenderId &&
+  firebaseConfig.appId
+);
+
+let app: FirebaseApp | null = null;
+if (hasMessagingConfig) {
+  app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+}
 
 
 export const getClientMessaging = (): Messaging | null => {
-  if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-    return getMessaging(app);
+  if (
+    !hasMessagingConfig ||
+    !app ||
+    typeof window === "undefined" ||
+    !("serviceWorker" in navigator)
+  ) {
+    return null;
   }
-  return null;
+  return getMessaging(app);
 };

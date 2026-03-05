@@ -199,9 +199,15 @@ pm2 reload quickecommerce-admin
 
 ## Varsayılan Giriş Bilgileri
 
-| Uygulama | Email | Şifre |
-|----------|-------|-------|
-| Admin Panel | admin@sportoonline.com | Admin123! |
+| Hesap Tipi | Giriş Ekranı | Email | Şifre | Kaynak |
+|------------|--------------|-------|-------|--------|
+| Admin | `http://localhost:3000/tr/admin/signin` | `admin@sportoonline.com` | `Admin123!` | `backend-laravel/database/seeders/UserSeeder.php` |
+| Satıcı (Seller) | `http://localhost:3000/tr/seller/signin` | `seller@sportoonline.com` | `Admin123!` | `backend-laravel/database/seeders/UserSeeder.php`, `StoreLoginAccountSeeder.php` |
+| Müşteri (Customer Web) | `http://localhost:3003/tr/giris` | `customer@sportoonline.com` | `Admin123!` | `backend-laravel/database/seeders/CustomerSeeder.php` |
+| Smoke Test Customer (API) | `POST /api/v1/customer/login` | `testcustomer@example.com` | `Test1234!` | `smoke_test.sh` |
+| Smoke Test Admin (API varsayılan) | `POST /api/token` | `orhanguzell@gmail.com` | `Engin1000145` | `admin-smoke-test.sh` |
+
+> Not: Satıcı hesabı customer web (`/giris`) üzerinden değil, seller panel (`/seller/signin`) üzerinden giriş yapar.
 
 ---
 

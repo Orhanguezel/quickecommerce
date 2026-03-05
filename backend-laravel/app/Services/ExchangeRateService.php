@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Models\ProductVariant;
 use Modules\PaymentGateways\app\Models\Currency;
 
 class ExchangeRateService
@@ -69,11 +70,14 @@ class ExchangeRateService
                 'errors_count' => count($errors)
             ]);
 
+            $sync = $this->syncVariantBasePricesFromInputCurrency();
+
             return [
                 'success' => true,
                 'base_currency' => $baseCurrency,
                 'updated_count' => $updated,
                 'total_count' => $currencies->count(),
+                'variant_price_synced' => $sync['updated_count'] ?? 0,
                 'errors' => $errors,
                 'timestamp' => now()->toDateTimeString()
             ];
@@ -154,6 +158,78 @@ class ExchangeRateService
                 'error' => $e->getMessage()
             ]);
             return null;
+        }
+    }
+
+    /**
+     * Rebuild base product variant prices from anchored input currency amounts.
+     * This keeps "input currency" values fixed while exchange rates change.
+     */
+    public function syncVariantBasePricesFromInputCurrency(): array
+    {
+        try {
+            $defaultCurrency = Currency::where('is_default', true)
+                ->where('status', true)
+                ->first();
+            if (!$defaultCurrency) {
+                $defaultCurrency = Currency::where('status', true)->first();
+            }
+            if (!$defaultCurrency || (float) $defaultCurrency->exchange_rate <= 0) {
+                return ['success' => false, 'updated_count' => 0, 'message' => 'Default currency missing'];
+            }
+
+            $currenciesByCode = Currency::where('status', true)
+                ->get()
+                ->keyBy(fn ($c) => strtoupper((string) $c->code));
+
+            $updatedCount = 0;
+            ProductVariant::query()
+                ->whereNotNull('price_input_currency_code')
+                ->whereNotNull('price_input_amount')
+                ->chunkById(500, function ($variants) use (&$updatedCount, $currenciesByCode, $defaultCurrency) {
+                    foreach ($variants as $variant) {
+                        $inputCode = strtoupper((string) $variant->price_input_currency_code);
+                        $inputCurrency = $currenciesByCode->get($inputCode);
+                        if (!$inputCurrency || (float) $inputCurrency->exchange_rate <= 0) {
+                            continue;
+                        }
+
+                        $nextPrice = round(
+                            ((float) $variant->price_input_amount) *
+                                ((float) $defaultCurrency->exchange_rate / (float) $inputCurrency->exchange_rate),
+                            2
+                        );
+
+                        $nextSpecialPrice = $variant->special_price;
+                        if (
+                            !empty($variant->special_price_input_currency_code) &&
+                            $variant->special_price_input_amount !== null
+                        ) {
+                            $specialCode = strtoupper((string) $variant->special_price_input_currency_code);
+                            $specialCurrency = $currenciesByCode->get($specialCode) ?? $inputCurrency;
+                            if ($specialCurrency && (float) $specialCurrency->exchange_rate > 0) {
+                                $nextSpecialPrice = round(
+                                    ((float) $variant->special_price_input_amount) *
+                                        ((float) $defaultCurrency->exchange_rate / (float) $specialCurrency->exchange_rate),
+                                    2
+                                );
+                            }
+                        }
+
+                        $variant->price = $nextPrice;
+                        $variant->special_price = $nextSpecialPrice;
+                        $variant->save();
+                        $updatedCount++;
+                    }
+                });
+
+            return ['success' => true, 'updated_count' => $updatedCount];
+        } catch (\Exception $e) {
+            Log::error('ExchangeRateService: Variant price sync failed', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return ['success' => false, 'updated_count' => 0, 'message' => $e->getMessage()];
         }
     }
 }

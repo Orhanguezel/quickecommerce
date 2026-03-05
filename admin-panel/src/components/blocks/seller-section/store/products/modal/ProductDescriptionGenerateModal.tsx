@@ -13,6 +13,7 @@ interface RejectConfirmModalProps {
   lang?: string; // <-- language id or label
   onSave?: (prompt: string) => void;
   categories?: string[];
+  allLangs?: string[];
   isModalOpen?: any;
   setIsModalOpen?: any;
 }
@@ -26,6 +27,7 @@ const ProductDescriptionGenerateModal: React.FC<RejectConfirmModalProps> = ({
   name,
   lang,
   categories = [],
+  allLangs = [],
   setIsModalOpen,
   isModalOpen,
 }) => {
@@ -34,10 +36,14 @@ const ProductDescriptionGenerateModal: React.FC<RejectConfirmModalProps> = ({
   const locale = pathname.split("/")[1];
   const dir = locale === "ar" ? "rtl" : "ltr";
   const [prompts, setPrompts] = useState("");
+  const langsText = allLangs.length > 0 ? allLangs.join(", ") : String(lang ?? "");
   const defaultSentence = name
-    ? `Generate a product description in ${lang} for "${name}". This product belongs to the following categories: ${categories.join(
-        " > "
-      )}. Please write the entire description in ${lang}.`
+    ? `Improve product content for "${name}".
+Categories: ${categories.join(" > ")}.
+Primary language: ${lang}.
+Also translate and adapt for these languages: ${langsText}.
+Return only valid JSON with language keys and fields:
+name, description, meta_title, meta_description, meta_keywords (array), return_text, delivery_time_text.`
     : "";
 
   const handleSave = () => {
@@ -105,7 +111,7 @@ const ProductDescriptionGenerateModal: React.FC<RejectConfirmModalProps> = ({
           <div>
             <Textarea
               id="prompt"
-              defaultValue={prompts}
+              value={prompts}
               className="app-input min-h-48"
               placeholder="Press / to search prompts..."
               onChange={(e) => {

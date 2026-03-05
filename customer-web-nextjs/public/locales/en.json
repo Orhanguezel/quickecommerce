@@ -406,7 +406,18 @@
     "refund_status_requested": "Refund Requested",
     "refund_status_processing": "Refund Processing",
     "refund_status_refunded": "Refunded",
-    "refund_status_rejected": "Refund Rejected"
+    "refund_status_rejected": "Refund Rejected",
+    "return_cargo_title": "Your Return Shipment is Ready",
+    "return_cargo_carrier": "Carrier",
+    "return_cargo_tracking": "Tracking Number",
+    "return_cargo_barcode": "Barcode",
+    "return_cargo_status_label": "Status",
+    "return_cargo_download_label": "Download Return Label",
+    "return_cargo_info": "Pack the product in its original packaging and deliver it to any branch of the specified carrier with this label.",
+    "return_status_label_created": "Label Created",
+    "return_status_in_transit": "In Transit",
+    "return_status_delivered": "Delivered",
+    "return_status_pending": "Pending"
   },
   "account": {
     "my_account": "My Account",
@@ -609,7 +620,7 @@
     "registering": "Registering...",
     "already_have_account": "Already have an account?",
     "registration_success_title": "Application Received!",
-    "registration_success_message": "Your seller account has been created successfully. Please check the information sent to your email address.",
+    "registration_success_message": "Your application is under review. You will be notified by email once it is approved.",
     "benefit_free": "Free registration and easy setup",
     "benefit_reach": "Reach thousands of customers",
     "benefit_support": "24/7 seller support",

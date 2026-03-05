@@ -11,6 +11,7 @@ use App\Models\EmailTemplate;
 use App\Models\Order;
 use App\Models\OrderActivity;
 use App\Models\OrderDeliveryHistory;
+use App\Models\ReturnShipment;
 use App\Services\Order\OrderManageNotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -70,7 +71,17 @@ class GdeliverWebhookController extends Controller
         if (! $cargoShipment && $trackingNumber) {
             $cargoShipment = CargoShipment::where('tracking_number', $trackingNumber)->first();
         }
+
+        // CargoShipment bulunamazsa ReturnShipment kontrol et
         if (! $cargoShipment) {
+            $returnShipment = ReturnShipment::where('geliver_shipment_id', $geliverShipmentId)->first();
+            if (! $returnShipment && $trackingNumber) {
+                $returnShipment = ReturnShipment::where('tracking_number', $trackingNumber)->first();
+            }
+            if ($returnShipment) {
+                return $this->handleReturnShipmentWebhook($returnShipment, $trackingStatusCode, $trackingSubStatusCode, $trackingNumber, $payload);
+            }
+
             Log::channel('geliver_webhook')->warning('CargoShipment not found', [
                 'geliver_shipment_id' => $geliverShipmentId,
                 'tracking_number'     => $trackingNumber,
@@ -111,6 +122,71 @@ class GdeliverWebhookController extends Controller
         }
 
         return response()->json(['status' => 'ok']);
+    }
+
+    /**
+     * İade kargo webhook handler.
+     */
+    private function handleReturnShipmentWebhook(
+        ReturnShipment $returnShipment,
+        ?string $trackingStatusCode,
+        ?string $trackingSubStatusCode,
+        ?string $trackingNumber,
+        array $payload
+    ): JsonResponse {
+        $oldStatus = $returnShipment->status;
+        $newStatus = $this->mapReturnShipmentStatus($trackingStatusCode, $trackingSubStatusCode);
+
+        $updateData = ['status' => $newStatus];
+        if ($trackingNumber && ! $returnShipment->tracking_number) {
+            $updateData['tracking_number'] = $trackingNumber;
+        }
+        $rawResponse = $returnShipment->raw_response ?? [];
+        $rawResponse['latest_webhook'] = [
+            'received_at'          => now()->toIso8601String(),
+            'tracking_status_code' => $trackingStatusCode,
+            'tracking_sub_status'  => $trackingSubStatusCode,
+            'full_payload'         => $payload,
+        ];
+        $updateData['raw_response'] = $rawResponse;
+        $returnShipment->update($updateData);
+
+        Log::channel('geliver_webhook')->info('ReturnShipment updated', [
+            'return_shipment_id' => $returnShipment->id,
+            'order_id'           => $returnShipment->order_id,
+            'old_status'         => $oldStatus,
+            'new_status'         => $newStatus,
+        ]);
+
+        return response()->json(['status' => 'ok']);
+    }
+
+    /**
+     * Geliver trackingStatusCode → ReturnShipment status
+     */
+    private function mapReturnShipmentStatus(?string $statusCode, ?string $subStatusCode): string
+    {
+        $code = mb_strtolower($statusCode ?? '', 'UTF-8');
+
+        if (str_contains($code, 'delivered') || $code === 'delivery') {
+            return 'delivered';
+        }
+        if (str_contains($code, 'cancel') || str_contains($code, 'exception')) {
+            return 'cancelled';
+        }
+        if (str_contains($code, 'transit') || str_contains($code, 'out_for_delivery')
+            || str_contains($code, 'hub') || str_contains($code, 'transfer')
+            || str_contains($code, 'on_the_way') || str_contains($code, 'picked_up')
+            || str_contains($code, 'pickup') || str_contains($code, 'shipped')
+            || str_contains($code, 'accepted')) {
+            return 'in_transit';
+        }
+        if (str_contains($code, 'pending') || str_contains($code, 'info')
+            || str_contains($code, 'created') || str_contains($code, 'label')) {
+            return 'label_created';
+        }
+
+        return 'in_transit';
     }
 
     /**

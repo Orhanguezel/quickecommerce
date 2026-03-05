@@ -277,6 +277,12 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => ['auth:sanctum']], functi
             Route::get('trash-list', [AdminSellerManageController::class, 'getSellerTrashList'])->middleware('permission:' . PermissionKey::ADMIN_SELLER_TRASH_MANAGEMENT->value);;
             Route::post('trash-restore', [AdminSellerManageController::class, 'restoreSellerTrashed'])->middleware('permission:' . PermissionKey::ADMIN_SELLER_TRASH_MANAGEMENT->value);;
             Route::post('trash-delete', [AdminSellerManageController::class, 'deleteSellerTrashed'])->middleware('permission:' . PermissionKey::ADMIN_SELLER_TRASH_MANAGEMENT->value);;
+
+            // Seller Applications
+            Route::get('applications', [AdminSellerManageController::class, 'listSellerApplications']);
+            Route::get('applications/{id}', [AdminSellerManageController::class, 'getSellerApplicationById']);
+            Route::patch('applications/approve', [AdminSellerManageController::class, 'approveSellerApplication']);
+            Route::patch('applications/reject', [AdminSellerManageController::class, 'rejectSellerApplication']);
         });
         // Department manage
         Route::group(['prefix' => 'department/'], function () {

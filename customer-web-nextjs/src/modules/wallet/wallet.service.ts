@@ -111,3 +111,22 @@ export function useWalletIyzicoSessionMutation() {
     },
   });
 }
+
+export function useWalletPaytrSessionMutation() {
+  const { getAxiosInstance } = useBaseService(
+    API_ENDPOINTS.WALLET_PAYTR_SESSION
+  );
+
+  return useMutation({
+    mutationFn: async (payload: {
+      wallet_id: number;
+      wallet_history_id: number;
+    }) => {
+      const res = await getAxiosInstance().post<{
+        success: boolean;
+        data: { token: string; iframe_url: string; wallet_history_id: number };
+      }>(API_ENDPOINTS.WALLET_PAYTR_SESSION, payload);
+      return res.data;
+    },
+  });
+}

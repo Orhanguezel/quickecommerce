@@ -69,6 +69,7 @@ export const API_ENDPOINTS = {
   CHECKOUT_EXTRA_INFO: "/get-check-out-page-extra-info",
   STRIPE_SESSION: "/orders/create-stripe-session",
   IYZICO_SESSION: "/orders/create-iyzico-session",
+  PAYTR_SESSION: "/orders/create-paytr-session",
   PAYMENT_STATUS: "/customer/orders/payment-status-update",
 
   // Orders (customer - auth required)
@@ -77,6 +78,7 @@ export const API_ENDPOINTS = {
   ORDER_INVOICE: "/customer/orders/invoice",
   ORDER_REFUND: "/customer/orders/request-refund",
   REFUND_REASONS: "/orders/refund-reason-list",
+  RETURN_CARGO: "/customer/orders",
 
   // User (customer - auth required)
   PROFILE: "/customer/profile",
@@ -90,6 +92,7 @@ export const API_ENDPOINTS = {
   WALLET_TRANSACTIONS: "/customer/wallet/transactions",
   WALLET_STRIPE_SESSION: "/wallet/create-stripe-session",
   WALLET_IYZICO_SESSION: "/wallet/create-iyzico-session",
+  WALLET_PAYTR_SESSION: "/wallet/create-paytr-session",
   WALLET_GENERATE_HMAC: "/wallet/generate-hmac",
 
   // Blog

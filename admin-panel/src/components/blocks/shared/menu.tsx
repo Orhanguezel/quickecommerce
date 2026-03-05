@@ -144,9 +144,9 @@ export function Menu({
     }
     if (currentOptions && canView == "false") {
       if (getPermissions?.activity_scope == "store_level") {
-        router.replace("/seller/403");
+        router.replace("/seller/dashboard");
       } else {
-        router.replace("/admin/403");
+        router.replace("/admin/dashboard");
       }
     }
   }, [

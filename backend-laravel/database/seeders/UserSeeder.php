@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\SellerApplication;
+use App\Models\StoreSeller;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -99,6 +101,49 @@ class UserSeeder extends Seeder
                     'update' => true,
                     'delete' => true,
                 ]);
+
+            // Create StoreSeller record for seller user
+            StoreSeller::updateOrCreate(
+                ['user_id' => $sellerUser->id],
+                [
+                    'phone' => '+905551234567',
+                    'address' => 'Merkez Mah. Satıcı Cad. No:1, İstanbul',
+                    'status' => 1,
+                ]
+            );
+
+            // Create SellerApplication record (approved) for seller user
+            if (DB::getSchemaBuilder()->hasTable('seller_applications')) {
+                SellerApplication::updateOrCreate(
+                    ['user_id' => $sellerUser->id],
+                    [
+                        'company_name' => 'Sportoo Mağaza',
+                        'brand_name' => 'Sportoo',
+                        'sector' => 'Spor ve Outdoor',
+                        'tax_office' => 'İstanbul VD',
+                        'tax_number' => 'TR1234567890',
+                        'mersis_number' => '0001234567890001',
+                        'website_url' => 'https://sportoonline.com',
+                        'address_country' => 'Türkiye',
+                        'address_city' => 'İstanbul',
+                        'address_district' => 'Kadıköy',
+                        'address_postal_code' => '34710',
+                        'address_line1' => 'Merkez Mah. Satıcı Cad. No:1',
+                        'address_line2' => null,
+                        'bank_name' => 'Ziraat Bankası',
+                        'bank_account_holder' => 'Seller User',
+                        'bank_iban' => 'TR000000000000000000000001',
+                        'bank_account_number' => '1234567890',
+                        'bank_branch_code' => '001',
+                        'bank_swift_code' => 'TCZBTR2A',
+                        'note' => null,
+                        'status' => SellerApplication::STATUS_APPROVED,
+                        'admin_note' => 'Seeder tarafından otomatik onaylandı.',
+                        'reviewed_by' => $adminUser?->id,
+                        'reviewed_at' => now(),
+                    ]
+                );
+            }
         }
     }
 }

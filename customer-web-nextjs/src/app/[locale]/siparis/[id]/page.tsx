@@ -94,6 +94,17 @@ export default async function OrderDetailPage({ params }: Props) {
         tracking_desc_cancelled: orderT("tracking_desc_cancelled"),
         tracking_desc_on_hold: orderT("tracking_desc_on_hold"),
         address_number: orderT("address_number"),
+        return_cargo_title: orderT("return_cargo_title"),
+        return_cargo_carrier: orderT("return_cargo_carrier"),
+        return_cargo_tracking: orderT("return_cargo_tracking"),
+        return_cargo_barcode: orderT("return_cargo_barcode"),
+        return_cargo_status_label: orderT("return_cargo_status_label"),
+        return_cargo_download_label: orderT("return_cargo_download_label"),
+        return_cargo_info: orderT("return_cargo_info"),
+        return_status_label_created: orderT("return_status_label_created"),
+        return_status_in_transit: orderT("return_status_in_transit"),
+        return_status_delivered: orderT("return_status_delivered"),
+        return_status_pending: orderT("return_status_pending"),
       }}
     />
   );

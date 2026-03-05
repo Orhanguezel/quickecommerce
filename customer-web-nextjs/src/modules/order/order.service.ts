@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useBaseService } from "@/lib/base-service";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
-import type { Order, OrderDetailResponse, OrderListResponse } from "./order.type";
+import type { Order, OrderDetailResponse, OrderListResponse, ReturnShipment } from "./order.type";
 
 // --- Order List ---
 
@@ -96,6 +96,24 @@ export function useSubmitRefundMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
       queryClient.invalidateQueries({ queryKey: ["order"] });
+    },
+  });
+}
+
+// --- Return Cargo ---
+
+export function useReturnCargoQuery(orderId: number | null) {
+  const { getAxiosInstance } = useBaseService(API_ENDPOINTS.RETURN_CARGO);
+
+  return useQuery({
+    queryKey: ["return-cargo", orderId],
+    enabled: !!orderId,
+    queryFn: async () => {
+      const res = await getAxiosInstance().get<{
+        success: boolean;
+        data: ReturnShipment | null;
+      }>(`${API_ENDPOINTS.RETURN_CARGO}/${orderId}/return-cargo`);
+      return res.data?.data ?? null;
     },
   });
 }

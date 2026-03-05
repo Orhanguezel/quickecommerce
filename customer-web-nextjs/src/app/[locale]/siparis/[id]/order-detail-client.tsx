@@ -8,6 +8,7 @@ import {
   useCancelOrderMutation,
   useRefundReasonsQuery,
   useSubmitRefundMutation,
+  useReturnCargoQuery,
 } from "@/modules/order/order.service";
 import type { OrderStatus } from "@/modules/order/order.type";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,8 @@ import {
   Circle,
   Clock,
   RotateCcw,
+  Download,
+  Truck,
 } from "lucide-react";
 
 interface Props {
@@ -43,6 +46,7 @@ export function OrderDetailClient({ orderId, translations: t }: Props) {
   const refundFileRef = useRef<HTMLInputElement>(null);
   const { data: refundReasons } = useRefundReasonsQuery();
   const submitRefundMutation = useSubmitRefundMutation();
+  const { data: returnCargo } = useReturnCargoQuery(orderId);
 
   const handleRefundSubmit = () => {
     if (!refundReasonId) return;
@@ -283,6 +287,81 @@ export function OrderDetailClient({ orderId, translations: t }: Props) {
                     </div>
                   );
                 })}
+              </div>
+            </section>
+          )}
+
+          {/* Return Cargo Card */}
+          {returnCargo && (
+            <section className="rounded-lg border border-orange-200 bg-orange-50 p-6 dark:border-orange-900 dark:bg-orange-950/30">
+              <h2 className="mb-4 flex items-center gap-2 text-lg font-bold">
+                <Truck className="h-5 w-5 text-orange-600" />
+                {t.return_cargo_title || "İade Kargonuz Hazır"}
+              </h2>
+
+              <div className="space-y-3">
+                {returnCargo.carrier_name && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      {t.return_cargo_carrier || "Kargo Firması"}
+                    </span>
+                    <span className="font-medium">{returnCargo.carrier_name}</span>
+                  </div>
+                )}
+                {returnCargo.tracking_number && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      {t.return_cargo_tracking || "Takip Numarası"}
+                    </span>
+                    <span className="font-mono font-medium">{returnCargo.tracking_number}</span>
+                  </div>
+                )}
+                {returnCargo.barcode && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      {t.return_cargo_barcode || "Barkod"}
+                    </span>
+                    <span className="font-mono font-medium">{returnCargo.barcode}</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">
+                    {t.return_cargo_status_label || "Durum"}
+                  </span>
+                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                    returnCargo.status === "label_created"
+                      ? "bg-yellow-100 text-yellow-800"
+                      : returnCargo.status === "in_transit"
+                      ? "bg-blue-100 text-blue-800"
+                      : returnCargo.status === "delivered"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-gray-100 text-gray-800"
+                  }`}>
+                    {t[`return_status_${returnCargo.status}`] ||
+                      (returnCargo.status === "label_created" ? "Etiket Oluşturuldu" :
+                       returnCargo.status === "in_transit" ? "Yolda" :
+                       returnCargo.status === "delivered" ? "Teslim Edildi" :
+                       returnCargo.status)}
+                  </span>
+                </div>
+
+                {returnCargo.label_url && (
+                  <div className="pt-2">
+                    <a
+                      href={returnCargo.label_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                    >
+                      <Download className="h-4 w-4" />
+                      {t.return_cargo_download_label || "İade Etiketini İndir"}
+                    </a>
+                  </div>
+                )}
+
+                <p className="text-xs text-muted-foreground pt-2">
+                  {t.return_cargo_info || "Ürünü orijinal ambalajında paketleyerek belirtilen kargo firmasının herhangi bir şubesine bu etiketle teslim edin."}
+                </p>
               </div>
             </section>
           )}

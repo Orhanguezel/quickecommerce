@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\CargoShipment;
 use App\Models\Order;
 use App\Models\OrderAddress;
+use App\Models\OrderRefund;
+use App\Models\ReturnShipment;
 use App\Models\Store;
 use Geliver\Client;
 use Illuminate\Support\Facades\Cache;
@@ -338,6 +340,182 @@ class GdeliveryService
     private function offerCacheKey(int $orderId, string $offerId): string
     {
         return "geliver_offer_meta:order:{$orderId}:offer:{$offerId}";
+    }
+
+    /**
+     * İade kargo oluştur: orijinal kargonun Geliver shipment ID'si ile reverse shipment yarat.
+     * Orijinal kargo yoksa fallback olarak yeni shipment oluşturur (sender/receiver swap).
+     */
+    public function createReturnShipment(Order $order, OrderRefund $refund): ReturnShipment
+    {
+        // Mevcut iade kargosunu kontrol et
+        $existing = ReturnShipment::where('order_refund_id', $refund->id)
+            ->whereNotIn('status', ['cancelled'])
+            ->first();
+
+        if ($existing) {
+            return $existing;
+        }
+
+        // Orijinal kargo kaydını bul
+        $originalCargo = CargoShipment::where('order_id', $order->id)
+            ->whereNotIn('status', ['cancelled'])
+            ->first();
+
+        if ($originalCargo && $originalCargo->geliver_shipment_id) {
+            return $this->createReturnViaGeliver($order, $refund, $originalCargo);
+        }
+
+        // Fallback: orijinal kargo yoksa yeni shipment oluştur (sender=müşteri, receiver=mağaza)
+        return $this->createReturnAsNewShipment($order, $refund);
+    }
+
+    /**
+     * Geliver createReturn API ile iade kargo oluştur.
+     */
+    private function createReturnViaGeliver(Order $order, OrderRefund $refund, CargoShipment $originalCargo): ReturnShipment
+    {
+        // createReturn ile iade shipment oluştur
+        $returnShipment = $this->getClient()->shipments()->createReturn(
+            $originalCargo->geliver_shipment_id,
+            []
+        );
+        $returnData = $returnShipment['data'] ?? $returnShipment;
+
+        // Teklifleri bekle
+        $shipmentId = $returnData['id'] ?? null;
+        if (!$shipmentId) {
+            throw new \Exception('Geliver iade kargo oluşturulamadı.');
+        }
+
+        $withOffers = $this->getClient()->shipments()->waitOffers($shipmentId, 2, 30);
+        $offersData = $withOffers['data'] ?? $withOffers;
+        $offers = $this->normalizeOffers($offersData['offers'] ?? null);
+
+        if (empty($offers)) {
+            throw new \Exception('Geliver\'dan iade kargo teklifi alınamadı.');
+        }
+
+        // En ucuz teklifi seç
+        $cheapestOffer = collect($offers)
+            ->filter(fn ($item) => isset($item['price']) && is_numeric($item['price']))
+            ->sortBy('price')
+            ->first() ?? $offers[0];
+
+        // Teklifi kabul et
+        $txResponse = $this->getClient()->transactions()->acceptOffer($cheapestOffer['id']);
+        $transaction = $txResponse['data'] ?? $txResponse;
+
+        $transactionShipment = $transaction['shipment'] ?? [];
+        $carrierName = $cheapestOffer['carrier_name']
+            ?? ($transactionShipment['carrier']['name'] ?? null)
+            ?? ($transaction['carrier']['name'] ?? null);
+
+        return ReturnShipment::create([
+            'order_refund_id'        => $refund->id,
+            'order_id'               => $order->id,
+            'store_id'               => $order->store_id,
+            'geliver_shipment_id'    => $transactionShipment['id'] ?? $shipmentId,
+            'geliver_transaction_id' => $transaction['id'] ?? null,
+            'carrier_name'           => $carrierName,
+            'barcode'                => $transactionShipment['barcode'] ?? null,
+            'tracking_number'        => $transactionShipment['trackingNumber'] ?? null,
+            'label_url'              => $transactionShipment['labelURL'] ?? null,
+            'status'                 => ReturnShipment::STATUS_LABEL_CREATED,
+            'raw_response'           => [
+                'return_shipment' => $returnData,
+                'transaction' => $transaction,
+                'selected_offer' => $cheapestOffer,
+            ],
+        ]);
+    }
+
+    /**
+     * Fallback: Orijinal kargo yoksa yeni shipment oluştur (sender=müşteri, receiver=mağaza).
+     */
+    private function createReturnAsNewShipment(Order $order, OrderRefund $refund): ReturnShipment
+    {
+        // Mağaza gönderici adresini alıcı olarak kullan
+        $store = Store::find($order->store_id);
+        $senderAddressId = $store?->geliver_sender_address_id
+            ?? com_option_get('geliver_sender_address_id')
+            ?: config('services.geliver.default_sender_address_id');
+
+        // Müşteri adresini gönderici olarak kullan
+        $orderAddress = OrderAddress::where('order_master_id', $order->order_master_id)
+            ->where('type', 'delivery')
+            ->first()
+            ?? OrderAddress::where('order_master_id', $order->order_master_id)->first();
+
+        if (!$orderAddress) {
+            throw new \Exception('Sipariş teslimat adresi bulunamadı.');
+        }
+
+        $recipientName = $orderAddress->name ?: ($orderAddress->email ?: 'Müşteri');
+
+        // Müşteri adresinden şehir bilgisi çöz
+        if ($orderAddress->city_name) {
+            $cityName = $this->normalizeAscii($orderAddress->city_name);
+            $districtName = $orderAddress->district_name ? $this->normalizeAscii($orderAddress->district_name) : null;
+        } else {
+            $cityName = $this->getCityName($orderAddress->address);
+            $districtName = null;
+        }
+
+        $senderAddress = [
+            'name'        => $recipientName,
+            'phone'       => $this->normalizePhone($orderAddress->contact_number ?? ''),
+            'address1'    => $orderAddress->address,
+            'cityName'    => $cityName,
+            'countryCode' => 'TR',
+        ];
+        $cityCode = $this->getCityCode($cityName);
+        if ($cityCode) $senderAddress['cityCode'] = $cityCode;
+        if ($districtName) $senderAddress['districtName'] = $districtName;
+        if ($orderAddress->postal_code) $senderAddress['zip'] = $orderAddress->postal_code;
+
+        $shipmentData = [
+            'senderAddress'        => $senderAddress,
+            'recipientAddressID'   => (string) $senderAddressId,
+            'length'       => '20.0',
+            'width'        => '15.0',
+            'height'       => '10.0',
+            'weight'       => '1.0',
+            'massUnit'     => 'kg',
+            'distanceUnit' => 'cm',
+        ];
+
+        $shipment = $this->createGeliverShipment($shipmentData);
+        $offers = $this->normalizeOffers($shipment['offers'] ?? null);
+
+        if (empty($offers)) {
+            throw new \Exception('Geliver\'dan iade kargo teklifi alınamadı.');
+        }
+
+        $cheapestId = $this->resolveDefaultOfferId($shipment, $offers);
+        $cheapestOffer = collect($offers)->firstWhere('id', $cheapestId) ?? $offers[0];
+
+        $txResponse = $this->getClient()->transactions()->acceptOffer($cheapestOffer['id']);
+        $transaction = $txResponse['data'] ?? $txResponse;
+        $transactionShipment = $transaction['shipment'] ?? [];
+
+        return ReturnShipment::create([
+            'order_refund_id'        => $refund->id,
+            'order_id'               => $order->id,
+            'store_id'               => $order->store_id,
+            'geliver_shipment_id'    => $transactionShipment['id'] ?? ($shipment['id'] ?? null),
+            'geliver_transaction_id' => $transaction['id'] ?? null,
+            'carrier_name'           => $cheapestOffer['carrier_name'] ?? ($transactionShipment['carrier']['name'] ?? null),
+            'barcode'                => $transactionShipment['barcode'] ?? null,
+            'tracking_number'        => $transactionShipment['trackingNumber'] ?? null,
+            'label_url'              => $transactionShipment['labelURL'] ?? null,
+            'status'                 => ReturnShipment::STATUS_LABEL_CREATED,
+            'raw_response'           => [
+                'shipment' => $shipment,
+                'transaction' => $transaction,
+                'selected_offer' => $cheapestOffer,
+            ],
+        ]);
     }
 
     /**

@@ -1,6 +1,6 @@
 //app/[locale]/layout.tsx
 import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
+import { getMessages, setRequestLocale } from "next-intl/server";
 import Script from "next/script";
 import { ReactNode, use } from "react";
 
@@ -21,6 +21,7 @@ export default function LocaleLayout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = use(params);
+  setRequestLocale(locale);
   const messages = use(getMessages({ locale }));
   const dir = "ltr";
 

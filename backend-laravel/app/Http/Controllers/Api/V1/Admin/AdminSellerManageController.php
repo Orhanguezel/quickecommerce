@@ -6,10 +6,14 @@ use App\Http\Controllers\Api\V1\Controller;
 use App\Http\Resources\Admin\SellerListForDropdownResource;
 use App\Http\Resources\Com\Pagination\PaginationResource;
 use App\Http\Resources\Dashboard\SellerStoreSummaryResource;
+use App\Http\Resources\Seller\SellerApplicationResource;
 use App\Http\Resources\Seller\SellerDetailsResource;
 use App\Http\Resources\Seller\SellerResource;
 use App\Interfaces\StoreManageInterface;
+use App\Jobs\SendDynamicEmailJob;
+use App\Models\EmailTemplate;
 use App\Models\Media;
+use App\Models\SellerApplication;
 use App\Models\User;
 use App\Services\TrashService;
 use Illuminate\Http\Request;
@@ -298,6 +302,156 @@ class AdminSellerManageController extends Controller
         return response()->json([
             'message' => __('messages.force_delete_success', ['name' => 'Sellers']),
             'deleted' => $deleted,
+        ]);
+    }
+
+    // ─── Seller Applications ───
+
+    public function listSellerApplications(Request $request)
+    {
+        $query = SellerApplication::with('user');
+
+        if (isset($request->status) && $request->status !== '') {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('company_name', 'like', "%{$search}%")
+                    ->orWhere('sector', 'like', "%{$search}%")
+                    ->orWhere('tax_number', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($uq) use ($search) {
+                        $uq->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $applications = $query->latest()->paginate($request->per_page ?? 10);
+
+        return response()->json([
+            'applications' => SellerApplicationResource::collection($applications),
+            'meta' => new PaginationResource($applications),
+        ]);
+    }
+
+    public function getSellerApplicationById(Request $request)
+    {
+        $application = SellerApplication::with('user')->find($request->id);
+
+        if (!$application) {
+            return response()->json([
+                'message' => __('messages.data_not_found'),
+            ], 404);
+        }
+
+        return response()->json([
+            'application' => new SellerApplicationResource($application),
+        ]);
+    }
+
+    public function approveSellerApplication(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|exists:seller_applications,id',
+            'admin_note' => 'nullable|string|max:1000',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $application = SellerApplication::findOrFail($request->id);
+
+        if ($application->status !== SellerApplication::STATUS_PENDING) {
+            return response()->json([
+                'message' => 'Bu başvuru zaten işlem görmüş.',
+            ], 422);
+        }
+
+        $application->update([
+            'status' => SellerApplication::STATUS_APPROVED,
+            'admin_note' => $request->admin_note,
+            'reviewed_by' => auth('sanctum')->id(),
+            'reviewed_at' => now(),
+        ]);
+
+        // Activate the seller user
+        $application->user->update(['status' => 1]);
+
+        // Send approval notification email using existing seller-register template
+        try {
+            $seller_name = $application->user->full_name;
+            $seller_email = $application->user->email;
+            $seller_phone = $application->user->phone ?? '';
+            $system_global_title = com_option_get('com_site_title');
+
+            $template = EmailTemplate::where('type', 'seller-register')->where('status', 1)->first();
+            if ($template) {
+                $subject = str_replace(["@name", "@site_name"], [$seller_name, $system_global_title], $template->subject);
+                $message = str_replace(["@name", "@site_name", "@email", "@phone"], [$seller_name, $system_global_title, $seller_email, $seller_phone], $template->body);
+                dispatch(new SendDynamicEmailJob($seller_email, $subject, $message));
+            }
+        } catch (\Exception $th) {
+        }
+
+        return response()->json([
+            'status' => true,
+            'status_code' => 200,
+            'message' => 'Satıcı başvurusu onaylandı.',
+        ]);
+    }
+
+    public function rejectSellerApplication(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|exists:seller_applications,id',
+            'admin_note' => 'required|string|max:1000',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $application = SellerApplication::findOrFail($request->id);
+
+        if ($application->status !== SellerApplication::STATUS_PENDING) {
+            return response()->json([
+                'message' => 'Bu başvuru zaten işlem görmüş.',
+            ], 422);
+        }
+
+        $application->update([
+            'status' => SellerApplication::STATUS_REJECTED,
+            'admin_note' => $request->admin_note,
+            'reviewed_by' => auth('sanctum')->id(),
+            'reviewed_at' => now(),
+        ]);
+
+        // Suspend the seller user
+        $application->user->update(['status' => 2]);
+
+        // Send rejection notification email
+        try {
+            $seller_name = $application->user->full_name;
+            $seller_email = $application->user->email;
+            $system_global_title = com_option_get('com_site_title');
+
+            $template = EmailTemplate::where('type', 'seller-application-rejected')->where('status', 1)->first();
+            if ($template) {
+                $subject = str_replace(["@name", "@site_name"], [$seller_name, $system_global_title], $template->subject);
+                $message = str_replace(["@name", "@site_name", "@reason"], [$seller_name, $system_global_title, $request->admin_note], $template->body);
+                dispatch(new SendDynamicEmailJob($seller_email, $subject, $message));
+            }
+        } catch (\Exception $th) {
+        }
+
+        return response()->json([
+            'status' => true,
+            'status_code' => 200,
+            'message' => 'Satıcı başvurusu reddedildi.',
         ]);
     }
 }

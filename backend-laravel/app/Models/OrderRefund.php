@@ -37,4 +37,9 @@ class OrderRefund extends Model
     {
         return $this->belongsTo(Customer::class);
     }
+
+    public function returnShipment()
+    {
+        return $this->hasOne(ReturnShipment::class);
+    }
 }

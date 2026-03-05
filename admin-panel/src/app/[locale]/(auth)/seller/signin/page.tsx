@@ -7,7 +7,7 @@ import StoreOwnerSignInForm from '@/components/molecules/store-owner-form/StoreO
 import { SellerRoutes } from '@/config/sellerRoutes';
 import { AUTH_TOKEN_KEY, AUTH_USER } from '@/lib/constants';
 import Cookies from 'js-cookie';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/routing';
 import { useEffect, useState } from 'react';
 
 function SignInPage() {

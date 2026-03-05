@@ -9,7 +9,9 @@ use App\Http\Resources\Order\OrderRefundReasonResource;
 use App\Http\Resources\Order\OrderRefundRequestResource;
 use App\Interfaces\OrderRefundInterface;
 use App\Models\OrderRefund;
+use App\Services\GdeliveryService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class AdminOrderRefundManageController extends Controller
@@ -63,9 +65,32 @@ class AdminOrderRefundManageController extends Controller
         if ($request->status === 'approved') {
             $success = $this->orderRefundRepo->approve_refund_request($request->id, $request->status);
             if ($success) {
-                return response()->json([
+                $responseData = [
                     'message' => __('messages.approve.success', ['name' => 'Order Refund Request']),
-                ], 200);
+                ];
+
+                // İade kargo oluştur
+                try {
+                    $refund->refresh();
+                    $order = $refund->order;
+                    if ($order) {
+                        $gdeliveryService = app(GdeliveryService::class);
+                        $returnShipment = $gdeliveryService->createReturnShipment($order, $refund);
+                        $responseData['return_shipment'] = [
+                            'id' => $returnShipment->id,
+                            'carrier_name' => $returnShipment->carrier_name,
+                            'tracking_number' => $returnShipment->tracking_number,
+                            'barcode' => $returnShipment->barcode,
+                            'label_url' => $returnShipment->label_url,
+                            'status' => $returnShipment->status,
+                        ];
+                    }
+                } catch (\Exception $e) {
+                    Log::error('Return shipment creation failed for refund #' . $refund->id . ': ' . $e->getMessage());
+                    $responseData['return_shipment_error'] = 'İade kargo oluşturulamadı: ' . $e->getMessage();
+                }
+
+                return response()->json($responseData, 200);
             } else {
                 return response()->json([
                     'message' => __('messages.approve.failed', ['name' => 'Order Refund Request']),

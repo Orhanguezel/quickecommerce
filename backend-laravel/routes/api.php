@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\V1\Customer\PlaceOrderController;
 use App\Http\Controllers\Api\V1\DeliveryChargeCalculateController;
 use App\Http\Controllers\Api\V1\FrontendController;
 use App\Http\Controllers\Api\V1\IyzicoPaymentController;
+use App\Http\Controllers\Api\V1\PayTRPaymentController;
 use App\Http\Controllers\Api\V1\MenuManageController;
 use App\Http\Controllers\Api\V1\OtherChargeInfoController;
 use App\Http\Controllers\Api\V1\PermissionController;
@@ -159,10 +160,14 @@ Route::group(['prefix' => 'v1/'], function () {
             Route::post('orders/checkout', [PlaceOrderController::class, 'placeOrder']);
             // Kargo takip (müşteri)
             Route::get('orders/{orderId}/cargo', [CustomerCargoController::class, 'show']);
+            // İade kargo bilgisi (müşteri)
+            Route::get('orders/{orderId}/return-cargo', [CustomerCargoController::class, 'getReturnCargo']);
             // create checkout session (returns stripe checkout url)
             Route::post('orders/create-stripe-session', [StripePaymentController::class, 'createCheckoutSession']);
             // create checkout session (returns iyzico payment url)
             Route::post('orders/create-iyzico-session', [IyzicoPaymentController::class, 'createCheckoutSession']);
+            // create checkout session (returns paytr iframe url)
+            Route::post('orders/create-paytr-session', [PayTRPaymentController::class, 'createCheckoutSession']);
             // stripe webhook (Stripe will call this)
             Route::post('stripe/webhook', [StripeWebhookController::class, 'handleWebhook']);
         });
@@ -171,6 +176,10 @@ Route::group(['prefix' => 'v1/'], function () {
         Route::match(['GET', 'POST'], 'iyzico/callback', [IyzicoPaymentController::class, 'callback']);
         // iyzico wallet deposit callback
         Route::match(['GET', 'POST'], 'iyzico/wallet-callback', [IyzicoPaymentController::class, 'walletCallback']);
+
+        // PayTR server-to-server callback (no auth required)
+        Route::post('paytr/callback', [PayTRPaymentController::class, 'callback']);
+        Route::post('paytr/wallet-callback', [PayTRPaymentController::class, 'walletCallback']);
     });
 
     // Geliver kargo takip webhook (Geliver bu endpoint'i çağırır)

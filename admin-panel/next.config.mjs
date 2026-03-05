@@ -20,6 +20,7 @@ const withBundleAnalyzer = bundleAnalyzer({
 });
 
 const imageHost = process.env.NEXT_IMAGE_HOST ?? "example.com";
+const isProdBuild = process.env.NODE_ENV === "production";
 
 export default withBundleAnalyzer(
   withNextIntl({
@@ -69,7 +70,9 @@ export default withBundleAnalyzer(
 
     pageExtensions: ["ts", "tsx", "js", "jsx", "md", "mdx"],
     output: "standalone", // Hard coded in scripts/postbuild.js
-    distDir: "build",
+    // Dev'de .next kullan; senkronize edilen build/ klasor cakismlarini engeller.
+    // Production build'de scripts/postbuild.js ile uyum icin build/ korunur.
+    distDir: isProdBuild ? "build" : ".next",
 
     webpack: (config) => {
       const swEnvFile = path.resolve("./public/firebase-env.js");

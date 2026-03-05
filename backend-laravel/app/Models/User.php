@@ -89,6 +89,11 @@ class User extends Authenticatable
         return $this->hasOne(Wallet::class);
     }
 
+    public function sellerApplication()
+    {
+        return $this->hasOne(SellerApplication::class, 'user_id');
+    }
+
     public function scopeIsSeller($query)
     {
         return $query->where('store_owner', true);

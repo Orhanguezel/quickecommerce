@@ -3,14 +3,21 @@ import { getTranslations } from "next-intl/server";
 import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import { BecomeSellerClient } from "./become-seller-client";
+import type { BecomeSellerContent } from "./become-seller-client";
 
 interface Props {
   params: Promise<{ locale: string }>;
 }
 
+interface BecomeSellerPageData {
+  meta_title?: string;
+  meta_description?: string;
+  content?: BecomeSellerContent | null;
+}
+
 async function getPageContent(slug: string, locale: string) {
   try {
-    const res = await fetchAPI<any>(`${API_ENDPOINTS.PAGES}/${slug}`, {}, locale);
+    const res = await fetchAPI<BecomeSellerPageData>(`${API_ENDPOINTS.PAGES}/${slug}`, {}, locale);
     return res;
   } catch {
     return null;
@@ -37,10 +44,11 @@ export default async function BecomeSellerPage({ params }: Props) {
   const data = await getPageContent("become-a-seller", locale);
   const commonT = await getTranslations({ locale, namespace: "common" });
   const sellerT = await getTranslations({ locale, namespace: "seller" });
+  const authT = await getTranslations({ locale, namespace: "auth" });
 
   return (
     <BecomeSellerClient
-      content={data?.content}
+      content={data?.content ?? null}
       translations={{
         home: commonT("home"),
         become_seller: sellerT("become_seller"),
@@ -71,6 +79,10 @@ export default async function BecomeSellerPage({ params }: Props) {
         contact_subtitle: sellerT("contact_subtitle"),
         contact_us: sellerT("contact_us"),
         more_info: sellerT("more_info"),
+        or: authT("or"),
+        google: authT("google"),
+        facebook: authT("facebook"),
+        social_error: authT("social_error"),
       }}
     />
   );

@@ -1,7 +1,8 @@
 "use client";
 import { useMeQuery } from "@/modules/users/users.action";
 import { useLocale } from "next-intl";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useRouter } from "@/routing";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Provider } from "react-redux";
 import { toast } from "react-toastify";
@@ -118,7 +119,7 @@ export default function SellerLayout({
           "selectedStore",
           JSON.stringify({ id: "", slug: "" })
         );
-        router.replace("/seller/dashboard", { scroll: false });
+        router.replace(SellerRoutes.dashboard, { scroll: false });
       });
     }
   }, [searchParams, setToken, setAuthorized, refetch, router]);

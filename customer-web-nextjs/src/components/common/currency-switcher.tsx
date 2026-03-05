@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useLocale } from "next-intl";
 import { useCurrencyStore } from "@/stores/currency-store";
 import { CurrencyService } from "@/modules/currency/currency.service";
 import type { Currency } from "@/modules/currency/currency.type";
@@ -14,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronDown, Loader2 } from "lucide-react";
 
 export function CurrencySwitcher() {
+  const locale = useLocale();
   const { currencies, selectedCurrency, setCurrencies, setSelectedCurrency } = useCurrencyStore();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -41,6 +43,14 @@ export function CurrencySwitcher() {
 
     loadCurrencies();
   }, [currencies.length, setCurrencies]);
+
+  useEffect(() => {
+    if (locale !== "tr") return;
+    if (currencies.length === 0) return;
+    if (selectedCurrency?.code === "TRY") return;
+    const tryCurrency = currencies.find((c) => c.code === "TRY");
+    if (tryCurrency) setSelectedCurrency(tryCurrency);
+  }, [locale, currencies, selectedCurrency, setSelectedCurrency]);
 
   const handleCurrencyChange = (currency: Currency) => {
     setSelectedCurrency(currency);

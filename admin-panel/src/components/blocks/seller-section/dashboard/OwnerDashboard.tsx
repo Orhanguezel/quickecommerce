@@ -29,7 +29,8 @@ import { useAtom } from "jotai";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useRouter } from "@/routing";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import DashboardSkeleton from "../../admin-section/dashboard/components/DashboardSkeleton";
@@ -50,9 +51,9 @@ const OwnerDashboard = () => {
   const slug = selectedStore?.slug ?? "";
 
   const StatusList = [
-    { label: "This Week", value: "this_week" },
-    { label: "This Month", value: "this_month" },
-    { label: "This Year", value: "this_year" },
+    { label: locale === "tr" ? "Bu Hafta" : "This Week", value: "this_week" },
+    { label: locale === "tr" ? "Bu Ay" : "This Month", value: "this_month" },
+    { label: locale === "tr" ? "Bu Yıl" : "This Year", value: "this_year" },
   ];
 
   const [dateRange, setDateRange] = useState<{
@@ -72,7 +73,7 @@ const OwnerDashboard = () => {
       toast.success(message || "User Login Successfully");
       setToken(token);
       setAuthorized(true);
-      router.replace("/seller/dashboard", { scroll: false });
+      router.replace(SellerRoutes.dashboard, { scroll: false });
     }
   }, [router, searchParams, setAuthorized, setToken]);
 

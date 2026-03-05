@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/routing';
 import SignInForm from '@/components/molecules/forms/sign-in';
 import { PublicNavbar } from '@/components/blocks/shared/PublicNavbar';
 import { AUTH_TOKEN_KEY, AUTH_USER } from '@/lib/constants';

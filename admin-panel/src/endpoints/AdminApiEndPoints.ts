@@ -485,6 +485,12 @@ export const API_ENDPOINTS = {
   ADMIN_SELLER_PASSWORD_CHANGE: "v1/admin/seller/change-password",
   ADMIN_SELLER_DETAILS: "v1/admin/seller/history",
 
+  // Seller Applications
+  ADMIN_SELLER_APPLICATION_LIST: "v1/admin/seller/applications",
+  ADMIN_SELLER_APPLICATION_DETAILS: "v1/admin/seller/applications",
+  ADMIN_SELLER_APPLICATION_APPROVE: "v1/admin/seller/applications/approve",
+  ADMIN_SELLER_APPLICATION_REJECT: "v1/admin/seller/applications/reject",
+
   ADMIN_MEDIA_MANAGE_LIST: "v1/admin/media-manage",
   ADMIN_MEDIA_MANAGE_REMOVE: "v1/admin/media-manage/delete",
 

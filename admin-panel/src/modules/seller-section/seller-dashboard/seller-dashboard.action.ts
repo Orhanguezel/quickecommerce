@@ -15,7 +15,11 @@ export const useSellerDashboardQuery = (options: Partial<SellerDashboardQueryOpt
   const { findAll } = useSellerDashboardService();
   const errorToastRef = useRef<string | null>(null);
   const { data, isPending, error, refetch, isFetching } = useQuery({
-    queryKey: [SELLER_API_ENDPOINTS.SELLER_DASHBOARD_LIST],
+    queryKey: [
+      SELLER_API_ENDPOINTS.SELLER_DASHBOARD_LIST,
+      options?.language ?? '',
+      options?.slug ?? '',
+    ],
     queryFn: () => findAll(options),
     retry: false,
     refetchOnWindowFocus: false,
@@ -45,7 +49,14 @@ export const useSellerSalesSummaryQuery = (options: Partial<SellerDashboardQuery
   const { findAll } = useSellerSalesService();
   const errorToastRef = useRef<string | null>(null);
   const { data, isPending, error, refetch, isFetching } = useQuery({
-    queryKey: [SELLER_API_ENDPOINTS.SELLER_SALES_LIST],
+    queryKey: [
+      SELLER_API_ENDPOINTS.SELLER_SALES_LIST,
+      options?.language ?? '',
+      options?.slug ?? '',
+      options?.start_date ?? '',
+      options?.end_date ?? '',
+      options?.time_period ?? '',
+    ],
     queryFn: () => findAll(options),
     retry: false,
     refetchOnWindowFocus: false,
@@ -75,7 +86,11 @@ export const useSellerGrowthOrderQuery = (options: Partial<SellerDashboardQueryO
   const { findAll } = useSellerOrderGrowthService();
   const errorToastRef = useRef<string | null>(null);
   const { data, isPending, error, refetch, isFetching } = useQuery({
-    queryKey: [SELLER_API_ENDPOINTS.SELLER_ORDER_GROWTH_LIST],
+    queryKey: [
+      SELLER_API_ENDPOINTS.SELLER_ORDER_GROWTH_LIST,
+      options?.language ?? '',
+      options?.slug ?? '',
+    ],
     queryFn: () => findAll(options),
     retry: false,
     refetchOnWindowFocus: false,
@@ -105,7 +120,11 @@ export const useSellerOtherSummaryQuery = (options: Partial<SellerDashboardQuery
   const { findAll } = useSellerOtherSummaryService();
   const errorToastRef = useRef<string | null>(null);
   const { data, isPending, error, refetch, isFetching } = useQuery({
-    queryKey: [SELLER_API_ENDPOINTS.SELLER_OTHER_SUMMARY_LIST],
+    queryKey: [
+      SELLER_API_ENDPOINTS.SELLER_OTHER_SUMMARY_LIST,
+      options?.language ?? '',
+      options?.slug ?? '',
+    ],
     queryFn: () => findAll(options),
     retry: false,
     refetchOnWindowFocus: false,

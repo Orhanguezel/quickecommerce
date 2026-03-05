@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useLocale } from "next-intl";
 import { ROUTES } from "@/config/routes";
 import { useAuthStore } from "@/stores/auth-store";
+import { useCurrencyStore } from "@/stores/currency-store";
 import {
   useProfileQuery,
   useUpdateProfileMutation,
@@ -40,6 +41,7 @@ import {
   useWalletDepositMutation,
   useWalletStripeSessionMutation,
   useWalletIyzicoSessionMutation,
+  useWalletPaytrSessionMutation,
 } from "@/modules/wallet/wallet.service";
 import type { WalletTransaction } from "@/modules/wallet/wallet.type";
 import { useRecentlyViewedStore } from "@/stores/recently-viewed-store";
@@ -108,7 +110,7 @@ type ApiError = {
   response?: { data?: { message?: string | Record<string, string[]>; errors?: Record<string, string[]> } };
 };
 
-const SUPPORTED_WALLET_GATEWAYS = new Set(["stripe", "iyzico"]);
+const SUPPORTED_WALLET_GATEWAYS = new Set(["stripe", "iyzico", "paytr"]);
 
 const walletGatewayIconMap: Record<string, typeof CreditCard> = {
   stripe: CreditCard,
@@ -228,6 +230,7 @@ export function AccountClient({ translations: t }: Props) {
   const walletDepositMutation = useWalletDepositMutation();
   const walletStripeMutation = useWalletStripeSessionMutation();
   const walletIyzicoMutation = useWalletIyzicoSessionMutation();
+  const walletPaytrMutation = useWalletPaytrSessionMutation();
   const { data: paymentGateways, isLoading: gatewaysLoading } = usePaymentGatewaysQuery();
 
   const walletGateways = useMemo(() => {
@@ -251,6 +254,7 @@ export function AccountClient({ translations: t }: Props) {
 
   // Price formatting
   const { formatPrice } = usePrice();
+  const selectedCurrencyCode = useCurrencyStore((s) => s.getSelectedCurrencyCode());
   const [mounted, setMounted] = useState(false);
 
   // Mutations
@@ -423,7 +427,7 @@ export function AccountClient({ translations: t }: Props) {
         wallet_id: wallet.id,
         amount: Number(depositAmount),
         payment_gateway: selectedWalletGateway,
-        currency_code: "TRY",
+        currency_code: selectedCurrencyCode || "TRY",
       });
 
       if (selectedWalletGateway === "stripe") {
@@ -441,6 +445,14 @@ export function AccountClient({ translations: t }: Props) {
         });
         if (sessionResult.data?.checkout_url) {
           window.location.href = sessionResult.data.checkout_url;
+        }
+      } else if (selectedWalletGateway === "paytr") {
+        const sessionResult = await walletPaytrMutation.mutateAsync({
+          wallet_id: wallet.id,
+          wallet_history_id: depositResult.wallet_history_id,
+        });
+        if (sessionResult.data?.iframe_url) {
+          window.location.href = sessionResult.data.iframe_url;
         }
       } else if (selectedWalletGateway === "bank_transfer") {
         // Pending bank transfer — show instructions, no redirect

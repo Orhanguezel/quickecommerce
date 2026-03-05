@@ -39,6 +39,14 @@ interface RecordType {
   meta_description?: string;
   invoice?: any;
   actions?: any;
+  return_shipment?: {
+    id: number;
+    carrier_name: string;
+    tracking_number: string;
+    barcode: string;
+    label_url: string;
+    status: string;
+  } | null;
   key: React.Key;
 }
 interface ColumnType<RecordType> {
@@ -181,6 +189,11 @@ const RefundRequestTable = ({ searchValue, allFilters }: any) => {
           width: 150,
         },
         {
+          title: "İade Kargo",
+          dataIndex: "return_shipment" as any,
+          width: 150,
+        },
+        {
           title: t("table_header.actions"),
           dataIndex: "actions",
           width: "10%",
@@ -264,6 +277,39 @@ const RefundRequestTable = ({ searchValue, allFilters }: any) => {
               </Tooltip>
             </div>
           ),
+        };
+      }
+      if ((col.dataIndex as string) === "return_shipment") {
+        return {
+          ...col,
+          render: (_: any, row: RecordType) => {
+            const rs = row.return_shipment;
+            if (!rs) return <span className="text-muted-foreground text-xs">-</span>;
+            const statusColors: Record<string, string> = {
+              label_created: "text-yellow-600 border-yellow-500 bg-yellow-50",
+              in_transit: "text-blue-600 border-blue-500 bg-blue-50",
+              delivered: "text-green-600 border-green-500 bg-green-50",
+              pending: "text-gray-600 border-gray-500 bg-gray-50",
+              cancelled: "text-red-600 border-red-500 bg-red-50",
+            };
+            const statusLabels: Record<string, string> = {
+              label_created: "Etiket",
+              in_transit: "Yolda",
+              delivered: "Teslim",
+              pending: "Bekliyor",
+              cancelled: "İptal",
+            };
+            return (
+              <div className="flex flex-col gap-1">
+                <Badge className={`border text-[10px] ${statusColors[rs.status] || "text-gray-500 border-gray-300 bg-gray-50"}`}>
+                  {statusLabels[rs.status] || rs.status}
+                </Badge>
+                {rs.tracking_number && (
+                  <span className="text-[10px] text-muted-foreground font-mono">{rs.tracking_number}</span>
+                )}
+              </div>
+            );
+          },
         };
       }
       if (col.dataIndex === "actions") {

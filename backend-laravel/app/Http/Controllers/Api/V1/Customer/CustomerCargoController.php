@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\Controller;
 use App\Models\CargoShipment;
 use App\Models\Order;
 use App\Models\OrderMaster;
+use App\Models\ReturnShipment;
 use Illuminate\Http\JsonResponse;
 
 class CustomerCargoController extends Controller
@@ -50,6 +51,49 @@ class CustomerCargoController extends Controller
                 'status'          => $cargo->status,
                 'label_url'       => null, // Müşteriye label gösterme
                 'created_at'      => $cargo->created_at,
+            ],
+        ]);
+    }
+
+    /**
+     * Müşterinin iade kargo bilgisini getir.
+     * GET /customer/orders/{orderId}/return-cargo
+     */
+    public function getReturnCargo(int $orderId): JsonResponse
+    {
+        $customerId = auth()->id();
+
+        $orderMaster = OrderMaster::where('customer_id', $customerId)->pluck('id');
+        $order = Order::where('id', $orderId)
+            ->whereIn('order_master_id', $orderMaster)
+            ->first();
+
+        if (! $order) {
+            return response()->json(['success' => false, 'message' => 'Sipariş bulunamadı.'], 404);
+        }
+
+        $returnShipment = ReturnShipment::where('order_id', $order->id)
+            ->whereNotIn('status', ['cancelled'])
+            ->latest()
+            ->first();
+
+        if (! $returnShipment) {
+            return response()->json([
+                'success' => true,
+                'data'    => null,
+                'message' => 'İade kargo henüz oluşturulmadı.',
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data'    => [
+                'carrier_name'    => $returnShipment->carrier_name,
+                'tracking_number' => $returnShipment->tracking_number,
+                'barcode'         => $returnShipment->barcode,
+                'label_url'       => $returnShipment->label_url,
+                'status'          => $returnShipment->status,
+                'created_at'      => $returnShipment->created_at,
             ],
         ]);
     }

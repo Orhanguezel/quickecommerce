@@ -64,11 +64,13 @@ class CurrencyController extends Controller
         }
 
         $currency->update($validated);
+        $sync = $this->exchangeRateService->syncVariantBasePricesFromInputCurrency();
 
         return response()->json([
             'success' => true,
             'message' => 'Currency updated successfully',
-            'data' => $currency
+            'data' => $currency,
+            'variant_price_synced' => $sync['updated_count'] ?? 0,
         ]);
     }
 

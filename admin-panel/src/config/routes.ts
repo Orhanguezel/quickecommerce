@@ -195,6 +195,8 @@ export const Routes = {
   addSeller: "/admin/seller/registration",
   editSeller: "/admin/seller/update",
   SellerDetails: "/admin/seller/details",
+  SellerApplications: "/admin/seller/applications",
+  SellerApplicationDetails: "/admin/seller/applications/details",
 
   adminNotifications: "/admin/notifications",
   adminChatManage: "/admin/chat/manage",

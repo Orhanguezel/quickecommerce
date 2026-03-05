@@ -2,22 +2,31 @@ importScripts("/firebase-env.js"); // load env config
 importScripts("https://www.gstatic.com/firebasejs/10.12.1/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.12.1/firebase-messaging-compat.js");
 
-firebase.initializeApp(self.firebaseConfig);
+const cfg = self.firebaseConfig || {};
+const hasRequiredFirebaseConfig =
+  Boolean(cfg.apiKey) &&
+  Boolean(cfg.projectId) &&
+  Boolean(cfg.messagingSenderId) &&
+  Boolean(cfg.appId);
 
-const messaging = firebase.messaging();
+if (hasRequiredFirebaseConfig) {
+  firebase.initializeApp(cfg);
 
-messaging.onBackgroundMessage((payload) => {
-  const notificationTitle = payload.notification?.title || "Background Title";
-  const notificationOptions = {
-    body: payload.notification?.body || "Background message body",
-    icon: "/icons/icon-192x192.png",
-    data: payload.data || {},
-  };
+  const messaging = firebase.messaging();
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
-});
+  messaging.onBackgroundMessage((payload) => {
+    const notificationTitle = payload.notification?.title || "Background Title";
+    const notificationOptions = {
+      body: payload.notification?.body || "Background message body",
+      icon: "/icons/icon-192x192.png",
+      data: payload.data || {},
+    };
 
-self.addEventListener("notificationclick", (event) => {
-  event.notification.close();
-  event.waitUntil(clients.openWindow("/"));
-});
+    self.registration.showNotification(notificationTitle, notificationOptions);
+  });
+
+  self.addEventListener("notificationclick", (event) => {
+    event.notification.close();
+    event.waitUntil(clients.openWindow("/"));
+  });
+}

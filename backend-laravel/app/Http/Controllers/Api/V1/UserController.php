@@ -12,6 +12,7 @@ use App\Mail\EmailVerificationMail;
 use App\Models\Customer;
 use App\Models\DeliveryMan;
 use App\Models\EmailTemplate;
+use App\Models\SellerApplication;
 use App\Models\StoreSeller;
 use App\Models\User;
 use App\Repositories\UserRepository;
@@ -479,18 +480,41 @@ class UserController extends Controller
 
     public function registerSeller(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        // Check if this is an admin-initiated registration
+        $isAdminCreating = auth('sanctum')->check() && auth('sanctum')->user()->activity_scope === 'admin_level';
+
+        $rules = [
             'first_name' => 'required|string|max:255',
             'last_name' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:15',
             'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|confirmed',
-        ]);
+        ];
+
+        // Application fields required only for public registration
+        if (!$isAdminCreating) {
+            $rules = array_merge($rules, [
+                'company_name' => 'required|string|max:255',
+                'sector' => 'required|string|max:255',
+                'tax_number' => 'required|string|max:50',
+                'tax_office' => 'nullable|string|max:255',
+                'brand_name' => 'nullable|string|max:255',
+                'mersis_number' => 'nullable|string|max:50',
+                'website_url' => 'nullable|url|max:255',
+                'application_details.address.city' => 'required|string|max:255',
+                'application_details.address.district' => 'required|string|max:255',
+                'application_details.address.address_line1' => 'required|string',
+                'application_details.bank.bank_name' => 'required|string|max:255',
+                'application_details.bank.account_holder' => 'required|string|max:255',
+                'application_details.bank.iban' => 'required|string|max:50',
+            ]);
+        }
+
+        $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
-
 
         try {
             // By default role
@@ -501,7 +525,7 @@ class UserController extends Controller
                 $roles[] = isset($request->roles->value) ? $request->roles->value : $request->roles;
             }
 
-            // Create the user
+            // Create the user — pending for public, active for admin-created
             $user = $this->repository->create([
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
@@ -511,7 +535,7 @@ class UserController extends Controller
                 'password' => Hash::make($request->password),
                 'activity_scope' => 'store_level',
                 'store_owner' => 1,
-                'status' => 1,
+                'status' => $isAdminCreating ? 1 : 0,
             ]);
 
             // Assign roles to the user
@@ -524,51 +548,113 @@ class UserController extends Controller
             $user->store_seller_id = $seller->id;
             $user->save();
 
-            // Send email to seller register in background
-            try {
+            // Save seller application details for public registration
+            if (!$isAdminCreating) {
+                $address = $request->input('application_details.address', []);
+                $bank = $request->input('application_details.bank', []);
 
+                SellerApplication::create([
+                    'user_id' => $user->id,
+                    'company_name' => $request->company_name,
+                    'brand_name' => $request->brand_name,
+                    'sector' => $request->sector,
+                    'tax_office' => $request->tax_office,
+                    'tax_number' => $request->tax_number,
+                    'mersis_number' => $request->mersis_number,
+                    'website_url' => $request->website_url,
+                    'address_country' => $address['country'] ?? 'Türkiye',
+                    'address_city' => $address['city'] ?? '',
+                    'address_district' => $address['district'] ?? '',
+                    'address_postal_code' => $address['postal_code'] ?? null,
+                    'address_line1' => $address['address_line1'] ?? '',
+                    'address_line2' => $address['address_line2'] ?? null,
+                    'bank_name' => $bank['bank_name'] ?? '',
+                    'bank_account_holder' => $bank['account_holder'] ?? '',
+                    'bank_iban' => $bank['iban'] ?? '',
+                    'bank_account_number' => $bank['account_number'] ?? null,
+                    'bank_branch_code' => $bank['branch_code'] ?? null,
+                    'bank_swift_code' => $bank['swift_code'] ?? null,
+                    'note' => $request->input('application_details.note'),
+                    'status' => SellerApplication::STATUS_PENDING,
+                ]);
+            }
+
+            // Send email notifications in background
+            try {
                 $seller_email = $user->email;
                 $seller_phone = $user->phone;
                 $seller_name = $user->full_name;
                 $system_global_title = com_option_get('com_site_title');
                 $system_global_email = com_option_get('com_site_email');
 
-                $email_template_seller = EmailTemplate::where('type', 'seller-register')->where('status', 1)->first();
+                if ($isAdminCreating) {
+                    // Admin-created sellers: send welcome email to seller immediately
+                    $email_template_seller = EmailTemplate::where('type', 'seller-register')->where('status', 1)->first();
+                    if ($email_template_seller) {
+                        $seller_subject = str_replace(["@name", "@site_name"], [$seller_name, $system_global_title], $email_template_seller->subject);
+                        $seller_message = str_replace(["@name", "@site_name", "@email", "@phone"], [$seller_name, $system_global_title, $seller_email, $seller_phone], $email_template_seller->body);
+                        dispatch(new SendDynamicEmailJob($seller_email, $seller_subject, $seller_message));
+                    }
+                }
+
+                // Always notify admin about new seller (email + in-app notification)
                 $email_template_admin = EmailTemplate::where('type', 'seller-register-for-admin')->where('status', 1)->first();
-                $seller_subject = $email_template_seller->subject;
-                $admin_subject = $email_template_admin->subject;
-                $seller_message = $email_template_seller->body;
-                $admin_message = $email_template_admin->body;
-
-                $seller_subject = str_replace(["@name"], [$seller_name], $seller_subject);
-                $seller_message = str_replace(["@name", "@site_name", "@email", "@phone"], [$seller_name, $system_global_title, $seller_email, $seller_phone], $seller_message);
-                $admin_message = str_replace(["@name", "@email", "@phone"], [$seller_name, $seller_email, $seller_phone], $admin_message);
-
-                // Check if template exists and email is valid and // Send the email using queued job
-                if ($email_template_seller) {
-                    // mail to seller
-                    dispatch(new SendDynamicEmailJob($seller_email, $seller_subject, $seller_message));
+                if ($email_template_admin) {
+                    $admin_subject = str_replace(["@name"], [$seller_name], $email_template_admin->subject);
+                    $admin_message = str_replace(["@name", "@email", "@phone"], [$seller_name, $seller_email, $seller_phone], $email_template_admin->body);
                     dispatch(new SendDynamicEmailJob($system_global_email, $admin_subject, $admin_message));
+                }
+
+                // Send in-app notification to all admins
+                if (!$isAdminCreating) {
+                    $admins = User::role('Super Admin')->get();
+                    foreach ($admins as $admin) {
+                        \App\Models\UniversalNotification::create([
+                            'notifiable_id' => $admin->id,
+                            'title' => 'Yeni Satıcı Başvurusu',
+                            'message' => $seller_name . ' yeni bir satıcı başvurusu yaptı. İncelemek için başvurular sayfasını kontrol edin.',
+                            'data' => json_encode([
+                                'type' => 'seller_application',
+                                'url' => '/admin/seller/applications',
+                                'user_name' => $seller_name,
+                                'user_email' => $seller_email,
+                            ]),
+                            'notifiable_type' => 'admin',
+                            'status' => 'unread',
+                        ]);
+                    }
                 }
             } catch (\Exception $th) {
             }
+
+            // Admin-created sellers get token and full response
+            if ($isAdminCreating) {
+                return response()->json([
+                    "status" => true,
+                    "status_code" => 200,
+                    "message" => __('messages.registration_success', ['name' => 'Seller']),
+                    "token" => $user->createToken('auth_token')->plainTextToken,
+                    'first_name' => $user->first_name,
+                    'last_name' => $user->last_name,
+                    'email' => $user->email,
+                    'email_verified' => $seller->user?->email_verified,
+                    "email_verification_settings" => com_option_get('com_user_email_verification', null, false) ?? 'off',
+                    'phone' => $user->phone,
+                    "permissions" => $user->getPermissionNames(),
+                    "role" => $user->getRoleNames(),
+                    "store_owner" => $user->store_owner,
+                    "store_seller_id" => $user->store_seller_id,
+                    "stores" => json_decode($user->stores),
+                    "next_stage" => "2"
+                ]);
+            }
+
+            // Public registration — no token, application pending review
             return response()->json([
                 "status" => true,
                 "status_code" => 200,
-                "message" => __('messages.registration_success', ['name' => 'Seller']),
-                "token" => $user->createToken('auth_token')->plainTextToken,
-                'first_name' => $user->first_name,
-                'last_name' => $user->last_name,
-                'email' => $user->email,
-                'email_verified' => $seller->user?->email_verified,
-                "email_verification_settings" => com_option_get('com_user_email_verification', null, false) ?? 'off',
-                'phone' => $user->phone,
-                "permissions" => $user->getPermissionNames(),
-                "role" => $user->getRoleNames(),
-                "store_owner" => $user->store_owner,
-                "store_seller_id" => $user->store_seller_id,
-                "stores" => json_decode($user->stores),
-                "next_stage" => "2"
+                "message" => "Başvurunuz başarıyla alındı. Admin onayından sonra e-posta ile bilgilendirileceksiniz.",
+                "application_status" => "pending",
             ]);
 
         } catch (\Illuminate\Validation\ValidationException $e) {

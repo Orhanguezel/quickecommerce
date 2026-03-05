@@ -36,7 +36,18 @@ class OrderRefundRequestResource extends JsonResource
             "files" => $this->file
                 ? collect(explode(',', $this->file))->map(fn($file) => asset('storage/' . trim($file)))
                 : [],
-            "reject_reason" => $this->reject_reason
+            "reject_reason" => $this->reject_reason,
+            "return_shipment" => $this->whenLoaded('returnShipment', function () {
+                $rs = $this->returnShipment;
+                return $rs ? [
+                    'id' => $rs->id,
+                    'carrier_name' => $rs->carrier_name,
+                    'tracking_number' => $rs->tracking_number,
+                    'barcode' => $rs->barcode,
+                    'label_url' => $rs->label_url,
+                    'status' => $rs->status,
+                ] : null;
+            }),
         ];
     }
 }

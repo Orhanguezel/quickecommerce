@@ -28,7 +28,11 @@ class ProductVariantPublicResource extends JsonResource
             'attributes' => $this->attributes ? json_decode($this->attributes, true) : [], // Decode the JSON column
             'size' => $this->size,
             'price' => $this->price,
+            'price_input_currency_code' => $this->price_input_currency_code,
+            'price_input_amount' => $this->price_input_amount,
             'special_price' => $this->special_price,
+            'special_price_input_currency_code' => $this->special_price_input_currency_code,
+            'special_price_input_amount' => $this->special_price_input_amount,
             'stock_quantity' => $this->stock_quantity,
             'unit_id' => $this->unit_id,
             'length' => $this->length,

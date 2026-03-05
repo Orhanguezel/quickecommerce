@@ -620,14 +620,27 @@ class PermissionStoreSeeder extends Seeder
         }
 
 
-        //Assign PermissionKey to Store Admin Role
-        $role = Role::where('id', 2)->first();
-        $role->givePermissionTo(Permission::whereIn('available_for', ['store_level', 'COMMON'])->get());
-        $user = User::whereEmail('seller@gmail.com')->first();
-        if (!$user) {
-            return;
+        // Assign Store permissions to Store Admin role and ensure sidebar flags are enabled.
+        $role = Role::where('name', 'Store Admin')->first();
+        if ($role) {
+            $role->syncPermissions(
+                Permission::whereIn('available_for', ['store_level', 'COMMON'])->get()
+            );
+
+            DB::table('role_has_permissions')
+                ->where('role_id', $role->id)
+                ->update([
+                    'view' => true,
+                    'insert' => true,
+                    'update' => true,
+                    'delete' => true,
+                ]);
         }
-        // Assign default Store User to a Specific Role
-        $user->assignRole($role);
+
+        // Assign default seller user to Store Admin role when available.
+        $user = User::whereEmail('seller@sportoonline.com')->first();
+        if ($user && $role) {
+            $user->syncRoles([$role]);
+        }
     }
 }

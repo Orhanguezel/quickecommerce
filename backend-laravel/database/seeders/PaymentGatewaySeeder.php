@@ -41,27 +41,29 @@ class PaymentGatewaySeeder extends Seeder
             'is_test_mode' => false,
         ]);
 
-        // Credential gateways use firstOrCreate to avoid wiping user-entered
-        // api_key / secret_key on every deployment. Admin panel is used to
-        // manage credentials after the initial install.
-
-        PaymentGateway::firstOrCreate(['slug' => 'paytr'], [
-            'name' => 'PayTR',
-            'description' => 'PayTR ile kredi kartı, banka kartı veya havale/EFT ile güvenli ödeme yapın.',
-            'auth_credentials' => json_encode([
-                'merchant_id' => '',
-                'merchant_key' => '',
-                'merchant_salt' => '',
-            ]),
-            'image' => 'payment-logos/paytr.svg',
-            'status' => true,
-            'is_test_mode' => true,
-        ]);
-
-        // iyzico: updateOrCreate so credentials stay in sync with .env
+        // Credential gateways use updateOrCreate so credentials stay in sync with .env
         $frontendUrl    = rtrim(env('FRONTEND_URL', env('APP_URL', 'http://localhost')), '/');
         $appUrl         = rtrim(env('APP_URL', 'http://localhost:8000'), '/');
         $defaultLocale  = env('DEFAULT_LOCALE', 'tr');
+
+        // paytr: updateOrCreate so credentials stay in sync with .env
+        PaymentGateway::updateOrCreate(['slug' => 'paytr'], [
+            'name' => 'PayTR',
+            'description' => 'PayTR ile kredi kartı, banka kartı veya havale/EFT ile güvenli ödeme yapın.',
+            'auth_credentials' => json_encode([
+                'merchant_id'      => env('PAYTR_MERCHANT_ID', ''),
+                'merchant_key'     => env('PAYTR_MERCHANT_KEY', ''),
+                'merchant_salt'    => env('PAYTR_MERCHANT_SALT', ''),
+                'paytr_callback_url' => $appUrl . '/api/v1/paytr/callback',
+                'paytr_success_url'  => $frontendUrl . '/' . $defaultLocale . '/siparis-basarili?order={ORDER_MASTER_ID}',
+                'paytr_fail_url'     => $frontendUrl . '/' . $defaultLocale . '/odeme?payment=failed&order={ORDER_MASTER_ID}',
+            ]),
+            'image' => 'payment-logos/paytr.svg',
+            'status' => true,
+            'is_test_mode' => filter_var(env('PAYTR_TEST_MODE', true), FILTER_VALIDATE_BOOLEAN),
+        ]);
+
+        // iyzico: updateOrCreate so credentials stay in sync with .env
         PaymentGateway::updateOrCreate(['slug' => 'iyzico'], [
             'name' => 'iyzico',
             'description' => 'iyzico ile kredi kartı, banka kartı veya BKM Express ile güvenli ödeme yapın.',

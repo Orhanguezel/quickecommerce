@@ -462,15 +462,15 @@ export function HeaderVariant1() {
             )}
           </div>
 
-          {/* Explore Store Types — button */}
+          {/* Become Seller — button */}
           <Link
-            href={ROUTES.STORES}
-            title={t('nav.explore_store_types')}
+            href={ROUTES.SELLER_REGISTER}
+            title={t('common.become_seller')}
             className="flex items-center gap-3 rounded-lg px-7 py-3.5 text-[15px] font-semibold transition-colors hover:opacity-90"
             style={{ backgroundColor: 'hsl(var(--header-nav-button-bg))', color: 'hsl(var(--header-nav-button-text))' }}
           >
             <Store className="h-4 w-4" />
-            <span>{t('nav.explore_store_types')}</span>
+            <span>{t('common.become_seller')}</span>
           </Link>
         </div>
       </nav>
