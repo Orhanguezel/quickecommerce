@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Enums\StoreType as StoreTypeEnum;
 use App\Enums\Behaviour;
 use App\Http\Resources\Banner\BannerPublicResource;
 use App\Http\Resources\Com\AboutUsPublicResource;
@@ -72,6 +73,11 @@ use PhpOffice\PhpSpreadsheet\Calculation\Category;
 
 class FrontendController extends Controller
 {
+    private const CASH_ON_DELIVERY_ALLOWED_STORE_TYPES = [
+        StoreTypeEnum::RESTAURANT->value,
+        StoreTypeEnum::CAFE->value,
+        StoreTypeEnum::FAST_FOOD->value,
+    ];
     public function __construct(
         protected BannerInterface        $bannerRepo,
         protected ProductManageInterface $productRepo,
@@ -752,8 +758,8 @@ class FrontendController extends Controller
 
         $query->where('products.status', 'approved')->whereNull('products.deleted_at');
 
-        // Order by best-selling (order_count)
-        $query->orderByDesc('order_count');
+        // Order by best-selling (order_count), then by views as secondary
+        $query->orderByDesc('order_count')->orderByDesc('views');
 
         // Pagination
         $perPage = $request->per_page ?? 10;
@@ -2381,6 +2387,8 @@ class FrontendController extends Controller
             'free_shipping_min_order_value' => $freeShippingMinValue,
         ];
 
+        $cashOnDeliveryAllowed = $this->isCashOnDeliveryAllowedForProducts((array) ($request->product_ids ?? []));
+
         return response()->json([
             'flash_sale' => $flashDealProducts->map(function ($item) {
                 return [
@@ -2396,6 +2404,49 @@ class FrontendController extends Controller
             'additional_charge' => $additionalCharge,
             'shipping_campaign' => $shippingCampaign,
             'order_include_tax_amount' => $systemCommissionSettings->order_include_tax_amount,
+            'cash_on_delivery_allowed' => $cashOnDeliveryAllowed,
         ]);
+    }
+
+    private function isCashOnDeliveryAllowedForProducts(array $productIds): bool
+    {
+        if (empty($productIds)) {
+            return false;
+        }
+
+        $ids = collect($productIds)
+            ->filter(fn($id) => is_numeric($id))
+            ->map(fn($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($ids)) {
+            return false;
+        }
+
+        $products = Product::query()
+            ->with('store:id,store_type')
+            ->whereIn('id', $ids)
+            ->get(['id', 'store_id', 'cash_on_delivery']);
+
+        if ($products->count() !== count($ids)) {
+            return false;
+        }
+
+        foreach ($products as $product) {
+            $storeType = strtolower((string) ($product->store?->store_type ?? ''));
+            $codEnabled = (int) ($product->cash_on_delivery ?? 0) > 0;
+
+            if (!$codEnabled) {
+                return false;
+            }
+
+            if (!in_array($storeType, self::CASH_ON_DELIVERY_ALLOWED_STORE_TYPES, true)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

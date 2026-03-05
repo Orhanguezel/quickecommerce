@@ -152,6 +152,7 @@ return [
     'order_delivery_location_missing' => 'Delivery location is missing for home delivery.',
     'order_payment_gateway_required' => 'Payment gateway is required.',
     'order_payment_gateway_not_supported' => 'Selected payment gateway is not supported at checkout.',
+    'order_cash_on_delivery_only_for_food' => 'Cash on delivery is only available for food store products.',
     'order_already_paid' => 'Order is already paid.',
     'iyzico_configuration_missing' => 'Iyzico configuration is missing or invalid.',
     'iyzico_session_created' => 'Iyzico payment session created successfully.',

@@ -135,4 +135,5 @@ export interface CheckoutExtraInfoResponse {
     minimum_shipping_charge?: number;
     free_shipping_min_order_value?: number;
   };
+  cash_on_delivery_allowed?: boolean;
 }

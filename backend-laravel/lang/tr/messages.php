@@ -150,6 +150,7 @@ return [
     'order_delivery_location_missing' => 'Adrese teslim için teslimat konumu eksik.',
     'order_payment_gateway_required' => 'Ödeme yöntemi seçilmelidir.',
     'order_payment_gateway_not_supported' => 'Seçilen ödeme yöntemi şu anda desteklenmiyor.',
+    'order_cash_on_delivery_only_for_food' => 'Kapıda ödeme sadece food mağaza ürünlerinde kullanılabilir.',
     'order_already_paid' => 'Bu sipariş zaten ödenmiş.',
     'iyzico_configuration_missing' => 'İyzico ayarları eksik veya hatalı.',
     'iyzico_session_created' => 'İyzico ödeme oturumu başarıyla oluşturuldu.',

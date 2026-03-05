@@ -78,6 +78,7 @@ class ProductDetailsPublicResource extends JsonResource
             'reviews' => ProductReviewPublicResource::collection($this->reviews),
             'flash_sale' => $this->isInFlashDeal(),
             'is_featured' => $this->is_featured,
+            'created_at' => $this->created_at?->toIso8601String(),
             "specifications" => ProductFullSpecificationsPublicResource::collection($this->fullSpecifications),
         ];
     }

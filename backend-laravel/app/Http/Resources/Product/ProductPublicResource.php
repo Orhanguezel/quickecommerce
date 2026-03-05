@@ -61,6 +61,7 @@ class ProductPublicResource extends JsonResource
                 : 0,
             'flash_sale' => $this->isInFlashDeal(),
             'is_featured' => (bool)$this->is_featured,
+            'order_count' => $this->order_count ?? 0,
             'category_name' => new ProductCategoryByIdPublicResource($this->category)
         ];
     }

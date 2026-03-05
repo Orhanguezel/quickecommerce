@@ -195,6 +195,7 @@
       "refund_subtitle": "İade Alt Başlığı",
       "refund_url": "İade URL",
       "related_title": "Benzer Başlık",
+      "coupon_code": "Kupon Kodu",
       "delivery_enable": "Teslimat Etkinleştir/Devre Dışı Bırak",
       "refund_enable": "İade Etkinleştir/Devre Dışı Bırak"
     }

@@ -542,7 +542,7 @@ export function ProductDetailClient({
   }, [lightboxOpen, closeLightbox, lightboxPrev, lightboxNext]);
 
   return (
-    <div className="container py-6 lg:py-8">
+    <div className="container overflow-x-hidden py-6 lg:py-8">
       {/* Image Lightbox Modal */}
       {lightboxOpen && allImages.length > 0 && (
         <div
@@ -550,7 +550,7 @@ export function ProductDetailClient({
           onClick={closeLightbox}
         >
           <div
-            className="relative flex max-h-[90vh] w-full max-w-4xl flex-col items-center rounded-xl bg-white p-4 shadow-2xl dark:bg-zinc-900"
+            className="relative mx-2 flex max-h-[90vh] w-full max-w-4xl flex-col items-center overflow-hidden rounded-xl bg-white p-2 shadow-2xl sm:mx-4 sm:p-4 dark:bg-zinc-900"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close button */}
@@ -589,7 +589,7 @@ export function ProductDetailClient({
             )}
 
             {/* Main image with nav */}
-            <div className="relative flex w-full items-center justify-center px-12">
+            <div className="relative flex w-full items-center justify-center px-2 sm:px-12">
               {/* Prev button */}
               {allImages.length > 1 && (
                 <button
@@ -601,7 +601,7 @@ export function ProductDetailClient({
                 </button>
               )}
 
-              <div className="relative h-[65vh] w-full max-w-2xl">
+              <div className="relative h-[50vh] w-full max-w-2xl sm:h-[65vh]">
                 <Image
                   src={allImages[lightboxIndex]}
                   alt={product.name}
@@ -636,29 +636,29 @@ export function ProductDetailClient({
       )}
 
       {/* Breadcrumb */}
-      <nav className="mb-6 flex items-center gap-1.5 text-sm text-muted-foreground">
-        <Link href="/" className="hover:text-foreground">
+      <nav className="mb-6 flex items-center gap-1.5 overflow-hidden text-sm text-muted-foreground">
+        <Link href="/" className="shrink-0 hover:text-foreground">
           {t.home}
         </Link>
         {product.category && (
           <>
-            <ChevronRight className="h-3.5 w-3.5" />
+            <ChevronRight className="h-3.5 w-3.5 shrink-0" />
             <Link
               href={`/kategori/${product.category.category_slug}`}
-              className="hover:text-foreground"
+              className="shrink-0 hover:text-foreground"
             >
               {product.category.category_name}
             </Link>
           </>
         )}
-        <ChevronRight className="h-3.5 w-3.5" />
-        <span className="text-foreground">{product.name}</span>
+        <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+        <span className="truncate text-foreground">{product.name}</span>
       </nav>
 
       {/* Main Product Section */}
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:grid-cols-[minmax(0,480px)_minmax(0,1fr)_320px]">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:grid-cols-[minmax(0,480px)_minmax(0,1fr)_minmax(0,320px)]">
         {/* Gallery */}
-        <div className="space-y-3 rounded-lg border bg-card p-4">
+        <div className="space-y-3 overflow-hidden rounded-lg border bg-card p-2 sm:p-4">
           <div
             className="relative aspect-square cursor-zoom-in overflow-hidden rounded-md border bg-muted"
             onClick={() => allImages[normalizedImageIndex] && openLightbox(normalizedImageIndex)}
@@ -692,29 +692,29 @@ export function ProductDetailClient({
             </button>
 
             {/* Badges - stacked vertically */}
-            <div className="absolute left-3 top-3 z-10 flex flex-col gap-2">
+            <div className="absolute left-2 top-2 z-10 flex flex-col gap-1.5 sm:left-3 sm:top-3 sm:gap-2">
               {!!product.is_featured && (
-                <span className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-blue-700 to-blue-500 px-3 py-1.5 text-sm font-bold text-white shadow-md">
-                  <Award className="h-4 w-4" />
+                <span className="flex items-center gap-1 rounded-md bg-gradient-to-r from-blue-700 to-blue-500 px-2 py-1 text-xs font-bold text-white shadow-md sm:gap-1.5 sm:rounded-lg sm:px-3 sm:py-1.5 sm:text-sm">
+                  <Award className="h-3 w-3 sm:h-4 sm:w-4" />
                   Sporcunun Seçimi
                 </span>
               )}
               {isBestSeller && (
-                <span className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-orange-600 to-amber-500 px-3 py-1.5 text-sm font-bold text-white shadow-md">
-                  <Flame className="h-4 w-4" />
+                <span className="flex items-center gap-1 rounded-md bg-gradient-to-r from-orange-600 to-amber-500 px-2 py-1 text-xs font-bold text-white shadow-md sm:gap-1.5 sm:rounded-lg sm:px-3 sm:py-1.5 sm:text-sm">
+                  <Flame className="h-3 w-3 sm:h-4 sm:w-4" />
                   Çok Satan
                 </span>
               )}
               {isNewProduct && (
-                <span className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-500 px-3 py-1.5 text-sm font-bold text-white shadow-md">
-                  <Sparkles className="h-4 w-4" />
+                <span className="flex items-center gap-1 rounded-md bg-gradient-to-r from-emerald-600 to-teal-500 px-2 py-1 text-xs font-bold text-white shadow-md sm:gap-1.5 sm:rounded-lg sm:px-3 sm:py-1.5 sm:text-sm">
+                  <Sparkles className="h-3 w-3 sm:h-4 sm:w-4" />
                   Yeni Ürün
                 </span>
               )}
               {hasDiscount && effectiveDiscountPercent > 0 && (
-                <span className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-red-600 to-red-500 px-3 py-1.5 text-base font-bold text-white shadow-md">
+                <span className="flex items-center gap-1 rounded-md bg-gradient-to-r from-red-600 to-red-500 px-2 py-1 text-sm font-bold text-white shadow-md sm:gap-1.5 sm:rounded-lg sm:px-3 sm:py-1.5 sm:text-base">
                   {product.flash_sale && (
-                    <Zap className="h-4 w-4 fill-white" />
+                    <Zap className="h-3 w-3 fill-white sm:h-4 sm:w-4" />
                   )}
                   %{effectiveDiscountPercent} İndirim
                 </span>
@@ -748,9 +748,9 @@ export function ProductDetailClient({
         </div>
 
         {/* Product Info */}
-        <div className="rounded-lg border bg-card p-6">
+        <div className="overflow-hidden rounded-lg border bg-card p-4 sm:p-6">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">
+            <h1 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">
               {product.name}
             </h1>
 
@@ -801,22 +801,22 @@ export function ProductDetailClient({
 
           {/* Flash Sale Banner */}
           {product.flash_sale && (
-            <div className="mt-4 flex items-center gap-3 overflow-hidden rounded-lg bg-gradient-to-r from-red-600 via-red-500 to-orange-500 px-5 py-3 text-white shadow-lg">
+            <div className="mt-4 flex flex-wrap items-center gap-3 overflow-hidden rounded-lg bg-gradient-to-r from-red-600 via-red-500 to-orange-500 px-4 py-3 text-white shadow-lg sm:px-5">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
                 <Zap className="h-6 w-6 fill-white" />
               </div>
-              <div className="flex flex-col leading-tight">
+              <div className="flex min-w-0 flex-1 flex-col leading-tight">
                 <span className="text-xs font-bold uppercase tracking-widest opacity-90">
                   Flash Satış
                 </span>
-                <span className="text-lg font-extrabold">
+                <span className="text-base font-extrabold sm:text-lg">
                   {product.flash_sale.discount_type === "percentage"
                     ? `%${Math.round(product.flash_sale.discount_amount)} İndirim`
                     : `₺${product.flash_sale.discount_amount} İndirim`}
                 </span>
               </div>
               {savingsAmount > 0 && (
-                <span className="ml-auto rounded-full bg-white/20 px-3 py-1 text-sm font-bold">
+                <span className="rounded-full bg-white/20 px-3 py-1 text-sm font-bold">
                   ₺{savingsAmount} Kazanç
                 </span>
               )}
@@ -826,7 +826,7 @@ export function ProductDetailClient({
           {/* Price */}
           <div className="mt-4">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-              <span className="text-3xl font-bold text-primary sm:text-4xl">
+              <span className="text-2xl font-bold text-primary sm:text-3xl lg:text-4xl">
                 {displayPrice != null ? `₺${displayPrice.toFixed(2)}` : ""}
               </span>
               {hasDiscount && price != null && (
@@ -888,7 +888,7 @@ export function ProductDetailClient({
         </div>
 
         {/* Right Sidebar */}
-        <aside className="space-y-4">
+        <aside className="min-w-0 space-y-4">
           {/* Product Discount Highlight */}
           {hasDiscount && effectiveDiscountPercent > 0 && (
             <div className="rounded-lg border-2 border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
@@ -1220,13 +1220,13 @@ export function ProductDetailClient({
         <div className="py-6">
           {activeTab === "description" && (
             <div
-              className="prose prose-sm max-w-none"
+              className="prose prose-sm max-w-none overflow-x-auto break-words"
               dangerouslySetInnerHTML={{ __html: product.description || "" }}
             />
           )}
 
           {activeTab === "specs" && product.specifications?.length > 0 && (
-            <div className="overflow-hidden rounded-lg border">
+            <div className="overflow-x-auto rounded-lg border">
               <table className="w-full text-sm">
                 <tbody>
                   {product.specifications.map((spec, i) => (
@@ -1388,9 +1388,9 @@ export function ProductDetailClient({
       {relatedProducts.length > 0 && (
         <section className="mt-10">
           <h2 className="mb-6 text-xl font-bold">{productDetailsConfig.relatedTitle || t.related_products}</h2>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+          <div className="grid grid-cols-2 gap-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {relatedProducts.slice(0, 10).map((p) => (
-              <ProductCard key={p.id} product={p} />
+              <ProductCard key={p.id} product={p} compact />
             ))}
           </div>
         </section>

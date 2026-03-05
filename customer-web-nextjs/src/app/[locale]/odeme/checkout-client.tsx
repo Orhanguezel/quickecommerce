@@ -83,6 +83,7 @@ export function CheckoutClient({ translations: t }: Props) {
   const selectedCurrencyCode = useCurrencyStore((s) => s.getSelectedCurrencyCode());
   const productIds = items.map((item) => item.product_id).filter(Boolean) as number[];
   const { data: checkoutExtraInfo } = useCheckoutExtraInfoQuery(productIds);
+  const isCashOnDeliveryAllowed = checkoutExtraInfo?.cash_on_delivery_allowed ?? false;
 
   // State
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(
@@ -128,10 +129,12 @@ export function CheckoutClient({ translations: t }: Props) {
 
   const checkoutPaymentGateways = useMemo(
     () =>
-      (paymentGateways ?? []).filter((gw) =>
-        SUPPORTED_CHECKOUT_GATEWAYS.has(gw.slug)
-      ),
-    [paymentGateways]
+      (paymentGateways ?? []).filter((gw) => {
+        if (!SUPPORTED_CHECKOUT_GATEWAYS.has(gw.slug)) return false;
+        if (gw.slug === "cash_on_delivery" && !isCashOnDeliveryAllowed) return false;
+        return true;
+      }),
+    [paymentGateways, isCashOnDeliveryAllowed]
   );
 
   useEffect(() => {

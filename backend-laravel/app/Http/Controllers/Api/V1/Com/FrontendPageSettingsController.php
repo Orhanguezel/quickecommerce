@@ -146,7 +146,8 @@ class FrontendPageSettingsController extends Controller
             'com_product_details_page_delivery_subtitle',
             'com_product_details_page_return_refund_title',
             'com_product_details_page_return_refund_subtitle',
-            'com_product_details_page_related_title'
+            'com_product_details_page_related_title',
+            'com_product_details_page_coupon_code'
         ])->get();
 
         // Default settings
@@ -160,6 +161,7 @@ class FrontendPageSettingsController extends Controller
             'com_product_details_page_return_refund_url' => com_option_get('com_product_details_page_return_refund_url') ?? '',
             'com_product_details_page_return_refund_enable_disable' => com_option_get('com_product_details_page_return_refund_enable_disable') ?? '',
             'com_product_details_page_related_title' => com_option_get('com_product_details_page_related_title') ?? '',
+            'com_product_details_page_coupon_code' => com_option_get('com_product_details_page_coupon_code') ?? '',
         ];
 
         // Replace with translation values based on requested language

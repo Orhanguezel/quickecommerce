@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Customer;
 
+use App\Enums\StoreType;
 use App\Http\Controllers\Api\V1\Controller;
 use App\Http\Requests\Order\PlaceOrderRequest;
 use App\Http\Resources\Order\PlaceOrderDetailsResource;
@@ -18,6 +19,12 @@ use Modules\Wallet\app\Models\WalletTransaction;
 
 class PlaceOrderController extends Controller
 {
+    private const CASH_ON_DELIVERY_ALLOWED_STORE_TYPES = [
+        StoreType::RESTAURANT->value,
+        StoreType::CAFE->value,
+        StoreType::FAST_FOOD->value,
+    ];
+
     protected $orderService;
 
     public function __construct(OrderService $orderService)
@@ -37,6 +44,13 @@ class PlaceOrderController extends Controller
                 'success' => false,
                 'message' => __('messages.order_login_required'),
             ], 400);
+        }
+
+        if (($data['payment_gateway'] ?? null) === 'cash_on_delivery' && !$this->isCashOnDeliveryAllowedForOrder($data)) {
+            return response()->json([
+                'success' => false,
+                'message' => __('messages.order_cash_on_delivery_only_for_food'),
+            ], 422);
         }
 
         $orders = $this->orderService->createOrder($data);
@@ -187,5 +201,46 @@ class PlaceOrderController extends Controller
         ]);
 
         return $wallet;
+    }
+
+    private function isCashOnDeliveryAllowedForOrder(array $data): bool
+    {
+        $productIds = collect($data['packages'] ?? [])
+            ->pluck('items')
+            ->flatten(1)
+            ->pluck('product_id')
+            ->filter(fn($id) => is_numeric($id))
+            ->map(fn($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($productIds)) {
+            return false;
+        }
+
+        $products = Product::query()
+            ->with('store:id,store_type')
+            ->whereIn('id', $productIds)
+            ->get(['id', 'store_id', 'cash_on_delivery']);
+
+        if ($products->count() !== count($productIds)) {
+            return false;
+        }
+
+        foreach ($products as $product) {
+            $storeType = strtolower((string) ($product->store?->store_type ?? ''));
+            $codEnabled = (int) ($product->cash_on_delivery ?? 0) > 0;
+
+            if (!$codEnabled) {
+                return false;
+            }
+
+            if (!in_array($storeType, self::CASH_ON_DELIVERY_ALLOWED_STORE_TYPES, true)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

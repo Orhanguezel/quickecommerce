@@ -344,8 +344,8 @@ export function ProductCard({
       </div>
 
       {/* Info Section */}
-      <div className="flex flex-col gap-1.5 p-3">
-        <h3 className="line-clamp-1 text-sm font-semibold text-foreground">
+      <div className="flex flex-col gap-1 p-2 sm:gap-1.5 sm:p-3">
+        <h3 className="line-clamp-2 text-xs font-semibold text-foreground sm:line-clamp-1 sm:text-sm">
           {product.name}
         </h3>
 
