@@ -11,7 +11,7 @@ import {
   useWishlistToggleMutation,
 } from "@/modules/wishlist/wishlist.service";
 import Image from "next/image";
-import { Star, Heart, Eye, Zap } from "lucide-react";
+import { Star, Heart, Eye, Zap, Flame, Award } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { usePrice } from "@/hooks/use-price";
 
@@ -125,23 +125,23 @@ export function ProductCard({
   const ratingNum = Number(product.rating) || 0;
   const reviewCount = product.review_count || 0;
 
+  /* ── Best seller check ── */
+  const isBestSeller = (product.order_count ?? 0) >= 10;
+
   /* ── Featured badge (shared) ── */
   const featuredBadge = product.is_featured ? (
-    <div className="absolute left-0 top-2.5 z-10">
-      <div className="relative flex h-[22px] w-[78px] items-center">
-        <Image
-          src="/assets/images/featured.png"
-          alt={t("featured")}
-          aria-hidden="true"
-          fill
-          className="object-contain object-left"
-          unoptimized
-        />
-        <span className="relative z-10 pl-2 text-[11px] font-bold text-white">
-          {t("featured")}
-        </span>
-      </div>
-    </div>
+    <span className="absolute left-2 top-2.5 z-10 flex items-center gap-1 rounded bg-gradient-to-r from-blue-700 to-blue-500 px-1.5 py-0.5 text-[11px] font-bold text-white shadow-sm">
+      <Award className="h-2.5 w-2.5" />
+      Sporcunun Seçimi
+    </span>
+  ) : null;
+
+  /* ── Best seller badge (shared) ── */
+  const bestSellerBadge = isBestSeller ? (
+    <span className={`absolute left-2 ${product.is_featured ? "top-7" : "top-2.5"} z-10 flex items-center gap-1 rounded bg-gradient-to-r from-orange-600 to-amber-500 px-1.5 py-0.5 text-[11px] font-bold text-white shadow-sm`}>
+      <Flame className="h-2.5 w-2.5" />
+      Çok Satan
+    </span>
   ) : null;
 
   /* ── Flash sale computed discount % ── */
@@ -270,6 +270,7 @@ export function ProductCard({
         <div className="relative h-[140px] w-[140px] shrink-0 overflow-hidden bg-muted">
           {productImage}
           {featuredBadge}
+          {bestSellerBadge}
           {discountBadge}
           {flashSaleListBadge}
         </div>
@@ -312,6 +313,7 @@ export function ProductCard({
       >
         {productImage}
         {featuredBadge}
+        {bestSellerBadge}
         {discountBadge}
         {flashSaleStrip}
 
