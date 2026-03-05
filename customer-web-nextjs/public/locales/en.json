@@ -139,7 +139,9 @@
     "whatsapp": "WhatsApp",
     "email": "Email",
     "copy_link": "Copy Link",
-    "featured": "Featured"
+    "featured": "Featured",
+    "coupon_code": "Coupon Code",
+    "apply_coupon": "Apply Coupon"
   },
   "category": {
     "all_categories": "All Categories",

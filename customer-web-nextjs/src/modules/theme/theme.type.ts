@@ -142,6 +142,9 @@ export interface ThemeProductDetailsPage {
   refund_url: string | null;
   refund_enabled_disabled: "on" | "off";
   related_title: string;
+  coupon_code?: string;
+  coupon_enabled_disabled?: "on" | "off";
+  coupon_count?: number;
 }
 
 // Blog Sayfası

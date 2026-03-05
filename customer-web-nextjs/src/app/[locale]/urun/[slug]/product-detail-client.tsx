@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { Link, useRouter } from "@/i18n/routing";
 import {
   Star,
   Heart,
   Store,
+  ChevronLeft,
   ChevronRight,
+  X,
   Link2,
   Mail,
   Truck,
@@ -18,12 +20,24 @@ import {
   Plus,
   ShoppingCart,
   Zap,
+  Award,
+  Sparkles,
+  Flame,
+  Clock,
+  MapPin,
+  Package,
+  Ticket,
+  Copy,
+  Check,
 } from "lucide-react";
 import type {
   ProductDetail,
   Product,
   ProductVariant,
 } from "@/modules/product/product.type";
+import type { ShippingCampaign } from "@/modules/shipping-campaign/shipping-campaign.type";
+import type { Banner, BannerGroupedResponse } from "@/modules/banner/banner.type";
+import type { PublicCoupon } from "@/modules/coupon/coupon.type";
 import { ProductCard } from "@/components/product/product-card";
 import { useThemeConfig } from "@/modules/theme/use-theme-config";
 import { useAuthStore } from "@/stores/auth-store";
@@ -80,28 +94,233 @@ interface ProductDetailTranslations {
   whatsapp: string;
   email: string;
   copy_link: string;
+  coupon_code: string;
+  apply_coupon: string;
 }
 
 interface ProductDetailClientProps {
   product: ProductDetail;
   relatedProducts: Product[];
+  shippingCampaigns: ShippingCampaign[];
+  banners: BannerGroupedResponse;
+  coupons: PublicCoupon[];
   translations: ProductDetailTranslations;
+}
+
+/* ── Kuponlar (Hepsiburada tarzı) ── */
+function CouponSection({ coupons }: { coupons: PublicCoupon[] }) {
+  const [copiedId, setCopiedId] = useState<number | null>(null);
+
+  const handleCopy = (code: string, id: number) => {
+    navigator.clipboard?.writeText(code);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  // Show max 3 coupons
+  const visibleCoupons = coupons.slice(0, 3);
+
+  return (
+    <div className="rounded-lg border bg-card p-4">
+      <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-foreground">
+        <Ticket className="h-4 w-4 text-primary" />
+        Kuponlar
+      </h3>
+      <div className="space-y-2.5">
+        {visibleCoupons.map((coupon) => {
+          const isPercentage = coupon.discount_type === "percentage";
+          const discountLabel = isPercentage
+            ? `%${Math.round(coupon.discount)}`
+            : `${Math.round(coupon.discount)} TL`;
+          const endDate = coupon.end_date
+            ? new Date(coupon.end_date)
+            : null;
+          const endDateText = endDate
+            ? `${String(endDate.getDate()).padStart(2, "0")}.${String(endDate.getMonth() + 1).padStart(2, "0")}.${endDate.getFullYear()} ${String(endDate.getHours()).padStart(2, "0")}:${String(endDate.getMinutes()).padStart(2, "0")}`
+            : null;
+
+          return (
+            <div
+              key={coupon.id}
+              className="relative overflow-hidden rounded-lg border-2 border-dashed border-orange-300 bg-orange-50/50 dark:border-orange-800 dark:bg-orange-950/30"
+            >
+              <div className="flex items-center justify-between gap-3 px-3.5 py-3">
+                <div className="min-w-0">
+                  <p className="text-lg font-extrabold text-foreground">
+                    {discountLabel}
+                    <span className="ml-1 text-xs font-normal text-muted-foreground">
+                      {isPercentage ? "indirim" : "indirim"}
+                    </span>
+                  </p>
+                  {coupon.min_order_value != null && coupon.min_order_value > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Alt limit: {Math.round(coupon.min_order_value)} TL
+                    </p>
+                  )}
+                </div>
+                <button
+                  onClick={() => handleCopy(coupon.coupon_code, coupon.id)}
+                  className="flex shrink-0 items-center gap-1.5 rounded-lg border-2 border-orange-400 bg-white px-3 py-1.5 text-sm font-bold text-orange-600 transition-colors hover:bg-orange-50 dark:border-orange-700 dark:bg-orange-950 dark:text-orange-400 dark:hover:bg-orange-900"
+                >
+                  {copiedId === coupon.id ? (
+                    <>
+                      <Check className="h-3.5 w-3.5" />
+                      Kopyalandı
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3.5 w-3.5" />
+                      Kodu Al
+                    </>
+                  )}
+                </button>
+              </div>
+              {endDateText && (
+                <div className="border-t border-dashed border-orange-200 px-3.5 py-1.5 dark:border-orange-800">
+                  <p className="text-[11px] text-muted-foreground">
+                    Geçerlilik {endDateText}
+                  </p>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ── Teslimat Seçenekleri ── */
+function DeliveryOptions({
+  product,
+  isFreeShippingEnabled,
+  applicableCampaigns,
+  displayPrice,
+}: {
+  product: ProductDetail;
+  isFreeShippingEnabled: boolean;
+  applicableCampaigns: ShippingCampaign[];
+  displayPrice: number | null;
+}) {
+  const deliveryMin = product.delivery_time_min ?? 2;
+  const deliveryMax = product.delivery_time_max ?? 5;
+
+  // Compute estimated delivery date range
+  const estimatedDates = useMemo(() => {
+    const now = new Date();
+    const minDate = new Date(now);
+    minDate.setDate(minDate.getDate() + Number(deliveryMin));
+    const maxDate = new Date(now);
+    maxDate.setDate(maxDate.getDate() + Number(deliveryMax));
+
+    const fmt = (d: Date) => {
+      const days = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
+      const months = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+      return `${d.getDate()} ${months[d.getMonth()]} ${days[d.getDay()]}`;
+    };
+
+    return { min: fmt(minDate), max: fmt(maxDate) };
+  }, [deliveryMin, deliveryMax]);
+
+  // Check if free shipping applies via campaigns
+  const freeShippingCampaign = applicableCampaigns.find(
+    (c) => c.min_order_value > 0 && displayPrice != null && displayPrice >= c.min_order_value
+  );
+  const hasFreeShipping = isFreeShippingEnabled || !!freeShippingCampaign;
+
+  return (
+    <div className="mt-5 rounded-lg border bg-muted/30 p-4">
+      <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-foreground">
+        <Truck className="h-4 w-4 text-primary" />
+        Teslimat Seçenekleri
+      </h3>
+
+      <div className="space-y-3">
+        {/* Estimated delivery */}
+        <div className="flex items-start gap-3 rounded-md border bg-card px-3 py-2.5">
+          <Clock className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground">
+              {product.delivery_time_text || (
+                <>
+                  Tahmini <span className="text-primary">{estimatedDates.min}</span> - <span className="text-primary">{estimatedDates.max}</span> arası kargoda
+                </>
+              )}
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">Standart Teslimat</p>
+          </div>
+        </div>
+
+        {/* Free shipping */}
+        {hasFreeShipping && (
+          <div className="flex items-start gap-3 rounded-md border border-green-200 bg-green-50 px-3 py-2.5 dark:border-green-900 dark:bg-green-950">
+            <PackageCheck className="mt-0.5 h-4 w-4 shrink-0 text-green-600 dark:text-green-400" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-green-700 dark:text-green-400">
+                Ücretsiz Kargo
+              </p>
+              <p className="mt-0.5 text-xs text-green-600/80 dark:text-green-400/70">
+                {freeShippingCampaign
+                  ? freeShippingCampaign.title
+                  : "Bu ürün için kargo ücretsizdir"}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Non-free shipping campaign hint */}
+        {!hasFreeShipping && applicableCampaigns.length > 0 && (
+          <div className="flex items-start gap-3 rounded-md border border-orange-200 bg-orange-50 px-3 py-2.5 dark:border-orange-900 dark:bg-orange-950">
+            <Package className="mt-0.5 h-4 w-4 shrink-0 text-orange-600 dark:text-orange-400" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-orange-700 dark:text-orange-400">
+                {applicableCampaigns[0].title}
+              </p>
+              {applicableCampaigns[0].description && (
+                <p className="mt-0.5 text-xs text-orange-600/80 dark:text-orange-400/70">
+                  {applicableCampaigns[0].description}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Nationwide shipping */}
+        <div className="flex items-start gap-3 rounded-md border bg-card px-3 py-2.5">
+          <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground">
+              Tüm Türkiye&apos;ye Teslimat
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Hızlı ve güvenli kargo ile kapınıza kadar
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function ProductDetailClient({
   product,
   relatedProducts,
+  shippingCampaigns,
+  banners,
+  coupons,
   translations: t,
 }: ProductDetailClientProps) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<
-    "description" | "specs" | "reviews" | "questions"
+    "description" | "specs" | "reviews" | "questions" | "delivery" | "refund"
   >("description");
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
     product.variants?.[0] ?? null
   );
   const [isWishlisted, setIsWishlisted] = useState(Boolean(product.wishlist));
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
   const { productDetailsConfig } = useThemeConfig();
   const router = useRouter();
 
@@ -149,11 +368,27 @@ export function ProductDetailClient({
     displayPrice = Math.max(0, displayPrice - fsDiscount);
   }
   const hasDiscount = displayPrice != null && price != null && displayPrice < price;
+  const savingsAmount = hasDiscount ? Math.round(price! - displayPrice!) : 0;
+  const effectiveDiscountPercent = hasDiscount
+    ? Math.round(((price! - displayPrice!) / price!) * 100)
+    : 0;
 
   const stock = selectedVariant
     ? selectedVariant.stock_quantity
     : product.stock ?? 0;
   const inStock = stock > 0;
+
+  // "Yeni Ürün" badge: son 30 gün içinde eklenen ürünler
+  const isNewProduct = useMemo(() => {
+    if (!product.created_at) return false;
+    const created = new Date(product.created_at);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    return created >= thirtyDaysAgo;
+  }, [product.created_at]);
+
+  // "Çok Satan" badge: 10+ sipariş alan ürünler
+  const isBestSeller = (product.order_count ?? 0) >= 10;
 
   // gallery_images_urls is a comma-separated string from the backend, not an array
   const galleryUrls = product.gallery_images_urls
@@ -171,9 +406,11 @@ export function ProductDetailClient({
   );
 
   const isChangeOfMindEnabled = product.allow_change_in_mind === 1 || product.allow_change_in_mind === "1";
-  const isCashOnDeliveryEnabled = product.cash_on_delivery === 1 || product.cash_on_delivery === "1";
+  const COD_ALLOWED_STORE_TYPES = new Set(["restaurant", "cafe", "fast-food"]);
+  const isFoodStore = COD_ALLOWED_STORE_TYPES.has(String(product.store?.store_type ?? "").toLowerCase());
+  const isCashOnDeliveryEnabled =
+    (product.cash_on_delivery === 1 || product.cash_on_delivery === "1") && isFoodStore;
   const isFreeShippingEnabled = product.free_shipping === 1 || product.free_shipping === "1";
-
   const infoRows = [
     { label: t.sku, value: selectedVariant?.sku || String(product.id) },
     { label: t.category, value: product.category?.category_name || "-" },
@@ -183,6 +420,23 @@ export function ProductDetailClient({
     ...(product.available_time_starts ? [{ label: t.available_start_time, value: product.available_time_starts }] : []),
     ...(product.available_time_ends ? [{ label: t.available_end_time, value: product.available_time_ends }] : []),
   ];
+
+  // Filter applicable shipping campaigns based on product price
+  const applicableCampaigns = useMemo(() => {
+    if (!shippingCampaigns?.length || displayPrice == null) return [];
+    return shippingCampaigns.filter(
+      (c) => c.min_order_value <= 0 || displayPrice! >= c.min_order_value
+    );
+  }, [shippingCampaigns, displayPrice]);
+
+  // Collect all banners into a flat list for product page display
+  const applicableBanners = useMemo(() => {
+    if (!banners) return [];
+    return Object.values(banners)
+      .flat()
+      .filter((b): b is Banner => b != null && b.status === 1)
+      .slice(0, 3);
+  }, [banners]);
 
   const variantOptions = useMemo(() => {
     return (product.variants ?? []).map((variant) => {
@@ -219,11 +473,17 @@ export function ProductDetailClient({
   };
 
   const tabs = [
-    { key: "description" as const, label: t.description },
-    { key: "questions" as const, label: t.questions },
-    { key: "reviews" as const, label: t.reviews },
+    { key: "description" as const, label: t.description, badge: 0 },
+    { key: "reviews" as const, label: t.reviews, badge: product.review_count || 0 },
+    { key: "questions" as const, label: t.questions, badge: 0 },
     ...(product.specifications?.length > 0
-      ? [{ key: "specs" as const, label: t.specifications }]
+      ? [{ key: "specs" as const, label: t.specifications, badge: 0 }]
+      : []),
+    ...(productDetailsConfig.isDeliveryEnabled
+      ? [{ key: "delivery" as const, label: t.delivery_info, badge: 0 }]
+      : []),
+    ...(productDetailsConfig.isRefundEnabled
+      ? [{ key: "refund" as const, label: t.return_policy, badge: 0 }]
       : []),
   ];
 
@@ -247,8 +507,134 @@ export function ProductDetailClient({
     });
   };
 
+  // Lightbox handlers
+  const openLightbox = useCallback((index: number) => {
+    setLightboxIndex(index);
+    setLightboxOpen(true);
+  }, []);
+
+  const closeLightbox = useCallback(() => {
+    setLightboxOpen(false);
+  }, []);
+
+  const lightboxPrev = useCallback(() => {
+    setLightboxIndex((prev) => (prev <= 0 ? allImages.length - 1 : prev - 1));
+  }, [allImages.length]);
+
+  const lightboxNext = useCallback(() => {
+    setLightboxIndex((prev) => (prev >= allImages.length - 1 ? 0 : prev + 1));
+  }, [allImages.length]);
+
+  // Keyboard navigation for lightbox
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeLightbox();
+      else if (e.key === "ArrowLeft") lightboxPrev();
+      else if (e.key === "ArrowRight") lightboxNext();
+    };
+    document.addEventListener("keydown", handleKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", handleKey);
+      document.body.style.overflow = "";
+    };
+  }, [lightboxOpen, closeLightbox, lightboxPrev, lightboxNext]);
+
   return (
-    <div className="container py-6 lg:py-8 xl:pl-[248px] 2xl:pl-[248px]">
+    <div className="container py-6 lg:py-8">
+      {/* Image Lightbox Modal */}
+      {lightboxOpen && allImages.length > 0 && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={closeLightbox}
+        >
+          <div
+            className="relative flex max-h-[90vh] w-full max-w-4xl flex-col items-center rounded-xl bg-white p-4 shadow-2xl dark:bg-zinc-900"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close button */}
+            <button
+              onClick={closeLightbox}
+              className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-muted/80 text-foreground transition-colors hover:bg-muted"
+              aria-label="Kapat"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            {/* Thumbnails at top */}
+            {allImages.length > 1 && (
+              <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
+                {allImages.map((img, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setLightboxIndex(i)}
+                    className={`relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
+                      lightboxIndex === i
+                        ? "border-primary ring-2 ring-primary/30"
+                        : "border-transparent opacity-60 hover:opacity-100"
+                    }`}
+                  >
+                    <Image
+                      src={img}
+                      alt={`${product.name} - ${i + 1}`}
+                      fill
+                      sizes="64px"
+                      className="object-cover"
+                      unoptimized
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Main image with nav */}
+            <div className="relative flex w-full items-center justify-center px-12">
+              {/* Prev button */}
+              {allImages.length > 1 && (
+                <button
+                  onClick={lightboxPrev}
+                  className="absolute left-0 z-10 flex h-10 w-10 items-center justify-center rounded-full border bg-card shadow-md transition-colors hover:bg-muted"
+                  aria-label="Önceki"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+              )}
+
+              <div className="relative h-[65vh] w-full max-w-2xl">
+                <Image
+                  src={allImages[lightboxIndex]}
+                  alt={product.name}
+                  fill
+                  sizes="(max-width: 768px) 95vw, 700px"
+                  className="object-contain"
+                  priority
+                  unoptimized
+                />
+              </div>
+
+              {/* Next button */}
+              {allImages.length > 1 && (
+                <button
+                  onClick={lightboxNext}
+                  className="absolute right-0 z-10 flex h-10 w-10 items-center justify-center rounded-full border bg-card shadow-md transition-colors hover:bg-muted"
+                  aria-label="Sonraki"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              )}
+            </div>
+
+            {/* Image counter */}
+            {allImages.length > 1 && (
+              <p className="mt-3 text-sm text-muted-foreground">
+                {lightboxIndex + 1} / {allImages.length}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Breadcrumb */}
       <nav className="mb-6 flex items-center gap-1.5 text-sm text-muted-foreground">
         <Link href="/" className="hover:text-foreground">
@@ -270,16 +656,19 @@ export function ProductDetailClient({
       </nav>
 
       {/* Main Product Section */}
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)_320px]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:grid-cols-[minmax(0,480px)_minmax(0,1fr)_320px]">
         {/* Gallery */}
         <div className="space-y-3 rounded-lg border bg-card p-4">
-          <div className="relative aspect-square overflow-hidden rounded-md border bg-muted">
+          <div
+            className="relative aspect-square cursor-zoom-in overflow-hidden rounded-md border bg-muted"
+            onClick={() => allImages[normalizedImageIndex] && openLightbox(normalizedImageIndex)}
+          >
             {allImages[normalizedImageIndex] ? (
               <Image
                 src={allImages[normalizedImageIndex]}
                 alt={product.name}
                 fill
-                sizes="(max-width: 1024px) 100vw, 420px"
+                sizes="(max-width: 1024px) 100vw, 480px"
                 className="object-contain"
                 priority
               />
@@ -302,20 +691,35 @@ export function ProductDetailClient({
               />
             </button>
 
-            {hasDiscount && (
-              <span className="absolute left-3 top-3 flex items-center gap-1 rounded-md bg-destructive px-2.5 py-1 text-sm font-semibold text-destructive-foreground">
-                {product.flash_sale ? (
-                  <>
-                    <Zap className="h-3.5 w-3.5 fill-white" />
-                    %{product.flash_sale.discount_type === "percentage"
-                      ? Math.round(product.flash_sale.discount_amount)
-                      : Math.round(product.discount_percentage)}
-                  </>
-                ) : (
-                  product.discount_percentage > 0 && `-%${Math.round(product.discount_percentage)}`
-                )}
-              </span>
-            )}
+            {/* Badges - stacked vertically */}
+            <div className="absolute left-3 top-3 z-10 flex flex-col gap-2">
+              {!!product.is_featured && (
+                <span className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-blue-700 to-blue-500 px-3 py-1.5 text-sm font-bold text-white shadow-md">
+                  <Award className="h-4 w-4" />
+                  Sporcunun Seçimi
+                </span>
+              )}
+              {isBestSeller && (
+                <span className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-orange-600 to-amber-500 px-3 py-1.5 text-sm font-bold text-white shadow-md">
+                  <Flame className="h-4 w-4" />
+                  Çok Satan
+                </span>
+              )}
+              {isNewProduct && (
+                <span className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-500 px-3 py-1.5 text-sm font-bold text-white shadow-md">
+                  <Sparkles className="h-4 w-4" />
+                  Yeni Ürün
+                </span>
+              )}
+              {hasDiscount && effectiveDiscountPercent > 0 && (
+                <span className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-red-600 to-red-500 px-3 py-1.5 text-base font-bold text-white shadow-md">
+                  {product.flash_sale && (
+                    <Zap className="h-4 w-4 fill-white" />
+                  )}
+                  %{effectiveDiscountPercent} İndirim
+                </span>
+              )}
+            </div>
           </div>
 
           {allImages.length > 1 && (
@@ -350,6 +754,31 @@ export function ProductDetailClient({
               {product.name}
             </h1>
 
+            {/* Badges */}
+            {(!!product.is_featured || isNewProduct || isBestSeller) && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {!!product.is_featured && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm font-bold text-blue-700 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-400">
+                    <Award className="h-4 w-4" />
+                    Sporcunun Seçimi
+                    <ShieldCheck className="h-4 w-4 text-blue-500 dark:text-blue-400" />
+                  </span>
+                )}
+                {isBestSeller && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50 px-3 py-1.5 text-sm font-bold text-orange-700 dark:border-orange-900 dark:bg-orange-950 dark:text-orange-400">
+                    <Flame className="h-4 w-4" />
+                    Çok Satan
+                  </span>
+                )}
+                {isNewProduct && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-bold text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-400">
+                    <Sparkles className="h-4 w-4" />
+                    Yeni Ürün
+                  </span>
+                )}
+              </div>
+            )}
+
             {/* Rating */}
             <div className="mt-2 flex items-center gap-2">
               <div className="flex items-center gap-1">
@@ -372,30 +801,50 @@ export function ProductDetailClient({
 
           {/* Flash Sale Banner */}
           {product.flash_sale && (
-            <div className="mt-4 flex items-center gap-3 overflow-hidden rounded-lg bg-gradient-to-r from-red-600 to-orange-500 px-4 py-2.5 text-white shadow-sm">
-              <Zap className="h-6 w-6 shrink-0 fill-white" />
+            <div className="mt-4 flex items-center gap-3 overflow-hidden rounded-lg bg-gradient-to-r from-red-600 via-red-500 to-orange-500 px-5 py-3 text-white shadow-lg">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
+                <Zap className="h-6 w-6 fill-white" />
+              </div>
               <div className="flex flex-col leading-tight">
                 <span className="text-xs font-bold uppercase tracking-widest opacity-90">
                   Flash Satış
                 </span>
-                <span className="text-base font-extrabold">
+                <span className="text-lg font-extrabold">
                   {product.flash_sale.discount_type === "percentage"
                     ? `%${Math.round(product.flash_sale.discount_amount)} İndirim`
                     : `₺${product.flash_sale.discount_amount} İndirim`}
                 </span>
               </div>
+              {savingsAmount > 0 && (
+                <span className="ml-auto rounded-full bg-white/20 px-3 py-1 text-sm font-bold">
+                  ₺{savingsAmount} Kazanç
+                </span>
+              )}
             </div>
           )}
 
           {/* Price */}
-          <div className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <span className="text-3xl font-bold text-foreground sm:text-4xl md:text-5xl">
-              {displayPrice != null ? `₺${displayPrice.toFixed(2)}` : ""}
-            </span>
-            {hasDiscount && price != null && (
-              <span className="text-xl text-muted-foreground line-through sm:text-2xl md:text-3xl">
-                ₺{price.toFixed(2)}
+          <div className="mt-4">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span className="text-3xl font-bold text-primary sm:text-4xl">
+                {displayPrice != null ? `₺${displayPrice.toFixed(2)}` : ""}
               </span>
+              {hasDiscount && price != null && (
+                <span className="text-lg text-muted-foreground line-through sm:text-xl">
+                  ₺{price.toFixed(2)}
+                </span>
+              )}
+              {hasDiscount && savingsAmount > 0 && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-sm font-semibold text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-400">
+                  Kazancınız ₺{savingsAmount}
+                </span>
+              )}
+            </div>
+            {hasDiscount && effectiveDiscountPercent > 0 && (
+              <div className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-red-50 px-3 py-1.5 text-sm font-semibold text-red-600 dark:bg-red-950 dark:text-red-400">
+                <Zap className="h-4 w-4" />
+                %{effectiveDiscountPercent} indirimli fiyat
+              </div>
             )}
           </div>
 
@@ -428,10 +877,119 @@ export function ProductDetailClient({
               </div>
             </div>
           )}
+
+          {/* Teslimat Seçenekleri */}
+          <DeliveryOptions
+            product={product}
+            isFreeShippingEnabled={isFreeShippingEnabled}
+            applicableCampaigns={applicableCampaigns}
+            displayPrice={displayPrice}
+          />
         </div>
 
         {/* Right Sidebar */}
         <aside className="space-y-4">
+          {/* Product Discount Highlight */}
+          {hasDiscount && effectiveDiscountPercent > 0 && (
+            <div className="rounded-lg border-2 border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900">
+                  <Zap className="h-4 w-4 text-red-600 dark:text-red-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-red-700 dark:text-red-400">
+                    %{effectiveDiscountPercent} İndirim
+                  </p>
+                  <p className="text-xs text-red-600/80 dark:text-red-400/70">
+                    ₺{savingsAmount} tasarruf edin
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Campaigns */}
+          {applicableCampaigns.length > 0 && (
+            <div className="rounded-lg border bg-card p-4">
+              <p className="mb-3 text-sm font-bold">Kampanyalar</p>
+              <div className="space-y-2">
+                {applicableCampaigns.map((campaign) => (
+                  <div
+                    key={campaign.id}
+                    className="flex items-start gap-2.5 rounded-md border px-3 py-2"
+                    style={{
+                      backgroundColor: campaign.background_color || undefined,
+                    }}
+                  >
+                    <Truck
+                      className="mt-0.5 h-4 w-4 shrink-0"
+                      style={{ color: campaign.title_color || "hsl(var(--primary))" }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p
+                        className="text-sm font-semibold leading-tight"
+                        style={{ color: campaign.title_color || undefined }}
+                      >
+                        {campaign.title}
+                      </p>
+                      {campaign.description && (
+                        <p
+                          className="mt-0.5 text-xs leading-tight text-muted-foreground"
+                          style={{ color: campaign.description_color || undefined }}
+                        >
+                          {campaign.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Banners */}
+          {applicableBanners.length > 0 && (
+            <div className="space-y-2">
+              {applicableBanners.map((banner) => (
+                <Link
+                  key={banner.id}
+                  href={banner.redirect_url || "#"}
+                  className="group flex items-center gap-3 rounded-lg border bg-card px-4 py-3 transition-colors hover:bg-muted/50"
+                  style={{
+                    backgroundColor: banner.background_color || undefined,
+                  }}
+                >
+                  {banner.thumbnail_image && (
+                    <Image
+                      src={banner.thumbnail_image}
+                      alt={banner.title}
+                      width={40}
+                      height={40}
+                      className="h-10 w-10 shrink-0 rounded object-cover"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className="text-sm font-semibold group-hover:underline"
+                      style={{ color: banner.title_color || undefined }}
+                    >
+                      {banner.title}
+                    </p>
+                    {banner.description && (
+                      <p
+                        className="text-xs text-muted-foreground truncate"
+                        style={{ color: banner.description_color || undefined }}
+                      >
+                        {banner.description}
+                      </p>
+                    )}
+                  </div>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </Link>
+              ))}
+            </div>
+          )}
+
           {product.store && (
             <div className="rounded-lg border bg-card p-5">
               <div className="flex items-center gap-3">
@@ -514,6 +1072,13 @@ export function ProductDetailClient({
             >
               {t.buy_now}
             </button>
+
+            {/* Kupon */}
+            {productDetailsConfig.isCouponEnabled && coupons.length > 0 && (
+              <div className="mt-4">
+                <CouponSection coupons={coupons.slice(0, productDetailsConfig.couponCount)} />
+              </div>
+            )}
 
             <div className="mt-5">
               <p className="text-sm font-semibold">{t.share_connect}</p>
@@ -631,18 +1196,23 @@ export function ProductDetailClient({
 
       {/* Tabs */}
       <div className="mt-8">
-        <div className="flex border-b">
+        <div className="flex overflow-x-auto border-b scrollbar-hide">
           {tabs.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`px-4 py-3 text-sm font-medium transition-colors ${
+              className={`flex shrink-0 items-center gap-1.5 px-5 py-3 text-sm font-medium transition-colors ${
                 activeTab === tab.key
                   ? "border-b-2 border-primary text-primary"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {tab.label}
+              {tab.badge > 0 && (
+                <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-semibold text-primary-foreground">
+                  {tab.badge}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -715,6 +1285,99 @@ export function ProductDetailClient({
                 ))
               ) : (
                 <p className="text-sm text-muted-foreground">{t.no_reviews}</p>
+              )}
+            </div>
+          )}
+
+          {activeTab === "delivery" && (
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <Truck className="mt-0.5 h-5 w-5 text-primary" />
+                <div>
+                  <h3 className="font-semibold">{productDetailsConfig.deliveryTitle}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {productDetailsConfig.deliverySubtitle}
+                  </p>
+                </div>
+              </div>
+              {product.delivery_time_min != null && (
+                <div className="flex items-start gap-3">
+                  <Clock className="mt-0.5 h-5 w-5 text-primary" />
+                  <div>
+                    <h3 className="font-semibold">{t.delivery_info}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {product.delivery_time_min}-{product.delivery_time_max} {t.days}
+                    </p>
+                  </div>
+                </div>
+              )}
+              {(product.free_shipping === 1 || product.free_shipping === "1") && (
+                <div className="flex items-start gap-3">
+                  <PackageCheck className="mt-0.5 h-5 w-5 text-green-600" />
+                  <div>
+                    <h3 className="font-semibold text-green-600">{t.free_shipping}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">{t.free_shipping_note}</p>
+                  </div>
+                </div>
+              )}
+              {isCashOnDeliveryEnabled && (
+                <div className="flex items-start gap-3">
+                  <ShieldCheck className="mt-0.5 h-5 w-5 text-primary" />
+                  <div>
+                    <h3 className="font-semibold">{t.cash_on_delivery}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">{t.cash_on_delivery_note}</p>
+                  </div>
+                </div>
+              )}
+              {productDetailsConfig.deliveryUrl && (
+                <Link
+                  href={productDetailsConfig.deliveryUrl}
+                  className="inline-block text-sm font-medium text-primary hover:underline"
+                >
+                  {t.delivery_info} →
+                </Link>
+              )}
+            </div>
+          )}
+
+          {activeTab === "refund" && (
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <RotateCcw className="mt-0.5 h-5 w-5 text-primary" />
+                <div>
+                  <h3 className="font-semibold">{productDetailsConfig.refundTitle}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {productDetailsConfig.refundSubtitle}
+                  </p>
+                </div>
+              </div>
+              {isChangeOfMindEnabled && (
+                <div className="flex items-start gap-3">
+                  <ShieldCheck className="mt-0.5 h-5 w-5 text-primary" />
+                  <div>
+                    <h3 className="font-semibold">{t.change_of_mind_allowed}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">{t.yes}</p>
+                  </div>
+                </div>
+              )}
+              {product.return_in_days != null && (
+                <div className="flex items-start gap-3">
+                  <Clock className="mt-0.5 h-5 w-5 text-primary" />
+                  <div>
+                    <h3 className="font-semibold">{t.return_policy}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {product.return_in_days} {t.days}
+                    </p>
+                  </div>
+                </div>
+              )}
+              {productDetailsConfig.refundUrl && (
+                <Link
+                  href={productDetailsConfig.refundUrl}
+                  className="inline-block text-sm font-medium text-primary hover:underline"
+                >
+                  {t.return_policy} →
+                </Link>
               )}
             </div>
           )}

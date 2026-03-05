@@ -3,6 +3,11 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   Card,
   Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
   Switch,
   Textarea,
   Tabs,
@@ -22,6 +27,7 @@ import Image from "next/image";
 import CloudIcon from "@/assets/icons/CloudIcon";
 import Cancel from "@/components/blocks/custom-icons/Cancel";
 import PhotoUploadModal from "@/components/blocks/shared/PhotoUploadModal";
+import { useCouponLineQuery } from "@/modules/admin-section/coupon-line/coupon-line.action";
 
 interface ThemeLoginPageProps {
   allData: any[];
@@ -40,6 +46,7 @@ type ToggleState = {
   emailVerification: string;
   loginOTP: string;
   maintenanceMode: string;
+  couponEnabled: string;
 };
 
 const makeLoginSchema = () => {
@@ -51,6 +58,8 @@ const makeLoginSchema = () => {
     refund_subtitle_df: z.string().optional(),
     refund_url: z.string().optional(),
     related_title_df: z.string().optional(),
+    coupon_code: z.string().optional(),
+    coupon_count: z.string().optional(),
   };
 
   const langs = getThemeLanguageData()
@@ -92,14 +101,34 @@ const ThemeProductDetailsPage: React.FC<ThemeLoginPageProps> = ({
   const dir = locale === "ar" ? "rtl" : "ltr";
   const itemIndex = 0;
 
-  const { register, handleSubmit, setValue } =
+  const { register, handleSubmit, setValue, watch } =
     useForm<PageSettingsFormDataHome>({
       resolver: zodResolver(pageSettingsSchemaHome),
     });
+  const selectedCouponCode = watch("coupon_code");
+  const { couponLineList, isPending: isCouponLinesPending } = useCouponLineQuery({
+    limit: 200,
+    page: 1,
+    sortField: "id",
+    sort: "desc",
+  });
+  const couponOptions = useMemo(() => {
+    const lines = (couponLineList as any)?.coupon_lines || [];
+    return lines
+      .filter((item: any) => item?.coupon_code)
+      .filter((item: any) => Number(item?.status) === 1)
+      .map((item: any) => ({
+        value: String(item.coupon_code),
+        label: item?.coupon?.title
+          ? `${item.coupon_code} - ${item.coupon.title}`
+          : String(item.coupon_code),
+      }));
+  }, [couponLineList]);
   const [toggles, setToggles] = useState<ToggleState>({
     emailVerification: "",
     loginOTP: "",
     maintenanceMode: "",
+    couponEnabled: "",
   });
 
   useEffect(() => {
@@ -121,7 +150,15 @@ const ThemeProductDetailsPage: React.FC<ThemeLoginPageProps> = ({
     setValue("refund_subtitle_df", loginDefault?.refund_subtitle || "");
     setValue("refund_url", loginDefault?.refund_url || "");
     setValue("related_title_df", loginDefault?.related_title || "");
+    setValue("coupon_code", loginDefault?.coupon_code || "");
+    setValue("coupon_count", String(loginDefault?.coupon_count || "1"));
 
+    if (loginDefault.coupon_enabled_disabled) {
+      setToggles((prev) => ({
+        ...prev,
+        couponEnabled: loginDefault.coupon_enabled_disabled,
+      }));
+    }
     if (loginDefault.delivery_enabled_disabled) {
       setToggles((prev) => ({
         ...prev,
@@ -154,6 +191,12 @@ const ThemeProductDetailsPage: React.FC<ThemeLoginPageProps> = ({
       });
   }, [allData, setValue, multiLangData]);
 
+  useEffect(() => {
+    if (!selectedCouponCode && couponOptions.length > 0) {
+      setValue("coupon_code", couponOptions[0].value);
+    }
+  }, [selectedCouponCode, couponOptions, setValue]);
+
   const handleToggle = (property: keyof ToggleState) => {
     setToggles((prev) => ({
       ...prev,
@@ -177,6 +220,9 @@ const ThemeProductDetailsPage: React.FC<ThemeLoginPageProps> = ({
           refund_subtitle: values.refund_subtitle_df,
           refund_url: values.refund_url,
           related_title: values.related_title_df,
+          coupon_code: values.coupon_code,
+          coupon_enabled_disabled: toggles.couponEnabled,
+          coupon_count: Number(values.coupon_count) || 1,
           delivery_enabled_disabled: toggles.emailVerification,
           refund_enabled_disabled: toggles.loginOTP,
         },
@@ -215,6 +261,9 @@ const ThemeProductDetailsPage: React.FC<ThemeLoginPageProps> = ({
             refund_title: (values as any)[`refund_title_${langCode}`],
             refund_subtitle: (values as any)[`refund_subtitle_${langCode}`],
             related_title: (values as any)[`related_title_${langCode}`],
+            coupon_code: values.coupon_code,
+            coupon_enabled_disabled: toggles.couponEnabled,
+            coupon_count: Number(values.coupon_count) || 1,
             delivery_url: values.delivery_url,
             refund_url: values.refund_url,
             delivery_enabled_disabled: toggles.emailVerification,
@@ -318,6 +367,73 @@ const ThemeProductDetailsPage: React.FC<ThemeLoginPageProps> = ({
                       {...register(field("related_title"))}
                     />
 
+                    <div className="border-t pt-3 mt-3">
+                      <p className="text-base font-semibold mb-2">Kupon Ayarları</p>
+
+                      <div className="flex items-center gap-3 mb-3">
+                        <p className="text-sm">Ürün Detayında Kupon Göster</p>
+                        <Switch
+                          checked={toggles.couponEnabled === "on"}
+                          onCheckedChange={() => handleToggle("couponEnabled")}
+                        />
+                      </div>
+
+                      {toggles.couponEnabled === "on" && (
+                        <div className="space-y-3 pl-2 border-l-2 border-primary/30">
+                          <label className="block text-sm font-medium">
+                            Gösterilecek Kupon Sayısı
+                          </label>
+                          <Select
+                            value={watch("coupon_count") || "1"}
+                            onValueChange={(value) => setValue("coupon_count", value)}
+                          >
+                            <SelectTrigger className="app-input w-32">
+                              <SelectValue placeholder="1" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="1">1</SelectItem>
+                              <SelectItem value="2">2</SelectItem>
+                              <SelectItem value="3">3</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <input type="hidden" {...register("coupon_count")} />
+
+                          <label className="block text-sm font-medium">
+                            Varsayılan Kupon Kodu (opsiyonel)
+                          </label>
+                          <input type="hidden" {...register("coupon_code")} />
+                          <Select
+                            value={selectedCouponCode || ""}
+                            onValueChange={(value) => setValue("coupon_code", value)}
+                          >
+                            <SelectTrigger className="app-input">
+                              <SelectValue
+                                placeholder={
+                                  isCouponLinesPending ? "Yükleniyor..." : "Kupon seçin"
+                                }
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {couponOptions.length > 0 ? (
+                                couponOptions.map((coupon) => (
+                                  <SelectItem key={coupon.value} value={coupon.value}>
+                                    {coupon.label}
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <SelectItem value="__no_coupon__" disabled>
+                                  Aktif kupon bulunamadı
+                                </SelectItem>
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="border-t pt-3 mt-3">
+                      <p className="text-base font-semibold mb-2">Teslimat & İade</p>
+                    </div>
                     <p className="text-base">{t("theme.product_details.delivery_enable")}</p>
                     <Switch
                       checked={toggles.emailVerification === "on"}

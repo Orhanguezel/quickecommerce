@@ -139,7 +139,9 @@
     "whatsapp": "WhatsApp",
     "email": "E-posta",
     "copy_link": "Linki Kopyala",
-    "featured": "Öne Çıkan"
+    "featured": "Öne Çıkan",
+    "coupon_code": "Kupon Kodu",
+    "apply_coupon": "Kuponu Uygula"
   },
   "category": {
     "all_categories": "Tüm Kategoriler",

@@ -5,6 +5,9 @@ import { cache } from "react";
 import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { ProductDetailResponse } from "@/modules/product/product.type";
+import type { ShippingCampaign } from "@/modules/shipping-campaign/shipping-campaign.type";
+import type { BannerGroupedResponse } from "@/modules/banner/banner.type";
+import type { PublicCoupon } from "@/modules/coupon/coupon.type";
 import { ProductDetailClient } from "./product-detail-client";
 
 interface Props {
@@ -54,6 +57,45 @@ function convertPriceFromDefault(
   if (!defaultRate || !targetRate) return amount;
   const converted = amount * (targetRate / defaultRate);
   return Number(converted.toFixed(2));
+}
+
+async function getShippingCampaigns(locale: string): Promise<ShippingCampaign[]> {
+  try {
+    const res = await fetchAPI<{ data?: ShippingCampaign[] }>(
+      API_ENDPOINTS.SHIPPING_CAMPAIGNS_ACTIVE,
+      {},
+      locale
+    );
+    return (res?.data ?? []) as ShippingCampaign[];
+  } catch {
+    return [];
+  }
+}
+
+async function getBanners(locale: string): Promise<BannerGroupedResponse> {
+  try {
+    const res = await fetchAPI<BannerGroupedResponse>(
+      API_ENDPOINTS.BANNER_LIST,
+      {},
+      locale
+    );
+    return res ?? {};
+  } catch {
+    return {};
+  }
+}
+
+async function getActiveCoupons(locale: string): Promise<PublicCoupon[]> {
+  try {
+    const res = await fetchAPI<{ data?: PublicCoupon[] }>(
+      API_ENDPOINTS.COUPONS,
+      {},
+      locale
+    );
+    return Array.isArray(res?.data) ? res.data : [];
+  } catch {
+    return [];
+  }
 }
 
 async function getProductDetail(slug: string, locale: string) {
@@ -128,7 +170,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProductDetailPage({ params }: Props) {
   const { locale, slug } = await params;
-  const res = await getProductDetail(slug, locale);
+  const [res, shippingCampaigns, banners, coupons] = await Promise.all([
+    getProductDetail(slug, locale),
+    getShippingCampaigns(locale),
+    getBanners(locale),
+    getActiveCoupons(locale),
+  ]);
 
   if (!res?.data) {
     notFound();
@@ -239,6 +286,9 @@ export default async function ProductDetailPage({ params }: Props) {
       <ProductDetailClient
         product={product}
         relatedProducts={relatedProducts}
+        shippingCampaigns={shippingCampaigns}
+        banners={banners}
+        coupons={coupons}
         translations={{
           home: t("home"),
           add_to_cart: t("add_to_cart"),
@@ -285,6 +335,8 @@ export default async function ProductDetailPage({ params }: Props) {
           whatsapp: t("whatsapp"),
           email: t("email"),
           copy_link: t("copy_link"),
+          coupon_code: t("coupon_code"),
+          apply_coupon: t("apply_coupon"),
         }}
       />
     </>

@@ -212,6 +212,9 @@ export function useThemeConfig() {
     refundSubtitle: productDetailsPage?.refund_subtitle,
     refundUrl: productDetailsPage?.refund_url,
     relatedTitle: productDetailsPage?.related_title,
+    couponCode: productDetailsPage?.coupon_code || "",
+    isCouponEnabled: productDetailsPage?.coupon_enabled_disabled === "on",
+    couponCount: Number(productDetailsPage?.coupon_count) || 1,
   };
 
   // Blog
