@@ -349,7 +349,7 @@ const AddStoreTypeForm = () => {
                 showAllTab={true}
                 helperText={
                   <span>
-                    Her tab sadece o dilin JSON'unu düzenler. <code>name</code>,{' '}
+                    Her tab sadece o dilin JSON&apos;unu düzenler. <code>name</code>,{' '}
                     <code>description</code>, <code>additional_charge_name</code> string olmalı.
                   </span>
                 }

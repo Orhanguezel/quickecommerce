@@ -290,7 +290,7 @@ const ThemeSideBannerSettings: React.FC<ThemeSideBannerSettingsProps> = ({ allDa
                           }
                         />
                         <p className="mt-1 text-xs text-gray-500">
-                          Header'ın altından ekstra boşluk (px). 0 = header'a yapışık başlar, 16 = 16px aşağıdan başlar.
+                          Header&apos;ın altından ekstra boşluk (px). 0 = header&apos;a yapışık başlar, 16 = 16px aşağıdan başlar.
                         </p>
                       </div>
                     </div>

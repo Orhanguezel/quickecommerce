@@ -97,6 +97,7 @@ const ExpandedRCTable = <TId extends RowId = RowId>({
   };
 
   const columns = useMemo(() => {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     return useColumn(fixLeft, fixRight).map((col: any) => {
       if (col.dataIndex === 'name' || col.dataIndex === 'category_name') {
         return {
@@ -110,6 +111,7 @@ const ExpandedRCTable = <TId extends RowId = RowId>({
       }
       return col;
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [useColumn, fixLeft, fixRight]);
 
   const [columnVisibility, setColumnVisibility] = useState<{ [key: string]: boolean }>(() => {

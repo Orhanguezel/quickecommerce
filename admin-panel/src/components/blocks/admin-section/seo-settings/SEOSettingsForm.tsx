@@ -449,8 +449,8 @@ const SEOSettingsForm = () => {
                   showAllTab={true}
                   helperText={
                     <span>
-                      Her tab sadece o dilin JSON’unu düzenler. <code>meta_tag</code> alanı array
-                      olmalı (örn: ["tag1","tag2"]).
+                      Her tab sadece o dilin JSON&apos;unu düzenler. <code>meta_tag</code> alanı array
+                      olmalı (örn: [&quot;tag1&quot;,&quot;tag2&quot;]).
                     </span>
                   }
                 />
