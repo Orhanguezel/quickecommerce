@@ -29,6 +29,9 @@ import {
   Ticket,
   Copy,
   Check,
+  MessageCircleQuestion,
+  Send,
+  LogIn,
 } from "lucide-react";
 import type {
   ProductDetail,
@@ -47,6 +50,10 @@ import {
   useWishlistToggleMutation,
 } from "@/modules/wishlist/wishlist.service";
 import { useRecentlyViewedStore } from "@/stores/recently-viewed-store";
+import {
+  useProductQuestionsQuery,
+  useAskQuestionMutation,
+} from "@/modules/product/product-qa.service";
 
 interface ProductDetailTranslations {
   home: string;
@@ -86,6 +93,14 @@ interface ProductDetailTranslations {
   cash_on_delivery_note: string;
   free_shipping_note: string;
   questions_coming_soon: string;
+  ask_seller: string;
+  your_question: string;
+  send_question: string;
+  no_questions: string;
+  login_to_ask: string;
+  question_sent: string;
+  seller_reply: string;
+  load_more: string;
   anonymous: string;
   decrease_quantity: string;
   increase_quantity: string;
@@ -330,6 +345,42 @@ export function ProductDetailClient({
   const wishlistRemove = useWishlistRemoveMutation();
   const addRecentlyViewed = useRecentlyViewedStore((s) => s.addItem);
 
+  // Q&A
+  const [qaPage, setQaPage] = useState(1);
+  const [questionText, setQuestionText] = useState("");
+  const [questionSuccess, setQuestionSuccess] = useState(false);
+  const questionsQuery = useProductQuestionsQuery(product.id, qaPage);
+  const askQuestionMutation = useAskQuestionMutation();
+
+  const handleAskQuestion = () => {
+    if (!isAuthenticated) {
+      router.push("/giris");
+      return;
+    }
+    if (!questionText.trim()) return;
+    const storeId = product.store?.id;
+    if (!storeId) return;
+    askQuestionMutation.mutate(
+      { product_id: product.id, store_id: storeId, question: questionText.trim() },
+      {
+        onSuccess: () => {
+          setQuestionText("");
+          setQuestionSuccess(true);
+          setTimeout(() => setQuestionSuccess(false), 3000);
+        },
+      }
+    );
+  };
+
+  const scrollToQuestions = () => {
+    if (!isAuthenticated) {
+      router.push("/giris");
+      return;
+    }
+    setActiveTab("questions");
+    document.getElementById("product-tabs")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   // Track recently viewed
   useEffect(() => {
     addRecentlyViewed({
@@ -475,7 +526,7 @@ export function ProductDetailClient({
   const tabs = [
     { key: "description" as const, label: t.description, badge: 0 },
     { key: "reviews" as const, label: t.reviews, badge: product.review_count || 0 },
-    { key: "questions" as const, label: t.questions, badge: 0 },
+    { key: "questions" as const, label: t.questions, badge: questionsQuery.data?.meta.total || 0 },
     ...(product.specifications?.length > 0
       ? [{ key: "specs" as const, label: t.specifications, badge: 0 }]
       : []),
@@ -796,6 +847,14 @@ export function ProductDetailClient({
               <span className="text-sm text-muted-foreground">
                 {product.rating || "0.0"} ({product.review_count} {t.reviews})
               </span>
+              <span className="text-muted-foreground/40">|</span>
+              <button
+                onClick={scrollToQuestions}
+                className="flex items-center gap-1 text-sm text-primary transition-colors hover:text-primary/80"
+              >
+                <MessageCircleQuestion className="h-4 w-4" />
+                {t.ask_seller}
+              </button>
             </div>
           </div>
 
@@ -1201,7 +1260,7 @@ export function ProductDetailClient({
       </div>
 
       {/* Tabs */}
-      <div className="mt-8">
+      <div id="product-tabs" className="mt-8">
         <div className="flex overflow-x-auto border-b scrollbar-hide">
           {tabs.map((tab) => (
             <button
@@ -1252,9 +1311,118 @@ export function ProductDetailClient({
           )}
 
           {activeTab === "questions" && (
-            <p className="text-sm text-muted-foreground">
-              {t.questions_coming_soon}
-            </p>
+            <div className="space-y-6">
+              {/* Soru Sorma Formu */}
+              <div className="rounded-lg border bg-card p-4">
+                {isAuthenticated ? (
+                  <div className="space-y-3">
+                    <textarea
+                      value={questionText}
+                      onChange={(e) => setQuestionText(e.target.value)}
+                      placeholder={t.your_question}
+                      rows={3}
+                      maxLength={1000}
+                      className="w-full resize-none rounded-md border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                    <div className="flex items-center justify-between">
+                      {questionSuccess && (
+                        <span className="flex items-center gap-1 text-sm text-green-600">
+                          <Check className="h-4 w-4" />
+                          {t.question_sent}
+                        </span>
+                      )}
+                      <button
+                        onClick={handleAskQuestion}
+                        disabled={!questionText.trim() || askQuestionMutation.isPending}
+                        className="ml-auto flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <Send className="h-4 w-4" />
+                        {t.send_question}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => router.push("/giris")}
+                    className="flex w-full items-center justify-center gap-2 rounded-md border-2 border-dashed border-muted-foreground/30 py-4 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                  >
+                    <LogIn className="h-4 w-4" />
+                    {t.login_to_ask}
+                  </button>
+                )}
+              </div>
+
+              {/* Soru Listesi */}
+              {questionsQuery.isLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                </div>
+              ) : questionsQuery.data && questionsQuery.data.questions.length > 0 ? (
+                <div className="space-y-4">
+                  {questionsQuery.data.questions.map((q) => (
+                    <div key={q.id} className="rounded-lg border bg-card">
+                      {/* Soru */}
+                      <div className="p-4">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-start gap-3">
+                            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                              <MessageCircleQuestion className="h-4 w-4" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-semibold">{q.customer || t.anonymous}</span>
+                                {q.created_at && (
+                                  <span className="text-xs text-muted-foreground">{q.created_at}</span>
+                                )}
+                              </div>
+                              <p className="mt-1 text-sm text-foreground">{q.question}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Cevap */}
+                      {q.reply && (
+                        <div className="border-t bg-muted/30 p-4">
+                          <div className="flex items-start gap-3">
+                            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400">
+                              <Store className="h-4 w-4" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-semibold text-green-700 dark:text-green-400">
+                                  {t.seller_reply}
+                                </span>
+                                {q.replied_at && (
+                                  <span className="text-xs text-muted-foreground">{q.replied_at}</span>
+                                )}
+                              </div>
+                              <p className="mt-1 text-sm text-foreground">{q.reply}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  {/* Pagination */}
+                  {questionsQuery.data.meta.current_page < questionsQuery.data.meta.last_page && (
+                    <div className="flex justify-center pt-2">
+                      <button
+                        onClick={() => setQaPage((p) => p + 1)}
+                        className="rounded-md border px-6 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                      >
+                        {t.load_more}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="py-8 text-center text-sm text-muted-foreground">
+                  {t.no_questions}
+                </p>
+              )}
+            </div>
           )}
 
           {activeTab === "reviews" && (

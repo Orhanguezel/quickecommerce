@@ -40,6 +40,8 @@ export default async function CartPage({ params }: Props) {
         home: commonT("home"),
         currency: commonT("currency"),
         quantity: commonT("products"),
+        free_shipping_progress: t("free_shipping_progress"),
+        free_shipping_threshold: t("free_shipping_threshold"),
       }}
     />
   );

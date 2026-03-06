@@ -384,7 +384,7 @@ const ThemeProductDetailsPage: React.FC<ThemeLoginPageProps> = ({
                             Gösterilecek Kupon Sayısı
                           </label>
                           <Select
-                            value={watch("coupon_count") || "1"}
+                            value={String(watch("coupon_count") || "1")}
                             onValueChange={(value) => setValue("coupon_count", value)}
                           >
                             <SelectTrigger className="app-input w-32">
@@ -403,7 +403,7 @@ const ThemeProductDetailsPage: React.FC<ThemeLoginPageProps> = ({
                           </label>
                           <input type="hidden" {...register("coupon_code")} />
                           <Select
-                            value={selectedCouponCode || ""}
+                            value={String(selectedCouponCode || "")}
                             onValueChange={(value) => setValue("coupon_code", value)}
                           >
                             <SelectTrigger className="app-input">
@@ -415,7 +415,7 @@ const ThemeProductDetailsPage: React.FC<ThemeLoginPageProps> = ({
                             </SelectTrigger>
                             <SelectContent>
                               {couponOptions.length > 0 ? (
-                                couponOptions.map((coupon) => (
+                                couponOptions.map((coupon: { value: string; label: string }) => (
                                   <SelectItem key={coupon.value} value={coupon.value}>
                                     {coupon.label}
                                   </SelectItem>

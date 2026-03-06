@@ -891,6 +891,8 @@
     "warenty_period": "Garanti Süresi",
     "product_name": "Ürün Adı",
     "product_description": "Ürün Açıklaması",
+    "price_input_currency": "Fiyat Giriş Para Birimi",
+    "saved_in_base_currency": "Ana para biriminde kaydedilir",
     "seller": "Satıcı",
     "product": "Ürün",
     "vat_tax": "KDV/Vergi",
@@ -1250,6 +1252,10 @@
     "product_info": "Ürün Bilgisi"
   },
   "common": {
+    "no_data": "Veri bulunamadı",
+    "write_reply": "Cevabınızı yazın...",
+    "questions": "Sorular",
+    "reply": "Yanıt",
     "store_type": "Mağaza Türü",
     "updated_successfully": "Başarıyla güncellendi",
     "created_successfully": "Başarıyla oluşturuldu",

@@ -24,6 +24,7 @@ class AdminProductQueryManageController extends Controller
             "reply_status" => $request->reply_status,
             "status" => $request->status,
             "per_page" => $request->per_page,
+            "product_id" => $request->product_id,
         ];
         $queries = $this->productQueryRepo->getAllQuestionsAndReplies($filters);
         return response()->json([

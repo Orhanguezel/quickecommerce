@@ -1080,7 +1080,18 @@ class FrontendController extends Controller
             ];
         });
 
-        return response()->json(['data' => $campaigns]);
+        // Fallback: if no active campaign, use SystemCommission settings
+        $systemCommission = SystemCommission::first();
+        $freeShippingMinOrderValue = $campaigns->isNotEmpty()
+            ? (float) $campaigns->first()['min_order_value']
+            : (float) ($systemCommission->free_shipping_min_order_value ?? 0);
+        $minimumShippingCharge = (float) ($systemCommission->order_shipping_charge ?? 0);
+
+        return response()->json([
+            'data' => $campaigns,
+            'free_shipping_min_order_value' => $freeShippingMinOrderValue,
+            'minimum_shipping_charge' => $minimumShippingCharge,
+        ]);
     }
 
     public function flashDealProducts(Request $request)

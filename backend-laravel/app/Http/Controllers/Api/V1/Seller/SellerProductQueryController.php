@@ -24,6 +24,7 @@ class SellerProductQueryController extends Controller
             "date_filter" => $request->date_filter,
             "reply_status" => $request->reply_status,
             "per_page" => $request->per_page,
+            "product_id" => $request->product_id,
         ];
         $seller = auth('api')->user();
         $seller_stores = Store::where('store_seller_id', $seller->id)->pluck('id');

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useSyncExternalStore } from "react";
 import { usePrice } from "@/hooks/use-price";
 
 import { Link } from "@/i18n/routing";
@@ -8,7 +8,7 @@ import { useCartStore } from "@/stores/cart-store";
 import { useCheckoutExtraInfoQuery } from "@/modules/checkout/checkout.service";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
+import { Minus, Plus, ShoppingBag, Trash2, Truck } from "lucide-react";
 
 interface Props {
   translations: {
@@ -24,6 +24,8 @@ interface Props {
     home: string;
     currency: string;
     quantity: string;
+    free_shipping_progress: string;
+    free_shipping_threshold: string;
   };
 }
 
@@ -34,7 +36,11 @@ export function CartClient({ translations: t }: Props) {
   const totalPrice = useCartStore((s) => s.totalPrice);
   const totalItems = useCartStore((s) => s.totalItems);
   const { formatPrice } = usePrice();
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
   const productIds = items.map((item) => item.product_id).filter(Boolean) as number[];
   const { data: checkoutExtraInfo } = useCheckoutExtraInfoQuery(productIds);
 
@@ -51,10 +57,11 @@ export function CartClient({ translations: t }: Props) {
       ? 0
       : minimumShippingCharge;
   const totalAmount = subtotal + shippingAmount;
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const remainingForFreeShipping =
+    freeShippingThreshold > 0 ? Math.max(0, freeShippingThreshold - subtotal) : 0;
+  const showFreeShippingNotice =
+    freeShippingThreshold > 0 &&
+    subtotal < freeShippingThreshold;
 
   if (items.length === 0) {
     return (
@@ -83,6 +90,39 @@ export function CartClient({ translations: t }: Props) {
       <h1 className="mb-6 text-2xl font-bold">
         {t.your_cart} ({totalItems()})
       </h1>
+
+      {showFreeShippingNotice && (
+        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          <div className="flex gap-3">
+            <Truck className="mt-0.5 h-5 w-5 shrink-0" />
+            <div className="space-y-1">
+              <p className="font-medium">
+                {t.free_shipping_progress
+                  .replace(
+                    "{remaining}",
+                    mounted
+                      ? formatPrice(remainingForFreeShipping)
+                      : remainingForFreeShipping.toFixed(2)
+                  )
+                  .replace(
+                    "{threshold}",
+                    mounted
+                      ? formatPrice(freeShippingThreshold)
+                      : freeShippingThreshold.toFixed(2)
+                  )}
+              </p>
+              <p className="text-xs text-amber-700">
+                {t.free_shipping_threshold.replace(
+                  "{shipping}",
+                  mounted
+                    ? formatPrice(minimumShippingCharge)
+                    : minimumShippingCharge.toFixed(2)
+                )}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-8 lg:grid-cols-3">
         {/* Cart Items */}

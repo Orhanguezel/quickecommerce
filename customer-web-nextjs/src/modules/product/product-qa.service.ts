@@ -6,12 +6,14 @@ import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 
 export interface ProductQuestion {
   id: number;
-  customer_name: string;
+  product_id: number;
+  customer: string;
   question: string;
-  answer: string | null;
-  answered_by: string | null;
-  created_at: string;
-  answered_at: string | null;
+  store: string | null;
+  reply: string | null;
+  replied_at: string | null;
+  status: number;
+  created_at: string | null;
 }
 
 export interface ProductQAResponse {

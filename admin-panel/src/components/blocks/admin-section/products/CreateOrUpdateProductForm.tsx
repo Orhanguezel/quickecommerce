@@ -28,6 +28,8 @@ import { useUnitQuery } from '@/modules/common/unit/unit.action';
 import CloudIcon from '@/assets/icons/CloudIcon';
 import { AppSearchSelect } from '@/components/blocks/common/AppSearchSelect';
 import TiptapEditor from '@/components/blocks/common/TiptapField';
+import ProductQuestionsSection from '@/components/blocks/shared/ProductQuestionsSection';
+import { API_ENDPOINTS } from '@/endpoints/AdminApiEndPoints';
 import { TagsInput } from '@/components/ui/tags-input';
 import GlobalImageLoader from '@/lib/imageLoader';
 import {
@@ -98,6 +100,7 @@ interface SelectCategory {
 interface CurrencyRow {
   code: string;
   symbol?: string;
+  name?: string;
   exchange_rate: number;
   is_default?: boolean;
 }
@@ -360,6 +363,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
       .map((c: any) => ({
         code: String(c?.code ?? c?.value ?? '').toUpperCase(),
         symbol: c?.symbol ?? '',
+        name: c?.label ?? c?.name ?? '',
         exchange_rate: Number(c?.exchange_rate ?? 1),
         is_default: Boolean(c?.is_default),
       }))
@@ -397,7 +401,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
     () =>
       currencyRows.map((c) => ({
         value: c.code,
-        label: `${c.code}${c.symbol ? ` (${c.symbol})` : ''}`,
+        label: c.name || `${c.code}${c.symbol ? ` (${c.symbol})` : ''}`,
       })),
     [currencyRows],
   );
@@ -1783,7 +1787,7 @@ Rules:
               <div className="mt-4">
                 <div className="mb-3 grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div>
-                    <p className="text-sm font-medium mb-1">Price Input Currency</p>
+                    <p className="text-sm font-medium mb-1">{t('label.price_input_currency')}</p>
                     <AppSearchSelect
                       value={priceInputCurrency || defaultCurrency?.code || ''}
                       onSelect={(value) => setPriceInputCurrency(String(value || ''))}
@@ -1792,7 +1796,7 @@ Rules:
                     />
                   </div>
                   <div className="md:col-span-2 text-xs text-gray-500 dark:text-gray-300 flex items-end">
-                    Saved in base currency: {defaultCurrency?.code || '-'}
+                    {t('label.saved_in_base_currency')}: {defaultCurrency?.code || '-'}
                   </div>
                 </div>
                 {!isSelectedValuesEmpty && combinations.length > 0 && (
@@ -2110,6 +2114,15 @@ Rules:
             </Card>
           )}
         </Tabs>
+        )}
+
+        {/* Product Questions (only in edit mode) */}
+        {editData?.id && (
+          <ProductQuestionsSection
+            productId={editData.id}
+            mode="admin"
+            listEndpoint={API_ENDPOINTS.QUESTIONS_LIST}
+          />
         )}
 
         <Card className="mt-4 sticky bottom-0 w-full p-4">

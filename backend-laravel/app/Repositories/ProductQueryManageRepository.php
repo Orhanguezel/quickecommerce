@@ -60,6 +60,9 @@ class ProductQueryManageRepository implements ProductQueryManageInterface
                     $query->whereNotNull('replied_at')->latest('replied_at');
                 }
             })
+            ->when(isset($data['product_id']), function ($query) use ($data) {
+                $query->where('product_id', $data['product_id']);
+            })
             ->where('status', 1)
             ->latest()
             ->paginate($data['per_page'] ?? 10);
@@ -121,6 +124,9 @@ class ProductQueryManageRepository implements ProductQueryManageInterface
             })
             ->when(isset($data['status']), function ($query) use ($data) {
                 $query->where('status', $data['status']);
+            })
+            ->when(isset($data['product_id']), function ($query) use ($data) {
+                $query->where('product_id', $data['product_id']);
             })
             ->latest()
             ->paginate($data['per_page'] ?? 10);

@@ -891,6 +891,8 @@
     "warenty_period": "Warenty Period",
     "product_name": "Product Name",
     "product_description": "Product Description",
+    "price_input_currency": "Price Input Currency",
+    "saved_in_base_currency": "Saved in base currency",
     "seller": "Seller",
     "product": "Product",
     "vat_tax": "Vat/Tax",
@@ -1250,6 +1252,10 @@
     "product_info": "Product Info"
   },
   "common": {
+    "no_data": "No data found",
+    "write_reply": "Write your reply...",
+    "questions": "Questions",
+    "reply": "Reply",
     "store_type": "Store Type",
     "updated_successfully": "Updated Successfully",
     "created_successfully": "Created Successfully",

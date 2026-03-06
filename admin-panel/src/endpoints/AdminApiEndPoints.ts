@@ -595,7 +595,7 @@ export const API_ENDPOINTS = {
   BECOME_A_SELLER: "v1/become-a-seller",
 
   GENERAL: "v1/site-general-info",
-  CURRENCY: "v1/currency-info",
+  CURRENCY: "v1/currency-list",
   CURRENCY_DROPDOWN_LIST: "v1/currency-list",
 
   ADMIN_FORGOT_PASSWORD: "v1/auth/forget-password",
