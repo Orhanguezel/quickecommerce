@@ -149,7 +149,7 @@ const NoticesTable = () => {
           width: "12%",
         },
         {
-          title: "Actions",
+          title: t("table_header.actions"),
           dataIndex: "actions",
           width: "12%",
           fixed: !isMobile && fixRight ? "right" : undefined,
@@ -177,7 +177,7 @@ const NoticesTable = () => {
                       : "text-green-500 border-green-500 bg-green-50"
                   } capitalize px-2 py-1 rounded`}
                 >
-                  {priority}
+                  {t(`common.${priority}`)}
                 </span>
               </div>
             </div>
@@ -197,7 +197,7 @@ const NoticesTable = () => {
                       : "bg-gray-50 border border-gray-500 text-gray-500"
                   } capitalize`}
                 >
-                  {`${status == 1 ? "Show" : "Hide"}`}
+                  {status == 1 ? t("common.show") : t("common.hide")}
                 </Badge>
               </div>
             </div>

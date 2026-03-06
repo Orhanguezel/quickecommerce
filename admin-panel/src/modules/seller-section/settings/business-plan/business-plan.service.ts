@@ -90,3 +90,11 @@ export const useGenerateBusinessPlanHMACService = () => {
     SELLER_API_ENDPOINTS.GENERATE_BUSINESS_PLAN_HMAC,
   );
 };
+
+export const useCreateSubscriptionIyzicoSessionService = () => {
+  return useBaseService<any>(SELLER_API_ENDPOINTS.SUBSCRIPTION_CREATE_IYZICO_SESSION);
+};
+
+export const useCreateSubscriptionPayTRSessionService = () => {
+  return useBaseService<any>(SELLER_API_ENDPOINTS.SUBSCRIPTION_CREATE_PAYTR_SESSION);
+};

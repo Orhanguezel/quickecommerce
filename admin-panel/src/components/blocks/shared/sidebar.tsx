@@ -33,6 +33,8 @@ export const Sidebar = memo(({ setIsLoading }: any) => {
   );
   const selectedStore = useAppSelector((state) => state.store.selectedStore);
   const storedSlug = selectedStore?.slug ?? "";
+  const dispatch = useAppDispatch();
+  const router = useRouter();
   const pathname = usePathname();
   const pathnameWithoutLocale = pathname.replace(`/${localeMain}`, "") || "/";
   const isSellerPath = pathnameWithoutLocale.startsWith("/seller");
@@ -42,15 +44,31 @@ export const Sidebar = memo(({ setIsLoading }: any) => {
     { skip: !isSellerPath }
   );
   const storeList = useMemo(() => (stores as any)?.stores ?? [], [stores]);
-  const fallbackStoreSlug = useMemo(() => {
-    if (storedSlug) return storedSlug;
-    const first = Array.isArray(storeList) ? storeList[0] : null;
-    return first?.slug ?? "";
-  }, [storedSlug, storeList]);
+  // Auto-select first store if none selected
+  useEffect(() => {
+    if (isSellerPath && !storedSlug && Array.isArray(storeList) && storeList.length > 0) {
+      const first = storeList[0];
+      if (first?.slug) {
+        dispatch(setSelectedStore({
+          id: first.value,
+          type: first.type ?? "",
+          slug: first.slug,
+        }));
+        localStorage.setItem("selectedStore", JSON.stringify({
+          id: first.value,
+          type: first.type ?? "",
+          slug: first.slug,
+        }));
+        localStorage.setItem("store_id", String(first.value));
+      }
+    }
+  }, [isSellerPath, storedSlug, storeList, dispatch]);
+
+  const effectiveSlug = storedSlug || (Array.isArray(storeList) ? storeList[0]?.slug : "") || "";
 
   const { getPermissions, refetch, isPending, isFetching } =
     useGetPermissionsQuery({
-      store_slug: fallbackStoreSlug,
+      store_slug: effectiveSlug,
       language: localeMain,
     });
 
@@ -69,8 +87,6 @@ export const Sidebar = memo(({ setIsLoading }: any) => {
   const dir = localeDir === "ar" ? "rtl" : "ltr";
   const MenuItems = getPermissions?.permissions;
   const locale = useLocale();
-  const dispatch = useAppDispatch();
-  const router = useRouter();
 
   const { refetch: isDashboardRefetch } = useSellerDashboardQuery({
     language: locale,
@@ -100,8 +116,8 @@ export const Sidebar = memo(({ setIsLoading }: any) => {
   const [search, setSearch] = useState("");
   const menuItems: any =
     storedSlug === "" && getPermissions?.activity_scope === "store_level"
-      ? [...MenuItems]
-      : MenuItems;
+      ? [...(MenuItems || [])]
+      : MenuItems || [];
 
 
   useEffect(() => {

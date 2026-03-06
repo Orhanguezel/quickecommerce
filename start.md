@@ -81,7 +81,7 @@ genel magaza olsun. her magaza kendi kategorisini ekleyebilsin.bu mumkun mu? bu 
 
 +14.resim konusunda sorun var. ana sayfada secilen buyuk resim gösterilmiyor. 
 
-+15.kampanyalar linkler hatalar var. 
++15.kampanyalar lihttp://localhost:3001/tr/admin/system-management/currencies/settingsnkler hatalar var. 
 
 +16.ana sayfadaki kategori kismi acilmiyor tamami
 
@@ -104,3 +104,14 @@ fiyatlar türkiye sartlarina uygun olarak vergi dahil hesaplanmali. faturada ver
 
 
 1000 lira ustu. sepette kargo ucreti yok. ama sonradan kargo ucreti cikti. 
+
+
+
+
+ürün detailde soru sorma da aktif olsun. 
+
+
+
+sepettr üünlrt eklenince özetler olsun. nereye ne kadar ödeniyormus görülüyor. 
+
+-

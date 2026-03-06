@@ -55,6 +55,8 @@ export const SELLER_API_ENDPOINTS = {
   BUY_PACKAGE: "v1/subscription/package/buy",
   BUSINESS_PLAN_CHANGE: "v1/seller/store/settings/business-plan-change",
   GENERATE_BUSINESS_PLAN_HMAC: "v1/subscription/package/generate-hmac",
+  SUBSCRIPTION_CREATE_IYZICO_SESSION: "v1/subscription/package/create-iyzico-session",
+  SUBSCRIPTION_CREATE_PAYTR_SESSION: "v1/subscription/package/create-paytr-session",
 
   // seller wallet
   WALLET_LIST: "v1/seller/store/financial/wallet",
@@ -62,6 +64,8 @@ export const SELLER_API_ENDPOINTS = {
   WALLET_TRANSACTIONS: "v1/seller/store/financial/wallet/transactions",
   WALLET_STATUS_UPDATE: "v1/wallet/payment-status-update",
   GENERATE_WALLET_HMAC: "v1/wallet/generate-hmac",
+  WALLET_CREATE_IYZICO_SESSION: "v1/wallet/create-iyzico-session",
+  WALLET_CREATE_PAYTR_SESSION: "v1/wallet/create-paytr-session",
 
   // Seller Staff
   STAFF_ADD: "v1/seller/store/staff/add",

@@ -5,28 +5,49 @@ namespace App\Http\Controllers\Api\V1\Seller;
 use App\Http\Controllers\Api\V1\Controller;
 use App\Models\CargoShipment;
 use App\Models\Order;
+use App\Models\Store;
 use App\Services\GdeliveryService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class SellerCargoController extends Controller
 {
     public function __construct(private GdeliveryService $gdelivery) {}
 
     /**
+     * Satıcının mağaza ID'lerini döndür.
+     */
+    private function getSellerStoreIds(): \Illuminate\Support\Collection
+    {
+        return Store::where('store_seller_id', auth()->id())->pluck('id');
+    }
+
+    /**
+     * Satıcının siparişini bul (mağaza kontrolü ile).
+     */
+    private function findSellerOrder(int $orderId): Order
+    {
+        return Order::where('id', $orderId)
+            ->whereIn('store_id', $this->getSellerStoreIds())
+            ->firstOrFail();
+    }
+
+    /**
      * Sipariş için kargo oluştur (sadece kendi siparişi).
      * POST /seller/orders/{orderId}/cargo
      */
-    public function createShipment(int $orderId): JsonResponse
+    public function createShipment(Request $request, int $orderId): JsonResponse
     {
-        $storeId = auth()->user()->store?->id;
+        $order = $this->findSellerOrder($orderId);
 
-        $order = Order::where('id', $orderId)
-            ->where('store_id', $storeId)
-            ->firstOrFail();
+        $validated = $request->validate([
+            'offer_id' => 'nullable|string',
+        ]);
 
         try {
             $cargo = $this->gdelivery->createShipment(
                 order: $order,
+                offerId: $validated['offer_id'] ?? null,
                 createdByType: 'seller',
                 createdById: auth()->id()
             );
@@ -50,11 +71,7 @@ class SellerCargoController extends Controller
      */
     public function show(int $orderId): JsonResponse
     {
-        $storeId = auth()->user()->store?->id;
-
-        $order = Order::where('id', $orderId)
-            ->where('store_id', $storeId)
-            ->firstOrFail();
+        $order = $this->findSellerOrder($orderId);
 
         $cargo = CargoShipment::where('order_id', $order->id)
             ->whereNotIn('status', ['cancelled'])
@@ -74,11 +91,7 @@ class SellerCargoController extends Controller
      */
     public function cancel(int $orderId): JsonResponse
     {
-        $storeId = auth()->user()->store?->id;
-
-        $order = Order::where('id', $orderId)
-            ->where('store_id', $storeId)
-            ->firstOrFail();
+        $order = $this->findSellerOrder($orderId);
 
         $cargo = CargoShipment::where('order_id', $order->id)
             ->whereNotIn('status', ['cancelled'])
@@ -90,6 +103,32 @@ class SellerCargoController extends Controller
             return response()->json(['success' => true, 'message' => 'Kargo iptal edildi.']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        }
+    }
+
+    /**
+     * Sipariş için Geliver tekliflerini getir (sadece kendi siparişi).
+     * GET /seller/orders/{orderId}/cargo/offers
+     */
+    public function offers(int $orderId): JsonResponse
+    {
+        $order = $this->findSellerOrder($orderId);
+
+        try {
+            $offers = $this->gdelivery->getShipmentOffers($order);
+            return response()->json([
+                'success' => true,
+                'data' => $offers,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Geliver offers fetch failed (seller)', [
+                'order_id' => $orderId,
+                'error'    => $e->getMessage(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
         }
     }
 

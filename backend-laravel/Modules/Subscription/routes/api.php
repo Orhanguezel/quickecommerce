@@ -47,6 +47,8 @@ Route::prefix('v1/subscription/')->group(function () {
         Route::post('package/renew', [BuySubscriptionPackageController::class, 'renewSubscriptionPackage']);
         Route::post('package/payment-status-update', [BuySubscriptionPackageController::class, 'packagePaymentStatusUpdate'])->middleware('verify.hmac');
         Route::get('package/generate-hmac', [HmacGenerateController::class, 'generateHmac']);
+        Route::post('package/create-iyzico-session', [\App\Http\Controllers\Api\V1\IyzicoPaymentController::class, 'createCheckoutSessionForSubscription']);
+        Route::post('package/create-paytr-session', [\App\Http\Controllers\Api\V1\PayTRPaymentController::class, 'createCheckoutSessionForSubscription']);
     });
 });
 

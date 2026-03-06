@@ -53,7 +53,7 @@ const PaymentStatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
   return (
     <AppModal
       trigger={trigger}
-      actionButtonLabel="Confirm"
+      actionButtonLabel={t("button.confirm")}
       IsLoading={loading}
       onSave={handleSave}
       customClass="lg:inset-x-40p md:inset-x-40p lg:top-[250px] md:top-[250px] top-[200px]"
@@ -81,7 +81,7 @@ const PaymentStatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
                   className="form-radio text-blue-500"
                 />
                 <p className="capitalize cursor-pointer text-sm text-blue-500 font-semibold hover:text-opacity-80 w-full">
-                  {status}
+                  {t(`common.${status}`)}
                 </p>
               </label>
             ))}

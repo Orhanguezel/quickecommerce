@@ -32,6 +32,7 @@ import ShowNoteModal from "./modals/ShowNoteModal";
 import StatusUpdateModal from "./modals/StatusUpdateModal";
 import ApproveConfirmModal from "./RefundRequest/modal/ApproveConfirmModal";
 import RejectConfirmModal from "./RefundRequest/modal/RejectConfirmModal";
+import GdeliverCargoCard from "./GdeliverCargoCard";
 
 const OrdersDetailsCard = ({ data, refetch, ID }: any) => {
   const t = useTranslations();
@@ -92,7 +93,7 @@ const OrdersDetailsCard = ({ data, refetch, ID }: any) => {
     }
   };
   const {
-    name = "Unknown",
+    name = "",
     total_delivered = "",
     rating = 0,
     phone: delPhone = "",
@@ -268,7 +269,9 @@ const OrdersDetailsCard = ({ data, refetch, ID }: any) => {
                         : "bg-red-500"
                     } capitalize py-1 px-2 rounded text-white`}
                   >
-                    {OrderDetails?.status}
+                    {OrderDetails?.status
+                      ? t(`common.${OrderDetails.status}`)
+                      : t("common.not_available")}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -300,8 +303,9 @@ const OrdersDetailsCard = ({ data, refetch, ID }: any) => {
                         : "border border-gray-500 bg-gray-50 text-gray-500"
                     } capitalize py-1 px-2 rounded`}
                   >
-                    {OrderDetails?.payment_status &&
-                      formatLabel(OrderDetails?.payment_status || "", "_")}
+                    {OrderDetails?.payment_status
+                      ? t(`common.${OrderDetails.payment_status}`)
+                      : t("common.not_available")}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -590,7 +594,7 @@ const OrdersDetailsCard = ({ data, refetch, ID }: any) => {
                             : "text-white border-yellow-500 bg-yellow-500"
                         } capitalize px-2 py-1 rounded`}
                       >
-                        {status}
+                        {status ? t(`common.${status}`) : t("common.not_available")}
                       </span>
                     </p>
                     <div className="flex">
@@ -820,7 +824,7 @@ const OrdersDetailsCard = ({ data, refetch, ID }: any) => {
                 <div className="p-2">
                   <div className="space-y-2 px-6 text-sm font-semibold text-gray-500 dark:text-white">
                     <p className="capitalize">
-                      {t("orders.name")} : {name}
+                      {t("orders.name")} : {name || t("common.not_available")}
                     </p>
                     {delPhone && (
                       <p className="">
@@ -862,6 +866,11 @@ const OrdersDetailsCard = ({ data, refetch, ID }: any) => {
               </CardContent>
             </Card>
           )}
+          <GdeliverCargoCard
+            orderId={ID}
+            orderStatus={OrderDetails?.status}
+            refetch={refetch}
+          />
         </div>
       </div>
     </>

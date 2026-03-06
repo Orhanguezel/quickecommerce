@@ -24,29 +24,8 @@ interface StatusUpdateModalProps {
 }
 
 interface RouteResult {
-  path: google.maps.LatLngLiteral[];
+  path: { lat: number; lng: number }[];
 }
-
-const steps = [
-  { title: "Pending", value: "pending", icon: <Check className="w-6 h-6" /> },
-  {
-    title: "Confirmed",
-    value: "confirmed",
-    icon: <Check className="w-6 h-6" />,
-  },
-  {
-    title: "Processing",
-    value: "processing",
-    icon: <Check className="w-6 h-6" />,
-  },
-  { title: "Pick-Up", value: "pickup", icon: <Check className="w-6 h-6" /> },
-  { title: "Shipped", value: "shipped", icon: <Check className="w-6 h-6" /> },
-  {
-    title: "Delivered",
-    value: "delivered",
-    icon: <Check className="w-6 h-6" />,
-  },
-];
 
 const OrderTrackerModal: React.FC<StatusUpdateModalProps> = ({
   trigger,
@@ -55,6 +34,17 @@ const OrderTrackerModal: React.FC<StatusUpdateModalProps> = ({
   OrderTrackingTime,
 }) => {
   const t = useTranslations();
+  const steps = useMemo(
+    () => [
+      { title: t("common.pending"), value: "pending", icon: <Check className="w-6 h-6" /> },
+      { title: t("common.confirmed"), value: "confirmed", icon: <Check className="w-6 h-6" /> },
+      { title: t("common.processing"), value: "processing", icon: <Check className="w-6 h-6" /> },
+      { title: t("common.pickup"), value: "pickup", icon: <Check className="w-6 h-6" /> },
+      { title: t("common.shipped"), value: "shipped", icon: <Check className="w-6 h-6" /> },
+      { title: t("common.delivered"), value: "delivered", icon: <Check className="w-6 h-6" /> },
+    ],
+    [t]
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { GoogleMapData, isPending, error } = useGoogleMapForAllQuery({});
 
@@ -68,7 +58,7 @@ const OrderTrackerModal: React.FC<StatusUpdateModalProps> = ({
   );
   const [hasCenteredInitially, setHasCenteredInitially] = useState(false);
 
-  const mapRef = useRef<google.maps.Map | null>(null);
+  const mapRef = useRef<any>(null);
 
   function buildStepsWithTimes(
     steps: any,
@@ -98,7 +88,7 @@ const OrderTrackerModal: React.FC<StatusUpdateModalProps> = ({
 
   const stepsWithTimes = React.useMemo(
     () => buildStepsWithTimes(steps, OrderTrackingTime),
-    [OrderTrackingTime]
+    [OrderTrackingTime, steps]
   );
 
   const [liveLocation, setLiveLocation] = useState<{
@@ -202,8 +192,8 @@ const OrderTrackerModal: React.FC<StatusUpdateModalProps> = ({
     !isPending && !error && dynamicApiKey && isMapEnabledBySettings;
 
   useEffect(() => {
-    if (showMap && mapRef.current) {
-      google.maps.event.trigger(mapRef.current, "resize");
+    if (showMap && mapRef.current && typeof window !== "undefined" && window.google) {
+      window.google.maps.event.trigger(mapRef.current, "resize");
       const center = getMapCenter();
       mapRef.current.panTo(center);
     }
@@ -211,8 +201,8 @@ const OrderTrackerModal: React.FC<StatusUpdateModalProps> = ({
 
   const calculateRoute = useCallback(
     async (
-      origin: google.maps.LatLngLiteral,
-      destination: google.maps.LatLngLiteral,
+      origin: { lat: number; lng: number },
+      destination: { lat: number; lng: number },
       routeType: "live" | "store"
     ) => {
       if (
@@ -244,7 +234,7 @@ const OrderTrackerModal: React.FC<StatusUpdateModalProps> = ({
         const result = await directionsService.route({
           origin: origin,
           destination: destination,
-          travelMode: google.maps.TravelMode.DRIVING,
+          travelMode: window.google.maps.TravelMode.DRIVING,
         });
 
         if (result.routes && result.routes.length > 0) {
@@ -257,21 +247,21 @@ const OrderTrackerModal: React.FC<StatusUpdateModalProps> = ({
         } else {
         }
       } catch (error: any) {
-        let errorMessage = "Route Calculation Failed";
+        let errorMessage = t("common.route_calculation_failed");
         if (error.code === "ZERO_RESULTS") {
-          errorMessage = "No Route Found Between Points";
+          errorMessage = t("common.no_route_found_between_points");
         } else if (
           error.code === "NOT_FOUND" ||
           error.code === "INVALID_REQUEST"
         ) {
-          errorMessage = "invalid locations for route";
+          errorMessage = t("common.invalid_locations_for_route");
         } else if (error.message) {
           errorMessage = `${errorMessage}: ${error.message}`;
         }
       } finally {
       }
     },
-    []
+    [t]
   );
 
   useEffect(() => {
@@ -415,7 +405,7 @@ const OrderTrackerModal: React.FC<StatusUpdateModalProps> = ({
               <Card>
                 <CardContent className="p-0 rounded-lg">
                   <div>
-                    {showMap ? (
+                    {showMap && typeof window !== "undefined" && window.google ? (
                       <GoogleMap
                         mapContainerStyle={mapContainerStyle}
                         zoom={16}
@@ -468,8 +458,8 @@ const OrderTrackerModal: React.FC<StatusUpdateModalProps> = ({
                                     <rect x="138" y="138" width="42" height="24" fill="#EE8700" stroke="#FF9811" strokeWidth="2"/>
                                   </svg>
                                                                   `)}`,
-                                  scaledSize: new google.maps.Size(40, 60),
-                                  anchor: new google.maps.Point(20, 60)
+                                  scaledSize: new window.google.maps.Size(40, 60),
+                                  anchor: new window.google.maps.Point(20, 60)
                                 }}
                               />
                               <Polyline
@@ -500,75 +490,14 @@ const OrderTrackerModal: React.FC<StatusUpdateModalProps> = ({
                           ) : null)}
                       </GoogleMap>
                     ) : (
-                      <GoogleMap
-                        mapContainerStyle={mapContainerStyle}
-                        zoom={16}
-                        onLoad={(map) => {
-                          mapRef.current = map;
-                          const center = getMapCenter();
-                          map.panTo(center);
-                        }}
+                      <div
+                        style={mapContainerStyle}
+                        className="flex items-center justify-center bg-gray-100 rounded-lg"
                       >
-                        {(typeof row?.status === "string" &&
-                          row.status.toLowerCase() !== "pickup" &&
-                          row.status.toLowerCase() !== "shipped" &&
-                          row.status.toLowerCase() !== "delivered") ||
-                          (typeof row?.status === "string" &&
-                            (row.status.toLowerCase() === "pickup" ||
-                              row.status.toLowerCase() === "shipped") &&
-                            !liveLocation) ? (
-                          <Marker
-                            position={storeLocation}
-                            icon={storeIconUrl}
-                          />
-                        ) : null}
-
-                        {customerLocation.lat && customerLocation.lng && (
-                          <Marker
-                            position={customerLocation}
-                            icon={cusIconUrl}
-                          />
-                        )}
-
-                        {typeof row?.status === "string" &&
-                          (row.status.toLowerCase() === "pickup" ||
-                            row.status.toLowerCase() === "shipped") &&
-                          liveLocation &&
-                          directionsResult && (
-                            <>
-                              <Marker
-                                position={liveLocation}
-                                icon={{
-                                  url: "http://maps.google.com/mapfiles/ms/icons/green-dot.png",
-                                }}
-                              />
-                              <Polyline
-                                path={directionsResult.path}
-                                options={{
-                                  strokeColor: "#4285F4",
-                                  strokeOpacity: 0.8,
-                                  strokeWeight: 2,
-                                }}
-                              />
-                            </>
-                          )}
-
-                        {row.status !== "delivered" &&
-                          (typeof row?.status === "string" &&
-                            row.status.toLowerCase() !== "pickup" &&
-                            row.status.toLowerCase() !== "shipped" &&
-                            !liveLocation &&
-                            directionsResult ? (
-                            <Polyline
-                              path={directionsResult.path}
-                              options={{
-                                strokeColor: "#4285F4",
-                                strokeOpacity: 0.8,
-                                strokeWeight: 2,
-                              }}
-                            />
-                          ) : null)}
-                      </GoogleMap>
+                        <p className="text-sm text-gray-500">
+                          {isPending ? t("common.loading") : t("common.map_not_available")}
+                        </p>
+                      </div>
                     )}
                   </div>
                 </CardContent>

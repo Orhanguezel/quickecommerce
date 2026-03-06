@@ -21,7 +21,7 @@ import { setDynamicValue, setRefetch } from "@/redux/slices/refetchSlice";
 import { setSelectedStore } from "@/redux/slices/storeSlice";
 import { AuthFormProps } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Copy, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
@@ -68,7 +68,7 @@ const StoreOwnerSignInForm = ({ isRedirect }: AuthFormProps) => {
       password: "",
     },
   });
-  const { control, setValue, handleSubmit, reset } = form;
+  const { control, handleSubmit } = form;
 
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);
@@ -119,10 +119,6 @@ const StoreOwnerSignInForm = ({ isRedirect }: AuthFormProps) => {
       },
     });
   }
-  const handleCopyClick = () => {
-    setValue("email", "seller@gmail.com");
-    setValue("password", "12345678");
-  };
   return (
     <>
       <LoaderOverlay isLoading={isLoading} />
@@ -335,30 +331,6 @@ const StoreOwnerSignInForm = ({ isRedirect }: AuthFormProps) => {
                         </p>
                       </div>
 
-                      {/* Demo Account Box */}
-                      <div className="mt-10 flex items-center space-x-4 rounded-md border border-gray-300 dark:border-gray-700 p-4 bg-white dark:bg-[#1e293b]">
-                        <div className="flex-1 text-gray-600 dark:text-white space-y-1">
-                          <p className="text-sm font-medium leading-none">
-                            <span className="text-black dark:text-white">
-                              {t("label.email")}:
-                            </span>{" "}
-                            seller@gmail.com
-                          </p>
-                          <p className="text-sm text-muted-foreground dark:text-gray-400">
-                            <span className="text-black dark:text-white">
-                              {t("label.password")}:
-                            </span>{" "}
-                            12345678
-                          </p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={handleCopyClick}
-                          className="bg-blue-600 hover:bg-blue-700 p-2 rounded"
-                        >
-                          <Copy className="text-white" />
-                        </button>
-                      </div>
                     </form>
                   </Form>
                 </div>

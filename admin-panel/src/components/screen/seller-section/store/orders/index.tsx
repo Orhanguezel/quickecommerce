@@ -6,20 +6,18 @@ import OrdersTable from "@/components/blocks/seller-section/store/orders/OrdersT
 import { Button, Card, CardContent, Input } from "@/components/ui";
 import { format } from "date-fns";
 import { Search } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { usePathname } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import React, { useEffect, useState } from "react";
-const PaymentStatusList = [
-  { label: "Paid", value: "paid" },
-  { label: "Pending", value: "pending" },
-  { label: "Failed", value: "failed" },
-];
 
 const Orders = () => {
   const t = useTranslations();
-  const pathname = usePathname();
-  const locale = pathname.split("/")[1];
+  const locale = useLocale();
   const dir = locale === "ar" ? "rtl" : "ltr";
+  const paymentStatusList = [
+    { label: t("common.paid"), value: "paid" },
+    { label: t("common.pending"), value: "pending" },
+    { label: t("common.failed"), value: "failed" },
+  ];
   const [selectPaymentStatus, setSelectPaymentStatus] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchValue, setSearchValue] = useState({
@@ -110,7 +108,7 @@ const Orders = () => {
                 placeholder={t("place_holder.select_payment_status")}
                 value={String(selectPaymentStatus)}
                 onSelect={handlePaymentStatus}
-                groups={PaymentStatusList}
+                groups={paymentStatusList}
                 customClass="mx-2 lg:mx-0 "
               />
             </div>

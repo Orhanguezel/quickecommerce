@@ -218,7 +218,9 @@ class IyzicoPaymentController extends Controller
             return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
         }
 
+        // Support customer, seller/admin, and store wallet owners
         $customer = auth()->guard('api_customer')->user();
+        $user = auth()->user();
 
         $walletHistory = \Modules\Wallet\app\Models\WalletTransaction::with('wallet')
             ->find((int) $request->wallet_history_id);
@@ -228,7 +230,23 @@ class IyzicoPaymentController extends Controller
         }
 
         $wallet = $walletHistory->wallet;
-        if (! $wallet || (int) $wallet->owner_id !== (int) $customer->id) {
+        $ownerMatch = false;
+        if ($wallet) {
+            if ($customer && $wallet->owner_type === 'App\\Models\\Customer' && (int) $wallet->owner_id === (int) $customer->id) {
+                $ownerMatch = true;
+            } elseif ($user && $wallet->owner_type === 'App\\Models\\User' && (int) $wallet->owner_id === (int) $user->id) {
+                $ownerMatch = true;
+                $customer = $customer ?? $user;
+            } elseif ($user && $wallet->owner_type === 'App\\Models\\Store') {
+                // Store wallet: check if authenticated user is the store seller
+                $store = \App\Models\Store::find($wallet->owner_id);
+                if ($store && (int) $store->store_seller_id === (int) $user->id) {
+                    $ownerMatch = true;
+                    $customer = $customer ?? $user;
+                }
+            }
+        }
+        if (! $wallet || ! $ownerMatch) {
             return response()->json(['success' => false, 'message' => __('messages.access_denied')], 403);
         }
 
@@ -275,6 +293,17 @@ class IyzicoPaymentController extends Controller
                 $currency = 'TRY';
             }
 
+            // Wallet deposit is not a marketplace transaction — use LISTING payment group
+            // This avoids the subMerchantKey requirement for non-product payments
+            $basketItem = [
+                'id'         => 'WALLET-' . $walletHistory->id,
+                'name'       => 'Wallet Recharge #' . $walletHistory->id,
+                'category_1' => 'Wallet',
+                'category_2' => 'Deposit',
+                'item_type'  => 'VIRTUAL',
+                'price'      => $amount,
+            ];
+
             $session = $this->iyzicoService->createCheckoutForm([
                 'locale'          => app()->getLocale() === 'tr' ? 'tr' : 'en',
                 'conversation_id' => $conversationId,
@@ -282,6 +311,7 @@ class IyzicoPaymentController extends Controller
                 'paid_price'      => $amount,
                 'currency'        => $currency,
                 'basket_id'       => 'wallet_' . $walletHistory->id,
+                'payment_group'   => \Iyzipay\Model\PaymentGroup::LISTING,
                 'callback_url'    => $callbackUrl,
                 'buyer'           => [
                     'id'                  => (string) $customer->id,
@@ -312,16 +342,7 @@ class IyzicoPaymentController extends Controller
                     'address'      => $addressText,
                     'zip_code'     => $zipCode,
                 ],
-                'basket_items' => [
-                    [
-                        'id'         => 'WALLET-' . $walletHistory->id,
-                        'name'       => 'Wallet Recharge #' . $walletHistory->id,
-                        'category_1' => 'Wallet',
-                        'category_2' => 'Deposit',
-                        'item_type'  => 'VIRTUAL',
-                        'price'      => $amount,
-                    ],
-                ],
+                'basket_items' => [$basketItem],
             ]);
 
             if ($session->getStatus() !== 'success' || ! $session->getPaymentPageUrl()) {
@@ -370,8 +391,19 @@ class IyzicoPaymentController extends Controller
         $conversationId  = (string) $request->get('conversationId', 'wallet_' . $walletHistoryId);
 
         $frontendUrl = rtrim(config('app.frontend_url'), '/');
-        $successUrl  = $frontendUrl . '/tr/hesabim?tab=wallet&wallet_success=1';
-        $cancelUrl   = $frontendUrl . '/tr/hesabim?tab=wallet&payment=failed';
+        $adminUrl    = rtrim(config('app.admin_url', $frontendUrl), '/');
+
+        // Determine redirect based on wallet owner type
+        $walletHistoryForRedirect = \Modules\Wallet\app\Models\WalletTransaction::with('wallet')->find($walletHistoryId);
+        $walletOwnerType = $walletHistoryForRedirect?->wallet?->owner_type;
+        $isSellerWallet = in_array($walletOwnerType, ['App\\Models\\User', 'App\\Models\\Store']);
+        if ($isSellerWallet) {
+            $successUrl = $adminUrl . '/tr/seller/store/financial/wallet?wallet_success=1';
+            $cancelUrl  = $adminUrl . '/tr/seller/store/financial/wallet?payment=failed';
+        } else {
+            $successUrl = $frontendUrl . '/tr/hesabim?tab=wallet&wallet_success=1';
+            $cancelUrl  = $frontendUrl . '/tr/hesabim?tab=wallet&payment=failed';
+        }
 
         if ($token === '' || $walletHistoryId <= 0) {
             Log::warning('Iyzico wallet callback missing token/id', [
@@ -382,13 +414,25 @@ class IyzicoPaymentController extends Controller
             return redirect()->to($cancelUrl);
         }
 
-        $walletHistory = \Modules\Wallet\app\Models\WalletTransaction::with('wallet')->find($walletHistoryId);
+        $walletHistory = $walletHistoryForRedirect;
         if (! $walletHistory) {
             return redirect()->to($cancelUrl);
         }
 
         try {
             $result = $this->iyzicoService->retrieveCheckoutForm($token, $conversationId);
+
+            Log::info('Iyzico wallet callback result', [
+                'wallet_history_id' => $walletHistory->id,
+                'status'            => $result->getStatus(),
+                'payment_status'    => $result->getPaymentStatus(),
+                'payment_id'        => $result->getPaymentId(),
+                'error_code'        => $result->getErrorCode(),
+                'error_message'     => $result->getErrorMessage(),
+                'price'             => $result->getPrice(),
+                'paid_price'        => $result->getPaidPrice(),
+                'raw_result'        => method_exists($result, 'getRawResult') ? $result->getRawResult() : 'N/A',
+            ]);
 
             if ($result->getStatus() === 'success' && strtoupper((string) $result->getPaymentStatus()) === 'SUCCESS') {
                 $walletHistory->payment_status = 'paid';
@@ -718,5 +762,224 @@ class IyzicoPaymentController extends Controller
         }
 
         throw new \RuntimeException(__('messages.iyzico_sub_merchant_key_missing') . ' store_id=' . $storeId);
+    }
+
+    public function createCheckoutSessionForSubscription(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'subscription_history_id' => 'required|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        $user = auth()->user();
+        $subscriptionHistory = \Modules\Subscription\app\Models\SubscriptionHistory::find((int) $request->subscription_history_id);
+
+        if (! $subscriptionHistory) {
+            return response()->json(['success' => false, 'message' => __('messages.data_not_found')], 404);
+        }
+
+        // Verify store belongs to seller
+        $store = \App\Models\Store::where('id', $subscriptionHistory->store_id)
+            ->where('store_seller_id', $user->id)
+            ->first();
+
+        if (! $store) {
+            return response()->json(['success' => false, 'message' => __('messages.access_denied')], 403);
+        }
+
+        if ($subscriptionHistory->payment_status === 'paid') {
+            return response()->json(['success' => false, 'message' => __('messages.order_already_paid')], 400);
+        }
+
+        $gateway = PaymentGateway::where('slug', 'iyzico')->first();
+        $rawCredentials = json_decode($gateway?->auth_credentials ?? '{}', true);
+        $rawCredentials = is_array($rawCredentials) ? $rawCredentials : [];
+
+        $hasApiKey = $this->hasAnyCredential($rawCredentials, ['api_key', 'iyzico_api_key', 'apiKey']);
+        $hasSecretKey = $this->hasAnyCredential($rawCredentials, ['secret_key', 'iyzico_secret_key', 'secretKey', 'api_secret']);
+
+        if (! $hasApiKey || ! $hasSecretKey) {
+            return response()->json(['success' => false, 'message' => __('messages.iyzico_configuration_missing')], 422);
+        }
+
+        try {
+            $config = $this->iyzicoService->getCredentials();
+            $credentials = $config['credentials'];
+
+            $callbackUrl = rtrim(config('app.url'), '/') . '/api/v1/iyzico/subscription-callback'
+                . '?subscription_history_id=' . $subscriptionHistory->id;
+
+            $fullName = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''));
+            $conversationId = 'sub_' . $subscriptionHistory->id . '_' . now()->timestamp;
+
+            $amount = number_format((float) $subscriptionHistory->price, 2, '.', '');
+            $currency = 'TRY';
+
+            $basketItem = [
+                'id' => 'SUB-' . $subscriptionHistory->id,
+                'name' => 'Subscription: ' . ($subscriptionHistory->name ?? 'Package'),
+                'category_1' => 'Subscription',
+                'category_2' => 'Package',
+                'item_type' => 'VIRTUAL',
+                'price' => $amount,
+            ];
+
+            $session = $this->iyzicoService->createCheckoutForm([
+                'locale' => app()->getLocale() === 'tr' ? 'tr' : 'en',
+                'conversation_id' => $conversationId,
+                'price' => $amount,
+                'paid_price' => $amount,
+                'currency' => $currency,
+                'basket_id' => 'sub_' . $subscriptionHistory->id,
+                'payment_group' => \Iyzipay\Model\PaymentGroup::LISTING,
+                'callback_url' => $callbackUrl,
+                'buyer' => [
+                    'id' => (string) $user->id,
+                    'name' => (string) ($user->first_name ?: 'Seller'),
+                    'surname' => (string) ($user->last_name ?: 'User'),
+                    'gsm_number' => (string) ($user->phone ?? '+905000000000'),
+                    'email' => (string) ($user->email ?? 'seller@example.com'),
+                    'identity_number' => '11111111111',
+                    'last_login_date' => now()->format('Y-m-d H:i:s'),
+                    'registration_date' => ($user->created_at ?? now())->format('Y-m-d H:i:s'),
+                    'registration_address' => 'Adres belirtilmedi',
+                    'ip' => (string) $request->ip(),
+                    'city' => 'Istanbul',
+                    'country' => 'Turkey',
+                    'zip_code' => '34000',
+                ],
+                'shipping_address' => [
+                    'contact_name' => $fullName !== '' ? $fullName : 'Seller',
+                    'city' => 'Istanbul',
+                    'country' => 'Turkey',
+                    'address' => 'Adres belirtilmedi',
+                    'zip_code' => '34000',
+                ],
+                'billing_address' => [
+                    'contact_name' => $fullName !== '' ? $fullName : 'Seller',
+                    'city' => 'Istanbul',
+                    'country' => 'Turkey',
+                    'address' => 'Adres belirtilmedi',
+                    'zip_code' => '34000',
+                ],
+                'basket_items' => [$basketItem],
+            ]);
+
+            if ($session->getStatus() !== 'success' || ! $session->getPaymentPageUrl()) {
+                Log::error('Iyzico subscription checkout init failed', [
+                    'subscription_history_id' => $subscriptionHistory->id,
+                    'status' => $session->getStatus(),
+                    'error_code' => $session->getErrorCode(),
+                    'error_message' => $session->getErrorMessage(),
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => __('messages.iyzico_session_create_failed'),
+                    'error' => $session->getErrorMessage(),
+                ], 422);
+            }
+
+            $subscriptionHistory->payment_gateway = 'iyzico';
+            $subscriptionHistory->transaction_ref = $session->getToken();
+            $subscriptionHistory->save();
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'checkout_url' => $session->getPaymentPageUrl(),
+                    'token' => $session->getToken(),
+                    'subscription_history_id' => $subscriptionHistory->id,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Iyzico subscription session exception', [
+                'subscription_history_id' => $subscriptionHistory->id ?? null,
+                'message' => $e->getMessage(),
+            ]);
+
+            return response()->json(['success' => false, 'message' => __('messages.iyzico_session_create_failed')], 500);
+        }
+    }
+
+    public function subscriptionCallback(Request $request)
+    {
+        $subscriptionHistoryId = (int) $request->get('subscription_history_id');
+        $token = (string) $request->get('token', '');
+        $conversationId = (string) $request->get('conversationId', 'sub_' . $subscriptionHistoryId);
+
+        $adminUrl = rtrim(config('app.admin_url', config('app.url')), '/');
+        $successUrl = $adminUrl . '/tr/seller/store/settings/business-plan?payment_success=1';
+        $cancelUrl = $adminUrl . '/tr/seller/store/settings/business-plan?payment=failed';
+
+        if ($token === '' || $subscriptionHistoryId <= 0) {
+            return redirect()->to($cancelUrl);
+        }
+
+        $subscriptionHistory = \Modules\Subscription\app\Models\SubscriptionHistory::find($subscriptionHistoryId);
+        if (! $subscriptionHistory) {
+            return redirect()->to($cancelUrl);
+        }
+
+        try {
+            $result = $this->iyzicoService->retrieveCheckoutForm($token, $conversationId);
+
+            if ($result->getStatus() === 'success' && strtoupper((string) $result->getPaymentStatus()) === 'SUCCESS') {
+                $subscriptionHistory->payment_status = 'paid';
+                $subscriptionHistory->status = 1;
+                $subscriptionHistory->transaction_ref = (string) ($result->getPaymentId() ?: $token);
+                $subscriptionHistory->save();
+
+                // Activate subscription
+                $storeSubscription = \Modules\Subscription\app\Models\StoreSubscription::where('store_id', $subscriptionHistory->store_id)->first();
+                if ($storeSubscription) {
+                    $storeSubscription->update([
+                        'subscription_id' => $subscriptionHistory->subscription_id,
+                        'name' => $subscriptionHistory->name,
+                        'type' => $subscriptionHistory->type,
+                        'validity' => $storeSubscription->validity + $subscriptionHistory->validity,
+                        'price' => $subscriptionHistory->price,
+                        'pos_system' => $subscriptionHistory->pos_system,
+                        'self_delivery' => $subscriptionHistory->self_delivery,
+                        'mobile_app' => $subscriptionHistory->mobile_app,
+                        'live_chat' => $subscriptionHistory->live_chat,
+                        'order_limit' => $storeSubscription->order_limit + $subscriptionHistory->order_limit,
+                        'product_limit' => $storeSubscription->product_limit + $subscriptionHistory->product_limit,
+                        'product_featured_limit' => $storeSubscription->product_featured_limit + $subscriptionHistory->product_featured_limit,
+                        'payment_gateway' => 'iyzico',
+                        'payment_status' => 'paid',
+                        'transaction_ref' => $subscriptionHistory->transaction_ref,
+                        'expire_date' => $subscriptionHistory->expire_date,
+                        'status' => 1,
+                    ]);
+                }
+
+                // Update store subscription_type
+                \App\Models\Store::where('id', $subscriptionHistory->store_id)
+                    ->update(['subscription_type' => 'subscription']);
+
+                Log::info('Iyzico subscription payment verified', [
+                    'subscription_history_id' => $subscriptionHistory->id,
+                    'payment_id' => $result->getPaymentId(),
+                ]);
+
+                return redirect()->to($successUrl);
+            }
+
+            $subscriptionHistory->payment_status = 'failed';
+            $subscriptionHistory->save();
+
+            return redirect()->to($cancelUrl);
+        } catch (\Throwable $e) {
+            Log::error('Iyzico subscription callback exception', [
+                'subscription_history_id' => $subscriptionHistoryId,
+                'message' => $e->getMessage(),
+            ]);
+
+            return redirect()->to($cancelUrl);
+        }
     }
 }

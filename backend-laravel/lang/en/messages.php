@@ -240,6 +240,15 @@ return [
     'dashboard.total_revenue' => 'Total Revenue',
     'dashboard.total_pos_sales' => 'Total Pos Sales',
 
+    // Seller Dashboard
+    'dashboard.total_stores' => 'Total Stores',
+    'dashboard.total_earnings' => 'Total Earnings',
+    'dashboard.pos_sales' => 'POS Sales',
+    'dashboard.pos_orders' => 'POS Orders',
+    'dashboard.confirmed_orders' => 'Confirmed Orders',
+    'dashboard.processing_orders' => 'Processing Orders',
+    'dashboard.shipped_orders' => 'Shipped Orders',
+
     // themes
     'theme_not_found' => ':name not found in the system.',
     'theme_already_active' => 'This theme is already active.',

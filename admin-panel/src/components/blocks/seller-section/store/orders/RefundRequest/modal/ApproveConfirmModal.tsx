@@ -1,7 +1,6 @@
 import AlertIcon from "@/assets/icons/AlertIcon";
 import { AppModal } from "@/components/blocks/common/AppModal";
 import { useTranslations } from "next-intl";
-import { usePathname } from "next/navigation";
 import React, { useState } from "react";
 
 interface RejectConfirmModalProps {
@@ -20,9 +19,6 @@ const ApproveConfirmModal: React.FC<RejectConfirmModalProps> = ({
   subTitle,
 }) => {
   const t = useTranslations();
-  const pathname = usePathname();
-  const locale = pathname.split("/")[1];
-  const dir = locale === "ar" ? "rtl" : "ltr";
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleSave = () => {

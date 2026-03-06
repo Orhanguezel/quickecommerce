@@ -14,7 +14,7 @@ const Import = () => {
           <div>
             <h1 className="text-lg md:text-2xl font-semibold text-black dark:text-white flex items-center gap-2">
               {" "}
-              <StoreIcon /> {t("common.product_export")}
+              <StoreIcon /> {t("common.product_import")}
             </h1>
           </div>
         </CardContent>

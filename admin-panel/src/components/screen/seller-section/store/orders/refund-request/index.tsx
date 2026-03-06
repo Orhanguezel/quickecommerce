@@ -5,23 +5,21 @@ import RefundRequestTable from "@/components/blocks/seller-section/store/orders/
 import { Button, Card, CardContent, Input } from "@/components/ui";
 import { useRefundReasonQuery } from "@/modules/seller-section/orders/refund-request/refund-request.action";
 import { Receipt, Search } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { usePathname } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import React, { useState } from "react";
 
 const RefundRequest = () => {
   const t = useTranslations();
-  const pathname = usePathname();
-  const locale = pathname.split("/")[1];
+  const locale = useLocale();
   const dir = locale === "ar" ? "rtl" : "ltr";
   const [searchQuery, setSearchQuery] = useState("");
   const [searchValue, setSearchValue] = useState("");
   const [selectPaymentStatus, setSelectPaymentStatus] = useState<string>("");
   const [selectPayment2Status, setSelectPayment2Status] = useState<string>("");
   const priorityList = [
-    { label: t("label.approved"), value: "approved" },
-    { label: t("label.rejected"), value: "rejected" },
-    { label: t("label.refunded"), value: "refunded" },
+    { label: t("common.approved"), value: "approved" },
+    { label: t("common.rejected"), value: "rejected" },
+    { label: t("common.refunded"), value: "refunded" },
   ];
 
   const { RefundReasons } = useRefundReasonQuery({});

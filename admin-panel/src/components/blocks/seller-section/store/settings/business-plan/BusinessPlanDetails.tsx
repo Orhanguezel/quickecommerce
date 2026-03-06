@@ -152,7 +152,7 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
     }));
   }, [BusinessPlanHistory, startIndex]);
 
-  const { currency, refetch: refetchCurrency } = useCurrencyQuery({});
+  const { currency } = useCurrencyQuery({});
   const currencyData = useMemo(() => {
     const data = (currency as any) || {};
     return data;
@@ -166,8 +166,6 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
       setCurrentPage(currentPage);
     }
   }, [LastPage, currentPage]);
-
-  const [transactionNo, setTransactionNo] = useState("");
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -263,22 +261,22 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
           if (data.transaction_id) {
             dispatch(setRefetch(true));
             onSubmit(savedStoreId, data.transaction_id);
-
-            setTransactionNo(data.transaction_id);
             localStorage.setItem("transaction_id", data.transaction_id);
           } else {
-            toast.error("No transaction_id found in response");
+            toast.error(t("common.no_transaction_id_found"));
           }
         })
         .catch((error) =>
           toast.error(
             error instanceof Error
-              ? `Error refetching data: ${error.message}`
-              : "An unknown error occurred while refetching data"
+              ? t("common.error_refetching_data_with_message", {
+                  message: error.message,
+                })
+              : t("common.unknown_error_refetching_data")
           )
         );
     }
-  }, [savedStoreId, onSubmit, dispatch]);
+  }, [savedStoreId, onSubmit, dispatch, t]);
 
   const useColumn = (fixLeft: boolean): ColumnsType<RecordType> => {
     const columns: ColumnsType<RecordType> = useMemo(
@@ -327,7 +325,9 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
                     : "bg-red-50 border border-red-500 text-red-500"
                 } capitalize`}
               >
-                {payment_status || "N/A"}
+                {payment_status
+                  ? t(`common.${payment_status}`)
+                  : t("common.not_available")}
               </Badge>
             </div>
           ),
@@ -486,7 +486,7 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
                     <div className="text-start">
                       <h1 className="flex items-center gap-1">
                         <span className="text-start text-sm md:text-lg font-semibold">
-                          Plan Details
+                          {t("button.subscription_details")}
                         </span>
                       </h1>
                     </div>
@@ -518,7 +518,7 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
                   <div className="text-start">
                     <h1 className="flex items-center gap-1">
                       <span className="text-start text-sm md:text-lg font-semibold">
-                        Plan Details
+                        {t("button.subscription_details")}
                       </span>
                     </h1>
                   </div>
@@ -581,12 +581,12 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
                     <>
                       <Card className="p-2 md:p-6">
                         <p className="flex items-center gap-2 text-lg font-semibold pb-4 mt-4 mb-8 border-b border-slate-300 ">
-                          <span>Package Overview</span>
+                          <span>{t("common.package_overview")}</span>
                         </p>
 
                         <div className="w-auto space-y-2 text-black dark:text-white">
                           <div className="flex items-center">
-                            <div className="min-w-[120px]">Package Title </div>
+                            <div className="min-w-[120px]">{t("common.package_title")}</div>
                             <div className="flex items-center justify-start">
                               <h1 className="text-xl font-semibold text-gray-500 dark:text-white">
                                 : {originalData?.name}
@@ -594,7 +594,7 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
                             </div>
                           </div>
                           <div className="flex items-center">
-                            <div className="min-w-[120px]">Price </div>
+                            <div className="min-w-[120px]">{t("table_header.price")}</div>
                             <div className=" flex items-center justify-start">
                               <h1 className="text-xl font-semibold text-gray-500 dark:text-white ">
                                 :{" "}
@@ -608,7 +608,7 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
                             </div>
                           </div>
                           <div className="flex items-center">
-                            <div className="min-w-[120px]"> POS System </div>
+                            <div className="min-w-[120px]">{t("table_header.pos_system")}</div>
                             <div className=" flex items-center justify-start ">
                               <div className="text-xl font-semibold flex items-center  gap-2 ">
                                 <span className="text-gray-500 dark:text-white">
@@ -625,7 +625,7 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
                             </div>
                           </div>
                           <div className="flex items-center">
-                            <div className="min-w-[120px]"> Live Chat </div>
+                            <div className="min-w-[120px]">{t("table_header.live_chat")}</div>
                             <div className=" flex items-center justify-start ">
                               <div className="text-xl font-semibold flex items-center  gap-2 ">
                                 <span className="text-gray-500 dark:text-white">
@@ -642,7 +642,7 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
                             </div>
                           </div>
                           <div className="flex items-center">
-                            <div className="min-w-[120px]">Order Limit </div>
+                            <div className="min-w-[120px]">{t("table_header.order_limit")}</div>
                             <div className="flex items-center justify-start">
                               <h1 className="text-xl font-semibold text-gray-500 dark:text-white ">
                                 : {originalData?.order_limit}
@@ -650,7 +650,7 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
                             </div>
                           </div>
                           <div className="flex items-center">
-                            <div className="min-w-[120px]">Product Limit </div>
+                            <div className="min-w-[120px]">{t("table_header.product_limit")}</div>
                             <div className="flex items-center justify-start">
                               <h1 className="text-xl font-semibold text-gray-500 dark:text-white ">
                                 : {originalData?.product_limit}
@@ -658,7 +658,7 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
                             </div>
                           </div>
                           <div className="flex items-center">
-                            <div className="min-w-[120px]">Featured Limit </div>
+                            <div className="min-w-[120px]">{t("table_header.featured_limit")}</div>
                             <div className="flex items-center justify-start">
                               <h1 className="text-xl font-semibold text-gray-500 dark:text-white ">
                                 : {originalData?.product_featured_limit}
@@ -666,32 +666,34 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
                             </div>
                           </div>
                           <div className="flex items-center">
-                            <div className="min-w-[120px]">Validity </div>
+                            <div className="min-w-[120px]">{t("table_header.validity")}</div>
                             <div className="flex items-center justify-start">
                               <h1 className="text-xl font-semibold text-yellow-500">
-                                : {originalData?.validity} days
+                                : {t("common.validity_days", {
+                                    days: originalData?.validity ?? 0,
+                                  })}
                               </h1>
                             </div>
                           </div>
                           <div className="flex items-center">
-                            <div className="min-w-[120px]">Expire Date </div>
+                            <div className="min-w-[120px]">{t("table_header.expire_date")}</div>
                             <div className=" flex items-center justify-start">
                               <h1 className="text-xl font-semibold text-red-500 ">
                                 :{" "}
                                 {originalData?.expire_date
                                   ? new Date(
                                       originalData.expire_date
-                                    ).toLocaleDateString("en-GB", {
+                                    ).toLocaleDateString(locale, {
                                       day: "2-digit",
                                       month: "2-digit",
-                                      year: "2-digit",
+                                      year: "numeric",
                                     })
                                   : ""}
                               </h1>
                             </div>
                           </div>
                           <div className="flex items-center">
-                            <div className="min-w-[120px]">Status </div>
+                            <div className="min-w-[120px]">{t("table_header.status")}</div>
                             <div className="flex items-center justify-start">
                               <h1 className="text-xl font-semibold text-gray-500 dark:text-white ">
                                 :{" "}
@@ -705,7 +707,9 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
                                       : "bg-red-100  text-red-500"
                                   } `}
                                 >
-                                  {originalData?.payment_status}
+                                  {originalData?.payment_status
+                                    ? t(`common.${originalData.payment_status}`)
+                                    : t("common.not_available")}
                                 </span>
                               </h1>
                             </div>
@@ -804,7 +808,7 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
                                       </div>
                                       <div className="grid grid-cols-2 items-center gap-2">
                                         <div>
-                                          <p className="mt-1">POS System</p>
+                                          <p className="mt-1">{t("table_header.pos_system")}</p>
                                         </div>
                                         <div className="flex justify-end">
                                           {card.pos_system == true ? (
@@ -816,7 +820,7 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
                                       </div>
                                       <div className="grid grid-cols-2 items-center gap-2">
                                         <div>
-                                          <p className="mt-1">Live Chat</p>
+                                          <p className="mt-1">{t("table_header.live_chat")}</p>
                                         </div>
                                         <div className="flex justify-end">
                                           {card.live_chat == 1 ? (
@@ -827,7 +831,7 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
                                         </div>
                                       </div>
                                       <div className="grid grid-cols-2 items-center gap-2">
-                                        <div>Order Limit</div>
+                                        <div>{t("table_header.order_limit")}</div>
                                         <div>
                                           <p className="text-sm text-gray-500 dark:text-white font-semibold text-end leading-none mt-1">
                                             {card?.order_limit}
@@ -835,7 +839,7 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
                                         </div>
                                       </div>
                                       <div className="grid grid-cols-2 items-center gap-2">
-                                        <div>Product Limit</div>
+                                        <div>{t("table_header.product_limit")}</div>
                                         <div>
                                           <p className="text-sm text-gray-500 dark:text-white font-semibold text-end leading-none mt-1">
                                             {card?.product_limit}
@@ -843,7 +847,7 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
                                         </div>
                                       </div>
                                       <div className="grid grid-cols-2 items-center gap-2">
-                                        <div>Featured Limit</div>
+                                        <div>{t("table_header.featured_limit")}</div>
                                         <div>
                                           <p className="text-sm text-gray-500 dark:text-white font-semibold text-end leading-none mt-1">
                                             {card?.product_featured_limit}
@@ -866,7 +870,7 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
                                               color="text-white"
                                             />
                                           ) : (
-                                            <span>Get Started</span>
+                                            <span>{t("common.get_started")}</span>
                                           )}
                                         </Button>
                                       ) : (
@@ -879,7 +883,7 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
                                               }
                                               className="w-full py-2 text-center rounded-lg bg-blue-600 text-white font-500 hover:bg-blue-700"
                                             >
-                                              Buy Now
+                                              {t("button.buy_now")}
                                             </Button>
                                           }
                                           subscription={subscription}
@@ -901,7 +905,7 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
                     <>
                       <Card className="p-2 md:p-6">
                         <p className="text-lg font-semibold mb-4 pb-4 border-b border-slate-300">
-                          Commission Overview
+                          {t("common.commission_overview")}
                         </p>
 
                         <div className="">
@@ -910,7 +914,7 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
                               <div>
                                 <div className="flex items-center justify-center">
                                   <h1 className="text-base md:text-2xl font-bold text-blue-500 mb-2">
-                                    Commission Base Plan
+                                    {t("label.commission_base")}
                                   </h1>
                                 </div>
                               </div>
@@ -924,23 +928,21 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
                                         CurrencyData
                                       )}
                                 </span>{" "}
-                                Commission per order
+                                {t("common.commission_per_order")}
                               </p>
                             </div>
                             <div className="mt-4">
                               <p className="text-sm text-gray-500 dark:text-white leading-none mt-1">
-                                {`Store will pay ${
-                                  SubscriptionTypeData?.admin_commission_type ==
-                                  "percentage"
-                                    ? `${SubscriptionTypeData?.admin_commission_amount}%`
-                                    : formatPrice(
-                                        SubscriptionTypeData?.admin_commission_amount,
-                                        CurrencyData
-                                      )
-                                } Commission to Admin From
-                                  each order. You will get access of all the
-                                  features and options in store panel , app and
-                                  interaction with user.`}
+                                {t("common.commission_plan_description", {
+                                  amount:
+                                    SubscriptionTypeData?.admin_commission_type ==
+                                    "percentage"
+                                      ? `${SubscriptionTypeData?.admin_commission_amount}%`
+                                      : formatPrice(
+                                          SubscriptionTypeData?.admin_commission_amount,
+                                          CurrencyData
+                                        ),
+                                })}
                               </p>
                             </div>
                           </div>
@@ -1034,7 +1036,7 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
                                     </div>
                                     <div className="grid grid-cols-2 items-center gap-2">
                                       <div>
-                                        <p className="mt-1">POS System</p>
+                                        <p className="mt-1">{t("table_header.pos_system")}</p>
                                       </div>
                                       <div className="flex justify-end">
                                         {card.pos_system == true ? (
@@ -1046,7 +1048,7 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
                                     </div>
                                     <div className="grid grid-cols-2 items-center gap-2">
                                       <div>
-                                        <p className="mt-1">Live Chat</p>
+                                        <p className="mt-1">{t("table_header.live_chat")}</p>
                                       </div>
                                       <div className="flex justify-end">
                                         {card.live_chat == 1 ? (
@@ -1057,7 +1059,7 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
                                       </div>
                                     </div>
                                     <div className="grid grid-cols-2 items-center gap-2">
-                                      <div>Order Limit</div>
+                                      <div>{t("table_header.order_limit")}</div>
                                       <div>
                                         <p className="text-sm text-gray-500 dark:text-white font-semibold text-end leading-none mt-1">
                                           {card?.order_limit}
@@ -1065,7 +1067,7 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
                                       </div>
                                     </div>
                                     <div className="grid grid-cols-2 items-center gap-2">
-                                      <div>Product Limit</div>
+                                      <div>{t("table_header.product_limit")}</div>
                                       <div>
                                         <p className="text-sm text-gray-500 dark:text-white font-semibold text-end leading-none mt-1">
                                           {card?.product_limit}
@@ -1073,7 +1075,7 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
                                       </div>
                                     </div>
                                     <div className="grid grid-cols-2 items-center gap-2">
-                                      <div>Featured Limit</div>
+                                      <div>{t("table_header.featured_limit")}</div>
                                       <div>
                                         <p className="text-sm text-gray-500 dark:text-white font-semibold text-end leading-none mt-1">
                                           {card?.product_featured_limit}
@@ -1096,7 +1098,7 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
                                             color="text-white"
                                           />
                                         ) : (
-                                          <span>Get Started</span>
+                                          <span>{t("common.get_started")}</span>
                                         )}
                                       </Button>
                                     ) : (
@@ -1109,7 +1111,7 @@ const BusinessPlanDetails = ({ searchValue }: any) => {
                                             }
                                             className="w-full py-2 text-center rounded-lg bg-blue-600 text-white font-500 hover:bg-blue-700"
                                           >
-                                            Buy Now
+                                            {t("button.buy_now")}
                                           </Button>
                                         }
                                         subscription={subscription}

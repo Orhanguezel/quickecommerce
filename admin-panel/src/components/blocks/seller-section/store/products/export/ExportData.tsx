@@ -12,15 +12,7 @@ import { usePathname } from 'next/navigation';
 import { Controller, useForm } from 'react-hook-form';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
-const TypeList = [
-  { label: 'All Data', value: 'all_data' },
-  { label: 'Date Wise', value: 'date_wise' },
-  { label: 'ID Wise', value: 'id_wise' },
-];
-const FormatList = [
-  { label: 'CSV', value: 'csv' },
-  // { label: "XLSX", value: "xlsx" },
-];
+import { toast } from 'react-toastify';
 
 const ExportData = ({ data }: any) => {
   const dispatch = useAppDispatch();
@@ -28,6 +20,16 @@ const ExportData = ({ data }: any) => {
   const pathname = usePathname();
   const locale = pathname.split('/')[1];
   const dir = locale === 'ar' ? 'rtl' : 'ltr';
+
+  const TypeList = [
+    { label: t('common.export_all_data'), value: 'all_data' },
+    { label: t('common.export_date_wise'), value: 'date_wise' },
+    { label: t('common.export_id_wise'), value: 'id_wise' },
+  ];
+  const FormatList = [
+    { label: t('common.export_format_csv'), value: 'csv' },
+  ];
+
   const { watch, control, setValue, register, handleSubmit } = useForm<ExportFormData>({
     resolver: zodResolver(exportSchema),
     defaultValues: {
@@ -80,7 +82,6 @@ const ExportData = ({ data }: any) => {
 
             // Handle XLSX download using ExcelJS
             else if (format === 'xlsx') {
-              // Convert response data into usable JSON
               let jsonData: any[] = [];
               if (typeof fileData === 'string') {
                 try {
@@ -92,12 +93,10 @@ const ExportData = ({ data }: any) => {
                 jsonData = fileData;
               }
 
-              // Create workbook + worksheet
               const workbook = new ExcelJS.Workbook();
               const worksheet = workbook.addWorksheet('Exported Data');
 
               if (jsonData.length > 0) {
-                // Set columns dynamically
                 const columns = Object.keys(jsonData[0]).map((key) => ({
                   header: key,
                   key,
@@ -105,21 +104,18 @@ const ExportData = ({ data }: any) => {
                 }));
                 worksheet.columns = columns;
 
-                // Add all rows
                 jsonData.forEach((row) => worksheet.addRow(row));
 
-                // Style the header row
                 worksheet.getRow(1).eachCell((cell) => {
                   cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
                   cell.fill = {
                     type: 'pattern',
                     pattern: 'solid',
-                    fgColor: { argb: 'FF2563EB' }, // blue
+                    fgColor: { argb: 'FF2563EB' },
                   };
                 });
               }
 
-              // Generate Excel file and trigger download
               const buffer = await workbook.xlsx.writeBuffer();
               const blob = new Blob([buffer], {
                 type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -128,12 +124,12 @@ const ExportData = ({ data }: any) => {
             }
           },
           onError: () => {
-            alert('Export failed. Please try again.');
+            toast.error(t('common.export_failed'));
           },
         },
       );
     } catch (error) {
-      alert('An unexpected error occurred. Please try again.');
+      toast.error(t('common.unexpected_error'));
     }
   };
 
@@ -153,8 +149,8 @@ const ExportData = ({ data }: any) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <Card>
           <CardHeader>
-            <CardTitle className="mb-2">First Step</CardTitle>
-            <CardDescription>Select Data Type</CardDescription>
+            <CardTitle className="mb-2">{t('common.export_step_one_title')}</CardTitle>
+            <CardDescription>{t('common.export_step_one_description')}</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
             <div>
@@ -162,7 +158,7 @@ const ExportData = ({ data }: any) => {
                 <span className="flex h-2 w-2 translate-y-1 rounded-full bg-blue-500" />
                 <div className="space-y-1">
                   <p className="text-sm font-medium leading-none text-gray-500 dark:text-white ">
-                    Select data type in which order you want your data sorted while downloading.
+                    {t('common.export_step_one_note_one')}
                   </p>
                 </div>
               </div>
@@ -171,8 +167,8 @@ const ExportData = ({ data }: any) => {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="mb-2">Second Step</CardTitle>
-            <CardDescription>Select Data Range by Date or ID and Export </CardDescription>
+            <CardTitle className="mb-2">{t('common.export_step_two_title')}</CardTitle>
+            <CardDescription>{t('common.export_step_two_description')}</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
             <div>
@@ -180,7 +176,7 @@ const ExportData = ({ data }: any) => {
                 <span className="flex h-2 w-2 translate-y-1 rounded-full bg-blue-500" />
                 <div className="space-y-1">
                   <p className="text-sm font-medium leading-none text-gray-500 dark:text-white ">
-                    The file will be downloaded in .xls format
+                    {t('common.export_step_two_note_one')}
                   </p>
                 </div>
               </div>
@@ -188,8 +184,7 @@ const ExportData = ({ data }: any) => {
                 <span className="flex h-2 w-2 translate-y-1 rounded-full bg-blue-500" />
                 <div className="space-y-1">
                   <p className="text-sm font-medium leading-none text-gray-500 dark:text-white ">
-                    Click reset if you want to clear you changes and want to download in default
-                    sort wise data
+                    {t('common.export_step_two_note_two')}
                   </p>
                 </div>
               </div>
@@ -200,7 +195,7 @@ const ExportData = ({ data }: any) => {
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="grid lg:grid-cols-2 gap-4">
           <div>
-            <p className="text-sm font-medium mb-1">Data Type</p>
+            <p className="text-sm font-medium mb-1">{t('common.export_data_type')}</p>
             <Controller
               control={control}
               name="type"
@@ -217,13 +212,13 @@ const ExportData = ({ data }: any) => {
             />
           </div>
           <div>
-            <p className="text-sm font-medium mb-1">Format</p>
+            <p className="text-sm font-medium mb-1">{t('common.format')}</p>
             <Controller
               control={control}
               name="format"
               render={({ field }) => (
                 <AppSelect
-                  placeholder="Select Format"
+                  placeholder={t('place_holder.select_format')}
                   value={String(field.value ?? '')}
                   onSelect={(value) => {
                     field.onChange(value);
@@ -237,21 +232,21 @@ const ExportData = ({ data }: any) => {
           {checkedValue?.type === 'id_wise' && (
             <>
               <div>
-                <p className="text-sm font-medium mb-1">Start ID</p>
+                <p className="text-sm font-medium mb-1">{t('common.export_start_id')}</p>
                 <Input
                   id="min_id"
                   {...register('min_id' as keyof ExportFormData)}
                   className="app-input"
-                  placeholder="Enter Start ID"
+                  placeholder={t('place_holder.enter_start_id')}
                 />
               </div>
               <div>
-                <p className="text-sm font-medium mb-1">End ID</p>
+                <p className="text-sm font-medium mb-1">{t('common.export_end_id')}</p>
                 <Input
                   id="max_id"
                   {...register('max_id' as keyof ExportFormData)}
                   className="app-input"
-                  placeholder="Enter End ID"
+                  placeholder={t('place_holder.enter_end_id')}
                 />
               </div>
             </>
@@ -259,23 +254,23 @@ const ExportData = ({ data }: any) => {
           {checkedValue?.type === 'date_wise' && (
             <>
               <div className="">
-                <p className="text-sm font-medium mb-1">Start Date</p>
+                <p className="text-sm font-medium mb-1">{t('label.start_date')}</p>
                 <Input
                   id="start_date"
                   type="date"
                   {...register('start_date' as keyof ExportFormData)}
                   className="app-input flex flex-col"
-                  placeholder="Enter value"
+                  placeholder={t('place_holder.enter_value')}
                 />
               </div>
               <div className="">
-                <p className="text-sm font-medium mb-1">End Date</p>
+                <p className="text-sm font-medium mb-1">{t('label.end_date')}</p>
                 <Input
                   id="end_date"
                   type="date"
                   {...register('end_date' as keyof ExportFormData)}
                   className="app-input flex flex-col"
-                  placeholder="Enter value"
+                  placeholder={t('place_holder.enter_value')}
                 />
               </div>
             </>
@@ -283,7 +278,7 @@ const ExportData = ({ data }: any) => {
         </div>
 
         <div className="col-span-2 mt-10">
-          <SubmitButton UpdateData={data} IsLoading={isPending} AddLabel="Export" />
+          <SubmitButton UpdateData={data} IsLoading={isPending} AddLabel={t('common.export')} />
         </div>
       </form>
     </div>

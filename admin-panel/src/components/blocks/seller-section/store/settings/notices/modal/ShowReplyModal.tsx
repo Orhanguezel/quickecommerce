@@ -3,7 +3,6 @@ import { AppModal } from "@/components/blocks/common/AppModal";
 import { useNoticeDetailsQuery } from "@/modules/seller-section/settings/notices/notices.action";
 import { MessageSquareWarning } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { usePathname } from "next/navigation";
 import React, { useState } from "react";
 
 interface ShowReplyModalProps {
@@ -24,7 +23,6 @@ const ShowReplyModal: React.FC<ShowReplyModalProps> = ({
 }) => {
   const t = useTranslations();
   const locale = useLocale();
-  const pathname = usePathname();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { NoticeDetails, isPending } = useNoticeDetailsQuery({
     language: locale,

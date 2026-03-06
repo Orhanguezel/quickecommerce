@@ -93,8 +93,10 @@ const InvoiceModal: React.FC<ConfirmationModalProps> = ({
               } catch (error) {
                 toast.error(
                   error instanceof Error
-                    ? `Error refetching data: ${error.message}`
-                    : "An unknown error occurred while refetching data"
+                    ? t("common.error_refetching_data_with_message", {
+                        message: error.message,
+                      })
+                    : t("common.unknown_error_refetching_data")
                 );
               }
             }
@@ -145,10 +147,12 @@ const InvoiceModal: React.FC<ConfirmationModalProps> = ({
         pdf.save(`invoice_${invoice_number}.pdf`);
       } catch (error) {
         toast.error(
-                  error instanceof Error
-                    ? `Error refetching data: ${error.message}`
-                    : "An unknown error occurred while refetching data"
-                );
+          error instanceof Error
+            ? t("common.error_refetching_data_with_message", {
+                message: error.message,
+              })
+            : t("common.unknown_error_refetching_data")
+        );
       } finally {
         setIsDownloading(false);
       }
@@ -158,7 +162,7 @@ const InvoiceModal: React.FC<ConfirmationModalProps> = ({
   return (
     <AppModal
       trigger={trigger}
-      actionButtonLabel="Download Invoice"
+      actionButtonLabel={t("button.download_invoice")}
       customClass="inset-x-0 md:inset-x-10p xl:inset-x-30p top-[20px] bg-white"
       onSave={handleDownloadInvoice}
       disable={loading}
@@ -210,19 +214,27 @@ const InvoiceModal: React.FC<ConfirmationModalProps> = ({
                   </div>
 
                   <p className="text-sm">
-                    <span className="font-semibold mr-1">Email:</span>{" "}
+                    <span className="font-semibold mr-1">
+                      {t("table_header.email")}:
+                    </span>{" "}
                     {QueryGeneralSettingsData?.com_site_email}
                   </p>
                   <p className="text-sm ">
-                    <span className="font-semibold mr-1">Phone:</span>{" "}
+                    <span className="font-semibold mr-1">
+                      {t("table_header.phone")}:
+                    </span>{" "}
                     {QueryGeneralSettingsData?.com_site_contact_number}
                   </p>
                   <p className=" text-sm">
-                    <span className="font-semibold mr-1">Address:</span>{" "}
+                    <span className="font-semibold mr-1">
+                      {t("table_header.address")}:
+                    </span>{" "}
                     {QueryGeneralSettingsData?.com_site_full_address}
                   </p>
                   <p className="text-sm">
-                    <span className="font-semibold mr-1">Web:</span>{" "}
+                    <span className="font-semibold mr-1">
+                      {t("common.web")}:
+                    </span>{" "}
                     {QueryGeneralSettingsData?.com_site_website_url}
                   </p>
                 </div>

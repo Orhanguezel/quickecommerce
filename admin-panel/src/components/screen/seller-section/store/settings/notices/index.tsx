@@ -2,14 +2,11 @@
 import NoticesTable from "@/components/blocks/seller-section/store/settings/notices/NoticesTable";
 import { Card, CardContent } from "@/components/ui";
 import { MessageSquareWarning } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { usePathname } from "next/navigation";
-
+import { useLocale, useTranslations } from "next-intl";
 
 const Notices = () => {
   const t = useTranslations();
-  const pathname = usePathname();
-  const locale = pathname.split("/")[1];
+  const locale = useLocale();
   const dir = locale === "ar" ? "rtl" : "ltr";
 
   return (

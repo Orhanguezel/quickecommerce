@@ -237,6 +237,15 @@ return [
     'dashboard.total_revenue' => 'Toplam Gelir',
     'dashboard.total_pos_sales' => 'Toplam POS Satışları',
 
+    // Seller Dashboard
+    'dashboard.total_stores' => 'Toplam Mağaza',
+    'dashboard.total_earnings' => 'Toplam Kazanç',
+    'dashboard.pos_sales' => 'POS Satışları',
+    'dashboard.pos_orders' => 'POS Siparişleri',
+    'dashboard.confirmed_orders' => 'Onaylanan Siparişler',
+    'dashboard.processing_orders' => 'İşlenen Siparişler',
+    'dashboard.shipped_orders' => 'Kargoya Verilen Siparişler',
+
     // themes
     'theme_not_found' => ':name sistemde bulunamadı.',
     'theme_already_active' => 'Bu tema zaten aktif.',

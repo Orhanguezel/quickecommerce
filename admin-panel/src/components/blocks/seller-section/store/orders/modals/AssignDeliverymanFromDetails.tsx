@@ -90,7 +90,7 @@ const AssignDeliverymanFromDetails: React.FC<
       setMarkerPosition({ lat: newLat, lng: newLng });
       setErrorMessage("");
     } else {
-      setErrorMessage("The marker is out of the selected zone.");
+      setErrorMessage(t("common.marker_out_of_selected_zone"));
     }
   };
 

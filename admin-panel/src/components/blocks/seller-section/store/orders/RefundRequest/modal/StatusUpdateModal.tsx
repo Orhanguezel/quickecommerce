@@ -10,17 +10,16 @@ interface StatusUpdateModalProps {
   refetch: () => void;
   row: any;
 }
-const statusList = [
-  { label: "Approved", value: "approved" },
-  { label: "Rejected", value: "rejected" }
-];
-
 const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
   trigger,
   refetch,
   row,
 }) => {
   const t = useTranslations();
+  const statusList = [
+    { label: t("common.approved"), value: "approved" },
+    { label: t("common.rejected"), value: "rejected" },
+  ];
   const { mutate: updateStoreStatus } = useRefundRequestStatusUpdate();
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);

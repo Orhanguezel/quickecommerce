@@ -87,7 +87,7 @@ class IyzicoService
         $request->setPaidPrice((string)$data['paid_price']);
         $request->setCurrency($data['currency'] ?? Currency::TL);
         $request->setBasketId((string)$data['basket_id']);
-        $request->setPaymentGroup(PaymentGroup::PRODUCT);
+        $request->setPaymentGroup($data['payment_group'] ?? PaymentGroup::PRODUCT);
         $request->setCallbackUrl((string)$data['callback_url']);
         $request->setBuyer($this->makeBuyer($data['buyer']));
         $request->setShippingAddress($this->makeAddress($data['shipping_address']));

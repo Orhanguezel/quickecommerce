@@ -176,6 +176,8 @@ Route::group(['prefix' => 'v1/'], function () {
         Route::match(['GET', 'POST'], 'iyzico/callback', [IyzicoPaymentController::class, 'callback']);
         // iyzico wallet deposit callback
         Route::match(['GET', 'POST'], 'iyzico/wallet-callback', [IyzicoPaymentController::class, 'walletCallback']);
+        // iyzico subscription callback
+        Route::match(['GET', 'POST'], 'iyzico/subscription-callback', [IyzicoPaymentController::class, 'subscriptionCallback']);
 
         // PayTR server-to-server callback (no auth required)
         Route::post('paytr/callback', [PayTRPaymentController::class, 'callback']);

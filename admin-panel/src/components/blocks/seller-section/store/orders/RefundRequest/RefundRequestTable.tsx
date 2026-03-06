@@ -279,7 +279,7 @@ const RefundRequestTable = ({
                       : "text-yellow-500 border-yellow-500 bg-yellow-50"
                   } capitalize px-2 py-1 rounded`}
                 >
-                  {status}
+                  {status ? t(`common.${status}`) : t("common.not_available")}
                 </span>
               </div>
             </div>

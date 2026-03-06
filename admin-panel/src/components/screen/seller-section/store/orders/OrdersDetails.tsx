@@ -16,8 +16,6 @@ import CardSkletonLoader from "@/components/molecules/CardSkletonLoader";
 const OrdersDetails = ({ ID }: any) => {
   const t = useTranslations();
   const pathname = usePathname();
-  const locale = pathname.split("/")[1];
-  const dir = locale === "ar" ? "rtl" : "ltr";
   const isRefetch = useAppSelector((state) => state.refetchValue.isRefetch);
   const { SellerOrderDetails, refetch, isPending } = useOrdersQueryById(ID);
   const [isLoading, setIsLoading] = useState(false);

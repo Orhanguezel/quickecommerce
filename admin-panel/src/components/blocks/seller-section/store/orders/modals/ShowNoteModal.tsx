@@ -29,16 +29,16 @@ const ShowNoteModal: React.FC<ShowNoteModalProps> = ({
           <div className="mx-1 text-blue-500 bg-blue-100 rounded p-1">
             <Info width={16} height={16} />
           </div>
-          Notes
+          {t("common.notes")}
         </h1>
         <div className="mt-4 ">
-          <h2 className="text-lg font-semibold">Store Note: </h2>
+          <h2 className="text-lg font-semibold">{t("common.store_note")}:</h2>
           <div className="max-h-40 overflow-auto break-words custom-scrollbar p-1 text-sm">
             {row?.reject_reason}
           </div>
         </div>
         <div className="mt-4">
-          <h2 className="text-lg font-semibold">Customer Note: </h2>
+          <h2 className="text-lg font-semibold">{t("common.customer_note")}:</h2>
           <div className="max-h-40 overflow-auto break-words custom-scrollbar p-1 text-sm">
             {row?.customer_note}
           </div>

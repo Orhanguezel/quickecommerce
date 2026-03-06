@@ -9,13 +9,6 @@ interface StatusUpdateModalProps {
   refetch: () => void;
   row: any;
 }
-const StatusList = [
-  { label: "Pending", value: "pending" },
-  { label: "Confirmed", value: "confirmed" },
-  { label: "Processing", value: "processing" },
-  { label: "Pick-Up", value: "pickup" },
-  { label: "Shipped", value: "shipped" },
-];
 
 const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
   trigger,
@@ -23,6 +16,13 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
   row,
 }) => {
   const t = useTranslations();
+  const statusList = [
+    { label: t("common.pending"), value: "pending" },
+    { label: t("common.confirmed"), value: "confirmed" },
+    { label: t("common.processing"), value: "processing" },
+    { label: t("common.pickup"), value: "pickup" },
+    { label: t("common.shipped"), value: "shipped" },
+  ];
   const { mutate: updateStoreStatus } = useOrdersStatusUpdate();
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,7 +39,7 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
   const currentStatus = row?.status || "";
   const allowedNextStatuses = statusFlow[currentStatus] || [];
 
-  const filteredStatusList = StatusList.filter((item) =>
+  const filteredStatusList = statusList.filter((item) =>
     allowedNextStatuses.includes(item.value)
   );
 

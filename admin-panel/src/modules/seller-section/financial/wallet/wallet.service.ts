@@ -88,3 +88,11 @@ export const useBasePaymentService = <DataType, InputType = unknown>(
 export const useGenerateWalletHMACService = () => {
   return useBaseService<GenerateWalletHMACQueryOptions>(SELLER_API_ENDPOINTS.GENERATE_WALLET_HMAC);
 };
+
+export const useCreateIyzicoSessionService = () => {
+  return useBaseService<any>(SELLER_API_ENDPOINTS.WALLET_CREATE_IYZICO_SESSION);
+};
+
+export const useCreatePayTRSessionService = () => {
+  return useBaseService<any>(SELLER_API_ENDPOINTS.WALLET_CREATE_PAYTR_SESSION);
+};

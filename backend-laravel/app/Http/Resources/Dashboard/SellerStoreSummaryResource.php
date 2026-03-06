@@ -20,84 +20,84 @@ class SellerStoreSummaryResource extends JsonResource
             'summary' => [
                 'store' => [
                     'icon' => 'store-icon',
-                    'title' => 'Total Stores',
+                    'title' => __('messages.dashboard.total_stores'),
                     'count' => $this->total_stores
                 ],
                 'product' => [
                     'icon' => 'product-icon',
-                    'title' => 'Total Product',
+                    'title' => __('messages.dashboard.total_product'),
                     'count' => $this->total_product
                 ],
                 'order' => [
                     'icon' => 'order-icon',
-                    'title' => 'Total Order',
+                    'title' => __('messages.dashboard.total_order'),
                     'count' => $this->total_order
                 ],
                 'pos_order_amount' => [
                     'icon' => 'pos-icon',
-                    'title' => 'POS Sales',
+                    'title' => __('messages.dashboard.pos_sales'),
                     'count' => $this->total_pos_order_amount
                 ],
                 'earnings' => [
                     'icon' => 'earning-icon',
-                    'title' => 'Total Earnings',
+                    'title' => __('messages.dashboard.total_earnings'),
                     'count' => $this->total_earnings
                 ],
                 'refunds' => [
                     'icon' => 'refund-icon',
-                    'title' => 'Total Refunds',
+                    'title' => __('messages.dashboard.total_refunds'),
                     'count' => $this->total_refunds
                 ],
                 'revenue' => [
                     'icon' => 'revenue-icon',
-                    'title' => 'Total Revenue',
+                    'title' => __('messages.dashboard.total_revenue'),
                     'count' => ($this->total_earnings ?? 0) - ($this->total_refunds ?? 0)
                 ],
             ],
             'order_summary' => [
                 'pos_orders' => [
                     'icon' => 'pos-icon',
-                    'title' => 'POS Orders',
+                    'title' => __('messages.dashboard.pos_orders'),
                     'count' => $this->pos_orders
                 ],
                 'confirmed_orders' => [
                     'icon' => 'confirmed-icon',
-                    'title' => 'Confirmed Orders',
+                    'title' => __('messages.dashboard.confirmed_orders'),
                     'count' => $this->confirmed_orders
                 ],
                 'pending_orders' => [
                     'icon' => 'pending-icon',
-                    'title' => 'Pending Orders',
+                    'title' => __('messages.dashboard.pending_orders'),
                     'count' => $this->pending_orders
                 ],
                 'processing_orders' => [
                     'icon' => 'processing-icon',
-                    'title' => 'Processing Orders',
+                    'title' => __('messages.dashboard.processing_orders'),
                     'count' => $this->processing_orders
                 ],
                 'shipped_orders' => [
                     'icon' => 'shipped-icon',
-                    'title' => 'Shipped Orders',
+                    'title' => __('messages.dashboard.shipped_orders'),
                     'count' => $this->shipped_orders
                 ],
                 'completed_orders' => [
                     'icon' => 'completed-icon',
-                    'title' => 'Completed Orders',
+                    'title' => __('messages.dashboard.completed_orders'),
                     'count' => $this->completed_orders
                 ],
                 'cancelled_orders' => [
                     'icon' => 'cancelled-icon',
-                    'title' => 'Cancelled Orders',
+                    'title' => __('messages.dashboard.cancelled_orders'),
                     'count' => $this->cancelled_orders
                 ],
                 'deliveryman_not_assigned_orders' => [
                     'icon' => 'unassigned-icon',
-                    'title' => 'Unassigned Orders',
+                    'title' => __('messages.dashboard.unassigned_orders'),
                     'count' => $this->deliveryman_not_assigned_orders
                 ],
                 'refunded_orders' => [
                     'icon' => 'refunded-icon',
-                    'title' => 'Refunded Orders',
+                    'title' => __('messages.dashboard.refunded_orders'),
                     'count' => $this->refunded_orders
                 ],
             ]

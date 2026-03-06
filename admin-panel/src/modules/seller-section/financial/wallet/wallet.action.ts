@@ -6,6 +6,8 @@ import { useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 import {
   useBuyPackageService,
+  useCreateIyzicoSessionService,
+  useCreatePayTRSessionService,
   useDepositService,
   useGenerateWalletHMACService,
   usePackageRenewService,
@@ -159,6 +161,32 @@ export const useBuyPackageMutation = () => {
   });
 };
 
+
+export const useCreateIyzicoSessionMutation = () => {
+  const { create }: any = useCreateIyzicoSessionService();
+  return useMutation({
+    mutationFn: (values: { wallet_id: number; wallet_history_id: number }) =>
+      create(values),
+    mutationKey: [SELLER_API_ENDPOINTS.WALLET_CREATE_IYZICO_SESSION],
+    onError: async (data) => {
+      const errorText = (data as any)?.response?.data;
+      toast.error(errorText?.message || "iyzico session error");
+    },
+  });
+};
+
+export const useCreatePayTRSessionMutation = () => {
+  const { create }: any = useCreatePayTRSessionService();
+  return useMutation({
+    mutationFn: (values: { wallet_id: number; wallet_history_id: number }) =>
+      create(values),
+    mutationKey: [SELLER_API_ENDPOINTS.WALLET_CREATE_PAYTR_SESSION],
+    onError: async (data) => {
+      const errorText = (data as any)?.response?.data;
+      toast.error(errorText?.message || "PayTR session error");
+    },
+  });
+};
 
 export const useGenerateWalletHMAQuery = (
   options: Partial<GenerateWalletHMACQueryOptions>

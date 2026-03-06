@@ -150,7 +150,9 @@ class PayTRPaymentController extends Controller
             return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
         }
 
+        // Support customer, seller/admin, and store wallet owners
         $customer = auth()->guard('api_customer')->user();
+        $user = auth()->user();
 
         $walletHistory = \Modules\Wallet\app\Models\WalletTransaction::with('wallet')
             ->find((int)$request->wallet_history_id);
@@ -160,7 +162,22 @@ class PayTRPaymentController extends Controller
         }
 
         $wallet = $walletHistory->wallet;
-        if (!$wallet || (int)$wallet->owner_id !== (int)$customer->id) {
+        $ownerMatch = false;
+        if ($wallet) {
+            if ($customer && $wallet->owner_type === 'App\\Models\\Customer' && (int)$wallet->owner_id === (int)$customer->id) {
+                $ownerMatch = true;
+            } elseif ($user && $wallet->owner_type === 'App\\Models\\User' && (int)$wallet->owner_id === (int)$user->id) {
+                $ownerMatch = true;
+                $customer = $customer ?? $user;
+            } elseif ($user && $wallet->owner_type === 'App\\Models\\Store') {
+                $store = \App\Models\Store::find($wallet->owner_id);
+                if ($store && (int)$store->store_seller_id === (int)$user->id) {
+                    $ownerMatch = true;
+                    $customer = $customer ?? $user;
+                }
+            }
+        }
+        if (!$wallet || !$ownerMatch) {
             return response()->json(['success' => false, 'message' => __('messages.access_denied')], 403);
         }
 
@@ -207,8 +224,15 @@ class PayTRPaymentController extends Controller
                 ],
             ]);
 
-            $merchantOkUrl = $frontendUrl . '/tr/hesabim?tab=wallet&wallet_success=1';
-            $merchantFailUrl = $frontendUrl . '/tr/hesabim?tab=wallet&payment=failed';
+            // Dynamic redirect based on wallet owner type
+            if (in_array($wallet->owner_type, ['App\\Models\\User', 'App\\Models\\Store'])) {
+                $adminUrl = rtrim(config('app.admin_url', $frontendUrl), '/');
+                $merchantOkUrl = $adminUrl . '/tr/seller/store/financial/wallet?wallet_success=1';
+                $merchantFailUrl = $adminUrl . '/tr/seller/store/financial/wallet?payment=failed';
+            } else {
+                $merchantOkUrl = $frontendUrl . '/tr/hesabim?tab=wallet&wallet_success=1';
+                $merchantFailUrl = $frontendUrl . '/tr/hesabim?tab=wallet&payment=failed';
+            }
 
             $result = $this->payTRService->createPaymentToken([
                 'merchant_oid' => $merchantOid,
@@ -277,11 +301,13 @@ class PayTRPaymentController extends Controller
         $merchantOid = $result['merchant_oid'];
         $status = $result['status'];
 
-        // merchant_oid pattern: SP{id}T{timestamp} or WL{id}T{timestamp}
+        // merchant_oid pattern: SP{id}T{timestamp} or WL{id}T{timestamp} or SUB{id}T{timestamp}
         if (str_starts_with($merchantOid, 'SP')) {
             $this->handleOrderCallback($merchantOid, $status, $result['total_amount']);
         } elseif (str_starts_with($merchantOid, 'WL')) {
             $this->handleWalletCallback($merchantOid, $status, $result['total_amount']);
+        } elseif (str_starts_with($merchantOid, 'SUB')) {
+            $this->handleSubscriptionCallback($merchantOid, $status, $result['total_amount']);
         } else {
             Log::warning('PayTR callback unknown merchant_oid pattern', [
                 'merchant_oid' => $merchantOid,
@@ -407,6 +433,72 @@ class PayTRPaymentController extends Controller
         }
     }
 
+    private function handleSubscriptionCallback(string $merchantOid, string $status, string $totalAmount): void
+    {
+        // merchant_oid: SUB{id}T{timestamp}
+        preg_match('/^SUB(\d+)T/', $merchantOid, $matches);
+        $subscriptionHistoryId = (int)($matches[1] ?? 0);
+
+        $subscriptionHistory = \Modules\Subscription\app\Models\SubscriptionHistory::find($subscriptionHistoryId);
+
+        if (!$subscriptionHistory) {
+            Log::warning('PayTR subscription callback: SubscriptionHistory not found', [
+                'merchant_oid' => $merchantOid,
+                'subscription_history_id' => $subscriptionHistoryId,
+            ]);
+            return;
+        }
+
+        if ($status === 'success') {
+            $subscriptionHistory->payment_status = 'paid';
+            $subscriptionHistory->status = 1;
+            $subscriptionHistory->transaction_ref = $merchantOid;
+            $subscriptionHistory->save();
+
+            // Activate the store subscription (same logic as iyzico)
+            $storeSubscription = \Modules\Subscription\app\Models\StoreSubscription::where('store_id', $subscriptionHistory->store_id)->first();
+            if ($storeSubscription) {
+                $storeSubscription->update([
+                    'subscription_id' => $subscriptionHistory->subscription_id,
+                    'name' => $subscriptionHistory->name,
+                    'type' => $subscriptionHistory->type,
+                    'validity' => $storeSubscription->validity + $subscriptionHistory->validity,
+                    'price' => $subscriptionHistory->price,
+                    'pos_system' => $subscriptionHistory->pos_system,
+                    'self_delivery' => $subscriptionHistory->self_delivery,
+                    'mobile_app' => $subscriptionHistory->mobile_app,
+                    'live_chat' => $subscriptionHistory->live_chat,
+                    'order_limit' => $storeSubscription->order_limit + $subscriptionHistory->order_limit,
+                    'product_limit' => $storeSubscription->product_limit + $subscriptionHistory->product_limit,
+                    'product_featured_limit' => $storeSubscription->product_featured_limit + $subscriptionHistory->product_featured_limit,
+                    'payment_gateway' => 'paytr',
+                    'payment_status' => 'paid',
+                    'transaction_ref' => $merchantOid,
+                    'expire_date' => $subscriptionHistory->expire_date,
+                    'status' => 1,
+                ]);
+            }
+
+            // Update store subscription_type
+            \App\Models\Store::where('id', $subscriptionHistory->store_id)
+                ->update(['subscription_type' => 'subscription']);
+
+            Log::info('PayTR subscription payment verified', [
+                'subscription_history_id' => $subscriptionHistory->id,
+                'merchant_oid' => $merchantOid,
+            ]);
+        } else {
+            $subscriptionHistory->payment_status = 'failed';
+            $subscriptionHistory->save();
+
+            Log::warning('PayTR subscription payment failed', [
+                'subscription_history_id' => $subscriptionHistory->id,
+                'merchant_oid' => $merchantOid,
+                'status' => $status,
+            ]);
+        }
+    }
+
     private function buildBasketItems(OrderMaster $orderMaster): array
     {
         $basketItems = [];
@@ -489,5 +581,107 @@ class PayTRPaymentController extends Controller
         }
 
         return $digits;
+    }
+
+    public function createCheckoutSessionForSubscription(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'subscription_history_id' => 'required|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        $user = auth()->user();
+        $subscriptionHistory = \Modules\Subscription\app\Models\SubscriptionHistory::find((int) $request->subscription_history_id);
+
+        if (! $subscriptionHistory) {
+            return response()->json(['success' => false, 'message' => __('messages.data_not_found')], 404);
+        }
+
+        $store = \App\Models\Store::where('id', $subscriptionHistory->store_id)
+            ->where('store_seller_id', $user->id)
+            ->first();
+
+        if (! $store) {
+            return response()->json(['success' => false, 'message' => __('messages.access_denied')], 403);
+        }
+
+        if ($subscriptionHistory->payment_status === 'paid') {
+            return response()->json(['success' => false, 'message' => __('messages.order_already_paid')], 400);
+        }
+
+        try {
+            $config = $this->payTRService->getCredentials();
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => __('messages.paytr_configuration_missing'),
+            ], 422);
+        }
+
+        try {
+            $credentials = $config['credentials'];
+            $appUrl = rtrim(config('app.url'), '/');
+            $adminUrl = rtrim(config('app.admin_url', $appUrl), '/');
+
+            $merchantOid = 'SUB' . $subscriptionHistory->id . 'T' . now()->timestamp;
+
+            $fullName = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''));
+            if ($fullName === '') {
+                $fullName = 'Seller';
+            }
+
+            $paymentAmountKurus = (int) round((float) $subscriptionHistory->price * 100);
+            $currency = PayTRService::convertCurrency('TRY');
+
+            $userBasket = PayTRService::encodeBasket([
+                [
+                    'name' => 'Abonelik: ' . ($subscriptionHistory->name ?? 'Paket'),
+                    'price' => $paymentAmountKurus,
+                    'quantity' => 1,
+                ],
+            ]);
+
+            $merchantOkUrl = $adminUrl . '/tr/seller/store/settings/business-plan?payment_success=1';
+            $merchantFailUrl = $adminUrl . '/tr/seller/store/settings/business-plan?payment=failed';
+
+            $result = $this->payTRService->createPaymentToken([
+                'merchant_oid' => $merchantOid,
+                'email' => (string) ($user->email ?? 'seller@example.com'),
+                'payment_amount' => $paymentAmountKurus,
+                'user_ip' => (string) $request->ip(),
+                'user_basket' => $userBasket,
+                'currency' => $currency,
+                'merchant_ok_url' => $merchantOkUrl,
+                'merchant_fail_url' => $merchantFailUrl,
+                'user_name' => $fullName,
+                'user_address' => 'Adres belirtilmedi',
+                'user_phone' => $this->sanitizePhone($user->phone ?? '05000000000'),
+                'no_installment' => '0',
+                'max_installment' => '0',
+            ]);
+
+            $subscriptionHistory->payment_gateway = 'paytr';
+            $subscriptionHistory->transaction_ref = $merchantOid;
+            $subscriptionHistory->save();
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'token' => $result['token'],
+                    'iframe_url' => $result['iframe_url'],
+                    'subscription_history_id' => $subscriptionHistory->id,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('PayTR subscription session exception', [
+                'subscription_history_id' => $subscriptionHistory->id ?? null,
+                'message' => $e->getMessage(),
+            ]);
+
+            return response()->json(['success' => false, 'message' => __('messages.paytr_session_create_failed')], 500);
+        }
     }
 }

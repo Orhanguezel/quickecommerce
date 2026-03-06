@@ -1,10 +1,10 @@
 "use client";
 import { formatPrice } from "@/components/molecules/formatPrice";
-import Loader from "@/components/molecules/Loader";
 import Pagination from "@/components/molecules/Pagination";
 import RCTable from "@/components/molecules/RCTable";
 import { AppSelect } from "@/components/blocks/common";
 import {
+  CustomAssigneeIcon,
   CustomCancelIcon,
   CustomInvoiceIcon,
   CustomViewIcon,
@@ -14,6 +14,7 @@ import ConfirmationModal from "@/components/blocks/shared/ConfirmationModal";
 import { Badge, Button, Card } from "@/components/ui";
 import { CountItems } from "@/config/helperJson";
 import { SellerRoutes } from "@/config/sellerRoutes";
+import GlobalImageLoader from "@/lib/imageLoader";
 import { useCurrencyQuery } from "@/modules/common/com/com.action";
 import {
   useCancelOrder,
@@ -22,14 +23,12 @@ import {
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { setRefetch } from "@/redux/slices/refetchSlice";
 import { format } from "date-fns";
-import {
-  ChevronsLeftIcon,
-  ChevronsRightIcon,
-  UserRoundCheck,
-} from "lucide-react";
+import { ChevronsLeftIcon, ChevronsRightIcon } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
+import DeliverymanAssignModal from "./modals/DeliverymanAssignModal";
 import InvoiceModal from "./modals/InvoiceModal";
 import StatusUpdateModal from "./modals/StatusUpdateModal";
 import TableSkeletonLoader from "@/components/molecules/TableSkeletonLoader";
@@ -90,6 +89,23 @@ const OrdersTable = ({
 
   const [selectStatus, setSelectStatus] = useState<string>("");
 
+  const getLocalizedStatusLabel = (value?: string) => {
+    const raw = String(value || "").trim().toLowerCase();
+    if (!raw) return "";
+    const normalized = raw.replace(/\s+/g, "_");
+    return t(`common.${normalized}` as any);
+  };
+
+  const getLocalizedFilterLabel = (value?: string, fallback?: string) => {
+    const raw = String(value || "").trim().toLowerCase();
+    if (!raw) return fallback || "";
+    if (raw === "all") return t("common.all");
+    return getLocalizedStatusLabel(raw) || fallback || raw;
+  };
+
+  const statusFilter = selectStatus === "refunded" ? "" : selectStatus;
+  const refundFilter = selectStatus !== "refunded" ? "" : selectStatus;
+
   const sortField = sortedInfo.order == "ascend" ? "asc" : "desc";
   const { Orders, refetch, isPending, error } = useOrdersQuery({
     ...searchValue,
@@ -98,7 +114,8 @@ const OrdersTable = ({
     page: currentPage,
     sortField: sortedInfo.columnKey == "" ? "id" : sortedInfo.columnKey,
     sort: sortField,
-    status: selectStatus,
+    status: statusFilter,
+    refund_status: refundFilter,
     payment_status: selectPaymentStatus,
     store_id: storeID,
     start_date: startDate,
@@ -127,7 +144,7 @@ const OrdersTable = ({
     }
   }, [LastPage, currentPage]);
 
-  const { currency, refetch: refetchCurrency } = useCurrencyQuery({});
+  const { currency } = useCurrencyQuery({});
   const currencyData = useMemo(() => {
     const data = (currency as any) || {};
     return data;
@@ -189,6 +206,7 @@ const OrdersTable = ({
 
     return isMobile;
   };
+
   const useColumn = (
     fixLeft: boolean,
     fixRight: boolean
@@ -200,13 +218,15 @@ const OrdersTable = ({
           title: t("table_header.sl"),
           dataIndex: "serial",
           fixed: fixLeft ? "left" : undefined,
-          width: "6%",
+          width: 80,
         },
         {
           title: t("table_header.order_id"),
-          width: 100,
           dataIndex: "order_id",
-          render: (_: any, row: any) => <p className="px-2">{row?.order_id}</p>,
+          width: 100,
+          render: (_: any, row: RecordType) => (
+            <p className="px-2">{row?.order_id}</p>
+          ),
         },
         {
           title: t("table_header.invoice_no"),
@@ -248,7 +268,7 @@ const OrdersTable = ({
         {
           title: t("table_header.payment_status"),
           dataIndex: "payment_status",
-          width: 150,
+          width: 250,
         },
         {
           title: t("table_header.status"),
@@ -256,9 +276,14 @@ const OrdersTable = ({
           width: 200,
         },
         {
+          title: t("table_header.deliveryman"),
+          dataIndex: "confirmed_by",
+          width: 200,
+        },
+        {
           title: t("table_header.actions"),
           dataIndex: "actions",
-          width: "15%",
+          width: 200,
           fixed: !isMobile && fixRight ? "right" : undefined,
         },
       ],
@@ -308,10 +333,48 @@ const OrdersTable = ({
       if (col.dataIndex === "confirmed_by") {
         return {
           ...col,
-          render: (confirmed_by: any, row: RecordType) => (
-            <span className="text-blue-500">
-              {confirmed_by && <UserRoundCheck />}
-            </span>
+          render: (confirmed_by: any, row: any) => (
+            <div>
+              {confirmed_by ? (
+                <div className="flex items-center gap-2">
+                  <div className="relative w-10 h-10 rounded-full">
+                    {row?.deliveryman?.image_url !== null ? (
+                      <Image
+                        loader={GlobalImageLoader}
+                        src={row?.deliveryman?.image_url}
+                        alt="Deliveryman"
+                        fill
+                        sizes="40px"
+                        className="w-full h-full rounded-full"
+                        loading="lazy"
+                        placeholder="blur"
+                        blurDataURL="/images/no-image.png"
+                      />
+                    ) : (
+                      <Image
+                        src="/images/no-user-image.jpg"
+                        alt="No Image"
+                        fill
+                        sizes="40px"
+                        className="w-full h-full rounded-full"
+                        loading="lazy"
+                      />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-blue-500 text-sm font-semibold capitalize">
+                      {row?.deliveryman?.name}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <p className="text-sm font-semibold capitalize">
+                    {t("common.not_assigned_yet")}
+                  </p>
+                </div>
+              )}
+            </div>
           ),
         };
       }
@@ -322,10 +385,13 @@ const OrdersTable = ({
           render: (payment_status: any, row: RecordType) => {
             const statusStyles: Record<string, string> = {
               paid: "border border-green-500 bg-green-50 text-green-600",
-              partially_paid: "border border-blue-500 bg-blue-50 text-blue-600",
-              refunded: "border border-purple-500 bg-purple-50 text-purple-600",
+              partially_paid:
+                "border border-blue-500 bg-blue-50 text-blue-600",
+              refunded:
+                "border border-purple-500 bg-purple-50 text-purple-600",
               failed: "border border-red-500 bg-red-50 text-red-600",
-              pending: "border border-yellow-500 bg-yellow-50 text-yellow-600",
+              pending:
+                "border border-yellow-500 bg-yellow-50 text-yellow-600",
               default: "border border-gray-400 bg-gray-50 text-gray-600",
             };
 
@@ -338,7 +404,7 @@ const OrdersTable = ({
                   <span
                     className={`${badgeClass} capitalize py-1 px-2 rounded`}
                   >
-                    {payment_status?.replace(/_/g, " ")}
+                    {getLocalizedStatusLabel(payment_status)}
                   </span>
                 </div>
               </div>
@@ -350,7 +416,7 @@ const OrdersTable = ({
         return {
           ...col,
           render: (status: any, row: RecordType) => (
-            <div className="flex items-center justify-start gap-2">
+            <div className="flex items-center gap-2">
               <div className="w-24">
                 <Badge
                   className={` ${
@@ -361,20 +427,25 @@ const OrdersTable = ({
                       : status === "shipped"
                       ? "bg-indigo-50 border border-indigo-500 text-indigo-500"
                       : status === "pending"
-                      ? "bg-gray-50 border border-gray-500 text-gray-500"
-                      : status === "processing"
                       ? "bg-yellow-50 border border-yellow-500 text-yellow-500"
+                      : status === "processing"
+                      ? "bg-yellow-50 border border-orange-500 text-orange-500"
+                      : status === "pickup"
+                      ? "bg-teal-50 border border-teal-500 text-teal-500"
                       : "bg-red-50 border border-red-500 text-red-500"
                   } capitalize`}
                 >
-                  {status}
+                  {getLocalizedStatusLabel(status)}
                 </Badge>
               </div>
-
               <div className="flex items-center gap-2">
                 <StatusUpdateModal
                   trigger={
-                    <CustomStatusUpdateIcon disabled={status == "cancelled"} />
+                    <CustomStatusUpdateIcon
+                      disabled={
+                        status === "delivered" || status === "cancelled"
+                      }
+                    />
                   }
                   refetch={refetch}
                   row={row}
@@ -389,6 +460,21 @@ const OrdersTable = ({
           ...col,
           render: (o: any, row: RecordType) => (
             <div className="flex items-center gap-2 ">
+              <DeliverymanAssignModal
+                trigger={
+                  <CustomAssigneeIcon
+                    disabled={
+                      row.status === "pending" ||
+                      row.status === "confirmed" ||
+                      row.status === "shipped" ||
+                      row.status === "cancelled" ||
+                      row.status === "delivered"
+                    }
+                  />
+                }
+                refetch={refetch}
+                row={row}
+              />
               <CustomViewIcon
                 isLoading={viewRowId === row.order_id}
                 onClick={(e: React.MouseEvent<Element, MouseEvent>) =>
@@ -407,9 +493,9 @@ const OrdersTable = ({
                 trigger={
                   <CustomCancelIcon
                     disabled={
-                      row.status == "shipped" ||
-                      row.status == "cancelled" ||
-                      row.status == "delivered"
+                      row.status === "shipped" ||
+                      row.status === "cancelled" ||
+                      row.status === "delivered"
                     }
                   />
                 }
@@ -453,15 +539,16 @@ const OrdersTable = ({
         <>
           <Card className="p-4 mt-4">
             <div className="flex flex-wrap gap-2 ">
-              {StatusFilter.map((status: any) => (
+              {StatusFilter.map((status: any, index: any) => (
                 <Button
-                  key={status.value}
+                  key={index}
                   onClick={() => setSelectStatus(status.value)}
                   className={`px-4 py-2 transition-all bg-blue-50 text-blue-500 hover:bg-blue-400 hover:text-white ${
                     selectStatus === status.value && "bg-blue-400 text-white"
                   }`}
                 >
-                  {status.label} ({status?.count})
+                  {getLocalizedFilterLabel(status.value, status.label)} (
+                  {status?.count})
                 </Button>
               ))}
             </div>
@@ -471,7 +558,7 @@ const OrdersTable = ({
             useColumn={useColumn}
             sortedInfo={sortedInfo}
             handleSort={handleSort}
-            maxWidth={1500}
+            maxWidth={1900}
           />
           <div className="mt-4 flex flex-col md:flex-row gap-2 justify-between">
             <div>

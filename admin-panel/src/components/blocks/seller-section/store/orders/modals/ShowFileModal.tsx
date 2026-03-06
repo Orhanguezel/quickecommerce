@@ -30,7 +30,7 @@ const ShowFileModal: React.FC<StatusUpdateModalProps> = ({
     >
       <div className="text-start ">
         <h1 className="text-xl font-bold flex gap-1 items-center  border-b border-slate-300 pt-2 pb-4">
-          <FileIcon /> Files
+          <FileIcon /> {t("common.files")}
         </h1>
         <div className="grid grid-cols-3 gap-2 mt-4">
           {Array.isArray(row?.files) && row?.files.length > 0 ? (
@@ -68,7 +68,7 @@ const ShowFileModal: React.FC<StatusUpdateModalProps> = ({
                               />
                               <div className="py-2 absolute bottom-0 left-1/2 -translate-x-1/2 bg-[#FFFFFFE5] border-l border-r border-b w-full rounded-b opacity-0 group-hover:opacity-90 transition-opacity duration-300 flex flex-col items-center justify-center">
                                 <p className="text-sm font-bold text-blue-500 p-1">
-                                  Preview
+                                  {t("common.preview")}
                                 </p>
                               </div>
                             </div>
@@ -88,7 +88,7 @@ const ShowFileModal: React.FC<StatusUpdateModalProps> = ({
                               {" "}
                               <FileText width={16} height={16} />{" "}
                             </div>{" "}
-                            View PDF
+                            {t("common.view_pdf")}
                           </a>
                         );
                       }
@@ -112,7 +112,7 @@ const ShowFileModal: React.FC<StatusUpdateModalProps> = ({
                           rel="noopener noreferrer"
                           className="hover:underline text-sm break-words block mt-2"
                         >
-                          Uploaded File ({fileExtension})
+                          {t("common.uploaded_file")} ({fileExtension})
                         </a>
                       );
                     })()}
@@ -121,7 +121,7 @@ const ShowFileModal: React.FC<StatusUpdateModalProps> = ({
             })
           ) : (
             <div className="col-span-3 flex items-center justify-center">
-              <p>No file attached</p>
+              <p>{t("common.no_file_attached")}</p>
             </div>
           )}
         </div>

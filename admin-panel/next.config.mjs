@@ -75,6 +75,18 @@ export default withBundleAnalyzer(
     distDir: isProdBuild ? "build" : ".next",
 
     webpack: (config) => {
+      config.ignoreWarnings = [
+        {
+          module: /next-intl/,
+          message: /Parsing of .* for build dependencies failed/,
+        },
+      ];
+
+      // Suppress next-intl infrastructure warnings
+      config.infrastructureLogging = {
+        ...config.infrastructureLogging,
+        level: "error",
+      };
       const swEnvFile = path.resolve("./public/firebase-env.js");
 
       const envConfig = `

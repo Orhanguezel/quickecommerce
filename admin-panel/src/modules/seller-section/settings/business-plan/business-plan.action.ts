@@ -9,6 +9,8 @@ import {
   useBusinessPlanQueryService,
   useBuyPackageService,
   useCommissionSettingsQueryService,
+  useCreateSubscriptionIyzicoSessionService,
+  useCreateSubscriptionPayTRSessionService,
   useGenerateBusinessPlanHMACService,
   usePackageRenewService,
   usePaymentStatusUpdateService,
@@ -231,4 +233,28 @@ export const useGenerateBusinessPlanHMAQuery = (
     refetch,
     isFetching,
   };
+};
+
+export const useCreateSubscriptionIyzicoSessionMutation = () => {
+  const { create }: any = useCreateSubscriptionIyzicoSessionService();
+  return useMutation({
+    mutationFn: (values: { subscription_history_id: number }) => create(values),
+    mutationKey: [SELLER_API_ENDPOINTS.SUBSCRIPTION_CREATE_IYZICO_SESSION],
+    onError: async (data) => {
+      const errorText = (data as any)?.response?.data;
+      toast.error(errorText?.message || "iyzico session error");
+    },
+  });
+};
+
+export const useCreateSubscriptionPayTRSessionMutation = () => {
+  const { create }: any = useCreateSubscriptionPayTRSessionService();
+  return useMutation({
+    mutationFn: (values: { subscription_history_id: number }) => create(values),
+    mutationKey: [SELLER_API_ENDPOINTS.SUBSCRIPTION_CREATE_PAYTR_SESSION],
+    onError: async (data) => {
+      const errorText = (data as any)?.response?.data;
+      toast.error(errorText?.message || "PayTR session error");
+    },
+  });
 };

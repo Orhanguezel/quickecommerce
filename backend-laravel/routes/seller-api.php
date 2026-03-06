@@ -109,6 +109,7 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => ['auth:sanctum', 'check.e
                     Route::prefix('{orderId}/cargo')->group(function () {
                         Route::post('/', [SellerCargoController::class, 'createShipment']);
                         Route::get('/', [SellerCargoController::class, 'show']);
+                        Route::get('offers', [SellerCargoController::class, 'offers']);
                         Route::delete('/', [SellerCargoController::class, 'cancel']);
                     });
                 });

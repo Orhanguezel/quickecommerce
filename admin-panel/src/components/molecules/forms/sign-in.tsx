@@ -21,6 +21,7 @@ import { Copy, Eye, EyeOff } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
@@ -340,6 +341,17 @@ const SignInForm = ({
                         ) : (
                           <span>{t("button.login")}</span>
                         )}
+                      </Button>
+                      {/* Seller Login */}
+                      <Button
+                        variant="outline"
+                        className="w-full mt-3 border-blue-500 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950"
+                        type="button"
+                        asChild
+                      >
+                        <Link href={`/${locale}/seller/signin`}>
+                          {t("common.seller_login")}
+                        </Link>
                       </Button>
                     </form>
                   </Form>
