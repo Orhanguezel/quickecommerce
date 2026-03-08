@@ -50,6 +50,7 @@ import {
   useWishlistToggleMutation,
 } from "@/modules/wishlist/wishlist.service";
 import { useRecentlyViewedStore } from "@/stores/recently-viewed-store";
+import { trackViewItem, trackAddToCart } from "@/lib/gtm";
 import {
   useProductQuestionsQuery,
   useAskQuestionMutation,
@@ -396,6 +397,20 @@ export function ProductDetailClient({
     });
   }, [product.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // GA4: view_item
+  useEffect(() => {
+    const p = product;
+    const itemPrice = p.special_price != null ? Number(p.special_price) : (p.price != null ? Number(p.price) : 0);
+    trackViewItem({
+      item_id: String(p.id),
+      item_name: p.name,
+      item_category: p.category?.category_name,
+      price: itemPrice,
+      quantity: 1,
+      ...(p.discount_percentage ? { discount: p.discount_percentage } : {}),
+    });
+  }, [product.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const price = selectedVariant
     ? Number(selectedVariant.price)
     : product.price != null
@@ -516,6 +531,17 @@ export function ProductDetailClient({
       variant_label: variantOptions.find((v) => v.id === selectedVariant.id)?.text,
     };
     addItem(cartItem);
+
+    // GA4: add_to_cart
+    trackAddToCart({
+      item_id: String(product.id),
+      item_name: product.name,
+      item_category: product.category?.category_name,
+      item_variant: variantOptions.find((v) => v.id === selectedVariant.id)?.text,
+      price: displayPrice,
+      quantity,
+      ...(price && displayPrice < price ? { discount: price - displayPrice } : {}),
+    });
   };
 
   const handleBuyNow = () => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@/i18n/routing";
 import { useLocale } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -38,6 +38,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Image from "next/image";
+import { trackBeginCheckout, trackPurchase } from "@/lib/gtm";
 import {
   MapPin,
   Plus,
@@ -179,6 +180,25 @@ export function CheckoutClient({ translations: t }: Props) {
       ? 0
       : minimumShippingCharge;
   const total = payableSubtotal + shippingAmount;
+
+  // GA4: begin_checkout (once per page load)
+  const checkoutTrackedRef = useRef(false);
+  useEffect(() => {
+    if (items.length === 0 || checkoutTrackedRef.current) return;
+    checkoutTrackedRef.current = true;
+    trackBeginCheckout(
+      items.map((i) => ({
+        item_id: String(i.product_id),
+        item_name: i.name,
+        item_variant: i.variant_label,
+        price: i.price,
+        quantity: i.quantity,
+      })),
+      subtotal,
+      selectedCurrencyCode || 'TRY',
+      appliedCoupon?.code,
+    );
+  }, [items.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Payment failed redirect
   if (paymentStatus === "failed") {
@@ -348,6 +368,22 @@ export function CheckoutClient({ translations: t }: Props) {
         if (!orderId) {
           return;
         }
+
+        // GA4: purchase (fires once before cart is cleared)
+        trackPurchase(
+          String(orderId),
+          items.map((i) => ({
+            item_id: String(i.product_id),
+            item_name: i.name,
+            item_variant: i.variant_label,
+            price: i.price,
+            quantity: i.quantity,
+          })),
+          total,
+          selectedCurrencyCode || 'TRY',
+          shippingAmount,
+          appliedCoupon?.code,
+        );
 
         if (paymentMethod === "iyzico") {
           createIyzicoSessionMutation.mutate(orderId, {

@@ -1,5 +1,5 @@
 "use client";
-import { useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import { usePrice } from "@/hooks/use-price";
 
 import { Link } from "@/i18n/routing";
@@ -9,6 +9,7 @@ import { useCheckoutExtraInfoQuery } from "@/modules/checkout/checkout.service";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { Minus, Plus, ShoppingBag, Trash2, Truck } from "lucide-react";
+import { trackViewCart, trackRemoveFromCart } from "@/lib/gtm";
 
 interface Props {
   translations: {
@@ -62,6 +63,34 @@ export function CartClient({ translations: t }: Props) {
   const showFreeShippingNotice =
     freeShippingThreshold > 0 &&
     subtotal < freeShippingThreshold;
+
+  // GA4: view_cart
+  const trackedRef = useRef(false);
+  useEffect(() => {
+    if (!mounted || items.length === 0 || trackedRef.current) return;
+    trackedRef.current = true;
+    trackViewCart(
+      items.map((i) => ({
+        item_id: String(i.product_id),
+        item_name: i.name,
+        item_variant: i.variant_label,
+        price: i.price,
+        quantity: i.quantity,
+      })),
+      subtotal,
+    );
+  }, [mounted, items.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleRemoveItem = (item: typeof items[0]) => {
+    trackRemoveFromCart({
+      item_id: String(item.product_id),
+      item_name: item.name,
+      item_variant: item.variant_label,
+      price: item.price,
+      quantity: item.quantity,
+    });
+    removeItem(item.id);
+  };
 
   if (items.length === 0) {
     return (
@@ -217,7 +246,7 @@ export function CartClient({ translations: t }: Props) {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-destructive hover:text-destructive"
-                        onClick={() => removeItem(item.id)}
+                        onClick={() => handleRemoveItem(item)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
