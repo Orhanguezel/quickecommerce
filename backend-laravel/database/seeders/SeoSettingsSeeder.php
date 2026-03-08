@@ -31,6 +31,8 @@ class SeoSettingsSeeder extends Seeder
             'com_meta_author'      => 'Sportoonline',
             'com_meta_robots'      => 'index,follow',
             'com_meta_publisher'   => 'Sportoonline',
+            'com_google_analytics_id'    => '',
+            'com_google_tag_manager_id'  => '',
         ];
 
         foreach ($settings as $key => $value) {

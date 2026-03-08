@@ -184,6 +184,8 @@ const SEOSettingsForm = () => {
     setValue('meta_author', SEOSettingsMessage?.com_meta_author ?? '');
     setValue('meta_robots', SEOSettingsMessage?.com_meta_robots ?? '');
     setValue('meta_publisher', SEOSettingsMessage?.com_meta_publisher ?? '');
+    setValue('google_analytics_id', SEOSettingsMessage?.com_google_analytics_id ?? '');
+    setValue('google_tag_manager_id', SEOSettingsMessage?.com_google_tag_manager_id ?? '');
     setValue(
       `og_title_${firstLangId}` as keyof SEOSettingsFormData,
       SEOSettingsMessage?.com_og_title ?? '',
@@ -310,6 +312,8 @@ const SEOSettingsForm = () => {
       com_meta_author: values.meta_author ?? '',
       com_meta_robots: values.meta_robots ?? '',
       com_meta_publisher: values.meta_publisher ?? '',
+      com_google_analytics_id: values.google_analytics_id ?? '',
+      com_google_tag_manager_id: values.google_tag_manager_id ?? '',
     };
 
     const translations = multiLangData
@@ -674,6 +678,54 @@ const SEOSettingsForm = () => {
                               {...register('meta_publisher')}
                               className="app-input"
                               placeholder="Sportoonline"
+                            />
+                          </div>
+
+                          <div className="mt-4">
+                            <p className="text-sm font-medium mb-1 flex items-center gap-2">
+                              <span>Google Analytics ID</span>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Info className="w-4 text-custom-dark-blue cursor-pointer" />
+                                  </TooltipTrigger>
+                                  <TooltipContent className="bg-custom-dark-blue">
+                                    <p className="p-1 text-sm font-medium">
+                                      Google Analytics Measurement ID (G-XXXXXXXXXX)
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </p>
+                            <Input
+                              id="google_analytics_id"
+                              {...register('google_analytics_id')}
+                              className="app-input"
+                              placeholder="G-XXXXXXXXXX"
+                            />
+                          </div>
+
+                          <div className="mt-4">
+                            <p className="text-sm font-medium mb-1 flex items-center gap-2">
+                              <span>Google Tag Manager ID</span>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Info className="w-4 text-custom-dark-blue cursor-pointer" />
+                                  </TooltipTrigger>
+                                  <TooltipContent className="bg-custom-dark-blue">
+                                    <p className="p-1 text-sm font-medium">
+                                      Google Tag Manager Container ID (GTM-XXXXXXX)
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </p>
+                            <Input
+                              id="google_tag_manager_id"
+                              {...register('google_tag_manager_id')}
+                              className="app-input"
+                              placeholder="GTM-XXXXXXX"
                             />
                           </div>
 

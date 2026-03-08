@@ -51,6 +51,8 @@ class SiteGeneralInfoResource extends JsonResource
             'com_meta_author' => com_option_get('com_meta_author'),
             'com_meta_robots' => com_option_get('com_meta_robots'),
             'com_meta_publisher' => com_option_get('com_meta_publisher'),
+            'com_google_analytics_id' => com_option_get('com_google_analytics_id'),
+            'com_google_tag_manager_id' => com_option_get('com_google_tag_manager_id'),
         ];
     }
 }

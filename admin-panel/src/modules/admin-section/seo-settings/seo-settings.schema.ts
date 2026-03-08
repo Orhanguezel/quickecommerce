@@ -22,6 +22,8 @@ const baseSchema = {
   meta_author: z.string().optional(),
   meta_robots: z.string().optional(),
   meta_publisher: z.string().optional(),
+  google_analytics_id: z.string().optional(),
+  google_tag_manager_id: z.string().optional(),
   og_image: z
     .instanceof(File)
     .refine(
