@@ -17,7 +17,7 @@ cd /home/orhan/Documents/quickecommerce/customer-web-nextjs$
 npm run dev
 
 
-sportoonline.comEngin10001453.
+sportoonline.com
 
 # Geliver Kargo Entegrasyonu
 GELIVER_API_TOKEN=6992e2db-47ab-4181-9f2e-d9c2a0ffba79
@@ -115,3 +115,6 @@ fiyatlar türkiye sartlarina uygun olarak vergi dahil hesaplanmali. faturada ver
 sepettr üünlrt eklenince özetler olsun. nereye ne kadar ödeniyormus görülüyor. 
 
 -
+
+
+ürün degerlendirme suan yapilmiyor. bunu aktif hale getirelim.

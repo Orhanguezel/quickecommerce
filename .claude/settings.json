@@ -1,8 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(sshpass -p 'Engin10001453.' ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@76.13.4.19 \"cd /var/www/quikecommerce/admin-panel && rm -rf .next && bun run build 2>&1\")",
-      "Bash(git push origin main)"
+      "Bash(sshpass -p '' ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@76.13.4.19 \"cd /var/www/quikecommerce/admin-panel && rm -rf .next && bun run build 2>&1\")",
+      "Bash(git push origin main)",
+      "Bash(ssh -o PreferredAuthentications=publickey vps-76 \"echo ''=== CHECK WHAT fetchAPI RETURNS ==='' && cd /var/www/quikecommerce/customer-web-nextjs && node -e '':*)"
     ]
   }
 }
