@@ -149,7 +149,7 @@ export function HeroSliderVariant1({ sliders }: HeroSliderProps) {
 
                   {slide.button_text && slide.redirect_url && (
                     <div className="mt-5">
-                      <Link href={slide.redirect_url}>
+                      <Link href={slide.redirect_url} title={slide.button_text || slide.title}>
                         <span
                           className="inline-flex items-center gap-2 rounded-[5px] bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground sm:px-6 sm:py-3.5 sm:text-base lg:text-lg"
                           style={{
