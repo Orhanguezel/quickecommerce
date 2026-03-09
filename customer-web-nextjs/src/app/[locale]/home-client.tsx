@@ -65,6 +65,7 @@ interface HomeData {
 }
 
 interface HomeTranslations {
+  site_h1: string;
   featured_title: string;
   featured_subtitle: string;
   new_arrivals_title: string;
@@ -601,7 +602,7 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
 
   return (
     <div className="container space-y-10 py-6">
-      <h1 className="sr-only">Sportoonline — Online Alışveriş</h1>
+      <h1 className="sr-only">{t.site_h1}</h1>
       {renderedBlocks}
     </div>
   );

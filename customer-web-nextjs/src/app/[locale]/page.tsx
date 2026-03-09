@@ -21,19 +21,39 @@ interface SliderResponse {
   data?: Slider[];
 }
 
+const API_URL = process.env.NEXT_PUBLIC_REST_API_ENDPOINT || 'https://sportoonline.com/api/v1';
+
+async function getSiteSettings(locale: string) {
+  try {
+    const res = await fetch(`${API_URL}/site-general-info`, {
+      headers: { 'X-localization': locale },
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.site_settings ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "seo" });
+  const ss = await getSiteSettings(locale);
+  const siteName = ss?.com_site_title || 'Sportoonline';
+  const metaTitle = ss?.com_meta_title || `${siteName} — ${t("home_title")}`;
+  const metaDesc = ss?.com_meta_description || t("home_description");
 
   return {
-    title: { absolute: `Sportoonline — ${t("home_title")}` },
-    description: t("home_description"),
+    title: { absolute: metaTitle },
+    description: metaDesc,
     openGraph: {
-      title: `Sportoonline — ${t("home_title")}`,
-      description: t("home_description"),
+      title: metaTitle,
+      description: metaDesc,
       type: "website",
       locale: locale === "tr" ? "tr_TR" : "en_US",
-      siteName: "Sportoonline",
+      siteName,
     },
     alternates: {
       canonical: `/${locale}`,
@@ -90,13 +110,15 @@ export default async function HomePage({ params }: Props) {
   const t = await getTranslations({ locale, namespace: "home" });
   const blogT = await getTranslations({ locale, namespace: "blog" });
   const seoT = await getTranslations({ locale, namespace: "seo" });
+  const settings = await getSiteSettings(locale);
+  const siteName = settings?.com_site_title || 'Sportoonline';
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "Sportoonline",
+    name: siteName,
     url: `https://sportoonline.com/${locale}`,
-    description: seoT("home_description"),
+    description: settings?.com_meta_description || seoT("home_description"),
     potentialAction: {
       "@type": "SearchAction",
       target: `https://sportoonline.com/${locale}/ara?q={search_term_string}`,
@@ -113,6 +135,7 @@ export default async function HomePage({ params }: Props) {
       <HomePageClient
         data={data}
         translations={{
+          site_h1: settings?.com_meta_title || `${settings?.com_site_title || 'Sportoonline'} — ${settings?.com_site_subtitle || ''}`.trim(),
           featured_title: t("featured_title"),
           featured_subtitle: t("featured_subtitle"),
           new_arrivals_title: t("new_arrivals_title"),
