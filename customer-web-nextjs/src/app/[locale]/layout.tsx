@@ -130,7 +130,7 @@ export async function generateMetadata({ params }: LayoutProps): Promise<Metadat
   const keywords = settings?.com_meta_tags || undefined;
   const ogTitle = settings?.com_og_title || metaTitle;
   const ogDescription = settings?.com_og_description || description;
-  const ogImage = settings?.com_og_image || undefined;
+  const ogImage = settings?.com_og_image || settings?.com_site_logo || undefined;
   const canonicalUrl = settings?.com_canonical_url || siteUrl;
   const author = settings?.com_meta_author || undefined;
   const robots = settings?.com_meta_robots || 'index,follow';

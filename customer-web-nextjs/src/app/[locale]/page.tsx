@@ -44,6 +44,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const siteName = ss?.com_site_title || 'Sportoonline';
   const metaTitle = ss?.com_meta_title || `${siteName} — ${t("home_title")}`;
   const metaDesc = ss?.com_meta_description || t("home_description");
+  const ogImage = ss?.com_og_image || ss?.com_site_logo || undefined;
 
   return {
     title: { absolute: metaTitle },
@@ -54,6 +55,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "website",
       locale: locale === "tr" ? "tr_TR" : "en_US",
       siteName,
+      ...(ogImage ? { images: [{ url: ogImage }] } : {}),
     },
     alternates: {
       canonical: `/${locale}`,
