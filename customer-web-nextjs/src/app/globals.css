@@ -11,32 +11,32 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
     /* Primary and accent colors are set dynamically by ThemeProvider */
-    --primary: 217 91% 60%; /* Default fallback - will be overridden */
+    --primary: 142 71% 45%; /* Default fallback #22C55E - will be overridden */
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 217 83% 39%; /* Default fallback - will be overridden */
+    --accent: 142 64% 29%; /* Default fallback #15803D - will be overridden */
     --accent-foreground: 210 40% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 217 91% 60%;
+    --ring: 142 71% 45%;
     --radius: 0.5rem;
 
     /* Header colors — fallbacks, overridden by ThemeProvider from DB */
-    --header-topbar-bg: 213 89% 39%; /* ROW 1: #0E5ABC */
+    --header-topbar-bg: 142 64% 29%; /* ROW 1: #15803D */
     --header-topbar-text: 0 0% 100%;
     --header-main-bg: 0 0% 100%; /* ROW 2: #FFFFFF */
-    --header-nav-bg: 216 75% 97%; /* ROW 3: #F4F8FE */
+    --header-nav-bg: 140 50% 96%; /* ROW 3: light green tint */
     --header-nav-text: 215 25% 17%; /* ROW 3 text: #1E293B */
-    --header-nav-button-bg: 213 89% 39%; /* All Categories: #0E5ABC */
+    --header-nav-button-bg: 142 71% 45%; /* All Categories: #22C55E */
     --header-nav-button-text: 0 0% 100%;
 
     /* Footer colors — fallbacks, overridden by ThemeProvider from DB */
-    --footer-background: 234 79% 24%; /* #0D166D */
+    --footer-background: 161 79% 17%; /* #064E3B */
     --footer-foreground: 0 0% 100%;
   }
 
@@ -62,17 +62,17 @@
     --ring: 212.7 26.8% 83.9%;
 
     /* Header colors — fallbacks for dark, overridden by ThemeProvider */
-    --header-topbar-bg: 214 50% 8%; /* ROW 1: #0A121C */
-    --header-topbar-text: 0 0% 100%;
-    --header-main-bg: 216 41% 17%; /* ROW 2: #152841 */
-    --header-nav-bg: 216 41% 17%; /* ROW 3: #152841 */
-    --header-nav-text: 214 32% 91%; /* ROW 3 text: #E2E8F0 */
-    --header-nav-button-bg: 213 52% 24%; /* #1E3A5F */
+    --header-topbar-bg: 222 47% 5%; /* ROW 1: #020617 */
+    --header-topbar-text: 215 20% 65%;
+    --header-main-bg: 222 40% 8%; /* ROW 2: #0A0F1C */
+    --header-nav-bg: 220 26% 11%; /* ROW 3: #111827 */
+    --header-nav-text: 218 17% 83%; /* ROW 3 text: #D1D5DB */
+    --header-nav-button-bg: 162 68% 18%; /* #047857 */
     --header-nav-button-text: 0 0% 100%;
 
     /* Footer colors — fallbacks for dark, overridden by ThemeProvider */
-    --footer-background: 212 56% 15%; /* #11253C */
-    --footer-foreground: 0 0% 100%;
+    --footer-background: 222 47% 5%; /* #020617 */
+    --footer-foreground: 215 20% 65%; /* #94A3B8 */
   }
 }
 
