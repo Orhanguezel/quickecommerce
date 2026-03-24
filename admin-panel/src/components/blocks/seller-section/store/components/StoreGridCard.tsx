@@ -134,7 +134,7 @@ export default function StoreGridCard({ items }: any) {
                   <TooltipTrigger asChild>
                     <Link
                       className="text-blue-500 hover:underline dark:text-[#93c5fd] dark:hover:text-white mx-2"
-                      href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/stores/details/${slug}`}
+                      href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${locale}/magaza/${slug}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}

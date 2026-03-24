@@ -619,7 +619,7 @@ export function ProductDetailClient({
   }, [lightboxOpen, closeLightbox, lightboxPrev, lightboxNext]);
 
   return (
-    <div className="container overflow-x-hidden py-6 lg:py-8">
+    <div className="container overflow-x-hidden py-6 pb-24 lg:py-8 xl:pb-8">
       {/* Image Lightbox Modal */}
       {lightboxOpen && allImages.length > 0 && (
         <div
@@ -1595,6 +1595,31 @@ export function ProductDetailClient({
           </div>
         </section>
       )}
+
+      {/* Mobile Sticky Add to Cart Bar */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 p-3 shadow-[0_-2px_10px_rgba(0,0,0,0.1)] backdrop-blur supports-[backdrop-filter]:bg-background/80 xl:hidden">
+        <div className="container flex items-center gap-3">
+          <div className="flex-1 min-w-0">
+            <p className="truncate text-sm font-semibold">{product.name}</p>
+            <p className="text-lg font-bold text-primary">
+              {displayPrice != null ? `₺${displayPrice.toFixed(2)}` : ""}
+              {hasDiscount && price != null && (
+                <span className="ml-2 text-sm font-normal text-muted-foreground line-through">
+                  ₺{price.toFixed(2)}
+                </span>
+              )}
+            </p>
+          </div>
+          <button
+            onClick={handleAddToCart}
+            disabled={!inStock}
+            className="flex shrink-0 items-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <ShoppingCart className="h-4 w-4" />
+            {t.add_to_cart}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

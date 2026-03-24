@@ -241,38 +241,7 @@ class PermissionStoreSeeder extends Seeder
                                 ]
                             ]
                         ],
-                        [
-                            'PermissionName' => PermissionKey::SELLER_STORE_CATEGORY_MANAGE->value,
-                            'PermissionTitle' => 'Categories',
-                            'activity_scope' => 'store_level',
-                            'icon' => 'LayoutGrid',
-                            'options' => ['view', 'insert', 'update', 'delete'],
-                            'translations' => [
-                                'en' => 'Category List',
-                                'tr' => 'Kategori Listesi'
-                            ]
-                        ],
-                        [
-                            'PermissionName' => PermissionKey::SELLER_PRODUCT_ATTRIBUTE_ADD->value,
-                            'PermissionTitle' => 'Attributes',
-                            'activity_scope' => 'store_level',
-                            'icon' => 'Layers2',
-                            'translations' => [
-                                'en' => 'Attribute List',
-                                'tr' => 'Özellik Listesi'
-                            ]
-                        ],
-                        [
-                            'PermissionName' => PermissionKey::SELLER_STORE_PRODUCT_AUTHORS_MANAGE->value,
-                            'PermissionTitle' => 'Authors',
-                            'activity_scope' => 'store_level',
-                            'icon' => 'BookOpenCheck',
-                            'options' => ['view', 'insert', 'update', 'delete'],
-                            'translations' => [
-                                'en' => 'Author List',
-                                'tr' => 'Yazar Listesi'
-                            ]
-                        ],
+                        // Kategori, Özellik ve Yazar menüleri seller'dan kaldırıldı (rev-1)
                     ]
                 ],
 

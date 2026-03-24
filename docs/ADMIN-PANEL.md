@@ -229,8 +229,22 @@ pm2 start ecosystem.config.cjs
 
 ## Varsayılan Giriş Bilgileri
 
+### Admin Hesabı
+
 | Alan | Değer |
 |------|-------|
 | URL | http://localhost:3000/tr |
 | Email | admin@sportoonline.com |
 | Şifre | Admin123! |
+
+### Seller (Mağaza Sahibi) Hesabı
+
+| Alan | Değer |
+|------|-------|
+| Giriş URL | http://localhost:3000/tr/seller/signin |
+| Email | seller@sportoonline.com |
+| Şifre | Admin123! |
+| Rol | Store Admin |
+| API Endpoint | `/v1/seller/login` |
+
+> **Not:** Seller paneli admin panelinden ayrı bir giriş sayfası kullanır. Giriş sonrası `/seller/dashboard` adresine yönlendirilir.

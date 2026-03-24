@@ -41,6 +41,7 @@ export function Navbar({ MeData, setIsLoading }: any) {
     const first = Array.isArray(storeList) ? storeList[0] : null;
     return first?.slug ?? "";
   }, [storedSlug, storeList]);
+
   const { getPermissions } = useGetPermissionsQuery({
     store_slug: fallbackStoreSlug,
   });
@@ -102,6 +103,16 @@ export function Navbar({ MeData, setIsLoading }: any) {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const data: any = getPermissions || {};
+
+  // Auto-select first store if none selected
+  useEffect(() => {
+    if (!selectedStore?.id && Array.isArray(storeList) && storeList.length > 0) {
+      const first = storeList[0];
+      dispatch(
+        setSelectedStore({ id: first.value, type: first.type, slug: first.slug })
+      );
+    }
+  }, [selectedStore?.id, storeList, dispatch]);
 
   const [isHovering, setIsHovering] = useState(false);
   const [isPopupHovered, setIsPopupHovered] = useState(false);

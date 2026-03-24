@@ -1204,6 +1204,12 @@ export default function CreateOrUpdateStoreForm({ data }: any) {
                                   />
                                 </>
                               </GoogleMap>
+                            ) : !isMapEnabled || !googleMapKey ? (
+                              <div className="flex items-center justify-center h-[300px] bg-gray-50 dark:bg-gray-800 rounded-lg border border-dashed border-gray-300 dark:border-gray-600">
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                  Harita yapılandırılmamış. Koordinatları manuel olarak girebilirsiniz.
+                                </p>
+                              </div>
                             ) : (
                               <Loader customClass="mt-10" size="large" />
                             )}
@@ -1293,15 +1299,15 @@ export default function CreateOrUpdateStoreForm({ data }: any) {
               //@ts-ignore
               disabled={
                 (activeStep === 'general_info' &&
-                  (Object.keys(watchedValues).length === 0 || watchedValues.name_df === '')) ||
+                  (Object.keys(watchedValues).length === 0 ||
+                    watchedValues.name_df === '' ||
+                    !Array.isArray(watchedValues?.store_types) ||
+                    watchedValues.store_types.length === 0)) ||
                 (activeStep === 'business_plan' && activeTab === '') ||
                 (activeStep === 'business_plan' &&
                   activeTab === 'subscription' &&
                   selectedCard === '') ||
-                watchedValues?.longitude === '' ||
-                watchedValues?.latitude === '' ||
-                !Array.isArray(watchedValues?.store_types) || watchedValues.store_types.length === 0 ||
-                errorMessage ||
+                !!errorMessage ||
                 isPending ||
                 isUpdating
               }
