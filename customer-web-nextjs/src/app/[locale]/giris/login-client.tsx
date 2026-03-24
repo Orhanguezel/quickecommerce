@@ -147,14 +147,14 @@ export function LoginClient({ translations: t }: Props) {
 
       <div className="grid gap-8 md:grid-cols-[minmax(0,1fr)_560px]">
         {/* Side image — desktop only */}
-        <div className="hidden md:flex items-center justify-center">
+        <div className="hidden md:flex items-start justify-center pt-8">
           {loginConfig.imageUrl && (
-            <div className="overflow-hidden rounded-xl border sticky top-24">
+            <div className="overflow-hidden rounded-xl border max-w-[380px] sticky top-24">
               <Image
                 src={loginConfig.imageUrl}
                 alt={loginConfig.title || t.login_title}
-                width={520}
-                height={600}
+                width={380}
+                height={320}
                 className="h-auto w-full object-cover"
               />
             </div>

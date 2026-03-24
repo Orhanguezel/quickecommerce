@@ -46,24 +46,24 @@ PayTR canli onay geldikten sonra:
 
 ## Ilave Duzeltmeler
 
-- [ ] **15. Konum sec verisi gecersiz** — Area API'den donen veriler (Taksim, Besiktas vb.) gecersiz/test verisi. Gercek teslimat alanlari admin panelden girilmeli, su an header'da konum secici gizlenecek.
+- [X] **15. Konum sec verisi gecersiz** — Area API'den donen veriler (Taksim, Besiktas vb.) gecersiz/test verisi. Gercek teslimat alanlari admin panelden girilmeli, su an header'da konum secici gizlenecek.
   - Dosya: `customer-web-nextjs/src/components/layout/header-variant-1.tsx` (satir 201-210)
   - Dosya: `customer-web-nextjs/src/components/layout/header-variant-2.tsx` (satir 91-106)
 
-- [ ] **16. Urun resimleri kare format** — Ana sayfada urun resimleri `aspect-[4/3]` ile kare yakin gorunuyor. Kiyafet urunleri icin dikey dikdortgen (`aspect-[3/4]`) olmali.
+- [X] **16. Urun resimleri kare format** — Ana sayfada urun resimleri `aspect-[4/3]` ile kare yakin gorunuyor. Kiyafet urunleri icin dikey dikdortgen (`aspect-[3/4]`) olmali.
   - Dosya: `customer-web-nextjs/src/components/product/product-card.tsx` (satir 311)
   - Dosya: `customer-web-nextjs/src/components/home/infinite-products-section.tsx` (satir 30, skeleton)
 
-- [ ] **17. Bos kategoriler gizlenmeli** — Icinde urun olmayan kategoriler hem ana sayfa filtresi hem kategori sayfasinda gizlenmeli. Frontend filtreleme mevcut ama API'den `product_count` duzgun gelmiyorsa calismaz.
+- [X] **17. Bos kategoriler gizlenmeli** — Frontend filtreleme zaten mevcut ve calisiyor. `product_count=0` olan kategoriler gizleniyor. Alt kategorilerinde urun olan ust kategoriler (Market, Fast Food vb.) dogru olarak gorunuyor ve ilk urunlu alt kategoriye yonlendiriliyor.
   - Dosya: `customer-web-nextjs/src/components/home/category-section.tsx` (satir 48-68)
   - Dosya: `customer-web-nextjs/src/app/[locale]/kategoriler/page.tsx` (satir 66-74)
   - Backend: `backend-laravel/app/Http/Controllers/Api/V1/FrontendController.php` `productCategoryList()` (satir 1793-1875)
 
-- [ ] **18. Satici basvuru giris linki yanlis** — "Zaten hesabiniz var mi? Giris yap" linki `/giris` (musteri girisi) yerine `panel.sportoonline.com/tr/seller/signin` (satici girisi) olmali. Admin paneldeki satici giris sayfasindaki "Satici ol" linki de `sportoonline.com/tr/satici-basvuru` sayfasina gitmeli.
+- [X] **18. Satici basvuru giris linki yanlis** — "Zaten hesabiniz var mi? Giris yap" linki `/giris` (musteri girisi) yerine `panel.sportoonline.com/tr/seller/signin` (satici girisi) olmali. Admin paneldeki satici giris sayfasindaki "Satici ol" linki de `sportoonline.com/tr/satici-basvuru` sayfasina gitmeli.
   - Dosya: `customer-web-nextjs/src/app/[locale]/satici-basvuru/become-seller-client.tsx` (satir 725)
   - Dosya: `admin-panel/src/components/molecules/store-owner-form/StoreOwnerSignInForm.tsx` (satir 327)
   - Dosya: `admin-panel/src/config/sellerRoutes.ts` (satir 3)
 
-- [ ] **19. Giris/kayit sayfasi resim konumu** — Masaustunde resim formun icinde gorunuyor. Resim sol tarafa ayri kolon olarak cikmali. Grid yapisinda resim sol kolona, form sag kolona gecmeli.
+- [X] **19. Giris/kayit sayfasi resim konumu** — Masaustunde resim formun icinde gorunuyor. Resim sol tarafa ayri kolon olarak cikmali. Grid yapisinda resim sol kolona, form sag kolona gecmeli.
   - Dosya: `customer-web-nextjs/src/app/[locale]/giris/login-client.tsx` (satir 148-171)
   - Dosya: `customer-web-nextjs/src/app/[locale]/kayit/register-client.tsx` (satir 148-171)
