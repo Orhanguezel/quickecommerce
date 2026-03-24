@@ -109,21 +109,23 @@ class OpenAiController
         $systemBase = "You are a professional e-commerce product content writer. You write SEO-optimized, compelling product content.\n";
         $jsonStructure = '{"tr":{"name":"","description":"","meta_title":"","meta_description":"","meta_keywords":[],"return_text":"","delivery_time_text":""},"en":{"name":"","description":"","meta_title":"","meta_description":"","meta_keywords":[],"return_text":"","delivery_time_text":""}}';
 
+        $langRule = "\n\nCRITICAL LANGUAGE RULE: Each locale MUST be written in its OWN language.\n- \"tr\" content MUST be in Turkish.\n- \"en\" content MUST be in English.\nDo NOT copy Turkish text into English fields. Every field for \"en\" must be fully written in English.\n";
+
         switch ($action) {
             case 'full':
                 $categoryCtx = $categoryName ? "\nProduct category: {$categoryName}" : '';
                 return $systemBase . "Generate complete product content for \"{$productName}\".{$categoryCtx}
 
 Create content for these locales: " . implode(', ', array_map(fn($l) => "{$l} ({$localeNames[$l]})", $locales)) . "
-
+{$langRule}
 For EACH locale, you MUST generate ALL of these fields (none can be empty):
-- name: Product name (localized)
-- description: Rich HTML product description (2-4 paragraphs, use <p>, <ul>, <li>, <strong> tags)
-- meta_title: SEO title (max 60 chars)
-- meta_description: SEO description (max 155 chars)
-- meta_keywords: Array of 5-8 relevant keywords
-- return_text: Return/refund policy text (1-2 sentences)
-- delivery_time_text: Delivery time description (e.g. \"2-4 business days\")
+- name: Product name (localized, translated into that locale's language)
+- description: Rich HTML product description (2-4 paragraphs, use <p>, <ul>, <li>, <strong> tags) — written in that locale's language
+- meta_title: SEO title (max 60 chars) — in that locale's language
+- meta_description: SEO description (max 155 chars) — in that locale's language
+- meta_keywords: Array of 5-8 relevant keywords — in that locale's language
+- return_text: Return/refund policy text (1-2 sentences) — in that locale's language
+- delivery_time_text: Delivery time description (e.g. \"2-4 business days\") — in that locale's language
 
 Return ONLY valid JSON, no markdown, no explanation. Schema:
 {$jsonStructure}";
@@ -134,7 +136,7 @@ Return ONLY valid JSON, no markdown, no explanation. Schema:
 
 Existing content:
 {$existingJson}
-
+{$langRule}
 Keep the same structure and locales. Improve quality, expand thin descriptions, optimize meta tags for SEO.
 For EACH locale, you MUST fill ALL fields (none can be empty).
 Return ONLY valid JSON, no markdown, no explanation. Schema:
@@ -147,19 +149,20 @@ Return ONLY valid JSON, no markdown, no explanation. Schema:
 
 Source content:
 {$existingJson}
-
+{$langRule}
 IMPORTANT: Return ALL locales in the JSON response.
 - Keep the {$sourceLocale} content exactly as provided (do not modify).
 - Translate/adapt ALL fields for: " . implode(', ', array_map(fn($l) => "{$l} ({$localeNames[$l]})", $targetLocales)) . "
+- The translated content MUST be fully written in the target language, not copied from source.
 
 For EACH locale, you MUST fill ALL of these fields (none can be empty):
-- name: Localized product name
-- description: Rich HTML product description (keep HTML tags intact)
-- meta_title: SEO title (max 60 chars, localized)
-- meta_description: SEO description (max 155 chars, localized)
-- meta_keywords: Array of 5-8 relevant keywords in that language
-- return_text: Return policy text (translate if provided, generate if empty)
-- delivery_time_text: Delivery time description (translate if provided, generate if empty)
+- name: Product name translated into that language
+- description: Rich HTML product description translated into that language (keep HTML tags intact)
+- meta_title: SEO title (max 60 chars) in that language
+- meta_description: SEO description (max 155 chars) in that language
+- meta_keywords: Array of 5-8 relevant search keywords in that language
+- return_text: Return policy text translated into that language
+- delivery_time_text: Delivery time description translated into that language
 
 Return ONLY valid JSON, no markdown, no explanation. Schema:
 {$jsonStructure}";

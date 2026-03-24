@@ -730,15 +730,22 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
 
     const translations = uiLangs
       .filter((lang) => lang.id !== firstUILangId)
-      .filter((lang) => (values as any)[`name_${lang.id}`])
+      .filter((lang) => {
+        // Include language if ANY i18n field has content
+        const v = values as any;
+        return v[`name_${lang.id}`] || v[`description_${lang.id}`] || v[`meta_title_${lang.id}`]
+          || v[`meta_description_${lang.id}`] || v[`return_text_${lang.id}`]
+          || v[`delivery_time_text_${lang.id}`]
+          || ((v[`meta_keywords_${lang.id}`] || []).length > 0);
+      })
       .map((lang) => ({
         language_code: lang.id,
-        name: (values as any)[`name_${lang.id}`],
-        description: (values as any)[`description_${lang.id}`],
-        meta_title: (values as any)[`meta_title_${lang.id}`],
-        meta_description: (values as any)[`meta_description_${lang.id}`],
-        return_text: (values as any)[`return_text_${lang.id}`],
-        delivery_time_text: (values as any)[`delivery_time_text_${lang.id}`],
+        name: (values as any)[`name_${lang.id}`] || '',
+        description: (values as any)[`description_${lang.id}`] || '',
+        meta_title: (values as any)[`meta_title_${lang.id}`] || '',
+        meta_description: (values as any)[`meta_description_${lang.id}`] || '',
+        return_text: (values as any)[`return_text_${lang.id}`] || '',
+        delivery_time_text: (values as any)[`delivery_time_text_${lang.id}`] || '',
         meta_keywords: ((values as any)[`meta_keywords_${lang.id}`] || []).join(', '),
       }));
 
