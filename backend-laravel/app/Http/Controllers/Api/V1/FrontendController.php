@@ -1812,7 +1812,7 @@ class FrontendController extends Controller
             })->select(
                 'product_category.*',
                 DB::raw('COALESCE(translations.value, product_category.category_name) as category_name'),
-                DB::raw('(SELECT COUNT(*) FROM products WHERE products.category_id = product_category.id AND products.deleted_at IS NULL AND products.status = \'active\') as products_count')
+                DB::raw('(SELECT COUNT(*) FROM products WHERE products.category_id = product_category.id AND products.deleted_at IS NULL) as products_count')
             );
 
             if ($type) {
