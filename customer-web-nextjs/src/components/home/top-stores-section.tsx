@@ -7,24 +7,27 @@ import Image from "next/image";
 import { useStoreListQuery, useTopStoresQuery } from "@/modules/store/store.action";
 import type { Store as StoreType } from "@/modules/store/store.type";
 import { SectionHeader } from "./section-header";
+import { useTheme } from "next-themes";
 import { useTranslations } from "next-intl";
 
 interface TopStoresSectionProps {
   title: string;
 }
 
-/* Cycling pastel card colors — bg + button accent */
+/* Cycling card colors — light bg + dark bg + button accent */
 const CARD_COLORS = [
-  { bg: "#FFF0F0", btn: "#8BC34A", btnText: "#fff" },
-  { bg: "#FFF3E0", btn: "#FF9800", btnText: "#fff" },
-  { bg: "#E8F5E9", btn: "#4CAF50", btnText: "#fff" },
-  { bg: "#F3E5F5", btn: "#9C27B0", btnText: "#fff" },
-  { bg: "#F5F5F5", btn: "#9E9E9E", btnText: "#fff" },
-  { bg: "#E3F2FD", btn: "#2196F3", btnText: "#fff" },
+  { bg: "#FFF0F0", darkBg: "#1C1517", btn: "#8BC34A", btnText: "#fff" },
+  { bg: "#FFF3E0", darkBg: "#1C1A14", btn: "#FF9800", btnText: "#fff" },
+  { bg: "#E8F5E9", darkBg: "#141C16", btn: "#4CAF50", btnText: "#fff" },
+  { bg: "#F3E5F5", darkBg: "#1A141C", btn: "#9C27B0", btnText: "#fff" },
+  { bg: "#F5F5F5", darkBg: "#181818", btn: "#9E9E9E", btnText: "#fff" },
+  { bg: "#E3F2FD", darkBg: "#141A1C", btn: "#2196F3", btnText: "#fff" },
 ];
 
 export function TopStoresSection({ title }: TopStoresSectionProps) {
   const t = useTranslations("store");
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
   const { data, isPending: isFeaturedLoading } = useTopStoresQuery(6);
   const { data: fallbackData, isPending: isFallbackLoading } = useStoreListQuery({
     limit: 6,
@@ -63,7 +66,7 @@ export function TopStoresSection({ title }: TopStoresSectionProps) {
               key={store.id}
               href={ROUTES.STORE_DETAIL(store.slug)}
               className="group flex flex-col items-center rounded-xl px-4 py-6 transition-shadow hover:shadow-md"
-              style={{ backgroundColor: color.bg }}
+              style={{ backgroundColor: isDark ? color.darkBg : color.bg }}
             >
               {/* Store Logo */}
               <div className="mb-3 flex h-16 w-16 items-center justify-center overflow-hidden rounded-full">

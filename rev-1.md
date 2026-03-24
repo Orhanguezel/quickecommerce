@@ -2,6 +2,8 @@
 
 Tarih: 2026-03-24
 
+> **UYARI:** Canli sunucuda `php artisan db:seed` (genel) ASLA calistirilmamali! Tum urunler, tema ayarlari ve mevcut veriler silinir. Sadece `--class=SeederAdi` ile spesifik seeder calistirilabilir. Detay: CLAUDE.md
+
 ## Durum
 
 - [x] **1. Magaza ekleme akisi** — Komisyon/abonelik secimi sonrasi surec ilerlemiyor → TAMAMLANDI
