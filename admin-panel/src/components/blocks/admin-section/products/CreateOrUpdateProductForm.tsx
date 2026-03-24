@@ -712,17 +712,6 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
   };
 
   const onSubmit = async (values: ProductFormData) => {
-    // DEBUG: Log EN field values at submit time
-    const v = values as any;
-    console.log('[AI DEBUG] onSubmit EN values:', {
-      name_en: v.name_en,
-      description_en: v.description_en?.substring(0, 50),
-      meta_title_en: v.meta_title_en,
-      meta_description_en: v.meta_description_en,
-      return_text_en: v.return_text_en,
-      delivery_time_text_en: v.delivery_time_text_en,
-      meta_keywords_en: v.meta_keywords_en,
-    });
     const defaultData: any = {
       ...values,
       id: editData ? editData?.id : '',
@@ -759,8 +748,6 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
         delivery_time_text: (values as any)[`delivery_time_text_${lang.id}`] || '',
         meta_keywords: ((values as any)[`meta_keywords_${lang.id}`] || []).join(', '),
       }));
-
-    console.log('[AI DEBUG] translations array:', JSON.stringify(translations, null, 2));
 
     const translations_json = ensureLangKeys(safeObject(translationsJson), uiLangs);
 
@@ -1120,7 +1107,6 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
   };
 
   const handleApplyAll = (locale: string, content: LocaleContent) => {
-    console.log('[AI DEBUG] handleApplyAll called', { locale, content });
     if (content.name) setValueAny(`name_${locale}`, content.name);
     if (content.description) setValueAny(`description_${locale}`, content.description);
     if (content.meta_title) setValueAny(`meta_title_${locale}`, content.meta_title);
@@ -1129,18 +1115,6 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
     if (content.return_text) setValueAny(`return_text_${locale}`, content.return_text);
     if (content.delivery_time_text) setValueAny(`delivery_time_text_${locale}`, content.delivery_time_text);
     rebuildJsonNow();
-    // Debug: verify values were actually set
-    setTimeout(() => {
-      const v = getValues() as any;
-      console.log('[AI DEBUG] After handleApplyAll, form values for', locale, {
-        name: v[`name_${locale}`],
-        description: v[`description_${locale}`]?.substring(0, 50),
-        meta_title: v[`meta_title_${locale}`],
-        meta_description: v[`meta_description_${locale}`],
-        return_text: v[`return_text_${locale}`],
-        delivery_time_text: v[`delivery_time_text_${locale}`],
-      });
-    }, 100);
   };
 
   return (
