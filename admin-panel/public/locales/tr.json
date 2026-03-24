@@ -481,6 +481,8 @@
     "no_images_uploaded_yet": "Henüz görsel yüklenmedi",
     "upload_image": "Görsel Yükle",
     "select_photo": "Fotoğraf Seç",
+    "load_more": "Daha Fazla Yükle",
+    "loading": "Yükleniyor...",
     "no_photo_uploaded_yet": "Henüz fotoğraf yüklenmedi.",
     "no_photo_selected_yet": "Henüz fotoğraf seçilmedi.",
     "preview_selected_images": "Seçilen Görselin Önizlemesi:",
