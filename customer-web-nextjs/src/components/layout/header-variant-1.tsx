@@ -197,8 +197,8 @@ export function HeaderVariant1() {
             )}
           </Link>
 
-          {/* Location Selector Pill — desktop only */}
-          <button
+          {/* Location Selector Pill — desktop only (hidden until real area data is configured) */}
+          {/* <button
             onClick={openSelector}
             className="hidden items-center gap-2.5 rounded-full border border-border bg-background/50 px-6 py-3 text-[15px] transition-colors hover:border-primary/40 lg:flex"
           >
@@ -207,7 +207,7 @@ export function HeaderVariant1() {
               {selectedArea ? selectedArea.label : t('common.select_location')}
             </span>
             <ChevronDown className="h-4 w-4 text-muted-foreground" />
-          </button>
+          </button> */}
 
           {/* Search Bar — tablet (md) + desktop (lg) */}
           <form onSubmit={handleSearch} className="hidden flex-1 md:flex">

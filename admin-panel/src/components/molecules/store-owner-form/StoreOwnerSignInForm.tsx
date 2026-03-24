@@ -324,9 +324,9 @@ const StoreOwnerSignInForm = ({ isRedirect }: AuthFormProps) => {
                             variant="link"
                             className="text-blue-500 font-semibold p-0"
                           >
-                            <Link href={SellerRoutes.becomeASeller}>
+                            <a href="https://sportoonline.com/tr/satici-basvuru">
                               {t("common.become_a_seller")}
-                            </Link>
+                            </a>
                           </Button>
                         </p>
                       </div>

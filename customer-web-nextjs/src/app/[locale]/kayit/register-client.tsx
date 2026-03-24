@@ -146,7 +146,20 @@ export function RegisterClient({ translations: t }: Props) {
       </nav>
 
       <div className="grid gap-8 md:grid-cols-[minmax(0,1fr)_560px]">
-        <div className="hidden md:block" />
+        {/* Side image — desktop only */}
+        <div className="hidden md:flex items-center justify-center">
+          {registerConfig.imageUrl && (
+            <div className="overflow-hidden rounded-xl border sticky top-24">
+              <Image
+                src={registerConfig.imageUrl}
+                alt={registerConfig.title || t.register_title}
+                width={520}
+                height={600}
+                className="h-auto w-full object-cover"
+              />
+            </div>
+          )}
+        </div>
 
         <div>
           <div className="rounded-lg border bg-card p-7 shadow-sm">
@@ -158,8 +171,9 @@ export function RegisterClient({ translations: t }: Props) {
                 {registerConfig.subtitle}
               </p>
             )}
+            {/* Mobile image — inside card */}
             {registerConfig.imageUrl && (
-              <div className="mb-5 overflow-hidden rounded-md border">
+              <div className="mb-5 overflow-hidden rounded-md border md:hidden">
                 <Image
                   src={registerConfig.imageUrl}
                   alt={registerConfig.title || t.register_title}

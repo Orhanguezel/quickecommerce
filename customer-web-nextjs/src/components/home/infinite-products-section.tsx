@@ -27,7 +27,7 @@ const PER_PAGE = 20;
 function ProductSkeleton() {
   return (
     <div className="flex flex-col overflow-hidden rounded-xl border bg-card">
-      <div className="aspect-[4/3] animate-pulse bg-muted" />
+      <div className="aspect-[3/4] animate-pulse bg-muted" />
       <div className="space-y-2 p-3">
         <div className="h-3.5 animate-pulse rounded bg-muted" />
         <div className="h-3 w-2/3 animate-pulse rounded bg-muted" />

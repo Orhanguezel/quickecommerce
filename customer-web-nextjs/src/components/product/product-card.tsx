@@ -308,7 +308,7 @@ export function ProductCard({
       {/* Image Area */}
       <div
         className={`relative w-full overflow-hidden bg-muted ${
-          compact ? "aspect-[4/3]" : "flex-1"
+          compact ? "aspect-[3/4]" : "flex-1"
         }`}
       >
         {productImage}

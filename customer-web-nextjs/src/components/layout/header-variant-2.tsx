@@ -88,8 +88,8 @@ export function HeaderVariant2() {
             )}
           </Link>
 
-          {/* Location selector — Flutter: Expanded > 300px, MapPin + "Location :" bold + muted address */}
-          <div className="hidden flex-1 lg:flex">
+          {/* Location selector — hidden until real area data is configured */}
+          {/* <div className="hidden flex-1 lg:flex">
             <button
               onClick={openSelector}
               className="flex w-[300px] items-center justify-end gap-1 px-2.5 transition-opacity hover:opacity-80"
@@ -103,7 +103,7 @@ export function HeaderVariant2() {
               </span>
               <ChevronDown className="h-5 w-5 shrink-0 text-foreground" />
             </button>
-          </div>
+          </div> */}
 
           {/* Currency dropdown — Flutter: SizedBox(width: 150) */}
           <div className="hidden lg:block" style={{ width: 150 }}>

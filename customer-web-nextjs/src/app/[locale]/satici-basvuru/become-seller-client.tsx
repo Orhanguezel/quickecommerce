@@ -722,9 +722,9 @@ export function BecomeSellerClient({ content, translations: t }: BecomeSellerCli
 
                     <p className="text-center text-sm text-muted-foreground">
                       {t.already_have_account}{" "}
-                      <Link href={ROUTES.LOGIN} className="font-medium text-primary hover:underline">
+                      <a href="https://panel.sportoonline.com/tr/seller/signin" className="font-medium text-primary hover:underline">
                         {t.login}
-                      </Link>
+                      </a>
                     </p>
                   </form>
 
