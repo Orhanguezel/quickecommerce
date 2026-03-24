@@ -164,6 +164,8 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
   const selectedStore = useAppSelector((state) => state.store.selectedStore);
   const store_id = selectedStore?.id;
   const store_type = selectedStore?.type;
+  type SectionTab = 'content' | 'seo' | 'images' | 'variants' | 'return_delivery' | 'specifications' | 'questions';
+  const [activeSectionTab, setActiveSectionTab] = useState<SectionTab>('content');
   const [viewMode, setViewMode] = useState<ViewMode>('form');
 
   const {
@@ -934,6 +936,8 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
           meta_title: watch(`meta_title_${lang.id}` as any) || '',
           meta_description: watch(`meta_description_${lang.id}` as any) || '',
           meta_keywords: watch(`meta_keywords_${lang.id}` as any) || [],
+          return_text: watch(`return_text_${lang.id}` as any) || '',
+          delivery_time_text: watch(`delivery_time_text_${lang.id}` as any) || '',
         };
       }
     }
@@ -961,6 +965,8 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
     if (content.meta_title) setValueAny(`meta_title_${locale}`, content.meta_title);
     if (content.meta_description) setValueAny(`meta_description_${locale}`, content.meta_description);
     if (content.meta_keywords) setValueAny(`meta_keywords_${locale}`, toKeywordsArray(content.meta_keywords));
+    if (content.return_text) setValueAny(`return_text_${locale}`, content.return_text);
+    if (content.delivery_time_text) setValueAny(`delivery_time_text_${locale}`, content.delivery_time_text);
     rebuildJsonNow();
   };
 
@@ -1023,6 +1029,37 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
             </CardContent>
           </Card>
         ) : (
+          <>
+          {/* ─── Section Tab Bar ─── */}
+          <div className="flex flex-wrap gap-1 mt-3 border-b border-gray-200 dark:border-gray-700 pb-0">
+            {([
+              { key: 'content', label: t('label.basic_information'), show: true },
+              { key: 'seo', label: 'SEO', show: true },
+              { key: 'images', label: t('label.thumbnail'), show: true },
+              { key: 'variants', label: t('label.product_variants'), show: true },
+              { key: 'return_delivery', label: t('label.return_delivery_information'), show: true },
+              { key: 'specifications', label: 'Specification', show: DynamicValues.length > 0 },
+              { key: 'questions', label: t('label.questions') || 'Questions', show: !!data?.id },
+            ] as { key: string; label: string; show: boolean }[])
+              .filter((tab) => tab.show)
+              .map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setActiveSectionTab(tab.key as any)}
+                  className={`px-3 py-2 text-sm font-medium rounded-t-md transition ${
+                    activeSectionTab === tab.key
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+          </div>
+
+          {/* ─── CONTENT TAB ─── */}
+          {activeSectionTab === 'content' && (
       <Tabs value={activeLangId} onValueChange={(v) => setActiveLangId(String(v))} className="">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
             <div className="col-span-1 lg:col-span-2 space-y-4">
@@ -1143,60 +1180,6 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                                 </div>
                               </div>
 
-                              <div className="mb-4">
-                                <p className="text-sm font-medium mb-1 flex items-center gap-2">
-                                  <span>
-                                    {t('label.meta_title')} (
-                                    {t(`lang.${lang.id}` as `lang.${LangKeys}`)})
-                                  </span>
-                                </p>
-                                <Input
-                                  id={`meta_title_${lang.id}`}
-                                  {...register(`meta_title_${lang.id}` as keyof ProductFormData)}
-                                  className="app-input"
-                                  placeholder={t('place_holder.enter_value')}
-                                />
-                              </div>
-                              <div className="mb-4">
-                                <div className="text-sm font-medium mb-1 flex items-center gap-2">
-                                  <span>
-                                    {t('label.meta_keywords')} (
-                                    {t(`lang.${lang.id}` as `lang.${LangKeys}`)})
-                                  </span>
-                                  <InfoTooltip text={t('tooltip.enter_meta_key')} />
-                                </div>
-                                <Controller
-                                  name={`meta_keywords_${lang.id}` as keyof ProductFormData}
-                                  control={control}
-                                  render={({ field }) => (
-                                    <TagsInput
-                                      {...field}
-                                      value={Array.isArray(field.value) ? field.value : []}
-                                      onChange={(newValue: string[]) => field.onChange(newValue)}
-                                      placeholder={`${t('place_holder.enter_meta_key')} ${t(
-                                        `lang.${lang.id}` as `lang.${LangKeys}`,
-                                      )}`}
-                                      className="app-input"
-                                    />
-                                  )}
-                                />
-                              </div>
-                              <div className="mb-4">
-                                <p className="text-sm font-medium mb-1 flex items-center gap-2">
-                                  <span>
-                                    {t('label.meta_description')} (
-                                    {t(`lang.${lang.id}` as `lang.${LangKeys}`)})
-                                  </span>
-                                </p>
-                                <Textarea
-                                  id={`meta_description_${lang.id}`}
-                                  {...register(
-                                    `meta_description_${lang.id}` as keyof ProductFormData,
-                                  )}
-                                  className="app-input"
-                                  placeholder={t('place_holder.enter_value')}
-                                />
-                              </div>
                             </TabsContent>
                           );
                         })}
@@ -1265,6 +1248,115 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                   </div>
                 </CardContent>
               </Card>
+            </div>
+          </div>
+          </Tabs>
+          )}
+
+          {/* ─── SEO TAB ─── */}
+          {activeSectionTab === 'seo' && (
+          <Tabs value={activeLangId} onValueChange={(v) => setActiveLangId(String(v))}>
+            <Card className="mt-4">
+              <CardContent className="p-4">
+                <p className="text-lg md:text-2xl font-medium mb-4">SEO</p>
+                <TabsList dir={dir} className="flex justify-start bg-white dark:bg-[#1f2937] mb-2 p-0">
+                  {uiLangs.map((lang) => (
+                    <TabsTrigger key={lang.id} value={lang.id}>{lang.label}</TabsTrigger>
+                  ))}
+                </TabsList>
+                {uiLangs.map((lang) => (
+                  <TabsContent key={lang.id} value={lang.id}>
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-sm font-medium mb-1 flex items-center gap-2">
+                          <span>{t('label.meta_title')} ({t(`lang.${lang.id}` as `lang.${LangKeys}`)})</span>
+                        </p>
+                        <Input
+                          id={`meta_title_${lang.id}`}
+                          {...register(`meta_title_${lang.id}` as keyof ProductFormData)}
+                          className="app-input"
+                          placeholder={t('place_holder.enter_value')}
+                        />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium mb-1 flex items-center gap-2">
+                          <span>{t('label.meta_keywords')} ({t(`lang.${lang.id}` as `lang.${LangKeys}`)})</span>
+                          <InfoTooltip text={t('tooltip.enter_meta_key')} />
+                        </div>
+                        <Controller
+                          name={`meta_keywords_${lang.id}` as keyof ProductFormData}
+                          control={control}
+                          render={({ field }) => (
+                            <TagsInput
+                              {...field}
+                              value={Array.isArray(field.value) ? field.value : []}
+                              onChange={(newValue: string[]) => field.onChange(newValue)}
+                              placeholder={`${t('place_holder.enter_meta_key')} ${t(`lang.${lang.id}` as `lang.${LangKeys}`)}`}
+                              className="app-input"
+                            />
+                          )}
+                        />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium mb-1 flex items-center gap-2">
+                          <span>{t('label.meta_description')} ({t(`lang.${lang.id}` as `lang.${LangKeys}`)})</span>
+                        </p>
+                        <Textarea
+                          id={`meta_description_${lang.id}`}
+                          {...register(`meta_description_${lang.id}` as keyof ProductFormData)}
+                          className="app-input"
+                          placeholder={t('place_holder.enter_value')}
+                        />
+                      </div>
+                    </div>
+                  </TabsContent>
+                ))}
+              </CardContent>
+            </Card>
+          </Tabs>
+          )}
+
+          {/* ─── IMAGES TAB ─── */}
+          {activeSectionTab === 'images' && (
+              <Card className="mt-4">
+                <CardContent className="p-4">
+                  <div className="">
+                    <div className="text-sm font-medium flex items-center gap-2">
+                      <span>{t('label.thumbnail')}</span>
+                      <InfoTooltip text={t('tooltip.aspect_ratio_1_1')} />
+                    </div>
+                    <div className="relative flex align-start gap-4 my-2">
+                      <div className="relative w-32">
+                        <PhotoUploadModal
+                          trigger={triggerLogo}
+                          isMultiple={false}
+                          onSave={handleSaveLogo}
+                          usageType="product"
+                        />
+                        {lastSelectedLogo?.image_id && (
+                          <Cancel
+                            customClass="absolute top-0 right-0 m-1"
+                            onClick={(event: { stopPropagation: () => void }) => {
+                              event.stopPropagation();
+                              removeLogo();
+                            }}
+                          />
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      {errorLogoMessage && (
+                        <p className="text-red-500 text-sm mt-1">{errorLogoMessage}</p>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+          )}
+
+          {/* ─── RETURN & DELIVERY TAB ─── */}
+          {activeSectionTab === 'return_delivery' && (
+          <Tabs value={activeLangId} onValueChange={(v) => setActiveLangId(String(v))}>
 
               {/*  <Card className="">
               <CardContent className="p-4">
@@ -1517,44 +1609,14 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
 
               <Card className="mt-4">
                 <CardContent className="p-4">
-                  <div className="">
-                    <div className="text-sm font-medium flex items-center gap-2">
-                      <span>{t('label.thumbnail')}</span>
-                      <InfoTooltip text={t('tooltip.aspect_ratio_1_1')} />
-                    </div>
-                    <div className="relative flex align-start gap-4 my-2">
-                      <div className="relative w-32">
-                        <PhotoUploadModal
-                          trigger={triggerLogo}
-                          isMultiple={false}
-                          onSave={handleSaveLogo}
-                          usageType="product"
-                        />
-                        {lastSelectedLogo?.image_id && (
-                          <Cancel
-                            customClass="absolute top-0 right-0 m-1"
-                            onClick={(event: { stopPropagation: () => void }) => {
-                              event.stopPropagation();
-                              removeLogo();
-                            }}
-                          />
-                        )}
-                      </div>
-                    </div>
-                    <div>
-                      {errorLogoMessage && (
-                        <p className="text-red-500 text-sm mt-1">{errorLogoMessage}</p>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="mt-4">
-                <CardContent className="p-4">
                   <p className="text-base md:text-lg font-medium mb-2">
                     {t('label.return_delivery_information')}
                   </p>
+                  <TabsList dir={dir} className="flex justify-start bg-white dark:bg-[#1f2937] mb-2 p-0">
+                    {uiLangs.map((lang) => (
+                      <TabsTrigger key={lang.id} value={lang.id}>{lang.label}</TabsTrigger>
+                    ))}
+                  </TabsList>
                   {uiLangs.map((lang) => {
                     return (
                       <TabsContent key={lang.id} value={lang.id}>
@@ -1684,9 +1746,11 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                   })}
                 </CardContent>
               </Card>
-            </div>
-          </div>
+          </Tabs>
+          )}
 
+          {/* ─── VARIANTS TAB ─── */}
+          {activeSectionTab === 'variants' && (
           <Card className="mt-4">
             <CardContent className="p-4">
               <p className="text-lg md:text-2xl font-medium mb-4">{t('label.product_variants')}s</p>
@@ -1876,8 +1940,10 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
               </div>
             </CardContent>
           </Card>
+          )}
 
-          {DynamicValues.length > 0 && (
+          {/* ─── SPECIFICATIONS TAB ─── */}
+          {activeSectionTab === 'specifications' && DynamicValues.length > 0 && (
             <Card className="mt-4">
               <CardContent className="p-4">
                 <p className="text-lg md:text-2xl font-medium mb-4">Specification</p>
@@ -2071,8 +2137,9 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
               </CardContent>
             </Card>
           )}
-          {/* Product Questions (only in edit mode) */}
-          {data?.id && (
+
+          {/* ─── QUESTIONS TAB ─── */}
+          {activeSectionTab === 'questions' && data?.id && (
             <ProductQuestionsSection
               productId={data.id}
               mode="seller"
@@ -2080,6 +2147,8 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
               replyEndpoint={SELLER_API_ENDPOINTS.QUESTIONS_REPLY}
             />
           )}
+          </>
+        )}
 
           <Card className="mt-4 sticky bottom-0 w-full p-4">
             <SubmitButton
@@ -2089,8 +2158,6 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
               UpdateLabel={t('button.update_product')}
             />
           </Card>
-      </Tabs>
-      )}
       </form>
     </div>
   );

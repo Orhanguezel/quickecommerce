@@ -107,7 +107,7 @@ class OpenAiController
         $localeNames = ['tr' => 'Turkish', 'en' => 'English'];
 
         $systemBase = "You are a professional e-commerce product content writer. You write SEO-optimized, compelling product content.\n";
-        $jsonStructure = '{"tr":{"name":"","slug":"","description":"","short_description":"","meta_title":"","meta_description":"","meta_keywords":[]},"en":{"name":"","slug":"","description":"","short_description":"","meta_title":"","meta_description":"","meta_keywords":[]}}';
+        $jsonStructure = '{"tr":{"name":"","description":"","meta_title":"","meta_description":"","meta_keywords":[],"return_text":"","delivery_time_text":""},"en":{"name":"","description":"","meta_title":"","meta_description":"","meta_keywords":[],"return_text":"","delivery_time_text":""}}';
 
         switch ($action) {
             case 'full':
@@ -116,14 +116,14 @@ class OpenAiController
 
 Create content for these locales: " . implode(', ', array_map(fn($l) => "{$l} ({$localeNames[$l]})", $locales)) . "
 
-For each locale generate:
+For EACH locale, you MUST generate ALL of these fields (none can be empty):
 - name: Product name (localized)
-- slug: URL-friendly slug (lowercase, hyphens, no special chars)
 - description: Rich HTML product description (2-4 paragraphs, use <p>, <ul>, <li>, <strong> tags)
-- short_description: One sentence summary
 - meta_title: SEO title (max 60 chars)
 - meta_description: SEO description (max 155 chars)
 - meta_keywords: Array of 5-8 relevant keywords
+- return_text: Return/refund policy text (1-2 sentences)
+- delivery_time_text: Delivery time description (e.g. \"2-4 business days\")
 
 Return ONLY valid JSON, no markdown, no explanation. Schema:
 {$jsonStructure}";
@@ -136,19 +136,31 @@ Existing content:
 {$existingJson}
 
 Keep the same structure and locales. Improve quality, expand thin descriptions, optimize meta tags for SEO.
+For EACH locale, you MUST fill ALL fields (none can be empty).
 Return ONLY valid JSON, no markdown, no explanation. Schema:
 {$jsonStructure}";
 
             case 'translate':
                 $existingJson = json_encode($existingContent, JSON_UNESCAPED_UNICODE);
                 $targetLocales = array_filter($locales, fn($l) => $l !== $sourceLocale);
-                return $systemBase . "Translate the following product content from {$sourceLocale} ({$localeNames[$sourceLocale]}) to other locales.
+                return $systemBase . "Translate the following product content from {$sourceLocale} ({$localeNames[$sourceLocale]}) to ALL other locales.
 
 Source content:
 {$existingJson}
 
-Keep the {$sourceLocale} content as-is. Translate/adapt for: " . implode(', ', array_map(fn($l) => "{$l} ({$localeNames[$l]})", $targetLocales)) . "
-Adapt the slug for each locale. Translate meta tags for local SEO.
+IMPORTANT: Return ALL locales in the JSON response.
+- Keep the {$sourceLocale} content exactly as provided (do not modify).
+- Translate/adapt ALL fields for: " . implode(', ', array_map(fn($l) => "{$l} ({$localeNames[$l]})", $targetLocales)) . "
+
+For EACH locale, you MUST fill ALL of these fields (none can be empty):
+- name: Localized product name
+- description: Rich HTML product description (keep HTML tags intact)
+- meta_title: SEO title (max 60 chars, localized)
+- meta_description: SEO description (max 155 chars, localized)
+- meta_keywords: Array of 5-8 relevant keywords in that language
+- return_text: Return policy text (translate if provided, generate if empty)
+- delivery_time_text: Delivery time description (translate if provided, generate if empty)
+
 Return ONLY valid JSON, no markdown, no explanation. Schema:
 {$jsonStructure}";
 
@@ -164,7 +176,7 @@ For each locale, generate optimized:
 - meta_description: SEO description (max 155 chars, include call-to-action)
 - meta_keywords: Array of 5-8 relevant search keywords
 
-Keep name, slug, description, short_description from existing content unchanged.
+Keep name, description, return_text, delivery_time_text from existing content unchanged.
 Return ONLY valid JSON, no markdown, no explanation. Schema:
 {$jsonStructure}";
 

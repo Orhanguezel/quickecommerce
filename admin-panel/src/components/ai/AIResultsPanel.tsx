@@ -24,22 +24,22 @@ const LOCALE_LABELS: Record<string, string> = {
 
 const FIELD_KEYS: (keyof LocaleContent)[] = [
   'name',
-  'slug',
   'description',
-  'short_description',
   'meta_title',
   'meta_description',
   'meta_keywords',
+  'return_text',
+  'delivery_time_text',
 ];
 
 const FIELD_LABEL_MAP: Record<string, string> = {
   name: 'product_name',
-  slug: 'slug',
   description: 'product_description',
-  short_description: 'short_description',
   meta_title: 'meta_title',
   meta_description: 'meta_description',
   meta_keywords: 'meta_keywords',
+  return_text: 'return_text',
+  delivery_time_text: 'delivery_time_text',
 };
 
 interface AIResultsPanelProps {

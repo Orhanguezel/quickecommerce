@@ -6,12 +6,12 @@ export type AIAction = 'full' | 'enhance' | 'translate' | 'generate_meta';
 
 export interface LocaleContent {
   name?: string;
-  slug?: string;
   description?: string;
-  short_description?: string;
   meta_title?: string;
   meta_description?: string;
   meta_keywords?: string[];
+  return_text?: string;
+  delivery_time_text?: string;
 }
 
 export interface AIParams {
