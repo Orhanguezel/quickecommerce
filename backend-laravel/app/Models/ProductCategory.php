@@ -37,6 +37,11 @@ class ProductCategory extends Model
         return $this->translations()->where('language', $language)->where('key', $key)->first()->value ?? null;
     }
 
+    public function products()
+    {
+        return $this->hasMany(Product::class, 'category_id');
+    }
+
     public function children()
     {
         return $this->hasMany(ProductCategory::class, 'parent_id');
@@ -49,7 +54,7 @@ class ProductCategory extends Model
 
     public function childrenRecursive()
     {
-        return $this->children()->with('childrenRecursive');
+        return $this->children()->withCount('products')->with('childrenRecursive');
     }
     public function related_translations()
     {
