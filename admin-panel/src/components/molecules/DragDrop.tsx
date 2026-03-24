@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { CloudUploadIcon } from "lucide-react"; // or wherever your icon is from
+import { CloudUploadIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 type Props = {
   handleFileChange: (file: File) => void;
@@ -9,10 +10,11 @@ type Props = {
 };
 
 export default function DragDrop({ handleFileChange, fileTypes, file }: Props) {
+  const t = useTranslations();
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       if (acceptedFiles.length > 0) {
-        handleFileChange(acceptedFiles[0]); // or handle multiple files if needed
+        handleFileChange(acceptedFiles[0]);
       }
     },
     [handleFileChange]
@@ -24,7 +26,7 @@ export default function DragDrop({ handleFileChange, fileTypes, file }: Props) {
       acc[type] = [];
       return acc;
     }, {} as Record<string, string[]>),
-    multiple: false, // set to true if you want multiple file support
+    multiple: false,
   });
 
   return (
@@ -39,10 +41,10 @@ export default function DragDrop({ handleFileChange, fileTypes, file }: Props) {
         <div className="flex flex-col items-center justify-center h-full cursor-pointer">
           <CloudUploadIcon className="h-10 w-10 text-blue-500" />
           <p className="mt-2 text-blue-500 text-lg font-medium p-1">
-            Drag and drop files or click to upload
+            {t("label.drag_and_drop_files_or_click_to_upload")}
           </p>
           <p className=" text-gray-500 text-sm font-medium p-1">
-            Support Formats ( jpg, png, jpeg, webp, gif )
+            {t("label.support_formats")}
           </p>
         </div>
       )}

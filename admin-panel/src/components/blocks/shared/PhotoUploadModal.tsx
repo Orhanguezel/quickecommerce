@@ -56,7 +56,7 @@ const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
   onSave,
   isMultiple,
   trigger,
-  buttonTitle = "Select Photo",
+  buttonTitle,
   usageType,
   selectedImage,
 }) => {
@@ -136,7 +136,7 @@ const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
           return [...prevMedia, ...uniqueNewImages];
         });
       } else {
-        toast.info("No new data available.");
+        toast.info(t("label.no_new_data"));
       }
     } catch (error) {
       toast.error("Failed to load more images");
@@ -219,7 +219,7 @@ const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
             img.id === newImage.id ? { ...img, isLoading: false } : img
           )
         );
-        toast.error("File upload failed");
+        toast.error(t("label.file_upload_failed"));
       }
     }
   };
@@ -244,7 +244,7 @@ const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
           refetch();
         },
         onError: () => {
-          toast.error("Failed to delete image");
+          toast.error(t("label.delete_failed"));
         },
       }
     );
@@ -290,7 +290,7 @@ const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
           refetch();
         },
         onError: () => {
-          toast.error("Failed to update ALT text");
+          toast.error(t("label.alt_update_failed"));
         },
         onSettled: () => {
           setIsUpdatingAlt(false);
@@ -321,7 +321,7 @@ const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
     <AppModal
       trigger={trigger}
       disable={!lastSelectedImages}
-      actionButtonLabel={buttonTitle}
+      actionButtonLabel={buttonTitle || t("label.select_photo")}
       customClass="inset-x-0p md:inset-x-5p xl:inset-x-17p top-[100px] bg-white"
       onSave={handleSave}
       isOpen={isModalOpen}
@@ -507,7 +507,7 @@ const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
                         variant="outline"
                         className="app-button"
                       >
-                        {isFetchingMore ? "Loading..." : "Load More"}
+                        {isFetchingMore ? t("label.loading") : t("label.load_more")}
                       </Button>
                     </div>
                   )}
@@ -520,7 +520,7 @@ const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
                   {allMedia.length === 0 && !isPending && (
                     <div className="flex text-center items-center justify-center h-full">
                       <h2 className=" text-center text-sm font-semibold text-gray-700">
-                        No Photo Uploaded Yet.
+                        {t("label.no_photo_uploaded_yet")}
                       </h2>
                     </div>
                   )}
@@ -530,7 +530,7 @@ const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
                 {lastSelectedImages && (
                   <div className="p-2">
                     <h2 className="text-sm font-semibold text-gray-700 mb-2">
-                      Preview Selected Images:
+                      {t("label.preview_selected_images")}
                     </h2>
                     <div>
                       <div
@@ -568,7 +568,7 @@ const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
                           type="text"
                           id="alt"
                           className="app-input"
-                          placeholder="Enter value"
+                          placeholder={t("place_holder.enter_value")}
                           value={lastSelectedImages.alt ?? ""}
                           onChange={handleAltChange}
                         />
@@ -583,7 +583,7 @@ const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
                           className="mt-2 app-button"
                           disabled={isUpdatingAlt}
                         >
-                          {isUpdatingAlt ? "Loading..." : "Update"}{" "}
+                          {isUpdatingAlt ? t("label.loading") : t("label.update_alt")}
                         </Button>
                       </div>
                     </div>
@@ -592,7 +592,7 @@ const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
                 {!lastSelectedImages && (
                   <div className="p-2 flex text-center items-center justify-center h-full">
                     <h2 className="text-center text-sm font-semibold text-gray-700 mb-2">
-                      No Photo Selected Yet.
+                      {t("label.no_photo_selected_yet")}
                     </h2>
                   </div>
                 )}
