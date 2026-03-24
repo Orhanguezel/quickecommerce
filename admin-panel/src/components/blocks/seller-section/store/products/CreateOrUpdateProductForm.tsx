@@ -1091,7 +1091,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
           </div>
 
           {/* ─── CONTENT TAB ─── */}
-          {activeSectionTab === 'content' && (
+          <div className={activeSectionTab !== 'content' ? 'hidden' : ''}>
       <Tabs value={activeLangId} onValueChange={(v) => setActiveLangId(String(v))} className="">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
             <div className="col-span-1 lg:col-span-2 space-y-4">
@@ -1260,10 +1260,10 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
             </div>
           </div>
           </Tabs>
-          )}
+          </div>
 
           {/* ─── SEO TAB ─── */}
-          {activeSectionTab === 'seo' && (
+          <div className={activeSectionTab !== 'seo' ? 'hidden' : ''}>
           <Tabs value={activeLangId} onValueChange={(v) => setActiveLangId(String(v))}>
             <Card className="mt-4">
               <CardContent className="p-4">
@@ -1323,10 +1323,10 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
               </CardContent>
             </Card>
           </Tabs>
-          )}
+          </div>
 
           {/* ─── IMAGES TAB ─── */}
-          {activeSectionTab === 'images' && (
+          <div className={activeSectionTab !== 'images' ? 'hidden' : ''}>
               <Card className="mt-4">
                 <CardContent className="p-4">
                   <div className="">
@@ -1361,10 +1361,10 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                   </div>
                 </CardContent>
               </Card>
-          )}
+          </div>
 
           {/* ─── RETURN & DELIVERY TAB ─── */}
-          {activeSectionTab === 'return_delivery' && (
+          <div className={activeSectionTab !== 'return_delivery' ? 'hidden' : ''}>
           <Tabs value={activeLangId} onValueChange={(v) => setActiveLangId(String(v))}>
 
               {/*  <Card className="">
@@ -1756,10 +1756,10 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                 </CardContent>
               </Card>
           </Tabs>
-          )}
+          </div>
 
           {/* ─── VARIANTS TAB ─── */}
-          {activeSectionTab === 'variants' && (
+          <div className={activeSectionTab !== 'variants' ? 'hidden' : ''}>
           <Card className="mt-4">
             <CardContent className="p-4">
               <p className="text-lg md:text-2xl font-medium mb-4">{t('label.product_variants')}s</p>
@@ -1949,10 +1949,10 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
               </div>
             </CardContent>
           </Card>
-          )}
+          </div>
 
           {/* ─── SPECIFICATIONS TAB ─── */}
-          {activeSectionTab === 'specifications' && DynamicValues.length > 0 && (
+          <div className={activeSectionTab !== 'specifications' || DynamicValues.length === 0 ? 'hidden' : ''}>
             <Card className="mt-4">
               <CardContent className="p-4">
                 <p className="text-lg md:text-2xl font-medium mb-4">Specification</p>
@@ -2145,17 +2145,19 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                 </div>
               </CardContent>
             </Card>
-          )}
+          </div>
 
           {/* ─── QUESTIONS TAB ─── */}
-          {activeSectionTab === 'questions' && data?.id && (
+          <div className={activeSectionTab !== 'questions' || !data?.id ? 'hidden' : ''}>
+            {data?.id && (
             <ProductQuestionsSection
               productId={data.id}
               mode="seller"
               listEndpoint={SELLER_API_ENDPOINTS.QUESTIONS_LIST}
               replyEndpoint={SELLER_API_ENDPOINTS.QUESTIONS_REPLY}
             />
-          )}
+            )}
+          </div>
           </>
         )}
 
