@@ -1124,8 +1124,18 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
 
         <Card className="mt-2">
           <CardContent className="p-2 md:p-4 flex items-center justify-between gap-3">
-            <div className="text-sm font-semibold text-gray-700 dark:text-gray-200">
-              {editData ? t('button.update_product') : t('button.add_product')}
+            <div className="flex items-center gap-3">
+              <div className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                {editData ? t('button.update_product') : t('button.add_product')}
+              </div>
+              <AIActionDropdown
+                onAction={handleAIAction}
+                isLoading={aiLoading}
+                disabled={GeneralData?.com_openai_enable_disable !== 'on' && GeneralData?.com_claude_enable_disable !== 'on'}
+              />
+              {GeneralData?.com_openai_enable_disable !== 'on' && GeneralData?.com_claude_enable_disable !== 'on' && (
+                <InfoTooltip text={t('label.ai_generate_settings_off')} />
+              )}
             </div>
 
             <div className="inline-flex rounded-md border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 overflow-hidden">
@@ -1156,6 +1166,20 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
             </div>
           </CardContent>
         </Card>
+
+        {aiError && (
+          <div className="mt-2 p-3 rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-300">
+            {aiError}
+          </div>
+        )}
+        {aiResults && (
+          <AIResultsPanel
+            results={aiResults}
+            onApplyField={handleApplyField}
+            onApplyAll={handleApplyAll}
+            onClose={clearAIResults}
+          />
+        )}
 
         {viewMode === 'json' ? (
           <Card className="mt-4">
@@ -1318,29 +1342,6 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
                                 </p>
                               )}
                             </div>
-                            <div className="flex gap-2 items-center mb-4">
-                              <AIActionDropdown
-                                onAction={handleAIAction}
-                                isLoading={aiLoading}
-                                disabled={GeneralData?.com_openai_enable_disable !== 'on' && GeneralData?.com_claude_enable_disable !== 'on'}
-                              />
-                              {GeneralData?.com_openai_enable_disable !== 'on' && GeneralData?.com_claude_enable_disable !== 'on' && (
-                                <InfoTooltip text={t('label.ai_generate_settings_off')} />
-                              )}
-                            </div>
-                            {aiError && (
-                              <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-300">
-                                {aiError}
-                              </div>
-                            )}
-                            {aiResults && (
-                              <AIResultsPanel
-                                results={aiResults}
-                                onApplyField={handleApplyField}
-                                onApplyAll={handleApplyAll}
-                                onClose={clearAIResults}
-                              />
-                            )}
                             <div className="mb-4">
                               <p className="text-sm font-medium mb-1 flex items-center gap-2">
                                 <span>
