@@ -57,7 +57,9 @@ import Select, { ActionMeta, MultiValue } from 'react-select';
 import { toast } from 'react-toastify';
 import CustomSingleDatePicker from '../../common/CustomSingleDatePicker';
 import Cancel from '../../custom-icons/Cancel';
-import ProductDescriptionGenerateModal from './modal/ProductDescriptionGenerateModal';
+import { AIActionDropdown } from '@/components/ai/AIActionDropdown';
+import { AIResultsPanel } from '@/components/ai/AIResultsPanel';
+import { useAIContentAssist, type AIAction, type LocaleContent } from '@/components/ai/useAIContentAssist';
 
 // JSON scaffold stack (standard)
 import {
@@ -1055,70 +1057,53 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
       [slug]: value,
     }));
   };
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { mutate: GenerateDescription } = useProductDescriptionGenerate();
-  const handleGenerateDescription = (prompt: string, langId: string) => {
-    const langIds = uiLangs.map((l) => l.id).join(', ');
-    const aiPrompt = `${prompt}
+  const { mutate: aiMutate } = useProductDescriptionGenerate();
+  const { assist, results: aiResults, isLoading: aiLoading, error: aiError, clearResults: clearAIResults } = useAIContentAssist(aiMutate);
 
-Return ONLY valid JSON. Do not add markdown.
-Output schema must be:
-{
-  "${uiLangs?.[0]?.id ?? 'tr'}": {
-    "name": "",
-    "description": "",
-    "meta_title": "",
-    "meta_description": "",
-    "meta_keywords": [],
-    "return_text": "",
-    "delivery_time_text": ""
-  }
-}
-Rules:
-- Include these language keys: ${langIds}
-- Improve ${langId} content quality and generate/complete all fields.
-- Translate/adapt all fields for the other languages.
-- meta_keywords must be an array of strings.`;
-    const payload = { prompt: aiPrompt };
-    setLoading(true);
+  const handleAIAction = (action: AIAction) => {
+    const productName = watch(`name_${firstUILangId}` as any) || '';
+    const categoryName = selectedItems.join(' > ');
 
-    GenerateDescription(payload as any, {
-      onSuccess: (res: any) => {
-        const generatedText = res?.data?.generated_content ?? '';
-        const parsed = parseGeneratedJson(generatedText);
-        const parsedRoot =
-          parsed && typeof parsed === 'object'
-            ? (parsed?.translations && typeof parsed.translations === 'object'
-                ? parsed.translations
-                : parsed)
-            : null;
-        let hasApplied = false;
-        if (parsedRoot && typeof parsedRoot === 'object') {
-          for (const lang of uiLangs) {
-            const block = (parsedRoot as any)?.[lang.id];
-            if (!block || typeof block !== 'object') continue;
-            hasApplied = true;
-            setValueAny(`name_${lang.id}`, String(block?.name ?? ''));
-            setValueAny(`description_${lang.id}`, String(block?.description ?? ''));
-            setValueAny(`meta_title_${lang.id}`, String(block?.meta_title ?? ''));
-            setValueAny(`meta_description_${lang.id}`, String(block?.meta_description ?? ''));
-            setValueAny(`meta_keywords_${lang.id}`, toKeywordsArray(block?.meta_keywords));
-            setValueAny(`return_text_${lang.id}`, String(block?.return_text ?? ''));
-            setValueAny(`delivery_time_text_${lang.id}`, String(block?.delivery_time_text ?? ''));
-          }
-        }
-        if (!hasApplied) {
-          setValueAny(`description_${langId}`, generatedText);
-        }
-        rebuildJsonNow();
-        setLoading(false);
-        setIsModalOpen(false);
-      },
-      onError: () => {
-        setLoading(false);
-      },
+    // Build existing content from form for enhance/translate/generate_meta
+    const existingContent: Record<string, any> = {};
+    if (action !== 'full') {
+      for (const lang of uiLangs) {
+        existingContent[lang.id] = {
+          name: watch(`name_${lang.id}` as any) || '',
+          description: watch(`description_${lang.id}` as any) || '',
+          short_description: watch(`short_description_${lang.id}` as any) || '',
+          meta_title: watch(`meta_title_${lang.id}` as any) || '',
+          meta_description: watch(`meta_description_${lang.id}` as any) || '',
+          meta_keywords: watch(`meta_keywords_${lang.id}` as any) || [],
+        };
+      }
+    }
+
+    assist(action, {
+      product_name: productName,
+      category_name: categoryName || undefined,
+      existing_content: action !== 'full' ? existingContent : undefined,
+      source_locale: activeLangId,
     });
+  };
+
+  const handleApplyField = (locale: string, field: keyof LocaleContent, value: any) => {
+    if (field === 'meta_keywords') {
+      setValueAny(`meta_keywords_${locale}`, toKeywordsArray(value));
+    } else {
+      setValueAny(`${field}_${locale}`, String(value ?? ''));
+    }
+    rebuildJsonNow();
+  };
+
+  const handleApplyAll = (locale: string, content: LocaleContent) => {
+    if (content.name) setValueAny(`name_${locale}`, content.name);
+    if (content.description) setValueAny(`description_${locale}`, content.description);
+    if (content.short_description) setValueAny(`short_description_${locale}`, content.short_description);
+    if (content.meta_title) setValueAny(`meta_title_${locale}`, content.meta_title);
+    if (content.meta_description) setValueAny(`meta_description_${locale}`, content.meta_description);
+    if (content.meta_keywords) setValueAny(`meta_keywords_${locale}`, toKeywordsArray(content.meta_keywords));
+    rebuildJsonNow();
   };
 
   return (
@@ -1300,32 +1285,28 @@ Rules:
                               )}
                             </div>
                             <div className="flex gap-2 items-center mb-4">
-                              <ProductDescriptionGenerateModal
-                                trigger={
-                                  <Button
-                                    variant="outline"
-                                    className="app-button"
-                                    disabled={GeneralData?.com_openai_enable_disable !== 'on' && GeneralData?.com_claude_enable_disable !== 'on'}
-                                  >
-                                    <span className="mx-1">{t('label.generate_description_with_ai')}</span>
-                                  </Button>
-                                }
-                                onSave={(prompt: string) =>
-                                  handleGenerateDescription(prompt, lang.id)
-                                }
-                                loading={loading}
-                                //@ts-ignore
-                                name={watch(`name_${lang.id}`)}
-                                lang={t(`lang.${lang.id}`)}
-                                allLangs={uiLangs.map((l) => t(`lang.${l.id}` as `lang.${LangKeys}`))}
-                                categories={selectedItems}
-                                setIsModalOpen={setIsModalOpen}
-                                isModalOpen={isModalOpen}
+                              <AIActionDropdown
+                                onAction={handleAIAction}
+                                isLoading={aiLoading}
+                                disabled={GeneralData?.com_openai_enable_disable !== 'on' && GeneralData?.com_claude_enable_disable !== 'on'}
                               />
                               {GeneralData?.com_openai_enable_disable !== 'on' && GeneralData?.com_claude_enable_disable !== 'on' && (
                                 <InfoTooltip text={t('label.ai_generate_settings_off')} />
                               )}
                             </div>
+                            {aiError && (
+                              <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-300">
+                                {aiError}
+                              </div>
+                            )}
+                            {aiResults && (
+                              <AIResultsPanel
+                                results={aiResults}
+                                onApplyField={handleApplyField}
+                                onApplyAll={handleApplyAll}
+                                onClose={clearAIResults}
+                              />
+                            )}
                             <div className="mb-4">
                               <p className="text-sm font-medium mb-1 flex items-center gap-2">
                                 <span>
