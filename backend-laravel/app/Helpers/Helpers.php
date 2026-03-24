@@ -309,17 +309,24 @@ if (!function_exists('createOrUpdateTranslationJson')) {
             return false;
         }
 
-        $requestedLanguages = array_column($request['translations'], 'language_code');
+        // Filter out translations without language_code
+        $validTranslations = array_filter($request['translations'], function ($t) {
+            return !empty($t['language_code']);
+        });
+
+        $requestedLanguages = array_column($validTranslations, 'language_code');
 
         // Delete translations for languages not present in the request
-        Translation::where('translatable_type', $refPath)
-            ->where('translatable_id', $refid)
-            ->whereNotIn('language', $requestedLanguages)
-            ->delete();
+        if (!empty($requestedLanguages)) {
+            Translation::where('translatable_type', $refPath)
+                ->where('translatable_id', $refid)
+                ->whereNotIn('language', $requestedLanguages)
+                ->delete();
+        }
 
         $translations = [];
 
-        foreach ($request['translations'] as $translation) {
+        foreach ($validTranslations as $translation) {
 
             foreach ($colNames as $key) {
 
