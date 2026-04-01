@@ -989,11 +989,12 @@ class UserController extends Controller
     public function userProfile()
     {
         try {
-            if (!auth()->guard('api')->user()) {
+            $authUser = auth('sanctum')->user() ?? auth('api')->user();
+            if (!$authUser) {
                 return unauthorized_response();
             }
 
-            $userId = auth('api')->id();
+            $userId = $authUser->id;
             $user = User::findOrFail($userId);
 
             if ($user->isDeliveryman()) {
@@ -1021,11 +1022,12 @@ class UserController extends Controller
     public function userProfileUpdate(Request $request)
     {
         try {
-            if (!auth()->guard('api')->user()) {
+            $user = auth('sanctum')->user() ?? auth('api')->user();
+            if (!$user) {
                 return unauthorized_response();
             }
 
-            $userId = auth('api')->id();
+            $userId = $user->id;
             $user = User::findOrFail($userId);
 
             if ($user) {
@@ -1071,6 +1073,28 @@ class UserController extends Controller
                     ]);
                 } else {
                     $user->update($request->only('first_name', 'last_name', 'phone', 'image', 'email'));
+
+                    // Save KYC fields to seller_applications if provided
+                    $kycFields = [
+                        'company_name', 'brand_name', 'sector', 'tax_office', 'tax_number',
+                        'mersis_number', 'website_url', 'address_country', 'address_city',
+                        'address_district', 'address_postal_code', 'address_line1', 'address_line2',
+                        'bank_name', 'bank_account_holder', 'bank_iban', 'bank_account_number',
+                        'bank_branch_code', 'bank_swift_code',
+                    ];
+                    $kycData = $request->only($kycFields);
+                    if (!empty(array_filter($kycData, fn($v) => $v !== null && $v !== ''))) {
+                        $application = SellerApplication::where('user_id', $userId)->latest()->first();
+                        if ($application) {
+                            $application->update($kycData);
+                        } else {
+                            SellerApplication::create(array_merge($kycData, [
+                                'user_id' => $userId,
+                                'status' => SellerApplication::STATUS_PENDING,
+                            ]));
+                        }
+                    }
+
                     return response()->json([
                         'status' => true,
                         'status_code' => 200,

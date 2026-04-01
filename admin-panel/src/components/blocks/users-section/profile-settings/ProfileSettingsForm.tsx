@@ -61,8 +61,8 @@ const ProfileSettingsForm = ({ data }: any) => {
   const [lastSelectedImages, setLastSelectedImages] = useState<any>(null);
   const [logoErrorMessage, setLogoErrorMessage] = useState<string>("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const adminQuery = useProfileSettingsQuery({});
-  const sellerQuery = useSellerProfileSettingsQuery({});
+  const adminQuery = useProfileSettingsQuery({ enabled: !isSeller });
+  const sellerQuery = useSellerProfileSettingsQuery({ enabled: isSeller });
   const {
     profileSettingsData,
     refetch,

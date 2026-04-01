@@ -8,6 +8,7 @@ import { ToastContent } from "react-toastify";
 export interface ProfileSettingsQueryOptions extends QueryOptions {
   sort?: string;
   sortField?: string;
+  enabled?: boolean;
 }
 
 
