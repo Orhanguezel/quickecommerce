@@ -1,0 +1,272 @@
+"""
+BodyfitShop.com.tr Muscle Pump Scraper (AKINSOFT HTML)
+-------------------------------------------------------
+Sadece Muscle Pump marka urunlerini ceker.
+Kullanim: python musclepump_scraper.py
+Cikti: musclepump_products.json, musclepump_images/
+"""
+
+import requests, json, time, os, re, hashlib
+from bs4 import BeautifulSoup
+
+BASE_URL = "https://bodyfitshop.com.tr"
+IMAGE_DIR = "musclepump_images"
+OUTPUT_FILE = "musclepump_products.json"
+HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+
+session = requests.Session()
+session.headers.update(HEADERS)
+
+
+def clean_price(price_str):
+    try:
+        cleaned = price_str.replace("TL", "").replace(".", "").replace(",", ".").strip()
+        return float(cleaned)
+    except:
+        return None
+
+
+def make_slug(name):
+    slug = name.lower()
+    tr_map = str.maketrans("şçğüöıİŞÇĞÜÖ", "scguoiISCGUO")
+    slug = slug.translate(tr_map)
+    return re.sub(r'[^a-z0-9]+', '-', slug).strip('-')[:80]
+
+
+def download_image(url, subfolder=""):
+    if not url or not url.startswith("http"): return None
+    try:
+        ext = os.path.splitext(url.split("?")[0])[1] or ".jpg"
+        filename = hashlib.md5(url.encode()).hexdigest()[:12] + ext
+        save_dir = os.path.join(IMAGE_DIR, subfolder) if subfolder else IMAGE_DIR
+        os.makedirs(save_dir, exist_ok=True)
+        filepath = os.path.join(save_dir, filename)
+        if os.path.exists(filepath): return filepath
+        resp = session.get(url, timeout=20)
+        resp.raise_for_status()
+        with open(filepath, "wb") as f: f.write(resp.content)
+        return filepath
+    except Exception as e:
+        print(f"    Gorsel indirilemedi: {url[:60]} -> {e}")
+        return None
+
+
+def scrape_product_detail(url):
+    """Urun detay sayfasindan aciklama ve gorseller."""
+    detail = {"description_html": "", "description_text": "", "all_images": [], "specifications": []}
+    try:
+        resp = session.get(url, timeout=15)
+        resp.raise_for_status()
+    except:
+        return detail
+
+    soup = BeautifulSoup(resp.text, "html.parser")
+
+    # Aciklama
+    desc = soup.select_one(".product-detail-content, .urun-aciklama, #tab-description, .tab-content")
+    if desc:
+        detail["description_html"] = str(desc)
+        detail["description_text"] = desc.get_text(separator="\n", strip=True)
+
+    # Gorseller — buyuk gorseller
+    for img in soup.select("img[src*='/Resim/']"):
+        src = img.get("src", "")
+        if src and "Minik" not in src:
+            if not src.startswith("http"):
+                src = BASE_URL + src
+            if src not in detail["all_images"]:
+                detail["all_images"].append(src)
+
+    # Minik gorselleri buyut
+    for img in soup.select("img[src*='/Resim/Minik/']"):
+        src = img.get("src", "")
+        if src:
+            # Minik -> Buyuk
+            big = src.replace("/Minik/", "/Buyuk/").replace("246x186_thumb_", "")
+            if not big.startswith("http"):
+                big = BASE_URL + big
+            if big not in detail["all_images"]:
+                detail["all_images"].append(big)
+
+    # Fallback: herhangi bir product image
+    if not detail["all_images"]:
+        for img in soup.select("img[src*='Resim']"):
+            src = img.get("src", "")
+            if src and not src.startswith("http"):
+                src = BASE_URL + src
+            if src and src not in detail["all_images"]:
+                detail["all_images"].append(src)
+
+    return detail
+
+
+def scrape_listing_pages():
+    """Muscle Pump arama sonuclarindan tum urunleri cek."""
+    all_products = []
+    seen_urls = set()
+    page = 1
+
+    while True:
+        url = f"{BASE_URL}/arama/?src=muscle+pump&ps=18&p={page}"
+        print(f"  Sayfa {page}: {url}")
+
+        try:
+            resp = session.get(url, timeout=15)
+            resp.raise_for_status()
+        except Exception as e:
+            print(f"  HATA: {e}")
+            break
+
+        soup = BeautifulSoup(resp.text, "html.parser")
+
+        # Urun kartlari — productitem veya genel link yapisi
+        cards = soup.select("productitem, .productitem, div[class*='product']")
+
+        # Fallback: a tag'leri icinde /prd- olan linkler
+        if not cards:
+            links = soup.select("a[href*='/prd-']")
+            # Her linkin parent'ini kart olarak kullan
+            seen_parents = set()
+            for link in links:
+                parent = link.find_parent("div") or link.find_parent("li")
+                if parent and id(parent) not in seen_parents:
+                    seen_parents.add(id(parent))
+                    cards.append(parent)
+
+        if not cards:
+            print(f"  Urun bulunamadi, bitis.")
+            break
+
+        page_count = 0
+        for card in cards:
+            # URL
+            link = card.select_one("a[href*='/prd-']") or card.find("a", href=True)
+            if not link:
+                continue
+            product_url = link.get("href", "")
+            if not product_url or "/prd-" not in product_url:
+                continue
+            if not product_url.startswith("http"):
+                product_url = BASE_URL + product_url
+
+            if product_url in seen_urls:
+                continue
+            seen_urls.add(product_url)
+
+            # Isim
+            name_tag = card.select_one("strong, h2, h3, .product-name")
+            name = name_tag.get_text(strip=True) if name_tag else ""
+            if not name:
+                continue
+
+            # Sahte sonuclari atla
+            if "arama sonuç" in name.lower() or "için arama" in name.lower():
+                continue
+
+            # Fiyat
+            price_tags = card.select("strong")
+            prices = []
+            for pt in price_tags:
+                text = pt.get_text(strip=True)
+                if "TL" in text:
+                    p = clean_price(text)
+                    if p: prices.append(p)
+
+            original_price = max(prices) if prices else None
+            discounted_price = min(prices) if len(prices) > 1 else None
+            if discounted_price == original_price:
+                discounted_price = None
+
+            # Thumbnail
+            img = card.select_one("img")
+            thumb = ""
+            if img:
+                thumb = img.get("src") or img.get("data-src") or ""
+                if thumb and not thumb.startswith("http"):
+                    thumb = BASE_URL + thumb
+
+            all_products.append({
+                "name": name,
+                "url": product_url,
+                "thumbnail_url": thumb,
+                "original_price": original_price,
+                "discounted_price": discounted_price,
+            })
+            page_count += 1
+
+        print(f"  -> {page_count} urun")
+
+        if page_count == 0:
+            break
+
+        # Toplam urun sayisini sayfadan oku
+        total_match = re.search(r'totalNumber\s*:\s*(\d+)', resp.text)
+        total_products = int(total_match.group(1)) if total_match else 0
+
+        if total_products > 0 and len(all_products) >= total_products:
+            break
+
+        # Sonraki sayfa kontrol
+        if page_count < 18 and total_products == 0:
+            break
+
+        page += 1
+        time.sleep(1)
+
+    return all_products
+
+
+def main():
+    print("BodyfitShop Muscle Pump Scraper")
+    print("=" * 50)
+
+    # 1. Liste sayfalari
+    print("\nADIM 1: Urun listesi toplanıyor...")
+    products = scrape_listing_pages()
+    print(f"Toplam {len(products)} urun bulundu.")
+
+    # 2. Detay sayfalari
+    print("\nADIM 2: Detay sayfalari taraniyor...")
+    for i, p in enumerate(products, 1):
+        print(f"  [{i}/{len(products)}] {p['name'][:50]}...")
+        detail = scrape_product_detail(p["url"])
+        p["description_html"] = detail["description_html"]
+        p["description_text"] = detail["description_text"]
+        p["specifications"] = detail["specifications"]
+        p["all_image_urls"] = detail["all_images"]
+        p["slug"] = make_slug(p["name"])
+        p["category"] = "Sporcu Besinleri"
+        p["parent_category"] = None
+        p["sku"] = ""
+        p["barcode"] = ""
+        p["variants"] = []
+        p["options"] = []
+        time.sleep(0.8)
+
+    # 3. Gorselleri indir
+    print("\nADIM 3: Gorseller indiriliyor...")
+    os.makedirs(IMAGE_DIR, exist_ok=True)
+    for i, p in enumerate(products, 1):
+        slug = p["slug"][:60]
+        print(f"  [{i}/{len(products)}] {slug}")
+        downloaded = []
+        for img_url in p.get("all_image_urls", []):
+            local = download_image(img_url, subfolder=slug)
+            if local: downloaded.append({"remote_url": img_url, "local_path": local})
+        if not downloaded and p.get("thumbnail_url"):
+            local = download_image(p["thumbnail_url"], subfolder=slug)
+            if local: downloaded.append({"remote_url": p["thumbnail_url"], "local_path": local})
+        p["downloaded_images"] = downloaded
+        print(f"    {len(downloaded)} gorsel")
+
+    # 4. JSON kaydet
+    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+        json.dump(products, f, ensure_ascii=False, indent=2)
+
+    total_imgs = sum(len(p.get("downloaded_images", [])) for p in products)
+    print(f"\nTamamlandi! {len(products)} urun -> {OUTPUT_FILE}")
+    print(f"Toplam gorsel: {total_imgs}")
+
+
+if __name__ == "__main__":
+    main()
