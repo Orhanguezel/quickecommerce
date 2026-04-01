@@ -218,79 +218,42 @@ class AdminSellerManageController extends Controller
     public function updateSellerProfile(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'id'           => 'required|exists:users,id',
-            'first_name'   => 'required|string|max:255',
-            'last_name'    => 'nullable|string|max:255',
-            'email'        => 'required|string|email|max:255|unique:users,email,' . $request->id,
-            'phone'        => 'nullable|string',
-            'image'        => 'nullable',
-            // KYC fields
-            'company_name'        => 'nullable|string|max:255',
-            'brand_name'          => 'nullable|string|max:255',
-            'sector'              => 'nullable|string|max:255',
-            'tax_office'          => 'nullable|string|max:255',
-            'tax_number'          => 'nullable|string|max:100',
-            'mersis_number'       => 'nullable|string|max:100',
-            'website_url'         => 'nullable|string|max:255',
-            'address_country'     => 'nullable|string|max:100',
-            'address_city'        => 'nullable|string|max:100',
-            'address_district'    => 'nullable|string|max:100',
-            'address_postal_code' => 'nullable|string|max:20',
-            'address_line1'       => 'nullable|string|max:500',
-            'address_line2'       => 'nullable|string|max:500',
-            'bank_name'           => 'nullable|string|max:255',
-            'bank_account_holder' => 'nullable|string|max:255',
-            'bank_iban'           => 'nullable|string|max:50',
-            'bank_account_number' => 'nullable|string|max:50',
-            'bank_branch_code'    => 'nullable|string|max:50',
-            'bank_swift_code'     => 'nullable|string|max:20',
+            'id' => 'required|exists:users,id',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'nullable|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $request->id,
+            'phone' => 'nullable|string',
+            'image' => 'nullable'
         ]);
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
 
+
         $user = User::find($request->id);
         if (!$user) {
-            return response()->json(['message' => __('messages.data_not_found')], 404);
+            return response()->json([
+                'message' => __('messages.data_not_found'),
+            ], 404);
         }
         if ($user->store_owner == 0) {
-            return response()->json(['message' => __('messages.user_invalid', ['user' => 'Seller'])], 422);
+            return response()->json([
+                'message' => __('messages.user_invalid', ['user' => 'Seller'])
+            ], 422);
         }
 
         $user->update($request->only('first_name', 'last_name', 'phone', 'email', 'image'));
-
+        //Set up media binding for main image
         if (!empty($user->image)) {
             $mainImage = Media::find($user->image);
             if ($mainImage) {
                 $mainImage->update([
-                    'user_id'    => $user->id,
-                    'user_type'  => User::class,
+                    'user_id' => $user->id,
+                    'user_type' => User::class,
                     'usage_type' => 'seller_profile',
                 ]);
             }
         }
-
-        // Save KYC fields to seller_applications
-        $kycFields = [
-            'company_name', 'brand_name', 'sector', 'tax_office', 'tax_number',
-            'mersis_number', 'website_url', 'address_country', 'address_city',
-            'address_district', 'address_postal_code', 'address_line1', 'address_line2',
-            'bank_name', 'bank_account_holder', 'bank_iban', 'bank_account_number',
-            'bank_branch_code', 'bank_swift_code',
-        ];
-        $kycData = $request->only($kycFields);
-        if (!empty(array_filter($kycData, fn($v) => $v !== null && $v !== ''))) {
-            $application = SellerApplication::where('user_id', $user->id)->latest()->first();
-            if ($application) {
-                $application->update($kycData);
-            } else {
-                SellerApplication::create(array_merge($kycData, [
-                    'user_id' => $user->id,
-                    'status'  => SellerApplication::STATUS_PENDING,
-                ]));
-            }
-        }
-
         return response()->json([
             'message' => __('messages.update_success', ['name' => 'Seller'])
         ]);

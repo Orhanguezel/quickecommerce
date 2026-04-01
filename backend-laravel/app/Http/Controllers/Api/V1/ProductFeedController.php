@@ -50,7 +50,16 @@ class ProductFeedController extends Controller
         foreach ($products as $product) {
             // Fiyatli variant olmayan urunleri atla
             $variant = $product->variants->first();
-            if (!$variant || !$variant->price || $variant->price <= 0) {
+            if (!$variant) {
+                continue;
+            }
+
+            // Gercek fiyat: special_price > 0 ise o, degilse price
+            $effectivePrice = ((float) $variant->special_price > 0)
+                ? (float) $variant->special_price
+                : (float) $variant->price;
+
+            if ($effectivePrice <= 0) {
                 continue;
             }
 
@@ -71,7 +80,7 @@ class ProductFeedController extends Controller
 
             // Fiyat
             $price = number_format((float) $variant->price, 2, '.', '');
-            $specialPrice = $variant->special_price
+            $specialPrice = ($variant->special_price && (float) $variant->special_price > 0)
                 ? number_format((float) $variant->special_price, 2, '.', '')
                 : null;
 

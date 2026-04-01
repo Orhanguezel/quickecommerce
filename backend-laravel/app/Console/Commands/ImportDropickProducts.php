@@ -17,21 +17,23 @@ use Intervention\Image\Facades\Image;
 
 class ImportDropickProducts extends Command
 {
-    protected $signature = 'import:dropick
-                            {json_file : dropick_products.json dosyasinin yolu}
+    protected $signature = 'import:products
+                            {json_file : JSON dosyasinin yolu (dropick veya norfolk formatı)}
                             {store_id : Urunlerin eklenmesine istenen store ID}
                             {--dry-run : Gercek kayit yapmadan onizleme}
                             {--skip-images : Gorsel indirmeyi atla (sadece URL kullan)}
                             {--status=approved : Urun statusu (pending, approved, inactive)}
                             {--type=sports : Store type (sports, general, etc.)}
-                            {--lang=tr : Varsayilan dil}';
+                            {--lang=tr : Varsayilan dil}
+                            {--sku-prefix=PRD : SKU on eki (DPK, NFK vs.)}';
 
-    protected $description = 'Dropick scraper JSON ciktisini QuickEcommerce sistemine import eder';
+    protected $description = 'Scraper JSON ciktisini QuickEcommerce sistemine import eder (Dropick, Norfolk vs.)';
 
     private int $storeId;
     private string $defaultLang;
     private string $productType;
     private string $productStatus;
+    private string $skuPrefix;
     private bool $dryRun;
     private bool $skipImages;
     private array $categoryCache = [];
@@ -46,6 +48,7 @@ class ImportDropickProducts extends Command
         $this->productStatus = $this->option('status');
         $this->productType = $this->option('type');
         $this->defaultLang = $this->option('lang');
+        $this->skuPrefix = $this->option('sku-prefix');
 
         // Validasyonlar
         if (!file_exists($jsonFile)) {
@@ -337,22 +340,60 @@ class ImportDropickProducts extends Command
                 }
             }
 
-            // Varsayilan variant (fiyat ve stok)
-            $price = $data['original_price'] ?? 0;
-            $specialPrice = $data['discounted_price'] ?? null;
+            // Varyantlar — coklu varyant varsa (Norfolk beden vs.) hepsini olustur
+            $variants = $data['variants'] ?? [];
 
-            $sku = $data['sku'] ?: generateUniqueSku('DPK-');
+            if (!empty($variants) && count($variants) > 1) {
+                // Coklu varyant (beden, renk vs.)
+                foreach ($variants as $v) {
+                    $vPrice = $v['price'] ?? $data['original_price'] ?? 0;
+                    $vCompare = $v['compare_at_price'] ?? null;
+                    $vSpecial = null;
 
-            ProductVariant::create([
-                'product_id'     => $product->id,
-                'variant_slug'   => 'default',
-                'sku'            => $sku,
-                'price'          => $price,
-                'special_price'  => $specialPrice,
-                'stock_quantity' => 100,
-                'status'         => 1,
-                'image'          => $mainImageId ? (string) $mainImageId : null,
-            ]);
+                    // compare_at_price > price ise: compare orijinal, price indirimli
+                    if ($vCompare && $vCompare > $vPrice) {
+                        $vSpecial = $vPrice;
+                        $vPrice = $vCompare;
+                    }
+
+                    $vSku = $v['sku'] ?: generateUniqueSku($this->skuPrefix . '-');
+                    $vSlug = $v['title'] ?? 'default';
+                    $stockQty = ($v['available'] ?? true) ? 100 : 0;
+
+                    $attributes = [];
+                    if (!empty($v['option1'])) $attributes['option1'] = $v['option1'];
+                    if (!empty($v['option2'])) $attributes['option2'] = $v['option2'];
+                    if (!empty($v['option3'])) $attributes['option3'] = $v['option3'];
+
+                    ProductVariant::create([
+                        'product_id'     => $product->id,
+                        'variant_slug'   => $vSlug,
+                        'sku'            => $vSku,
+                        'price'          => $vPrice,
+                        'special_price'  => $vSpecial,
+                        'stock_quantity' => $stockQty,
+                        'attributes'     => !empty($attributes) ? json_encode($attributes) : null,
+                        'status'         => 1,
+                        'image'          => $mainImageId ? (string) $mainImageId : null,
+                    ]);
+                }
+            } else {
+                // Tekli varyant (Dropick vs.)
+                $price = $data['original_price'] ?? 0;
+                $specialPrice = $data['discounted_price'] ?? null;
+                $sku = $data['sku'] ?: generateUniqueSku($this->skuPrefix . '-');
+
+                ProductVariant::create([
+                    'product_id'     => $product->id,
+                    'variant_slug'   => 'default',
+                    'sku'            => $sku,
+                    'price'          => $price,
+                    'special_price'  => $specialPrice,
+                    'stock_quantity' => 100,
+                    'status'         => 1,
+                    'image'          => $mainImageId ? (string) $mainImageId : null,
+                ]);
+            }
 
             // Ozellikler (specifications)
             if (!empty($data['specifications'])) {
