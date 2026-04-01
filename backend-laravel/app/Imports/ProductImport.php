@@ -47,10 +47,13 @@ class ProductImport implements ToCollection, WithHeadingRow, WithValidation, Wit
                 }
             }
 
-            $productExists = Product::where('store_id', $shopId)
-                ->orWhere('id', $productId)
-                ->orWhere('slug', $slug)
-                ->exists();
+            $productExists = Product::where(function ($query) use ($shopId, $productId, $slug) {
+                $query->where('store_id', $shopId)
+                      ->where(function ($q) use ($productId, $slug) {
+                          $q->where('id', $productId)
+                            ->orWhere('slug', $slug);
+                      });
+            })->exists();
 
             if ($productExists) {
                 continue;

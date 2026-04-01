@@ -32,7 +32,7 @@ export const flyToCart = (
   ghost.style.height = `${sourceRect.height}px`;
   ghost.style.zIndex = "10000";
   ghost.style.pointerEvents = "none";
-  ghost.style.transition = "all 1s cubic-bezier(0.19, 1, 0.22, 1)";
+  ghost.style.transition = "all 1.2s cubic-bezier(0.45, 0, 0.55, 1)";
   ghost.style.borderRadius = "12px";
   ghost.style.overflow = "hidden";
   ghost.style.boxShadow = "0 10px 40px rgba(0,0,0,0.3)";
@@ -94,5 +94,5 @@ export const flyToCart = (
         iconSpan.classList.remove("scale-125");
       }
     }, 250);
-  }, 1000);
+  }, 1200);
 };
