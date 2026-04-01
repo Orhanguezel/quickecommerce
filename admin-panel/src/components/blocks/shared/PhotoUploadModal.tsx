@@ -205,6 +205,21 @@ const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
         );
 
         toast.success(response?.message);
+        // Auto-select the newly uploaded image so the Save button becomes active
+        if (response?.image_id) {
+          const uploadedImage: UploadedImage = {
+            image_id: String(response.image_id),
+            img_url: response.image_url ?? "",
+            url: response.image_url ?? "",
+            name: file.name,
+          };
+          setSelectedImages([uploadedImage]);
+          setLastSelectedImages(uploadedImage);
+          setAllMedia((prev) => {
+            const exists = prev.some((img) => img.image_id == response.image_id);
+            return exists ? prev : [uploadedImage, ...prev];
+          });
+        }
         await refetch();
         setImageLength(0);
       } catch (error) {

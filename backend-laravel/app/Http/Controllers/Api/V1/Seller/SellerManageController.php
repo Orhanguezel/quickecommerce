@@ -7,6 +7,7 @@ use App\Http\Resources\Seller\SellerProfileResource;
 use App\Interfaces\SellerManageInterface;
 use App\Interfaces\StoreManageInterface;
 use App\Models\Media;
+use App\Models\SellerApplication;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -52,6 +53,26 @@ class SellerManageController extends Controller
             'phone' => 'nullable|string',
             'image' => 'nullable|string',
             'def_lang' => 'nullable|string|max:5',
+            // KYC fields
+            'company_name' => 'nullable|string|max:255',
+            'brand_name' => 'nullable|string|max:255',
+            'sector' => 'nullable|string|max:255',
+            'tax_office' => 'nullable|string|max:255',
+            'tax_number' => 'nullable|string|max:100',
+            'mersis_number' => 'nullable|string|max:100',
+            'website_url' => 'nullable|string|max:255',
+            'address_country' => 'nullable|string|max:100',
+            'address_city' => 'nullable|string|max:100',
+            'address_district' => 'nullable|string|max:100',
+            'address_postal_code' => 'nullable|string|max:20',
+            'address_line1' => 'nullable|string|max:500',
+            'address_line2' => 'nullable|string|max:500',
+            'bank_name' => 'nullable|string|max:255',
+            'bank_account_holder' => 'nullable|string|max:255',
+            'bank_iban' => 'nullable|string|max:50',
+            'bank_account_number' => 'nullable|string|max:50',
+            'bank_branch_code' => 'nullable|string|max:50',
+            'bank_swift_code' => 'nullable|string|max:20',
         ]);
         if ($validator->fails()) {
             return response()->json([
@@ -81,6 +102,35 @@ class SellerManageController extends Controller
                         ]);
                     }
                 }
+
+                // Update KYC fields in seller_applications if any KYC data provided
+                $kycFields = [
+                    'company_name', 'brand_name', 'sector', 'tax_office', 'tax_number',
+                    'mersis_number', 'website_url', 'address_country', 'address_city',
+                    'address_district', 'address_postal_code', 'address_line1', 'address_line2',
+                    'bank_name', 'bank_account_holder', 'bank_iban', 'bank_account_number',
+                    'bank_branch_code', 'bank_swift_code',
+                ];
+                $kycData = $request->only($kycFields);
+                if (!empty(array_filter($kycData, fn($v) => $v !== null && $v !== ''))) {
+                    $application = SellerApplication::where('user_id', $userId)->latest()->first();
+                    if ($application) {
+                        // Reset to pending if key identity/bank fields changed
+                        $sensitiveFields = ['tax_number', 'bank_iban', 'bank_account_holder'];
+                        $sensitiveChanged = collect($sensitiveFields)
+                            ->contains(fn($f) => $request->filled($f) && $request->input($f) !== $application->{$f});
+                        $application->update($kycData);
+                        if ($sensitiveChanged) {
+                            $application->update(['status' => SellerApplication::STATUS_PENDING, 'admin_note' => null]);
+                        }
+                    } else {
+                        SellerApplication::create(array_merge($kycData, [
+                            'user_id' => $userId,
+                            'status' => SellerApplication::STATUS_PENDING,
+                        ]));
+                    }
+                }
+
                 return response()->json([
                     'status' => true,
                     'status_code' => 200,

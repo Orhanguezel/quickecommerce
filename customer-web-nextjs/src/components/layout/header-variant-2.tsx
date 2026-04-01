@@ -141,7 +141,7 @@ export function HeaderVariant2() {
             <div className="w-0.5" />
 
             {/* Cart — Flutter: 30×30, grey (or blue if on cart page), red badge 16px */}
-            <button onClick={openCartDrawer} className="relative">
+            <button id="header-cart-icon" onClick={openCartDrawer} className="relative">
               <ShoppingCart className="h-[30px] w-[30px] text-muted-foreground" />
               <span
                 className="absolute -right-px top-px flex items-center justify-center rounded-full bg-red-500 p-1"

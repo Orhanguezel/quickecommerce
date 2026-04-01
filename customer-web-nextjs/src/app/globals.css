@@ -129,3 +129,18 @@
     transform: translateX(-50%);
   }
 }
+
+@keyframes cart-pop {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-40px) scale(0.6);
+    opacity: 0;
+  }
+}
+
+.animate-cart-pop {
+  animation: cart-pop 0.55s ease-out forwards;
+}

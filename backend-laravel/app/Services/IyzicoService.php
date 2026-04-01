@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\SellerApplication;
 use Iyzipay\Model\Address;
 use Iyzipay\Model\BasketItem;
 use Iyzipay\Model\BasketItemType;
@@ -11,8 +12,11 @@ use Iyzipay\Model\CheckoutFormInitialize;
 use Iyzipay\Model\Currency;
 use Iyzipay\Model\Locale;
 use Iyzipay\Model\PaymentGroup;
+use Iyzipay\Model\SubMerchant;
+use Iyzipay\Model\SubMerchantType;
 use Iyzipay\Options;
 use Iyzipay\Request\CreateCheckoutFormInitializeRequest;
+use Iyzipay\Request\CreateSubMerchantRequest;
 use Iyzipay\Request\RetrieveCheckoutFormRequest;
 use Modules\PaymentGateways\app\Models\PaymentGateway;
 
@@ -76,6 +80,112 @@ class IyzicoService
         $options->setSecretKey($config['secret_key']);
         $options->setBaseUrl($config['base_url']);
         return $options;
+    }
+
+    public function isMarketplaceMode(): bool
+    {
+        try {
+            $config = $this->getCredentials();
+            $val = $config['credentials']['marketplace_mode'] ?? null;
+            if ($val === null) return false;
+            if (is_bool($val)) return $val;
+            return in_array(strtolower((string)$val), ['1', 'true', 'on', 'yes'], true);
+        } catch (\Exception) {
+            return false;
+        }
+    }
+
+    /**
+     * iyzico'da alt üye iş yeri (sub-merchant) oluşturur.
+     * Başarıda subMerchantKey string döner.
+     * @throws \Exception API hatası veya eksik veri durumunda
+     */
+    public function createSubMerchant(SellerApplication $application): string
+    {
+        $user = $application->user;
+
+        // Vergi / TC no'dan rakamları al
+        $taxNumber = preg_replace('/\D/', '', $application->tax_number ?? '');
+
+        // 11 hane → TC kimlik numarası (şahıs veya şahıs şirketi)
+        // 10 hane → vergi numarası (limited/anonim şirket)
+        $isPersonalId = strlen($taxNumber) === 11;
+        $hasCompany   = !empty(trim($application->company_name ?? ''));
+
+        if ($isPersonalId && !$hasCompany) {
+            $type = SubMerchantType::PERSONAL;
+        } elseif ($isPersonalId) {
+            $type = SubMerchantType::PRIVATE_COMPANY;
+        } else {
+            $type = SubMerchantType::LIMITED_OR_JOINT_STOCK_COMPANY;
+        }
+
+        // Adres birleştir
+        $addressParts = array_filter([
+            $application->address_line1,
+            $application->address_district,
+            $application->address_city,
+        ]);
+        $address = implode(', ', $addressParts) ?: ($application->address_country ?? 'Türkiye');
+
+        // GSM formatı: iyzico +90XXXXXXXXXX bekliyor
+        $rawPhone = preg_replace('/\D/', '', $user->phone ?? '');
+        if (strlen($rawPhone) === 10) {
+            $gsm = '+90' . $rawPhone;
+        } elseif (strlen($rawPhone) === 11 && str_starts_with($rawPhone, '0')) {
+            $gsm = '+9' . $rawPhone;
+        } elseif (strlen($rawPhone) >= 12 && str_starts_with($rawPhone, '90')) {
+            $gsm = '+' . $rawPhone;
+        } else {
+            $gsm = '+905350000000'; // fallback
+        }
+
+        // Ad / soyad
+        $firstName = trim($user->first_name ?? '');
+        $lastName  = trim($user->last_name ?? '');
+        if (empty($firstName)) {
+            $parts     = explode(' ', trim($user->full_name ?? 'Ad Soyad'), 2);
+            $firstName = $parts[0];
+            $lastName  = $parts[1] ?? '';
+        }
+
+        $request = new CreateSubMerchantRequest();
+        $request->setLocale(Locale::TR);
+        $request->setConversationId('seller-' . $application->user_id . '-' . time());
+        $request->setSubMerchantExternalId('qe-seller-' . $application->user_id);
+        $request->setSubMerchantType($type);
+        $request->setAddress($address);
+        $request->setEmail($user->email);
+        $request->setGsmNumber($gsm);
+        $request->setName($hasCompany ? $application->company_name : trim("$firstName $lastName"));
+        $request->setIban(preg_replace('/\s/', '', $application->bank_iban));
+        $request->setCurrency(Currency::TL);
+
+        if ($type === SubMerchantType::PERSONAL) {
+            $request->setContactName($firstName);
+            $request->setContactSurname($lastName ?: $firstName);
+            $request->setIdentityNumber($taxNumber);
+        } elseif ($type === SubMerchantType::PRIVATE_COMPANY) {
+            $request->setTaxOffice($application->tax_office ?: 'Bilinmiyor');
+            $request->setLegalCompanyTitle($application->company_name);
+            $request->setIdentityNumber($taxNumber);
+        } else {
+            // LIMITED_OR_JOINT_STOCK_COMPANY
+            $request->setTaxOffice($application->tax_office ?: 'Bilinmiyor');
+            $request->setTaxNumber($taxNumber);
+            $request->setLegalCompanyTitle($application->company_name);
+        }
+
+        $result = SubMerchant::create($request, $this->options());
+
+        if ($result->getStatus() !== 'success') {
+            throw new \Exception(
+                'iyzico sub-merchant oluşturulamadı: ' . $result->getErrorMessage() .
+                ' (code: ' . $result->getErrorCode() . ')'
+            );
+        }
+
+        return $result->getSubMerchantKey();
     }
 
     public function createCheckoutForm(array $data): CheckoutFormInitialize

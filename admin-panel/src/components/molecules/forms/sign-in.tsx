@@ -157,11 +157,11 @@ const SignInForm = ({
               <div className="h-full flex items-center justify-center p-4">
                 {isQuerying ? (
                   <Skeleton className="w-64 h-64 rounded-xl" />
-                ) : QueryGeneralSettingsData?.com_seller_login_page_image ? (
+                ) : QueryGeneralSettingsData?.com_login_page_image ? (
                   <div className="relative w-full max-w-[1200px] aspect-[3/2]">
                     <Image
                       loader={GlobalImageLoader}
-                      src={QueryGeneralSettingsData.com_seller_login_page_image}
+                      src={QueryGeneralSettingsData.com_login_page_image}
                       alt="Login illustration"
                       fill
                       sizes="(max-width: 768px) 100vw, 1200px"
@@ -194,10 +194,10 @@ const SignInForm = ({
 
                 <div className="mt-4 w-full">
                   <h2 className="text-center text-2xl font-bold">
-                    {QueryGeneralSettingsData?.com_seller_login_page_title}
+                    {QueryGeneralSettingsData?.com_login_page_title}
                   </h2>
                   <h5 className="text-center text-sm mt-2">
-                    {QueryGeneralSettingsData?.com_seller_login_page_subtitle}
+                    {QueryGeneralSettingsData?.com_login_page_subtitle}
                   </h5>
                   <Form {...form}>
                     <form onSubmit={handleSubmit(onSubmit)} className="mt-10 ">

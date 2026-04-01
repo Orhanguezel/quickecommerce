@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import Image from "next/image";
 import { Link, useRouter } from "@/i18n/routing";
 import {
@@ -55,6 +55,7 @@ import {
   useProductQuestionsQuery,
   useAskQuestionMutation,
 } from "@/modules/product/product-qa.service";
+import { flyToCart } from "@/lib/cart-animation";
 
 interface ProductDetailTranslations {
   home: string;
@@ -337,6 +338,7 @@ export function ProductDetailClient({
   const [isWishlisted, setIsWishlisted] = useState(Boolean(product.wishlist));
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const mainImageRef = useRef<HTMLDivElement>(null);
   const { productDetailsConfig } = useThemeConfig();
   const router = useRouter();
 
@@ -542,6 +544,13 @@ export function ProductDetailClient({
       quantity,
       ...(price && displayPrice < price ? { discount: price - displayPrice } : {}),
     });
+
+    // Fly to cart animation
+    if (mainImageRef.current) {
+      const img = mainImageRef.current.querySelector("img");
+      const rect = mainImageRef.current.getBoundingClientRect();
+      flyToCart(img, rect);
+    }
   };
 
   const handleBuyNow = () => {
@@ -737,6 +746,7 @@ export function ProductDetailClient({
         {/* Gallery */}
         <div className="space-y-3 overflow-hidden rounded-lg border bg-card p-2 sm:p-4">
           <div
+            ref={mainImageRef}
             className="relative aspect-square cursor-zoom-in overflow-hidden rounded-md border bg-muted"
             onClick={() => allImages[normalizedImageIndex] && openLightbox(normalizedImageIndex)}
           >

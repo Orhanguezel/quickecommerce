@@ -34,19 +34,15 @@ export function ProductSection({
 
   return (
     <section>
-      <SectionHeader title={title} subtitle={subtitle} viewAllHref={viewAllHref} />
+      <SectionHeader
+        title={title}
+        subtitle={subtitle}
+        viewAllHref={viewAllHref}
+        onPrev={() => scroll("left")}
+        onNext={() => scroll("right")}
+      />
 
-      <div className="group/section relative">
-        {/* Left Arrow */}
-        <button
-          onClick={() => scroll("left")}
-          aria-label="Önceki ürünler"
-          className="absolute -left-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border bg-background shadow-md opacity-0 transition-opacity hover:bg-muted group-hover/section:opacity-100"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-
-        {/* Products Scroll */}
+      <div className="relative">
         <div
           ref={scrollRef}
           className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-hide"
@@ -55,15 +51,6 @@ export function ProductSection({
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
-
-        {/* Right Arrow */}
-        <button
-          onClick={() => scroll("right")}
-          aria-label="Sonraki ürünler"
-          className="absolute -right-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border bg-background shadow-md opacity-100 transition-opacity hover:bg-muted group-hover/section:opacity-100"
-        >
-          <ChevronRight className="h-5 w-5" />
-        </button>
       </div>
     </section>
   );

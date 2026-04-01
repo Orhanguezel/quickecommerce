@@ -26,6 +26,7 @@ class OrderObserver
         // Check if the order status has changed
         if ($order->isDirty('status')) {
             // check which guard is being used
+            $user = null;
             if (auth()->guard('api_customer')->check()) {
                 $user = auth()->guard('api_customer')->user();
                 dispatch(new DispatchOrderEmails($order->id, 'order-status-change-deliveryman'));
@@ -34,11 +35,11 @@ class OrderObserver
             }
 
             // Check if the user is a seller, admin, customer, or deliveryman
-            if ($user->activity_scope === 'store_level') {
+            if ($user && $user->activity_scope === 'store_level') {
                 dispatch(new DispatchOrderEmails($order->id, 'order-status-change-store'));
-            } elseif ($user->activity_scope === 'system_level') {
+            } elseif ($user && $user->activity_scope === 'system_level') {
                 dispatch(new DispatchOrderEmails($order->id, 'order-status-change-admin'));
-            } elseif ($user->activity_scope === 'delivery_level') {
+            } elseif ($user && $user->activity_scope === 'delivery_level') {
                 dispatch(new DispatchOrderEmails($order->id, 'order-status-change-customer'));
             }
         }
@@ -69,7 +70,8 @@ class OrderObserver
             $activity_from = 'customer';
             $ref_id = $customerUser->id;
         } else {
-            $activity_from = 'guest'; // Or 'undefined' / 'system' depending on use case
+            $activity_from = 'guest';
+            $ref_id = null;
         }
         // Check if status changed
         if ($order->isDirty('status')) {

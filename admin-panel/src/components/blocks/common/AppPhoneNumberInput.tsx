@@ -49,7 +49,7 @@ const AppPhoneNumberInput: React.FC<PhoneNumberInputProps> = React.memo(
 
     return (
       <PhoneInput
-        country="us"
+        country="tr"
         value={phone}
         onChange={handleOnChange}
         enableSearch

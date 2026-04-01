@@ -15,9 +15,13 @@ use App\Models\EmailTemplate;
 use App\Models\Media;
 use App\Models\SellerApplication;
 use App\Models\User;
+use App\Models\Store;
+use App\Services\IyzicoService;
 use App\Services\TrashService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Modules\PaymentGateways\app\Models\PaymentGateway;
 
 class AdminSellerManageController extends Controller
 {
@@ -381,6 +385,47 @@ class AdminSellerManageController extends Controller
         // Activate the seller user
         $application->user->update(['status' => 1]);
 
+        // iyzico sub-merchant oluştur (marketplace mode aktifse)
+        $iyzicoWarning = null;
+        try {
+            $iyzicoService = app(IyzicoService::class);
+            if ($iyzicoService->isMarketplaceMode()) {
+                $subMerchantKey = $iyzicoService->createSubMerchant($application);
+
+                // seller_applications'a kaydet
+                $application->update([
+                    'iyzico_sub_merchant_key' => $subMerchantKey,
+                    'iyzico_registered_at'    => now(),
+                ]);
+
+                // Ödeme gateway'inin store_sub_merchant_keys map'ini güncelle
+                $gateway = PaymentGateway::where('slug', 'iyzico')->first();
+                if ($gateway) {
+                    $credentials = json_decode($gateway->auth_credentials ?? '{}', true);
+                    $credentials = is_array($credentials) ? $credentials : [];
+                    $storeMap    = $credentials['store_sub_merchant_keys'] ?? [];
+                    if (is_string($storeMap)) {
+                        $storeMap = json_decode($storeMap, true) ?? [];
+                    }
+
+                    // Satıcıya ait tüm store'ları eşle
+                    $storeIds = Store::where('store_seller_id', $application->user_id)
+                        ->pluck('id')
+                        ->toArray();
+                    foreach ($storeIds as $storeId) {
+                        $storeMap[(string)$storeId] = $subMerchantKey;
+                    }
+
+                    $credentials['store_sub_merchant_keys'] = $storeMap;
+                    $gateway->update(['auth_credentials' => json_encode($credentials)]);
+                }
+            }
+        } catch (\Exception $e) {
+            // iyzico hatası onayı bloklamasın; uyarı olarak döndür
+            $iyzicoWarning = $e->getMessage();
+            Log::warning('iyzico sub-merchant oluşturulamadı (seller_id=' . $application->user_id . '): ' . $e->getMessage());
+        }
+
         // Send approval notification email using existing seller-register template
         try {
             $seller_name = $application->user->full_name;
@@ -397,11 +442,16 @@ class AdminSellerManageController extends Controller
         } catch (\Exception $th) {
         }
 
-        return response()->json([
-            'status' => true,
+        $response = [
+            'status'      => true,
             'status_code' => 200,
-            'message' => 'Satıcı başvurusu onaylandı.',
-        ]);
+            'message'     => 'Satıcı başvurusu onaylandı.',
+        ];
+        if ($iyzicoWarning) {
+            $response['iyzico_warning'] = 'Alt üye hesabı oluşturulamadı: ' . $iyzicoWarning;
+        }
+
+        return response()->json($response);
     }
 
     public function rejectSellerApplication(Request $request)

@@ -14,6 +14,8 @@ import { setAuthCredentials } from "@/lib/auth-utils";
 import { authorizationAtom } from "@/lib/authorization-atom";
 import { useToken } from "@/lib/use-token";
 import { useStoreListQuery } from "@/modules/seller-section/product/product.action";
+import { useAreaDropdownQuery } from "@/modules/common/area/area.action";
+import { useStoreTypeQuery } from "@/modules/common/store-type/store-type.action";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { setSelectedStore } from "@/redux/slices/storeSlice";
 import { store } from "@/redux/store";
@@ -94,6 +96,9 @@ export default function SellerLayout({
   const shouldFetchStores =
     isAuthorized && !isPending && me?.data?.activity_scope === "store_level";
   const { stores } = useStoreListQuery({}, { skip: !shouldFetchStores });
+  // Prefetch store-form dropdowns so store/add renders with instant data
+  useAreaDropdownQuery({});
+  useStoreTypeQuery({});
   const storeList = useMemo(() => (stores as any)?.stores ?? [], [stores]);
 
   useEffect(() => {

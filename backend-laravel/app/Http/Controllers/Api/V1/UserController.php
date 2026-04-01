@@ -488,7 +488,7 @@ class UserController extends Controller
             'last_name' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:15',
             'email' => 'required|string|email|max:255|unique:users,email',
-            'password' => 'required|confirmed',
+            'password' => 'required|confirmed|min:8',
         ];
 
         // Application fields required only for public registration

@@ -21,32 +21,24 @@ import Image from "next/image";
 import { Fragment, useRef, type ReactNode } from "react";
 import { Zap, ChevronLeft, ChevronRight } from "lucide-react";
 
-function FlashSaleProductsCarousel({ products }: { products: Product[] }) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const scroll = (dir: "left" | "right") =>
-    scrollRef.current?.scrollBy({ left: dir === "left" ? -260 : 260, behavior: "smooth" });
+function FlashSaleProductsCarousel({ 
+  products, 
+  scrollRef 
+}: { 
+  products: Product[]; 
+  scrollRef: React.RefObject<HTMLDivElement | null>;
+}) {
   if (!products.length) return null;
   return (
-    <div className="group/fsp relative">
-      <button
-        onClick={() => scroll("left")}
-        aria-label="Önceki ürünler"
-        className="absolute -left-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border bg-background shadow-md opacity-0 transition-opacity hover:bg-muted group-hover/fsp:opacity-100"
+    <div className="relative">
+      <div 
+        ref={scrollRef} 
+        className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-hide"
       >
-        <ChevronLeft className="h-5 w-5" />
-      </button>
-      <div ref={scrollRef} className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-hide">
         {products.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>
-      <button
-        onClick={() => scroll("right")}
-        aria-label="Sonraki ürünler"
-        className="absolute -right-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border bg-background shadow-md opacity-0 transition-opacity hover:bg-muted group-hover/fsp:opacity-100"
-      >
-        <ChevronRight className="h-5 w-5" />
-      </button>
     </div>
   );
 }
@@ -123,6 +115,16 @@ interface HomeLayoutBlock {
 export function HomePageClient({ data, translations: t }: HomePageClientProps) {
   const { homeConfig } = useThemeConfig();
   const { banners, isPending: isBannerLoading } = useBannerQuery();
+  const flashSaleProductsScrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollFlashSaleProducts = (direction: "left" | "right") => {
+    if (!flashSaleProductsScrollRef.current) return;
+    const amount = 260;
+    flashSaleProductsScrollRef.current.scrollBy({
+      left: direction === "left" ? -amount : amount,
+      behavior: "smooth",
+    });
+  };
   const orderedFlashDeals = [...data.flashDeals].sort((a, b) => a.id - b.id);
   const orderedBlogs = [...data.blogs].sort((a, b) => {
     const featuredA = Number(
@@ -367,8 +369,13 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
             <SectionHeader
               title={homeConfig.flashSaleProductsTitle || t.top_deals_title}
               subtitle={homeConfig.flashSaleProductsSubtitle}
+              onPrev={() => scrollFlashSaleProducts("left")}
+              onNext={() => scrollFlashSaleProducts("right")}
             />
-            <FlashSaleProductsCarousel products={data.topDeals} />
+            <FlashSaleProductsCarousel 
+              products={data.topDeals} 
+              scrollRef={flashSaleProductsScrollRef}
+            />
           </section>
         );
       case "product_featured":

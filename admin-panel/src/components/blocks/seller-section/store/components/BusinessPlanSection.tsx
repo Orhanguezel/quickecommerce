@@ -24,6 +24,7 @@ import {
 } from "@/components/ui";
 import { useCurrencyQuery } from "@/modules/common/com/com.action";
 import { useSubscriptionPackagesStoreQuery } from "@/modules/seller-section/store/store.action";
+import { useCommissionSettingsQuery } from "@/modules/seller-section/settings/business-plan/business-plan.action";
 import { RocketIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
@@ -42,6 +43,9 @@ export function BusinessPlanSection({
   const { PackageList, refetch, isPending } = useSubscriptionPackagesStoreQuery(
     {}
   );
+  const { CommissionSettings } = useCommissionSettingsQuery({});
+  const commissionEnabled = (CommissionSettings as any)?.commission_enabled;
+  const subscriptionEnabled = (CommissionSettings as any)?.subscription_enabled;
   let SubscriptionList = (PackageList as any)?.packages || [];
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -74,6 +78,7 @@ export function BusinessPlanSection({
                   activeTab === "commission"
                 } ? "border-2 border-blue-500  shadow rounded " : "shadow rounded"`}
                 value="commission"
+                disabled={commissionEnabled === false}
               >
                 <div
                   className={`${
@@ -102,6 +107,7 @@ export function BusinessPlanSection({
                   activeTab === "subscription"
                 } ? "border-2 border-blue-500 text-blue-500 shadow " : "shadow dark:text-white"`}
                 value="subscription"
+                disabled={subscriptionEnabled === false}
               >
                 <div
                   className={`${
@@ -205,7 +211,7 @@ export function BusinessPlanSection({
 
                   <div className="grid grid-cols-2 items-center gap-2">
                     <div>
-                      <p className="mt-1">POS System</p>
+                      <p className="mt-1">{t("label.pos_system")}</p>
                     </div>
                     <div className="flex justify-end">
                       {card.pos_system == true ? (
@@ -217,7 +223,7 @@ export function BusinessPlanSection({
                   </div>
                   <div className="grid grid-cols-2 items-center gap-2">
                     <div>
-                      <p className="mt-1">Live Chat</p>
+                      <p className="mt-1">{t("label.live_chat")}</p>
                     </div>
                     <div className="flex justify-end">
                       {card.live_chat == 1 ? (
@@ -228,7 +234,7 @@ export function BusinessPlanSection({
                     </div>
                   </div>
                   <div className="grid grid-cols-2 items-center gap-2">
-                    <div>Order Limit</div>
+                    <div>{t("label.order_limit")}</div>
                     <div>
                       <p className="text-sm text-gray-500 dark:text-white font-semibold text-end leading-none mt-1">
                         {card?.order_limit}
@@ -236,7 +242,7 @@ export function BusinessPlanSection({
                     </div>
                   </div>
                   <div className="grid grid-cols-2 items-center gap-2">
-                    <div>Product Limit</div>
+                    <div>{t("label.product_limit")}</div>
                     <div>
                       <p className="text-sm text-gray-500 dark:text-white font-semibold text-end leading-none mt-1">
                         {card?.product_limit}
@@ -244,7 +250,7 @@ export function BusinessPlanSection({
                     </div>
                   </div>
                   <div className="grid grid-cols-2 items-center gap-2">
-                    <div>Featured Limit</div>
+                    <div>{t("label.product_featured_limit")}</div>
                     <div>
                       <p className="text-sm text-gray-500 dark:text-white font-semibold text-end leading-none mt-1">
                         {card?.product_featured_limit}

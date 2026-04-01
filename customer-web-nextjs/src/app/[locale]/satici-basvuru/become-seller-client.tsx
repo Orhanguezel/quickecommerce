@@ -201,8 +201,8 @@ export function BecomeSellerClient({ content, translations: t }: BecomeSellerCli
       return;
     }
 
-    if (formData.password.length < 6) {
-      setError(t.password_min || "Şifre en az 6 karakter olmalıdır");
+    if (formData.password.length < 8) {
+      setError(t.password_min || "Şifre en az 8 karakter olmalıdır");
       return;
     }
 

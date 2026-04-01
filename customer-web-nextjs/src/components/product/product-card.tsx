@@ -14,6 +14,8 @@ import Image from "next/image";
 import { Star, Heart, Eye, Zap, Flame, Award } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { usePrice } from "@/hooks/use-price";
+import { useRef } from "react";
+import { flyToCart } from "@/lib/cart-animation";
 
 interface ProductCardProps {
   product: Product;
@@ -77,6 +79,8 @@ export function ProductCard({
   const [isWishlisted, setIsWishlisted] = useState(Boolean(product.wishlist));
 
   const [mounted, setMounted] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+  const imageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -101,7 +105,17 @@ export function ProductCard({
       max_cart_qty: product.max_cart_qty || 99,
     };
     addItem(cartItem);
+    
+    // Fly to cart animation
+    if (imageRef.current) {
+      const img = imageRef.current.querySelector("img");
+      const rect = imageRef.current.getBoundingClientRect();
+      flyToCart(img, rect);
+    }
+
     openDrawer();
+    setIsAdding(true);
+    setTimeout(() => setIsAdding(false), 600);
   };
 
   const handleWishlistToggle = (e: React.MouseEvent) => {
@@ -240,20 +254,27 @@ export function ProductCard({
 
   /* ── Cart button icon (using cart.png) ── */
   const cartIconButton = isInStock && displayPrice != null ? (
-    <button
-      onClick={handleAddToCart}
-      title={t("add_to_cart")}
-      aria-label={t("add_to_cart")}
-      className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-md border bg-card transition-colors hover:border-primary hover:bg-primary/5"
-    >
-      <Image
-        src="/assets/icons/cart.png"
-        alt="Cart"
-        width={18}
-        height={18}
-        unoptimized
-      />
-    </button>
+    <div className="relative">
+      {isAdding && (
+        <span className="animate-cart-pop pointer-events-none absolute -top-1 left-1/2 -translate-x-1/2 z-20 rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-white leading-none">
+          +1
+        </span>
+      )}
+      <button
+        onClick={handleAddToCart}
+        title={t("add_to_cart")}
+        aria-label={t("add_to_cart")}
+        className={`flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-md border bg-card transition-all hover:border-primary hover:bg-primary/5 ${isAdding ? "scale-90" : "scale-100"}`}
+      >
+        <Image
+          src="/assets/icons/cart.png"
+          alt="Cart"
+          width={18}
+          height={18}
+          unoptimized
+        />
+      </button>
+    </div>
   ) : null;
 
   /* ════════════════════════════════════
@@ -267,7 +288,7 @@ export function ProductCard({
         className="group flex items-stretch overflow-hidden rounded-lg border bg-card transition-all hover:border-primary/50 hover:shadow-md"
       >
         {/* Image */}
-        <div className="relative h-[140px] w-[140px] shrink-0 overflow-hidden bg-muted">
+        <div className="relative h-[140px] w-[140px] shrink-0 overflow-hidden bg-muted" ref={imageRef}>
           {productImage}
           {featuredBadge}
           {bestSellerBadge}
@@ -307,6 +328,7 @@ export function ProductCard({
     >
       {/* Image Area */}
       <div
+        ref={imageRef}
         className={`relative w-full overflow-hidden bg-muted ${
           compact ? "aspect-[3/4]" : "flex-1"
         }`}

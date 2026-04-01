@@ -519,8 +519,16 @@ export default function CreateOrUpdateStoreForm({ data }: any) {
         meta_description: (values as any)[`meta_description_${lang.id}`],
       }));
 
+    if (!values.name_df) {
+      return toast.error(t('validation.name_required') || 'Store name is required.');
+    }
+
     if (values.name_df.length > 255) {
       return toast.error('Name cannot exceed 255 characters.');
+    }
+
+    if (!activeTab) {
+      return toast.error(t('validation.business_plan_required') || 'Please select a business plan.');
     }
 
     const tooLongTranslation = multiLangData.slice(1).find((lang) => {
@@ -540,7 +548,7 @@ export default function CreateOrUpdateStoreForm({ data }: any) {
       return toast.error('Invalid email format.');
     }
 
-    if (values.email.length > 255) {
+    if (values.email && values.email.length > 255) {
       return toast.error('Email must be at most 255 characters.');
     }
 
@@ -959,44 +967,6 @@ export default function CreateOrUpdateStoreForm({ data }: any) {
                                         placeholder={t('place_holder.enter_tax_number')}
                                       />
                                     </div>
-                                    <div className=" grid grid-cols-2 gap-4">
-                                      <div>
-                                        <p className="text-sm font-medium mb-1">
-                                          {t('label.opening_time')}
-                                        </p>
-                                        <Input
-                                          type="time"
-                                          id="opening_time"
-                                          {...register('opening_time')}
-                                          className="app-input flex flex-col"
-                                          placeholder={t('place_holder.enter_opening_time')}
-                                        />
-                                        {errors.opening_time && (
-                                          <p className="text-red-500 text-sm">
-                                            {errors.opening_time.message}
-                                          </p>
-                                        )}
-                                      </div>
-
-                                      <div>
-                                        <p className="text-sm font-medium mb-1">
-                                          {t('label.closing_time')}
-                                        </p>
-                                        <Input
-                                          type="time"
-                                          id="closing_time"
-                                          {...register('closing_time')}
-                                          className="app-input flex flex-col"
-                                          placeholder={t('place_holder.enter_closing_time')}
-                                        />
-                                        {errors.closing_time && (
-                                          <p className="text-red-500 text-sm">
-                                            {errors.closing_time.message}
-                                          </p>
-                                        )}
-                                      </div>
-                                    </div>
-
                                     <div>
                                       <p className="text-sm font-medium mb-1">
                                         {t('label.meta_title')} (
@@ -1031,6 +1001,42 @@ export default function CreateOrUpdateStoreForm({ data }: any) {
                             })}
                           </div>
                         </Tabs>
+                      </div>
+
+                      {/* Opening/closing times — NOT language-specific, rendered once outside the multi-lang tabs */}
+                      <div className="grid grid-cols-2 gap-4 mt-4">
+                        <div>
+                          <p className="text-sm font-medium mb-1">
+                            {t('label.opening_time')}
+                          </p>
+                          <Input
+                            type="time"
+                            id="opening_time"
+                            {...register('opening_time')}
+                            className="app-input"
+                          />
+                          {errors.opening_time && (
+                            <p className="text-red-500 text-sm">
+                              {errors.opening_time.message}
+                            </p>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium mb-1">
+                            {t('label.closing_time')}
+                          </p>
+                          <Input
+                            type="time"
+                            id="closing_time"
+                            {...register('closing_time')}
+                            className="app-input"
+                          />
+                          {errors.closing_time && (
+                            <p className="text-red-500 text-sm">
+                              {errors.closing_time.message}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </CardContent>
                   </Card>

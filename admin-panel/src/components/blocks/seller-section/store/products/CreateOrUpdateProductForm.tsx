@@ -348,6 +348,15 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
     }
   }, [shouldRefetch, refetch]);
 
+  // For new products: sync store_type → form 'type' field so attribute query fires.
+  // useForm defaultValues are evaluated once at mount; if Redux hydrates after mount,
+  // store_type would be empty and enabled:!!type stays false indefinitely.
+  useEffect(() => {
+    if (!data && store_type && !getValues('type')) {
+      setValue('type', store_type);
+    }
+  }, [store_type, data, setValue, getValues]);
+
   useEffect(() => {
     if (data && attributeOptions.length > 0) {
       const newOptions: SelectCategory = {};

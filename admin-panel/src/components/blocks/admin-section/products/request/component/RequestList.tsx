@@ -60,8 +60,7 @@ const RequestList = ({
       const apiData = x?.variants;
       if (!apiData || apiData.length === 0) return;
 
-      const newSelectedAttributes: Option[] = [];
-      const newSelectedValues: Record<string, Option[]> = {};
+      const itemCombinations: string[] = [];
 
       apiData.forEach(
         (
@@ -74,32 +73,20 @@ const RequestList = ({
           },
           index: number
         ) => {
+          const parsedAttributes = variant.attributes || {};
+          const label = (Object.values(parsedAttributes) as any[])
+            .flat()
+            .filter(Boolean)
+            .join("-")
+            .replace(/^-|-$/g, "");
+          itemCombinations.push(label || String(index + 1));
+
           const uniqueKey = `${i}-${index}`;
           tempPrices[uniqueKey] = Number(variant.price);
           tempStocks[uniqueKey] = Number(variant.stock_quantity);
           tempSku[uniqueKey] = variant.sku;
           tempImageUrl[uniqueKey] = variant.image_url;
         }
-      );
-
-      const attributeValues = newSelectedAttributes.map(
-        (attribute) =>
-          newSelectedValues[attribute.value]?.map((option) => option.label) || [
-            "",
-          ]
-      );
-
-      const generateCombinations = (arrays: string[][]): string[][] => {
-        if (arrays.length === 0) return [[]];
-        const [first, ...rest] = arrays;
-        const combinations = generateCombinations(rest);
-        return first.flatMap((value) =>
-          combinations.map((combination) => [value, ...combination])
-        );
-      };
-
-      const itemCombinations = generateCombinations(attributeValues).map(
-        (combination) => combination.join("-").replace(/^-|-$/, "")
       );
       newCombinations[i] = itemCombinations;
     });

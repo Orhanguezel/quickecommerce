@@ -25,7 +25,7 @@ import GlobalImageLoader from "@/lib/imageLoader";
 import { useBecomeASellerTypeQuery } from "@/modules/common/become-a-seller/become-a-seller.action";
 import { useGeneralQuery } from "@/modules/common/com/com.action";
 import { useRegisterMutation } from "@/modules/users/users.action";
-import { RegisterSchema, SignUpInput } from "@/modules/users/users.schema";
+import { SellerRegisterSchema, SellerSignUpInput } from "@/modules/users/users.schema";
 import { AuthFormProps } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
@@ -63,8 +63,8 @@ const BecomeASeller = ({ isRedirect }: AuthFormProps) => {
     };
   }, [isLoading]);
 
-  const form = useForm<SignUpInput>({
-    resolver: zodResolver(RegisterSchema),
+  const form = useForm<SellerSignUpInput>({
+    resolver: zodResolver(SellerRegisterSchema),
   });
 
   const {
@@ -118,10 +118,40 @@ const BecomeASeller = ({ isRedirect }: AuthFormProps) => {
   const { mutate: register, isPending } = useRegisterMutation({ isRedirect });
   const onSubmit = async (values: any) => {
     const defaultValues = {
-      ...values,
+      first_name: values.first_name,
+      last_name: values.last_name,
+      phone: values.phone,
+      email: values.email,
+      password: values.password,
+      password_confirmation: values.password_confirmation,
+      company_name: values.company_name,
+      brand_name: values.brand_name,
+      sector: values.sector,
+      tax_office: values.tax_office,
+      tax_number: values.tax_number,
+      mersis_number: values.mersis_number,
+      website_url: values.website_url,
+      application_details: {
+        address: {
+          country: values.address_country || "Türkiye",
+          city: values.address_city,
+          district: values.address_district,
+          postal_code: values.address_postal_code,
+          address_line1: values.address_line1,
+          address_line2: values.address_line2,
+        },
+        bank: {
+          bank_name: values.bank_name,
+          account_holder: values.bank_account_holder,
+          iban: values.bank_iban,
+          account_number: values.bank_account_number,
+          branch_code: values.bank_branch_code,
+          swift_code: values.bank_swift_code,
+        },
+      },
     };
     if (GeneralData?.com_google_recaptcha_enable_disable == "on") {
-      defaultValues.cf_token = captchaToken;
+      (defaultValues as any).cf_token = captchaToken;
     }
     register(
       {
@@ -515,6 +545,129 @@ const BecomeASeller = ({ isRedirect }: AuthFormProps) => {
                             </FormItem>
                           )}
                         />
+
+                        {/* KYC — Şirket Bilgileri */}
+                        <Accordion type="single" collapsible defaultValue="company" className="w-full mt-2">
+                          <AccordionItem value="company">
+                            <AccordionTrigger className="text-sm font-semibold">
+                              {t("label.company_info") || "Şirket Bilgileri"} <span className="text-red-500 ml-1">*</span>
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <div className="grid grid-cols-1 gap-3 pt-2">
+                                <FormField control={control} name="company_name" render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{t("label.company_name") || "Şirket Adı"} <span className="text-red-500">*</span></FormLabel>
+                                    <FormControl><Input className="app-input" placeholder="Şirket unvanı" {...field} /></FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )} />
+                                <div className="grid grid-cols-2 gap-3">
+                                  <FormField control={control} name="sector" render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>{t("label.sector") || "Sektör"} <span className="text-red-500">*</span></FormLabel>
+                                      <FormControl><Input className="app-input" placeholder="Faaliyet sektörü" {...field} /></FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )} />
+                                  <FormField control={control} name="tax_number" render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>{t("label.tax_number") || "Vergi No"} <span className="text-red-500">*</span></FormLabel>
+                                      <FormControl><Input className="app-input" placeholder="Vergi / TC no" {...field} /></FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )} />
+                                  <FormField control={control} name="tax_office" render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>{t("label.tax_office") || "Vergi Dairesi"}</FormLabel>
+                                      <FormControl><Input className="app-input" placeholder="Vergi dairesi" {...field} /></FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )} />
+                                  <FormField control={control} name="brand_name" render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>{t("label.brand_name") || "Marka Adı"}</FormLabel>
+                                      <FormControl><Input className="app-input" placeholder="Marka adı" {...field} /></FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )} />
+                                </div>
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+
+                          <AccordionItem value="address">
+                            <AccordionTrigger className="text-sm font-semibold">
+                              {t("label.address_info") || "Adres Bilgileri"} <span className="text-red-500 ml-1">*</span>
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <div className="grid grid-cols-2 gap-3 pt-2">
+                                <FormField control={control} name="address_city" render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{t("label.address_city") || "Şehir"} <span className="text-red-500">*</span></FormLabel>
+                                    <FormControl><Input className="app-input" placeholder="İstanbul" {...field} /></FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )} />
+                                <FormField control={control} name="address_district" render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{t("label.address_district") || "İlçe"} <span className="text-red-500">*</span></FormLabel>
+                                    <FormControl><Input className="app-input" placeholder="Kadıköy" {...field} /></FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )} />
+                                <div className="col-span-2">
+                                  <FormField control={control} name="address_line1" render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>{t("label.address_line1") || "Adres"} <span className="text-red-500">*</span></FormLabel>
+                                      <FormControl><Input className="app-input" placeholder="Sokak, no, daire..." {...field} /></FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )} />
+                                </div>
+                                <FormField control={control} name="address_postal_code" render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{t("label.address_postal_code") || "Posta Kodu"}</FormLabel>
+                                    <FormControl><Input className="app-input" placeholder="34000" {...field} /></FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )} />
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+
+                          <AccordionItem value="bank">
+                            <AccordionTrigger className="text-sm font-semibold">
+                              {t("label.bank_info") || "Banka Bilgileri"} <span className="text-red-500 ml-1">*</span>
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <div className="grid grid-cols-1 gap-3 pt-2">
+                                <div className="grid grid-cols-2 gap-3">
+                                  <FormField control={control} name="bank_name" render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>{t("label.bank_name") || "Banka"} <span className="text-red-500">*</span></FormLabel>
+                                      <FormControl><Input className="app-input" placeholder="Banka adı" {...field} /></FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )} />
+                                  <FormField control={control} name="bank_account_holder" render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>{t("label.bank_account_holder") || "Hesap Sahibi"} <span className="text-red-500">*</span></FormLabel>
+                                      <FormControl><Input className="app-input" placeholder="Ad Soyad / Şirket" {...field} /></FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )} />
+                                </div>
+                                <FormField control={control} name="bank_iban" render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{t("label.bank_iban") || "IBAN"} <span className="text-red-500">*</span></FormLabel>
+                                    <FormControl><Input className="app-input" placeholder="TR00 0000 0000 0000 0000 0000 00" {...field} /></FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )} />
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        </Accordion>
 
                         {GeneralData?.com_google_recaptcha_enable_disable ===
                           "on" && (

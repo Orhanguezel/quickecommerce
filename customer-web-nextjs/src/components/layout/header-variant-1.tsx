@@ -243,6 +243,7 @@ export function HeaderVariant1() {
 
             {/* Cart — always show badge */}
             <button
+              id="header-cart-icon"
               onClick={openCartDrawer}
               aria-label="Sepetim"
               className="relative flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground lg:h-11 lg:w-11"

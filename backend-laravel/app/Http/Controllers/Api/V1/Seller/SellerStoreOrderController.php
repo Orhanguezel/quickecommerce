@@ -148,11 +148,16 @@ class SellerStoreOrderController extends Controller
 
             // Get store-wise order info
             $orders = Order::with(['orderMaster.customer', 'orderDetail.product', 'orderMaster', 'store', 'deliveryman', 'orderMaster.shippingAddress'])
-                ->whereIn('store_id', $stores);
+                ->whereIn('store_id', $stores)
+                ->whereNot('order_type', 'pos');
 
             // Apply status filter
             if (isset($request->status)) {
-                $orders->where('status', $request->status);
+                if ($request->status === 'refunded') {
+                    $orders->where('refund_status', 'refunded');
+                } else {
+                    $orders->where('status', $request->status);
+                }
             }
             if (isset($request->start_date) && isset($request->end_date)) {
                 $orders->whereBetween('created_at', [$request->start_date, $request->end_date]);
@@ -160,14 +165,16 @@ class SellerStoreOrderController extends Controller
 
             // Apply payment_status filter
             if (isset($request->payment_status)) {
-                $orders->where('payment_status', $request->payment_status);
+                $orders->whereHas('orderMaster', function ($query) use ($request) {
+                    $query->where('payment_status', $request->payment_status);
+                });
             }
             $orders->when($request->search, fn($query) => $query->where('id', 'LIKE', '%' . $request->search . '%')
                 ->orWhere('invoice_number', 'LIKE', '%' . $request->search . '%'));
 
             $orders = $orders->orderBy('created_at', 'desc')->paginate($request->per_page ?? 10);
             // === Order Status Buttons (From Full Order Table, Unfiltered) ===
-            $orderStatusCounts = new AdminOrderStatusResource(Order::whereIn('store_id', $stores)->get());
+            $orderStatusCounts = new AdminOrderStatusResource(Order::whereIn('store_id', $stores)->whereNot('order_type', 'pos')->get());
 
             return response()->json([
                 'order_masters' => StoreOrderResource::collection($orders),

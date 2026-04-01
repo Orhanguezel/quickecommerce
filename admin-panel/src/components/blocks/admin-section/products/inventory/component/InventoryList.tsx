@@ -70,8 +70,7 @@ const InventoryList = ({
       const apiData = x?.variants;
       if (!apiData || apiData.length === 0) return;
 
-      const newSelectedAttributes: Option[] = [];
-      const newSelectedValues: Record<string, Option[]> = {};
+      const itemCombinations: string[] = [];
 
       apiData.forEach(
         (
@@ -84,46 +83,13 @@ const InventoryList = ({
           },
           index: number
         ) => {
-          const parsedAttributes = variant.attributes;
-
-          Object.keys(parsedAttributes).forEach((key) => {
-            if (!newSelectedAttributes.some((attr) => attr.value === key)) {
-              newSelectedAttributes.push({
-                value: key,
-                label: key,
-              });
-            }
-          });
-
-          Object.entries(parsedAttributes).forEach(([key, value]) => {
-            if (!newSelectedValues[key]) {
-              newSelectedValues[key] = [];
-            }
-
-            if (Array.isArray(value)) {
-              value.forEach((val: string) => {
-                if (
-                  !newSelectedValues[key].some((item) => item.value === val)
-                ) {
-                  newSelectedValues[key].push({
-                    value: val,
-                    label: val,
-                  });
-                }
-              });
-            } else {
-              if (
-                !newSelectedValues[key].some((item) => item.value === value)
-              ) {
-                newSelectedValues[key].push({
-                  //@ts-ignore
-                  value,
-                  //@ts-ignore
-                  label: value,
-                });
-              }
-            }
-          });
+          const parsedAttributes = variant.attributes || {};
+          const label = (Object.values(parsedAttributes) as any[])
+            .flat()
+            .filter(Boolean)
+            .join("-")
+            .replace(/^-|-$/g, "");
+          itemCombinations.push(label || String(index + 1));
 
           const uniqueKey = `${i}-${index}`;
           tempPrices[uniqueKey] = Number(variant.price);
@@ -131,26 +97,6 @@ const InventoryList = ({
           tempSku[uniqueKey] = variant.sku;
           tempImageUrl[uniqueKey] = variant.image_url;
         }
-      );
-
-      const attributeValues = newSelectedAttributes.map(
-        (attribute) =>
-          newSelectedValues[attribute.value]?.map((option) => option.label) || [
-            "",
-          ]
-      );
-
-      const generateCombinations = (arrays: string[][]): string[][] => {
-        if (arrays.length === 0) return [[]];
-        const [first, ...rest] = arrays;
-        const combinations = generateCombinations(rest);
-        return first.flatMap((value) =>
-          combinations.map((combination) => [value, ...combination])
-        );
-      };
-
-      const itemCombinations = generateCombinations(attributeValues).map(
-        (combination) => combination.join("-").replace(/^-|-$/, "")
       );
       newCombinations[i] = itemCombinations;
     });

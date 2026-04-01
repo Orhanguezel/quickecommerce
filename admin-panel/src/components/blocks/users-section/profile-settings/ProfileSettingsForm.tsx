@@ -17,6 +17,7 @@ import { useForm } from "react-hook-form";
 import CloudIcon from "@/assets/icons/CloudIcon";
 import Loader from "@/components/molecules/Loader";
 import { SubmitButton } from "@/components/blocks/shared";
+import { Building2, CreditCard } from "lucide-react";
 import AppPhoneNumberInput from "@/components/blocks/common/AppPhoneNumberInput";
 import {
   useProfileSettingsQuery,
@@ -87,6 +88,26 @@ const ProfileSettingsForm = ({ data }: any) => {
     setValue("phone", editData.phone ?? "");
     setValue("email", editData.email ?? "");
     setPhoneNumber(editData.phone ?? "");
+    // KYC fields
+    setValue("company_name", editData.company_name ?? "");
+    setValue("brand_name", editData.brand_name ?? "");
+    setValue("sector", editData.sector ?? "");
+    setValue("tax_office", editData.tax_office ?? "");
+    setValue("tax_number", editData.tax_number ?? "");
+    setValue("mersis_number", editData.mersis_number ?? "");
+    setValue("website_url", editData.website_url ?? "");
+    setValue("address_country", editData.address_country ?? "Türkiye");
+    setValue("address_city", editData.address_city ?? "");
+    setValue("address_district", editData.address_district ?? "");
+    setValue("address_postal_code", editData.address_postal_code ?? "");
+    setValue("address_line1", editData.address_line1 ?? "");
+    setValue("address_line2", editData.address_line2 ?? "");
+    setValue("bank_name", editData.bank_name ?? "");
+    setValue("bank_account_holder", editData.bank_account_holder ?? "");
+    setValue("bank_iban", editData.bank_iban ?? "");
+    setValue("bank_account_number", editData.bank_account_number ?? "");
+    setValue("bank_branch_code", editData.bank_branch_code ?? "");
+    setValue("bank_swift_code", editData.bank_swift_code ?? "");
 
     setLastSelectedImages({
       image_id: editData.image ?? "",
@@ -167,6 +188,26 @@ const ProfileSettingsForm = ({ data }: any) => {
       phone: values.phone,
       email: values.email,
       image: lastSelectedImages ? lastSelectedImages?.image_id : "",
+      // KYC fields
+      company_name: values.company_name,
+      brand_name: values.brand_name,
+      sector: values.sector,
+      tax_office: values.tax_office,
+      tax_number: values.tax_number,
+      mersis_number: values.mersis_number,
+      website_url: values.website_url,
+      address_country: values.address_country,
+      address_city: values.address_city,
+      address_district: values.address_district,
+      address_postal_code: values.address_postal_code,
+      address_line1: values.address_line1,
+      address_line2: values.address_line2,
+      bank_name: values.bank_name,
+      bank_account_holder: values.bank_account_holder,
+      bank_iban: values.bank_iban,
+      bank_account_number: values.bank_account_number,
+      bank_branch_code: values.bank_branch_code,
+      bank_swift_code: values.bank_swift_code,
     };
     const submissionData = {
       ...defaultData,
@@ -291,7 +332,7 @@ const ProfileSettingsForm = ({ data }: any) => {
         >
           <Card className="mt-4">
             <CardContent className="p-4">
-              <TabsList className="flex items-center justify-start gap-2 bg-transparent">
+              <TabsList className="flex items-center justify-start gap-2 bg-transparent flex-wrap">
                 <TabsTrigger
                   className={`${
                     isFetching ? "pointer-events-none opacity-50" : ""
@@ -303,6 +344,23 @@ const ProfileSettingsForm = ({ data }: any) => {
                       <Info className="w-5" />{" "}
                       <span className="text-start text-lg font-semibold">
                         {t("common.basic_info")}
+                      </span>
+                    </h1>
+                  </div>
+                </TabsTrigger>
+                <TabsTrigger
+                  className={`${
+                    isFetching
+                      ? "pointer-events-none opacity-50 cursor-not-allowed"
+                      : ""
+                  }`}
+                  value="kyc_info"
+                >
+                  <div className="text-start">
+                    <h1 className="flex items-center gap-1">
+                      <Building2 className="w-5" />{" "}
+                      <span className="text-start text-lg font-semibold">
+                        {t("common.kyc_info") || "KYC / Şirket Bilgileri"}
                       </span>
                     </h1>
                   </div>
@@ -473,6 +531,140 @@ const ProfileSettingsForm = ({ data }: any) => {
               </Card>
             </form>
           </TabsContent>
+          <TabsContent className="rounded-xl" value="kyc_info">
+            <form onSubmit={handleSubmit(onSubmit)}>
+              {/* KYC Status Banner */}
+              {(editData as any)?.kyc_status !== undefined && (editData as any)?.kyc_status !== null && (
+                <div className={`mt-4 p-3 rounded-lg border text-sm font-medium flex items-center gap-2
+                  ${(editData as any).kyc_status === 1
+                    ? "bg-green-50 border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400"
+                    : (editData as any).kyc_status === 2
+                    ? "bg-red-50 border-red-200 text-redred-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400"
+                    : "bg-yellow-50 border-yellow-200 text-yellow-700 dark:bg-yellow-900/20 dark:border-yellow-800 dark:text-yellow-400"
+                  }`}>
+                  <span>
+                    {(editData as any).kyc_status === 1
+                      ? (t("label.kyc_approved") || "KYC Onaylandı ✓")
+                      : (editData as any).kyc_status === 2
+                      ? (t("label.kyc_rejected") || "KYC Reddedildi ✗")
+                      : (t("label.kyc_pending") || "KYC İncelemede...")}
+                  </span>
+                  {(editData as any).kyc_admin_note && (
+                    <span className="ml-2 text-xs opacity-80">— {(editData as any).kyc_admin_note}</span>
+                  )}
+                </div>
+              )}
+
+              {/* Company Info */}
+              <Card className="mt-4">
+                <CardContent className="p-4 md:p-6">
+                  <div className="text-lg md:text-xl font-medium mb-4 flex items-center gap-2">
+                    <Building2 className="w-5 h-5" />
+                    {t("label.company_info") || "Şirket Bilgileri"}
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-medium mb-1">{t("label.company_name") || "Şirket Adı"}</p>
+                      <Input type="text" id="company_name" {...register("company_name")} className="app-input" placeholder="Şirket unvanı" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium mb-1">{t("label.brand_name") || "Marka Adı"}</p>
+                      <Input type="text" id="brand_name" {...register("brand_name")} className="app-input" placeholder="Marka / ticaret adı" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium mb-1">{t("label.sector") || "Sektör"}</p>
+                      <Input type="text" id="sector" {...register("sector")} className="app-input" placeholder="Faaliyet sektörü" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium mb-1">{t("label.tax_office") || "Vergi Dairesi"}</p>
+                      <Input type="text" id="tax_office" {...register("tax_office")} className="app-input" placeholder="Vergi dairesi adı" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium mb-1">{t("label.tax_number") || "Vergi / TC Numarası"}</p>
+                      <Input type="text" id="tax_number" {...register("tax_number")} className="app-input" placeholder="Vergi numarası" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium mb-1">{t("label.mersis_number") || "MERSİS Numarası"}</p>
+                      <Input type="text" id="mersis_number" {...register("mersis_number")} className="app-input" placeholder="MERSİS no (opsiyonel)" />
+                    </div>
+                    <div className="md:col-span-2">
+                      <p className="text-sm font-medium mb-1">{t("label.website_url") || "Web Sitesi"}</p>
+                      <Input type="text" id="website_url" {...register("website_url")} className="app-input" placeholder="https://..." />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Address */}
+              <Card className="mt-4">
+                <CardContent className="p-4 md:p-6">
+                  <div className="text-lg md:text-xl font-medium mb-4">{t("label.address_info") || "Adres Bilgileri"}</div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-medium mb-1">{t("label.address_country") || "Ülke"}</p>
+                      <Input type="text" id="address_country" {...register("address_country")} className="app-input" placeholder="Türkiye" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium mb-1">{t("label.address_city") || "Şehir"}</p>
+                      <Input type="text" id="address_city" {...register("address_city")} className="app-input" placeholder="İstanbul" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium mb-1">{t("label.address_district") || "İlçe"}</p>
+                      <Input type="text" id="address_district" {...register("address_district")} className="app-input" placeholder="Kadıköy" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium mb-1">{t("label.address_postal_code") || "Posta Kodu"}</p>
+                      <Input type="text" id="address_postal_code" {...register("address_postal_code")} className="app-input" placeholder="34000" />
+                    </div>
+                    <div className="md:col-span-2">
+                      <p className="text-sm font-medium mb-1">{t("label.address_line1") || "Adres Satırı 1"}</p>
+                      <Input type="text" id="address_line1" {...register("address_line1")} className="app-input" placeholder="Sokak, no, daire..." />
+                    </div>
+                    <div className="md:col-span-2">
+                      <p className="text-sm font-medium mb-1">{t("label.address_line2") || "Adres Satırı 2 (Opsiyonel)"}</p>
+                      <Input type="text" id="address_line2" {...register("address_line2")} className="app-input" placeholder="Ek adres bilgisi" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Bank Info */}
+              <Card className="mt-4">
+                <CardContent className="p-4 md:p-6">
+                  <div className="text-lg md:text-xl font-medium mb-4 flex items-center gap-2">
+                    <CreditCard className="w-5 h-5" />
+                    {t("label.bank_info") || "Banka Bilgileri"}
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-medium mb-1">{t("label.bank_name") || "Banka Adı"}</p>
+                      <Input type="text" id="bank_name" {...register("bank_name")} className="app-input" placeholder="Banka adı" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium mb-1">{t("label.bank_account_holder") || "Hesap Sahibi"}</p>
+                      <Input type="text" id="bank_account_holder" {...register("bank_account_holder")} className="app-input" placeholder="Ad Soyad / Şirket adı" />
+                    </div>
+                    <div className="md:col-span-2">
+                      <p className="text-sm font-medium mb-1">{t("label.bank_iban") || "IBAN"}</p>
+                      <Input type="text" id="bank_iban" {...register("bank_iban")} className="app-input" placeholder="TR00 0000 0000 0000 0000 0000 00" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium mb-1">{t("label.bank_account_number") || "Hesap Numarası"}</p>
+                      <Input type="text" id="bank_account_number" {...register("bank_account_number")} className="app-input" placeholder="Opsiyonel" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium mb-1">{t("label.bank_swift_code") || "SWIFT Kodu"}</p>
+                      <Input type="text" id="bank_swift_code" {...register("bank_swift_code")} className="app-input" placeholder="SWIFT / BIC kodu" />
+                    </div>
+                  </div>
+                  <div className="mt-8">
+                    <SubmitButton IsLoading={isPending} AddLabel={t("button.update_profile")} />
+                  </div>
+                </CardContent>
+              </Card>
+            </form>
+          </TabsContent>
+
           <TabsContent className="rounded-xl" value="out_of_stock">
             <Card dir={dir} className="mt-4">
               <CardContent className="p-2 md:p-6">
