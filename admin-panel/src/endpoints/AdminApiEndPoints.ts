@@ -311,6 +311,7 @@ export const API_ENDPOINTS = {
   ADMIN_ORDER_CANCEL: "v1/admin/orders/cancel-order",
   ADMIN_DELIVERY_ASSIGN: "v1/admin/orders/assign-deliveryman",
   ADMIN_DELIVERY_DROPDOWN_LIST: "v1/admin/deliveryman/list-dropdown",
+  SELLER_DELIVERY_DROPDOWN_LIST: "v1/seller/deliveryman/list-dropdown",
 
   SUPPORT_TICKET_LIST: "v1/admin/support-ticket/list",
   SUPPORT_TICKET_EDIT: "v1/admin/support-ticket/details",

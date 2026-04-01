@@ -1,7 +1,7 @@
 import { AppSelect } from "@/components/blocks/common";
 import { AppModal } from "@/components/blocks/common/AppModal";
 import {
-  useDeliverymanListQuery,
+  useSellerDeliverymanListQuery,
   useDeliverymanAssign
 } from "@/modules/admin-section/orders/orders.action";
 import { useTranslations } from "next-intl";
@@ -20,7 +20,7 @@ const DeliverymanAssignModal: React.FC<DeliverymanAssignModalProps> = ({
 }) => {
   const t = useTranslations();
   const [selectDeliveryman, setSelectDeliveryman] = useState<string>("");
-  const { DeliverymanList } = useDeliverymanListQuery({});
+  const { DeliverymanList } = useSellerDeliverymanListQuery({});
   const deliveryman = (DeliverymanList as any)?.data || [];
   const handleDeliveryman = (value: string) => {
     const newSelectOwner = String(value);

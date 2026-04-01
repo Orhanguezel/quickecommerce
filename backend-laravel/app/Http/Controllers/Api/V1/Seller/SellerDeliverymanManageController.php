@@ -9,6 +9,7 @@ use App\Http\Resources\Admin\AdminDeliverymanDetailsResource;
 use App\Http\Resources\Admin\AdminVehicleDetailsResource;
 use App\Http\Resources\Admin\AdminVehicleResource;
 use App\Http\Resources\Com\Pagination\PaginationResource;
+use App\Http\Resources\Deliveryman\DeliverymanDropdownResource;
 use App\Http\Resources\Seller\SellerDeliverymanResource;
 use App\Interfaces\DeliverymanManageInterface;
 use Illuminate\Http\Request;
@@ -19,6 +20,15 @@ class SellerDeliverymanManageController extends Controller
     public function __construct(protected DeliverymanManageInterface $deliverymanRepo)
     {
 
+    }
+
+    public function deliverymanDropdownList(Request $request)
+    {
+        $filter = ['search' => $request->search];
+        $deliverymen = $this->deliverymanRepo->deliverymanListDropdown($filter);
+        return response()->json([
+            'data' => DeliverymanDropdownResource::collection($deliverymen),
+        ], 200);
     }
 
     public function listDeliverymen(Request $request)

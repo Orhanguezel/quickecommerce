@@ -300,7 +300,7 @@ const OrdersDetailsCard = ({ data, refetch, ID }: any) => {
                                 </h1>
 
                                 <div className="grid grid-cols-2 gap-1">
-                                  {Object.entries(variant_details).map(
+                                  {Object.entries(variant_details || {}).map(
                                     ([key, value]) => (
                                       <p
                                         key={key}

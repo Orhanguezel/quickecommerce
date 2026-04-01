@@ -10,6 +10,7 @@ import {
   useDeactivateExpiredFlashDealService,
   useDeliverymanAssignService,
   useDeliverymanListQueryService,
+  useSellerDeliverymanListQueryService,
   useInvoiceService,
   useJoinRequestApproveService,
   useJoinRequestQueryService,
@@ -159,6 +160,26 @@ export const useDeliverymanListQuery = (
   const { findAll } = useDeliverymanListQueryService();
   const { data, isPending, error, refetch, isFetching } = useQuery({
     queryKey: [API_ENDPOINTS.ADMIN_DELIVERY_DROPDOWN_LIST],
+    queryFn: () => findAll(options),
+    retry: false,
+    refetchOnWindowFocus: false,
+    ...options,
+  });
+  return {
+    DeliverymanList: data?.data ?? {},
+    error,
+    isPending,
+    refetch,
+    isFetching,
+  };
+};
+
+export const useSellerDeliverymanListQuery = (
+  options: Partial<OrdersQueryOptions>
+) => {
+  const { findAll } = useSellerDeliverymanListQueryService();
+  const { data, isPending, error, refetch, isFetching } = useQuery({
+    queryKey: [API_ENDPOINTS.SELLER_DELIVERY_DROPDOWN_LIST],
     queryFn: () => findAll(options),
     retry: false,
     refetchOnWindowFocus: false,

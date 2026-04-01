@@ -77,6 +77,7 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => ['auth:sanctum', 'check.e
 
             // seller deliveryman manage
             Route::group(['prefix' => 'deliveryman/'], function () {
+                Route::get('list-dropdown', [SellerDeliverymanManageController::class, 'deliverymanDropdownList']);
                 Route::group(['middleware' => ['permission:' . PermissionKey::ADMIN_DELIVERYMAN_MANAGE_LIST->value]], function () {
                     Route::get('list', [SellerDeliverymanManageController::class, 'listDeliverymen']);
                     Route::post('add', [SellerDeliverymanManageController::class, 'createDeliveryman']);

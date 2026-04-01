@@ -3,7 +3,7 @@ import { AppModal } from "@/components/blocks/common/AppModal";
 import { useGoogleMapSettingsQuery } from "@/modules/admin-section/google-map-settings/google-map-settings.action";
 import {
   useDeliverymanAssign,
-  useDeliverymanListQuery,
+  useSellerDeliverymanListQuery,
 } from "@/modules/admin-section/orders/orders.action";
 import { GoogleMap, Marker } from "@react-google-maps/api";
 import { useTranslations } from "next-intl";
@@ -20,7 +20,7 @@ const AssignDeliverymanFromDetails: React.FC<
 > = ({ trigger, row }) => {
   const t = useTranslations();
   const [selectDeliveryman, setSelectDeliveryman] = useState<string>("");
-  const { DeliverymanList } = useDeliverymanListQuery({});
+  const { DeliverymanList } = useSellerDeliverymanListQuery({});
   const deliveryman = (DeliverymanList as any)?.data || [];
 
   const handleDeliveryman = (value: string) => {

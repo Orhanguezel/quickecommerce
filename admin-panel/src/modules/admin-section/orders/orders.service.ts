@@ -19,6 +19,9 @@ export const useOrdersAllProductsQueryService = () => {
 export const useDeliverymanListQueryService = () => {
   return useBaseService<Orders>(API_ENDPOINTS.ADMIN_DELIVERY_DROPDOWN_LIST);
 };
+export const useSellerDeliverymanListQueryService = () => {
+  return useBaseService<Orders>(API_ENDPOINTS.SELLER_DELIVERY_DROPDOWN_LIST);
+};
 
 export const useOrdersStoreService = () => {
   return useBaseService<Orders>(API_ENDPOINTS.FLASH_DEALS_ADD);
