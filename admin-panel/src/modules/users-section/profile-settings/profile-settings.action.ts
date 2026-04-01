@@ -10,6 +10,8 @@ import {
   useChangePasswordService,
   useProfileSettingsQueryService,
   useProfileSettingsService,
+  useSellerProfileSettingsQueryService,
+  useSellerProfileSettingsService,
 } from "./profile-settings.service";
 import { ProfileSettingsQueryOptions } from "./profile-settings.type";
 
@@ -40,6 +42,56 @@ export const useProfileSettingsStoreMutation = () => {
   return useMutation({
     mutationFn: (values: ProfileSettingsFormData) => create(values),
     mutationKey: [API_ENDPOINTS.PROFILE_SETTINGS_EDIT],
+    onSuccess: async (data) => {
+      if (Boolean(data?.data)) {
+        toast.success(data?.data?.message);
+      } else {
+        toast.error(data?.data?.message);
+      }
+    },
+    onError: async (data) => {
+      const errorText = (data as any)?.response?.data;
+      if (errorText && typeof errorText === "object") {
+        Object.entries(errorText).forEach(([key, messages]) => {
+          if (Array.isArray(messages)) {
+            messages.forEach((msg) => toast.error(msg));
+          } else if (typeof messages === "string") {
+            toast.error(messages);
+          }
+        });
+      } else {
+        toast.error(errorText?.message);
+      }
+    },
+  });
+};
+
+export const useSellerProfileSettingsQuery = (
+  options: Partial<ProfileSettingsQueryOptions>
+) => {
+  const { findAll } = useSellerProfileSettingsQueryService();
+
+  const { data, isPending, error, refetch, isFetching } = useQuery({
+    queryKey: [API_ENDPOINTS.SELLER_PROFILE_SETTINGS],
+    queryFn: () => findAll(options),
+    ...options,
+  });
+
+  return {
+    profileSettingsData: data?.data ?? {},
+    error,
+    isPending,
+    refetch,
+    isFetching,
+  };
+};
+
+export const useSellerProfileSettingsStoreMutation = () => {
+  const { create } = useSellerProfileSettingsService();
+
+  return useMutation({
+    mutationFn: (values: ProfileSettingsFormData) => create(values),
+    mutationKey: [API_ENDPOINTS.SELLER_PROFILE_SETTINGS_EDIT],
     onSuccess: async (data) => {
       if (Boolean(data?.data)) {
         toast.success(data?.data?.message);

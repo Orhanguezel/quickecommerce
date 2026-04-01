@@ -11,6 +11,13 @@ export const useProfileSettingsService = () => {
   return useBaseService<ProfileSettings>(API_ENDPOINTS.PROFILE_SETTINGS_EDIT);
 };
 
+export const useSellerProfileSettingsQueryService = () => {
+  return useBaseService<ProfileSettings>(API_ENDPOINTS.SELLER_PROFILE_SETTINGS);
+};
+export const useSellerProfileSettingsService = () => {
+  return useBaseService<ProfileSettings>(API_ENDPOINTS.SELLER_PROFILE_SETTINGS_EDIT);
+};
+
 export const useChangePasswordService = () => {
   return useBaseService<statusUpdateData>(API_ENDPOINTS.PROFILE_SETTINGS_PASSWORD_CHANGE);
 };

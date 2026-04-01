@@ -22,6 +22,8 @@ import AppPhoneNumberInput from "@/components/blocks/common/AppPhoneNumberInput"
 import {
   useProfileSettingsQuery,
   useProfileSettingsStoreMutation,
+  useSellerProfileSettingsQuery,
+  useSellerProfileSettingsStoreMutation,
 } from "@/modules/users-section/profile-settings/profile-settings.action";
 import {
   ProfileSettingsFormData,
@@ -46,6 +48,7 @@ const ProfileSettingsForm = ({ data }: any) => {
   const t = useTranslations();
   const locale = pathname.split("/")[1];
   const dir = locale === "ar" ? "rtl" : "ltr";
+  const isSeller = pathname.includes("/seller/");
   const {
     register,
     handleSubmit,
@@ -58,13 +61,15 @@ const ProfileSettingsForm = ({ data }: any) => {
   const [lastSelectedImages, setLastSelectedImages] = useState<any>(null);
   const [logoErrorMessage, setLogoErrorMessage] = useState<string>("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const adminQuery = useProfileSettingsQuery({});
+  const sellerQuery = useSellerProfileSettingsQuery({});
   const {
     profileSettingsData,
     refetch,
     isFetching,
     isPending: isLoading,
     error,
-  } = useProfileSettingsQuery({});
+  } = isSeller ? sellerQuery : adminQuery;
   const { refetch: isMeRefetch } = useMeQuery();
   const QueryGeneralSettingsData = useMemo(
     () => (profileSettingsData as any) || [],
@@ -179,8 +184,11 @@ const ProfileSettingsForm = ({ data }: any) => {
     setLogoErrorMessage("");
   };
 
-  const { mutate: ProfileSettingsUpdate, isPending } =
-    useProfileSettingsStoreMutation();
+  const adminMutation = useProfileSettingsStoreMutation();
+  const sellerMutation = useSellerProfileSettingsStoreMutation();
+  const { mutate: ProfileSettingsUpdate, isPending } = isSeller
+    ? sellerMutation
+    : adminMutation;
   const onSubmit = async (values: ProfileSettingsFormData) => {
     const defaultData = {
       first_name: values.first_name,

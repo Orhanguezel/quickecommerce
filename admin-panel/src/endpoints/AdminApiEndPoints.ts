@@ -566,6 +566,8 @@ export const API_ENDPOINTS = {
   PROFILE_SETTINGS: "user/profile",
   PROFILE_SETTINGS_EDIT: "user/profile-edit",
   PROFILE_SETTINGS_PASSWORD_CHANGE: "user/change-password",
+  SELLER_PROFILE_SETTINGS: "v1/seller/profile/",
+  SELLER_PROFILE_SETTINGS_EDIT: "v1/seller/profile/update",
   PRODUCT_AREA_LIST: "v1/com/area/list",
   PRODUCT_AREA_ADD: "v1/com/area/add",
   PRODUCT_AREA_EDIT: "v1/com/area",
