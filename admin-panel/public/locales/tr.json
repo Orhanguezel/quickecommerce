@@ -193,6 +193,7 @@
     "edit_vehicle_type": "Araç Türünü Düzenle",
     "update_vehicle_type": "Araç Türünü Güncelle",
     "delete": "Sil",
+    "bulk_delete_selected": "Seçilenleri sil",
     "add_cash": "Bakiye Ekle",
     "collect_cash": "Nakit Tahsil Et",
     "edit_flash_deals": "Kampanyaları Düzenle",
@@ -312,6 +313,7 @@
     "approve_deliveryman": "Kuryeyi Onayla",
     "are_you_sure": "Emin misiniz?",
     "delete_product": "Ürünü Sil",
+    "bulk_delete_products": "Seçili ürünleri sil",
     "remove_feature": "Özelliği Kaldır",
     "active_feature": "Özelliği Etkinleştir",
     "delete_tag": "Etiketi Sil",
@@ -368,6 +370,7 @@
     "you_will_able_revert_your_decision_anytime": "Kararınızı istediğiniz zaman geri alabilirsiniz",
     "approve_flash_sale": "Flaş satış ürün talebini onaylamak istiyor musunuz?",
     "delete_product": "Ürünü silmek istediğinize emin misiniz?",
+    "bulk_delete_products": "Seçili tüm ürünleri silmek (çöp kutusuna taşımak) istediğinize emin misiniz?",
     "remove_feature": "Özelliği kaldırmak istediğinize emin misiniz?",
     "active_feature": "Özelliği etkinleştirmek istediğinize emin misiniz?",
     "delete_tag": "Etiketi silmek istediğinize emin misiniz?",
@@ -1303,7 +1306,9 @@
     "purpose": "Amaç",
     "package_name": "Paket Adı",
     "created_at": "Oluşturulma",
-    "product_info": "Ürün Bilgisi"
+    "product_info": "Ürün Bilgisi",
+    "select_all_page": "Bu sayfadakilerin tümünü seç",
+    "select_row": "Satırı seç"
   },
   "common": {
     "no_data": "Veri bulunamadı",
@@ -1945,5 +1950,9 @@
     "deliveryman_earnings": "Kurye Kazancı",
     "total_refund_amount": "Toplam İade Tutarı",
     "totals": "Toplamlar"
+  },
+  "product_list": {
+    "selected_count_suffix": "ürün seçildi",
+    "multiple_variants_hint": "Satırı genişletin"
   }
 }

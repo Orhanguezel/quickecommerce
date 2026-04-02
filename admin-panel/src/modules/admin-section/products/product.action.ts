@@ -30,6 +30,8 @@ import {
   useTrashProductDeleteService,
   useTrashProductQueryService,
   useTrashProductRestoreService,
+  useProductBulkRemoveService,
+  useVariantPricesPatchService,
 } from './product.service';
 import { altChangeData, mediaDeleteData, ProductQueryOptions } from './product.type';
 
@@ -198,6 +200,46 @@ export const useProductDelete = () => {
     },
     onError: async (data) => {
       toast.error((data as any)?.response?.data?.errors.product_ids[0]);
+    },
+  });
+};
+
+export const useProductBulkRemove = () => {
+  const { create } = useProductBulkRemoveService();
+  return useMutation({
+    mutationFn: (productIds: string[]) =>
+      create({
+        product_ids: productIds.map((id) => parseInt(id, 10)),
+      } as Record<string, unknown>),
+    mutationKey: [API_ENDPOINTS.PRODUCT_BULK_REMOVE],
+    onSuccess: async (data) => {
+      toast.success((data as any)?.data?.message);
+    },
+    onError: async (err) => {
+      const body = (err as any)?.response?.data;
+      toast.error(body?.message || 'Bulk delete failed');
+    },
+  });
+};
+
+export const useVariantPricesUpdate = () => {
+  const { patchItem } = useVariantPricesPatchService();
+  return useMutation({
+    mutationFn: (values: { variant_id: string; price: number; special_price: number | null }) =>
+      patchItem({
+        variant_id: parseInt(values.variant_id, 10),
+        price: values.price,
+        special_price: values.special_price,
+      } as Record<string, unknown>),
+    mutationKey: [API_ENDPOINTS.PRODUCT_VARIANT_UPDATE_PRICES],
+    onSuccess: async (data) => {
+      toast.success((data as any)?.data?.message);
+    },
+    onError: async (err) => {
+      const body = (err as any)?.response?.data;
+      const msg =
+        body?.errors?.special_price?.[0] || body?.message || 'Price update failed';
+      toast.error(msg);
     },
   });
 };

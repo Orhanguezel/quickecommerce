@@ -35,6 +35,18 @@ export const useCouponLineDeleteService = () => {
     API_ENDPOINTS.PRODUCT_REMOVE
   );
 };
+
+export const useProductBulkRemoveService = () => {
+  return useBaseService<{ product_ids: number[] }>(API_ENDPOINTS.PRODUCT_BULK_REMOVE);
+};
+
+export const useVariantPricesPatchService = () => {
+  return useBaseService<{
+    variant_id: number;
+    price: number;
+    special_price?: number | null;
+  }>(API_ENDPOINTS.PRODUCT_VARIANT_UPDATE_PRICES);
+};
 export const useMakeFeatureService = () => {
   return useBaseService<productDelete, any>(
     API_ENDPOINTS.PRODUCT_FEATURE_MAKE

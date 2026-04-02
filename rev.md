@@ -115,3 +115,36 @@ satici ürün ekleyebilmesi icin kyc nin onaylanmasi ve banka alt magazasinin ac
 
   - Root cause: "Upload Files" sekmesinde yükleme sonrası görseli SEÇMEK gerekiyordu ama UI bunu belirtmiyordu; SELECT butonu disabled kalıyordu.
   - Fix: `PhotoUploadModal.tsx` — yükleme başarılı olunca `image_id` ile `selectedImages` ve `lastSelectedImages` otomatik set ediliyor. Kullanıcı yükleyince direkt "Fotoğraf Seç" butonu aktif hale geliyor.
+
+
+
+  seller panelde yeni mağaza açarken ,,açılış ve kapanış saatlerini giremiyorum
+seller panelde yeni mağaza ekleme kısmında komisyon veya abonelik sistemini seçiyorum ve orada kalıyor göndere basıyorum tepki vermiyor,,,,özetle şu akışın çalıştığından emin olalım 
+1.mağaza başvuru
+2.başvuruyu görüntüleme düzenleme
+3.mağaza,tür vb ekleme 
+4.komisyon vb düzenleme
+5.ürün ekleme türe göre varyantların gelmesi
+6.sipariş yönetimi
+7.iptal veya iade olan ürünün geri stok olması, yani eksilen stoğu yerine koyması 
+8.birde şu var paneldeyken ürün listesinde herhangi bir ürünü görüntülemeye basıyorum  instock 0 gösteriyor ,,ve bazı kısımlarda ingilizce gelimeler var daha
+9..şuan bir mağaza başvurusu yaptım şifre kısmına 6 karakter girdim kabul etti ,,seller panele bu bilgilerle girmek istedim enaz 8 karakter uyarısı verdi ve giremedim..
+selamlar sağlıklı bayramlar geçirmiş oldunuzu diliyorum
+...
+şuan sistemdeyim ve tespit ettiğim bazı eksikler var genellikle seller panel kaynaklı eksikler daha öncede konuştuk 
+tekrar gözden geçirdim 
+genel yapıyı bitirebilirsek ek geliştirme aşamasına geçebiliriz...
+şuan ki eksik gördüğüm kısımlar...
+1,seller panelde mağaza ekleme kısmında komisyon ve abonelik seçimi yaptıktan sonra süreç ilerlemiyor
+2.kategori ve özellik ekleme kısmına onay vermiyoruz diye konuştuk
+3.yazar listesine gerek yok kitap satışı için şuan planımız yok
+4.seller panelde mağazalarım ziyaret et dediğimde 404 veriyor
+5.seller panelde cüzdan akışında eksikler var
+6.seller panelde para çekme talebi kısmı kontrol edilmeli
+7,paytr da test modu bildirimi görünüyor 
+8.eklediğim organiks mağazasında  alt kategoriye geçtiğimde varyant oluştur diyor ,ana kategoriyi seçtiğimde varyant geliyor
+9.ürün sayfasında sepete ekle butonu çok aşağıda kalıyor kaydırmak gerekiyor 
+10.kullanıcı sayfasında iyileştirmeler yapılması 
+11.banner ve flaş ekleme kısmında daha fazla kart eklenmesi ,,mevcut durumda 3 kart ekleyebiliyoruz yanyana ,bu durumu 6 karta kadar çıkarabiliriz
+daha önce konuştuğumuz bu konulaı hallettik mi
+adminden markayı ekliyorum ,,daha sonra ürün eklerken marka seçmek istediğimde eklediğim markalar gelmiyor görünmüyor yani

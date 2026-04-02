@@ -153,6 +153,8 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => ['auth:sanctum']], functi
                 Route::post('export', [AdminProductManageController::class, 'exportProducts'])->middleware('permission:' . PermissionKey::ADMIN_PRODUCT_PRODUCT_BULK_EXPORT->value);
                 Route::post('import', [AdminProductManageController::class, 'importProducts'])->middleware('permission:' . PermissionKey::ADMIN_PRODUCT_PRODUCT_BULK_IMPORT->value);
                 Route::patch('change-status', [AdminProductManageController::class, 'changeProductStatus']);
+                Route::post('bulk-remove', [AdminProductManageController::class, 'bulkDeleteProducts']);
+                Route::patch('variant/update-prices', [AdminProductManageController::class, 'updateVariantPrices']);
                 Route::get('stock-report', [AdminProductManageController::class, 'lowOrOutOfStockProducts'])->middleware('permission:' . PermissionKey::ADMIN_PRODUCT_STOCK_REPORT->value);
                 Route::get('{product_slug}', [AdminProductManageController::class, 'productDetails']);
             });

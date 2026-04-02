@@ -173,6 +173,8 @@ export const API_ENDPOINTS = {
   PRODUCT_DETAILS: "v1/admin/product",
   PRODUCT_UPDATE: "v1/admin/product/update",
   PRODUCT_REMOVE: "v1/admin/product/remove",
+  PRODUCT_BULK_REMOVE: "v1/admin/product/bulk-remove",
+  PRODUCT_VARIANT_UPDATE_PRICES: "v1/admin/product/variant/update-prices",
   PRODUCT_FEATURE_MAKE: "v1/admin/product/add-to-featured",
   PRODUCT_STATUS_UPDATE: "v1/admin/product/change-status",
 

@@ -19,6 +19,7 @@ use App\Imports\ProductImport;
 use App\Interfaces\ProductManageInterface;
 use App\Interfaces\ProductVariantInterface;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\Store;
 use App\Services\TrashService;
 use Illuminate\Http\JsonResponse;
@@ -178,6 +179,57 @@ class AdminProductManageController extends Controller
         } else {
             return $this->failed(translate('messages.delete_failed'));
         }
+    }
+
+    public function bulkDeleteProducts(Request $request)
+    {
+        $validated = $request->validate([
+            'product_ids' => 'required|array|min:1',
+            'product_ids.*' => 'required|integer|exists:products,id',
+        ]);
+
+        foreach ($validated['product_ids'] as $id) {
+            $product = Product::find($id);
+            if ($product) {
+                $product->delete();
+            }
+        }
+
+        return $this->success(translate('messages.delete_success'));
+    }
+
+    public function updateVariantPrices(Request $request)
+    {
+        $special = $request->input('special_price');
+        if ($special === '' || $special === null) {
+            $request->merge(['special_price' => null]);
+        }
+
+        $validated = $request->validate([
+            'variant_id' => 'required|integer|exists:product_variants,id',
+            'price' => 'required|numeric|min:0',
+            'special_price' => 'nullable|numeric|min:0',
+        ]);
+
+        if (
+            isset($validated['special_price'])
+            && (float) $validated['special_price'] > (float) $validated['price']
+        ) {
+            return response()->json([
+                'message' => 'The special price must be less than or equal to the base price.',
+                'errors' => [
+                    'special_price' => ['The special price must be less than or equal to the base price.'],
+                ],
+            ], 422);
+        }
+
+        $variant = ProductVariant::findOrFail($validated['variant_id']);
+        $variant->update([
+            'price' => $validated['price'],
+            'special_price' => $validated['special_price'] ?? null,
+        ]);
+
+        return $this->success(translate('messages.update_success', ['name' => 'Product prices']));
     }
 
     public function deleted_records()

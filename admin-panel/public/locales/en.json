@@ -1945,5 +1945,9 @@
     "deliveryman_earnings": "Deliveryman Earnings",
     "total_refund_amount": "Total Refund Amount",
     "totals": "Totals"
+  },
+  "product_list": {
+    "selected_count_suffix": "product(s) selected",
+    "multiple_variants_hint": "Expand row for variants"
   }
 }

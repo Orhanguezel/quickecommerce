@@ -1,15 +1,17 @@
 "use client";
-import Loader from "@/components/molecules/Loader";
 import Pagination from "@/components/molecules/Pagination";
 import { AppSelect } from "@/components/blocks/common";
+import ConfirmationModal from "@/components/blocks/shared/ConfirmationModal";
+import { Button } from "@/components/ui";
 import { CountItems } from "@/config/helperJson";
 import {
   useMakeFeature,
+  useProductBulkRemove,
   useProductDelete,
   useProductQuery,
 } from "@/modules/admin-section/products/product.action";
 import { ChevronsLeftIcon, ChevronsRightIcon } from "lucide-react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import AdminProductsList from "./components/AdminProductsList";
 import TableSkeletonLoader from "@/components/molecules/TableSkeletonLoader";
@@ -21,10 +23,12 @@ const ProductTable = ({
   selectStoreID2,
 }: any) => {
   const locale = useLocale();
+  const t = useTranslations();
   const [itemsPerPage, setItemsPerPage] = useState<number>(() => {
-    return parseInt(localStorage.getItem("itemsPerPage") || "10");
+    return parseInt(localStorage.getItem("itemsPerPage") || "10", 10);
   });
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [sortedInfo, setSortedInfo] = useState<{
     columnKey: string;
     order: string;
@@ -56,6 +60,34 @@ const ProductTable = ({
   }, [productList, startIndex]);
 
   useEffect(() => {
+    setSelectedProductIds([]);
+  }, [currentPage]);
+
+  const allSelectedOnPage = useMemo(() => {
+    if (!originalData.length) return false;
+    return originalData.every((r: { id: string | number }) =>
+      selectedProductIds.includes(String(r.id)),
+    );
+  }, [originalData, selectedProductIds]);
+
+  const toggleSelectRow = (id: string, checked: boolean) => {
+    setSelectedProductIds((prev) => {
+      const sid = String(id);
+      if (checked) return prev.includes(sid) ? prev : [...prev, sid];
+      return prev.filter((x) => x !== sid);
+    });
+  };
+
+  const toggleSelectAllOnPage = (checked: boolean) => {
+    const pageIds = originalData.map((r: { id: string | number }) => String(r.id));
+    if (checked) {
+      setSelectedProductIds(pageIds);
+    } else {
+      setSelectedProductIds([]);
+    }
+  };
+
+  useEffect(() => {
     if (Number(currentPage) > Number(LastPage)) {
       setCurrentPage(LastPage);
     } else {
@@ -75,6 +107,7 @@ const ProductTable = ({
   };
   const [loading, setLoading] = useState(false);
   const { mutate: productDelete } = useProductDelete();
+  const { mutate: bulkRemove, isPending: bulkRemoving } = useProductBulkRemove();
   const handleDelete = (id: string) => {
     setLoading(true);
     productDelete(id, {
@@ -104,6 +137,16 @@ const ProductTable = ({
     );
   };
 
+  const handleBulkDelete = () => {
+    if (selectedProductIds.length === 0) return;
+    bulkRemove(selectedProductIds, {
+      onSuccess: () => {
+        setSelectedProductIds([]);
+        refetch();
+      },
+    });
+  };
+
   useEffect(() => {
     if (!isPending && !error) {
       refetch();
@@ -127,12 +170,34 @@ const ProductTable = ({
         <TableSkeletonLoader />
       ) : (
         <>
+          {selectedProductIds.length > 0 && (
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <span className="text-sm text-gray-600 dark:text-gray-300">
+                {selectedProductIds.length} {t("product_list.selected_count_suffix")}
+              </span>
+              <ConfirmationModal
+                trigger={
+                  <Button variant="destructive" size="sm" type="button">
+                    {t("button.bulk_delete_selected")}
+                  </Button>
+                }
+                onSave={handleBulkDelete}
+                loading={bulkRemoving}
+                title={t("title.bulk_delete_products")}
+                subTitle={t("sub_title.bulk_delete_products")}
+              />
+            </div>
+          )}
           <AdminProductsList
             originalData={originalData}
             handleDelete={handleDelete}
             handleMakeFeature={handleMakeFeature}
             refetch={refetch}
             loading={loading}
+            selectedProductIds={selectedProductIds}
+            onToggleRow={toggleSelectRow}
+            onToggleAllOnPage={toggleSelectAllOnPage}
+            allSelectedOnPage={allSelectedOnPage}
           />
 
           <div className="mt-3 flex flex-col md:flex-row justify-between">
