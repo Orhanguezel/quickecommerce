@@ -78,6 +78,8 @@ interface HomeTranslations {
   newsletter_subtitle: string;
   blog_title: string;
   blog_subtitle: string;
+  recently_viewed_title: string;
+  recently_viewed_subtitle: string;
 }
 
 interface HomePageClientProps {
