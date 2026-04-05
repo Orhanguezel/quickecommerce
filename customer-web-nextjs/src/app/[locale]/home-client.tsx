@@ -255,57 +255,79 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
     const discountLabel = getFlashDealDiscountLabel(deal);
     return (
       <div
-        className="relative overflow-hidden rounded-[8px] p-4 min-h-[240px]"
+        className="group relative overflow-hidden rounded-xl min-h-[200px] sm:min-h-[240px]"
         style={{ backgroundColor: deal.background_color || "#ffffff" }}
       >
-        {discountLabel && (
-          <div className="pointer-events-none absolute right-3 top-3 z-20">
-            <div className="rounded-full bg-[radial-gradient(circle_at_30%_20%,#fff7b1_0%,#f59e0b_40%,#dc2626_100%)] px-3 py-1.5 text-center text-xs font-black tracking-[0.06em] text-white shadow-[0_10px_24px_rgba(220,38,38,0.45)] ring-2 ring-white/90 sm:px-4 sm:py-2 sm:text-sm">
-              {discountLabel}
-            </div>
-          </div>
-        )}
-        {deal.cover_image_url && (
+        {/* Cover image with gradient overlay */}
+        {deal.cover_image_url ? (
           <div className="absolute inset-0">
             <Image
               src={deal.cover_image_url}
               alt={deal.title}
               fill
-              className="object-cover"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
               unoptimized
             />
+            <div
+              className="absolute inset-0"
+              style={{
+                background: `linear-gradient(135deg, ${deal.background_color || "#1a1a2e"}ee 0%, ${deal.background_color || "#1a1a2e"}99 50%, ${deal.background_color || "#1a1a2e"}55 100%)`,
+              }}
+            />
+          </div>
+        ) : (
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `linear-gradient(135deg, ${deal.background_color || "#1a1a2e"} 0%, ${deal.background_color || "#1a1a2e"}cc 60%, ${deal.background_color || "#1a1a2e"}88 100%)`,
+            }}
+          />
+        )}
+
+        {/* Discount badge */}
+        {discountLabel && (
+          <div className="pointer-events-none absolute right-2.5 top-2.5 z-20 sm:right-3 sm:top-3">
+            <div className="rounded-full bg-[radial-gradient(circle_at_30%_20%,#fff7b1_0%,#f59e0b_40%,#dc2626_100%)] px-2.5 py-1 text-center text-[10px] font-black tracking-[0.06em] text-white shadow-[0_10px_24px_rgba(220,38,38,0.45)] ring-2 ring-white/90 sm:px-4 sm:py-2 sm:text-sm">
+              {discountLabel}
+            </div>
           </div>
         )}
 
-        <div className="relative z-[1] flex h-full items-center gap-3">
+        {/* Content */}
+        <div className="relative z-[1] flex h-full min-h-[200px] flex-col items-center gap-3 p-4 sm:min-h-[240px] sm:flex-row sm:items-center sm:p-5">
+          {/* Product image */}
           {deal.image_url && (
-            <div className="relative h-[180px] w-[140px] shrink-0">
+            <div className="relative h-[120px] w-[120px] shrink-0 drop-shadow-lg sm:h-[170px] sm:w-[140px]">
               <Image
                 src={deal.image_url}
                 alt={deal.title}
                 fill
-                className="object-contain"
+                className="object-contain transition-transform duration-300 group-hover:scale-110"
                 unoptimized
               />
             </div>
           )}
-          <div className="flex min-w-0 flex-1 flex-col gap-2">
+
+          {/* Info column */}
+          <div className="flex min-w-0 flex-1 flex-col items-center gap-2.5 text-center sm:items-start sm:text-left">
             <h3
-              className="line-clamp-2 text-base font-semibold tracking-wide"
-              style={{ color: deal.title_color || "#000000" }}
+              className="line-clamp-2 text-lg font-bold tracking-wide sm:text-xl"
+              style={{ color: deal.title_color || "#ffffff" }}
             >
               {deal.title}
             </h3>
+
             <CountdownTimer
               endTime={deal.end_time}
               bgColor={deal.timer_bg_color}
               textColor={deal.timer_text_color}
               labelColor={deal.title_color}
             />
+
             {deal.button_text && deal.button_url && (
               <Link href={deal.button_url}>
                 <span
-                  className="inline-block rounded-[5px] px-3 py-2 text-sm font-semibold tracking-wide shadow-[0_4px_8px_rgba(0,0,0,0.1)]"
+                  className="mt-1 inline-block rounded-lg px-4 py-2.5 text-sm font-semibold tracking-wide shadow-lg transition-all duration-200 hover:shadow-xl hover:brightness-110 sm:px-5 sm:py-2.5"
                   style={{
                     backgroundColor: deal.button_bg_color || "#1A73E8",
                     color: deal.button_text_color || "#ffffff",

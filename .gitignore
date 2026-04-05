@@ -164,6 +164,7 @@ backend-laravel/storage/app/public/
 backend-laravel/storage/framework/
 backend-laravel/storage/logs/
 backend-laravel/bootstrap/cache/
+backend-laravel/public/storage
 backend-laravel/.phpunit.result.cache
 backend-laravel/.phpunit.cache/
 backend-laravel/.sync-conflict*

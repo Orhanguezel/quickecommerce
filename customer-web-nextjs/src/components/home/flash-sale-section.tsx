@@ -83,9 +83,9 @@ export function FlashSaleSection({ flashDeals, title, subtitle }: FlashSaleSecti
       )}
     <div className="w-full">
       {/* Banner Carousel */}
-      <div className="h-[280px] w-full">
-        <div className="relative h-full w-full overflow-hidden rounded-[5px]">
-          {/* Sliding Track — all deals side by side, translateX to slide */}
+      <div className="h-[220px] w-full sm:h-[280px]">
+        <div className="relative h-full w-full overflow-hidden rounded-xl">
+          {/* Sliding Track */}
           <div
             className="flex h-full"
             style={{
@@ -99,19 +99,11 @@ export function FlashSaleSection({ flashDeals, title, subtitle }: FlashSaleSecti
               return (
                 <div
                   key={deal.id}
-                  className="relative h-full w-full shrink-0"
+                  className="group relative h-full w-full shrink-0"
                   style={{ backgroundColor: deal.background_color || "#ffffff" }}
                 >
-                  {discountLabel && (
-                    <div className="pointer-events-none absolute right-3 top-3 z-20">
-                      <div className="rounded-full bg-[radial-gradient(circle_at_30%_20%,#fff7b1_0%,#f59e0b_40%,#dc2626_100%)] px-3 py-1.5 text-center text-xs font-black tracking-[0.06em] text-white shadow-[0_10px_24px_rgba(220,38,38,0.45)] ring-2 ring-white/90 sm:px-4 sm:py-2 sm:text-sm">
-                        {discountLabel}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Background Cover Image */}
-                  {deal.cover_image_url && (
+                  {/* Cover image with gradient overlay */}
+                  {deal.cover_image_url ? (
                     <div className="absolute inset-0">
                       <Image
                         src={deal.cover_image_url}
@@ -120,37 +112,55 @@ export function FlashSaleSection({ flashDeals, title, subtitle }: FlashSaleSecti
                         className="object-cover"
                         unoptimized
                       />
+                      <div
+                        className="absolute inset-0"
+                        style={{
+                          background: `linear-gradient(135deg, ${deal.background_color || "#1a1a2e"}ee 0%, ${deal.background_color || "#1a1a2e"}99 50%, ${deal.background_color || "#1a1a2e"}44 100%)`,
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        background: `linear-gradient(135deg, ${deal.background_color || "#1a1a2e"} 0%, ${deal.background_color || "#1a1a2e"}cc 60%, ${deal.background_color || "#1a1a2e"}88 100%)`,
+                      }}
+                    />
+                  )}
+
+                  {/* Discount badge */}
+                  {discountLabel && (
+                    <div className="pointer-events-none absolute right-2.5 top-2.5 z-20 sm:right-3 sm:top-3">
+                      <div className="rounded-full bg-[radial-gradient(circle_at_30%_20%,#fff7b1_0%,#f59e0b_40%,#dc2626_100%)] px-2.5 py-1 text-center text-[10px] font-black tracking-[0.06em] text-white shadow-[0_10px_24px_rgba(220,38,38,0.45)] ring-2 ring-white/90 sm:px-4 sm:py-2 sm:text-sm">
+                        {discountLabel}
+                      </div>
                     </div>
                   )}
 
-                  {/* Content: Image left + Info right (matching Flutter Row layout) */}
-                  <div className="relative flex h-full">
-                    {/* Product Image (144px wide in Flutter) */}
+                  {/* Content */}
+                  <div className="relative flex h-full flex-col items-center justify-center gap-2 p-4 sm:flex-row sm:items-center sm:gap-4 sm:p-5">
+                    {/* Product Image */}
                     {deal.image_url && (
-                      <div className="relative h-full w-[144px] shrink-0">
+                      <div className="relative h-[100px] w-[100px] shrink-0 drop-shadow-lg sm:h-full sm:w-[144px]">
                         <Image
                           src={deal.image_url}
                           alt={deal.title}
                           fill
-                          className="object-fill"
+                          className="object-contain"
                           unoptimized
                         />
                       </div>
                     )}
 
-                    <div className="w-[10px] shrink-0" />
-
                     {/* Info Column */}
-                    <div className="flex flex-1 flex-col items-start justify-center gap-2 pr-3">
-                      {/* Title: Flutter = 14px, w600, letterSpacing 1.0 */}
+                    <div className="flex flex-1 flex-col items-center gap-2 text-center sm:items-start sm:gap-2.5 sm:text-left">
                       <h3
-                        className="line-clamp-2 text-sm font-semibold tracking-wide"
-                        style={{ color: deal.title_color || "#000000" }}
+                        className="line-clamp-2 text-base font-bold tracking-wide sm:text-lg"
+                        style={{ color: deal.title_color || "#ffffff" }}
                       >
                         {deal.title}
                       </h3>
 
-                      {/* Countdown Timer */}
                       <CountdownTimer
                         endTime={deal.end_time}
                         bgColor={deal.timer_bg_color}
@@ -158,11 +168,10 @@ export function FlashSaleSection({ flashDeals, title, subtitle }: FlashSaleSecti
                         labelColor={deal.title_color}
                       />
 
-                      {/* Button: Flutter = padding 10v 12h, rounded 5, shadow, 14px w600 */}
                       {deal.button_text && deal.button_url && (
                         <Link href={deal.button_url}>
                           <span
-                            className="inline-block rounded-[5px] px-3 py-2.5 text-sm font-semibold tracking-wide shadow-[0_4px_8px_rgba(0,0,0,0.1)] transition-colors"
+                            className="inline-block rounded-lg px-4 py-2 text-sm font-semibold tracking-wide shadow-lg transition-all duration-200 hover:shadow-xl hover:brightness-110 sm:px-5 sm:py-2.5"
                             style={{
                               backgroundColor: deal.button_bg_color || "#1A73E8",
                               color: deal.button_text_color || "#ffffff",
