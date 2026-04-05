@@ -384,16 +384,26 @@ export function ProductDetailClient({
     document.getElementById("product-tabs")?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Track recently viewed
+  // Track recently viewed — price comes from first variant, not product root
   useEffect(() => {
+    const firstVariant = product.variants?.[0];
+    const variantPrice = firstVariant?.price != null ? Number(firstVariant.price) : null;
+    const variantSpecialPrice = firstVariant?.special_price != null && Number(firstVariant.special_price) > 0
+      ? Number(firstVariant.special_price)
+      : null;
+    const hasVariantDiscount = variantSpecialPrice != null && variantPrice != null && variantSpecialPrice < variantPrice;
+    const discountPct = hasVariantDiscount
+      ? Math.round(((variantPrice! - variantSpecialPrice!) / variantPrice!) * 100)
+      : (product.discount_percentage ?? 0);
+
     addRecentlyViewed({
       id: product.id,
       name: product.name,
       slug: product.slug,
       image_url: product.image_url,
-      price: product.price != null ? Number(product.price) : null,
-      special_price: product.special_price != null ? Number(product.special_price) : null,
-      discount_percentage: product.discount_percentage ?? 0,
+      price: variantPrice ?? (product.price != null ? Number(product.price) : null),
+      special_price: variantSpecialPrice ?? (product.special_price != null ? Number(product.special_price) : null),
+      discount_percentage: discountPct,
       rating: product.rating || "0",
       review_count: product.review_count ?? 0,
     });
