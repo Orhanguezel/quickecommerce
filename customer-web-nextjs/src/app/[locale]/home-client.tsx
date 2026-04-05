@@ -14,6 +14,7 @@ import { NewsletterSection } from "@/components/home/newsletter-section";
 import { TopStoresSection } from "@/components/home/top-stores-section";
 import { CountdownTimer } from "@/components/home/countdown-timer";
 import { InfiniteProductsSection } from "@/components/home/infinite-products-section";
+import { RecentlyViewedSection } from "@/components/home/recently-viewed-section";
 import { useThemeConfig } from "@/modules/theme/use-theme-config";
 import { useBannerQuery } from "@/modules/banner/banner.action";
 import { Link } from "@/i18n/routing";
@@ -455,6 +456,13 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
         return homeConfig.isAllProductsEnabled ? (
           <InfiniteProductsSection
             title={homeConfig.allProductsTitle}
+          />
+        ) : null;
+      case "recently_viewed_section":
+        return homeConfig.isRecentlyViewedEnabled ? (
+          <RecentlyViewedSection
+            title={homeConfig.recentlyViewedTitle || t.recently_viewed_title}
+            subtitle={homeConfig.recentlyViewedSubtitle || t.recently_viewed_subtitle}
           />
         ) : null;
       default:

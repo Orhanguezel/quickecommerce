@@ -64,7 +64,8 @@ export type ThemeHomeBlockType =
   | "blog_section"
   | "top_stores_section"
   | "newsletters_section"
-  | "all_products_section";
+  | "all_products_section"
+  | "recently_viewed_section";
 
 export interface ThemeHomeLayoutBlock {
   id?: string;
@@ -96,6 +97,7 @@ export interface ThemeHomePage {
   top_stores_section: [ThemeSectionConfig];
   newsletters_section: [ThemeSectionConfig];
   all_products_section?: [ThemeSectionConfig];
+  recently_viewed_section?: [ThemeSectionConfig];
 }
 
 // Giriş Sayfası

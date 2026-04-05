@@ -157,6 +157,8 @@ export default async function HomePage({ params }: Props) {
           newsletter_subtitle: t("newsletter_subtitle"),
           blog_title: blogT("blog"),
           blog_subtitle: blogT("blog_subtitle"),
+          recently_viewed_title: t("recently_viewed_title"),
+          recently_viewed_subtitle: t("recently_viewed_subtitle"),
         }}
       />
     </>

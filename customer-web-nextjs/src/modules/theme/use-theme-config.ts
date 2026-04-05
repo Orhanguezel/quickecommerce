@@ -27,6 +27,7 @@ const DEFAULT_HOME_SECTION_ORDER = [
   "top_stores_section",
   "newsletters_section",
   "all_products_section",
+  "recently_viewed_section",
 ] as const;
 
 const DEFAULT_HOME_LAYOUT_BLOCKS = DEFAULT_HOME_SECTION_ORDER.map((type, idx) => ({
@@ -180,6 +181,9 @@ export function useThemeConfig() {
     newsletterSubtitle: firstOrNull(homePage?.newsletters_section)?.subtitle,
     isAllProductsEnabled: isOn(homePage?.all_products_section),
     allProductsTitle: firstOrNull(homePage?.all_products_section)?.title,
+    isRecentlyViewedEnabled: isOn(homePage?.recently_viewed_section),
+    recentlyViewedTitle: firstOrNull(homePage?.recently_viewed_section)?.title,
+    recentlyViewedSubtitle: firstOrNull(homePage?.recently_viewed_section)?.subtitle,
   };
 
   // Giriş Sayfası

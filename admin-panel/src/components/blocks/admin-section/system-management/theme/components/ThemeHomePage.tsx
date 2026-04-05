@@ -46,7 +46,8 @@ type ToggleKeys =
   | "blog_section"
   | "top_stores_section"
   | "newsletters_section"
-  | "all_products_section";
+  | "all_products_section"
+  | "recently_viewed_section";
 
 type ToggleState = Record<ToggleKeys, string>;
 type LayoutBlockType = ToggleKeys;
@@ -82,6 +83,7 @@ const SECTION_KEYS: ToggleKeys[] = [
   "top_stores_section",
   "newsletters_section",
   "all_products_section",
+  "recently_viewed_section",
 ];
 
 const SECTION_LABELS: Record<ToggleKeys, string> = {
@@ -98,6 +100,7 @@ const SECTION_LABELS: Record<ToggleKeys, string> = {
   top_stores_section: "Top Stores",
   newsletters_section: "Bültene Abone Ol",
   all_products_section: "Tüm Ürünler",
+  recently_viewed_section: "Son Görüntülenen",
 };
 
 const REPEATABLE_BLOCKS: LayoutBlockType[] = ["banner_section", "flash_sale", "blog_section"];
@@ -136,6 +139,8 @@ const makeHomeSchema = () => {
     newsletters_title_df: z.string().optional(),
     newsletters_subtitle_df: z.string().optional(),
     all_products_section_title_df: z.string().optional(),
+    recently_viewed_section_title_df: z.string().optional(),
+    recently_viewed_section_subtitle_df: z.string().optional(),
   };
 
   const langs = getThemeLanguageData()
@@ -204,6 +209,7 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
     top_stores_section: "",
     newsletters_section: "",
     all_products_section: "",
+    recently_viewed_section: "",
   });
   const [layoutBlocks, setLayoutBlocks] = useState<LayoutBlock[]>(
     getDefaultLayoutBlocks()
@@ -781,6 +787,13 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
           enabled_disabled: toggles.all_products_section,
         },
       ],
+      recently_viewed_section: [
+        {
+          title: src.recently_viewed_section_title,
+          subtitle: src.recently_viewed_section_subtitle,
+          enabled_disabled: toggles.recently_viewed_section,
+        },
+      ],
     });
 
     const dfSource: any = {
@@ -798,6 +811,8 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
       newsletters_title: values.newsletters_title_df || "",
       newsletters_subtitle: values.newsletters_subtitle_df || "",
       all_products_section_title: values.all_products_section_title_df || "",
+      recently_viewed_section_title: values.recently_viewed_section_title_df || "",
+      recently_viewed_section_subtitle: values.recently_viewed_section_subtitle_df || "",
     };
 
     if (!updatedThemeData.theme_pages) updatedThemeData.theme_pages = {};
