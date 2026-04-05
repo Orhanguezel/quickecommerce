@@ -98,7 +98,8 @@ type HomeSectionKey =
   | "blog_section"
   | "top_stores_section"
   | "newsletters_section"
-  | "all_products_section";
+  | "all_products_section"
+  | "recently_viewed_section";
 
 interface HomeLayoutBlock {
   id?: string;
