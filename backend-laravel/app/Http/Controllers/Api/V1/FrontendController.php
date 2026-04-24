@@ -1637,7 +1637,7 @@ class FrontendController extends Controller
                 // Check if user has already viewed this blog
                 $viewExists = ProductView::where('product_id', $product->id)
                     ->where('user_id', $user->id)
-                    ->exists();
+                    ->first();
                 if (!$viewExists) {
                     // Increment view count for this blog
                     $product->increment('views');
@@ -1646,13 +1646,15 @@ class FrontendController extends Controller
                         'product_id' => $product->id,
                         'user_id' => $user->id,
                     ]);
+                } else {
+                    $viewExists->touch();
                 }
             } else {
                 // For guests, you can track by IP address
                 $ipAddress = $request->ip();
                 $viewExists = ProductView::where('product_id', $product->id)
                     ->where('ip_address', $ipAddress)
-                    ->exists();
+                    ->first();
                 if (!$viewExists) {
                     // Increment view count for this blog
                     $product->increment('views');
@@ -1661,6 +1663,8 @@ class FrontendController extends Controller
                         'product_id' => $product->id,
                         'ip_address' => $ipAddress,
                     ]);
+                } else {
+                    $viewExists->touch();
                 }
             }
         }
@@ -1668,6 +1672,44 @@ class FrontendController extends Controller
             'messages' => __('messages.data_found'),
             'data' => new ProductDetailsPublicResource($product),
             'related_products' => RelatedProductPublicResource::collection($product->relatedProductsWithCategoryFallback())
+        ], 200);
+    }
+
+    public function recentlyViewedProducts(Request $request)
+    {
+        if (!auth('api_customer')->check()) {
+            return response()->json([
+                'messages' => __('messages.data_found'),
+                'data' => [],
+            ], 200);
+        }
+
+        $perPage = (int) ($request->per_page ?? 12);
+        $productIds = ProductView::where('user_id', auth('api_customer')->id())
+            ->latest()
+            ->pluck('product_id')
+            ->unique()
+            ->values();
+
+        if ($productIds->isEmpty()) {
+            return response()->json([
+                'messages' => __('messages.data_found'),
+                'data' => [],
+            ], 200);
+        }
+
+        $products = Product::whereIn('id', $productIds)
+            ->where('status', 'approved')
+            ->whereNull('deleted_at')
+            ->with(['variants', 'store', 'category', 'related_translations', 'flashSaleProduct.flashSale'])
+            ->get()
+            ->sortBy(fn($product) => $productIds->search($product->id))
+            ->take($perPage)
+            ->values();
+
+        return response()->json([
+            'messages' => __('messages.data_found'),
+            'data' => ProductPublicResource::collection($products),
         ], 200);
     }
 
@@ -1812,7 +1854,8 @@ class FrontendController extends Controller
             })->select(
                 'product_category.*',
                 DB::raw('COALESCE(translations.value, product_category.category_name) as category_name'),
-                DB::raw('(SELECT COUNT(*) FROM products WHERE products.category_id = product_category.id AND products.deleted_at IS NULL) as products_count')
+                DB::raw('(SELECT COUNT(*) FROM products WHERE products.category_id = product_category.id AND products.deleted_at IS NULL AND products.status = "approved") as products_count'),
+                DB::raw('(SELECT products.image FROM products WHERE products.category_id = product_category.id AND products.deleted_at IS NULL AND products.status IN ("approved", "1") AND products.image IS NOT NULL AND products.image != "" ORDER BY products.id DESC LIMIT 1) as representative_product_image')
             );
 
             if ($type) {

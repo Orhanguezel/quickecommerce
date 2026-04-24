@@ -85,6 +85,7 @@ Route::group(['prefix' => 'v1/'], function () {
         Route::get('/week-best-products', [FrontendController::class, 'weekBestProducts']);
         Route::get('/trending-products', [FrontendController::class, 'trendingProducts']);
         Route::get('/popular-products', [FrontendController::class, 'popularProducts']);
+        Route::get('/recently-viewed-products', [FrontendController::class, 'recentlyViewedProducts']);
         Route::get('/top-deal-products', [FrontendController::class, 'topDeals']);
         Route::get('/top-rated-products', [FrontendController::class, 'topRatedProducts']);
         Route::get('/banner-list', [FrontendController::class, 'banners']);
@@ -113,6 +114,21 @@ Route::group(['prefix' => 'v1/'], function () {
         Route::get('/all/pages', [FrontendController::class, 'pages']);
         Route::get('/store-wise-products', [FrontendController::class, 'storeWiseProducts']);
         Route::post('/get-check-out-page-extra-info', [FrontendController::class, 'checkOutPageExtraInfo']);
+        Route::post('/cart/recommendations', [\App\Http\Controllers\Api\V1\CartRecommendationController::class, 'recommendations']);
+        Route::post('/cart/snapshot', [\App\Http\Controllers\Api\V1\AbandonedCartController::class, 'snapshot']);
+        Route::post('/cart/recover', [\App\Http\Controllers\Api\V1\AbandonedCartController::class, 'recover']);
+        Route::post('/cart/unsubscribe', [\App\Http\Controllers\Api\V1\AbandonedCartController::class, 'unsubscribe']);
+        Route::post('/experiments/assign', [\App\Http\Controllers\Api\V1\ExperimentController::class, 'assign']);
+        Route::post('/experiments/track', [\App\Http\Controllers\Api\V1\ExperimentController::class, 'track']);
+        Route::post('/funnel/track', [\App\Http\Controllers\Api\V1\FunnelEventController::class, 'track']);
+
+        Route::get('/bundles', [\App\Http\Controllers\Api\V1\BundleController::class, 'index']);
+        Route::post('/cart/validate-bundles', [\App\Http\Controllers\Api\V1\BundleController::class, 'validateBundles']);
+        Route::get('/bundles/{slug}', [\App\Http\Controllers\Api\V1\BundleController::class, 'show']);
+
+        Route::post('/products/{id}/live-viewers/heartbeat', [\App\Http\Controllers\Api\V1\LiveViewerController::class, 'heartbeat']);
+        Route::get('/products/{id}/live-viewers', [\App\Http\Controllers\Api\V1\LiveViewerController::class, 'count']);
+        Route::get('/products/{id}/velocity', [\App\Http\Controllers\Api\V1\ProductVelocityController::class, 'show']);
         Route::get('/menu', [MenuManageController::class, 'menus']);
         Route::put('/update-location', [LiveLocationController::class, 'updateLocation']);
         Route::post('/track-order-location', [LiveLocationController::class, 'trackOrder']);
@@ -196,6 +212,30 @@ Route::group(['prefix' => 'v1/admin', 'middleware' => ['auth:sanctum', ApiAuthMi
         Route::put('/{currency}', [AdminCurrencyController::class, 'update']);
         Route::post('/convert', [AdminCurrencyController::class, 'convert']);
         Route::get('/rate', [AdminCurrencyController::class, 'getRate']);
+    });
+
+    Route::group(['prefix' => 'abandoned-carts'], function () {
+        Route::get('/', [\App\Http\Controllers\Api\V1\Admin\AdminAbandonedCartController::class, 'index']);
+        Route::get('/stats', [\App\Http\Controllers\Api\V1\Admin\AdminAbandonedCartController::class, 'stats']);
+    });
+
+    Route::group(['prefix' => 'analytics'], function () {
+        Route::get('/funnel', [\App\Http\Controllers\Api\V1\Admin\AdminFunnelAnalyticsController::class, 'funnel']);
+        Route::get('/recommendation-ctr', [\App\Http\Controllers\Api\V1\Admin\AdminFunnelAnalyticsController::class, 'recommendationCtr']);
+        Route::get('/experiments', [\App\Http\Controllers\Api\V1\Admin\AdminFunnelAnalyticsController::class, 'experiments']);
+    });
+
+    Route::group(['prefix' => 'bundles'], function () {
+        Route::get('/', [\App\Http\Controllers\Api\V1\Admin\AdminBundleController::class, 'index']);
+        Route::get('/{id}', [\App\Http\Controllers\Api\V1\Admin\AdminBundleController::class, 'show']);
+        Route::post('/', [\App\Http\Controllers\Api\V1\Admin\AdminBundleController::class, 'store']);
+        Route::put('/{id}', [\App\Http\Controllers\Api\V1\Admin\AdminBundleController::class, 'update']);
+        Route::delete('/{id}', [\App\Http\Controllers\Api\V1\Admin\AdminBundleController::class, 'destroy']);
+    });
+
+    Route::group(['prefix' => 'paytr'], function () {
+        Route::get('/callback-logs', [\App\Http\Controllers\Api\V1\Admin\AdminPayTRLogController::class, 'index']);
+        Route::get('/callback-logs/stats', [\App\Http\Controllers\Api\V1\Admin\AdminPayTRLogController::class, 'stats']);
     });
 });
 

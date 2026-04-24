@@ -33,6 +33,8 @@ class SeoSettingsSeeder extends Seeder
             'com_meta_publisher'   => 'Sportoonline',
             'com_google_analytics_id'    => '',
             'com_google_tag_manager_id'  => '',
+            'com_google_ads_conversion_id' => '',
+            'com_google_ads_purchase_label' => '',
         ];
 
         foreach ($settings as $key => $value) {

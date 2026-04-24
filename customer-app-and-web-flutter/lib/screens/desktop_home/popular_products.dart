@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
@@ -21,8 +20,13 @@ import '../common_widgets/item_title.dart';
 import 'product_grid.dart';
 
 class DesktopPopularProducts extends StatefulWidget {
-  const DesktopPopularProducts({super.key, required this.title});
+  const DesktopPopularProducts({
+    super.key,
+    required this.title,
+    this.isPremium = false,
+  });
   final String title;
+  final bool isPremium;
   @override
   State<DesktopPopularProducts> createState() => _DesktopPopularProductsState();
 }
@@ -78,14 +82,17 @@ class _DesktopPopularProductsState extends State<DesktopPopularProducts> {
       builder: (_, state) {
         if (state is PopularProductLoading) {
           return _isInitialLoad
-              ? const DesktopProductLoadingGrid(itemCount: 6,)
+              ? const DesktopProductLoadingGrid(
+                  itemCount: 6,
+                )
               : DesktopProductGrid(
-                productData: productData,
-                physics: const NeverScrollableScrollPhysics(),
-                onFavoriteToggle: (wishlist, id) {
-                  _handleFavoriteToggle(wishlist!, id);
-                },
-              );
+                  productData: productData,
+                  physics: const NeverScrollableScrollPhysics(),
+                  isPremium: widget.isPremium,
+                  onFavoriteToggle: (wishlist, id) {
+                    _handleFavoriteToggle(wishlist!, id);
+                  },
+                );
         }
 
         if (state is PopularProductLoaded) {
@@ -104,6 +111,7 @@ class _DesktopPopularProductsState extends State<DesktopPopularProducts> {
                             ? AppLocalizations.of(context)!.popular
                             : widget.title,
                         subTitle: "",
+                        isPremium: widget.isPremium,
                         onTap: () {
                           filterCon.updateSelectedValue("Popular Products");
                           filterCon.setProductType("Popular Products");
@@ -144,6 +152,7 @@ class _DesktopPopularProductsState extends State<DesktopPopularProducts> {
                     DesktopProductGrid(
                       productData: productData,
                       physics: const NeverScrollableScrollPhysics(),
+                      isPremium: widget.isPremium,
                       onFavoriteToggle: (wishlist, id) {
                         _handleFavoriteToggle(wishlist!, id);
                       },
@@ -193,5 +202,3 @@ class _DesktopPopularProductsState extends State<DesktopPopularProducts> {
     }
   }
 }
-
-

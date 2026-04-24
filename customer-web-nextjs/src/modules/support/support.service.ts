@@ -14,13 +14,17 @@ import type {
 
 // --- Ticket List ---
 
-export function useTicketListQuery(params: { page?: number; status?: string }) {
+export function useTicketListQuery(
+  params: { page?: number; status?: string },
+  enabled = true
+) {
   const { getAxiosInstance } = useBaseService<SupportTicket[]>(
     API_ENDPOINTS.SUPPORT_TICKETS
   );
 
   return useQuery({
     queryKey: ["support-tickets", params],
+    enabled,
     queryFn: async () => {
       const res = await getAxiosInstance().get<TicketListResponse>(
         API_ENDPOINTS.SUPPORT_TICKETS,
@@ -66,14 +70,14 @@ export function useTicketDetailQuery(ticketId: number | null) {
 
 // --- Ticket Messages ---
 
-export function useTicketMessagesQuery(ticketId: number | null) {
+export function useTicketMessagesQuery(ticketId: number | null, enabled = true) {
   const { getAxiosInstance } = useBaseService<TicketMessage[]>(
     API_ENDPOINTS.SUPPORT_TICKET_MESSAGES
   );
 
   return useQuery({
     queryKey: ["support-ticket-messages", ticketId],
-    enabled: !!ticketId,
+    enabled: enabled && !!ticketId,
     queryFn: async () => {
       const res = await getAxiosInstance().get<{ data: TicketMessage[] }>(
         `${API_ENDPOINTS.SUPPORT_TICKET_MESSAGES}/${ticketId}`

@@ -11,7 +11,20 @@
       "Bash(command -v:*)",
       "Bash(node --version:*)",
       "Bash(grep:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(bunx tsc *)",
+      "Bash(php -l app/Http/Controllers/Api/V1/PayTRPaymentController.php)",
+      "Bash(php -l app/Http/Controllers/Api/V1/Admin/AdminPayTRLogController.php)",
+      "Bash(php -l app/Http/Controllers/Api/V1/BundleController.php)",
+      "Bash(php -l app/Http/Controllers/Api/V1/Admin/AdminBundleController.php)",
+      "Bash(php -l app/Http/Controllers/Api/V1/ExperimentController.php)",
+      "Bash(git add *)"
+    ],
+    "additionalDirectories": [
+      "/home/orhan/Documents/Projeler/quickecommerce/customer-web-nextjs/src/app/[locale]/sepet",
+      "/home/orhan/Documents/Projeler/quickecommerce/admin-panel/src/app/[locale]/admin",
+      "/home/orhan/Documents/Projeler/quickecommerce/customer-web-nextjs/src/app/[locale]/paket",
+      "/home/orhan/Documents/Projeler/quickecommerce/admin-panel/src/app/[locale]/admin/bundles"
     ]
   }
 }

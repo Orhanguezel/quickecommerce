@@ -28,7 +28,7 @@ import { useCommissionSettingsQuery } from "@/modules/seller-section/settings/bu
 import { RocketIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import GlobalImageLoader from "@/lib/imageLoader";
 
 export function BusinessPlanSection({
@@ -46,7 +46,16 @@ export function BusinessPlanSection({
   const { CommissionSettings } = useCommissionSettingsQuery({});
   const commissionEnabled = (CommissionSettings as any)?.commission_enabled;
   const subscriptionEnabled = (CommissionSettings as any)?.subscription_enabled;
+  const isCommissionDisabled = commissionEnabled === false || commissionEnabled === 0;
+  const isSubscriptionDisabled = subscriptionEnabled === false || subscriptionEnabled === 0;
   let SubscriptionList = (PackageList as any)?.packages || [];
+
+  useEffect(() => {
+    if (!activeTab && !isCommissionDisabled) {
+      setActiveTab("commission");
+    }
+  }, [activeTab, isCommissionDisabled, setActiveTab]);
+
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
     if (tab === "subscription") {
@@ -78,7 +87,7 @@ export function BusinessPlanSection({
                   activeTab === "commission"
                 } ? "border-2 border-blue-500  shadow rounded " : "shadow rounded"`}
                 value="commission"
-                disabled={commissionEnabled === false}
+                disabled={isCommissionDisabled}
               >
                 <div
                   className={`${
@@ -107,7 +116,7 @@ export function BusinessPlanSection({
                   activeTab === "subscription"
                 } ? "border-2 border-blue-500 text-blue-500 shadow " : "shadow dark:text-white"`}
                 value="subscription"
-                disabled={subscriptionEnabled === false}
+                disabled={isSubscriptionDisabled}
               >
                 <div
                   className={`${

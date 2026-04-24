@@ -43,6 +43,7 @@ import { TagsInput } from '@/components/ui/tags-input';
 
 import GlobalImageLoader from '@/lib/imageLoader';
 import { useAboutPageUpdateMutation } from '@/modules/admin-section/system-management/page-settings/become-seller/become-seller.action';
+import { useThemeAllQuery } from '@/modules/admin-section/theme/theme.action';
 import {
   BecomeSellerFormData,
   becomeSellerSchema,
@@ -76,6 +77,12 @@ const BecomeSellerForm = ({ data }: any) => {
   const pathname = usePathname();
   const locale = pathname.split('/')[1];
   const dir = locale === 'ar' ? 'rtl' : 'ltr';
+  const { ThemeList } = useThemeAllQuery({
+    limit: 50,
+    page: 1,
+    sortField: 'id',
+    sort: 'asc',
+  });
 
   // Controlled tabs (Radix)
   const [activeLang, setActiveLang] = useState<string>(multiLangData?.[0]?.id || 'df');
@@ -103,11 +110,13 @@ const BecomeSellerForm = ({ data }: any) => {
     { label: t('label.publish'), value: 'publish' },
   ];
 
-  const Themelist = [
-    { label: 'Default', value: 'default' },
-    { label: 'Theme One', value: 'theme_one' },
-    { label: 'Theme Two', value: 'theme_two' },
-  ];
+  const Themelist = useMemo(() => [
+    { label: t('label.default_theme'), value: 'default' },
+    ...(((ThemeList as any)?.themes || []).map((theme: any) => ({
+      label: theme.name,
+      value: theme.slug,
+    }))),
+  ], [ThemeList, t]);
 
   const [lastSelectedLogo, setLastSelectedLogo] = useState<any>(null);
   const [errorLogoMessage, setLogoErrorMessage] = useState<string>('');

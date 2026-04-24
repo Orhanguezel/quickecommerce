@@ -11,9 +11,6 @@ import 'package:quick_ecommerce/router/route_name.dart';
 import '../../controller/provider/currencie_controler.dart';
 import 'item_card.dart';
 
-
-
-
 class DesktopProductLoadingGrid extends StatelessWidget {
   final int itemCount;
   const DesktopProductLoadingGrid({
@@ -26,11 +23,11 @@ class DesktopProductLoadingGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         const double itemWidth = 200.0;
-        int crossAxisCount = ((constraints.maxWidth ) / (itemWidth)).floor();
+        int crossAxisCount = ((constraints.maxWidth) / (itemWidth)).floor();
         if (crossAxisCount < 2) crossAxisCount = 2;
         return GridView.builder(
           shrinkWrap: true,
-          itemCount:itemCount,
+          itemCount: itemCount,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
@@ -45,8 +42,6 @@ class DesktopProductLoadingGrid extends StatelessWidget {
         );
       },
     );
-
-
   }
 }
 
@@ -55,14 +50,16 @@ class DesktopProductGrid extends StatelessWidget {
   final ScrollPhysics physics;
   final int productLength;
   final ScrollController? controller;
+  final bool isPremium;
   final void Function(bool? wishlist, String id) onFavoriteToggle;
 
   const DesktopProductGrid({
     super.key,
     required this.productData,
-    this.productLength=0,
+    this.productLength = 0,
     required this.physics,
     this.controller,
+    this.isPremium = false,
     required this.onFavoriteToggle,
   });
 
@@ -72,15 +69,15 @@ class DesktopProductGrid extends StatelessWidget {
     var currencyCon = Provider.of<CurrencyController>(context);
     return LayoutBuilder(
       builder: (context, constraints) {
-       const double itemWidth = 200.0;
-        int crossAxisCount = ((constraints.maxWidth ) / (itemWidth)).floor();
+        const double itemWidth = 200.0;
+        int crossAxisCount = ((constraints.maxWidth) / (itemWidth)).floor();
         if (crossAxisCount < 2) crossAxisCount = 2;
         return GridView.builder(
           physics: physics,
           shrinkWrap: true,
           controller: controller,
           padding: EdgeInsets.zero,
-          itemCount:productLength>0?productLength: productData.length,
+          itemCount: productLength > 0 ? productLength : productData.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
             crossAxisSpacing: 2,
@@ -99,10 +96,12 @@ class DesktopProductGrid extends StatelessWidget {
             double flashSalePrice = 0;
             if (isFlashSale) {
               final result =
-              Utils.flashSalePriceCalculate(price, spPrice, data.flashSale);
+                  Utils.flashSalePriceCalculate(price, spPrice, data.flashSale);
               flashSalePrice = Utils.formatDouble(result.flashSalePrice);
             } else {
-              flashSalePrice =currencyCon.decimalPoint == "YES"?spPrice :spPrice.roundToDouble();
+              flashSalePrice = currencyCon.decimalPoint == "YES"
+                  ? spPrice
+                  : spPrice.roundToDouble();
             }
 
             return DesktopItemCart(
@@ -119,25 +118,28 @@ class DesktopProductGrid extends StatelessWidget {
 
                   if (data.id != null && variantId != null) {
                     final Map<String, dynamic> attributesMap =
-                    jsonDecode(data.singleVariant!.first.attributes);
+                        jsonDecode(data.singleVariant!.first.attributes);
                     String finalPrice = isFlashSale
                         ? flashSalePrice.toString()
                         : spPrice > 0
-                        ? Utils.formatString(data.specialPrice)
-                        : Utils.formatString(data.price);
+                            ? Utils.formatString(data.specialPrice)
+                            : Utils.formatString(data.price);
                     cartCon.addToCart(
                       CartItem(
-                        storeId:Utils.formatInt(data.storeId),
+                        storeId: Utils.formatInt(data.storeId),
                         areaId: Utils.formatInt(data.store!.areaId),
-                        flashSaleId: Utils.formatInt(data.flashSale?.flashSaleId),
-                        storeName:Utils.formatString(data.store?.name),
-                        storeTaxP:Utils.formatString( data.store?.tax),
-                        chargeAmount:Utils.formatString(data.store?.additionalChargeAmount),
-                        chargeType:Utils.formatString(data.store?.additionalChargeType),
+                        flashSaleId:
+                            Utils.formatInt(data.flashSale?.flashSaleId),
+                        storeName: Utils.formatString(data.store?.name),
+                        storeTaxP: Utils.formatString(data.store?.tax),
+                        chargeAmount: Utils.formatString(
+                            data.store?.additionalChargeAmount),
+                        chargeType: Utils.formatString(
+                            data.store?.additionalChargeType),
                         productId: Utils.formatInt(data.id),
                         stock: stockQty,
                         variantId: variantId,
-                        productName:Utils.formatString(data.name),
+                        productName: Utils.formatString(data.name),
                         variant: attributesMap.entries
                             .map((e) => '${e.key}: ${e.value}')
                             .join(','),
@@ -150,8 +152,7 @@ class DesktopProductGrid extends StatelessWidget {
                     );
                   }
                   cartCon.loadCartItems();
-                }
-                else {
+                } else {
                   context.pushNamed(
                     RouteNames.desktopProductDisplay,
                     extra: {"slug": data.slug},
@@ -178,6 +179,7 @@ class DesktopProductGrid extends StatelessWidget {
               isFlashSale: isFlashSale,
               isFeatured: data.isFeatured ?? false,
               discountPercent: data.discountPercentage,
+              isPremium: isPremium,
             );
           },
         );

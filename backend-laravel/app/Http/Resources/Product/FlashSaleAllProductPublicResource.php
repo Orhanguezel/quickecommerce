@@ -19,8 +19,12 @@ class FlashSaleAllProductPublicResource extends JsonResource
                 (!$request->max_price || $variant->price <= $request->max_price);
         });
 
-        // Get the first filtered variant, or null if no variants match the price range
-        $firstVariant = $filteredVariants->first();
+        $firstVariant = $filteredVariants
+            ->sortByDesc(fn($variant) =>
+                (((float)($variant->special_price ?: $variant->price) > 0) ? 2 : 0)
+                + (((int)($variant->stock_quantity ?? 0) > 0) ? 1 : 0)
+            )
+            ->first();
         // Get the requested language from the query parameter
         $language = $request->input('language', 'en');
         // Get the translation for the requested language
@@ -37,7 +41,7 @@ class FlashSaleAllProductPublicResource extends JsonResource
                 : $this->product?->description,// If language is empty or not provided attribute
             'image' => $this->product?->image,
             'image_url' => ImageModifier::generateImageUrl($this->product?->image),
-            'stock' => $this->product?->variants->isNotEmpty() ? $this->product?->variants->sum('stock_quantity') : null,
+            'stock' => $this->product?->totalStock(),
             'wishlist' => auth('api_customer')->check() ? $this->product?->wishlist : false, // Check if the customer is logged in,
             'rating' => number_format((float)$this->product?->rating, 2, '.', ''),
             'review_count' => $this->product?->review_count,

@@ -16,6 +16,9 @@ class RelatedProductPublicResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $displayVariant = $this->displayVariant();
+        $price = (float) optional($displayVariant)->price;
+        $specialPrice = (float) optional($displayVariant)->special_price;
         // Get the requested language from the query parameter
         $language = $request->input('language', 'en');
         // Get the translation for the requested language
@@ -37,12 +40,12 @@ class RelatedProductPublicResource extends JsonResource
             'max_cart_qty' => $this->max_cart_qty,
             'views' => $this->views,
             'singleVariant' => $this->variants->count() === 1 ? [$this->variants->first()] : [],
-            'default_variant_id' => optional($this->variants->first())->id,
-            'stock' => $this->variants->isNotEmpty() ? $this->variants->sum('stock_quantity') : null,
-            'price' => $this->variants->isNotEmpty() ? $this->variants[0]->price : null,
-            'special_price' => $this->variants->isNotEmpty() ? $this->variants[0]->special_price : null,
-            'discount_percentage' => $this->variants->isNotEmpty() && $this->variants[0]->price > 0 && $this->variants[0]->special_price > 0
-                ? round((($this->variants[0]->price - $this->variants[0]->special_price) / $this->variants[0]->price) * 100, 2)
+            'default_variant_id' => optional($displayVariant)->id,
+            'stock' => $this->totalStock(),
+            'price' => optional($displayVariant)->price,
+            'special_price' => optional($displayVariant)->special_price,
+            'discount_percentage' => $price > 0 && $specialPrice > 0 && $specialPrice < $price
+                ? round((($price - $specialPrice) / $price) * 100, 2)
                 : 0,
             'wishlist' => auth('api_customer')->check() ? $this->wishlist : false, // Check if the customer is logged in,
             'rating' => number_format((float)$this->rating, 2, '.', ''),

@@ -27,9 +27,9 @@ class PayTRService
             $credentials = [];
         }
 
-        $merchantId = trim((string)($credentials['merchant_id'] ?? ''));
-        $merchantKey = trim((string)($credentials['merchant_key'] ?? ''));
-        $merchantSalt = trim((string)($credentials['merchant_salt'] ?? ''));
+        $merchantId = trim((string)($credentials['merchant_id'] ?? env('PAYTR_MERCHANT_ID', '')));
+        $merchantKey = trim((string)($credentials['merchant_key'] ?? env('PAYTR_MERCHANT_KEY', '')));
+        $merchantSalt = trim((string)($credentials['merchant_salt'] ?? env('PAYTR_MERCHANT_SALT', '')));
 
         if ($merchantId === '' || $merchantKey === '' || $merchantSalt === '') {
             throw new \Exception(__('messages.paytr_configuration_missing'));
@@ -41,7 +41,9 @@ class PayTRService
             'merchant_id' => $merchantId,
             'merchant_key' => $merchantKey,
             'merchant_salt' => $merchantSalt,
-            'is_test_mode' => (bool)$gateway->is_test_mode,
+            'is_test_mode' => $gateway->is_test_mode !== null
+                ? (bool) $gateway->is_test_mode
+                : filter_var(env('PAYTR_TEST_MODE', true), FILTER_VALIDATE_BOOLEAN),
         ];
     }
 

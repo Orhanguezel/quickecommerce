@@ -17,13 +17,14 @@ import type {
 
 // --- Address Hooks ---
 
-export function useAddressListQuery() {
+export function useAddressListQuery(enabled = true) {
   const { getAxiosInstance } = useBaseService<CustomerAddress[]>(
     API_ENDPOINTS.ADDRESS_LIST
   );
 
   return useQuery({
     queryKey: ["addresses"],
+    enabled,
     queryFn: async () => {
       const res = await getAxiosInstance().get<{ data: CustomerAddress[] }>(
         API_ENDPOINTS.ADDRESS_LIST
@@ -87,13 +88,14 @@ export function useDeleteAddressMutation() {
 
 // --- Payment Gateways Hook ---
 
-export function usePaymentGatewaysQuery() {
+export function usePaymentGatewaysQuery(enabled = true) {
   const { getAxiosInstance } = useBaseService<PaymentGateway[]>(
     API_ENDPOINTS.PAYMENT_GATEWAYS
   );
 
   return useQuery({
     queryKey: ["payment-gateways"],
+    enabled,
     queryFn: async () => {
       const res = await getAxiosInstance().get<{
         paymentGateways: PaymentGateway[];

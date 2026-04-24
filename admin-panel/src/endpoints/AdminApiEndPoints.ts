@@ -608,4 +608,23 @@ export const API_ENDPOINTS = {
   ADMIN_RESET_PASSWORD: "v1/auth/reset-password",
 
   GOOGLE_MAP_FOR_ALL: "v1/google-map-settings",
+
+  ADMIN_ABANDONED_CART_LIST: "v1/admin/abandoned-carts",
+  ADMIN_ABANDONED_CART_STATS: "v1/admin/abandoned-carts/stats",
+
+  ADMIN_ANALYTICS_FUNNEL: "v1/admin/analytics/funnel",
+  ADMIN_ANALYTICS_RECOMMENDATION_CTR: "v1/admin/analytics/recommendation-ctr",
+  ADMIN_ANALYTICS_EXPERIMENTS: "v1/admin/analytics/experiments",
+
+  ADMIN_BUNDLE_LIST: "v1/admin/bundles",
+  ADMIN_BUNDLE_DETAIL: "v1/admin/bundles",
+  ADMIN_BUNDLE_CREATE: "v1/admin/bundles",
+  ADMIN_BUNDLE_UPDATE: "v1/admin/bundles",
+  ADMIN_BUNDLE_DELETE: "v1/admin/bundles",
+
+  // For product search in bundle item picker
+  ADMIN_PRODUCT_SEARCH: "v1/admin/product/list",
+
+  ADMIN_PAYTR_CALLBACK_LOGS: "v1/admin/paytr/callback-logs",
+  ADMIN_PAYTR_CALLBACK_STATS: "v1/admin/paytr/callback-logs/stats",
 };

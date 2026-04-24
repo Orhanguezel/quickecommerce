@@ -22,9 +22,9 @@ export function SectionHeader({
   const t = useTranslations("common");
 
   return (
-    <div className="mb-6 flex items-end justify-between gap-4">
+    <div className="mb-4 flex items-end justify-between gap-4">
       <div className="flex-1 min-w-0">
-        <h2 className="text-xl font-semibold tracking-tight truncate">{title}</h2>
+        <h2 className="truncate text-xl font-extrabold tracking-tight text-foreground">{title}</h2>
         {subtitle && (
           <p className="mt-1 text-sm text-muted-foreground line-clamp-1">{subtitle}</p>
         )}

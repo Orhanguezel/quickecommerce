@@ -44,6 +44,16 @@ export const API_ENDPOINTS = {
   FLASH_DEALS: "/flash-deals",
   FLASH_DEAL_PRODUCTS: "/flash-deal-products",
   SHIPPING_CAMPAIGNS_ACTIVE: "/shipping-campaigns/active",
+  CART_RECOMMENDATIONS: "/cart/recommendations",
+  CART_SNAPSHOT: "/cart/snapshot",
+  CART_RECOVER: "/cart/recover",
+  CART_UNSUBSCRIBE: "/cart/unsubscribe",
+  EXPERIMENTS_ASSIGN: "/experiments/assign",
+  EXPERIMENTS_TRACK: "/experiments/track",
+  FUNNEL_TRACK: "/funnel/track",
+  BUNDLES: "/bundles",
+  BUNDLE_DETAIL: "/bundles",
+  CART_VALIDATE_BUNDLES: "/cart/validate-bundles",
 
   // Search
   SEARCH: "/search",

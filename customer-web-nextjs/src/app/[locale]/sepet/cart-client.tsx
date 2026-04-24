@@ -8,8 +8,14 @@ import { useCartStore } from "@/stores/cart-store";
 import { useCheckoutExtraInfoQuery } from "@/modules/checkout/checkout.service";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { Minus, Plus, ShoppingBag, Trash2, Truck } from "lucide-react";
+import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { trackViewCart, trackRemoveFromCart } from "@/lib/gtm";
+import { FreeShippingProgressBar } from "@/components/cart/free-shipping-progress-bar";
+import { CouponProgressBar } from "@/components/cart/coupon-progress-bar";
+import { StockUrgencyBadge } from "@/components/cart/stock-urgency-badge";
+import { CartRecommendations } from "@/components/cart/cart-recommendations";
+import { BundleValidationBanner } from "@/components/cart/bundle-validation-banner";
+import { RecentlyViewedSection } from "@/components/home/recently-viewed-section";
 
 interface Props {
   translations: {
@@ -25,8 +31,6 @@ interface Props {
     home: string;
     currency: string;
     quantity: string;
-    free_shipping_progress: string;
-    free_shipping_threshold: string;
   };
 }
 
@@ -58,11 +62,6 @@ export function CartClient({ translations: t }: Props) {
       ? 0
       : minimumShippingCharge;
   const totalAmount = subtotal + shippingAmount;
-  const remainingForFreeShipping =
-    freeShippingThreshold > 0 ? Math.max(0, freeShippingThreshold - subtotal) : 0;
-  const showFreeShippingNotice =
-    freeShippingThreshold > 0 &&
-    subtotal < freeShippingThreshold;
 
   // GA4: view_cart
   const trackedRef = useRef(false);
@@ -120,38 +119,21 @@ export function CartClient({ translations: t }: Props) {
         {t.your_cart} ({totalItems()})
       </h1>
 
-      {showFreeShippingNotice && (
-        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-          <div className="flex gap-3">
-            <Truck className="mt-0.5 h-5 w-5 shrink-0" />
-            <div className="space-y-1">
-              <p className="font-medium">
-                {t.free_shipping_progress
-                  .replace(
-                    "{remaining}",
-                    mounted
-                      ? formatPrice(remainingForFreeShipping)
-                      : remainingForFreeShipping.toFixed(2)
-                  )
-                  .replace(
-                    "{threshold}",
-                    mounted
-                      ? formatPrice(freeShippingThreshold)
-                      : freeShippingThreshold.toFixed(2)
-                  )}
-              </p>
-              <p className="text-xs text-amber-700">
-                {t.free_shipping_threshold.replace(
-                  "{shipping}",
-                  mounted
-                    ? formatPrice(minimumShippingCharge)
-                    : minimumShippingCharge.toFixed(2)
-                )}
-              </p>
-            </div>
-          </div>
+      <BundleValidationBanner />
+
+      {freeShippingThreshold > 0 && (
+        <div className="mb-4">
+          <FreeShippingProgressBar
+            currentAmount={subtotal}
+            threshold={freeShippingThreshold}
+            shippingCharge={minimumShippingCharge}
+            variant="full"
+          />
         </div>
       )}
+      <div className="mb-6">
+        <CouponProgressBar currentAmount={subtotal} variant="full" />
+      </div>
 
       <div className="grid gap-8 lg:grid-cols-3">
         {/* Cart Items */}
@@ -195,6 +177,16 @@ export function CartClient({ translations: t }: Props) {
                       <p className="text-sm text-muted-foreground">
                         {item.variant_label}
                       </p>
+                    )}
+                    {item.bundle_id && (
+                      <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-700 dark:bg-purple-950/50 dark:text-purple-300">
+                        📦 Paket fırsatı
+                      </span>
+                    )}
+                    {item.max_cart_qty > 0 && item.max_cart_qty <= 5 && (
+                      <div className="mt-2">
+                        <StockUrgencyBadge stock={item.max_cart_qty} size="md" />
+                      </div>
                     )}
                   </div>
 
@@ -300,6 +292,19 @@ export function CartClient({ translations: t }: Props) {
             </Button>
           </div>
         </div>
+      </div>
+
+      {/* Tavsiye blokları — sıkça birlikte alınanlar, kategoride popüler */}
+      <div className="mt-12">
+        <CartRecommendations variant="full" maxBlocks={3} />
+      </div>
+
+      {/* Son görüntülenenler — sepette olmayanlar */}
+      <div className="mt-12">
+        <RecentlyViewedSection
+          excludeIds={items.map((i) => i.product_id)}
+          maxItems={8}
+        />
       </div>
     </div>
   );

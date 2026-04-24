@@ -4,6 +4,10 @@ import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { Product } from "@/modules/product/product.type";
 import type { Category } from "@/modules/site/site.type";
+import {
+  isDisplayableProductCategory,
+  sortCategoriesForNavigation,
+} from "@/modules/site/category-utils";
 import { CategoryPageClient } from "./category-client";
 
 interface Props {
@@ -26,17 +30,43 @@ interface Brand {
   slug: string;
 }
 
-async function findCategoryBySlug(slug: string, locale: string) {
+function decodeCategorySlug(slug: string) {
+  try {
+    return decodeURIComponent(slug);
+  } catch {
+    return slug;
+  }
+}
+
+function getChildren(categories: Category[], parentId: number) {
+  return categories.filter((category) => Number(category.parent_id) === Number(parentId));
+}
+
+function getDisplayableDescendants(categories: Category[], parentId: number): Category[] {
+  return getChildren(categories, parentId)
+    .sort(sortCategoriesForNavigation)
+    .flatMap((child) =>
+      isDisplayableProductCategory(child)
+        ? [child]
+        : getDisplayableDescendants(categories, child.id)
+    );
+}
+
+async function findCategoryContext(slug: string, locale: string) {
+  const decodedSlug = decodeCategorySlug(slug);
   try {
     const res = await fetchAPI<any>(
       API_ENDPOINTS.CATEGORIES,
-      { per_page: 200, all: "true", language: locale },
+      { per_page: 500, all: "true", language: locale },
       locale
     );
     const categories = (res?.data ?? []) as Category[];
-    return categories.find((c) => c.category_slug === slug) ?? null;
+    return {
+      category: categories.find((c) => c.category_slug === decodedSlug) ?? null,
+      categories,
+    };
   } catch {
-    return null;
+    return { category: null, categories: [] as Category[] };
   }
 }
 
@@ -51,16 +81,17 @@ async function getCategoryData(
   maxPrice?: string,
   minRating?: string
 ) {
-  const category = await findCategoryBySlug(slug, locale);
+  const { category, categories } = await findCategoryContext(slug, locale);
 
   if (!category) {
+    const decodedSlug = decodeCategorySlug(slug);
     return {
       products: [] as Product[],
       totalPages: 0,
       totalProducts: 0,
       currentPage: page,
       perPage: 20,
-      categoryName: slug.replace(/-/g, " "),
+      categoryName: decodedSlug.replace(/-/g, " "),
       subcategories: [] as Category[],
       brands: [] as Brand[],
       found: false,
@@ -68,11 +99,21 @@ async function getCategoryData(
   }
 
   const extraParams = new URLSearchParams();
-  // If subcategories are selected, filter by those; otherwise use the parent category
+  const defaultCategoryIds = isDisplayableProductCategory(category)
+    ? [String(category.id)]
+    : getDisplayableDescendants(categories, category.id).map((item) => String(item.id));
+  const filterCategoryIds =
+    categoryIds && categoryIds.length > 0
+      ? categoryIds
+      : defaultCategoryIds.length > 0
+        ? defaultCategoryIds
+        : [String(category.id)];
+
   if (categoryIds && categoryIds.length > 0) {
     categoryIds.forEach((id) => extraParams.append("category_id[]", id));
-  } else {
-    extraParams.append("category_id[]", String(category.id));
+  }
+  if (!categoryIds || categoryIds.length === 0) {
+    filterCategoryIds.forEach((id) => extraParams.append("category_id[]", id));
   }
   brandIds?.forEach((id) => extraParams.append("brand_id[]", id));
 
@@ -85,16 +126,11 @@ async function getCategoryData(
   if (maxPrice) productParams.max_price = maxPrice;
   if (minRating) productParams.min_rating = minRating;
 
-  const [productsRes, subcategoriesRes, brandsRes] =
+  const [productsRes, brandsRes] =
     await Promise.allSettled([
       fetchAPI<any>(
         `${API_ENDPOINTS.PRODUCTS}?${extraParams.toString()}`,
         productParams,
-        locale
-      ),
-      fetchAPI<any>(
-        API_ENDPOINTS.CATEGORIES,
-        { parent_id: category.id, per_page: 50, has_products: true, language: locale },
         locale
       ),
       fetchAPI<any>(API_ENDPOINTS.BRANDS, { per_page: 100 }, locale),
@@ -102,10 +138,15 @@ async function getCategoryData(
 
   const productsData =
     productsRes.status === "fulfilled" ? productsRes.value : null;
-  const subcategoriesData =
-    subcategoriesRes.status === "fulfilled" ? subcategoriesRes.value : null;
   const brandsData =
     brandsRes.status === "fulfilled" ? brandsRes.value : null;
+  const directSubcategories = getChildren(categories, category.id)
+    .filter(isDisplayableProductCategory)
+    .sort(sortCategoriesForNavigation);
+  const subcategories =
+    directSubcategories.length > 0
+      ? directSubcategories
+      : getDisplayableDescendants(categories, category.id);
 
   return {
     products: (productsData?.data ?? []) as Product[],
@@ -119,7 +160,7 @@ async function getCategoryData(
     perPage:
       productsData?.meta?.per_page ?? productsData?.per_page ?? 20,
     categoryName: category.category_name,
-    subcategories: (subcategoriesData?.data ?? []) as Category[],
+    subcategories,
     brands: (brandsData?.data ?? []) as Brand[],
     found: true,
   };

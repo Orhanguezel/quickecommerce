@@ -1,9 +1,12 @@
 "use client";
 
+import { useEffect } from "react";
 import { Link } from "@/i18n/routing";
 import { ROUTES } from "@/config/routes";
 import { Button } from "@/components/ui/button";
 import { CheckCircle } from "lucide-react";
+import { useCartRecoverMutation } from "@/modules/cart/abandoned-cart.service";
+import { getCartSessionId } from "@/hooks/use-cart-snapshot-sync";
 
 interface Props {
   orderId: string;
@@ -18,6 +21,12 @@ interface Props {
 }
 
 export function OrderSuccessClient({ orderId, translations: t }: Props) {
+  const recover = useCartRecoverMutation();
+  useEffect(() => {
+    // Mark this customer's snapshot as recovered so the reminder pipeline stops.
+    recover.mutate({ session_id: getCartSessionId() ?? undefined });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div className="container mx-auto flex min-h-[60vh] items-center justify-center px-4 py-16">
       <div className="w-full max-w-md text-center">

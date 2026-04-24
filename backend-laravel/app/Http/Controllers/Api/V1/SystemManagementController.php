@@ -181,9 +181,11 @@ class SystemManagementController extends Controller
                 'com_meta_publisher' => 'nullable|string',
                 'com_google_analytics_id' => 'nullable|string',
                 'com_google_tag_manager_id' => 'nullable|string',
+                'com_google_ads_conversion_id' => 'nullable|string',
+                'com_google_ads_purchase_label' => 'nullable|string',
             ]);
 
-            $fields = ['com_meta_title', 'com_meta_description', 'com_meta_tags', 'com_canonical_url', 'com_og_title', 'com_og_description', 'com_og_image', 'com_meta_author', 'com_meta_robots', 'com_meta_publisher', 'com_google_analytics_id', 'com_google_tag_manager_id'];
+            $fields = ['com_meta_title', 'com_meta_description', 'com_meta_tags', 'com_canonical_url', 'com_og_title', 'com_og_description', 'com_og_image', 'com_meta_author', 'com_meta_robots', 'com_meta_publisher', 'com_google_analytics_id', 'com_google_tag_manager_id', 'com_google_ads_conversion_id', 'com_google_ads_purchase_label'];
 
             foreach ($fields as $field) {
                 $value = $request->input($field) ?? null;
@@ -234,6 +236,8 @@ class SystemManagementController extends Controller
             $com_meta_publisher = com_option_get('com_meta_publisher');
             $com_google_analytics_id = com_option_get('com_google_analytics_id');
             $com_google_tag_manager_id = com_option_get('com_google_tag_manager_id');
+            $com_google_ads_conversion_id = com_option_get('com_google_ads_conversion_id');
+            $com_google_ads_purchase_label = com_option_get('com_google_ads_purchase_label');
 
             return $this->success([
                 'com_meta_title' => $com_meta_title,
@@ -249,6 +253,8 @@ class SystemManagementController extends Controller
                 'com_meta_publisher' => $com_meta_publisher,
                 'com_google_analytics_id' => $com_google_analytics_id,
                 'com_google_tag_manager_id' => $com_google_tag_manager_id,
+                'com_google_ads_conversion_id' => $com_google_ads_conversion_id,
+                'com_google_ads_purchase_label' => $com_google_ads_purchase_label,
                 'translations' => $transformedData,
             ]);
         }

@@ -148,3 +148,5 @@ genel yapıyı bitirebilirsek ek geliştirme aşamasına geçebiliriz...
 11.banner ve flaş ekleme kısmında daha fazla kart eklenmesi ,,mevcut durumda 3 kart ekleyebiliyoruz yanyana ,bu durumu 6 karta kadar çıkarabiliriz
 daha önce konuştuğumuz bu konulaı hallettik mi
 adminden markayı ekliyorum ,,daha sonra ürün eklerken marka seçmek istediğimde eklediğim markalar gelmiyor görünmüyor yani
+
+

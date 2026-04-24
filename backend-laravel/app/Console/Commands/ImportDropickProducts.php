@@ -27,7 +27,7 @@ class ImportDropickProducts extends Command
                             {--lang=tr : Varsayilan dil}
                             {--sku-prefix=PRD : SKU on eki (DPK, NFK vs.)}';
 
-    protected $description = 'Scraper JSON ciktisini QuickEcommerce sistemine import eder (Dropick, Norfolk vs.)';
+    protected $description = 'Scraper JSON ciktisini QuickEcommerce sistemine import eder (Dropick, Norfolk, Swan vs.)';
 
     private int $storeId;
     private string $defaultLang;
@@ -358,7 +358,7 @@ class ImportDropickProducts extends Command
 
                     $vSku = $v['sku'] ?: generateUniqueSku($this->skuPrefix . '-');
                     $vSlug = $v['title'] ?? 'default';
-                    $stockQty = ($v['available'] ?? true) ? 100 : 0;
+                    $stockQty = $this->variantStockQuantity($v);
 
                     $attributes = [];
                     if (!empty($v['option1'])) $attributes['option1'] = $v['option1'];
@@ -382,6 +382,7 @@ class ImportDropickProducts extends Command
                 $price = $data['original_price'] ?? 0;
                 $specialPrice = $data['discounted_price'] ?? null;
                 $sku = $data['sku'] ?: generateUniqueSku($this->skuPrefix . '-');
+                $stockQty = $this->productStockQuantity($data);
 
                 ProductVariant::create([
                     'product_id'     => $product->id,
@@ -389,7 +390,7 @@ class ImportDropickProducts extends Command
                     'sku'            => $sku,
                     'price'          => $price,
                     'special_price'  => $specialPrice,
-                    'stock_quantity' => 100,
+                    'stock_quantity' => $stockQty,
                     'status'         => 1,
                     'image'          => $mainImageId ? (string) $mainImageId : null,
                 ]);
@@ -412,6 +413,36 @@ class ImportDropickProducts extends Command
             DB::rollBack();
             throw $e;
         }
+    }
+
+    private function variantStockQuantity(array $variant): int
+    {
+        if (isset($variant['stock_quantity']) && is_numeric($variant['stock_quantity'])) {
+            return max(0, (int) $variant['stock_quantity']);
+        }
+
+        if (isset($variant['stock']) && is_numeric($variant['stock'])) {
+            return max(0, (int) $variant['stock']);
+        }
+
+        return ($variant['available'] ?? true) ? 100 : 0;
+    }
+
+    private function productStockQuantity(array $product): int
+    {
+        if (isset($product['stock_quantity']) && is_numeric($product['stock_quantity'])) {
+            return max(0, (int) $product['stock_quantity']);
+        }
+
+        if (isset($product['stock']) && is_numeric($product['stock'])) {
+            return max(0, (int) $product['stock']);
+        }
+
+        if (isset($product['available'])) {
+            return $product['available'] ? 100 : 0;
+        }
+
+        return 100;
     }
 
     private function importImageFromLocal(string $localPath, string $slug, int $index): ?int

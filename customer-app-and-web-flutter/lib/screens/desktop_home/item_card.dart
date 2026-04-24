@@ -27,6 +27,7 @@ class DesktopItemCart extends StatelessWidget {
   final dynamic discountPercent;
   final String discountAmount;
   final String discountType;
+  final bool isPremium;
   final VoidCallback addToCart;
   final VoidCallback details;
   final VoidCallback compare;
@@ -42,12 +43,13 @@ class DesktopItemCart extends StatelessWidget {
     required this.reviewsCount,
     required this.stockCount,
     required this.itemId,
-     this.isFeatured=false,
-     this.isFlashSale=false,
+    this.isFeatured = false,
+    this.isFlashSale = false,
     required this.isWishList,
     required this.discountPercent,
-     this.discountAmount='',
-     this.discountType='',
+    this.discountAmount = '',
+    this.discountType = '',
+    this.isPremium = false,
     required this.addToCart,
     required this.details,
     required this.compare,
@@ -66,17 +68,32 @@ class DesktopItemCart extends StatelessWidget {
     }
     bool isInCart =
         existingItem != null && existingItem.quantity > 0 ? true : false;
-    double disPrice=double.tryParse(discountedPrice)??0.0;
+    double disPrice = double.tryParse(discountedPrice) ?? 0.0;
     return InkWell(
       onTap: details,
       child: Container(
         width: 250,
         margin: const EdgeInsets.all(4),
-        padding: const EdgeInsets.symmetric(horizontal: 7.44, vertical: 6.78),
+        padding: EdgeInsets.symmetric(
+          horizontal: isPremium ? 10 : 7.44,
+          vertical: isPremium ? 10 : 6.78,
+        ),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(width: .6, color: Colors.grey.shade50),
+          borderRadius: BorderRadius.circular(isPremium ? 18 : 12),
+          border: Border.all(
+            width: isPremium ? 1 : .6,
+            color: isPremium ? const Color(0xFFE2E8F0) : Colors.grey.shade50,
+          ),
           color: Colors.white,
+          boxShadow: isPremium
+              ? const [
+                  BoxShadow(
+                    color: Color(0x140F172A),
+                    blurRadius: 16,
+                    offset: Offset(0, 8),
+                  ),
+                ]
+              : null,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,39 +110,44 @@ class DesktopItemCart extends StatelessWidget {
                         width: 230,
                       )),
 
-                    Positioned(
-                      top: 4,
-                      left: -3,
-                      child: Row(
-                        children: [
-                          if (isFeatured) const FeaturedRibbon(
+                  Positioned(
+                    top: 4,
+                    left: -3,
+                    child: Row(
+                      children: [
+                        if (isFeatured)
+                          const FeaturedRibbon(
                             title: "Featured",
                           ),
-                          const SizedBox(width: 6,),
-                          isFlashSale
-                              ? Image.asset(
-                            AssetsIcons.fsale,
-                            height: 20,
-                            width: 25,
-                          )
-                              : const SizedBox(),
-                        ],
-                      ),
+                        const SizedBox(
+                          width: 6,
+                        ),
+                        isFlashSale
+                            ? Image.asset(
+                                AssetsIcons.fsale,
+                                height: 20,
+                                width: 25,
+                              )
+                            : const SizedBox(),
+                      ],
                     ),
+                  ),
 
-
-                    Positioned(
-                      top: 4.h,
-                      right: 0.w,
-                      child: Row(
-                        children: [
-                          if (discountPercent > 0 && isFlashSale==false)
-                            Container(
+                  Positioned(
+                    top: 4.h,
+                    right: 0.w,
+                    child: Row(
+                      children: [
+                        if (discountPercent > 0 && isFlashSale == false)
+                          Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: const Color(0XFFEB5A25),
-                              borderRadius: BorderRadius.circular(2.79.r),
+                              color: isPremium
+                                  ? const Color(0xFF0F172A)
+                                  : const Color(0XFFEB5A25),
+                              borderRadius: BorderRadius.circular(
+                                  isPremium ? 999 : 2.79.r),
                             ),
                             child: Text(
                               "$discountPercent%",
@@ -136,34 +158,38 @@ class DesktopItemCart extends StatelessWidget {
                               ),
                             ),
                           ),
-                          if (discountAmount.isNotEmpty)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: const Color(0XFFEB5A25),
-                                borderRadius: BorderRadius.circular(2.79.r),
-                              ),
-                              child:discountType=="percentage"? Text(
-                                "$discountAmount%",
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ):Text(
-                                currencyCon.formatCurrency(discountAmount),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                        if (discountAmount.isNotEmpty)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isPremium
+                                  ? const Color(0xFF0F172A)
+                                  : const Color(0XFFEB5A25),
+                              borderRadius: BorderRadius.circular(
+                                  isPremium ? 999 : 2.79.r),
                             ),
-
-                        ],
-                      ),
+                            child: discountType == "percentage"
+                                ? Text(
+                                    "$discountAmount%",
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  )
+                                : Text(
+                                    currencyCon.formatCurrency(discountAmount),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                          ),
+                      ],
                     ),
+                  ),
                   // Action Buttons
                   Positioned(
                     bottom: 8.h,
@@ -177,7 +203,9 @@ class DesktopItemCart extends StatelessWidget {
                             icon: AssetsIcons.eyeSee, onTap: details),
                         SizedBox(width: 4.w),
                         CartIconButton(
-                          color:  isWishList ?const Color(0xFF1A73E8):Colors.grey,
+                            color: isWishList
+                                ? const Color(0xFF1A73E8)
+                                : Colors.grey,
                             icon: isWishList
                                 ? AssetsIcons.favorite
                                 : AssetsIcons.favoriteOutline,
@@ -185,7 +213,6 @@ class DesktopItemCart extends StatelessWidget {
                       ],
                     ),
                   ),
-
                 ],
               ),
             ),
@@ -194,18 +221,19 @@ class DesktopItemCart extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontSize: 14,
+                      fontSize: isPremium ? 15 : 14,
                       color: const Color(0xFF0F172A),
-                      fontWeight: FontWeight.w600),
+                      fontWeight:
+                          isPremium ? FontWeight.w700 : FontWeight.w600),
                 ),
                 const SizedBox(height: 4),
                 // Price
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
-                  child:Row(
+                  child: Row(
                     children: [
                       if (disPrice > 0) ...[
                         Text(
@@ -221,25 +249,28 @@ class DesktopItemCart extends StatelessWidget {
                         const SizedBox(width: 8),
                         Text(
                           currencyCon.formatCurrency(discountedPrice),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue,
+                            color: isPremium
+                                ? const Color(0xFF0F172A)
+                                : Colors.blue,
                           ),
                         ),
                       ] else ...[
                         Text(
                           currencyCon.formatCurrency(originalPrice),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue,
+                            color: isPremium
+                                ? const Color(0xFF0F172A)
+                                : Colors.blue,
                           ),
                         ),
                       ],
                     ],
-                  )
-                  ,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 // Rating and Reviews
@@ -265,15 +296,18 @@ class DesktopItemCart extends StatelessWidget {
                       const SizedBox(
                         width: 4,
                       ),
-                      const Icon(Icons.store_outlined,
-                          color: Colors.green, size: 14),
+                      Icon(Icons.store_outlined,
+                          color: isPremium
+                              ? const Color(0xFF2563EB)
+                              : Colors.green,
+                          size: 14),
                       const SizedBox(
                         width: 4,
                       ),
                       // Stock
                       stockCount > 1
                           ? Text(
-                             AppLocalizations.of(context)!.inStock,
+                              AppLocalizations.of(context)!.inStock,
                               overflow: TextOverflow.visible,
                               style: Theme.of(context)
                                   .textTheme
@@ -327,15 +361,16 @@ class DesktopItemCart extends StatelessWidget {
                         children: [
                           existingItem.quantity > 1
                               ? InkWell(
-                            onTap:  () {
-                              if (existingItem!.productId > 0) {
-                                if (existingItem.quantity > 1) {
-                                  cartCon.updateQuantity(
-                                      existingItem.productId, existingItem.quantity - 1);
-                                }
-                              }
-                            },
-                                child: Container(
+                                  onTap: () {
+                                    if (existingItem!.productId > 0) {
+                                      if (existingItem.quantity > 1) {
+                                        cartCon.updateQuantity(
+                                            existingItem.productId,
+                                            existingItem.quantity - 1);
+                                      }
+                                    }
+                                  },
+                                  child: Container(
                                     height: 30,
                                     width: 35,
                                     decoration: BoxDecoration(
@@ -353,7 +388,7 @@ class DesktopItemCart extends StatelessWidget {
                                     child: const Icon(Icons.remove,
                                         color: Colors.black),
                                   ),
-                              )
+                                )
                               : Container(
                                   height: 30,
                                   width: 35,
@@ -386,16 +421,19 @@ class DesktopItemCart extends StatelessWidget {
                           ),
                           InkWell(
                             onTap: () {
-
-                              if (existingItem != null && existingItem.productId > 0) {
+                              if (existingItem != null &&
+                                  existingItem.productId > 0) {
                                 int updatedQuantity = existingItem.quantity + 1;
-                                if (existingItem.cartMaxQuantity > 0 && updatedQuantity > existingItem.cartMaxQuantity) {
+                                if (existingItem.cartMaxQuantity > 0 &&
+                                    updatedQuantity >
+                                        existingItem.cartMaxQuantity) {
                                   // Stock limit reached
                                   CommonFunctions.showCustomSnackBar(context,
                                       "${AppLocalizations.of(context)!.maximumAllowedQuantity} ${existingItem.cartMaxQuantity}");
                                 } else {
                                   // Update quantity (either unlimited or within max limit)
-                                  cartCon.updateQuantity(existingItem.productId, updatedQuantity);
+                                  cartCon.updateQuantity(
+                                      existingItem.productId, updatedQuantity);
                                 }
                               }
                             },
@@ -414,7 +452,7 @@ class DesktopItemCart extends StatelessWidget {
                                   )
                                 ],
                               ),
-                              child:const Icon(Icons.add),
+                              child: const Icon(Icons.add),
                             ),
                           ),
                         ],
@@ -426,8 +464,11 @@ class DesktopItemCart extends StatelessWidget {
                             width: double.infinity,
                             height: 30,
                             decoration: BoxDecoration(
-                              color:CustomColors.baseColor,
-                              borderRadius: BorderRadius.circular(6),
+                              color: isPremium
+                                  ? const Color(0xFF0F172A)
+                                  : CustomColors.baseColor,
+                              borderRadius:
+                                  BorderRadius.circular(isPremium ? 12 : 6),
                             ),
                             child: Center(
                               child: Text(
@@ -447,7 +488,6 @@ class DesktopItemCart extends StatelessWidget {
     );
   }
 }
-
 
 class DesktopQuantityControl extends StatelessWidget {
   final int quantity;
@@ -476,14 +516,12 @@ class DesktopQuantityControl extends StatelessWidget {
           InkWell(
             onTap: onDecrement,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal:4, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
               margin: const EdgeInsets.only(right: 4),
               decoration: BoxDecoration(
                 color: const Color(0xFFDEE0E5),
                 borderRadius: BorderRadius.circular(3.r),
-                border: Border.all(
-                    width: 0.36,
-                    color: CustomColors.grey),
+                border: Border.all(width: 0.36, color: CustomColors.grey),
               ),
               child: const Icon(Icons.remove),
             ),
@@ -494,9 +532,9 @@ class DesktopQuantityControl extends StatelessWidget {
           Text(
             quantity.toString(),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
           ),
           const SizedBox(
             width: 10,
@@ -504,17 +542,16 @@ class DesktopQuantityControl extends StatelessWidget {
           InkWell(
             onTap: onIncrement,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal:4, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
               margin: const EdgeInsets.only(left: 4),
               decoration: BoxDecoration(
                 color: const Color(0xFF2563EB),
                 borderRadius: BorderRadius.circular(3.r),
-                border: Border.all(
-                    width: 0.61,
-                    color: const Color(0xFFDCDCDC)),
+                border: Border.all(width: 0.61, color: const Color(0xFFDCDCDC)),
               ),
-              child: const Icon(Icons.add,
-              color: Colors.white,
+              child: const Icon(
+                Icons.add,
+                color: Colors.white,
               ),
             ),
           ),
@@ -523,7 +560,6 @@ class DesktopQuantityControl extends StatelessWidget {
     );
   }
 }
-
 
 class DesktopShimmerLoadingWidget extends StatelessWidget {
   const DesktopShimmerLoadingWidget({super.key});
@@ -613,11 +649,9 @@ class DesktopProductCardShimmer extends StatelessWidget {
               // Price placeholder
               Row(
                 children: [
-                  Container(
-                      height: 8, width: 45, color: Colors.grey.shade300),
+                  Container(height: 8, width: 45, color: Colors.grey.shade300),
                   const SizedBox(width: 8),
-                  Container(
-                      height: 8, width: 40, color: Colors.grey.shade300),
+                  Container(height: 8, width: 40, color: Colors.grey.shade300),
                 ],
               ),
               const SizedBox(height: 4),
@@ -626,8 +660,7 @@ class DesktopProductCardShimmer extends StatelessWidget {
                 children: [
                   Icon(Icons.star, color: Colors.grey.shade300, size: 16),
                   const SizedBox(width: 4),
-                  Container(
-                      height: 8, width: 40, color: Colors.grey.shade300),
+                  Container(height: 8, width: 40, color: Colors.grey.shade300),
                 ],
               ),
               const SizedBox(height: 6),
@@ -645,9 +678,6 @@ class DesktopProductCardShimmer extends StatelessWidget {
     );
   }
 }
-
-
-
 
 class CarouselShimmer extends StatelessWidget {
   const CarouselShimmer({super.key});
@@ -740,6 +770,3 @@ class CarouselShimmer extends StatelessWidget {
     );
   }
 }
-
-
-

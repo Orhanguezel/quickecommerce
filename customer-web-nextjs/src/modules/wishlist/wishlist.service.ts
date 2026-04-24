@@ -15,13 +15,14 @@ interface WishlistResponse {
   };
 }
 
-export function useWishlistQuery(page: number = 1) {
+export function useWishlistQuery(page: number = 1, enabled = true) {
   const { getAxiosInstance } = useBaseService<WishlistResponse>(
     API_ENDPOINTS.WISHLIST_LIST
   );
 
   return useQuery({
     queryKey: ["wishlist", page],
+    enabled,
     queryFn: async () => {
       const res = await getAxiosInstance().get<WishlistResponse>(
         API_ENDPOINTS.WISHLIST_LIST,

@@ -11,11 +11,12 @@ export function useOrderListQuery(params: {
   page?: number;
   status?: string;
   search?: string;
-}) {
+}, enabled = true) {
   const { getAxiosInstance } = useBaseService<Order[]>(API_ENDPOINTS.ORDERS);
 
   return useQuery({
     queryKey: ["orders", params],
+    enabled,
     queryFn: async () => {
       const res = await getAxiosInstance().get<OrderListResponse>(
         API_ENDPOINTS.ORDERS,

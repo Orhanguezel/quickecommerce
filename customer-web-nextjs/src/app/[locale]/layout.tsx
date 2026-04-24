@@ -16,6 +16,9 @@ import { LocationSelector } from '@/components/layout/location-selector';
 import { ScrollToTop } from '@/components/layout/scroll-to-top';
 import { ThemePopup } from '@/components/layout/theme-popup';
 import { ThemeSideBanner } from '@/components/layout/theme-side-banner';
+import { ExitIntentPopup } from '@/components/cart/exit-intent-popup';
+import { CartSnapshotSync } from '@/components/cart/cart-snapshot-sync';
+import { ExperimentProvider } from '@/components/providers/experiment-provider';
 import { Geist } from 'next/font/google';
 import Script from 'next/script';
 import '../globals.css';
@@ -199,6 +202,10 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
 
   const gaId = settings?.com_google_analytics_id || '';
   const gtmId = settings?.com_google_tag_manager_id || '';
+  const googleAdsConversionId = settings?.com_google_ads_conversion_id || '';
+  const googleAdsPurchaseLabel = settings?.com_google_ads_purchase_label || '';
+  const gtagIds = [gaId, googleAdsConversionId].filter(Boolean);
+  const primaryGtagId = gtagIds[0] || '';
 
   const isMaintenanceMode = settings?.com_maintenance_mode === 'on';
 
@@ -279,16 +286,19 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           </Script>
         )}
 
-        {/* Google Analytics */}
-        {gaId && (
+        {/* Google Analytics / Google Ads */}
+        {primaryGtagId && (
           <>
             <Script
-              src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+              src={`https://www.googletagmanager.com/gtag/js?id=${primaryGtagId}`}
               strategy="afterInteractive"
             />
             <Script id="ga-script" strategy="afterInteractive">
               {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
-gtag('js',new Date());gtag('config','${gaId}');`}
+gtag('js',new Date());
+${gtagIds.map((id: string) => `gtag('config','${id}');`).join('\n')}
+window.__GOOGLE_ADS_CONVERSION_ID__='${googleAdsConversionId}';
+window.__GOOGLE_ADS_PURCHASE_LABEL__='${googleAdsPurchaseLabel}';`}
             </Script>
           </>
         )}
@@ -307,6 +317,9 @@ gtag('js',new Date());gtag('config','${gaId}');`}
                 <ChatWidget />
                 <ThemePopup />
                 <ThemeSideBanner />
+                <ExitIntentPopup />
+                <CartSnapshotSync />
+                <ExperimentProvider>{null}</ExperimentProvider>
                 <ScrollToTop />
               </ThemeProvider>
             </NextThemesProvider>

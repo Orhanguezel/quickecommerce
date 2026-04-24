@@ -16,6 +16,7 @@ import {
   Linkedin,
   Twitter,
   MessageCircle,
+  MessageSquare,
 } from "lucide-react";
 
 interface ContactTranslations {
@@ -152,8 +153,32 @@ export function ContactPageClient({
                 />
               </div>
             ) : (
-              <div className="flex h-[260px] items-center justify-center text-5xl font-medium text-muted-foreground md:h-[420px]">
-                538x475
+              // Fallback: admin bir görsel yüklemediyse beyaz yerine
+              // markalı gradient + message icon + çağrı metni göster
+              <div className="relative flex h-[260px] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-primary/10 via-primary/5 to-primary/15 md:h-[420px]">
+                <div className="absolute inset-0 opacity-[0.08]">
+                  <svg className="h-full w-full" viewBox="0 0 120 120" fill="currentColor">
+                    <defs>
+                      <pattern id="contact-dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                        <circle cx="2" cy="2" r="1.5" />
+                      </pattern>
+                    </defs>
+                    <rect width="120" height="120" fill="url(#contact-dots)" />
+                  </svg>
+                </div>
+                <div className="relative flex flex-col items-center gap-4 text-center">
+                  <span className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/20 text-primary shadow-lg">
+                    <MessageSquare className="h-10 w-10" strokeWidth={1.5} />
+                  </span>
+                  <div>
+                    <p className="text-2xl font-bold text-foreground">
+                      {formSection.title}
+                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Sana yardımcı olmaktan mutluluk duyarız
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
           </div>

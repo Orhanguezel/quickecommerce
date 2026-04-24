@@ -24,10 +24,16 @@ import '../common_widgets/item_title.dart';
 import 'product_grid.dart';
 
 class DesktopBestSellingWidget extends StatefulWidget {
-  const DesktopBestSellingWidget({super.key, required this.title});
+  const DesktopBestSellingWidget({
+    super.key,
+    required this.title,
+    this.isPremium = false,
+  });
   final String title;
+  final bool isPremium;
   @override
-  State<DesktopBestSellingWidget> createState() => _DesktopBestSellingWidgetState();
+  State<DesktopBestSellingWidget> createState() =>
+      _DesktopBestSellingWidgetState();
 }
 
 class _DesktopBestSellingWidgetState extends State<DesktopBestSellingWidget> {
@@ -87,7 +93,7 @@ class _DesktopBestSellingWidgetState extends State<DesktopBestSellingWidget> {
   }
 
   bool _isInitialLoad = true;
-  List<ProductData> productData=[];
+  List<ProductData> productData = [];
   @override
   Widget build(BuildContext context) {
     var commonProvider = Provider.of<CommonProvider>(context);
@@ -97,33 +103,38 @@ class _DesktopBestSellingWidgetState extends State<DesktopBestSellingWidget> {
     cartCon.loadCartItems();
     return BlocConsumer<BestSaleBloc, BestSaleState>(
       builder: (_, state) {
-        if (  state is BestSaleLoading) {
-          return _isInitialLoad?
-          const DesktopProductLoadingGrid(itemCount: 4,)
-              :DesktopProductGrid(
-                productData: productData,
-                physics: const NeverScrollableScrollPhysics(),
-                onFavoriteToggle: (wishlist, id) {
-                  _handleFavoriteToggle(wishlist!, id);
-                },
-              );
+        if (state is BestSaleLoading) {
+          return _isInitialLoad
+              ? const DesktopProductLoadingGrid(
+                  itemCount: 4,
+                )
+              : DesktopProductGrid(
+                  productData: productData,
+                  physics: const NeverScrollableScrollPhysics(),
+                  isPremium: widget.isPremium,
+                  onFavoriteToggle: (wishlist, id) {
+                    _handleFavoriteToggle(wishlist!, id);
+                  },
+                );
         }
 
         if (state is BestSaleLoaded) {
           if (_isInitialLoad && state.hasConnectionError) {
-            CommonFunctions.showCustomSnackBar(context, AppLocalizations.of(context)!.noInternet);
+            CommonFunctions.showCustomSnackBar(
+                context, AppLocalizations.of(context)!.noInternet);
           }
           _isInitialLoad = false;
-          productData=state.bestSaleModel.data!;
+          productData = state.bestSaleModel.data!;
           return productData.isEmpty
               ? const SizedBox()
               : Column(
                   children: [
-                   ItemTitle(
+                    ItemTitle(
                         title: widget.title.isEmpty
                             ? AppLocalizations.of(context)!.best
                             : widget.title,
                         subTitle: '',
+                        isPremium: widget.isPremium,
                         onTap: () {
                           homeCon.setTabType("Products");
                           filterCon.setProductType("Best Selling");
@@ -134,14 +145,13 @@ class _DesktopBestSellingWidgetState extends State<DesktopBestSellingWidget> {
                             listener: (context, state) {
                               if (state is FavoriteAddConnectionError) {
                                 commonProvider.setLoading(false);
-                                CommonFunctions.showCustomSnackBar(
-                                    context, AppLocalizations.of(context)!.noInternet);
+                                CommonFunctions.showCustomSnackBar(context,
+                                    AppLocalizations.of(context)!.noInternet);
                               } else if (state is FavoriteAddFailure) {
                                 commonProvider.setLoading(false);
                                 CommonFunctions.showCustomSnackBar(
                                     context, state.authModel.message);
-                              }
-                              else if (state is FavoriteAddLoaded) {
+                              } else if (state is FavoriteAddLoaded) {
                                 CommonFunctions.showCustomSnackBar(
                                     color: Colors.green,
                                     context,
@@ -165,6 +175,7 @@ class _DesktopBestSellingWidgetState extends State<DesktopBestSellingWidget> {
                     DesktopProductGrid(
                       productData: productData,
                       physics: const NeverScrollableScrollPhysics(),
+                      isPremium: widget.isPremium,
                       onFavoriteToggle: (wishlist, id) {
                         _handleFavoriteToggle(wishlist!, id);
                       },
@@ -198,12 +209,11 @@ class _DesktopBestSellingWidgetState extends State<DesktopBestSellingWidget> {
     if (_token.isEmpty) {
       CommonFunctions.showUpSnack(context: context, message: 'Please log in');
       return;
-    }else{
+    } else {
       if (isWishlist) {
         commonProvider.setLoading(true);
         _favoriteAddBloc.add(DeleteFavorites(productId: id, token: _token));
-      }
-      else {
+      } else {
         commonProvider.setLoading(true);
         _favoriteAddBloc.add(AddFavorites(productId: id, token: _token));
       }

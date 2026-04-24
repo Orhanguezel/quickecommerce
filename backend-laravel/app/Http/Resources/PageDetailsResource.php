@@ -15,12 +15,15 @@ class PageDetailsResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $content = is_string($this->content) ? safeJsonDecode($this->content) : $this->content;
+        $content = is_array($content) ? jsonImageModifierFormatter($content) : $content;
+
         return [
             'id' => $this->id,
             'theme_name' => $this->theme_name,
             'title' => $this->title,
             'slug' => $this->slug,
-            'content' => $this->content,
+            'content' => $content,
             'meta_title' => $this->meta_title,
             'meta_description' => $this->meta_description,
             'meta_keywords' => $this->meta_keywords,

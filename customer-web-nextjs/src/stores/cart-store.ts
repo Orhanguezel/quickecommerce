@@ -14,6 +14,10 @@ export interface CartItem {
   quantity: number;
   max_cart_qty: number;
   variant_label?: string;
+  /** When set, this item was added as part of a bundle. The bundle-aware
+   *  subtotal calculation in cart-subtotal.ts groups by this ID and applies
+   *  the bundle_price instead of the sum of item prices. */
+  bundle_id?: number;
 }
 
 interface CartState {

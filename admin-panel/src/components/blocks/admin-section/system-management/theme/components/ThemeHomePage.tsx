@@ -162,6 +162,8 @@ const makeHomeSchema = () => {
     dyn[`newsletters_title_${id}`] = z.string().optional();
     dyn[`newsletters_subtitle_${id}`] = z.string().optional();
     dyn[`all_products_section_title_${id}`] = z.string().optional();
+    dyn[`recently_viewed_section_title_${id}`] = z.string().optional();
+    dyn[`recently_viewed_section_subtitle_${id}`] = z.string().optional();
   });
 
   return z.object({
@@ -395,6 +397,10 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
         homeDefault?.all_products_section?.[0]?.enabled_disabled === "on"
           ? "on"
           : "",
+      recently_viewed_section:
+        homeDefault?.recently_viewed_section?.[0]?.enabled_disabled === "on"
+          ? "on"
+          : "",
     });
     setLayoutBlocks(
       normalizeLayoutBlocks(homeDefault?.layout_blocks, homeDefault?.section_order)
@@ -461,6 +467,14 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
           setValue(
             `all_products_section_title_${langCode}`,
             tObj?.all_products_section?.[0]?.title || ""
+          );
+          setValue(
+            `recently_viewed_section_title_${langCode}`,
+            tObj?.recently_viewed_section?.[0]?.title || ""
+          );
+          setValue(
+            `recently_viewed_section_subtitle_${langCode}`,
+            tObj?.recently_viewed_section?.[0]?.subtitle || ""
           );
         });
     }
@@ -704,6 +718,8 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
       newsletters_title: string;
       newsletters_subtitle: string;
       all_products_section_title: string;
+      recently_viewed_section_title: string;
+      recently_viewed_section_subtitle: string;
     }) => ({
       section_order: layoutBlocks.reduce((acc, block) => {
         if (!acc.includes(block.type)) acc.push(block.type);
@@ -872,6 +888,10 @@ const ThemeHomePage: React.FC<ThemeHomePageProps> = ({
               (values as any)[`newsletters_subtitle_${langCode}`] || "",
             all_products_section_title:
               (values as any)[`all_products_section_title_${langCode}`] || "",
+            recently_viewed_section_title:
+              (values as any)[`recently_viewed_section_title_${langCode}`] || "",
+            recently_viewed_section_subtitle:
+              (values as any)[`recently_viewed_section_subtitle_${langCode}`] || "",
           };
 
           updatedTranslations[langCode].theme_data.theme_pages[

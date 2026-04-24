@@ -44,6 +44,7 @@ import {
   useBannerStoreMutation,
   useBannerUpdateMutation,
 } from '@/modules/admin-section/promotional/banner/banner.action';
+import { useThemeAllQuery } from '@/modules/admin-section/theme/theme.action';
 
 import GlobalImageLoader from '@/lib/imageLoader';
 import {
@@ -81,12 +82,6 @@ const DiscountTypeList = [
   { label: 'Banner Section Three', value: 'banner_three' },
 ];
 
-const Themelist = [
-  { label: 'Default', value: 'default' },
-  { label: 'Theme One', value: 'theme_one' },
-  { label: 'Theme Two', value: 'theme_two' },
-];
-
 // ✅ JSON'a dahil edeceğimiz i18n alanlar
 const I18N_FIELDS = ['title', 'sub_title', 'button_text', 'description'] as const;
 type BannerFormInput = z.input<typeof bannerSchema>;
@@ -112,6 +107,19 @@ function safeUrl(v: any) {
 export default function CreateOrUpdateBannerForm({ data }: any) {
   const dispatch = useAppDispatch();
   const t = useTranslations();
+  const { ThemeList } = useThemeAllQuery({
+    limit: 50,
+    page: 1,
+    sortField: 'id',
+    sort: 'asc',
+  });
+  const Themelist = useMemo(() => [
+    { label: t('label.default_theme'), value: 'default' },
+    ...(((ThemeList as any)?.themes || []).map((theme: any) => ({
+      label: theme.name,
+      value: theme.slug,
+    }))),
+  ], [ThemeList, t]);
 
   const allLangs = useMemo(() => multiLang as Array<{ id: string; label: string }>, []);
 

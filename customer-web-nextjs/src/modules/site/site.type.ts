@@ -16,6 +16,10 @@ export interface SiteSettings {
   com_facebook_login_enabled?: string | null;
   active_theme: string;
   com_ai_chat_enabled?: string | null;
+  com_google_analytics_id?: string | null;
+  com_google_tag_manager_id?: string | null;
+  com_google_ads_conversion_id?: string | null;
+  com_google_ads_purchase_label?: string | null;
 }
 
 export interface SiteGeneralInfo {
@@ -81,6 +85,7 @@ export interface Category {
   category_banner: string;
   category_thumb: string;
   category_thumb_url: string;
+  representative_product_image_url?: string | null;
   category_name_paths: string;
   parent_path: string;
   display_order: number;

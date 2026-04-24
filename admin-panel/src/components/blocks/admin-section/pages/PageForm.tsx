@@ -115,8 +115,8 @@ export default function PagesForm({ data }: any) {
       meta_title_df: '',
       meta_description_df: '',
       meta_keywords_df: [],
-      status: '',
-      theme_name: '',
+      status: 'publish',
+      theme_name: 'default',
     } as any,
   });
 
@@ -251,8 +251,8 @@ export default function PagesForm({ data }: any) {
         meta_title_df: '',
         meta_description_df: '',
         meta_keywords_df: [],
-        status: '',
-        theme_name: '',
+        status: 'publish',
+        theme_name: 'default',
       };
 
       uiLangs.forEach((l) => {
@@ -277,8 +277,8 @@ export default function PagesForm({ data }: any) {
       meta_title_df: safeStr(entity?.meta_title),
       meta_description_df: safeStr(entity?.meta_description),
       meta_keywords_df: metaKeywordsToArray(entity?.meta_keywords),
-      status: safeStr(entity?.status),
-      theme_name: safeStr(entity?.theme_name),
+      status: safeStr(entity?.status) || 'publish',
+      theme_name: safeStr(entity?.theme_name) || 'default',
     };
 
     // prefill all langs empty
@@ -373,8 +373,8 @@ export default function PagesForm({ data }: any) {
       meta_title: safeStr(values.meta_title_df),
       meta_description: safeStr(values.meta_description_df),
       meta_keywords: metaKeywordsToString((values as any).meta_keywords_df),
-      theme_name: safeStr(values.theme_name),
-      status: safeStr(values.status),
+      theme_name: safeStr(values.theme_name) || 'default',
+      status: safeStr(values.status) || 'publish',
     };
 
     const translations = (uiLangs ?? [])

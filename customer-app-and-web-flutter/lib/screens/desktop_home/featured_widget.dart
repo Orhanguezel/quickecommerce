@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -22,8 +21,13 @@ import '../common_widgets/item_title.dart';
 import 'product_grid.dart';
 
 class DesktopFeaturedWidget extends StatefulWidget {
-  const DesktopFeaturedWidget({super.key, required this.title});
+  const DesktopFeaturedWidget({
+    super.key,
+    required this.title,
+    this.isPremium = false,
+  });
   final String title;
+  final bool isPremium;
   @override
   State<DesktopFeaturedWidget> createState() => _DesktopFeaturedWidgetState();
 }
@@ -31,7 +35,7 @@ class DesktopFeaturedWidget extends StatefulWidget {
 class _DesktopFeaturedWidgetState extends State<DesktopFeaturedWidget> {
   late final FeaturedProductBloc _featuredProductBloc;
   late final FavoriteAddBloc _favoriteAddBloc;
-  String _token = '', _language = '',_userLat='',_userLong='';
+  String _token = '', _language = '', _userLat = '', _userLong = '';
   getUserRout() async {
     var token = await UserSharedPreference.getValue(
       SharedPreferenceHelper.token,
@@ -49,12 +53,12 @@ class _DesktopFeaturedWidgetState extends State<DesktopFeaturedWidget> {
     _language = language ?? "";
     _userLat = customerLat ?? "";
     _userLong = customerLong ?? "";
-    _featuredProductBloc
-        .add( FeaturedProduct(perPage: '2',language: _language,
+    _featuredProductBloc.add(FeaturedProduct(
+        perPage: '2',
+        language: _language,
         userLat: _userLat,
         userLong: _userLong,
-        token: _token
-    ));
+        token: _token));
   }
 
   @override
@@ -64,8 +68,9 @@ class _DesktopFeaturedWidgetState extends State<DesktopFeaturedWidget> {
     getUserRout();
     super.initState();
   }
+
   bool _isInitialLoad = true;
-  List<ProductData> productData=[];
+  List<ProductData> productData = [];
   @override
   Widget build(BuildContext context) {
     var homeCon = Provider.of<HomeScreenProvider>(context);
@@ -73,80 +78,86 @@ class _DesktopFeaturedWidgetState extends State<DesktopFeaturedWidget> {
     var commonProvider = Provider.of<CommonProvider>(context);
     return BlocConsumer<FeaturedProductBloc, FeaturedProductState>(
       builder: (_, state) {
-        if (  state is FeaturedProductLoading) {
-          return _isInitialLoad?
-          const DesktopProductLoadingGrid(itemCount: 10,)
-              :DesktopProductGrid(
-                productData: productData,
-                physics: const NeverScrollableScrollPhysics(),
-                onFavoriteToggle: (wishlist, id) {
-                  _handleFavoriteToggle(wishlist!, id);
-                },
-              );
+        if (state is FeaturedProductLoading) {
+          return _isInitialLoad
+              ? const DesktopProductLoadingGrid(
+                  itemCount: 10,
+                )
+              : DesktopProductGrid(
+                  productData: productData,
+                  physics: const NeverScrollableScrollPhysics(),
+                  isPremium: widget.isPremium,
+                  onFavoriteToggle: (wishlist, id) {
+                    _handleFavoriteToggle(wishlist!, id);
+                  },
+                );
         }
 
         if (state is FeaturedProductLoaded) {
           if (_isInitialLoad && state.hasConnectionError) {
             CommonFunctions.showCustomSnackBar(
-                context,
-                AppLocalizations.of(context)!.noInternet
-            );
+                context, AppLocalizations.of(context)!.noInternet);
           }
           _isInitialLoad = false;
-          productData=state.featuredProductModel.data;
+          productData = state.featuredProductModel.data;
           return productData.isEmpty
               ? const SizedBox()
               : Column(
-            children: [
-             ItemTitle(
-                  title:widget.title.isEmpty?  AppLocalizations.of(context)!.featured:widget.title,
-                  subTitle:"",
-                  onTap: () {
-                    filterCon.updateSelectedValue("Is Featured");
-                    filterCon.setProductType("Is Featured");
-                    homeCon.setTabType("Products");
-                  }),
-              commonProvider.isLoading?
-              BlocListener<FavoriteAddBloc, FavoriteAddState>(
-                listener: (context, state) {
-                  if (state is FavoriteAddConnectionError) {
-                    commonProvider.setLoading(false);
-                    CommonFunctions.showCustomSnackBar(
-                        context, AppLocalizations.of(context)!.noInternet);
-                  } else if (state is FavoriteAddFailure) {
-                    commonProvider.setLoading(false);
-                    CommonFunctions.showCustomSnackBar(
-                        context, state.authModel.message);
-                  }
-                  else if (state is FavoriteAddLoaded) {
-                      CommonFunctions.showCustomSnackBar(
-                          color: Colors.green,
-                          context, state.authModel.message);
-                      commonProvider.setLoading(false);
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        _featuredProductBloc.add( FeaturedProduct(
-                          perPage: '2',
-                          language: _language,
-                          userLat: _userLat,
-                          userLong: _userLong,
-                          token: _token,
-                        ));
-                      });
-                  }
-                },
-                child: const SizedBox(),
-              )
-                  :const SizedBox(),
-              SizedBox(height: 16.h),
-              DesktopProductGrid(
-                productData: productData,
-                physics: const NeverScrollableScrollPhysics(),
-                onFavoriteToggle: (wishlist, id) {
-                  _handleFavoriteToggle(wishlist!, id);
-                },
-              ),
-            ],
-          );
+                  children: [
+                    ItemTitle(
+                        title: widget.title.isEmpty
+                            ? AppLocalizations.of(context)!.featured
+                            : widget.title,
+                        subTitle: "",
+                        isPremium: widget.isPremium,
+                        onTap: () {
+                          filterCon.updateSelectedValue("Is Featured");
+                          filterCon.setProductType("Is Featured");
+                          homeCon.setTabType("Products");
+                        }),
+                    commonProvider.isLoading
+                        ? BlocListener<FavoriteAddBloc, FavoriteAddState>(
+                            listener: (context, state) {
+                              if (state is FavoriteAddConnectionError) {
+                                commonProvider.setLoading(false);
+                                CommonFunctions.showCustomSnackBar(context,
+                                    AppLocalizations.of(context)!.noInternet);
+                              } else if (state is FavoriteAddFailure) {
+                                commonProvider.setLoading(false);
+                                CommonFunctions.showCustomSnackBar(
+                                    context, state.authModel.message);
+                              } else if (state is FavoriteAddLoaded) {
+                                CommonFunctions.showCustomSnackBar(
+                                    color: Colors.green,
+                                    context,
+                                    state.authModel.message);
+                                commonProvider.setLoading(false);
+                                WidgetsBinding.instance
+                                    .addPostFrameCallback((_) {
+                                  _featuredProductBloc.add(FeaturedProduct(
+                                    perPage: '2',
+                                    language: _language,
+                                    userLat: _userLat,
+                                    userLong: _userLong,
+                                    token: _token,
+                                  ));
+                                });
+                              }
+                            },
+                            child: const SizedBox(),
+                          )
+                        : const SizedBox(),
+                    SizedBox(height: 16.h),
+                    DesktopProductGrid(
+                      productData: productData,
+                      physics: const NeverScrollableScrollPhysics(),
+                      isPremium: widget.isPremium,
+                      onFavoriteToggle: (wishlist, id) {
+                        _handleFavoriteToggle(wishlist!, id);
+                      },
+                    ),
+                  ],
+                );
         }
         return Container();
       },
@@ -170,7 +181,7 @@ class _DesktopFeaturedWidgetState extends State<DesktopFeaturedWidget> {
   }
 
   void _handleFavoriteToggle(bool isWishlist, String id) {
-    var commonProvider = Provider.of<CommonProvider>(context,listen: false);
+    var commonProvider = Provider.of<CommonProvider>(context, listen: false);
     if (_token.isEmpty) {
       showDialog(
         context: context,

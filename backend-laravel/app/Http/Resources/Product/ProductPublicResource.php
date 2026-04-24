@@ -18,7 +18,7 @@ class ProductPublicResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $firstVariant = $this->variants->first();
+        $firstVariant = $this->displayVariant();
         // Get the requested language from the query parameter
         $language = $request->input('language', 'en');
         // Get the translation for the requested language
@@ -42,16 +42,11 @@ class ProductPublicResource extends JsonResource
             'rating' => number_format((float)$this->rating, 2, '.', ''),
             'review_count' => $this->review_count,
             'max_cart_qty' => $this->max_cart_qty,
-            'stock' => $this->variants->isNotEmpty() ? $this->variants->sum('stock_quantity') : null,
+            'stock' => $this->totalStock(),
             'attributes' => $this->variants->pluck('attributes')->map(function ($attribute) {
                 return json_decode($attribute, true);
             })->toArray(),
-            'effective_price' => optional($firstVariant)->effective_price
-                ?? (
-                optional($firstVariant)->special_price && optional($firstVariant)->special_price < optional($firstVariant)->price
-                    ? optional($firstVariant)->special_price
-                    : optional($firstVariant)->price
-                ),
+            'effective_price' => $this->variantEffectivePrice($firstVariant),
             'price' => shouldRound() ? round(optional($firstVariant)->price) : round(optional($firstVariant)->price, 2),
             'special_price' => shouldRound() ? round(optional($firstVariant)->special_price) : round(optional($firstVariant)->special_price, 2),
             'singleVariant' => $this->variants->count() === 1 ? [$firstVariant] : [],

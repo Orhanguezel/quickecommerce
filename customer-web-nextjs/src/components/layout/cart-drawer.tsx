@@ -11,7 +11,10 @@ import { usePrice } from "@/hooks/use-price";
 import { useBaseService } from "@/lib/base-service";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import Image from "next/image";
-import { ShoppingCart, X, Minus, Plus, Trash2, LogIn, Truck } from "lucide-react";
+import { ShoppingCart, X, Minus, Plus, Trash2, LogIn } from "lucide-react";
+import { FreeShippingProgressBar } from "@/components/cart/free-shipping-progress-bar";
+import { CouponProgressBar } from "@/components/cart/coupon-progress-bar";
+import { StockUrgencyBadge } from "@/components/cart/stock-urgency-badge";
 
 export function CartDrawer() {
   const t = useTranslations("cart");
@@ -72,9 +75,6 @@ export function CartDrawer() {
   const freeShippingThreshold = useMemo(() => {
     return Number(shippingCampaigns?.free_shipping_min_order_value ?? 0);
   }, [shippingCampaigns]);
-
-  const remainingForFreeShipping = freeShippingThreshold > 0 ? Math.max(0, freeShippingThreshold - price) : 0;
-  const freeShippingProgress = freeShippingThreshold > 0 ? Math.min(100, (price / freeShippingThreshold) * 100) : 0;
 
   return (
     <>
@@ -157,6 +157,16 @@ export function CartDrawer() {
                           {item.variant_label}
                         </p>
                       )}
+                      {item.bundle_id && (
+                        <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-semibold text-purple-700 dark:bg-purple-950/50 dark:text-purple-300">
+                          📦 Paket fırsatı
+                        </span>
+                      )}
+                      {item.max_cart_qty > 0 && item.max_cart_qty <= 5 && (
+                        <div className="mt-1.5">
+                          <StockUrgencyBadge stock={item.max_cart_qty} size="sm" />
+                        </div>
+                      )}
                     </div>
 
                     <div className="mt-2 flex items-center justify-between">
@@ -212,27 +222,17 @@ export function CartDrawer() {
           {/* Free Shipping Progress */}
           {mounted && displayItems.length > 0 && freeShippingThreshold > 0 && (
             <div className="mb-3">
-              {remainingForFreeShipping > 0 ? (
-                <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 dark:border-amber-800 dark:bg-amber-950/50">
-                  <div className="flex items-center gap-1.5 text-xs text-amber-800 dark:text-amber-300">
-                    <Truck className="h-3.5 w-3.5 shrink-0" />
-                    <span className="flex-1">
-                      {t("free_shipping_progress", { remaining: formatPrice(remainingForFreeShipping) })}
-                    </span>
-                  </div>
-                  <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-amber-200 dark:bg-amber-900">
-                    <div
-                      className="h-full rounded-full bg-amber-500 transition-all duration-500"
-                      style={{ width: `${freeShippingProgress}%` }}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center gap-1.5 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-xs font-medium text-green-700 dark:border-green-800 dark:bg-green-950/50 dark:text-green-300">
-                  <Truck className="h-3.5 w-3.5 shrink-0" />
-                  <span>{t("free_shipping_earned")}</span>
-                </div>
-              )}
+              <FreeShippingProgressBar
+                currentAmount={price}
+                threshold={freeShippingThreshold}
+                variant="compact"
+              />
+            </div>
+          )}
+          {/* Coupon Progress */}
+          {mounted && displayItems.length > 0 && (
+            <div className="mb-3">
+              <CouponProgressBar currentAmount={price} variant="compact" />
             </div>
           )}
           <div className="mb-3 flex items-center justify-between">

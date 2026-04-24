@@ -13,6 +13,9 @@ import '../../controller/bloc/currency_bloc/currency_state.dart';
 import '../../controller/bloc/currency_list_bloc/currency_list_bloc.dart';
 import '../../controller/bloc/currency_list_bloc/currency_list_event.dart';
 import '../../controller/bloc/currency_list_bloc/currency_list_state.dart';
+import '../../controller/bloc/general_info_bloc/general_info_bloc.dart';
+import '../../controller/bloc/general_info_bloc/general_info_event.dart';
+import '../../controller/bloc/general_info_bloc/general_info_state.dart';
 import '../../controller/bloc/profile_bloc/profile_bloc.dart';
 import '../../controller/bloc/profile_bloc/profile_event.dart';
 import '../../controller/bloc/profile_bloc/profile_state.dart';
@@ -40,6 +43,7 @@ import 'web_menu_and_page.dart';
 import '../desktop_home/all_product_screen.dart';
 import '../desktop_home/desktop_categories_screen.dart';
 import '../desktop_home/desktop_home.dart';
+import '../desktop_home/desktop_premium_home.dart';
 
 class DesktopTabsHome extends StatefulWidget {
   const DesktopTabsHome({super.key});
@@ -52,7 +56,13 @@ class _DesktopTabsHomeState extends State<DesktopTabsHome> {
   late final CurrencyListBloc _currencyListBloc;
   late final AllProductBloc _allProductBloc;
   late final ProfileBloc _profileBloc;
-  String _token = '', _emailSettingsOn = "", _currencyCode = '', _language = '', _userLat = '', _userLong = '';
+  late final GeneralInfoBloc _generalInfoBloc;
+  String _token = '',
+      _emailSettingsOn = "",
+      _currencyCode = '',
+      _language = '',
+      _userLat = '',
+      _userLong = '';
   bool _emailVerified = false;
   final FocusNode focusNode = FocusNode();
   @override
@@ -60,7 +70,11 @@ class _DesktopTabsHomeState extends State<DesktopTabsHome> {
     _allProductBloc = context.read<AllProductBloc>();
     _currencyListBloc = context.read<CurrencyListBloc>();
     _profileBloc = context.read<ProfileBloc>();
+    _generalInfoBloc = context.read<GeneralInfoBloc>();
     getUserRout();
+    if (_generalInfoBloc.state is! GeneralInfoLoaded) {
+      _generalInfoBloc.add(GeneralInfoDataEvent());
+    }
     super.initState();
   }
 
@@ -137,6 +151,13 @@ class _DesktopTabsHomeState extends State<DesktopTabsHome> {
     var filterCon = Provider.of<FilterController>(context);
     var dAddressCon = Provider.of<DeliveryAddressController>(context);
     var cardCon = Provider.of<CartProvider>(context);
+    final generalInfoState = context.watch<GeneralInfoBloc>().state;
+    final activeTheme = generalInfoState is GeneralInfoLoaded
+        ? Utils.formatString(
+            generalInfoState.generalInfoModel.siteSettings.activeTheme,
+          )
+        : 'theme_one';
+    final isPremiumTheme = activeTheme == 'theme_two';
 
     var allProduct = Provider.of<AllProductController>(context, listen: false);
     double screenWidth = MediaQuery.of(context).size.width;
@@ -152,90 +173,106 @@ class _DesktopTabsHomeState extends State<DesktopTabsHome> {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60),
         child: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor:
+              isPremiumTheme ? const Color(0xFF0F172A) : Colors.white,
           title: Row(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6,horizontal: 10),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
                 child: Image.asset(
-                  Images.darkLogo,
+                  isPremiumTheme ? Images.lightLogo : Images.darkLogo,
                   height: 54,
                   width: 90,
                   fit: BoxFit.fill,
                 ),
               ),
-              screenWidth>550? Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  child: SizedBox(
-                    width: 300,
-                    child: InkWell(
-                      onTap: () {
-                        _openLocationSearch(context);
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          Image.asset(
-                            AssetsIcons.location,
-                            height: 16,
-                            width: 16,
-                            color: const Color(0xFF242426),
-                            fit: BoxFit.contain,
-                          ),
-                          const SizedBox(
-                            width: 4,
-                          ),
-                          Text(
-                            "${AppLocalizations.of(context)!.location} :",
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Colors.black,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+              screenWidth > 550
+                  ? Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: SizedBox(
+                          width: 300,
+                          child: InkWell(
+                            onTap: () {
+                              _openLocationSearch(context);
+                            },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                const SizedBox(
+                                  width: 10,
+                                ),
+                                Image.asset(
+                                  AssetsIcons.location,
+                                  height: 16,
+                                  width: 16,
+                                  color: isPremiumTheme
+                                      ? Colors.white
+                                      : const Color(0xFF242426),
+                                  fit: BoxFit.contain,
+                                ),
+                                const SizedBox(
+                                  width: 4,
+                                ),
+                                Text(
+                                  "${AppLocalizations.of(context)!.location} :",
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: isPremiumTheme
+                                        ? Colors.white
+                                        : Colors.black,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 6,
+                                ),
+                                dAddressCon.selectedAddress.isEmpty
+                                    ? Text(
+                                        AppLocalizations.of(context)!
+                                            .getLocation,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .displayLarge
+                                            ?.copyWith(
+                                                color: isPremiumTheme
+                                                    ? const Color(0xFFCBD5E1)
+                                                    : const Color(0xFF4F547B),
+                                                fontWeight: FontWeight.w400,
+                                                fontSize: 16),
+                                      )
+                                    : Flexible(
+                                        child: AutoScrollText(
+                                          text: dAddressCon.selectedAddress,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .headlineSmall
+                                              ?.copyWith(
+                                                  color: isPremiumTheme
+                                                      ? const Color(0xFFCBD5E1)
+                                                      : const Color(0xFF4F547B),
+                                                  fontWeight: FontWeight.w400,
+                                                  fontSize: 16),
+                                        ),
+                                      ),
+                                Icon(
+                                  Icons.keyboard_arrow_down,
+                                  color: isPremiumTheme ? Colors.white : null,
+                                ),
+                                const SizedBox(
+                                  width: 10,
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(
-                            width: 6,
-                          ),
-                          dAddressCon.selectedAddress.isEmpty
-                              ? Text(
-                            AppLocalizations.of(context)!.getLocation,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context)
-                                .textTheme
-                                .displayLarge
-                                ?.copyWith(
-                                color: const Color(0xFF4F547B),
-                                fontWeight: FontWeight.w400,
-                                fontSize: 16),
-                          )
-                              : Flexible(
-                            child: AutoScrollText(
-                              text: dAddressCon.selectedAddress,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .headlineSmall
-                                  ?.copyWith(
-                                  color: const Color(0xFF4F547B),
-                                  fontWeight: FontWeight.w400,
-                                  fontSize: 16),
-                            ),
-                          ),
-                          const Icon(Icons.keyboard_arrow_down),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
-                ),
-              ):const SizedBox(),
+                    )
+                  : const SizedBox(),
               SizedBox(
                 width: 150,
                 child: CommonDropdownObject<CurrencyData>(
@@ -246,7 +283,7 @@ class _DesktopTabsHomeState extends State<DesktopTabsHome> {
                   getValue: (item) => item.value.toString(),
                   onChanged: (value) async {
                     final selected = currencyCon.currencies.firstWhere(
-                          (e) => e.value.toString() == value.toString(),
+                      (e) => e.value.toString() == value.toString(),
                     );
                     // Now you can access everything
                     String label = selected.label;
@@ -295,7 +332,6 @@ class _DesktopTabsHomeState extends State<DesktopTabsHome> {
                     if (data != null) {
                       putName(data.fullName);
                       WidgetsBinding.instance.addPostFrameCallback((_) {
-
                         if (isFirstLoad) {
                           // notificationCon.setUnreadCount(Utils.formatInt(data.unreadNotifications));
                           isFirstLoad = false;
@@ -318,7 +354,6 @@ class _DesktopTabsHomeState extends State<DesktopTabsHome> {
                   }
                 },
               ),
-
             ],
           ),
           actions: [
@@ -329,12 +364,12 @@ class _DesktopTabsHomeState extends State<DesktopTabsHome> {
                   homeCon.setMenuName("MyWishlist");
                 }
               },
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 2),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 2),
                 child: ImageIcon(
                   AssetImage(AssetsIcons.favoriteOutline),
                   size: 24,
-                  color: Colors.black,
+                  color: isPremiumTheme ? Colors.white : Colors.black,
                 ),
               ),
             ),
@@ -354,11 +389,11 @@ class _DesktopTabsHomeState extends State<DesktopTabsHome> {
                       title: AppLocalizations.of(context)!
                           .emailVerificationRequired,
                       message:
-                      '${AppLocalizations.of(context)!.toAccessYour} ${AppLocalizations.of(context)!.notification},${AppLocalizations.of(context)!.pleaseVerifyYourEmail}',
+                          '${AppLocalizations.of(context)!.toAccessYour} ${AppLocalizations.of(context)!.notification},${AppLocalizations.of(context)!.pleaseVerifyYourEmail}',
                       onConfirm: () {
                         showDialog(
                           context: context,
-                          builder: (context) =>const AlertDialog(
+                          builder: (context) => const AlertDialog(
                             contentPadding: EdgeInsets.zero,
                             content: SizedBox(
                                 height: 400,
@@ -373,12 +408,12 @@ class _DesktopTabsHomeState extends State<DesktopTabsHome> {
               },
               child: Stack(
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.all(6.0),
+                  Padding(
+                    padding: const EdgeInsets.all(6.0),
                     child: ImageIcon(
                       AssetImage(AssetsIcons.notification),
                       size: 30,
-                      color: Colors.black,
+                      color: isPremiumTheme ? Colors.white : Colors.black,
                     ),
                   ),
                   Positioned(
@@ -416,7 +451,7 @@ class _DesktopTabsHomeState extends State<DesktopTabsHome> {
             ),
             const SizedBox(width: 2),
             InkWell(
-              onTap: (){
+              onTap: () {
                 homeCon.setDrawerTypeType("Card");
                 _scaffoldKey.currentState?.openEndDrawer();
               },
@@ -429,7 +464,7 @@ class _DesktopTabsHomeState extends State<DesktopTabsHome> {
                     width: 30,
                     color: homeCon.currentIndexHomePage == 2
                         ? CustomColors.baseColor
-                        : Colors.grey,
+                        : (isPremiumTheme ? Colors.white70 : Colors.grey),
                     fit: BoxFit.contain,
                   ),
                   Positioned(
@@ -466,8 +501,8 @@ class _DesktopTabsHomeState extends State<DesktopTabsHome> {
               onTap: () {
                 homeCon.setTabType("Menu");
               },
-              child:  AvatarWidget(
-                imageUrl:commonCon.profileUrl,
+              child: AvatarWidget(
+                imageUrl: commonCon.profileUrl,
                 radius: 20,
               ),
             ),
@@ -478,7 +513,7 @@ class _DesktopTabsHomeState extends State<DesktopTabsHome> {
       ),
       body: Column(
         children: [
-          const SizedBox(height:6),
+          const SizedBox(height: 6),
           CommonCard(
             pBottom: 4,
             pTop: 4,
@@ -486,76 +521,103 @@ class _DesktopTabsHomeState extends State<DesktopTabsHome> {
             pRight: 20,
             mHorizontal: 0,
             mVertical: 0,
-            widget: Row(
-              children: [
-                const SizedBox(width: 12),
-                MenuTab(
-                  title: AppLocalizations.of(context)!.home,
-                  selectedTab: homeCon.tabType,
-                  tabKey: "Home",
-                  onTap: () => homeCon.setTabType("Home"),
-                ),
-                const SizedBox(width: 12),
-                MenuTab(
-                  title: AppLocalizations.of(context)!.products,
-                  selectedTab: homeCon.tabType,
-                  tabKey: "Products",
-                  onTap: () => homeCon.setTabType("Products"),
-                ),
-                const SizedBox(width: 12),
-                MenuTab(
-                  title: AppLocalizations.of(context)!.category,
-                  selectedTab: homeCon.tabType,
-                  tabKey: "Category",
-                  onTap: () => homeCon.setTabType("Category"),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DesktopSearchWidget(
-                    onSearch: (value) {
-                      filterCon.setProductType("all");
-                      _allProductBloc.add(AllProduct(
-                          categoryId: const [],
-                          search: value.length < 3 ? "" : value,
-                          perPage: "10",
-                          page: 1,
-                          minPrice: "",
-                          maxPrice: "",
-                          brandId: const [],
-                          availability: "",
-                          sort: "",
-                          type: const [],
-                          minRating: "",
-                          language: _language,
-                          isFeatured: filterCon.isFeatured,
-                          bestSelling: filterCon.bestSelling,
-                          popularProducts: filterCon.popularProducts,
-                          flashSale: filterCon.flashSale,
-                          flashSaleId: 0,
-                          userLat: _userLat,
-                          userLong: _userLong,
-                          token: _token));
-                      allProduct.allProductClear();
-                    },
-                    hint: AppLocalizations.of(context)!.searchProductsHere,
-                    type: "Products",
+            widget: Container(
+              decoration: isPremiumTheme
+                  ? BoxDecoration(
+                      borderRadius: BorderRadius.circular(18),
+                      gradient: const LinearGradient(
+                        colors: [
+                          Color(0xFFFFFFFF),
+                          Color(0xFFF8FAFC),
+                        ],
+                      ),
+                    )
+                  : null,
+              child: Row(
+                children: [
+                  const SizedBox(width: 12),
+                  MenuTab(
+                    title: AppLocalizations.of(context)!.home,
+                    selectedTab: homeCon.tabType,
+                    tabKey: "Home",
+                    activeColor:
+                        isPremiumTheme ? const Color(0xFF2563EB) : Colors.red,
+                    inactiveColor:
+                        isPremiumTheme ? const Color(0xFF334155) : Colors.black,
+                    onTap: () => homeCon.setTabType("Home"),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 12),
+                  MenuTab(
+                    title: AppLocalizations.of(context)!.products,
+                    selectedTab: homeCon.tabType,
+                    tabKey: "Products",
+                    activeColor:
+                        isPremiumTheme ? const Color(0xFF2563EB) : Colors.red,
+                    inactiveColor:
+                        isPremiumTheme ? const Color(0xFF334155) : Colors.black,
+                    onTap: () => homeCon.setTabType("Products"),
+                  ),
+                  const SizedBox(width: 12),
+                  MenuTab(
+                    title: AppLocalizations.of(context)!.category,
+                    selectedTab: homeCon.tabType,
+                    tabKey: "Category",
+                    activeColor:
+                        isPremiumTheme ? const Color(0xFF2563EB) : Colors.red,
+                    inactiveColor:
+                        isPremiumTheme ? const Color(0xFF334155) : Colors.black,
+                    onTap: () => homeCon.setTabType("Category"),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: DesktopSearchWidget(
+                      onSearch: (value) {
+                        filterCon.setProductType("all");
+                        _allProductBloc.add(AllProduct(
+                            categoryId: const [],
+                            search: value.length < 3 ? "" : value,
+                            perPage: "10",
+                            page: 1,
+                            minPrice: "",
+                            maxPrice: "",
+                            brandId: const [],
+                            availability: "",
+                            sort: "",
+                            type: const [],
+                            minRating: "",
+                            language: _language,
+                            isFeatured: filterCon.isFeatured,
+                            bestSelling: filterCon.bestSelling,
+                            popularProducts: filterCon.popularProducts,
+                            flashSale: filterCon.flashSale,
+                            flashSaleId: 0,
+                            userLat: _userLat,
+                            userLong: _userLong,
+                            token: _token));
+                        allProduct.allProductClear();
+                      },
+                      hint: AppLocalizations.of(context)!.searchProductsHere,
+                      type: "Products",
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           Expanded(
               child: homeCon.tabType == 'Home'
-                  ? const DesktopHome()
+                  ? (isPremiumTheme
+                      ? const DesktopPremiumHome()
+                      : const DesktopHome())
                   : homeCon.tabType == 'Products'
                       ? const DesktopProductScreen()
                       : homeCon.tabType == 'Category'
                           ? const DesktopCategories()
                           : homeCon.tabType == 'Checkout'
-                  ? const WebCheckoutScreens()
-              :homeCon.tabType == 'Menu'?
-              const MenuAndPage()
-                  :const SizedBox()),
+                              ? const WebCheckoutScreens()
+                              : homeCon.tabType == 'Menu'
+                                  ? const MenuAndPage()
+                                  : const SizedBox()),
         ],
       ),
     );
@@ -613,7 +675,7 @@ class MenuTab extends StatelessWidget {
         style: Theme.of(context).textTheme.displayLarge!.copyWith(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: isSelected ? activeColor : null,
+              color: isSelected ? activeColor : inactiveColor,
             ),
         child: Text(title),
       ),

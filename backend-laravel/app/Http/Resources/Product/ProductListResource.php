@@ -20,6 +20,7 @@ class ProductListResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $displayVariant = $this->displayVariant();
         // Get the requested language from the query parameter
         $language = $request->input('language', 'en');
         // Get the translation for the requested language
@@ -55,6 +56,10 @@ class ProductListResource extends JsonResource
             'delivery_time_max' => $this->delivery_time_max,
             'delivery_time_text' => $this->delivery_time_text,
             'max_cart_qty' => $this->max_cart_qty,
+            'stock' => $this->totalStock(),
+            'price' => optional($displayVariant)->price,
+            'special_price' => optional($displayVariant)->special_price,
+            'default_variant_id' => optional($displayVariant)->id,
             'order_count' => $this->order_count,
             'attributes' => $this->attributes,
             'children' => ProductVariantPublicResource::collection($this->variants),

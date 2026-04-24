@@ -3,9 +3,13 @@
 import { Link, useRouter } from '@/i18n/routing';
 import { ROUTES } from '@/config/routes';
 import { useSiteInfoQuery, useMenuQuery, useCategoryQuery } from '@/modules/site/site.action';
+import {
+  isDisplayableProductCategory,
+  isBuyPayCampaignCategory,
+  sortCategoriesForNavigation,
+} from '@/modules/site/category-utils';
 import { useCartStore } from '@/stores/cart-store';
 import { useAuthStore } from '@/stores/auth-store';
-import { useLocationStore } from '@/stores/location-store';
 import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
 import { MobileNav } from './mobile-nav';
@@ -17,19 +21,26 @@ import {
   Heart,
   User,
   Menu,
-  Mail,
-  Phone,
   Moon,
   Sun,
-  Grid3X3,
-  ChevronDown,
   ChevronRight,
-  Store,
-  MapPin,
+  PackageSearch,
+  Tags,
+  Zap,
 } from 'lucide-react';
-import { useState, useRef, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import Image from 'next/image';
 import type { Category, MenuItem } from '@/modules/site/site.type';
+
+function chunkArray<T>(items: T[], size: number): T[][] {
+  if (size <= 0) return [items];
+
+  const chunks: T[][] = [];
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+  return chunks;
+}
 
 export function HeaderVariant1() {
   const t = useTranslations();
@@ -43,18 +54,93 @@ export function HeaderVariant1() {
   );
   const openCartDrawer = useCartStore((s) => s.openDrawer);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const { selectedArea, openSelector } = useLocationStore();
 
   const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [catOpen, setCatOpen] = useState(false);
-  const [hoveredCatId, setHoveredCatId] = useState<number | null>(null);
-  const [hoveredFlyoutTop, setHoveredFlyoutTop] = useState(0);
-  const [hoveredFlyoutMaxHeight, setHoveredFlyoutMaxHeight] = useState(0);
+  const [activeCatId, setActiveCatId] = useState<number | null>(null);
   const [logoError, setLogoError] = useState(false);
-  const catDropdownRef = useRef<HTMLDivElement>(null);
-  const catListRef = useRef<HTMLDivElement>(null);
+
+  const allCats = useMemo(() => categories as Category[], [categories]);
+
+  const getChildren = (parentId: number) =>
+    allCats.filter((c) => Number(c.parent_id) === Number(parentId));
+
+  const getDisplayableDescendants = (parentId: number): Category[] =>
+    getChildren(parentId)
+      .filter((child) => !isBuyPayCampaignCategory(child))
+      .sort(sortCategoriesForNavigation)
+      .flatMap((child) =>
+        isDisplayableProductCategory(child)
+          ? [child]
+          : getDisplayableDescendants(child.id)
+      );
+
+  const topCategories = useMemo(
+    () => {
+      const hasDisplayableCategory = (category: Category) =>
+        isDisplayableProductCategory(category) ||
+        getDisplayableDescendants(category.id).length > 0;
+
+      return allCats
+        .filter((c) => c.parent_id === null)
+        .filter((parent) => !isBuyPayCampaignCategory(parent))
+        .filter(hasDisplayableCategory)
+        .sort(sortCategoriesForNavigation);
+    },
+    [allCats]
+  );
+
+  const getRenderableChildren = (parentId: number) =>
+    getChildren(parentId)
+      .filter((child) => !isBuyPayCampaignCategory(child))
+      .sort(sortCategoriesForNavigation)
+      .flatMap((child) =>
+        isDisplayableProductCategory(child)
+          ? [child]
+          : getDisplayableDescendants(child.id)
+      );
+
+  const activeCategory =
+    topCategories.find((cat) => cat.id === activeCatId) ?? topCategories[0] ?? null;
+  const activeChildren = activeCategory ? getRenderableChildren(activeCategory.id) : [];
+  const visibleNavCategories = topCategories.slice(0, 9);
+  const centerCategories =
+    activeChildren.length > 0
+      ? activeChildren
+      : topCategories.filter((cat) => cat.id !== activeCategory?.id).slice(0, 18);
+  const primaryCenterCategories = centerCategories.slice(0, 8);
+  const secondaryCenterCategories = centerCategories.slice(8);
+  const centerColumnSize = Math.ceil(Math.max(secondaryCenterCategories.length, 1) / 2);
+  const centerColumns = chunkArray(secondaryCenterCategories, centerColumnSize).slice(0, 2);
+  const promoSeen = new Set<number>();
+  const promoCategories = [activeCategory, ...activeChildren, ...topCategories]
+    .filter((cat): cat is Category => Boolean(cat?.category_thumb_url))
+    .filter((cat) => {
+      if (promoSeen.has(cat.id)) return false;
+      promoSeen.add(cat.id);
+      return true;
+    })
+    .slice(0, 4);
+  const megaMenuGridClass =
+    promoCategories.length > 0
+      ? 'xl:grid-cols-[180px_minmax(0,1fr)_380px] 2xl:grid-cols-[180px_minmax(0,1fr)_420px]'
+      : 'xl:grid-cols-[180px_minmax(0,1fr)]';
+  const brandTagline = topCategories.length
+    ? topCategories.slice(0, 3).map((cat) => cat.category_name).join(' • ')
+    : 'spor • beslenme • ekipman';
+
+  const featuredNavLinks = [
+    { href: ROUTES.PRODUCTS, label: t('home.all_products_title'), icon: PackageSearch },
+    { href: ROUTES.CAMPAIGNS, label: t('home.top_deals_title'), icon: Zap },
+    { href: ROUTES.COUPONS, label: t('nav.coupons'), icon: Tags },
+  ];
+
+  const fallbackMenuLinks = menus
+    .filter((m: MenuItem) => m.is_visible && m.parent_id === null)
+    .sort((a: MenuItem, b: MenuItem) => a.position - b.position)
+    .slice(0, 5);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,442 +149,427 @@ export function HeaderVariant1() {
     }
   };
 
-  const cartCount = cartCountLive;
-
-  // Build category tree: hide entries with no products and no valid child.
-  // If parent has no direct product but has valid child, keep parent visible.
-  const allCats = categories as Category[];
-  const getChildren = (parentId: number) =>
-    allCats.filter((c) => Number(c.parent_id) === Number(parentId));
-  const hasDirectProducts = (cat: Category) => Number(cat.product_count || 0) > 0;
-
-  const topCategories = allCats
-    .filter((c) => c.parent_id === null)
-    .filter((parent) => {
-      if (hasDirectProducts(parent)) return true;
-      return getChildren(parent.id).some((child) => hasDirectProducts(child));
-    });
-
-  const getRenderableChildren = (parentId: number) =>
-    getChildren(parentId).filter((child) => hasDirectProducts(child));
-
-  const hoveredChildren = hoveredCatId ? getRenderableChildren(hoveredCatId) : [];
-
-  const updateFlyoutTop = (catId: number) => {
-    const listEl = catListRef.current;
-    if (!listEl) return;
-    const rowEl = listEl.querySelector(`[data-cat-id="${catId}"]`) as HTMLElement | null;
-    if (!rowEl) return;
-
-    const rowRect = rowEl.getBoundingClientRect();
-    const container = listEl.parentElement!;
-    const containerRect = container.getBoundingClientRect();
-    const viewportBottomPadding = 12;
-    const minFlyoutHeight = 180;
-    // Ideal: align flyout top exactly with the hovered row
-    let flyoutTop = rowRect.top - containerRect.top;
-    // How much space is available below the row's top in the viewport
-    const spaceBelow = window.innerHeight - rowRect.top - viewportBottomPadding;
-    // Only shift up if there's not enough space for at least minFlyoutHeight
-    if (spaceBelow < minFlyoutHeight) {
-      flyoutTop = Math.max(0, flyoutTop - (minFlyoutHeight - spaceBelow));
+  const openMegaMenu = () => {
+    const nextOpen = !catOpen;
+    setCatOpen(nextOpen);
+    if (nextOpen) {
+      setActiveCatId((current) => current ?? topCategories[0]?.id ?? null);
     }
-    const clampedTop = flyoutTop;
-    // Max height = space from the flyout's actual top to viewport bottom
-    const flyoutMaxHeight = Math.max(minFlyoutHeight, window.innerHeight - (containerRect.top + clampedTop) - viewportBottomPadding);
-
-    setHoveredFlyoutMaxHeight(flyoutMaxHeight);
-    setHoveredFlyoutTop(clampedTop);
   };
+
+  useEffect(() => {
+    if (!catOpen) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setCatOpen(false);
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [catOpen]);
 
   return (
     <>
-      {/* ══════════ Sticky: ROW 1 + ROW 2 ══════════ */}
       <div
-        className="sticky z-50 w-full shadow-sm"
-        style={{ top: "var(--theme-popup-top-offset, 0px)" }}
+        className="sticky z-[80] w-full shadow-sm"
+        style={{ top: 'var(--theme-popup-top-offset, 0px)' }}
       >
-      {/* ══════════ ROW 1 — Top Bar (Dynamic from theme) ══════════ */}
-      <div className="hidden lg:block" style={{ backgroundColor: 'hsl(var(--header-topbar-bg))', color: 'hsl(var(--header-topbar-text))' }}>
-        <div className="container flex h-11 items-center justify-between text-sm font-medium">
-          {/* Left — Email | Hotline */}
-          <div className="flex items-center gap-3">
-            {siteInfo?.com_site_email && (
-              <a
-                href={`mailto:${siteInfo.com_site_email}`}
-                className="flex items-center gap-2 transition-opacity hover:opacity-80"
+        <div
+          className="hidden lg:block"
+          style={{
+            backgroundColor: 'hsl(var(--header-topbar-bg))',
+            color: 'hsl(var(--header-topbar-text))',
+          }}
+        >
+          <div className="container flex h-8 items-center justify-between text-[11px] font-medium">
+            <div className="flex items-center gap-5">
+              <Link href={ROUTES.PRODUCTS} className="transition-opacity hover:opacity-80">
+                {t('home.all_products_title')}
+              </Link>
+              <span className="h-3 w-px bg-current opacity-20" />
+              <Link href={ROUTES.SELLER_REGISTER} className="transition-opacity hover:opacity-80">
+                {t('common.become_seller')}
+              </Link>
+              <span className="h-3 w-px bg-current opacity-20" />
+              <Link href={ROUTES.SUPPORT} className="transition-opacity hover:opacity-80">
+                {t('support.support')}
+              </Link>
+            </div>
+            <div className="flex items-center gap-5">
+              <Link href={ROUTES.COUPONS} className="transition-opacity hover:opacity-80">
+                {t('nav.coupons')}
+              </Link>
+              <Link href={ROUTES.ABOUT} className="transition-opacity hover:opacity-80">
+                {t('nav.about')}
+              </Link>
+            <div className="flex items-center gap-3">
+              <LanguageSwitcher />
+              <CurrencySwitcher />
+              <button
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                className="flex h-7 w-7 items-center justify-center rounded-full border border-current/20 transition-opacity hover:opacity-80"
+                aria-label={t('toggle_theme')}
               >
-                <Mail className="h-4 w-4" />
-                <span>{t("email_label")} : {siteInfo.com_site_email}</span>
-              </a>
-            )}
-            {siteInfo?.com_site_email && siteInfo?.com_site_contact_number && (
-              <span className="mx-1.5 opacity-60">|</span>
-            )}
-            {siteInfo?.com_site_contact_number && (
-              <a
-                href={`tel:${siteInfo.com_site_contact_number}`}
-                className="flex items-center gap-2 transition-opacity hover:opacity-80"
-              >
-                <Phone className="h-4 w-4" />
-                <span>{t("hotline_label")} : {siteInfo.com_site_contact_number}</span>
-              </a>
-            )}
-          </div>
-
-          {/* Right — Theme Toggle + Language + Currency */}
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-transparent transition-all hover:border-white/40"
-              aria-label={t("toggle_theme")}
-            >
-              {mounted ? (
-                theme === 'dark' ? (
-                  <Sun className="h-4 w-4" />
+                {mounted && theme === 'dark' ? (
+                  <Sun className="h-3.5 w-3.5" />
                 ) : (
-                  <Moon className="h-4 w-4" />
-                )
-              ) : (
-                <Moon className="h-4 w-4" />
-              )}
-            </button>
-            <LanguageSwitcher />
-            <CurrencySwitcher />
+                  <Moon className="h-3.5 w-3.5" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+        </div>
 
-      {/* ══════════ ROW 2 — Main Bar (Dynamic from theme) ══════════ */}
-      <div className="border-b shadow-sm" style={{ backgroundColor: 'hsl(var(--header-main-bg))' }}>
-        <div className="container flex h-[64px] items-center gap-2 md:h-[72px] md:gap-3 lg:h-[100px] lg:gap-6">
-          {/* Mobile/Tablet hamburger */}
-          <button
-            className="flex shrink-0 items-center justify-center rounded-lg p-1.5 text-foreground lg:hidden"
-            onClick={() => setMobileOpen(true)}
-          >
-            <Menu className="h-5 w-5 lg:h-6 lg:w-6" />
-          </button>
+        <div
+          className="border-b"
+          style={{ backgroundColor: 'hsl(var(--header-main-bg))' }}
+        >
+          <div className="container flex h-[64px] items-center gap-2 md:h-[72px] md:gap-4 lg:h-[86px] lg:gap-10">
+            <button
+              className="flex shrink-0 items-center justify-center rounded-lg p-1.5 text-foreground lg:hidden"
+              onClick={() => setMobileOpen(true)}
+              aria-label={t('nav.categories')}
+            >
+              <Menu className="h-5 w-5" />
+            </button>
 
-          {/* Logo — mobile: flex-1 centered | tablet+: fixed left */}
-          <Link href={ROUTES.HOME} title={siteInfo?.com_site_title || 'Sportoonline'} aria-label={siteInfo?.com_site_title || 'Sportoonline'} className="flex flex-1 items-center justify-center md:flex-none md:justify-start">
-            {siteInfo?.com_site_logo && !logoError ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img
-                src={siteInfo.com_site_logo}
-                alt={siteInfo?.com_site_title || 'Logo'}
-                className="h-14 w-auto max-w-[160px] object-contain lg:h-16 lg:max-w-none"
-                onError={() => setLogoError(true)}
-              />
-            ) : (
-              <span className="truncate text-xl font-bold text-primary lg:text-[28px]">
-                {siteInfo?.com_site_title || 'Sportoonline'}
+            <Link
+              href={ROUTES.HOME}
+              title={siteInfo?.com_site_title || 'Sportoonline'}
+              aria-label={siteInfo?.com_site_title || 'Sportoonline'}
+              className="flex flex-1 items-center justify-center md:flex-none md:justify-start"
+            >
+              {siteInfo?.com_site_logo && !logoError ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={siteInfo.com_site_logo}
+                  alt={siteInfo?.com_site_title || 'Logo'}
+                  className="h-12 w-auto max-w-[168px] object-contain lg:h-14 lg:max-w-[220px]"
+                  onError={() => setLogoError(true)}
+                />
+              ) : (
+                <span className="flex items-end gap-2">
+                  <span className="truncate text-2xl font-extrabold leading-none text-primary lg:text-[32px]">
+                    {siteInfo?.com_site_title || 'Sportoonline'}
+                  </span>
+                  <span className="hidden max-w-[150px] truncate pb-1 text-[10px] font-semibold lowercase text-muted-foreground xl:inline">
+                    {brandTagline}
+                  </span>
+                </span>
+              )}
+            </Link>
+
+            <form onSubmit={handleSearch} className="hidden flex-1 md:flex">
+              <div className="flex h-11 w-full items-center overflow-hidden rounded-[4px] border-2 border-primary bg-background transition-shadow focus-within:shadow-[0_0_0_3px_hsl(var(--primary)/0.14)] lg:h-12">
+                <input
+                  type="search"
+                  placeholder={t('common.search_placeholder')}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="h-full min-w-0 flex-1 border-none bg-transparent px-4 text-sm text-foreground outline-none placeholder:text-muted-foreground"
+                />
+                <button
+                  type="submit"
+                  aria-label={t('common.search')}
+                  className="mr-1 flex h-9 w-11 shrink-0 items-center justify-center rounded-[3px] bg-primary text-primary-foreground transition-opacity hover:opacity-90"
+                >
+                  <Search className="h-5 w-5" />
+                </button>
+              </div>
+            </form>
+
+            <div className="flex shrink-0 items-center gap-1 sm:gap-2 lg:gap-1">
+              <Link
+                href={isAuthenticated ? ROUTES.PROFILE : ROUTES.LOGIN}
+                className="flex min-w-[74px] flex-col items-center justify-center rounded-[4px] px-2 py-2 text-[11px] font-bold text-foreground transition-colors hover:bg-primary/5"
+                aria-label={isAuthenticated ? t('common.account') : t('common.login')}
+              >
+                <User className="mb-1 h-5 w-5" strokeWidth={1.8} />
+                <span className="hidden whitespace-nowrap lg:inline">
+                  {isAuthenticated ? t('common.account') : t('common.login')}
+                </span>
+              </Link>
+
+              <Link
+                href={ROUTES.WISHLIST}
+                className="hidden min-w-[74px] flex-col items-center justify-center rounded-[4px] px-2 py-2 text-[11px] font-bold text-foreground transition-colors hover:bg-primary/5 sm:flex"
+                aria-label={t('common.wishlist')}
+              >
+                <Heart className="mb-1 h-5 w-5" strokeWidth={1.8} />
+                <span className="hidden whitespace-nowrap lg:inline">{t('common.wishlist')}</span>
+              </Link>
+
+              <button
+                id="header-cart-icon"
+                onClick={openCartDrawer}
+                aria-label={t('common.cart')}
+                className="relative flex min-w-[74px] flex-col items-center justify-center rounded-[4px] px-2 py-2 text-[11px] font-bold text-foreground transition-colors hover:bg-primary/5"
+              >
+                <ShoppingCart className="mb-1 h-5 w-5" strokeWidth={1.8} />
+                <span className="hidden whitespace-nowrap lg:inline">{t('common.cart')}</span>
+                <span className="absolute right-3 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold leading-none text-primary-foreground">
+                  {cartCountLive}
+                </span>
+              </button>
+
+              <div className="lg:hidden">
+                <LanguageSwitcher iconOnly />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <nav
+          className="relative hidden border-b lg:block"
+          style={{ backgroundColor: 'hsl(var(--header-main-bg))' }}
+        >
+          <div className="container flex h-11 items-center gap-4 overflow-hidden">
+            <button
+              onClick={openMegaMenu}
+              className="flex h-full shrink-0 items-center gap-2 bg-primary/10 px-4 text-sm font-extrabold text-primary transition-colors hover:bg-primary/15"
+              aria-expanded={catOpen}
+              aria-haspopup="menu"
+            >
+              <Menu className="h-5 w-5" />
+              <span>{t('nav.all_categories')}</span>
+              <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold leading-none text-primary-foreground">
+                {t('home.new_arrivals_title').split(' ')[0].toUpperCase()}
               </span>
-            )}
-          </Link>
+            </button>
 
-          {/* Location Selector Pill — desktop only (hidden until real area data is configured) */}
-          {/* <button
-            onClick={openSelector}
-            className="hidden items-center gap-2.5 rounded-full border border-border bg-background/50 px-6 py-3 text-[15px] transition-colors hover:border-primary/40 lg:flex"
-          >
-            <MapPin className="h-5 w-5 text-primary" />
-            <span className={selectedArea ? "font-medium text-foreground" : "text-foreground"}>
-              {selectedArea ? selectedArea.label : t('common.select_location')}
-            </span>
-            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-          </button> */}
+            <div className="flex min-w-0 flex-1 items-center gap-0 overflow-hidden text-[13px] font-bold">
+              {visibleNavCategories.length > 0
+                ? visibleNavCategories.map((cat, index) => (
+                    <Link
+                      key={cat.id}
+                      href={ROUTES.CATEGORY(cat.category_slug)}
+                      className={`relative flex h-11 shrink-0 items-center border-b-[3px] px-3 transition-colors hover:text-primary ${
+                        index === 0
+                          ? 'border-primary text-primary'
+                          : 'border-transparent'
+                      }`}
+                      style={
+                        index === 0
+                          ? undefined
+                          : { color: 'hsl(var(--header-nav-text))' }
+                      }
+                    >
+                      {cat.category_name}
+                    </Link>
+                  ))
+                : fallbackMenuLinks.map((menu: MenuItem) => (
+                    <Link
+                      key={menu.id}
+                      href={menu.url ? `/${menu.url}` : '/'}
+                      className="flex h-11 shrink-0 items-center border-b-2 border-transparent transition-colors hover:text-primary"
+                      style={{ color: 'hsl(var(--header-nav-text))' }}
+                    >
+                      {menu.name}
+                    </Link>
+                  ))}
+            </div>
 
-          {/* Search Bar — tablet (md) + desktop (lg) */}
-          <form onSubmit={handleSearch} className="hidden flex-1 md:flex">
-            <div className="flex w-full overflow-hidden rounded-lg border border-border bg-background/50 transition-colors focus-within:border-primary">
+            <div className="hidden items-center gap-2 xl:flex">
+              {featuredNavLinks.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="flex h-8 items-center gap-1.5 rounded-[4px] px-2 text-xs font-bold text-foreground transition-colors hover:bg-primary/5 hover:text-primary"
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          {catOpen && (
+            <div
+              className="fixed inset-x-0 bottom-0 z-[90] bg-foreground/25"
+              style={{ top: 'calc(var(--theme-popup-top-offset, 0px) + 162px)' }}
+              onMouseDown={() => setCatOpen(false)}
+            >
+              <div className="mx-auto w-[calc(100vw-20px)] max-w-[1720px]">
+                <div
+                  className={`grid min-h-[430px] overflow-hidden rounded-b-md border-x border-b bg-background shadow-2xl ${megaMenuGridClass}`}
+                  style={{
+                    height: 'min(560px, calc(100vh - var(--theme-popup-top-offset, 0px) - 174px))',
+                  }}
+                  onMouseDown={(event) => event.stopPropagation()}
+                >
+                  <aside className="overflow-y-auto border-r bg-muted/30 p-2">
+                    <div className="space-y-1">
+                      {topCategories.map((cat) => {
+                        const isActive = activeCategory?.id === cat.id;
+                        return (
+                          <Link
+                            key={cat.id}
+                            href={ROUTES.CATEGORY(cat.category_slug)}
+                            onMouseEnter={() => setActiveCatId(cat.id)}
+                            onFocus={() => setActiveCatId(cat.id)}
+                            onClick={() => setCatOpen(false)}
+                            className={`flex w-full items-center justify-between rounded-md px-3 py-3 text-left text-sm font-bold transition-colors ${
+                              isActive
+                                ? 'bg-background text-primary shadow-sm'
+                                : 'text-foreground hover:bg-muted'
+                            }`}
+                          >
+                            <span className="min-w-0 line-clamp-2 leading-tight">
+                              {cat.category_name}
+                            </span>
+                            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </aside>
+
+                  <div className="overflow-y-auto px-5 py-4 lg:px-6">
+                    {activeCategory ? (
+                      <div className="grid gap-x-10 gap-y-6 md:grid-cols-2 xl:grid-cols-3">
+                        <div>
+                          <Link
+                            href={ROUTES.CATEGORY(activeCategory.category_slug)}
+                            onClick={() => setCatOpen(false)}
+                            className="mb-4 flex items-center gap-1 text-sm font-extrabold text-primary"
+                          >
+                            {t('nav.all_categories')} {activeCategory.category_name}
+                            <ChevronRight className="h-4 w-4" />
+                          </Link>
+                          <div className="space-y-2">
+                            {primaryCenterCategories.map((child) => (
+                              <Link
+                                key={child.id}
+                                href={ROUTES.CATEGORY(child.category_slug)}
+                                onClick={() => setCatOpen(false)}
+                                className="block text-sm font-medium leading-tight text-foreground transition-colors hover:text-primary"
+                              >
+                                {child.category_name}
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+
+                        {centerColumns.map((column, columnIndex) => (
+                          <div key={columnIndex} className="space-y-5">
+                            {column.map((child) => {
+                              const grandchildren = getRenderableChildren(child.id).slice(0, 5);
+                              return (
+                                <div key={child.id}>
+                                  <Link
+                                    href={ROUTES.CATEGORY(child.category_slug)}
+                                    onClick={() => setCatOpen(false)}
+                                    className="flex items-center gap-1 text-sm font-extrabold text-primary"
+                                  >
+                                    {child.category_name}
+                                    <ChevronRight className="h-4 w-4" />
+                                  </Link>
+                                  {grandchildren.length > 0 && (
+                                    <div className="mt-2 space-y-2">
+                                      {grandchildren.map((grandchild) => (
+                                        <Link
+                                          key={grandchild.id}
+                                          href={ROUTES.CATEGORY(grandchild.category_slug)}
+                                          onClick={() => setCatOpen(false)}
+                                          className="block text-sm leading-tight text-foreground transition-colors hover:text-primary"
+                                        >
+                                          {grandchild.category_name}
+                                        </Link>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="grid gap-4 lg:grid-cols-3">
+                        {featuredNavLinks.map((item) => {
+                          const Icon = item.icon;
+                          return (
+                            <Link
+                              key={item.href}
+                              href={item.href}
+                              onClick={() => setCatOpen(false)}
+                              className="flex items-center gap-3 rounded-lg border bg-card p-4 text-sm font-bold text-foreground transition-colors hover:border-primary/40 hover:text-primary"
+                            >
+                              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                <Icon className="h-5 w-5" />
+                              </span>
+                              {item.label}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {promoCategories.length > 0 && (
+                  <div className="hidden overflow-y-auto border-l bg-muted/20 p-5 xl:block">
+                    <div className="grid grid-cols-2 gap-3">
+                      {promoCategories.map((cat) => (
+                        <Link
+                          key={cat.id}
+                          href={ROUTES.CATEGORY(cat.category_slug)}
+                          onClick={() => setCatOpen(false)}
+                          className="group overflow-hidden rounded-lg border bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+                        >
+                          <div className="relative aspect-[1.35] overflow-hidden bg-muted">
+                            <Image
+                              src={cat.category_thumb_url}
+                              alt={cat.category_name}
+                              fill
+                              sizes="210px"
+                              className="object-cover transition-transform duration-500 group-hover:scale-105"
+                            />
+                          </div>
+                          <div className="min-h-[58px] bg-background/95 p-2.5">
+                            <span className="line-clamp-2 text-sm font-extrabold uppercase leading-tight text-foreground">
+                              {cat.category_name}
+                            </span>
+                            <span className="mt-0.5 flex items-center gap-1 text-xs font-bold text-primary">
+                              {t('common.view_all')}
+                              <ChevronRight className="h-3 w-3" />
+                            </span>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </nav>
+
+        <div className="border-b bg-background md:hidden">
+          <div className="container py-2">
+            <form onSubmit={handleSearch} className="flex overflow-hidden rounded-lg border border-border">
               <input
                 type="search"
                 placeholder={t('common.search_placeholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-10 flex-1 border-none bg-transparent px-4 text-sm text-foreground outline-none placeholder:text-muted-foreground lg:h-12 lg:px-5"
+                className="h-11 flex-1 border-none bg-transparent px-4 text-sm text-foreground outline-none placeholder:text-muted-foreground"
               />
               <button
                 type="submit"
-                className="flex shrink-0 items-center gap-2 bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 lg:px-6"
+                aria-label={t('common.search')}
+                className="flex shrink-0 items-center justify-center bg-primary px-4 text-primary-foreground"
               >
-                <span className="hidden lg:inline">{t('common.search')}</span>
                 <Search className="h-4 w-4" />
               </button>
-            </div>
-          </form>
-
-          {/* Right Action Icons */}
-          <div className="flex shrink-0 items-center gap-1.5 lg:gap-3">
-            {/* Wishlist */}
-            <Link
-              href={ROUTES.WISHLIST}
-              aria-label="Favorilerim"
-              title="Favorilerim"
-              className="hidden h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground sm:flex lg:h-11 lg:w-11"
-            >
-              <Heart className="h-4 w-4 lg:h-5 lg:w-5" strokeWidth={1.5} />
-            </Link>
-
-            {/* Cart — always show badge */}
-            <button
-              id="header-cart-icon"
-              onClick={openCartDrawer}
-              aria-label="Sepetim"
-              className="relative flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground lg:h-11 lg:w-11"
-            >
-              <ShoppingCart className="h-4 w-4 lg:h-5 lg:w-5" strokeWidth={1.5} />
-              <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground lg:h-5 lg:w-5 lg:text-xs">
-                {cartCount}
-              </span>
-            </button>
-
-            {/* Language switcher (below lg — icon mode) */}
-            <div className="lg:hidden">
-              <LanguageSwitcher iconOnly />
-            </div>
-
-            {/* User / Profile */}
-            <Link
-              href={isAuthenticated ? ROUTES.PROFILE : ROUTES.LOGIN}
-              aria-label={isAuthenticated ? "Hesabım" : "Giriş Yap"}
-              title={isAuthenticated ? "Hesabım" : "Giriş Yap"}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground lg:h-11 lg:w-11"
-            >
-              <User className="h-4 w-4 lg:h-5 lg:w-5" strokeWidth={1.5} />
-            </Link>
+            </form>
           </div>
         </div>
       </div>
-      {/* ══════════ ROW 3 — Navigation Bar (Dynamic from theme) ══════════ */}
-      <nav className="hidden border-b lg:block" style={{ backgroundColor: 'hsl(var(--header-nav-bg))' }}>
-        <div className="container flex h-[72px] items-center gap-8">
-          {/* All Categories — button */}
-          <div className="relative" ref={catDropdownRef}>
-            <button
-              onClick={() => { setCatOpen(!catOpen); setHoveredCatId(null); }}
-              className="flex items-center gap-3 rounded-lg px-7 py-4 text-base font-semibold transition-colors"
-              style={{ backgroundColor: 'hsl(var(--header-nav-button-bg))', color: 'hsl(var(--header-nav-button-text))' }}
-            >
-              <Grid3X3 className="h-[18px] w-[18px]" />
-              <span>{t('nav.all_categories')}</span>
-              <ChevronDown className={`h-4 w-4 transition-transform ${catOpen ? 'rotate-180' : ''}`} />
-            </button>
-
-            {catOpen && (
-              <>
-                <div className="fixed inset-0 z-30" onClick={() => setCatOpen(false)} />
-                <div
-                  className="absolute left-0 top-full z-50 mt-2 rounded-xl border bg-background shadow-xl"
-                  onMouseLeave={() => setHoveredCatId(null)}
-                >
-                  <div className="relative w-[340px] py-2">
-                    <div
-                      ref={catListRef}
-                      className="filter-sidebar-scroll max-h-[70vh] overflow-y-auto"
-                      onScroll={() => {
-                        if (hoveredCatId) updateFlyoutTop(hoveredCatId);
-                      }}
-                    >
-                      {topCategories.length > 0 ? (
-                        topCategories.map((cat) => {
-                          const renderableChildren = getRenderableChildren(cat.id);
-                          const hasChildren = renderableChildren.length > 0;
-                          const isHovered = hoveredCatId === cat.id;
-                          const targetSlug =
-                            hasDirectProducts(cat)
-                              ? cat.category_slug
-                              : hasChildren
-                                ? renderableChildren[0].category_slug
-                                : cat.category_slug;
-                          return (
-                            <div
-                              key={cat.id}
-                              data-cat-id={cat.id}
-                              className="relative"
-                              onMouseEnter={() => {
-                                setHoveredCatId(cat.id);
-                                updateFlyoutTop(cat.id);
-                              }}
-                            >
-                              <Link
-                                href={ROUTES.CATEGORY(targetSlug)}
-                                onClick={() => setCatOpen(false)}
-                                className={`flex items-center gap-4 px-6 py-4 text-base transition-colors ${
-                                  isHovered ? 'bg-primary/5 text-primary' : 'text-foreground hover:bg-muted'
-                                }`}
-                              >
-                                {cat.category_thumb_url ? (
-                                  <Image
-                                    src={cat.category_thumb_url}
-                                    alt={cat.category_name}
-                                    width={32}
-                                    height={32}
-                                    className="h-8 w-8 shrink-0 rounded-lg object-cover"
-                                  />
-                                ) : (
-                                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                                    <Grid3X3 className="h-4 w-4" />
-                                  </div>
-                                )}
-                                <span className="min-w-0 flex-1 truncate font-medium">{cat.category_name}</span>
-                                {hasChildren && (
-                                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                                )}
-                              </Link>
-                            </div>
-                          );
-                        })
-                      ) : (
-                        <div className="px-5 py-4 text-sm text-muted-foreground">
-                          {t('common.no_data')}
-                        </div>
-                      )}
-                    </div>
-
-                    {hoveredCatId && hoveredChildren.length > 0 && (
-                      <div
-                        className="filter-sidebar-scroll absolute left-full z-[70] min-w-[280px] overflow-y-auto rounded-r-xl border border-l-0 bg-background py-2 shadow-xl"
-                        style={{ top: hoveredFlyoutTop, maxHeight: hoveredFlyoutMaxHeight || undefined }}
-                      >
-                        {hoveredChildren.map((child) => (
-                          <Link
-                            key={child.id}
-                            href={ROUTES.CATEGORY(child.category_slug)}
-                            onClick={() => setCatOpen(false)}
-                            className="flex items-center gap-4 px-6 py-4 text-base text-foreground transition-colors hover:bg-primary/5 hover:text-primary"
-                          >
-                            {child.category_thumb_url ? (
-                              <Image
-                                src={child.category_thumb_url}
-                                alt={child.category_name}
-                                width={28}
-                                height={28}
-                                className="h-7 w-7 shrink-0 rounded-lg object-cover"
-                              />
-                            ) : (
-                              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                                <Grid3X3 className="h-3.5 w-3.5" />
-                              </div>
-                            )}
-                            <span className="min-w-0 truncate">{child.category_name}</span>
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Menu Links — centered, wider spacing */}
-          <div className="flex flex-1 items-center justify-center gap-12 text-[17px] font-semibold">
-            {menus.length > 0 ? (
-              menus
-                .filter((m: MenuItem) => m.is_visible && m.parent_id === null)
-                .sort((a: MenuItem, b: MenuItem) => a.position - b.position)
-                .map((menu: MenuItem) => {
-                  const hasChildren = menu.childrenRecursive && menu.childrenRecursive.length > 0;
-
-                  if (hasChildren) {
-                    return (
-                      <div key={menu.id} className="group relative">
-                        <button className="flex items-center gap-1.5 transition-colors hover:opacity-80" style={{ color: 'hsl(var(--header-nav-text))' }}>
-                          <span>{menu.name}</span>
-                          <ChevronDown className="h-3.5 w-3.5 transition-transform group-hover:rotate-180" />
-                        </button>
-                        <div className="absolute left-0 top-full z-50 mt-1 hidden w-56 rounded-lg border bg-background py-2 shadow-lg group-hover:block">
-                          {menu.childrenRecursive
-                            .filter((child: MenuItem) => child.is_visible)
-                            .sort((a: MenuItem, b: MenuItem) => a.position - b.position)
-                            .map((child: MenuItem) => (
-                              <Link
-                                key={child.id}
-                                href={child.url ? `/${child.url}` : '/'}
-                                className="block px-4 py-2.5 text-sm text-foreground transition-colors hover:bg-muted hover:text-primary"
-                              >
-                                {child.name}
-                              </Link>
-                            ))}
-                        </div>
-                      </div>
-                    );
-                  }
-
-                  return (
-                    <Link
-                      key={menu.id}
-                      href={menu.url ? `/${menu.url}` : '/'}
-                      title={menu.name}
-                      className="transition-colors hover:opacity-80"
-                      style={{ color: 'hsl(var(--header-nav-text))' }}
-                    >
-                      {menu.name}
-                    </Link>
-                  );
-                })
-            ) : (
-              <>
-                <Link href={ROUTES.HOME} title={t('common.home')} className="transition-colors hover:opacity-80" style={{ color: 'hsl(var(--header-nav-text))' }}>
-                  {t('common.home')}
-                </Link>
-                <Link href={ROUTES.STORES} title={t('nav.stores')} className="transition-colors hover:opacity-80" style={{ color: 'hsl(var(--header-nav-text))' }}>
-                  {t('nav.stores')}
-                </Link>
-                <Link href={ROUTES.BLOG} title={t('nav.blog')} className="transition-colors hover:opacity-80" style={{ color: 'hsl(var(--header-nav-text))' }}>
-                  {t('nav.blog')}
-                </Link>
-                <Link href={ROUTES.COUPONS} title={t('nav.coupons')} className="transition-colors hover:opacity-80" style={{ color: 'hsl(var(--header-nav-text))' }}>
-                  {t('nav.coupons')}
-                </Link>
-                <Link href={ROUTES.ABOUT} title={t('nav.about')} className="transition-colors hover:opacity-80" style={{ color: 'hsl(var(--header-nav-text))' }}>
-                  {t('nav.about')}
-                </Link>
-                <Link href={ROUTES.CONTACT} title={t('nav.contact')} className="transition-colors hover:opacity-80" style={{ color: 'hsl(var(--header-nav-text))' }}>
-                  {t('nav.contact')}
-                </Link>
-              </>
-            )}
-          </div>
-
-          {/* Become Seller — button */}
-          <Link
-            href={ROUTES.SELLER_REGISTER}
-            title={t('common.become_seller')}
-            className="flex items-center gap-3 rounded-lg px-7 py-3.5 text-[15px] font-semibold transition-colors hover:opacity-90"
-            style={{ backgroundColor: 'hsl(var(--header-nav-button-bg))', color: 'hsl(var(--header-nav-button-text))' }}
-          >
-            <Store className="h-4 w-4" />
-            <span>{t('common.become_seller')}</span>
-          </Link>
-        </div>
-      </nav>
-
-      {/* ══════════ Mobile Search Bar (only < md) — sticky wrapper içinde ══════════ */}
-      <div className="border-b bg-background md:hidden">
-        <div className="container py-2">
-          <form onSubmit={handleSearch} className="flex overflow-hidden rounded-lg border border-border">
-            <input
-              type="search"
-              placeholder={t('common.search_placeholder')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-11 flex-1 border-none bg-transparent px-4 text-sm text-foreground outline-none placeholder:text-muted-foreground"
-            />
-            <button
-              type="submit"
-              aria-label={t('common.search')}
-              className="flex shrink-0 items-center justify-center bg-primary px-4 text-primary-foreground"
-            >
-              <Search className="h-4 w-4" />
-            </button>
-          </form>
-        </div>
-      </div>
-
-      </div>{/* end sticky wrapper */}
 
       <MobileNav open={mobileOpen} onClose={() => setMobileOpen(false)} />
     </>

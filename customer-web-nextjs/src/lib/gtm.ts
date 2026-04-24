@@ -22,6 +22,38 @@ function pushDataLayer(event: string, ecommerce: Record<string, unknown>) {
   (window as any).dataLayer.push({ event, ecommerce });
 }
 
+function trackGoogleAdsPurchase(value: number, currency: string, transactionId: string) {
+  if (typeof window === 'undefined') return;
+
+  const conversionId = (window as any).__GOOGLE_ADS_CONVERSION_ID__;
+  const purchaseLabel = (window as any).__GOOGLE_ADS_PURCHASE_LABEL__;
+
+  // Diagnostic — surfaces silent-skip cases to the browser console so admins
+  // can verify why Ads conversions aren't firing without needing server access.
+  if (typeof (window as any).gtag !== 'function') {
+    console.warn('[GoogleAds] gtag() is not available — Ads script may have failed to load.');
+    return;
+  }
+  if (!conversionId || !purchaseLabel) {
+    console.warn(
+      '[GoogleAds] Purchase conversion skipped — missing configuration.',
+      { conversionId: conversionId || '(empty)', purchaseLabel: purchaseLabel || '(empty)' }
+    );
+    return;
+  }
+
+  const sendTo = `${conversionId}/${purchaseLabel}`;
+  (window as any).gtag('event', 'conversion', {
+    send_to: sendTo,
+    value,
+    currency,
+    transaction_id: transactionId,
+  });
+  console.info('[GoogleAds] Purchase conversion fired', {
+    send_to: sendTo, value, currency, transaction_id: transactionId,
+  });
+}
+
 export function trackViewItem(item: GtagItem, currency = 'TRY') {
   pushDataLayer('view_item', {
     currency,
@@ -79,4 +111,5 @@ export function trackPurchase(
     ...(coupon ? { coupon } : {}),
     items,
   });
+  trackGoogleAdsPurchase(value, currency, transactionId);
 }

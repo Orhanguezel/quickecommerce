@@ -39,6 +39,7 @@ import Twitter from '@/assets/icons/Twitter';
 
 import GlobalImageLoader from '@/lib/imageLoader';
 import { useAboutPageUpdateMutation } from '@/modules/admin-section/system-management/page-settings/contact-settings/contact-settings.action';
+import { useThemeAllQuery } from '@/modules/admin-section/theme/theme.action';
 import {
   ContactSettingsFormData,
   contactSettingsSchema,
@@ -83,6 +84,12 @@ const ContactSettingsForm = ({ data }: any) => {
     [multiLangData],
   );
   const firstUILangId = uiLangs?.[0]?.id || 'df';
+  const { ThemeList } = useThemeAllQuery({
+    limit: 50,
+    page: 1,
+    sortField: 'id',
+    sort: 'asc',
+  });
 
   // ---- Tabs controlled ----
   const [tab, setTab] = useState<string>(firstUILangId);
@@ -181,8 +188,8 @@ const ContactSettingsForm = ({ data }: any) => {
   } = useForm<ContactSettingsFormData>({
     resolver: zodResolver(contactSettingsSchema),
     defaultValues: {
-      status: data?.data?.status ?? '',
-      theme_name: data?.data?.theme_name ?? '',
+      status: data?.data?.status ?? 'publish',
+      theme_name: data?.data?.theme_name ?? 'default',
     },
   });
 
@@ -206,11 +213,13 @@ const ContactSettingsForm = ({ data }: any) => {
     { label: t('label.draft'), value: 'draft' },
     { label: t('label.publish'), value: 'publish' },
   ];
-  const Themelist = [
-    { label: 'Default', value: 'default' },
-    { label: 'Theme One', value: 'theme_one' },
-    { label: 'Theme Two', value: 'theme_two' },
-  ];
+  const Themelist = useMemo(() => [
+    { label: t('label.default_theme'), value: 'default' },
+    ...(((ThemeList as any)?.themes || []).map((theme: any) => ({
+      label: theme.name,
+      value: theme.slug,
+    }))),
+  ], [ThemeList, t]);
 
   const [lastSelectedLogo, setLastSelectedLogo] = useState<any>(null);
   const [errorLogoMessage, setLogoErrorMessage] = useState<string>('');
@@ -242,8 +251,8 @@ const ContactSettingsForm = ({ data }: any) => {
       : [];
     setValue('meta_keywords_df' as any, dfTags as any);
 
-    setValue('status', QueryData?.status ?? '');
-    setValue('theme_name', QueryData?.theme_name ?? '');
+    setValue('status', QueryData?.status || 'publish');
+    setValue('theme_name', QueryData?.theme_name || 'default');
 
     if (contactFormSection) {
       setValue('title_df', contactFormSection?.title ?? '');
@@ -319,17 +328,8 @@ const ContactSettingsForm = ({ data }: any) => {
 
   const handleSaveLogo = (images: UploadedImage[]) => {
     setLastSelectedLogo(images?.[0] ?? null);
-
-    const dimensions = images?.[0]?.dimensions ?? '';
-    const [w, h] = dimensions.split(' x ').map((d) => parseInt(d.trim(), 10));
-    const aspectRatio = w && h ? w / h : 0;
-
-    if (Math.abs(aspectRatio - 1) < 0.01) {
-      setLogoErrorMessage('');
-      return true;
-    }
-    setLogoErrorMessage('Image must have a 1:1 aspect ratio.');
-    return false;
+    setLogoErrorMessage('');
+    return true;
   };
 
   const removeLogo = () => {
@@ -417,7 +417,7 @@ const ContactSettingsForm = ({ data }: any) => {
       meta_description: values.meta_description_df,
       meta_keywords: (Array.isArray(rootKeywordsArr) ? rootKeywordsArr : []).join(','),
     };
-    if (values?.status) defaultData.status = values.status;
+    defaultData.status = values.status || 'publish';
 
     const contact_form_section = {
       title: values.title_df,
@@ -458,7 +458,7 @@ const ContactSettingsForm = ({ data }: any) => {
     const submissionData = {
       id: QueryData?.id ? QueryData.id : 0,
       ...defaultData,
-      theme_name: values.theme_name,
+      theme_name: values.theme_name || 'default',
       content: { contact_form_section, contact_details_section, map_section },
       translations,
     };

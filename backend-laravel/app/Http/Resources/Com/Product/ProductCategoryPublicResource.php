@@ -28,6 +28,7 @@ class ProductCategoryPublicResource extends JsonResource
             'category_banner' =>  $this->category_banner,
             'category_thumb' => $this->category_thumb,
             'category_thumb_url' => ImageModifier::generateImageUrl($this->category_thumb),
+            'representative_product_image_url' => ImageModifier::generateImageUrl($this->representative_product_image),
             'category_name_paths' => $this->category_name_paths,
             'parent_path' => $this->parent_path,
             'display_order' => $this->display_order,

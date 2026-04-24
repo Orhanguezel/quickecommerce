@@ -8,11 +8,12 @@ import type {
   WalletTransactionsResponse,
 } from "./wallet.type";
 
-export function useWalletInfoQuery() {
+export function useWalletInfoQuery(enabled = true) {
   const { getAxiosInstance } = useBaseService(API_ENDPOINTS.WALLET);
 
   return useQuery({
     queryKey: ["wallet"],
+    enabled,
     queryFn: async () => {
       const res =
         await getAxiosInstance().get<WalletInfoResponse>(API_ENDPOINTS.WALLET);
@@ -24,13 +25,14 @@ export function useWalletInfoQuery() {
 export function useWalletTransactionsQuery(params: {
   page?: number;
   type?: string;
-}) {
+}, enabled = true) {
   const { getAxiosInstance } = useBaseService(
     API_ENDPOINTS.WALLET_TRANSACTIONS
   );
 
   return useQuery({
     queryKey: ["wallet-transactions", params],
+    enabled,
     queryFn: async () => {
       const res = await getAxiosInstance().get<WalletTransactionsResponse>(
         API_ENDPOINTS.WALLET_TRANSACTIONS,

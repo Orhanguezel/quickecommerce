@@ -178,6 +178,21 @@ backend-laravel/.sync-conflict*
 __pycache__/
 *.pyc
 
+# Scraper outputs — dev-only artifacts, not meant for production repo
+/dropick_images/
+/norfolk_images/
+/everlast_images/
+/musclepump_images/
+/ayakkabi_images/
+/grandgiftstore_images/
+/swan_images/
+*_products.json
+*_import.json
+*_import.csv
+/exported_data*.csv
+image.png
+tasarim.md
+
 # Frontend build outputs (Vite / Mix)
 public/build/
 public/hot/

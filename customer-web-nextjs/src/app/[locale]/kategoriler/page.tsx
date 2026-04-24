@@ -3,6 +3,10 @@ import { getTranslations } from "next-intl/server";
 import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { Category } from "@/modules/site/site.type";
+import {
+  isDisplayableProductCategory,
+  sortCategoriesForNavigation,
+} from "@/modules/site/category-utils";
 import { CategoriesPageClient } from "./categories-client";
 
 interface Props {
@@ -13,7 +17,7 @@ async function getCategories(locale: string) {
   try {
     const res = await fetchAPI<any>(
       API_ENDPOINTS.CATEGORIES,
-      { per_page: 200, all: "true", language: locale },
+      { per_page: 500, all: "true", language: locale },
       locale
     );
     return (res?.data ?? []) as Category[];
@@ -56,22 +60,9 @@ export default async function CategoriesPage({ params }: Props) {
   const t = await getTranslations({ locale, namespace: "common" });
   const catT = await getTranslations({ locale, namespace: "category" });
 
-  // Build parent categories with children
-  const topCategories = allCategories.filter((c) => !c.parent_id);
-  const categoriesWithChildren = topCategories
-    .map((parent) => ({
-      ...parent,
-      children: allCategories.filter((c) => c.parent_id === parent.id),
-    }))
-    // Only show categories that have products directly or in any child
-    .filter((cat) => {
-      const direct = cat.product_count ?? 0;
-      const fromChildren = (cat.children ?? []).reduce(
-        (sum, c) => sum + (c.product_count ?? 0),
-        0
-      );
-      return direct + fromChildren > 0;
-    });
+  const categoriesWithProducts = allCategories
+    .filter(isDisplayableProductCategory)
+    .sort(sortCategoriesForNavigation);
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -98,7 +89,7 @@ export default async function CategoriesPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <CategoriesPageClient
-        categories={categoriesWithChildren}
+        categories={categoriesWithProducts}
         translations={{
           home: t("home"),
           all_categories: catT("all_categories"),

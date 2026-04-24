@@ -56,6 +56,8 @@ import {
   useAskQuestionMutation,
 } from "@/modules/product/product-qa.service";
 import { flyToCart } from "@/lib/cart-animation";
+import { LiveViewersBadge } from "@/components/product/live-viewers-badge";
+import { VelocityBadge } from "@/components/product/velocity-badge";
 
 interface ProductDetailTranslations {
   home: string;
@@ -850,6 +852,11 @@ export function ProductDetailClient({
             <h1 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">
               {product.name}
             </h1>
+
+            <div className="mt-2 flex flex-wrap gap-2">
+              <LiveViewersBadge productId={product.id} />
+              <VelocityBadge productId={product.id} />
+            </div>
 
             {/* Badges */}
             {(!!product.is_featured || isNewProduct || isBestSeller) && (

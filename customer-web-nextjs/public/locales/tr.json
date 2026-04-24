@@ -316,6 +316,16 @@
     "login": "Giriş Yap",
     "login_and_checkout": "Giriş Yap ve Ödemeye Geç",
     "free_shipping_earned": "Tebrikler! Ücretsiz kargo kazandınız!",
+    "coupon_progress": "{remaining} daha ekle, {code} kuponuyla {discount} indirim kazan!",
+    "coupon_unlocked": "{discount} indirim kuponun hazır!",
+    "copy": "Kopyala",
+    "copied": "Kopyalandı",
+    "exit_intent_title": "Ayrılmak üzere misin?",
+    "exit_intent_subtitle": "Sepetin için sana özel {discount} indirim kuponu!",
+    "exit_intent_code_label": "KUPON KODU",
+    "exit_intent_continue": "Alışverişe Devam Et",
+    "exit_intent_dismiss": "Teşekkürler, ilgilenmiyorum",
+    "stock_urgency": "Son {count} adet!",
     "currency": "₺"
   },
   "checkout": {
@@ -664,5 +674,10 @@
     "always_online": "Her zaman çevrimiçi",
     "close": "Kapat",
     "how_can_help": "Size nasıl yardımcı olabilirim?"
+  },
+  "recommendations": {
+    "frequently_bought_together": "Sıkça Birlikte Alınanlar",
+    "category_popular": "Bu Kategoride Popüler",
+    "wishlist_triggered": "Favorilerinden Seni Bekleyenler"
   }
 }

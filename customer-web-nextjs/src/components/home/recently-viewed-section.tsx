@@ -11,15 +11,26 @@ import { usePrice } from "@/hooks/use-price";
 interface RecentlyViewedSectionProps {
   title?: string;
   subtitle?: string;
+  /** Product IDs to hide from the list (e.g. items already in cart) */
+  excludeIds?: number[];
+  /** Max items to show (default 20 — store's internal max) */
+  maxItems?: number;
 }
 
 export function RecentlyViewedSection({
   title = "Son Görüntülenen",
   subtitle,
+  excludeIds,
+  maxItems,
 }: RecentlyViewedSectionProps) {
-  const items = useRecentlyViewedStore((s) => s.items);
+  const allItems = useRecentlyViewedStore((s) => s.items);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { formatPrice } = usePrice();
+
+  const excludeSet = new Set(excludeIds ?? []);
+  const items = allItems
+    .filter((i) => !excludeSet.has(i.id))
+    .slice(0, maxItems ?? allItems.length);
 
   if (!items.length) return null;
 

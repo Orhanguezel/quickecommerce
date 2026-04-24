@@ -116,6 +116,84 @@ interface HomeLayoutBlock {
   };
 }
 
+function normalizeHeroCategoryOrder(blocks: HomeLayoutBlock[]): HomeLayoutBlock[] {
+  const sliderIndex = blocks.findIndex(
+    (block) => block.type === "slider" && block.enabled_disabled !== "off"
+  );
+  if (sliderIndex <= 0) return blocks;
+
+  const categoryBlocksBeforeSlider = blocks
+    .map((block, index) => ({ block, index }))
+    .filter(
+      ({ block, index }) =>
+        index < sliderIndex && block.type === "category" && block.enabled_disabled !== "off"
+    );
+
+  if (!categoryBlocksBeforeSlider.length) return blocks;
+
+  const movedIndexes = new Set(categoryBlocksBeforeSlider.map(({ index }) => index));
+  const normalized = blocks.filter((_, index) => !movedIndexes.has(index));
+  const normalizedSliderIndex = normalized.findIndex(
+    (block) => block.type === "slider" && block.enabled_disabled !== "off"
+  );
+
+  normalized.splice(
+    normalizedSliderIndex + 1,
+    0,
+    ...categoryBlocksBeforeSlider.map(({ block }) => block)
+  );
+
+  return normalized;
+}
+
+function normalizeRecentlyViewedAfterFlash(blocks: HomeLayoutBlock[]): HomeLayoutBlock[] {
+  const flashSaleIndex = blocks.findIndex(
+    (block) => block.type === "flash_sale_products" && block.enabled_disabled !== "off"
+  );
+  if (flashSaleIndex === -1) return blocks;
+
+  const hasRecentlyViewedBlock = blocks.some((block) => block.type === "recently_viewed_section");
+  const recentlyViewedBlocks = blocks
+    .map((block, index) => ({ block, index }))
+    .filter(
+      ({ block, index }) =>
+        index !== flashSaleIndex &&
+        block.type === "recently_viewed_section" &&
+        block.enabled_disabled !== "off"
+    );
+
+  if (!recentlyViewedBlocks.length) {
+    if (hasRecentlyViewedBlock) return blocks;
+
+    const normalized = [...blocks];
+    normalized.splice(flashSaleIndex + 1, 0, {
+      id: "recently_viewed_section__auto",
+      type: "recently_viewed_section",
+      instance: 1,
+      enabled_disabled: "on",
+    });
+    return normalized;
+  }
+
+  const movedIndexes = new Set(recentlyViewedBlocks.map(({ index }) => index));
+  const normalized = blocks.filter((_, index) => !movedIndexes.has(index));
+  const normalizedFlashSaleIndex = normalized.findIndex(
+    (block) => block.type === "flash_sale_products" && block.enabled_disabled !== "off"
+  );
+
+  normalized.splice(
+    normalizedFlashSaleIndex + 1,
+    0,
+    ...recentlyViewedBlocks.map(({ block }) => block)
+  );
+
+  return normalized;
+}
+
+function normalizeHomeBlockOrder(blocks: HomeLayoutBlock[]): HomeLayoutBlock[] {
+  return normalizeRecentlyViewedAfterFlash(normalizeHeroCategoryOrder(blocks));
+}
+
 export function HomePageClient({ data, translations: t }: HomePageClientProps) {
   const { homeConfig } = useThemeConfig();
   const { banners, isPending: isBannerLoading } = useBannerQuery();
@@ -148,7 +226,7 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
     const dateB = Date.parse(b.created_at || "");
     return (Number.isFinite(dateB) ? dateB : 0) - (Number.isFinite(dateA) ? dateA : 0);
   });
-  const orderedBlocks: HomeLayoutBlock[] =
+  const baseOrderedBlocks: HomeLayoutBlock[] =
     (homeConfig.layoutBlocks as HomeLayoutBlock[])?.length
       ? (homeConfig.layoutBlocks as HomeLayoutBlock[])
       : ((homeConfig.sectionOrder as HomeSectionKey[]) || []).map((type, idx) => ({
@@ -156,6 +234,7 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
           type,
           instance: 1,
         }));
+  const orderedBlocks = normalizeHomeBlockOrder(baseOrderedBlocks);
 
   const repeatableTypes: HomeSectionKey[] = ["flash_sale", "banner_section", "blog_section"];
 
@@ -378,7 +457,7 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
         return homeConfig.isSliderEnabled ? <HeroSlider sliders={data.sliders} /> : null;
       case "category":
         return homeConfig.isCategoriesEnabled && data.categories.length > 0 ? (
-          <section>
+          <section className="rounded-lg border bg-card p-4">
             <SectionHeader
               title={homeConfig.categoriesTitle || t.categories_title}
               subtitle={homeConfig.categoriesSubtitle || t.categories_subtitle}
@@ -462,12 +541,12 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
           />
         ) : null;
       case "recently_viewed_section":
-        return homeConfig.isRecentlyViewedEnabled ? (
+        return (
           <RecentlyViewedSection
             title={homeConfig.recentlyViewedTitle || t.recently_viewed_title}
             subtitle={homeConfig.recentlyViewedSubtitle || t.recently_viewed_subtitle}
           />
-        ) : null;
+        );
       default:
         return null;
     }
@@ -641,7 +720,7 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
   }
 
   return (
-    <div className="container space-y-10 py-6">
+    <div className="container space-y-4 py-3">
       <h1 className="sr-only">{t.site_h1}</h1>
       {renderedBlocks}
     </div>

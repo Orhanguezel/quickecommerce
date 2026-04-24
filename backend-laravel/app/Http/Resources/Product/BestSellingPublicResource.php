@@ -16,6 +16,9 @@ class BestSellingPublicResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $displayVariant = $this->displayVariant();
+        $price = (float) optional($displayVariant)->price;
+        $specialPrice = (float) optional($displayVariant)->special_price;
         // Get the requested language from the query parameter
         $language = $request->input('language', 'en');
         // Get the translation for the requested language
@@ -33,16 +36,16 @@ class BestSellingPublicResource extends JsonResource
                 : $this->description, // If language is empty or not provided attribute
             'image' => $this->image,
             'image_url' => ImageModifier::generateImageUrl($this->image),
-            'stock' => $this->variants->isNotEmpty() ? $this->variants->sum('stock_quantity') : null,
-            'price' => optional($this->variants->first())->price,
-            'special_price' => optional($this->variants->first())->special_price,
+            'stock' => $this->totalStock(),
+            'price' => optional($displayVariant)->price,
+            'special_price' => optional($displayVariant)->special_price,
             'singleVariant' => $this->variants->count() === 1 ? [$this->variants->first()] : [],
-            'default_variant_id' => optional($this->variants->first())->id,
+            'default_variant_id' => optional($displayVariant)->id,
             'attributes' => $this->variants->pluck('attributes')->map(function ($attribute) {
                 return json_decode($attribute, true);
             })->toArray(),
-            'discount_percentage' => $this->variants->isNotEmpty() && optional($this->variants->first())->price > 0 && optional($this->variants->first())->special_price > 0
-                ? round(((optional($this->variants->first())->price - optional($this->variants->first())->special_price) / optional($this->variants->first())->price) * 100, 2)
+            'discount_percentage' => $price > 0 && $specialPrice > 0 && $specialPrice < $price
+                ? round((($price - $specialPrice) / $price) * 100, 2)
                 : 0,
             'wishlist' => auth('api_customer')->check() ? $this->wishlist : false, // Check if the customer is logged in,
             'rating' => number_format((float)$this->rating, 2, '.', ''),

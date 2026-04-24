@@ -186,6 +186,8 @@ const SEOSettingsForm = () => {
     setValue('meta_publisher', SEOSettingsMessage?.com_meta_publisher ?? '');
     setValue('google_analytics_id', SEOSettingsMessage?.com_google_analytics_id ?? '');
     setValue('google_tag_manager_id', SEOSettingsMessage?.com_google_tag_manager_id ?? '');
+    setValue('google_ads_conversion_id', SEOSettingsMessage?.com_google_ads_conversion_id ?? '');
+    setValue('google_ads_purchase_label', SEOSettingsMessage?.com_google_ads_purchase_label ?? '');
     setValue(
       `og_title_${firstLangId}` as keyof SEOSettingsFormData,
       SEOSettingsMessage?.com_og_title ?? '',
@@ -314,6 +316,8 @@ const SEOSettingsForm = () => {
       com_meta_publisher: values.meta_publisher ?? '',
       com_google_analytics_id: values.google_analytics_id ?? '',
       com_google_tag_manager_id: values.google_tag_manager_id ?? '',
+      com_google_ads_conversion_id: values.google_ads_conversion_id ?? '',
+      com_google_ads_purchase_label: values.google_ads_purchase_label ?? '',
     };
 
     const translations = multiLangData
@@ -726,6 +730,94 @@ const SEOSettingsForm = () => {
                               {...register('google_tag_manager_id')}
                               className="app-input"
                               placeholder="GTM-XXXXXXX"
+                            />
+                          </div>
+
+                          {(() => {
+                            // Live validation status so admin can see at a glance
+                            // whether Ads is actually configured.
+                            const adsId = (watch('google_ads_conversion_id') || '').toString().trim();
+                            const adsLabel = (watch('google_ads_purchase_label') || '').toString().trim();
+                            const idValid = /^AW-\d{6,}$/.test(adsId);
+                            const labelValid = adsLabel.length >= 8;
+                            const bothReady = idValid && labelValid;
+                            return (
+                              <div className={`mt-4 rounded-lg border p-3 text-sm ${
+                                bothReady
+                                  ? 'border-green-300 bg-green-50 text-green-800'
+                                  : adsId || adsLabel
+                                    ? 'border-amber-300 bg-amber-50 text-amber-800'
+                                    : 'border-slate-200 bg-slate-50 text-slate-600'
+                              }`}>
+                                <div className="font-semibold">
+                                  {bothReady
+                                    ? '✓ Google Ads yapılandırıldı'
+                                    : adsId || adsLabel
+                                      ? '⚠ Google Ads eksik'
+                                      : 'Google Ads henüz yapılandırılmadı'}
+                                </div>
+                                <div className="mt-1 text-xs space-y-0.5">
+                                  <div>
+                                    Conversion ID: {idValid ? '✓ geçerli' : adsId ? '✗ format hatalı (AW-... olmalı)' : '— boş'}
+                                  </div>
+                                  <div>
+                                    Purchase Label: {labelValid ? '✓ girildi' : adsLabel ? '✗ çok kısa' : '— boş'}
+                                  </div>
+                                  {!bothReady && (
+                                    <div className="mt-1 italic">
+                                      Her iki alan da doldurulmadan satın alma dönüşüm sinyali Google Ads'e gönderilmez.
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })()}
+
+                          <div className="mt-4">
+                            <p className="text-sm font-medium mb-1 flex items-center gap-2">
+                              <span>Google Ads Conversion ID</span>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Info className="w-4 text-custom-dark-blue cursor-pointer" />
+                                  </TooltipTrigger>
+                                  <TooltipContent className="bg-custom-dark-blue">
+                                    <p className="p-1 text-sm font-medium">
+                                      Google Ads Conversion ID (AW-XXXXXXXXXX)
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </p>
+                            <Input
+                              id="google_ads_conversion_id"
+                              {...register('google_ads_conversion_id')}
+                              className="app-input"
+                              placeholder="AW-XXXXXXXXXX"
+                            />
+                          </div>
+
+                          <div className="mt-4">
+                            <p className="text-sm font-medium mb-1 flex items-center gap-2">
+                              <span>Purchase Conversion Label</span>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Info className="w-4 text-custom-dark-blue cursor-pointer" />
+                                  </TooltipTrigger>
+                                  <TooltipContent className="bg-custom-dark-blue">
+                                    <p className="p-1 text-sm font-medium">
+                                      Google Ads purchase event label
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </p>
+                            <Input
+                              id="google_ads_purchase_label"
+                              {...register('google_ads_purchase_label')}
+                              className="app-input"
+                              placeholder="AbCdEfGhIjKlMnOpQrSt"
                             />
                           </div>
 

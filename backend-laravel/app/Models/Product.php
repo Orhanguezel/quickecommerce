@@ -124,6 +124,54 @@ class Product extends Model
         return $this->hasMany(ProductVariant::class, "product_id");
     }
 
+    public function displayVariant()
+    {
+        $variants = $this->relationLoaded('variants')
+            ? $this->variants
+            : $this->variants()->get();
+
+        if ($variants->isEmpty()) {
+            return null;
+        }
+
+        $activeVariants = $variants->filter(fn($variant) => (int)($variant->status ?? 1) === 1);
+        if ($activeVariants->isEmpty()) {
+            $activeVariants = $variants;
+        }
+
+        return $activeVariants
+            ->sortByDesc(fn($variant) =>
+                (($this->variantEffectivePrice($variant) > 0) ? 2 : 0)
+                + (((int)($variant->stock_quantity ?? 0) > 0) ? 1 : 0)
+            )
+            ->first();
+    }
+
+    public function totalStock(): ?int
+    {
+        $variants = $this->relationLoaded('variants')
+            ? $this->variants
+            : $this->variants()->get();
+
+        return $variants->isNotEmpty()
+            ? (int) $variants->sum('stock_quantity')
+            : null;
+    }
+
+    public function variantEffectivePrice(?ProductVariant $variant): float
+    {
+        if (! $variant) {
+            return 0.0;
+        }
+
+        $price = (float) ($variant->price ?? 0);
+        $specialPrice = (float) ($variant->special_price ?? 0);
+
+        return $specialPrice > 0 && ($price <= 0 || $specialPrice < $price)
+            ? $specialPrice
+            : $price;
+    }
+
     public function relatedProductsWithCategoryFallback($limit = 10)
     {
         $category = $this->category; // Current product's category

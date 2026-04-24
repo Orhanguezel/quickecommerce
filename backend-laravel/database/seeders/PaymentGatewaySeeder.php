@@ -55,6 +55,7 @@ class PaymentGatewaySeeder extends Seeder
                 'merchant_key'     => env('PAYTR_MERCHANT_KEY', ''),
                 'merchant_salt'    => env('PAYTR_MERCHANT_SALT', ''),
                 'paytr_callback_url' => $appUrl . '/api/v1/paytr/callback',
+                'paytr_wallet_callback_url' => $appUrl . '/api/v1/paytr/wallet-callback',
                 'paytr_success_url'  => $frontendUrl . '/' . $defaultLocale . '/siparis-basarili?order={ORDER_MASTER_ID}',
                 'paytr_fail_url'     => $frontendUrl . '/' . $defaultLocale . '/odeme?payment=failed&order={ORDER_MASTER_ID}',
             ]),

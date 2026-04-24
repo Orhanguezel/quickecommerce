@@ -24,10 +24,16 @@ import '../common_widgets/common_funcktion.dart';
 import '../common_widgets/item_title.dart';
 
 class DesktopNewArrivalsWidget extends StatefulWidget {
-  const DesktopNewArrivalsWidget({super.key, required this.title});
+  const DesktopNewArrivalsWidget({
+    super.key,
+    required this.title,
+    this.isPremium = false,
+  });
   final String title;
+  final bool isPremium;
   @override
-  State<DesktopNewArrivalsWidget> createState() => _DesktopNewArrivalsWidgetState();
+  State<DesktopNewArrivalsWidget> createState() =>
+      _DesktopNewArrivalsWidgetState();
 }
 
 class _DesktopNewArrivalsWidgetState extends State<DesktopNewArrivalsWidget> {
@@ -86,8 +92,9 @@ class _DesktopNewArrivalsWidgetState extends State<DesktopNewArrivalsWidget> {
     _debounce?.cancel();
     super.dispose();
   }
+
   bool _isInitialLoad = true;
-  List<ProductData> productData=[];
+  List<ProductData> productData = [];
   @override
   Widget build(BuildContext context) {
     var cartCon = Provider.of<CartProvider>(context);
@@ -100,21 +107,24 @@ class _DesktopNewArrivalsWidgetState extends State<DesktopNewArrivalsWidget> {
 
   Widget _blocBuilder(BuildContext context, NewArrivalState state) {
     if (state is NewArrivalLoading) {
-      return _isInitialLoad?
-      const DesktopProductLoadingGrid(itemCount: 4,)
-          :DesktopProductGrid(
-            productData: productData,
-            physics: const NeverScrollableScrollPhysics(),
-            onFavoriteToggle: (wishlist, id) {
-              _handleFavoriteToggle(wishlist!, id);
-            },
-          );
-    }
-    else if (state is NewArrivalLoaded) {
-      if (_isInitialLoad&&state.hasConnectionError) {
-        CommonFunctions.showCustomSnackBar(context, AppLocalizations.of(context)!.noInternet);
+      return _isInitialLoad
+          ? const DesktopProductLoadingGrid(
+              itemCount: 4,
+            )
+          : DesktopProductGrid(
+              productData: productData,
+              physics: const NeverScrollableScrollPhysics(),
+              isPremium: widget.isPremium,
+              onFavoriteToggle: (wishlist, id) {
+                _handleFavoriteToggle(wishlist!, id);
+              },
+            );
+    } else if (state is NewArrivalLoaded) {
+      if (_isInitialLoad && state.hasConnectionError) {
+        CommonFunctions.showCustomSnackBar(
+            context, AppLocalizations.of(context)!.noInternet);
       }
-      productData=state.newArrivalModel.data;
+      productData = state.newArrivalModel.data;
       if (state.newArrivalModel.data.isEmpty) {
         return const SizedBox();
       }
@@ -174,6 +184,7 @@ class _DesktopNewArrivalsWidgetState extends State<DesktopNewArrivalsWidget> {
                 ? "${AppLocalizations.of(context)!.newA} ${AppLocalizations.of(context)!.arrivals}"
                 : title,
             subTitle: "",
+            isPremium: widget.isPremium,
             onTap: () {
               filterCon.updateSelectedValue('Newest');
               filterCon.setProductType("Newest");
@@ -190,23 +201,20 @@ class _DesktopNewArrivalsWidgetState extends State<DesktopNewArrivalsWidget> {
                     commonProvider.setLoading(false);
                     CommonFunctions.showCustomSnackBar(
                         context, state.authModel.message);
-                  }
-                  else if (state is FavoriteAddLoaded) {
-                      CommonFunctions.showCustomSnackBar(
-                          color: Colors.green,
-                          context,
-                          state.authModel.message);
-                      _newArrivalBloc.add(NewArrival(
-                          categoryId: '',
-                          minPrice: '',
-                          maxPrice: '',
-                          availability: '',
-                          perPage: '4',
-                          language: _language,
-                          userLat: _userLat,
-                          userLong: _userLong,
-                          token: _token));
-                      commonProvider.setLoading(false);
+                  } else if (state is FavoriteAddLoaded) {
+                    CommonFunctions.showCustomSnackBar(
+                        color: Colors.green, context, state.authModel.message);
+                    _newArrivalBloc.add(NewArrival(
+                        categoryId: '',
+                        minPrice: '',
+                        maxPrice: '',
+                        availability: '',
+                        perPage: '4',
+                        language: _language,
+                        userLat: _userLat,
+                        userLong: _userLong,
+                        token: _token));
+                    commonProvider.setLoading(false);
                   }
                 },
                 child: const SizedBox(),
@@ -216,6 +224,7 @@ class _DesktopNewArrivalsWidgetState extends State<DesktopNewArrivalsWidget> {
         DesktopProductGrid(
           productData: productData,
           physics: const NeverScrollableScrollPhysics(),
+          isPremium: widget.isPremium,
           onFavoriteToggle: (wishlist, id) {
             _handleFavoriteToggle(wishlist!, id);
           },

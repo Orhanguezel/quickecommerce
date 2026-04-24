@@ -131,6 +131,8 @@ export function AccountClient({ translations: t }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const logout = useAuthStore((s) => s.logout);
+  const [mounted, setMounted] = useState(false);
+  const hasAuthToken = mounted && Boolean(Cookies.get(AUTH_TOKEN_KEY));
   const [activeTab, setActiveTab] = useState<Tab>("profile");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState(false);
@@ -193,45 +195,45 @@ export function AccountClient({ translations: t }: Props) {
     isLoading: profileLoading,
     isError: profileError,
     refetch: refetchProfile,
-  } = useProfileQuery();
+  } = useProfileQuery(hasAuthToken);
   const { data: addresses, isLoading: addressesLoading } =
-    useAddressListQuery();
+    useAddressListQuery(hasAuthToken);
 
   // Order queries & mutations
   const { data: ordersData, isLoading: ordersLoading } = useOrderListQuery({
     page: orderPage,
     status: orderStatusFilter || undefined,
     search: orderSearch || undefined,
-  });
+  }, hasAuthToken);
   const cancelOrderMutation = useCancelOrderMutation();
 
   // Support queries & mutations
   const { data: ticketsData, isLoading: ticketsLoading } = useTicketListQuery({
     page: supportPage,
     status: supportStatusFilter || undefined,
-  });
+  }, hasAuthToken);
   const { data: ticketMessages, isLoading: messagesLoading } =
-    useTicketMessagesQuery(selectedTicketId);
+    useTicketMessagesQuery(selectedTicketId, hasAuthToken);
   const createTicketMutation = useCreateTicketMutation();
   const addTicketMessageMutation = useAddMessageMutation();
   const resolveTicketMutation = useResolveTicketMutation();
 
   // Wishlist
   const [wishlistPage, setWishlistPage] = useState(1);
-  const { data: wishlistData, isLoading: wishlistLoading } = useWishlistQuery(wishlistPage);
+  const { data: wishlistData, isLoading: wishlistLoading } = useWishlistQuery(wishlistPage, hasAuthToken);
   const wishlistRemoveMutation = useWishlistRemoveMutation();
 
   // Wallet queries
-  const { data: walletData, refetch: refetchWallet } = useWalletInfoQuery();
+  const { data: walletData, refetch: refetchWallet } = useWalletInfoQuery(hasAuthToken);
   const { data: walletTxData, isLoading: walletTxLoading } = useWalletTransactionsQuery({
     page: walletPage,
     type: walletTypeFilter || undefined,
-  });
+  }, hasAuthToken);
   const walletDepositMutation = useWalletDepositMutation();
   const walletStripeMutation = useWalletStripeSessionMutation();
   const walletIyzicoMutation = useWalletIyzicoSessionMutation();
   const walletPaytrMutation = useWalletPaytrSessionMutation();
-  const { data: paymentGateways, isLoading: gatewaysLoading } = usePaymentGatewaysQuery();
+  const { data: paymentGateways, isLoading: gatewaysLoading } = usePaymentGatewaysQuery(hasAuthToken);
 
   const walletGateways = useMemo(() => {
     const apiGateways = (paymentGateways ?? []).filter((gw) => SUPPORTED_WALLET_GATEWAYS.has(gw.slug));
@@ -255,7 +257,6 @@ export function AccountClient({ translations: t }: Props) {
   // Price formatting
   const { formatPrice } = usePrice();
   const selectedCurrencyCode = useCurrencyStore((s) => s.getSelectedCurrencyCode());
-  const [mounted, setMounted] = useState(false);
 
   // Mutations
   const updateProfileMutation = useUpdateProfileMutation();
@@ -268,16 +269,24 @@ export function AccountClient({ translations: t }: Props) {
   useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
+    if (!mounted || Cookies.get(AUTH_TOKEN_KEY)) return;
+    logout();
+    Cookies.remove(AUTH_USER);
+    localStorage.removeItem("expires_at");
+    router.replace(`/${locale}/giris`);
+  }, [locale, logout, mounted, router]);
+
+  useEffect(() => {
     const tab = searchParams.get("tab");
     const validTabs: Tab[] = ["profile", "orders", "wishlist", "recently_viewed", "support", "addresses", "password", "wallet"];
     if (tab && validTabs.includes(tab as Tab)) {
       setActiveTab(tab as Tab);
     }
-    if (searchParams.get("wallet_success") === "1") {
+    if (hasAuthToken && searchParams.get("wallet_success") === "1") {
       setWalletSuccess(true);
       refetchWallet();
     }
-  }, [searchParams, refetchWallet]);
+  }, [hasAuthToken, searchParams, refetchWallet]);
 
   // Auto-select first available wallet gateway
   useEffect(() => {
@@ -481,7 +490,7 @@ export function AccountClient({ translations: t }: Props) {
     { key: "password", label: t.change_password, icon: Lock },
   ];
 
-  if (profileLoading) {
+  if (!mounted || !hasAuthToken || profileLoading) {
     return (
       <div className="container mx-auto flex min-h-[40vh] items-center justify-center px-4 py-16">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />

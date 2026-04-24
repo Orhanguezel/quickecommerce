@@ -28,8 +28,13 @@ import '../common_widgets/item_title.dart';
 import 'item_card.dart';
 
 class DesktopSuperDealsScreen extends StatefulWidget {
-  const DesktopSuperDealsScreen({super.key, required this.title});
+  const DesktopSuperDealsScreen({
+    super.key,
+    required this.title,
+    this.isPremium = false,
+  });
   final String title;
+  final bool isPremium;
   @override
   State<DesktopSuperDealsScreen> createState() =>
       _DesktopSuperDealsScreenState();
@@ -84,6 +89,7 @@ class _DesktopSuperDealsScreenState extends State<DesktopSuperDealsScreen> {
                   ? "${AppLocalizations.of(context)!.flash}${AppLocalizations.of(context)!.deals}"
                   : widget.title,
               subTitle: "",
+              isPremium: widget.isPremium,
               onTap: () {
                 filterCon.updateSelectedValue("Flash Sale");
                 filterCon.setProductType("Flash Sale");
@@ -102,9 +108,7 @@ class _DesktopSuperDealsScreenState extends State<DesktopSuperDealsScreen> {
                         context, state.authModel.message);
                   } else if (state is FavoriteAddLoaded) {
                     CommonFunctions.showCustomSnackBar(
-                        color: Colors.green,
-                        context,
-                        state.authModel.message);
+                        color: Colors.green, context, state.authModel.message);
                     _flashDealProductBloc.add(FlashDealProduct(
                         parPage: '4',
                         page: 1,
@@ -118,286 +122,300 @@ class _DesktopSuperDealsScreenState extends State<DesktopSuperDealsScreen> {
             : const SizedBox(),
         SizedBox(height: 8.h),
         SizedBox(
-          height:screenWidth<750?550:330,
+          height: screenWidth < 750 ? 550 : 330,
           child: Flex(
               direction: screenWidth > 750 ? Axis.horizontal : Axis.vertical,
               children: [
-            Expanded(
-              flex: 4,
-              child: BlocConsumer<FlashDealBloc, FlashDealState>(
-                builder: (_, state) {
-                  if (state is FlashDealLoading) {
-                    return const CarouselShimmer();
-                  }
-                  else if (state is FlashDealLoaded) {
-                    isFlashDealLoaded = true;
-                    final data = state.flashDealModel.data;
-                    return data.isEmpty
-                        ? const SizedBox()
-                        : CommonCard(
-                            mVertical: 4,
-                        mHorizontal: 0,
-                        widget: CarouselSlider(
-                      options: CarouselOptions(
-                        height: 280,
-                        autoPlay: true,
-                        enlargeCenterPage: true,
-                        enableInfiniteScroll: true,
-                        aspectRatio: 16 / 9,
-                        viewportFraction: 1,
-                        autoPlayAnimationDuration:
-                        const Duration(seconds: 1),
-                        autoPlayInterval: const Duration(seconds: 5),
-                        autoPlayCurve: Curves.fastOutSlowIn,
-                      ),
-                      items: data.map((deal) {
-                        Color bgColor = deal.backgroundColor != null
-                            ? Color(int.parse(
-                            deal.backgroundColor!
-                                .substring(1),
-                            radix: 16) +
-                            0xFF000000)
-                            : Colors.white;
-                        Color titleColor = deal.titleColor != null
-                            ? Color(int.parse(
-                            deal.titleColor!.substring(1),
-                            radix: 16) +
-                            0xFF000000)
-                            : Colors.black;
-                        Color buttonBgColor = deal.buttonBgColor !=
-                            null
-                            ? Color(int.parse(
-                            deal.buttonBgColor!.substring(1),
-                            radix: 16) +
-                            0xFF000000)
-                            : const Color(0xFF1A73E8);
-                        Color buttonTxtColor =
-                        deal.buttonTextColor != null
-                            ? Color(int.parse(
-                            deal.buttonTextColor!
-                                .substring(1),
-                            radix: 16) +
-                            0xFF000000)
-                            : Colors.white;
-                        Color timerBgColor = deal.timerBgColor != null
-                            ? Color(int.parse(
-                            deal.timerBgColor!.substring(1),
-                            radix: 16) +
-                            0xFF000000)
-                            : Colors.red;
-                        Color timerTxtColor = deal.timerTextColor !=
-                            null
-                            ? Color(int.parse(
-                            deal.timerTextColor!.substring(1),
-                            radix: 16) +
-                            0xFF000000)
-                            : Colors.white;
+                Expanded(
+                  flex: 4,
+                  child: BlocConsumer<FlashDealBloc, FlashDealState>(
+                    builder: (_, state) {
+                      if (state is FlashDealLoading) {
+                        return const CarouselShimmer();
+                      } else if (state is FlashDealLoaded) {
+                        isFlashDealLoaded = true;
+                        final data = state.flashDealModel.data;
+                        return data.isEmpty
+                            ? const SizedBox()
+                            : CommonCard(
+                                mVertical: 4,
+                                mHorizontal: 0,
+                                widget: CarouselSlider(
+                                  options: CarouselOptions(
+                                    height: 280,
+                                    autoPlay: true,
+                                    enlargeCenterPage: true,
+                                    enableInfiniteScroll: true,
+                                    aspectRatio: 16 / 9,
+                                    viewportFraction: 1,
+                                    autoPlayAnimationDuration:
+                                        const Duration(seconds: 1),
+                                    autoPlayInterval:
+                                        const Duration(seconds: 5),
+                                    autoPlayCurve: Curves.fastOutSlowIn,
+                                  ),
+                                  items: data.map((deal) {
+                                    Color bgColor = deal.backgroundColor != null
+                                        ? Color(int.parse(
+                                                deal.backgroundColor!
+                                                    .substring(1),
+                                                radix: 16) +
+                                            0xFF000000)
+                                        : Colors.white;
+                                    Color titleColor = deal.titleColor != null
+                                        ? Color(int.parse(
+                                                deal.titleColor!.substring(1),
+                                                radix: 16) +
+                                            0xFF000000)
+                                        : Colors.black;
+                                    Color buttonBgColor =
+                                        deal.buttonBgColor != null
+                                            ? Color(int.parse(
+                                                    deal.buttonBgColor!
+                                                        .substring(1),
+                                                    radix: 16) +
+                                                0xFF000000)
+                                            : const Color(0xFF1A73E8);
+                                    Color buttonTxtColor =
+                                        deal.buttonTextColor != null
+                                            ? Color(int.parse(
+                                                    deal.buttonTextColor!
+                                                        .substring(1),
+                                                    radix: 16) +
+                                                0xFF000000)
+                                            : Colors.white;
+                                    Color timerBgColor = deal.timerBgColor !=
+                                            null
+                                        ? Color(int.parse(
+                                                deal.timerBgColor!.substring(1),
+                                                radix: 16) +
+                                            0xFF000000)
+                                        : Colors.red;
+                                    Color timerTxtColor =
+                                        deal.timerTextColor != null
+                                            ? Color(int.parse(
+                                                    deal.timerTextColor!
+                                                        .substring(1),
+                                                    radix: 16) +
+                                                0xFF000000)
+                                            : Colors.white;
 
-                        return Container(
-                          height: 280,
-                          width: MediaQuery.of(context).size.width,
-                          decoration: BoxDecoration(
-                              image: (deal.coverImageUrl != null &&
-                                  deal.coverImageUrl!.isNotEmpty)
-                                  ? DecorationImage(
-                                image: NetworkImage(
-                                    deal.coverImageUrl!),
-                                fit: BoxFit.cover,
-                                onError: (exception, stackTrace) {
-                                  debugPrint(
-                                      'Failed to load cover image: $exception');
-                                },
-                              )
-                                  : null,
-                              color: (deal.coverImageUrl == null ||
-                                  deal.coverImageUrl!.isEmpty)
-                                  ? bgColor
-                                  : Colors
-                                  .transparent,
-                              borderRadius: BorderRadius.circular(4.54),
-                          ),
-                          child: Row(
-                            children: [
-                              deal.imageUrl != null &&
-                                  deal.imageUrl!.isNotEmpty &&
-                                  Uri.parse(deal.imageUrl!)
-                                      .isAbsolute
-                                  ? Image.network(
-                                deal.imageUrl!,
-                                height: 280,
-                                width: 144,
-                                fit: BoxFit.fill,
-                                errorBuilder: (context, error,
-                                    stackTrace) {
-                                  return const SizedBox();
-                                },
-                              )
-                                  : const SizedBox(),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Column(
-                                  mainAxisAlignment:
-                                  MainAxisAlignment.center,
-                                  crossAxisAlignment:
-                                  CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      deal.title ?? "Not Found",
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 2,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                        color: titleColor,
-                                        letterSpacing: 1.0,
+                                    return Container(
+                                      height: 280,
+                                      width: MediaQuery.of(context).size.width,
+                                      decoration: BoxDecoration(
+                                        image: (deal.coverImageUrl != null &&
+                                                deal.coverImageUrl!.isNotEmpty)
+                                            ? DecorationImage(
+                                                image: NetworkImage(
+                                                    deal.coverImageUrl!),
+                                                fit: BoxFit.cover,
+                                                onError:
+                                                    (exception, stackTrace) {
+                                                  debugPrint(
+                                                      'Failed to load cover image: $exception');
+                                                },
+                                              )
+                                            : null,
+                                        color: (deal.coverImageUrl == null ||
+                                                deal.coverImageUrl!.isEmpty)
+                                            ? bgColor
+                                            : Colors.transparent,
+                                        borderRadius:
+                                            BorderRadius.circular(4.54),
                                       ),
-                                      textAlign: TextAlign.justify,
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: Countdown(
-                                        targetDate: DateTime.parse(
-                                            deal.endTime),
-                                        bgColor: timerBgColor,
-                                        textColor: timerTxtColor,
-                                        levelColor: titleColor,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    InkWell(
-                                      onTap: () {
-                                        filterCon.setProductType(
-                                            "Flash Sale",
-                                            flashSaleId: deal.id);
-                                        homeCon
-                                            .setCurrentIndexHomePage(
-                                            1);
-                                      },
-                                      child: Container(
-                                        padding: const EdgeInsets
-                                            .symmetric(
-                                            vertical: 10,
-                                            horizontal: 12),
-                                        decoration: BoxDecoration(
-                                          color: buttonBgColor,
-                                          borderRadius:
-                                          BorderRadius.circular(
-                                              5),
-                                          boxShadow: const [
-                                            BoxShadow(
-                                              color:
-                                              Color(0x1A000000),
-                                              blurRadius: 8,
-                                              offset: Offset(0, 4),
+                                      child: Row(
+                                        children: [
+                                          deal.imageUrl != null &&
+                                                  deal.imageUrl!.isNotEmpty &&
+                                                  Uri.parse(deal.imageUrl!)
+                                                      .isAbsolute
+                                              ? Image.network(
+                                                  deal.imageUrl!,
+                                                  height: 280,
+                                                  width: 144,
+                                                  fit: BoxFit.fill,
+                                                  errorBuilder: (context, error,
+                                                      stackTrace) {
+                                                    return const SizedBox();
+                                                  },
+                                                )
+                                              : const SizedBox(),
+                                          const SizedBox(width: 10),
+                                          Expanded(
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  deal.title ?? "Not Found",
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  maxLines: 2,
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: titleColor,
+                                                    letterSpacing: 1.0,
+                                                  ),
+                                                  textAlign: TextAlign.justify,
+                                                ),
+                                                const SizedBox(height: 8),
+                                                Align(
+                                                  alignment:
+                                                      Alignment.centerLeft,
+                                                  child: Countdown(
+                                                    targetDate: DateTime.parse(
+                                                        deal.endTime),
+                                                    bgColor: timerBgColor,
+                                                    textColor: timerTxtColor,
+                                                    levelColor: titleColor,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 8),
+                                                InkWell(
+                                                  onTap: () {
+                                                    filterCon.setProductType(
+                                                        "Flash Sale",
+                                                        flashSaleId: deal.id);
+                                                    homeCon
+                                                        .setCurrentIndexHomePage(
+                                                            1);
+                                                  },
+                                                  child: Container(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        vertical: 10,
+                                                        horizontal: 12),
+                                                    decoration: BoxDecoration(
+                                                      color: buttonBgColor,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              5),
+                                                      boxShadow: const [
+                                                        BoxShadow(
+                                                          color:
+                                                              Color(0x1A000000),
+                                                          blurRadius: 8,
+                                                          offset: Offset(0, 4),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    child: Text(
+                                                      deal.buttonText ??
+                                                          "Not Found",
+                                                      style: TextStyle(
+                                                        fontSize: 14,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        color: buttonTxtColor,
+                                                        letterSpacing: 1.0,
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
                                             ),
-                                          ],
-                                        ),
-                                        child: Text(
-                                          deal.buttonText ??
-                                              "Not Found",
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight:
-                                            FontWeight.w600,
-                                            color: buttonTxtColor,
-                                            letterSpacing: 1.0,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
+                                          )
+                                        ],
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            ],
-                          ),
+                                    );
+                                  }).toList(),
+                                ));
+                      }
+                      isFlashDealLoaded = false;
+                      return Container();
+                    },
+                    listener: (context, state) {
+                      if (state is FlashDealConnectionError) {
+                        CommonFunctions.showUpSnack(
+                          message: AppLocalizations.of(context)!.noInternet,
+                          context: context,
                         );
-                      }).toList(),
-                    ));
-                  }
-                  isFlashDealLoaded = false;
-                  return Container();
-                },
-                listener: (context, state) {
-                  if (state is FlashDealConnectionError) {
-                    CommonFunctions.showUpSnack(
-                      message: AppLocalizations.of(context)!.noInternet,
-                      context: context,
-                    );
-                  } else if (state is FlashDealFailure) {
-                    CommonFunctions.showUpSnack(
-                      message: state.flashDealModel.message.isNotEmpty == true
-                          ? state.flashDealModel.message
-                          : "An error occurred",
-                      context: context,
-                    );
-                  }
-                },
-              ),
-            ),
-            const SizedBox(width: 12,height: 12,),
-            Expanded(
-              flex: 6,
-              child: BlocConsumer<FlashDealProductBloc, FlashDealProductState>(
-                builder: (_, state) {
-                  if (state is FlashDealProductLoading) {
-                    return _isInitialLoad
-                        ? const DesktopProductLoadingGrid(
-                            itemCount: 4,
-                          )
-                        : DesktopProductGrid(
-                            productData: productData,
-                            productLength: 4,
-                            physics: const NeverScrollableScrollPhysics(),
-                            onFavoriteToggle: (wishlist, id) {
-                              _handleFavoriteToggle(wishlist!, id);
-                            },
-                          );
-                  }
-                  else if (state is FlashDealProductLoaded) {
-                    isFlashDealProductLoaded = true;
-                    if (_isInitialLoad && state.hasConnectionError) {
-                      CommonFunctions.showCustomSnackBar(
-                          context, AppLocalizations.of(context)!.noInternet);
-                    }
-                    _isInitialLoad = false;
-                    commonCon.setTotalPage(
-                        state.flashDealProductModel.meta?.lastPage);
-                    productData = state.flashDealProductModel.data;
-                    return state.flashDealProductModel.data.isEmpty
-                        ? const SizedBox()
-                        : DesktopProductGrid(
-                            productData: productData,
-                      productLength: 4,
-                            physics: const NeverScrollableScrollPhysics(),
-                            onFavoriteToggle: (wishlist, id) {
-                              _handleFavoriteToggle(wishlist!, id);
-                            },
-                          );
-                  }
-                  isFlashDealProductLoaded = false;
-                  return Container();
-                },
-                listener: (context, state) {
-                  if (state is FlashDealProductConnectionError) {
-                    CommonFunctions.showUpSnack(
-                      message: AppLocalizations.of(context)!.noInternet,
-                      context: context,
-                    );
-                  } else if (state is FlashDealProductFailure) {
-                    CommonFunctions.showUpSnack(
-                      message:
-                          state.flashDealProductModel.message.isNotEmpty == true
-                              ? state.flashDealProductModel.message
-                              : "An error occurred",
-                      context: context,
-                    );
-                  }
-                },
-              ),
-            ),
-          ]),
+                      } else if (state is FlashDealFailure) {
+                        CommonFunctions.showUpSnack(
+                          message:
+                              state.flashDealModel.message.isNotEmpty == true
+                                  ? state.flashDealModel.message
+                                  : "An error occurred",
+                          context: context,
+                        );
+                      }
+                    },
+                  ),
+                ),
+                const SizedBox(
+                  width: 12,
+                  height: 12,
+                ),
+                Expanded(
+                  flex: 6,
+                  child:
+                      BlocConsumer<FlashDealProductBloc, FlashDealProductState>(
+                    builder: (_, state) {
+                      if (state is FlashDealProductLoading) {
+                        return _isInitialLoad
+                            ? const DesktopProductLoadingGrid(
+                                itemCount: 4,
+                              )
+                            : DesktopProductGrid(
+                                productData: productData,
+                                productLength: 4,
+                                physics: const NeverScrollableScrollPhysics(),
+                                isPremium: widget.isPremium,
+                                onFavoriteToggle: (wishlist, id) {
+                                  _handleFavoriteToggle(wishlist!, id);
+                                },
+                              );
+                      } else if (state is FlashDealProductLoaded) {
+                        isFlashDealProductLoaded = true;
+                        if (_isInitialLoad && state.hasConnectionError) {
+                          CommonFunctions.showCustomSnackBar(context,
+                              AppLocalizations.of(context)!.noInternet);
+                        }
+                        _isInitialLoad = false;
+                        commonCon.setTotalPage(
+                            state.flashDealProductModel.meta?.lastPage);
+                        productData = state.flashDealProductModel.data;
+                        return state.flashDealProductModel.data.isEmpty
+                            ? const SizedBox()
+                            : DesktopProductGrid(
+                                productData: productData,
+                                productLength: 4,
+                                physics: const NeverScrollableScrollPhysics(),
+                                isPremium: widget.isPremium,
+                                onFavoriteToggle: (wishlist, id) {
+                                  _handleFavoriteToggle(wishlist!, id);
+                                },
+                              );
+                      }
+                      isFlashDealProductLoaded = false;
+                      return Container();
+                    },
+                    listener: (context, state) {
+                      if (state is FlashDealProductConnectionError) {
+                        CommonFunctions.showUpSnack(
+                          message: AppLocalizations.of(context)!.noInternet,
+                          context: context,
+                        );
+                      } else if (state is FlashDealProductFailure) {
+                        CommonFunctions.showUpSnack(
+                          message:
+                              state.flashDealProductModel.message.isNotEmpty ==
+                                      true
+                                  ? state.flashDealProductModel.message
+                                  : "An error occurred",
+                          context: context,
+                        );
+                      }
+                    },
+                  ),
+                ),
+              ]),
         ),
       ],
     );

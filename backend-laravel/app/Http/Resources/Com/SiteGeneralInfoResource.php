@@ -53,6 +53,8 @@ class SiteGeneralInfoResource extends JsonResource
             'com_meta_publisher' => com_option_get('com_meta_publisher'),
             'com_google_analytics_id' => com_option_get('com_google_analytics_id'),
             'com_google_tag_manager_id' => com_option_get('com_google_tag_manager_id'),
+            'com_google_ads_conversion_id' => com_option_get('com_google_ads_conversion_id'),
+            'com_google_ads_purchase_label' => com_option_get('com_google_ads_purchase_label'),
         ];
     }
 }

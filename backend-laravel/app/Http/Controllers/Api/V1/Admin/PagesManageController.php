@@ -73,22 +73,24 @@ class PagesManageController extends Controller
                     default => 'Custom Page',
                 };
 
-                // Try to find page by slug
-                $page = Page::where('slug', $slug)->first();
+                // Try to find page by slug and theme, so theme-specific CMS pages do not overwrite each other.
+                $page = Page::where('slug', $slug)
+                    ->where('theme_name', $theme_name ?? 'default')
+                    ->first();
 
                 if ($page) {
                     $page->update([
                         'theme_name' => $theme_name ?? 'default',
-                        'content' => json_encode($data['content']),
+                        'content' => json_encode($data['content'] ?? []),
                         'title' => $page_title,
                         'enable_builder' => 1,
                     ]);
                 } else {
                     $page = Page::updateOrCreate(
-                        ['slug' => $slug],
+                        ['slug' => $slug, 'theme_name' => $theme_name ?? 'default'],
                         [
                             'theme_name' => $theme_name ?? 'default',
-                            'content' => json_encode($data['content']),
+                            'content' => json_encode($data['content'] ?? []),
                             'title' => $page_title,
                             'enable_builder' => 1,
                             'status' => 'publish',
@@ -177,7 +179,14 @@ class PagesManageController extends Controller
                     'message' => $validator->errors()
                 ],422);
             }
-            $category = $this->pageRepo->update($request->all(), Page::class);
+            $input = $request->all();
+            if (isset($input['content']) && is_array($input['content'])) {
+                $input['content'] = json_encode($input['content']);
+            }
+            if (isset($input['meta_keywords']) && is_array($input['meta_keywords'])) {
+                $input['meta_keywords'] = implode(', ', array_filter($input['meta_keywords']));
+            }
+            $category = $this->pageRepo->update($input, Page::class);
             createOrUpdateTranslationJson($request, $category, 'App\Models\Page', $this->pageRepo->translationKeysForPage());
             if ($category) {
                 return $this->success(translate('messages.update_success', ['name' => 'Page']));

@@ -18,10 +18,10 @@ export function HeroSliderVariant1({ sliders }: HeroSliderProps) {
   const touchEndX = useRef(0);
 
   const startAutoPlay = useCallback(() => {
-    if (sliders.length <= 1) return;
+    if (sliders.length <= 1 || timerRef.current) return;
     timerRef.current = setInterval(() => {
       setCurrent((prev) => (prev + 1) % sliders.length);
-    }, 8000); // 8sn interval (Flutter ile aynı)
+    }, 8000);
   }, [sliders.length]);
 
   const stopAutoPlay = useCallback(() => {
@@ -47,7 +47,6 @@ export function HeroSliderVariant1({ sliders }: HeroSliderProps) {
     goTo((current - 1 + sliders.length) % sliders.length);
   }, [current, sliders.length, goTo]);
 
-  // Touch swipe handlers
   const onTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
     stopAutoPlay();
@@ -70,9 +69,8 @@ export function HeroSliderVariant1({ sliders }: HeroSliderProps) {
     return stopAutoPlay;
   }, [startAutoPlay, stopAutoPlay]);
 
-  // 2sn animasyon lock (Flutter: autoPlayAnimationDuration)
   useEffect(() => {
-    const timeout = setTimeout(() => setIsTransitioning(false), 2000);
+    const timeout = setTimeout(() => setIsTransitioning(false), 700);
     return () => clearTimeout(timeout);
   }, [current]);
 
@@ -80,143 +78,116 @@ export function HeroSliderVariant1({ sliders }: HeroSliderProps) {
 
   return (
     <section className="relative" aria-label="Hero slider">
-      {/* Slider Track */}
-      <div className="overflow-hidden rounded-lg">
+      <div
+        className="overflow-hidden rounded-lg bg-muted"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
         <div
           className="flex"
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
           style={{
             transform: `translateX(-${current * 100}%)`,
-            transition: 'transform 2000ms cubic-bezier(0.4, 0, 0.2, 1)',
+            transition: 'transform 700ms cubic-bezier(0.4, 0, 0.2, 1)',
           }}
         >
-          {sliders.map((slide, i) => (
-            <div
-              key={slide.id}
-              className="relative flex w-full shrink-0 items-center"
-              style={{
-                minHeight: 'clamp(260px, 38vw, 500px)',
-                backgroundColor: slide.bg_image_url
-                  ? undefined
-                  : slide.bg_color || undefined,
-              }}
-            >
-              {/* Background Image (cover) veya bg_color */}
-              {slide.bg_image_url ? (
-                <Image
-                  src={slide.bg_image_url}
-                  alt=""
-                  fill
-                  className="object-cover"
-                  priority={i === 0}
-                />
-              ) : !slide.bg_color ? (
-                <div className="absolute inset-0 bg-muted" />
-              ) : null}
+          {sliders.map((slide, index) => {
+            const backgroundImage = slide.bg_image_url || slide.image_url;
 
-              {/* Content Row: sol metin (%50) + sağ görsel (%40) + padding (%3+%3) */}
-              <div className="relative z-10 flex w-full items-center px-[5%] py-8">
-                {/* Sol - Metin İçeriği */}
-                <div className="flex w-full flex-col justify-center sm:w-1/2">
+            return (
+              <div
+                key={slide.id}
+                className="relative min-h-[300px] w-full shrink-0 overflow-hidden sm:aspect-[1320/420] sm:min-h-0"
+                style={{
+                  backgroundColor: slide.bg_color || 'hsl(var(--muted))',
+                }}
+              >
+                {backgroundImage ? (
+                  <Image
+                    src={backgroundImage}
+                    alt=""
+                    fill
+                    className="object-cover"
+                    priority={index === 0}
+                  />
+                ) : null}
+
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background:
+                      'linear-gradient(90deg, hsl(var(--foreground) / 0.78) 0%, hsl(var(--foreground) / 0.48) 46%, hsl(var(--foreground) / 0.10) 100%)',
+                  }}
+                />
+
+                <div className="relative z-10 flex h-full min-h-[300px] max-w-[660px] flex-col justify-center px-7 py-8 sm:px-12 lg:px-14">
                   {slide.sub_title && (
-                    <p
-                      className="mb-2 text-sm font-medium text-primary sm:text-base lg:text-lg"
-                      style={slide.sub_title_color ? { color: slide.sub_title_color } : undefined}
-                    >
+                    <span className="mb-4 inline-flex w-fit items-center gap-2 rounded-full bg-primary px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-wide text-primary-foreground shadow-sm">
+                      <span className="h-1.5 w-1.5 rounded-full bg-primary-foreground" />
                       {slide.sub_title}
-                    </p>
+                    </span>
                   )}
 
                   {slide.title && (
-                    <h2
-                      className="text-2xl font-semibold leading-tight text-foreground sm:text-3xl lg:text-[42px]"
-                      style={slide.title_color ? { color: slide.title_color } : undefined}
-                    >
+                    <h2 className="max-w-[600px] text-3xl font-extrabold leading-[1.06] tracking-tight text-background drop-shadow-md sm:text-4xl lg:text-5xl">
                       {slide.title}
                     </h2>
                   )}
 
                   {slide.description && (
-                    <p
-                      className="mt-4 line-clamp-2 text-sm text-muted-foreground sm:text-base lg:text-lg"
-                      style={slide.description_color ? { color: slide.description_color } : undefined}
-                    >
+                    <p className="mt-4 max-w-[540px] text-sm font-medium leading-relaxed text-background/95 drop-shadow-sm sm:text-base">
                       {slide.description}
                     </p>
                   )}
 
                   {slide.button_text && slide.redirect_url && (
-                    <div className="mt-5">
-                      <Link href={slide.redirect_url} title={slide.button_text || slide.title}>
-                        <span
-                          className="inline-flex items-center gap-2 rounded-[5px] bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground sm:px-6 sm:py-3.5 sm:text-base lg:text-lg"
-                          style={{
-                            ...(slide.button_bg_color ? { backgroundColor: slide.button_bg_color } : {}),
-                            ...(slide.button_text_color ? { color: slide.button_text_color } : {}),
-                          }}
-                        >
-                          {slide.button_text}
-                          <ArrowRight className="h-4 w-4" />
-                        </span>
-                      </Link>
-                    </div>
+                    <Link
+                      href={slide.redirect_url}
+                      title={slide.button_text || slide.title}
+                      className="mt-7 inline-flex w-fit items-center gap-2 rounded-[4px] bg-primary px-6 py-3 text-sm font-extrabold text-primary-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+                    >
+                      {slide.button_text}
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
                   )}
                 </div>
-
-                {/* Sağ - Ürün Görseli (%40 genişlik, 300px max yükseklik) */}
-                {slide.image_url && (
-                  <div className="hidden w-[40%] items-center justify-center sm:flex">
-                    <Image
-                      src={slide.image_url}
-                      alt={slide.title || 'Slider'}
-                      width={500}
-                      height={300}
-                      className="h-auto max-h-[400px] w-auto object-contain"
-                      priority={i === 0}
-                    />
-                  </div>
-                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
-      {/* Navigation Arrows - minimal, sadece chevron */}
       {sliders.length > 1 && (
         <>
           <button
             onClick={prev}
-            className="absolute left-2 top-1/2 z-20 -translate-y-1/2 p-1 text-primary transition-opacity hover:opacity-70"
+            className="absolute left-4 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-background/95 text-foreground shadow-md transition-colors hover:bg-primary hover:text-primary-foreground"
             aria-label="Previous slide"
           >
-            <ChevronLeft className="h-6 w-6" />
+            <ChevronLeft className="h-5 w-5" />
           </button>
           <button
             onClick={next}
-            className="absolute right-2 top-1/2 z-20 -translate-y-1/2 p-1 text-primary transition-opacity hover:opacity-70"
+            className="absolute right-4 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-background/95 text-foreground shadow-md transition-colors hover:bg-primary hover:text-primary-foreground"
             aria-label="Next slide"
           >
-            <ChevronRight className="h-6 w-6" />
+            <ChevronRight className="h-5 w-5" />
           </button>
         </>
       )}
 
-      {/* Dot Indicators - Flutter birebir: aktif 24px, pasif 9px, 3px yükseklik */}
       {sliders.length > 1 && (
-        <div className="flex items-center justify-center gap-1 py-2.5">
-          {sliders.map((_, i) => (
+        <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5">
+          {sliders.map((_, index) => (
             <button
-              key={i}
-              onClick={() => goTo(i)}
-              className={`mx-0.5 h-[3px] rounded-full transition-all duration-300 ${
-                i === current
-                  ? 'w-6 bg-primary'
-                  : 'w-[9px] bg-muted-foreground/50'
+              key={index}
+              onClick={() => goTo(index)}
+              className={`h-1 rounded-full transition-all duration-300 ${
+                index === current
+                  ? 'w-8 bg-primary'
+                  : 'w-5 bg-background/60 hover:bg-background/90'
               }`}
-              aria-label={`Go to slide ${i + 1}`}
+              aria-label={`Go to slide ${index + 1}`}
             />
           ))}
         </div>

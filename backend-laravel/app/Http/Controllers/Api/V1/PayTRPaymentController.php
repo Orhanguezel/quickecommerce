@@ -281,6 +281,15 @@ class PayTRPaymentController extends Controller
     {
         $callbackData = $request->only(['merchant_oid', 'status', 'total_amount', 'hash']);
 
+        Log::info('PayTR callback received', [
+            'merchant_oid' => $callbackData['merchant_oid'] ?? null,
+            'status' => $callbackData['status'] ?? null,
+            'total_amount' => $callbackData['total_amount'] ?? null,
+            'ip' => $request->ip(),
+        ]);
+
+        $logRow = $this->recordCallbackAttempt($request, $callbackData, 'received');
+
         try {
             $result = $this->payTRService->verifyCallback($callbackData);
         } catch (\Throwable $e) {
@@ -288,6 +297,7 @@ class PayTRPaymentController extends Controller
                 'message' => $e->getMessage(),
                 'merchant_oid' => $callbackData['merchant_oid'] ?? null,
             ]);
+            $this->markLogOutcome($logRow, 'exception', $e->getMessage());
             return response('OK', 200);
         }
 
@@ -295,6 +305,7 @@ class PayTRPaymentController extends Controller
             Log::warning('PayTR callback hash mismatch', [
                 'merchant_oid' => $result['merchant_oid'],
             ]);
+            $this->markLogOutcome($logRow, 'hash_mismatch', 'Hash doğrulaması başarısız');
             return response('OK', 200);
         }
 
@@ -304,18 +315,59 @@ class PayTRPaymentController extends Controller
         // merchant_oid pattern: SP{id}T{timestamp} or WL{id}T{timestamp} or SUB{id}T{timestamp}
         if (str_starts_with($merchantOid, 'SP')) {
             $this->handleOrderCallback($merchantOid, $status, $result['total_amount']);
+            $this->markLogOutcome($logRow, 'processed', "order: {$merchantOid}");
         } elseif (str_starts_with($merchantOid, 'WL')) {
             $this->handleWalletCallback($merchantOid, $status, $result['total_amount']);
+            $this->markLogOutcome($logRow, 'processed', "wallet: {$merchantOid}");
         } elseif (str_starts_with($merchantOid, 'SUB')) {
             $this->handleSubscriptionCallback($merchantOid, $status, $result['total_amount']);
+            $this->markLogOutcome($logRow, 'processed', "subscription: {$merchantOid}");
         } else {
             Log::warning('PayTR callback unknown merchant_oid pattern', [
                 'merchant_oid' => $merchantOid,
             ]);
+            $this->markLogOutcome($logRow, 'unknown_oid', "Unknown pattern: {$merchantOid}");
         }
 
         // PayTR her zaman "OK" yanıtı bekler
         return response('OK', 200);
+    }
+
+    /**
+     * Persist a row to paytr_callback_logs so admins can verify callback
+     * traffic from the admin panel without needing SSH access to server logs.
+     */
+    private function recordCallbackAttempt(Request $request, array $callbackData, string $outcome): ?\App\Models\PayTRCallbackLog
+    {
+        try {
+            return \App\Models\PayTRCallbackLog::create([
+                'merchant_oid' => $callbackData['merchant_oid'] ?? null,
+                'status'       => $callbackData['status'] ?? null,
+                'total_amount' => isset($callbackData['total_amount']) && is_numeric($callbackData['total_amount'])
+                    ? (float) $callbackData['total_amount']
+                    : null,
+                'source_ip'    => $request->ip(),
+                'outcome'      => $outcome,
+                'payload'      => $request->all(),
+                'received_at'  => now(),
+            ]);
+        } catch (\Throwable $e) {
+            // Never let logging break the callback flow
+            Log::warning('PayTR callback log persist failed', ['error' => $e->getMessage()]);
+            return null;
+        }
+    }
+
+    private function markLogOutcome(?\App\Models\PayTRCallbackLog $log, string $outcome, ?string $detail = null): void
+    {
+        if (!$log) return;
+        try {
+            $log->outcome = $outcome;
+            if ($detail !== null) $log->detail = substr($detail, 0, 500);
+            $log->save();
+        } catch (\Throwable) {
+            // ignore
+        }
     }
 
     /**
@@ -324,6 +376,13 @@ class PayTRPaymentController extends Controller
     public function walletCallback(Request $request): \Illuminate\Http\Response
     {
         $callbackData = $request->only(['merchant_oid', 'status', 'total_amount', 'hash']);
+
+        Log::info('PayTR wallet callback received', [
+            'merchant_oid' => $callbackData['merchant_oid'] ?? null,
+            'status' => $callbackData['status'] ?? null,
+            'total_amount' => $callbackData['total_amount'] ?? null,
+            'ip' => $request->ip(),
+        ]);
 
         try {
             $result = $this->payTRService->verifyCallback($callbackData);

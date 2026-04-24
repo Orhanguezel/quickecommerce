@@ -20,13 +20,14 @@ function isCustomerProfile(value: unknown): value is CustomerProfile {
 
 // --- Get Profile ---
 
-export function useProfileQuery() {
+export function useProfileQuery(enabled = true) {
   const { getAxiosInstance } = useBaseService<CustomerProfile>(
     API_ENDPOINTS.PROFILE
   );
 
   return useQuery({
     queryKey: ["profile"],
+    enabled,
     queryFn: async () => {
       const res = await getAxiosInstance().get<{
         data?: unknown;

@@ -316,6 +316,16 @@
     "login": "Log In",
     "login_and_checkout": "Log In & Checkout",
     "free_shipping_earned": "Congratulations! You've earned free shipping!",
+    "coupon_progress": "Add {remaining} more to unlock {discount} off with {code}!",
+    "coupon_unlocked": "{discount} off coupon ready!",
+    "copy": "Copy",
+    "copied": "Copied",
+    "exit_intent_title": "Leaving already?",
+    "exit_intent_subtitle": "Here's a special {discount} off coupon just for you!",
+    "exit_intent_code_label": "COUPON CODE",
+    "exit_intent_continue": "Continue Shopping",
+    "exit_intent_dismiss": "No thanks",
+    "stock_urgency": "Only {count} left!",
     "currency": "$"
   },
   "checkout": {
@@ -664,5 +674,10 @@
     "always_online": "Always online",
     "close": "Close",
     "how_can_help": "How can I help you?"
+  },
+  "recommendations": {
+    "frequently_bought_together": "Frequently Bought Together",
+    "category_popular": "Popular in this Category",
+    "wishlist_triggered": "Waiting in Your Wishlist"
   }
 }

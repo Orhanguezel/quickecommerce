@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Api\V1\Controller;
 use App\Models\Product;
-use App\Models\ProductVariant;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 
@@ -14,7 +13,7 @@ class ProductFeedController extends Controller
      * Cimri XML Product Feed
      * URL: /feeds/cimri.xml
      *
-     * Tum aktif urunleri Cimri formatinda XML olarak doner.
+     * Tum aktif urunleri Google Merchant RSS yapisinda XML olarak doner.
      * 6 saat cache'lenir — cache temizlemek icin: php artisan cache:clear
      */
     public function cimri(): Response
@@ -45,11 +44,14 @@ class ProductFeedController extends Controller
             ->get();
 
         $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-        $xml .= '<products>' . "\n";
+        $xml .= '<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">' . "\n";
+        $xml .= "  <channel>\n";
+        $xml .= "    <title>Sportoonline Product Feed</title>\n";
+        $xml .= "    <link>" . $this->xmlEscape($siteUrl) . "</link>\n";
+        $xml .= "    <description>Sportoonline Google Merchant product feed</description>\n";
 
         foreach ($products as $product) {
-            // Fiyatli variant olmayan urunleri atla
-            $variant = $product->variants->first();
+            $variant = $product->displayVariant();
             if (!$variant) {
                 continue;
             }
@@ -85,7 +87,7 @@ class ProductFeedController extends Controller
                 : null;
 
             // Stok durumu
-            $stockStatus = ($variant->stock_quantity > 0) ? 'inStock' : 'outOfStock';
+            $stockStatus = ($variant->stock_quantity > 0) ? 'in stock' : 'out of stock';
 
             // SKU / Barkod
             $sku = $variant->sku ?: ('SP-' . $product->id);
@@ -93,11 +95,17 @@ class ProductFeedController extends Controller
             // Kargo
             $freeShipping = $product->free_shipping ? 'true' : 'false';
 
-            $xml .= "  <product>\n";
-            $xml .= "    <merchantItemId>" . $this->xmlEscape($sku) . "</merchantItemId>\n";
-            $xml .= "    <itemTitle><![CDATA[" . $product->name . "]]></itemTitle>\n";
-            $xml .= "    <itemUrl><![CDATA[" . $productUrl . "]]></itemUrl>\n";
-            $xml .= "    <imageUrl><![CDATA[" . $imageUrl . "]]></imageUrl>\n";
+            $xml .= "    <item>\n";
+            $xml .= "      <g:id>" . $this->xmlEscape($sku) . "</g:id>\n";
+            $xml .= "      <merchantItemId>" . $this->xmlEscape($sku) . "</merchantItemId>\n";
+            $xml .= "      <title><![CDATA[" . $product->name . "]]></title>\n";
+            $xml .= "      <g:title><![CDATA[" . $product->name . "]]></g:title>\n";
+            $xml .= "      <description><![CDATA[" . strip_tags((string) $product->description) . "]]></description>\n";
+            $xml .= "      <g:description><![CDATA[" . strip_tags((string) $product->description) . "]]></g:description>\n";
+            $xml .= "      <link><![CDATA[" . $productUrl . "]]></link>\n";
+            $xml .= "      <g:link><![CDATA[" . $productUrl . "]]></g:link>\n";
+            $xml .= "      <g:image_link><![CDATA[" . $imageUrl . "]]></g:image_link>\n";
+            $xml .= "      <imageUrl><![CDATA[" . $imageUrl . "]]></imageUrl>\n";
 
             // Galeri gorselleri
             if ($product->gallery_images) {
@@ -105,43 +113,54 @@ class ProductFeedController extends Controller
                 foreach (array_slice($galleryIds, 0, 5) as $imgId) {
                     $galleryUrl = com_option_get_id_wise_url(trim($imgId));
                     if ($galleryUrl) {
-                        $xml .= "    <additionalImageUrl><![CDATA[" . $galleryUrl . "]]></additionalImageUrl>\n";
+                        $xml .= "      <g:additional_image_link><![CDATA[" . $galleryUrl . "]]></g:additional_image_link>\n";
+                        $xml .= "      <additionalImageUrl><![CDATA[" . $galleryUrl . "]]></additionalImageUrl>\n";
                     }
                 }
             }
 
-            // Fiyat — indirimli varsa onu goster, orijinali ayri yaz
+            $xml .= "      <g:condition>new</g:condition>\n";
+            $xml .= "      <g:availability>" . $stockStatus . "</g:availability>\n";
+
+            // Fiyat — Google Feed TRY para birimiyle fiyat bekler
             if ($specialPrice && $specialPrice < $price) {
-                $xml .= "    <price>" . $specialPrice . "</price>\n";
-                $xml .= "    <oldPrice>" . $price . "</oldPrice>\n";
+                $xml .= "      <g:price>" . $price . " TRY</g:price>\n";
+                $xml .= "      <g:sale_price>" . $specialPrice . " TRY</g:sale_price>\n";
+                $xml .= "      <price>" . $specialPrice . "</price>\n";
+                $xml .= "      <oldPrice>" . $price . "</oldPrice>\n";
             } else {
-                $xml .= "    <price>" . $price . "</price>\n";
+                $xml .= "      <g:price>" . $price . " TRY</g:price>\n";
+                $xml .= "      <price>" . $price . "</price>\n";
             }
 
-            $xml .= "    <currencyId>TRY</currencyId>\n";
-            $xml .= "    <categoryName><![CDATA[" . $categoryPath . "]]></categoryName>\n";
+            $xml .= "      <currencyId>TRY</currencyId>\n";
+            $xml .= "      <g:product_type><![CDATA[" . $categoryPath . "]]></g:product_type>\n";
+            $xml .= "      <categoryName><![CDATA[" . $categoryPath . "]]></categoryName>\n";
 
             if ($brandName) {
-                $xml .= "    <brand><![CDATA[" . $brandName . "]]></brand>\n";
+                $xml .= "      <g:brand><![CDATA[" . $brandName . "]]></g:brand>\n";
+                $xml .= "      <brand><![CDATA[" . $brandName . "]]></brand>\n";
             }
 
-            $xml .= "    <stockStatus>" . $stockStatus . "</stockStatus>\n";
+            $xml .= "      <stockStatus>" . (($variant->stock_quantity > 0) ? 'inStock' : 'outOfStock') . "</stockStatus>\n";
 
             if ($variant->sku) {
-                $xml .= "    <barcode>" . $this->xmlEscape($variant->sku) . "</barcode>\n";
+                $xml .= "      <g:mpn>" . $this->xmlEscape($variant->sku) . "</g:mpn>\n";
+                $xml .= "      <barcode>" . $this->xmlEscape($variant->sku) . "</barcode>\n";
             }
 
-            $xml .= "    <freeShipping>" . $freeShipping . "</freeShipping>\n";
+            $xml .= "      <freeShipping>" . $freeShipping . "</freeShipping>\n";
 
             // Magaza bilgisi
             if ($product->store) {
-                $xml .= "    <merchantName><![CDATA[" . $product->store->name . "]]></merchantName>\n";
+                $xml .= "      <merchantName><![CDATA[" . $product->store->name . "]]></merchantName>\n";
             }
 
-            $xml .= "  </product>\n";
+            $xml .= "    </item>\n";
         }
 
-        $xml .= '</products>';
+        $xml .= "  </channel>\n";
+        $xml .= '</rss>';
 
         return $xml;
     }

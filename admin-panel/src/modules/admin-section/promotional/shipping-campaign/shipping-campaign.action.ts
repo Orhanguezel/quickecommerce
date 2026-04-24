@@ -94,9 +94,12 @@ export const useShippingCampaignStoreMutation = () => {
 
 export const useShippingCampaignUpdateMutation = () => {
   const router = useRouter();
-  const { update } = useShippingCampaignUpdateService();
+  const { getAxiosInstance } = useShippingCampaignUpdateService();
   return useMutation({
-    mutationFn: (values: ShippingCampaignFormData) => update(values),
+    mutationFn: (values: ShippingCampaignFormData & { id?: string | number }) => {
+      const { id, ...payload } = values;
+      return getAxiosInstance().put(`${API_ENDPOINTS.SHIPPING_CAMPAIGN_UPDATE}/${id}`, payload);
+    },
     mutationKey: [API_ENDPOINTS.SHIPPING_CAMPAIGN_UPDATE],
     onSuccess: async (data) => {
       if (Boolean((data as any)?.data)) {

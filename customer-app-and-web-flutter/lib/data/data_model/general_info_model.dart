@@ -4,9 +4,11 @@
 
 import 'dart:convert';
 
-GeneralInfoModel generalInfoModelFromJson(String str) => GeneralInfoModel.fromJson(json.decode(str));
+GeneralInfoModel generalInfoModelFromJson(String str) =>
+    GeneralInfoModel.fromJson(json.decode(str));
 
-String generalInfoModelToJson(GeneralInfoModel data) => json.encode(data.toJson());
+String generalInfoModelToJson(GeneralInfoModel data) =>
+    json.encode(data.toJson());
 
 class GeneralInfoModel {
   final SiteSettings siteSettings;
@@ -15,13 +17,14 @@ class GeneralInfoModel {
     required this.siteSettings,
   });
 
-  factory GeneralInfoModel.fromJson(Map<String, dynamic> json) => GeneralInfoModel(
-    siteSettings: SiteSettings.fromJson(json["site_settings"]),
-  );
+  factory GeneralInfoModel.fromJson(Map<String, dynamic> json) =>
+      GeneralInfoModel(
+        siteSettings: SiteSettings.fromJson(json["site_settings"]),
+      );
 
   Map<String, dynamic> toJson() => {
-    "site_settings": siteSettings.toJson(),
-  };
+        "site_settings": siteSettings.toJson(),
+      };
 }
 
 class SiteSettings {
@@ -29,6 +32,7 @@ class SiteSettings {
   final dynamic comSiteSubtitle;
   final dynamic comSiteFavicon;
   final dynamic comSiteLogo;
+  final dynamic comSiteWhiteLogo;
   final dynamic comSiteFooterCopyright;
   final dynamic comSiteEmail;
   final dynamic comSiteWebsiteUrl;
@@ -37,49 +41,56 @@ class SiteSettings {
   final dynamic comMaintenanceMode;
   final dynamic comUserLoginOtp;
   final dynamic comUserEmailVerification;
+  final dynamic activeTheme;
 
   SiteSettings({
-     this.comSiteTitle,
-     this.comSiteSubtitle,
-     this.comSiteFavicon,
-     this.comSiteLogo,
-     this.comSiteFooterCopyright,
-     this.comSiteEmail,
-     this.comSiteWebsiteUrl,
-     this.comSiteContactNumber,
-     this.comSiteFullAddress,
-     this.comMaintenanceMode,
-     this.comUserLoginOtp,
-     this.comUserEmailVerification,
+    this.comSiteTitle,
+    this.comSiteSubtitle,
+    this.comSiteFavicon,
+    this.comSiteLogo,
+    this.comSiteWhiteLogo,
+    this.comSiteFooterCopyright,
+    this.comSiteEmail,
+    this.comSiteWebsiteUrl,
+    this.comSiteContactNumber,
+    this.comSiteFullAddress,
+    this.comMaintenanceMode,
+    this.comUserLoginOtp,
+    this.comUserEmailVerification,
+    this.activeTheme,
   });
 
   factory SiteSettings.fromJson(Map<String, dynamic> json) => SiteSettings(
-    comSiteTitle: json["com_site_title"],
-    comSiteSubtitle: json["com_site_subtitle"],
-    comSiteFavicon: json["com_site_favicon"],
-    comSiteLogo: json["com_site_logo"],
-    comSiteFooterCopyright: json["com_site_footer_copyright"],
-    comSiteEmail: json["com_site_email"],
-    comSiteWebsiteUrl: json["com_site_website_url"],
-    comSiteContactNumber: json["com_site_contact_number"],
-    comSiteFullAddress: json["com_site_full_address"],
-    comMaintenanceMode: json["com_maintenance_mode"],
-    comUserLoginOtp: json["com_user_login_otp"],
-    comUserEmailVerification: json["com_user_email_verification"],
-  );
+        comSiteTitle: json["com_site_title"],
+        comSiteSubtitle: json["com_site_subtitle"],
+        comSiteFavicon: json["com_site_favicon"],
+        comSiteLogo: json["com_site_logo"],
+        comSiteWhiteLogo: json["com_site_white_logo"],
+        comSiteFooterCopyright: json["com_site_footer_copyright"],
+        comSiteEmail: json["com_site_email"],
+        comSiteWebsiteUrl: json["com_site_website_url"],
+        comSiteContactNumber: json["com_site_contact_number"],
+        comSiteFullAddress: json["com_site_full_address"],
+        comMaintenanceMode: json["com_maintenance_mode"],
+        comUserLoginOtp: json["com_user_login_otp"],
+        comUserEmailVerification: json["com_user_email_verification"],
+        activeTheme: json["active_theme"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "com_site_title": comSiteTitle,
-    "com_site_subtitle": comSiteSubtitle,
-    "com_site_favicon": comSiteFavicon,
-    "com_site_logo": comSiteLogo,
-    "com_site_footer_copyright": comSiteFooterCopyright,
-    "com_site_email": comSiteEmail,
-    "com_site_website_url": comSiteWebsiteUrl,
-    "com_site_contact_number": comSiteContactNumber,
-    "com_site_full_address": comSiteFullAddress,
-    "com_maintenance_mode": comMaintenanceMode,
-    "com_user_login_otp": comUserLoginOtp,
-    "com_user_email_verification": comUserEmailVerification,
-  };
+        "com_site_title": comSiteTitle,
+        "com_site_subtitle": comSiteSubtitle,
+        "com_site_favicon": comSiteFavicon,
+        "com_site_logo": comSiteLogo,
+        "com_site_white_logo": comSiteWhiteLogo,
+        "com_site_footer_copyright": comSiteFooterCopyright,
+        "com_site_email": comSiteEmail,
+        "com_site_website_url": comSiteWebsiteUrl,
+        "com_site_contact_number": comSiteContactNumber,
+        "com_site_full_address": comSiteFullAddress,
+        "com_maintenance_mode": comMaintenanceMode,
+        "com_user_login_otp": comUserLoginOtp,
+        "com_user_email_verification": comUserEmailVerification,
+        "active_theme": activeTheme,
+      };
 }
