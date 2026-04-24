@@ -77,8 +77,18 @@ class ProductFeedController extends Controller
             // Kategori yolu
             $categoryPath = $this->buildCategoryPath($product->category);
 
-            // Marka
-            $brandName = $product->brand?->brand_name ?? '';
+            // Marka — Google g:brand zorunlu sayilir. Bos ise site adi kullanilir.
+            $brandName = $product->brand?->brand_name ?: 'Sportoonline';
+
+            // Description — Google Merchant zorunlu alan. Bossa feed'den exclude et.
+            // >5000 karakter ise truncate.
+            $descriptionText = trim(strip_tags((string) $product->description));
+            if ($descriptionText === '') {
+                continue; // Google reject etmesin diye description bos urunleri atlayalim
+            }
+            if (mb_strlen($descriptionText) > 5000) {
+                $descriptionText = mb_substr($descriptionText, 0, 4997) . '...';
+            }
 
             // Fiyat
             $price = number_format((float) $variant->price, 2, '.', '');
@@ -100,8 +110,8 @@ class ProductFeedController extends Controller
             $xml .= "      <merchantItemId>" . $this->xmlEscape($sku) . "</merchantItemId>\n";
             $xml .= "      <title><![CDATA[" . $product->name . "]]></title>\n";
             $xml .= "      <g:title><![CDATA[" . $product->name . "]]></g:title>\n";
-            $xml .= "      <description><![CDATA[" . strip_tags((string) $product->description) . "]]></description>\n";
-            $xml .= "      <g:description><![CDATA[" . strip_tags((string) $product->description) . "]]></g:description>\n";
+            $xml .= "      <description><![CDATA[" . $descriptionText . "]]></description>\n";
+            $xml .= "      <g:description><![CDATA[" . $descriptionText . "]]></g:description>\n";
             $xml .= "      <link><![CDATA[" . $productUrl . "]]></link>\n";
             $xml .= "      <g:link><![CDATA[" . $productUrl . "]]></g:link>\n";
             $xml .= "      <g:image_link><![CDATA[" . $imageUrl . "]]></g:image_link>\n";
@@ -137,10 +147,9 @@ class ProductFeedController extends Controller
             $xml .= "      <g:product_type><![CDATA[" . $categoryPath . "]]></g:product_type>\n";
             $xml .= "      <categoryName><![CDATA[" . $categoryPath . "]]></categoryName>\n";
 
-            if ($brandName) {
-                $xml .= "      <g:brand><![CDATA[" . $brandName . "]]></g:brand>\n";
-                $xml .= "      <brand><![CDATA[" . $brandName . "]]></brand>\n";
-            }
+            // brandName her zaman dolu (default "Sportoonline")
+            $xml .= "      <g:brand><![CDATA[" . $brandName . "]]></g:brand>\n";
+            $xml .= "      <brand><![CDATA[" . $brandName . "]]></brand>\n";
 
             $xml .= "      <stockStatus>" . (($variant->stock_quantity > 0) ? 'inStock' : 'outOfStock') . "</stockStatus>\n";
 
