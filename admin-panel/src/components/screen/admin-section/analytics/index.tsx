@@ -82,7 +82,7 @@ export default function Analytics() {
         <div>
           <h1 className="text-2xl font-bold">Funnel & Tavsiye Analitiği</h1>
           <p className="text-sm text-muted-foreground">
-            Dönüşüm hunisi, blok CTR'leri ve aktif A/B test performansı.
+            Dönüşüm hunisi, blok CTR&apos;leri ve aktif A/B test performansı.
           </p>
         </div>
         <select
