@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Http\Controllers\Controller;
+
 use App\Models\Experiment;
 use App\Models\ExperimentAssignment;
 use Illuminate\Http\JsonResponse;

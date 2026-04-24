@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Http\Controllers\Controller;
+
 use App\Http\Resources\Product\PopularProductPublicResource;
 use App\Models\Product;
 use App\Services\Recommendation\CartRecommendationOrchestrator;
