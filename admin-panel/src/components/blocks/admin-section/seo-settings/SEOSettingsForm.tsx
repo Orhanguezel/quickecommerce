@@ -765,7 +765,7 @@ const SEOSettingsForm = () => {
                                   </div>
                                   {!bothReady && (
                                     <div className="mt-1 italic">
-                                      Her iki alan da doldurulmadan satın alma dönüşüm sinyali Google Ads'e gönderilmez.
+                                      Her iki alan da doldurulmadan satın alma dönüşüm sinyali Google Ads&apos;e gönderilmez.
                                     </div>
                                   )}
                                 </div>
