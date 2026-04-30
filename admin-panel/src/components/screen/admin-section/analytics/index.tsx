@@ -9,11 +9,14 @@ import { useState } from "react";
 interface FunnelData {
   window_days: number;
   funnel: {
-    product_viewed: number;
+    page_view: number;
+    product_view: number;
+    product_click: number;
     add_to_cart: number;
-    cart_viewed: number;
-    checkout_started: number;
-    order_placed: number;
+    cart_view: number;
+    checkout_start: number;
+    order_created: number;
+    payment_success: number;
   };
   rates: {
     view_to_cart: number;
@@ -21,6 +24,55 @@ interface FunnelData {
     checkout_to_order: number;
     end_to_end: number;
   };
+}
+
+interface OverviewData {
+  window_days: number;
+  summary: {
+    events: number;
+    human_events: number;
+    bot_events: number;
+    visitors: number;
+    sessions: number;
+    page_views: number;
+    product_views: number;
+    product_clicks: number;
+    add_to_carts: number;
+    checkout_starts: number;
+    orders: number;
+    payments: number;
+  };
+  top_pages: Array<{ path: string; views: number; sessions: number }>;
+  top_products: Array<{
+    product_id: number;
+    product_name: string | null;
+    views: number;
+    clicks: number;
+    add_to_carts: number;
+  }>;
+  top_searches: Array<{ query: string; searches: number }>;
+  utm_campaigns: Array<{
+    utm_source: string | null;
+    utm_medium: string | null;
+    utm_campaign: string | null;
+    events: number;
+  }>;
+  devices: Array<{ device_type: string | null; sessions: number }>;
+  recent_events: Array<{
+    event: string;
+    subject: string;
+    visitor_id: string | null;
+    session_id: string | null;
+    ip_address: string | null;
+    path: string | null;
+    product_id: number | null;
+    amount: string | number | null;
+    is_bot: boolean;
+    device_type: string | null;
+    browser: string | null;
+    os: string | null;
+    created_at: string;
+  }>;
 }
 
 interface CtrRow {
@@ -48,6 +100,7 @@ interface ExperimentRow {
 export default function Analytics() {
   const [days, setDays] = useState(30);
 
+  const overviewSvc = useBaseService<OverviewData>(API_ENDPOINTS.ADMIN_ANALYTICS_OVERVIEW);
   const funnelSvc = useBaseService<FunnelData>(API_ENDPOINTS.ADMIN_ANALYTICS_FUNNEL);
   const ctrSvc = useBaseService<{ window_days: number; blocks: CtrRow[] }>(
     API_ENDPOINTS.ADMIN_ANALYTICS_RECOMMENDATION_CTR
@@ -56,6 +109,11 @@ export default function Analytics() {
     API_ENDPOINTS.ADMIN_ANALYTICS_EXPERIMENTS
   );
 
+  const { data: overviewRes } = useQuery({
+    queryKey: [API_ENDPOINTS.ADMIN_ANALYTICS_OVERVIEW, days],
+    queryFn: () => overviewSvc.findAll({ days }),
+    retry: false,
+  });
   const { data: funnelRes } = useQuery({
     queryKey: [API_ENDPOINTS.ADMIN_ANALYTICS_FUNNEL, days],
     queryFn: () => funnelSvc.findAll({ days }),
@@ -72,6 +130,7 @@ export default function Analytics() {
     retry: false,
   });
 
+  const overview = (overviewRes?.data as { data?: OverviewData } | undefined)?.data;
   const funnel = (funnelRes?.data as { data?: FunnelData } | undefined)?.data;
   const ctrData = (ctrRes?.data as { data?: { blocks: CtrRow[] } } | undefined)?.data;
   const experiments = (expRes?.data as { data?: { experiments: ExperimentRow[] } } | undefined)?.data?.experiments ?? [];
@@ -98,17 +157,34 @@ export default function Analytics() {
         </select>
       </header>
 
+      {overview && (
+        <section>
+          <div className="grid gap-3 md:grid-cols-4">
+            <MetricCard label="Ziyaretçi" value={overview.summary.visitors} />
+            <MetricCard label="Oturum" value={overview.summary.sessions} />
+            <MetricCard label="Sayfa görüntüleme" value={overview.summary.page_views} />
+            <MetricCard label="Bot event" value={overview.summary.bot_events} muted />
+            <MetricCard label="Ürün görüntüleme" value={overview.summary.product_views} />
+            <MetricCard label="Ürün tıklama" value={overview.summary.product_clicks} />
+            <MetricCard label="Sepete ekleme" value={overview.summary.add_to_carts} />
+            <MetricCard label="Ödeme başlangıcı" value={overview.summary.checkout_starts} />
+          </div>
+        </section>
+      )}
+
       {/* Funnel visualization */}
       {funnel && (
         <section>
           <h2 className="mb-3 text-lg font-semibold">Dönüşüm Hunisi</h2>
           <Card>
             <CardContent className="space-y-3 p-4">
-              <FunnelRow label="Ürün görüntüleme" count={funnel.funnel.product_viewed} max={funnel.funnel.product_viewed} />
-              <FunnelRow label="Sepete ekleme" count={funnel.funnel.add_to_cart} max={funnel.funnel.product_viewed} />
-              <FunnelRow label="Sepet görüntüleme" count={funnel.funnel.cart_viewed} max={funnel.funnel.product_viewed} />
-              <FunnelRow label="Ödemeye başlama" count={funnel.funnel.checkout_started} max={funnel.funnel.product_viewed} />
-              <FunnelRow label="Sipariş" count={funnel.funnel.order_placed} max={funnel.funnel.product_viewed} accent="green" />
+              <FunnelRow label="Sayfa görüntüleme" count={funnel.funnel.page_view} max={funnel.funnel.page_view} />
+              <FunnelRow label="Ürün görüntüleme" count={funnel.funnel.product_view} max={funnel.funnel.page_view} />
+              <FunnelRow label="Ürün tıklama" count={funnel.funnel.product_click} max={funnel.funnel.page_view} />
+              <FunnelRow label="Sepete ekleme" count={funnel.funnel.add_to_cart} max={funnel.funnel.page_view} />
+              <FunnelRow label="Sepet görüntüleme" count={funnel.funnel.cart_view} max={funnel.funnel.page_view} />
+              <FunnelRow label="Ödemeye başlama" count={funnel.funnel.checkout_start} max={funnel.funnel.page_view} />
+              <FunnelRow label="Ödeme başarılı" count={funnel.funnel.payment_success} max={funnel.funnel.page_view} accent="green" />
 
               <div className="mt-4 grid grid-cols-4 gap-3 border-t pt-4 text-center text-sm">
                 <RateTile label="Görüntüle → Sepet" value={funnel.rates.view_to_cart} />
@@ -116,6 +192,96 @@ export default function Analytics() {
                 <RateTile label="Ödeme → Sipariş" value={funnel.rates.checkout_to_order} />
                 <RateTile label="Uçtan uca" value={funnel.rates.end_to_end} accent="green" />
               </div>
+            </CardContent>
+          </Card>
+        </section>
+      )}
+
+      {overview && (
+        <section className="grid gap-6 xl:grid-cols-2">
+          <ReportTable
+            title="En Çok Ziyaret Edilen Sayfalar"
+            empty="Henüz sayfa görüntüleme verisi yok."
+            headers={["Sayfa", "Görüntüleme", "Oturum"]}
+            rows={overview.top_pages.map((row) => [
+              row.path,
+              row.views.toLocaleString("tr-TR"),
+              row.sessions.toLocaleString("tr-TR"),
+            ])}
+          />
+          <ReportTable
+            title="En Çok Etkileşim Alan Ürünler"
+            empty="Henüz ürün verisi yok."
+            headers={["Ürün", "Görüntüleme", "Tıklama", "Sepet"]}
+            rows={overview.top_products.map((row) => [
+              row.product_name || `#${row.product_id}`,
+              Number(row.views).toLocaleString("tr-TR"),
+              Number(row.clicks).toLocaleString("tr-TR"),
+              Number(row.add_to_carts).toLocaleString("tr-TR"),
+            ])}
+          />
+          <ReportTable
+            title="En Çok Aranan Kelimeler"
+            empty="Henüz arama verisi yok."
+            headers={["Arama", "Adet"]}
+            rows={overview.top_searches.map((row) => [
+              row.query,
+              row.searches.toLocaleString("tr-TR"),
+            ])}
+          />
+          <ReportTable
+            title="UTM Kampanyaları"
+            empty="Henüz UTM verisi yok."
+            headers={["Kaynak", "Medium", "Kampanya", "Event"]}
+            rows={overview.utm_campaigns.map((row) => [
+              row.utm_source || "-",
+              row.utm_medium || "-",
+              row.utm_campaign || "-",
+              row.events.toLocaleString("tr-TR"),
+            ])}
+          />
+        </section>
+      )}
+
+      {overview && (
+        <section>
+          <h2 className="mb-3 text-lg font-semibold">Son Eventler</h2>
+          <Card>
+            <CardContent className="p-0">
+              <table className="w-full text-sm">
+                <thead className="border-b bg-muted/40">
+                  <tr className="text-left">
+                    <th className="px-4 py-3">Zaman</th>
+                    <th className="px-4 py-3">Event</th>
+                    <th className="px-4 py-3">IP</th>
+                    <th className="px-4 py-3">Path</th>
+                    <th className="px-4 py-3">Cihaz</th>
+                    <th className="px-4 py-3">Bot</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {overview.recent_events.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-muted-foreground">
+                        Henüz event yok.
+                      </td>
+                    </tr>
+                  ) : (
+                    overview.recent_events.map((event, index) => (
+                      <tr key={`${event.created_at}-${index}`} className="border-b hover:bg-muted/20">
+                        <td className="px-4 py-3 text-xs text-muted-foreground">
+                          {new Date(event.created_at).toLocaleString("tr-TR")}
+                        </td>
+                        <td className="px-4 py-3 font-mono text-xs">{event.event}</td>
+                        <td className="px-4 py-3 font-mono text-xs">{event.ip_address || "-"}</td>
+                        <td className="px-4 py-3 max-w-[280px] truncate">{event.path || "-"}</td>
+                        <td className="px-4 py-3">{[event.device_type, event.browser, event.os].filter(Boolean).join(" / ") || "-"}</td>
+                        <td className="px-4 py-3">{event.is_bot ? "Evet" : "Hayır"}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </CardContent>
           </Card>
         </section>
@@ -244,6 +410,80 @@ function FunnelRow({
         <div className={`h-full ${barColor}`} style={{ width: `${pct}%` }} />
       </div>
     </div>
+  );
+}
+
+function MetricCard({
+  label,
+  value,
+  muted,
+}: {
+  label: string;
+  value: number;
+  muted?: boolean;
+}) {
+  return (
+    <Card>
+      <CardContent className="p-4">
+        <div className="text-xs font-medium uppercase text-muted-foreground">{label}</div>
+        <div className={`mt-2 text-2xl font-bold ${muted ? "text-muted-foreground" : ""}`}>
+          {value.toLocaleString("tr-TR")}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ReportTable({
+  title,
+  empty,
+  headers,
+  rows,
+}: {
+  title: string;
+  empty: string;
+  headers: string[];
+  rows: string[][];
+}) {
+  return (
+    <section>
+      <h2 className="mb-3 text-lg font-semibold">{title}</h2>
+      <Card>
+        <CardContent className="p-0">
+          <table className="w-full text-sm">
+            <thead className="border-b bg-muted/40">
+              <tr className="text-left">
+                {headers.map((header) => (
+                  <th key={header} className="px-4 py-3">{header}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.length === 0 ? (
+                <tr>
+                  <td colSpan={headers.length} className="py-8 text-center text-muted-foreground">
+                    {empty}
+                  </td>
+                </tr>
+              ) : (
+                rows.map((row, index) => (
+                  <tr key={index} className="border-b hover:bg-muted/20">
+                    {row.map((cell, cellIndex) => (
+                      <td
+                        key={cellIndex}
+                        className={`px-4 py-3 ${cellIndex === 0 ? "max-w-[320px] truncate" : "text-right tabular-nums"}`}
+                      >
+                        {cell}
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </CardContent>
+      </Card>
+    </section>
   );
 }
 

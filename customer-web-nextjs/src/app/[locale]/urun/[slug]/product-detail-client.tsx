@@ -51,6 +51,7 @@ import {
 } from "@/modules/wishlist/wishlist.service";
 import { useRecentlyViewedStore } from "@/stores/recently-viewed-store";
 import { trackViewItem, trackAddToCart } from "@/lib/gtm";
+import { trackFunnelEvent } from "@/lib/funnel-tracker";
 import { resolveProductPricing } from "@/lib/product-pricing";
 import {
   useProductQuestionsQuery,
@@ -425,6 +426,17 @@ export function ProductDetailClient({
       quantity: 1,
       ...(p.discount_percentage ? { discount: p.discount_percentage } : {}),
     });
+    trackFunnelEvent({
+      event: "product_view",
+      product_id: p.id,
+      category_id: p.category?.id,
+      amount: itemPrice,
+      meta: {
+        slug: p.slug,
+        name: p.name,
+        category: p.category?.category_name,
+      },
+    });
   }, [product.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const price = selectedVariant
@@ -557,6 +569,19 @@ export function ProductDetailClient({
       price: displayPrice,
       quantity,
       ...(price && displayPrice < price ? { discount: price - displayPrice } : {}),
+    });
+    trackFunnelEvent({
+      event: "add_to_cart",
+      product_id: product.id,
+      category_id: product.category?.id,
+      amount: displayPrice * quantity,
+      meta: {
+        source: "product_detail",
+        slug: product.slug,
+        quantity,
+        variant_id: selectedVariant.id,
+        variant_label: variantOptions.find((v) => v.id === selectedVariant.id)?.text,
+      },
     });
 
     // Fly to cart animation

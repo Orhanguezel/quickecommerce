@@ -612,6 +612,7 @@ export const API_ENDPOINTS = {
   ADMIN_ABANDONED_CART_LIST: "v1/admin/abandoned-carts",
   ADMIN_ABANDONED_CART_STATS: "v1/admin/abandoned-carts/stats",
 
+  ADMIN_ANALYTICS_OVERVIEW: "v1/admin/analytics/overview",
   ADMIN_ANALYTICS_FUNNEL: "v1/admin/analytics/funnel",
   ADMIN_ANALYTICS_RECOMMENDATION_CTR: "v1/admin/analytics/recommendation-ctr",
   ADMIN_ANALYTICS_EXPERIMENTS: "v1/admin/analytics/experiments",

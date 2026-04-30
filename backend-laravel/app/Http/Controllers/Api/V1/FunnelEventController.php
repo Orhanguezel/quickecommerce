@@ -15,18 +15,41 @@ use Illuminate\Http\Request;
 class FunnelEventController extends Controller
 {
     private const ALLOWED_EVENTS = [
-        'product_viewed',
+        'page_view',
+        'product_view',
+        'category_view',
+        'search',
+        'store_view',
+        'product_click',
         'add_to_cart',
-        'cart_viewed',
-        'checkout_started',
-        'order_placed',
-        'recommendation_shown',
-        'recommendation_clicked',
-        'recommendation_added',
+        'remove_from_cart',
+        'cart_view',
+        'checkout_start',
+        'shipping_selected',
+        'payment_selected',
+        'order_created',
+        'payment_success',
+        'payment_failed',
+        'banner_click',
+        'coupon_view',
+        'coupon_apply',
+        'recommendation_view',
+        'recommendation_click',
+        'recommendation_add',
         'shipping_threshold_crossed',
         'coupon_threshold_crossed',
         'exit_intent_shown',
         'exit_intent_converted',
+    ];
+
+    private const LEGACY_EVENT_MAP = [
+        'product_viewed' => 'product_view',
+        'cart_viewed' => 'cart_view',
+        'checkout_started' => 'checkout_start',
+        'order_placed' => 'order_created',
+        'recommendation_shown' => 'recommendation_view',
+        'recommendation_clicked' => 'recommendation_click',
+        'recommendation_added' => 'recommendation_add',
     ];
 
     public function track(Request $request): JsonResponse
@@ -34,10 +57,23 @@ class FunnelEventController extends Controller
         $validated = $request->validate([
             'events'                   => 'required|array|min:1|max:50',
             'events.*.event'           => 'required|string|max:64',
-            'events.*.subject'         => 'required|string|max:64',
+            'events.*.subject'         => 'nullable|string|max:64',
+            'events.*.visitor_id'      => 'nullable|string|max:64',
+            'events.*.session_id'      => 'nullable|string|max:64',
             'events.*.product_id'      => 'nullable|integer',
+            'events.*.category_id'     => 'nullable|integer',
+            'events.*.order_id'        => 'nullable|integer',
             'events.*.block_type'      => 'nullable|string|max:64',
             'events.*.amount'          => 'nullable|numeric|min:0',
+            'events.*.referer'         => 'nullable|string|max:2048',
+            'events.*.url'             => 'nullable|string|max:2048',
+            'events.*.path'            => 'nullable|string|max:512',
+            'events.*.locale'          => 'nullable|string|max:8',
+            'events.*.utm_source'      => 'nullable|string|max:128',
+            'events.*.utm_medium'      => 'nullable|string|max:128',
+            'events.*.utm_campaign'    => 'nullable|string|max:255',
+            'events.*.utm_term'        => 'nullable|string|max:255',
+            'events.*.utm_content'     => 'nullable|string|max:255',
             'events.*.meta'            => 'nullable|array',
             'events.*.occurred_at'     => 'nullable|date',
         ]);
@@ -46,21 +82,53 @@ class FunnelEventController extends Controller
             ? (int) auth('api_customer')->user()->id
             : null;
 
+        $ipAddress = $request->ip();
+        $userAgent = (string) $request->userAgent();
+        $device = $this->parseUserAgent($userAgent);
+        $requestReferer = $request->headers->get('referer');
+
         $rows = [];
         foreach ($validated['events'] as $e) {
-            if (!in_array($e['event'], self::ALLOWED_EVENTS, true)) continue;
+            $event = $this->normalizeEvent($e['event']);
+            if (!in_array($event, self::ALLOWED_EVENTS, true)) continue;
+
+            $visitorId = $e['visitor_id'] ?? null;
+            $sessionId = $e['session_id'] ?? null;
+            $subject = $e['subject']
+                ?? $visitorId
+                ?? $sessionId
+                ?? ('ip:' . substr(hash('sha256', $ipAddress . '|' . $userAgent), 0, 32));
 
             $rows[] = [
-                'event'       => $e['event'],
-                'subject'     => $e['subject'],
-                'customer_id' => $customerId,
-                'product_id'  => $e['product_id'] ?? null,
-                'block_type'  => $e['block_type'] ?? null,
-                'amount'      => $e['amount'] ?? null,
-                'meta'        => isset($e['meta']) ? json_encode($e['meta']) : null,
-                'occurred_at' => $e['occurred_at'] ?? now(),
-                'created_at'  => now(),
-                'updated_at'  => now(),
+                'event'        => $event,
+                'subject'      => $subject,
+                'visitor_id'   => $visitorId,
+                'session_id'   => $sessionId,
+                'customer_id'  => $customerId,
+                'ip_address'   => $ipAddress,
+                'user_agent'   => $userAgent ?: null,
+                'referer'      => $e['referer'] ?? $requestReferer,
+                'url'          => $e['url'] ?? null,
+                'path'         => $e['path'] ?? null,
+                'locale'       => $e['locale'] ?? null,
+                'device_type'  => $device['device_type'],
+                'browser'      => $device['browser'],
+                'os'           => $device['os'],
+                'is_bot'       => $device['is_bot'],
+                'utm_source'   => $e['utm_source'] ?? null,
+                'utm_medium'   => $e['utm_medium'] ?? null,
+                'utm_campaign' => $e['utm_campaign'] ?? null,
+                'utm_term'     => $e['utm_term'] ?? null,
+                'utm_content'  => $e['utm_content'] ?? null,
+                'product_id'   => $e['product_id'] ?? null,
+                'category_id'  => $e['category_id'] ?? null,
+                'order_id'     => $e['order_id'] ?? null,
+                'block_type'   => $e['block_type'] ?? null,
+                'amount'       => $e['amount'] ?? null,
+                'meta'         => isset($e['meta']) ? json_encode($e['meta']) : null,
+                'occurred_at'  => $e['occurred_at'] ?? now(),
+                'created_at'   => now(),
+                'updated_at'   => now(),
             ];
         }
 
@@ -72,5 +140,64 @@ class FunnelEventController extends Controller
             'status'   => true,
             'accepted' => count($rows),
         ]);
+    }
+
+    private function normalizeEvent(string $event): string
+    {
+        return self::LEGACY_EVENT_MAP[$event] ?? $event;
+    }
+
+    /**
+     * Lightweight parser for reporting dimensions. It intentionally avoids a
+     * heavy dependency; precise user-agent analytics can be refined later.
+     *
+     * @return array{device_type:string,browser:?string,os:?string,is_bot:bool}
+     */
+    private function parseUserAgent(string $userAgent): array
+    {
+        $ua = strtolower($userAgent);
+        $isBot = (bool) preg_match('/bot|crawl|spider|slurp|semrush|ahrefs|uptime|monitor|facebookexternalhit|preview/i', $userAgent);
+
+        $deviceType = 'desktop';
+        if (preg_match('/tablet|ipad/i', $userAgent)) {
+            $deviceType = 'tablet';
+        } elseif (preg_match('/mobile|android|iphone|ipod/i', $userAgent)) {
+            $deviceType = 'mobile';
+        } elseif ($isBot) {
+            $deviceType = 'bot';
+        }
+
+        $browser = null;
+        if (str_contains($ua, 'edg/')) {
+            $browser = 'Edge';
+        } elseif (str_contains($ua, 'opr/') || str_contains($ua, 'opera')) {
+            $browser = 'Opera';
+        } elseif (str_contains($ua, 'firefox/')) {
+            $browser = 'Firefox';
+        } elseif (str_contains($ua, 'chrome/') || str_contains($ua, 'crios/')) {
+            $browser = 'Chrome';
+        } elseif (str_contains($ua, 'safari/')) {
+            $browser = 'Safari';
+        }
+
+        $os = null;
+        if (str_contains($ua, 'windows')) {
+            $os = 'Windows';
+        } elseif (str_contains($ua, 'android')) {
+            $os = 'Android';
+        } elseif (str_contains($ua, 'iphone') || str_contains($ua, 'ipad') || str_contains($ua, 'ios')) {
+            $os = 'iOS';
+        } elseif (str_contains($ua, 'mac os') || str_contains($ua, 'macintosh')) {
+            $os = 'macOS';
+        } elseif (str_contains($ua, 'linux')) {
+            $os = 'Linux';
+        }
+
+        return [
+            'device_type' => $deviceType,
+            'browser' => $browser,
+            'os' => $os,
+            'is_bot' => $isBot,
+        ];
     }
 }

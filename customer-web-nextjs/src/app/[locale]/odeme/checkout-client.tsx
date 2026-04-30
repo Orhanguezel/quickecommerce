@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/select";
 import Image from "next/image";
 import { trackBeginCheckout, trackPurchase } from "@/lib/gtm";
+import { trackFunnelEvent } from "@/lib/funnel-tracker";
 import {
   MapPin,
   Plus,
@@ -198,7 +199,24 @@ export function CheckoutClient({ translations: t }: Props) {
       selectedCurrencyCode || 'TRY',
       appliedCoupon?.code,
     );
+    trackFunnelEvent({
+      event: "checkout_start",
+      amount: subtotal,
+      meta: {
+        item_count: items.reduce((sum, item) => sum + item.quantity, 0),
+        product_ids: items.map((item) => item.product_id),
+        coupon: appliedCoupon?.code,
+      },
+    });
   }, [items.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!paymentMethod) return;
+    trackFunnelEvent({
+      event: "payment_selected",
+      meta: { payment_method: paymentMethod },
+    });
+  }, [paymentMethod]);
 
   // Payment failed redirect
   if (paymentStatus === "failed") {
@@ -285,6 +303,15 @@ export function CheckoutClient({ translations: t }: Props) {
             code: data.coupon.code,
             discount: data.coupon.discounted_amount,
             title: data.coupon.title,
+          });
+          trackFunnelEvent({
+            event: "coupon_apply",
+            amount: data.coupon.discounted_amount,
+            meta: {
+              coupon_code: data.coupon.code,
+              coupon_title: data.coupon.title,
+              subtotal,
+            },
           });
         },
       }
@@ -384,6 +411,18 @@ export function CheckoutClient({ translations: t }: Props) {
           shippingAmount,
           appliedCoupon?.code,
         );
+        trackFunnelEvent({
+          event: "order_created",
+          order_id: Number(orderId),
+          amount: total,
+          meta: {
+            payment_method: paymentMethod,
+            shipping_amount: shippingAmount,
+            coupon: appliedCoupon?.code,
+            item_count: items.reduce((sum, item) => sum + item.quantity, 0),
+            product_ids: items.map((item) => item.product_id),
+          },
+        });
 
         if (paymentMethod === "iyzico") {
           createIyzicoSessionMutation.mutate(orderId, {

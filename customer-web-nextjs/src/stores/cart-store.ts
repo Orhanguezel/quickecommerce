@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { trackFunnelEvent } from "@/lib/funnel-tracker";
 
 export interface CartItem {
   id: number;
@@ -73,9 +74,25 @@ export const useCartStore = create<CartState>()(
         }),
 
       removeItem: (id) =>
-        set((state) => ({
-          items: state.items.filter((i) => i.id !== id),
-        })),
+        set((state) => {
+          const removed = state.items.find((i) => i.id === id);
+          if (removed) {
+            trackFunnelEvent({
+              event: "remove_from_cart",
+              product_id: removed.product_id,
+              amount: removed.price * removed.quantity,
+              meta: {
+                slug: removed.slug,
+                quantity: removed.quantity,
+                variant_id: removed.variant_id,
+              },
+            });
+          }
+
+          return {
+            items: state.items.filter((i) => i.id !== id),
+          };
+        }),
 
       updateQuantity: (id, quantity) =>
         set((state) => ({

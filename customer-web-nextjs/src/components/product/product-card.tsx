@@ -17,6 +17,7 @@ import { usePrice } from "@/hooks/use-price";
 import { useRef } from "react";
 import { flyToCart } from "@/lib/cart-animation";
 import { resolveProductPricing } from "@/lib/product-pricing";
+import { trackFunnelEvent } from "@/lib/funnel-tracker";
 
 interface ProductCardProps {
   product: Product;
@@ -91,6 +92,16 @@ export function ProductCard({
       max_cart_qty: product.max_cart_qty || 99,
     };
     addItem(cartItem);
+    trackFunnelEvent({
+      event: "add_to_cart",
+      product_id: product.id,
+      amount: displayPrice,
+      meta: {
+        source: "product_card",
+        slug: product.slug,
+        quantity: 1,
+      },
+    });
     
     // Fly to cart animation
     if (imageRef.current) {
@@ -238,6 +249,19 @@ export function ProductCard({
     </div>
   );
 
+  const handleProductClick = () => {
+    trackFunnelEvent({
+      event: "product_click",
+      product_id: product.id,
+      amount: displayPrice ?? undefined,
+      meta: {
+        slug: product.slug,
+        source: "product_card",
+        variant,
+      },
+    });
+  };
+
   /* ── Cart button icon (using cart.png) ── */
   const cartIconButton = isInStock && displayPrice != null && displayPrice > 0 ? (
     <div className="relative">
@@ -269,9 +293,10 @@ export function ProductCard({
   if (variant === "list") {
     return (
       <Link
-        href={`/urun/${product.slug}`}
-        title={product.name}
-        className="group flex items-stretch overflow-hidden rounded-lg border bg-card transition-all hover:border-primary/50 hover:shadow-md"
+      href={`/urun/${product.slug}`}
+      title={product.name}
+      onClickCapture={handleProductClick}
+      className="group flex items-stretch overflow-hidden rounded-lg border bg-card transition-all hover:border-primary/50 hover:shadow-md"
       >
         {/* Image */}
         <div className="relative h-[140px] w-[140px] shrink-0 overflow-hidden bg-muted" ref={imageRef}>
@@ -308,6 +333,7 @@ export function ProductCard({
     <Link
       href={`/urun/${product.slug}`}
       title={product.name}
+      onClickCapture={handleProductClick}
       className={`group relative flex flex-col overflow-hidden rounded-xl border bg-card transition-all duration-200 hover:border-primary/50 hover:shadow-lg ${
         compact ? "h-full w-full" : "h-[380px] w-[260px] shrink-0"
       }`}

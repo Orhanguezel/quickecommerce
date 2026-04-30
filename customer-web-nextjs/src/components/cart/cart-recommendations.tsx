@@ -79,14 +79,14 @@ function CartRecommendationBlockView({
   const firedRef = useRef(false);
   const Icon = iconForBlock(block.type);
 
-  // Fire a single "recommendation_shown" impression the first time this
+  // Fire a single recommendation impression the first time this
   // block renders. Product IDs shipped in meta so admin can slice by item.
   useEffect(() => {
     if (firedRef.current) return;
     if (!block.products?.length) return;
     firedRef.current = true;
     trackFunnelEvent({
-      event: "recommendation_shown",
+      event: "recommendation_view",
       block_type: block.type,
       meta: {
         product_ids: block.products.map((p) => p.id),
@@ -161,7 +161,7 @@ function CartRecommendationBlockView({
             key={product.id}
             onClickCapture={() =>
               trackFunnelEvent({
-                event: "recommendation_clicked",
+                event: "recommendation_click",
                 block_type: block.type,
                 product_id: product.id,
               })

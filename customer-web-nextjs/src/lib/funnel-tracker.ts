@@ -12,14 +12,27 @@
 import { useExperimentStore } from "@/stores/experiment-store";
 
 export type FunnelEventName =
-  | "product_viewed"
+  | "page_view"
+  | "product_view"
+  | "category_view"
+  | "search"
+  | "store_view"
+  | "product_click"
   | "add_to_cart"
-  | "cart_viewed"
-  | "checkout_started"
-  | "order_placed"
-  | "recommendation_shown"
-  | "recommendation_clicked"
-  | "recommendation_added"
+  | "remove_from_cart"
+  | "cart_view"
+  | "checkout_start"
+  | "shipping_selected"
+  | "payment_selected"
+  | "order_created"
+  | "payment_success"
+  | "payment_failed"
+  | "banner_click"
+  | "coupon_view"
+  | "coupon_apply"
+  | "recommendation_view"
+  | "recommendation_click"
+  | "recommendation_add"
   | "shipping_threshold_crossed"
   | "coupon_threshold_crossed"
   | "exit_intent_shown"
@@ -28,13 +41,26 @@ export type FunnelEventName =
 export interface FunnelEventInput {
   event: FunnelEventName;
   product_id?: number;
+  category_id?: number;
+  order_id?: number;
   block_type?: string;
   amount?: number;
+  url?: string;
+  path?: string;
+  locale?: string;
+  referer?: string;
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_term?: string;
+  utm_content?: string;
   meta?: Record<string, unknown>;
 }
 
 interface QueuedEvent extends FunnelEventInput {
   subject: string;
+  visitor_id: string;
+  session_id: string;
   occurred_at: string;
 }
 
@@ -43,6 +69,9 @@ const FLUSH_EVERY_MS = 2000;
 const MAX_BATCH = 20;
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
 let installed = false;
+
+const VISITOR_KEY = "sportoonline_visitor_id";
+const SESSION_KEY = "sportoonline_session_id";
 
 function getApiBase(): string {
   return (
@@ -114,17 +143,75 @@ function getSubject(): string | null {
   }
 }
 
-/** Enqueue a single funnel event. Silently drops if we have no subject yet. */
+function randomId(prefix: string): string {
+  const cryptoObj = typeof crypto !== "undefined" ? crypto : null;
+  const raw =
+    cryptoObj && "randomUUID" in cryptoObj
+      ? cryptoObj.randomUUID()
+      : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+  return `${prefix}:${raw}`;
+}
+
+function getOrCreateVisitorId(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const existing = window.localStorage.getItem(VISITOR_KEY);
+    if (existing) return existing;
+    const next = randomId("v");
+    window.localStorage.setItem(VISITOR_KEY, next);
+    return next;
+  } catch {
+    return null;
+  }
+}
+
+function getOrCreateSessionId(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const existing = window.sessionStorage.getItem(SESSION_KEY);
+    if (existing) return existing;
+    const next = randomId("s");
+    window.sessionStorage.setItem(SESSION_KEY, next);
+    return next;
+  } catch {
+    return null;
+  }
+}
+
+function pageContext(): Partial<FunnelEventInput> {
+  if (typeof window === "undefined") return {};
+  const url = new URL(window.location.href);
+  const parts = url.pathname.split("/").filter(Boolean);
+  return {
+    url: url.href,
+    path: url.pathname,
+    locale: parts[0] || undefined,
+    referer: document.referrer || undefined,
+    utm_source: url.searchParams.get("utm_source") || undefined,
+    utm_medium: url.searchParams.get("utm_medium") || undefined,
+    utm_campaign: url.searchParams.get("utm_campaign") || undefined,
+    utm_term: url.searchParams.get("utm_term") || undefined,
+    utm_content: url.searchParams.get("utm_content") || undefined,
+  };
+}
+
+/** Enqueue a single funnel event with first-party visitor and session context. */
 export function trackFunnelEvent(input: FunnelEventInput): void {
   if (typeof window === "undefined") return;
   installLifecycleListeners();
 
-  const subject = getSubject();
-  if (!subject) return;
+  const visitorId = getOrCreateVisitorId();
+  const sessionId = getOrCreateSessionId();
+  if (!visitorId || !sessionId) return;
+
+  const subject = getSubject() ?? visitorId;
 
   QUEUE.push({
+    ...pageContext(),
     ...input,
     subject,
+    visitor_id: visitorId,
+    session_id: sessionId,
     occurred_at: new Date().toISOString(),
   });
 

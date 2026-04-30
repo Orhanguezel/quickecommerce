@@ -19,6 +19,7 @@ import { ThemeSideBanner } from '@/components/layout/theme-side-banner';
 import { ExitIntentPopup } from '@/components/cart/exit-intent-popup';
 import { CartSnapshotSync } from '@/components/cart/cart-snapshot-sync';
 import { ExperimentProvider } from '@/components/providers/experiment-provider';
+import { AnalyticsProvider } from '@/components/providers/analytics-provider';
 import { Geist } from 'next/font/google';
 import Script from 'next/script';
 import '../globals.css';
@@ -320,6 +321,7 @@ window.__GOOGLE_ADS_PURCHASE_LABEL__='${googleAdsPurchaseLabel}';`}
                 <ExitIntentPopup />
                 <CartSnapshotSync />
                 <ExperimentProvider>{null}</ExperimentProvider>
+                <AnalyticsProvider />
                 <ScrollToTop />
               </ThemeProvider>
             </NextThemesProvider>

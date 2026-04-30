@@ -220,6 +220,7 @@ Route::group(['prefix' => 'v1/admin', 'middleware' => ['auth:sanctum', ApiAuthMi
     });
 
     Route::group(['prefix' => 'analytics'], function () {
+        Route::get('/overview', [\App\Http\Controllers\Api\V1\Admin\AdminFunnelAnalyticsController::class, 'overview']);
         Route::get('/funnel', [\App\Http\Controllers\Api\V1\Admin\AdminFunnelAnalyticsController::class, 'funnel']);
         Route::get('/recommendation-ctr', [\App\Http\Controllers\Api\V1\Admin\AdminFunnelAnalyticsController::class, 'recommendationCtr']);
         Route::get('/experiments', [\App\Http\Controllers\Api\V1\Admin\AdminFunnelAnalyticsController::class, 'experiments']);
