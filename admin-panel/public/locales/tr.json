@@ -303,7 +303,9 @@
     "switch_commission_to_subscription": "Komisyondan Aboneliğe Geç",
     "subscription_details": "Abonelik Detayları",
     "renew_subscription": "Aboneliği Yenile",
-    "subscription_history": "Abonelik Geçmişi"
+    "subscription_history": "Abonelik Geçmişi",
+    "change_image": "Görseli Değiştir",
+    "save": "Kaydet"
   },
   "title": {
     "delete_confirmation": "Silme Onayı",
@@ -525,7 +527,7 @@
     "mission_vision_steps": "Misyon & Vizyon Adımları",
     "testimonial_section": "Referans & Başarı Bölümü",
     "testimonial_steps": "Referans & Başarı Adımları",
-    "website_url": "Web Sitesi URL",
+    "website_url": "Web Sitesi",
     "contact_number": "İletişim Numarası",
     "footer_copyright": "Footer Telif Hakkı",
     "primary_logo": "Ana Logo",
@@ -834,7 +836,6 @@
     "tax_office": "Vergi Dairesi",
     "tax_number": "Vergi / TC Numarası",
     "mersis_number": "MERSİS Numarası",
-    "website_url": "Web Sitesi",
     "address_info": "Adres Bilgileri",
     "address_country": "Ülke",
     "address_city": "Şehir",
@@ -869,7 +870,6 @@
     "product_validity": "Ürün Geçerliliği",
     "setup_discount": "İndirim Ayarla",
     "choose_products": "Ürünleri Seç",
-    "all_products": "Tüm Ürünler",
     "filter_by_store": "Mağaza Bazında",
     "filter_by_category": "Kategori Bazında",
     "filter_by_store_type": "Mağaza Türü Bazında",
@@ -989,11 +989,13 @@
     "currency_symbol_position": "Para Birimi Sembol Konumu",
     "decimal_note_yes": "Evet: Fiyatları ondalıklı göster (örnek: 10.50).",
     "decimal_note_no": "Hayır: Fiyatları ondalıksız — tam sayıya yuvarlanmış olarak göster (örnek: 10).",
-    "note": "Not",
     "left": "Sol",
     "right": "Sağ",
     "yes": "Evet",
-    "no": "Hayır"
+    "no": "Hayır",
+    "basic_info": "Temel Bilgiler",
+    "button_settings": "Buton Ayarları",
+    "colors": "Renkler"
   },
   "place_holder": {
     "enter_coupon_code": "Kupon kodunu girin",
@@ -1131,7 +1133,9 @@
     "select_store_type": "Mağaza Türü Seç",
     "select_format": "Format seçin",
     "enter_start_id": "Başlangıç ID girin",
-    "enter_end_id": "Bitiş ID girin"
+    "enter_end_id": "Bitiş ID girin",
+    "title": "Kampanya başlığı",
+    "description": "Kampanya açıklaması"
   },
   "table_header": {
     "theme_name": "Tema Adı",
@@ -1552,7 +1556,6 @@
     "create_date": "Oluşturma Tarihi",
     "approve_reject_date": "Onay/Reddetme Tarihi",
     "not_assigned_yet": "Henüz atanmadı",
-    "are_you_sure": "Emin misiniz?",
     "price": "Fiyat",
     "status_update": "Durum Güncelleme",
     "select_and_confirm": "Seçin ve onaylayın",
@@ -1712,7 +1715,9 @@
     "recent_order_lists": "Son Sipariş Listeleri",
     "welcome_to_personalized_dashboard": "Kişiselleştirilmiş panele hoş geldiniz.",
     "hello_admin": "Merhaba Admin!",
-    "notices": "Duyurular"
+    "notices": "Duyurular",
+    "edit_shipping_campaign": "Kargo Kampanyası Düzenle",
+    "create_shipping_campaign": "Kargo Kampanyası Oluştur"
   },
   "orders": {
     "date": "Tarih",

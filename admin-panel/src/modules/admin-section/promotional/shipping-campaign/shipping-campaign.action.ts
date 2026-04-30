@@ -64,7 +64,7 @@ export const useShippingCampaignQueryById = (id: string) => {
     }
   }, [error]);
   return {
-    ShippingCampaign: data?.data ?? {},
+    ShippingCampaign: (data?.data as any)?.data ?? {},
     error,
     isPending,
     refetch,

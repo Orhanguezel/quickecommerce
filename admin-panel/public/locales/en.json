@@ -302,7 +302,9 @@
     "switch_commission_to_subscription": "Switch Commission to Subscription",
     "subscription_details": "Subscription Details",
     "renew_subscription": "Renew Subscription",
-    "subscription_history": "Subscription History"
+    "subscription_history": "Subscription History",
+    "change_image": "Change Image",
+    "save": "Save"
   },
   "title": {
     "delete_confirmation": "Delete Confirmation",
@@ -522,7 +524,7 @@
     "mission_vision_steps": "Mission & Vision Steps",
     "testimonial_section": "Testimonial & Success Section",
     "testimonial_steps": "Testimonial & Success Steps",
-    "website_url": "Website URL",
+    "website_url": "Website",
     "contact_number": "Contact Number",
     "footer_copyright": "Footer Copyright",
     "primary_logo": "Primary Logo",
@@ -831,7 +833,6 @@
     "tax_office": "Tax Office",
     "tax_number": "Tax / ID Number",
     "mersis_number": "MERSIS Number",
-    "website_url": "Website",
     "address_info": "Address Info",
     "address_country": "Country",
     "address_city": "City",
@@ -866,7 +867,6 @@
     "product_validity": "Product Validity",
     "setup_discount": "Setup Discount",
     "choose_products": "Choose Products",
-    "all_products": "All Products",
     "filter_by_store": "Filter by Store",
     "filter_by_category": "Filter by Category",
     "filter_by_store_type": "Filter by Store Type",
@@ -986,11 +986,13 @@
     "currency_symbol_position": "Currency Symbol Position",
     "decimal_note_yes": "Yes: Show prices with decimals (example: 10.50).",
     "decimal_note_no": "No: Show prices without decimals – rounded to whole prices (example: 10).",
-    "note": "Note",
     "left": "Left",
     "right": "Right",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "basic_info": "Basic Information",
+    "button_settings": "Button Settings",
+    "colors": "Colors"
   },
   "place_holder": {
     "enter_coupon_code": "Enter Coupon Code",
@@ -1128,7 +1130,9 @@
     "select_store_type": "Select Store Type",
     "select_format": "Select Format",
     "enter_start_id": "Enter Start ID",
-    "enter_end_id": "Enter End ID"
+    "enter_end_id": "Enter End ID",
+    "title": "Campaign title",
+    "description": "Campaign description"
   },
   "table_header": {
     "theme_name": "Theme Name",
@@ -1315,7 +1319,7 @@
     "updated_successfully": "Updated Successfully",
     "created_successfully": "Created Successfully",
     "something_went_wrong": "Something went wrong. Please try again.",
-    "are_you_sure": "Are you sure?",
+    "are_you_sure": "Are You Sure ?",
     "confirm_switch_subscription_to_commission": "Confirm to switch from subscription to commission.",
     "package_overview": "Package Overview",
     "package_title": "Package Title",
@@ -1547,7 +1551,6 @@
     "create_date": "Create Date",
     "approve_reject_date": "Approve/Reject Date",
     "not_assigned_yet": "Not Assigned Yet",
-    "are_you_sure": "Are You Sure ?",
     "price": "Price",
     "status_update": "Status Update",
     "select_and_confirm": "Select a status and confirm",
@@ -1707,7 +1710,9 @@
     "recent_order_lists": "Recent Order Lists",
     "welcome_to_personalized_dashboard": "Welcome to Personalized Dashboard.",
     "hello_admin": "Hello Admin!",
-    "notices": "Notices"
+    "notices": "Notices",
+    "edit_shipping_campaign": "Edit Shipping Campaign",
+    "create_shipping_campaign": "Create Shipping Campaign"
   },
   "orders": {
     "date": "Date",

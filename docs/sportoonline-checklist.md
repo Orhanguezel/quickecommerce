@@ -156,11 +156,11 @@ Site sahibinden gelen 8 madde:
 - Frontend: `admin-panel/src/modules/seller-section/store/store.schema.ts`
 - Backend: `app/Http/Requests/SellerStoreRequest.php`
 
-### 16. [ ] Kargo kampanyasi duzenleme - hata raporu
-- Musteri "duzenleme kisminda hata" diyor
-- Backend log'da hicbir hata yok (Subat'tan bugune)
-- Olasi: Frontend JS, validation 422, geçici cache
-- Aksiyon: Musteriden ekran goruntusu/console log iste
+### 16. [x] Kargo kampanyasi duzenleme - hata raporu (COZULDU 2026-04-30)
+- Sorun 1: `useShippingCampaignQueryById` data shape'i yanlis cozuyordu (`data?.data` → tek seviye, gerekirken iki seviye `(data?.data)?.data`). Form `isEdit=false` modunda aciliyor, tum alanlar bos, kullanici min_order_value degistirdiginde CREATE yapiliyor, backend `title` zorunlu deyince 422.
+- Sorun 2: Cevirilerde 9 anahtar eksikti (`common.edit_shipping_campaign`, `label.basic_info`, `label.button_settings`, `label.colors`, `place_holder.title`, `place_holder.description`, `button.change_image`, `button.save`, `common.create_shipping_campaign`)
+- Sorun 3: zod schema `title.min(2)` — sebepsiz katiydi, `min(1)` yapildi
+- Dosyalar: `shipping-campaign.action.ts`, `shipping-campaign.schema.ts`, `public/locales/tr.json`, `public/locales/en.json`
 
 ### 17. [ ] Cerez politikasi banner - kullanici tarafinda yok
 - Admin'de `gdpr-cookie-settings` form var ama frontend'de banner yok

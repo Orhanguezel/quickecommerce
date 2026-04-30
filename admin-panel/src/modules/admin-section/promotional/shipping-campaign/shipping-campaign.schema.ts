@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const shippingCampaignSchema = z.object({
-  title: z.string().min(2, "Title must be at least 2 characters"),
+  title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
   image: z.string().optional(),
   background_color: z.string().optional(),
