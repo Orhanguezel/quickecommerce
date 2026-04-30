@@ -100,7 +100,9 @@ Bu checklist, Sportoonline icin Google Analytics ile paralel calisan, kendi DB'm
 - [ ] Event endpoint'ini hizli batch insert ile tut.
 - [ ] Veri buyurse gunluk aggregate tablolarini planla.
 - [x] Bot ve monitor trafiklerini raporlarda ayrilastir.
-- [ ] Log ve DB takiplerini deploy sonrasi canlida dogrula.
+- [x] Log ve DB takiplerini deploy sonrasi canlida dogrula.
+  - `POST /api/v1/funnel/track` access logda 200 gorundu.
+  - DB'de smoke visitor icin IP, path, visitor_id ve session_id kaydi dogrulandi.
 
 ## 9. Test ve Yayin
 
@@ -117,7 +119,9 @@ Bu checklist, Sportoonline icin Google Analytics ile paralel calisan, kendi DB'm
   - Repo genelinde mevcut 73 error / 31 warning var (`any`, React Compiler kurallari, mevcut UI komponentleri vb.).
 - [ ] Local event gonderim testi yap.
   - Local Laravel route-list denemesi DB baglantisi olmadigi icin tamamlanamadi.
-- [ ] Canlida test IP ile `page_view`, `product_click`, `add_to_cart`, `checkout_start` dogrula.
+- [x] Canlida test IP ile `page_view`, `product_click`, `add_to_cart`, `checkout_start` dogrula.
+  - Smoke eventleri `accepted: 4` olarak API ve DB tarafinda dogrulandi.
 - [ ] Admin panelde kayitlarin gorunmesini dogrula.
-- [ ] Nginx gercek IP ve Laravel kaydedilen IP karsilastirmasini yap.
+- [x] Nginx gercek IP ve Laravel kaydedilen IP karsilastirmasini yap.
+  - Nginx log ve Laravel `funnel_events.ip_address` ayni test IP'yi verdi.
 - [ ] Deploy sonrasi 10 dakika access log, DB ve admin ekranini takip et.
