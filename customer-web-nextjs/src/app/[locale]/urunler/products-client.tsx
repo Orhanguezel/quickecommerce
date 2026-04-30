@@ -195,8 +195,8 @@ export function ProductsPageClient({
                 className="h-10 rounded-lg border bg-background px-4 text-sm transition-colors hover:border-primary/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30"
               >
                 <option value="">{t.sort_default}</option>
-                <option value="price_asc">{t.sort_price_asc}</option>
-                <option value="price_desc">{t.sort_price_desc}</option>
+                <option value="price_low_high">{t.sort_price_asc}</option>
+                <option value="price_high_low">{t.sort_price_desc}</option>
                 <option value="newest">{t.sort_newest}</option>
                 <option value="popular">{t.sort_popular}</option>
               </select>

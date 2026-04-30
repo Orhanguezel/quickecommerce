@@ -87,8 +87,8 @@ export function BrandPageClient({
             className="h-9 rounded-md border bg-background px-3 text-sm"
           >
             <option value="">{t.sort_default}</option>
-            <option value="price_asc">{t.sort_price_asc}</option>
-            <option value="price_desc">{t.sort_price_desc}</option>
+            <option value="price_low_high">{t.sort_price_asc}</option>
+            <option value="price_high_low">{t.sort_price_desc}</option>
             <option value="newest">{t.sort_newest}</option>
             <option value="popular">{t.sort_popular}</option>
           </select>

@@ -143,6 +143,99 @@ Detay tartismalari sonraki adimlarda her madde altinda yapilacak.
 - Sinir: Klasik frame-by-frame kurgu, marka onayli hassas montaj, uzun video post-prod ve ileri renk/ses duzenleme icin tek basina yeterli gorunmuyor; bu islerde CapCut/Premiere/DaVinci gibi editore son duzenleme gerekebilir.
 - Kaynak notu: Nim resmi sayfasi ve yardim merkezi 2026-04-23 tarihinde incelendi (`nim.video`, `about.nim.video/help`).
 
+## Musteri Talepleri Turu 2 (2026-04-30)
+
+Site sahibinden gelen 8 madde:
+
+### 15. [ ] Seller panel magaza ekleme akisi - eksik alanlar
+- IBAN / banka hesabi alani yok (komisyon odemesi icin gerekli)
+- Vergi dairesi alani yok (vergi numarasi var, dairesi yok)
+- Teslimat bolgesi (delivery zones) secimi yok
+- Logo/banner upload UI yok (sadece string field)
+- KVKK/aydinlatma metni onay kutusu yok
+- Frontend: `admin-panel/src/modules/seller-section/store/store.schema.ts`
+- Backend: `app/Http/Requests/SellerStoreRequest.php`
+
+### 16. [ ] Kargo kampanyasi duzenleme - hata raporu
+- Musteri "duzenleme kisminda hata" diyor
+- Backend log'da hicbir hata yok (Subat'tan bugune)
+- Olasi: Frontend JS, validation 422, geçici cache
+- Aksiyon: Musteriden ekran goruntusu/console log iste
+
+### 17. [ ] Cerez politikasi banner - kullanici tarafinda yok
+- Admin'de `gdpr-cookie-settings` form var ama frontend'de banner yok
+- KVKK/GDPR uyum icin gerekli
+- Yeni component: `customer-web-nextjs/src/components/cookie-banner.tsx`
+
+### 18. [ ] Siparis confirmation email (admin + customer'a anida)
+- Mail config var, queue var, OrderPlaced event WebSocket yayini var
+- Eksik: siparis OLUSTURURKEN customer'a "siparisin alindi" emaili
+- Eksik: admin'e yeni siparis bildirimi (anida email)
+- Olasi yer: `App\Listeners\OrderPlacedListener` veya `App\Notifications\OrderCreated`
+
+### 19. [ ] Flash sale fiyat yuvarlama tutarsizlik
+- `ProductPublicResource` (liste): `shouldRound()` aktif - 250.75 -> 251
+- `ProductDetailsPublicResource` (detay): round YOK - 250.75 olarak kalir
+- Tutarsizlik: liste 251, detay 250.75 (veya tam tersi musteri tarafinda)
+- Cozum: ProductDetailsPublicResource'a da shouldRound() eklemek
+
+### 20. [ ] SSS / FAQ sayfasi - tamamen yok
+- Backend: model/migration/controller yok
+- Frontend: /sss veya /faq route yok
+- Ceviri anahtari yok
+- Yeni feature: tablo + admin CRUD + frontend sayfa
+
+### 21. [ ] Footer icerigi kontrol
+- Component dinamik (`useFooterQuery`, `useSiteInfoQuery`)
+- Admin panelden duzenlenebilir
+- Aksiyon: musteri admin'den icerikleri guncellemeli (kod degisikligi gerekmez)
+
+### 22. [ ] Web push notification (Firebase FCM)
+- Backend: `FirebaseNotificationService` var, `fcm_token` kolonu mevcut, mobil app icin calisir
+- Frontend (web): service worker yok, FCM Web SDK yok, web push subscription akisi yok
+- Aksiyon: `customer-web-nextjs/public/firebase-messaging-sw.js` + FCM Web SDK
+- Strateji notu: Sadece FCM modulu kullan (Realtime DB/Firestore'a gerek yok)
+
+## Production Log Bug Listesi (2026-04-30)
+
+VPS Laravel logundan tespit edilen kritik bug'lar (toplam 5786 hata, son hafta):
+
+### 23. [x] BUG#1: relatedProductsWithCategoryFallback() on null (3837 hata)
+- En yuksek frekansli bug
+- Kaynak: `app/Http/Controllers/Api/V1/FrontendController.php` `productDetails()` metodu
+- Cozum: cbd048d3 commit'i ile null check eklendi (line 1665-1671)
+- Durum: Kod fix tamam, VPS'e deploy bekliyor (en son hata 2026-04-24)
+
+### 24. [-] BUG#2: storage/framework/cache permission denied (1007 hata)
+- Durum: VPS log'da artik gorulmuyor (cozulmus)
+
+### 25. [-] BUG#3: preg_match() empty regular expression (544 hata)
+- Kaynak: `vendor/fruitcake/php-cors/src/CorsService.php:183` (CORS config bos pattern)
+- Durum: Son hata 2026-02-14, dormant (>2.5 ay aktif degil) — config:cache ile cozulmus
+
+### 26. [-] BUG#4: PHP syntax error 'unexpected identifier URL' (365 hata)
+- Durum: Son hata 2026-03-08, dormant (>1.5 ay)
+
+### 27. [-] BUG#5: AppHttpMiddlewareTrustProxies does not exist (202 hata)
+- Durum: Son hata 2026-03-08, dormant (>1.5 ay) — composer autoload duzeltilmis
+
+### 28. [-] BUG#6: Invalid '%2c' locale (200 hata)
+- Durum: Son hata 2026-02-21, dormant (>2 ay)
+
+### 29. [-] BUG#7: Attempt to read property 'slug' on null (116 hata)
+- Durum: Son hata 2026-02-07, dormant (>2.5 ay)
+
+### 30. [-] BUG#8: Undefined constant DEFAULT_LANGUAGE (106 hata)
+- Durum: Mevcut log'da hicbir kayit yok
+
+### 31. [x] BUG#9: Arama/urunler/marka sayfalarinda siralama calismiyor (frontend-backend mismatch)
+- Sorun: Frontend `price_asc/price_desc` gonderiyor, backend `price_low_high/price_high_low` bekliyor
+- Sorun 2: `popular` sort backend'de hic destekli degildi
+- Cozum:
+  - Frontend duzeltildi: `ara/search-client.tsx`, `urunler/products-client.tsx`, `marka/[slug]/brand-client.tsx`
+  - Backend `FrontendController::products()` metoduna `popular` case eklendi (order_count desc, views tiebreaker)
+  - kategori sayfasi zaten dogru degerleri kullaniyordu
+
 ## Tekrarlayan maddeler birlestirildi
 
 - Son gorulenler anasayfaya alinacak

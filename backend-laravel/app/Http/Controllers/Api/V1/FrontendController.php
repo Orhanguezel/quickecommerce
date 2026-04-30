@@ -1493,6 +1493,11 @@ class FrontendController extends Controller
                     $query->orderBy('products.created_at', 'desc');
                     break;
 
+                case 'popular':
+                    $query->orderBy('products.order_count', 'desc')
+                        ->orderBy('products.views', 'desc');
+                    break;
+
                 default:
                     $query->latest('products.created_at');
             }
