@@ -6,7 +6,7 @@
     "dev": "next dev --webpack -p 3003",
     "dev:turbo": "next dev --turbopack -p 3003",
     "dev:no-turbo": "next dev --no-turbopack -p 3003",
-    "build": "next build",
+    "build": "set -a; [ -f .env ] && . ./.env; [ -f .env.local ] && . ./.env.local; set +a; next build",
     "start": "next start -p 3003",
     "lint": "eslint",
     "postinstall": "ln -sf dist node_modules/react-hook-form/src"
