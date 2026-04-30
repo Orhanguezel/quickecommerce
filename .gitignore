@@ -1,6 +1,10 @@
 # Admin panel deploy build artifacts (generated on server, not tracked)
 admin-panel/deploy/
 
+# Local agent/tool settings
+.codex
+.claude/settings.local.json
+
 # Logs
 logs
 *.log
@@ -267,4 +271,3 @@ Thumbs.db
 .env
 .env.*
 !.env.example
-
