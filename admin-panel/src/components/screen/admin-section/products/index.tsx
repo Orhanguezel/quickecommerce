@@ -21,16 +21,22 @@ const Products = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchValue, setSearchValue] = useState("");
   const [selectStatus, setSelectStatus] = useState<string>("");
+  const [selectReportType, setSelectReportType] = useState<string>("");
   const [selectStoreID, setSelectStoreID] = useState<string>("");
   const [selectStoreID2, setSelectStoreID2] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
-  const StatusList = [
+const StatusList = [
   { label: t("common.draft"), value: "draft" },
   { label: t("common.pending"), value: "pending" },
   { label: t("common.approved"), value: "approved" },
   { label: t("common.inactive"), value: "inactive" },
   { label: t("common.suspended"), value: "suspended" },
 ];
+  const ReportTypeList = [
+    { label: t("report.unsellable_products"), value: "unsellable" },
+    { label: t("report.stock_with_no_price"), value: "stock_with_no_price" },
+    { label: t("report.pending_unsellable_products"), value: "pending_unsellable" },
+  ];
 
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -50,6 +56,14 @@ const Products = () => {
       setSelectStatus("");
     } else {
       setSelectStatus(newSelectStatus);
+    }
+  };
+  const handleSelectReportType = (value: string) => {
+    const newSelectReportType = String(value);
+    if (value === "none") {
+      setSelectReportType("");
+    } else {
+      setSelectReportType(newSelectReportType);
     }
   };
   const { InventoryStoreList } = useInventoryStoreQuery({
@@ -154,6 +168,13 @@ const Products = () => {
                 groups={typeData}
                 customClass="w-full xl:w-40"
               />
+              <AppSelect
+                placeholder={t("place_holder.select_product_report")}
+                value={String(selectReportType)}
+                onSelect={handleSelectReportType}
+                groups={ReportTypeList}
+                customClass="w-full xl:w-56"
+              />
             </div>
             <div className="relative flex items-center w-full">
               <div
@@ -186,6 +207,7 @@ const Products = () => {
         <ProductTable
           searchValue={searchValue}
           selectStatus={selectStatus}
+          selectReportType={selectReportType}
           selectStoreID={selectStoreID}
           selectStoreID2={selectStoreID2}
         />

@@ -80,9 +80,29 @@ class PlaceOrderRequest extends FormRequest
                 'integer',
                 function ($attribute, $value, $fail) {
                     $productId = request()->input(str_replace('.variant_id', '.product_id', $attribute));
-                    $variantExists = \App\Models\ProductVariant::where('id', $value)->where('product_id', $productId)->exists();
-                    if (!$variantExists) {
+                    $product = \App\Models\Product::query()
+                        ->whereKey($productId)
+                        ->where('status', 'approved')
+                        ->whereNull('deleted_at')
+                        ->first();
+
+                    if (!$product) {
+                        $fail("The selected product is not available for sale.");
+                        return;
+                    }
+
+                    $variant = \App\Models\ProductVariant::query()
+                        ->where('id', $value)
+                        ->where('product_id', $productId)
+                        ->first();
+
+                    if (!$variant) {
                         $fail("The selected variant does not belong to the given product.");
+                        return;
+                    }
+
+                    if (!$variant->isPubliclySellable()) {
+                        $fail("The selected variant is not available for sale.");
                     }
                 }
             ],

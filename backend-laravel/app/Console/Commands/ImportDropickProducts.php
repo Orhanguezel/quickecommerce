@@ -6,6 +6,7 @@ use App\Models\Media;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\ProductSpecification;
+use App\Models\ProductSourceMapping;
 use App\Models\ProductVariant;
 use App\Models\Store;
 use App\Models\Translation;
@@ -25,7 +26,9 @@ class ImportDropickProducts extends Command
                             {--status=approved : Urun statusu (pending, approved, inactive)}
                             {--type=sports : Store type (sports, general, etc.)}
                             {--lang=tr : Varsayilan dil}
-                            {--sku-prefix=PRD : SKU on eki (DPK, NFK vs.)}';
+                            {--sku-prefix=PRD : SKU on eki (DPK, NFK vs.)}
+                            {--source-name= : Fiyat/stok sync icin kaynak adi (swan, everlast vs.)}
+                            {--no-source-mapping : Kaynak mapping kaydi olusturma}';
 
     protected $description = 'Scraper JSON ciktisini QuickEcommerce sistemine import eder (Dropick, Norfolk, Swan vs.)';
 
@@ -34,8 +37,10 @@ class ImportDropickProducts extends Command
     private string $productType;
     private string $productStatus;
     private string $skuPrefix;
+    private ?string $sourceName;
     private bool $dryRun;
     private bool $skipImages;
+    private bool $sourceMappingEnabled;
     private array $categoryCache = [];
     private string $imageBasePath;
 
@@ -49,6 +54,8 @@ class ImportDropickProducts extends Command
         $this->productType = $this->option('type');
         $this->defaultLang = $this->option('lang');
         $this->skuPrefix = $this->option('sku-prefix');
+        $this->sourceName = $this->normalizeSourceName($this->option('source-name') ?: pathinfo($jsonFile, PATHINFO_FILENAME));
+        $this->sourceMappingEnabled = !$this->option('no-source-mapping');
 
         // Validasyonlar
         if (!file_exists($jsonFile)) {
@@ -81,6 +88,9 @@ class ImportDropickProducts extends Command
 
         if ($this->dryRun) {
             $this->warn("DRY-RUN modu aktif. Veritabanina yazilmayacak.");
+        }
+        if ($this->sourceMappingEnabled) {
+            $this->info("Kaynak mapping: {$this->sourceName}");
         }
 
         $this->newLine();
@@ -365,7 +375,7 @@ class ImportDropickProducts extends Command
                     if (!empty($v['option2'])) $attributes['option2'] = $v['option2'];
                     if (!empty($v['option3'])) $attributes['option3'] = $v['option3'];
 
-                    ProductVariant::create([
+                    $variant = ProductVariant::create([
                         'product_id'     => $product->id,
                         'variant_slug'   => $vSlug,
                         'sku'            => $vSku,
@@ -376,6 +386,7 @@ class ImportDropickProducts extends Command
                         'status'         => 1,
                         'image'          => $mainImageId ? (string) $mainImageId : null,
                     ]);
+                    $this->upsertSourceMapping($product, $variant, $data, $v);
                 }
             } else {
                 // Tekli varyant (Dropick vs.)
@@ -384,7 +395,7 @@ class ImportDropickProducts extends Command
                 $sku = $data['sku'] ?: generateUniqueSku($this->skuPrefix . '-');
                 $stockQty = $this->productStockQuantity($data);
 
-                ProductVariant::create([
+                $variant = ProductVariant::create([
                     'product_id'     => $product->id,
                     'variant_slug'   => 'default',
                     'sku'            => $sku,
@@ -394,6 +405,7 @@ class ImportDropickProducts extends Command
                     'status'         => 1,
                     'image'          => $mainImageId ? (string) $mainImageId : null,
                 ]);
+                $this->upsertSourceMapping($product, $variant, $data, $variants[0] ?? []);
             }
 
             // Ozellikler (specifications)
@@ -413,6 +425,42 @@ class ImportDropickProducts extends Command
             DB::rollBack();
             throw $e;
         }
+    }
+
+    private function upsertSourceMapping(Product $product, ProductVariant $variant, array $productData, array $variantData): void
+    {
+        if (!$this->sourceMappingEnabled) {
+            return;
+        }
+
+        ProductSourceMapping::updateOrCreate(
+            ['product_variant_id' => $variant->id],
+            [
+                'source_name' => $this->sourceName,
+                'store_id' => $this->storeId,
+                'product_id' => $product->id,
+                'source_product_url' => $productData['url'] ?? null,
+                'source_product_id' => $productData['source_product_id'] ?? $productData['id'] ?? null,
+                'source_product_slug' => $productData['slug'] ?? $product->slug,
+                'source_variant_id' => $variantData['source_variant_id'] ?? $variantData['id'] ?? null,
+                'source_variant_sku' => $variantData['sku'] ?? $productData['sku'] ?? null,
+                'source_variant_barcode' => $variantData['barcode'] ?? $productData['barcode'] ?? null,
+                'source_variant_title' => $variantData['title'] ?? $variant->variant_slug,
+                'last_synced_price' => $variant->price,
+                'last_synced_special_price' => $variant->special_price,
+                'last_synced_stock' => $variant->stock_quantity,
+                'last_sync_status' => 'imported',
+                'last_sync_note' => 'Created during import.',
+                'last_sync_at' => now(),
+            ]
+        );
+    }
+
+    private function normalizeSourceName(string $value): string
+    {
+        $value = Str::of($value)->lower()->replace(['_products', '-products'], '')->slug('_')->toString();
+
+        return $value ?: 'unknown';
     }
 
     private function variantStockQuantity(array $variant): int

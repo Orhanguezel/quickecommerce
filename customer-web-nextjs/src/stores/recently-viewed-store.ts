@@ -41,10 +41,10 @@ export const useRecentlyViewedStore = create<RecentlyViewedState>()(
     }),
     {
       name: "recently-viewed-storage",
-      version: 2,
+      version: 3,
       migrate: (persisted: unknown, version: number) => {
-        if (version < 2) {
-          // v1 had price: 0/null bug — clear stale data
+        if (version < 3) {
+          // Older versions may contain stale zero-price entries.
           return { items: [] };
         }
         return persisted as RecentlyViewedState;

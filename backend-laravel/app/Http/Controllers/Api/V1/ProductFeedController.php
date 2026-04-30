@@ -18,7 +18,7 @@ class ProductFeedController extends Controller
      */
     public function cimri(): Response
     {
-        $xml = Cache::remember('cimri_product_feed', 6 * 60 * 60, function () {
+        $xml = Cache::remember('cimri_product_feed_google_only_v2', 6 * 60 * 60, function () {
             return $this->generateCimriXml();
         });
 
@@ -39,7 +39,6 @@ class ProductFeedController extends Controller
                 'variants' => fn($q) => $q->where('status', 1)->whereNull('deleted_at'),
                 'category',
                 'brand',
-                'store',
             ])
             ->get();
 
@@ -102,20 +101,12 @@ class ProductFeedController extends Controller
             // SKU / Barkod
             $sku = $variant->sku ?: ('SP-' . $product->id);
 
-            // Kargo
-            $freeShipping = $product->free_shipping ? 'true' : 'false';
-
             $xml .= "    <item>\n";
             $xml .= "      <g:id>" . $this->xmlEscape($sku) . "</g:id>\n";
-            $xml .= "      <merchantItemId>" . $this->xmlEscape($sku) . "</merchantItemId>\n";
-            $xml .= "      <title><![CDATA[" . $product->name . "]]></title>\n";
             $xml .= "      <g:title><![CDATA[" . $product->name . "]]></g:title>\n";
-            $xml .= "      <description><![CDATA[" . $descriptionText . "]]></description>\n";
             $xml .= "      <g:description><![CDATA[" . $descriptionText . "]]></g:description>\n";
-            $xml .= "      <link><![CDATA[" . $productUrl . "]]></link>\n";
             $xml .= "      <g:link><![CDATA[" . $productUrl . "]]></g:link>\n";
             $xml .= "      <g:image_link><![CDATA[" . $imageUrl . "]]></g:image_link>\n";
-            $xml .= "      <imageUrl><![CDATA[" . $imageUrl . "]]></imageUrl>\n";
 
             // Galeri gorselleri
             if ($product->gallery_images) {
@@ -124,7 +115,6 @@ class ProductFeedController extends Controller
                     $galleryUrl = com_option_get_id_wise_url(trim($imgId));
                     if ($galleryUrl) {
                         $xml .= "      <g:additional_image_link><![CDATA[" . $galleryUrl . "]]></g:additional_image_link>\n";
-                        $xml .= "      <additionalImageUrl><![CDATA[" . $galleryUrl . "]]></additionalImageUrl>\n";
                     }
                 }
             }
@@ -136,33 +126,17 @@ class ProductFeedController extends Controller
             if ($specialPrice && $specialPrice < $price) {
                 $xml .= "      <g:price>" . $price . " TRY</g:price>\n";
                 $xml .= "      <g:sale_price>" . $specialPrice . " TRY</g:sale_price>\n";
-                $xml .= "      <price>" . $specialPrice . "</price>\n";
-                $xml .= "      <oldPrice>" . $price . "</oldPrice>\n";
             } else {
                 $xml .= "      <g:price>" . $price . " TRY</g:price>\n";
-                $xml .= "      <price>" . $price . "</price>\n";
             }
 
-            $xml .= "      <currencyId>TRY</currencyId>\n";
             $xml .= "      <g:product_type><![CDATA[" . $categoryPath . "]]></g:product_type>\n";
-            $xml .= "      <categoryName><![CDATA[" . $categoryPath . "]]></categoryName>\n";
 
             // brandName her zaman dolu (default "Sportoonline")
             $xml .= "      <g:brand><![CDATA[" . $brandName . "]]></g:brand>\n";
-            $xml .= "      <brand><![CDATA[" . $brandName . "]]></brand>\n";
-
-            $xml .= "      <stockStatus>" . (($variant->stock_quantity > 0) ? 'inStock' : 'outOfStock') . "</stockStatus>\n";
 
             if ($variant->sku) {
                 $xml .= "      <g:mpn>" . $this->xmlEscape($variant->sku) . "</g:mpn>\n";
-                $xml .= "      <barcode>" . $this->xmlEscape($variant->sku) . "</barcode>\n";
-            }
-
-            $xml .= "      <freeShipping>" . $freeShipping . "</freeShipping>\n";
-
-            // Magaza bilgisi
-            if ($product->store) {
-                $xml .= "      <merchantName><![CDATA[" . $product->store->name . "]]></merchantName>\n";
             }
 
             $xml .= "    </item>\n";

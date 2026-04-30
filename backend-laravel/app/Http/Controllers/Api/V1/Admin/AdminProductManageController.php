@@ -49,7 +49,9 @@ class AdminProductManageController extends Controller
         $search = $request->search ?? '';
         $sortField = $request->sortField ?? 'id';
         $sortOrder = $request->sort ?? 'asc';
-        $filters = [];
+        $filters = [
+            'report_type' => $request->report_type ?? '',
+        ];
 
         $products = $this->productRepo->getPaginatedProduct(
             $storeId,

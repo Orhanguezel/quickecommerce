@@ -40,6 +40,7 @@ export interface ProductQueryOptions extends QueryOptions {
   per_page?:any
   type?:any
   status?:any
+  report_type?: any
 }
 
 

@@ -9,6 +9,7 @@ import {
 } from "@/modules/wishlist/wishlist.service";
 import { useCartStore, type CartItem } from "@/stores/cart-store";
 import { Button } from "@/components/ui/button";
+import { resolveProductPricing } from "@/lib/product-pricing";
 import Image from "next/image";
 import {
   Heart,
@@ -42,18 +43,16 @@ export function WishlistClient({ translations: t }: Props) {
   const addItem = useCartStore((s) => s.addItem);
 
   const handleAddToCart = (product: any) => {
-    const price =
-      product.special_price != null
-        ? Number(product.special_price)
-        : Number(product.price);
+    const pricing = resolveProductPricing(product);
+    if (pricing.displayPrice == null || pricing.displayPrice <= 0) return;
     const cartItem: CartItem = {
       id: product.id,
       product_id: product.id,
       name: product.name,
       slug: product.slug,
       image: product.image_url || "",
-      price,
-      original_price: Number(product.price),
+      price: pricing.displayPrice,
+      original_price: pricing.originalPrice ?? undefined,
       quantity: 1,
       max_cart_qty: product.max_cart_qty || 99,
     };
@@ -107,14 +106,14 @@ export function WishlistClient({ translations: t }: Props) {
         <>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {wishlist.map((product) => {
-              const price = Number(product.price);
-              const specialPrice =
-                product.special_price != null
-                  ? Number(product.special_price)
-                  : null;
-              const hasDiscount =
-                specialPrice != null && specialPrice < price;
-              const displayPrice = hasDiscount ? specialPrice : price;
+              const pricing = resolveProductPricing(product);
+              const price = pricing.originalPrice;
+              const displayPrice = pricing.displayPrice;
+              const hasDiscount = pricing.hasDiscount;
+
+              if (displayPrice == null || displayPrice <= 0) {
+                return null;
+              }
 
               return (
                 <div
@@ -158,9 +157,9 @@ export function WishlistClient({ translations: t }: Props) {
                     <div className="mt-auto flex items-baseline gap-2">
                       <span className="text-base font-bold">
                         {t.currency}
-                        {displayPrice?.toFixed(2)}
+                        {displayPrice.toFixed(2)}
                       </span>
-                      {hasDiscount && (
+                      {hasDiscount && price != null && (
                         <span className="text-xs text-muted-foreground line-through">
                           {t.currency}
                           {price.toFixed(2)}

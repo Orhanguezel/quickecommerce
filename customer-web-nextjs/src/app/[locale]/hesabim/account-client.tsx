@@ -1508,7 +1508,18 @@ export function AccountClient({ translations: t }: Props) {
                 </div>
               ) : (
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {recentlyViewedItems.map((item) => {
+                  {recentlyViewedItems
+                    .filter((item) => {
+                      const hasDiscount =
+                        item.special_price != null &&
+                        item.price != null &&
+                        item.special_price < item.price;
+                      const displayPrice = hasDiscount
+                        ? item.special_price
+                        : item.price;
+                      return displayPrice != null && displayPrice > 0;
+                    })
+                    .map((item) => {
                     const hasDiscount =
                       item.special_price != null &&
                       item.price != null &&

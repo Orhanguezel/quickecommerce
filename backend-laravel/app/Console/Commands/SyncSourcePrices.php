@@ -1,0 +1,499 @@
+<?php
+
+namespace App\Console\Commands;
+
+use App\Models\Product;
+use App\Models\ProductSourceMapping;
+use App\Models\ProductVariant;
+use Illuminate\Console\Command;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
+
+class SyncSourcePrices extends Command
+{
+    protected $signature = 'sync:source-prices
+                            {source_name : Kaynak adi (swan, everlast vs.)}
+                            {json_file : Guncel scraper JSON dosyasi}
+                            {--store_id= : Sadece belirli magazayi sync et}
+                            {--apply : Degisiklikleri DB\'ye yaz}
+                            {--backfill-by-slug : Mapping yoksa slug + varyant bilgisiyle esleme onizle/olustur}
+                            {--backfill-only : Sadece mapping backfill yap, fiyat/stok sync calistirma}
+                            {--max-change-percent=30 : Fiyat degisim yuzdesi bu siniri asarsa atla}
+                            {--allow-zero-price : 0 fiyat gelirse de uygula (varsayilan: engelle)}';
+
+    protected $description = 'Kaynak JSON dosyasindan sadece fiyat ve stok senkronu yapar. Varsayilan dry-run modudur.';
+
+    private string $sourceName;
+    private array $sourceProducts = [];
+    private bool $apply = false;
+    private bool $backfillBySlug = false;
+    private bool $allowZeroPrice = false;
+    private float $maxChangePercent = 30.0;
+
+    public function handle(): int
+    {
+        $this->sourceName = $this->normalizeSourceName($this->argument('source_name'));
+        $jsonFile = $this->argument('json_file');
+        $this->apply = (bool) $this->option('apply');
+        $this->backfillBySlug = (bool) $this->option('backfill-by-slug');
+        $this->allowZeroPrice = (bool) $this->option('allow-zero-price');
+        $this->maxChangePercent = (float) $this->option('max-change-percent');
+
+        if (!file_exists($jsonFile)) {
+            $this->error("JSON dosyasi bulunamadi: {$jsonFile}");
+            return self::FAILURE;
+        }
+
+        $products = json_decode(file_get_contents($jsonFile), true);
+        if (!is_array($products)) {
+            $this->error('JSON dosyasi okunamadi veya urun listesi degil.');
+            return self::FAILURE;
+        }
+
+        $this->sourceProducts = $this->indexSourceProducts($products);
+        $this->line($this->apply ? 'APPLY modu aktif.' : 'DRY-RUN modu aktif. DB yazimi yok.');
+
+        $backfilled = 0;
+        if ($this->backfillBySlug) {
+            $backfilled = $this->backfillMappings($products);
+        }
+
+        if ($this->option('backfill-only')) {
+            $this->table(
+                ['Metrik', 'Adet'],
+                [
+                    ['Backfill mapping', $backfilled],
+                    ['Kontrol edilen', 0],
+                    [$this->apply ? 'Guncellenen' : 'Guncellenecek', 0],
+                    ['Degismeyen', 0],
+                    ['Kaynakta bulunamayan', 0],
+                    ['Gecersiz/0 fiyat', 0],
+                    ['Fiyat degisim limiti', 0],
+                    ['Hata', 0],
+                ]
+            );
+
+            return self::SUCCESS;
+        }
+
+        $query = ProductSourceMapping::query()
+            ->with(['variant.product'])
+            ->where('source_name', $this->sourceName);
+
+        if ($this->option('store_id')) {
+            $query->where('store_id', (int) $this->option('store_id'));
+        }
+
+        $stats = [
+            'checked' => 0,
+            'updated' => 0,
+            'would_update' => 0,
+            'unchanged' => 0,
+            'missing' => 0,
+            'invalid_price' => 0,
+            'price_guard' => 0,
+            'errors' => 0,
+        ];
+
+        $query->orderBy('id')->chunkById(200, function ($mappings) use (&$stats) {
+            foreach ($mappings as $mapping) {
+                $stats['checked']++;
+
+                try {
+                    $result = $this->syncMapping($mapping);
+                    $stats[$result] = ($stats[$result] ?? 0) + 1;
+                } catch (\Throwable $exception) {
+                    $stats['errors']++;
+                    if ($this->output->isVerbose()) {
+                        $this->warn("HATA mapping #{$mapping->id}: {$exception->getMessage()}");
+                    }
+                }
+            }
+        });
+
+        $this->table(
+            ['Metrik', 'Adet'],
+            [
+                ['Backfill mapping', $backfilled],
+                ['Kontrol edilen', $stats['checked']],
+                [$this->apply ? 'Guncellenen' : 'Guncellenecek', $this->apply ? $stats['updated'] : $stats['would_update']],
+                ['Degismeyen', $stats['unchanged']],
+                ['Kaynakta bulunamayan', $stats['missing']],
+                ['Gecersiz/0 fiyat', $stats['invalid_price']],
+                ['Fiyat degisim limiti', $stats['price_guard']],
+                ['Hata', $stats['errors']],
+            ]
+        );
+
+        return $stats['errors'] > 0 ? self::FAILURE : self::SUCCESS;
+    }
+
+    private function syncMapping(ProductSourceMapping $mapping): string
+    {
+        $sourceProduct = $this->findSourceProduct($mapping);
+        if (!$sourceProduct) {
+            $this->markMapping($mapping, 'missing', 'Source product not found.');
+            return 'missing';
+        }
+
+        $sourceVariant = $this->findSourceVariant($mapping, $sourceProduct);
+        $incoming = $this->extractIncomingValues($sourceProduct, $sourceVariant);
+
+        if (!$this->hasValidPrice($incoming['price'], $incoming['special_price'])) {
+            $this->markMapping($mapping, 'invalid_price', 'Source returned empty or zero price.');
+            return 'invalid_price';
+        }
+
+        $variant = $mapping->variant;
+        if (!$variant) {
+            $this->markMapping($mapping, 'missing', 'Local variant not found.');
+            return 'missing';
+        }
+
+        if (!$this->withinPriceGuard($variant, $incoming['price'], $incoming['special_price'])) {
+            $this->markMapping($mapping, 'price_guard', 'Price change exceeded max-change-percent.');
+            return 'price_guard';
+        }
+
+        $changes = $this->changedPayload($variant, $incoming);
+        if (empty($changes)) {
+            $this->markMapping($mapping, 'unchanged', 'No price or stock change.');
+            return 'unchanged';
+        }
+
+        if (!$this->apply) {
+            if ($this->output->isVerbose()) {
+                $this->line("WOULD UPDATE variant #{$variant->id}: " . json_encode($changes, JSON_UNESCAPED_UNICODE));
+            }
+            return 'would_update';
+        }
+
+        $variant->update($changes);
+        $this->markMapping($mapping, 'updated', 'Price/stock updated.', $incoming);
+
+        return 'updated';
+    }
+
+    private function indexSourceProducts(array $products): array
+    {
+        $index = [
+            'slug' => [],
+            'url' => [],
+            'id' => [],
+        ];
+
+        foreach ($products as $product) {
+            if (!is_array($product)) {
+                continue;
+            }
+
+            $slug = $this->normalizeSlug($product['slug'] ?? '');
+            $url = trim((string) ($product['url'] ?? ''));
+            $id = trim((string) ($product['source_product_id'] ?? $product['id'] ?? ''));
+
+            if ($slug !== '') {
+                $index['slug'][$slug] = $product;
+            }
+            if ($url !== '') {
+                $index['url'][$url] = $product;
+            }
+            if ($id !== '') {
+                $index['id'][$id] = $product;
+            }
+        }
+
+        return $index;
+    }
+
+    private function findSourceProduct(ProductSourceMapping $mapping): ?array
+    {
+        $url = trim((string) $mapping->source_product_url);
+        $id = trim((string) $mapping->source_product_id);
+        $slug = $this->normalizeSlug($mapping->source_product_slug);
+
+        if ($url !== '' && isset($this->sourceProducts['url'][$url])) {
+            return $this->sourceProducts['url'][$url];
+        }
+
+        if ($id !== '' && isset($this->sourceProducts['id'][$id])) {
+            return $this->sourceProducts['id'][$id];
+        }
+
+        if ($slug !== '' && isset($this->sourceProducts['slug'][$slug])) {
+            return $this->sourceProducts['slug'][$slug];
+        }
+
+        return null;
+    }
+
+    private function findSourceVariant(ProductSourceMapping $mapping, array $sourceProduct): ?array
+    {
+        $variants = $sourceProduct['variants'] ?? [];
+        if (!is_array($variants) || count($variants) === 0) {
+            return null;
+        }
+
+        foreach (['source_variant_id' => 'id', 'source_variant_sku' => 'sku', 'source_variant_barcode' => 'barcode'] as $mappingKey => $variantKey) {
+            $expected = trim((string) $mapping->{$mappingKey});
+            if ($expected === '') {
+                continue;
+            }
+
+            foreach ($variants as $variant) {
+                if (trim((string) ($variant[$variantKey] ?? '')) === $expected) {
+                    return $variant;
+                }
+            }
+        }
+
+        $title = $this->normalizeVariantTitle($mapping->source_variant_title);
+        if ($title !== '') {
+            foreach ($variants as $variant) {
+                if ($this->normalizeVariantTitle($variant['title'] ?? '') === $title) {
+                    return $variant;
+                }
+            }
+        }
+
+        return count($variants) === 1 ? Arr::first($variants) : null;
+    }
+
+    private function extractIncomingValues(array $sourceProduct, ?array $sourceVariant): array
+    {
+        if ($sourceVariant) {
+            $price = $this->numberOrNull($sourceVariant['price'] ?? $sourceProduct['original_price'] ?? null);
+            $compare = $this->numberOrNull($sourceVariant['compare_at_price'] ?? null);
+            $special = null;
+
+            if ($compare !== null && $price !== null && $compare > $price) {
+                $special = $price;
+                $price = $compare;
+            }
+
+            return [
+                'price' => $price,
+                'special_price' => $special,
+                'stock_quantity' => $this->stockFromSource($sourceVariant, $sourceProduct),
+            ];
+        }
+
+        return [
+            'price' => $this->numberOrNull($sourceProduct['original_price'] ?? null),
+            'special_price' => $this->numberOrNull($sourceProduct['discounted_price'] ?? null),
+            'stock_quantity' => $this->stockFromSource($sourceProduct),
+        ];
+    }
+
+    private function stockFromSource(array $source, ?array $fallback = null): int
+    {
+        foreach (['stock_quantity', 'stock'] as $key) {
+            if (isset($source[$key]) && is_numeric($source[$key])) {
+                return max(0, (int) $source[$key]);
+            }
+            if ($fallback && isset($fallback[$key]) && is_numeric($fallback[$key])) {
+                return max(0, (int) $fallback[$key]);
+            }
+        }
+
+        if (array_key_exists('available', $source)) {
+            return $source['available'] ? 100 : 0;
+        }
+
+        return 100;
+    }
+
+    private function hasValidPrice(?float $price, ?float $specialPrice): bool
+    {
+        if ($this->allowZeroPrice) {
+            return $price !== null || $specialPrice !== null;
+        }
+
+        return ($price !== null && $price > 0) || ($specialPrice !== null && $specialPrice > 0);
+    }
+
+    private function withinPriceGuard(ProductVariant $variant, ?float $price, ?float $specialPrice): bool
+    {
+        $current = $variant->effectivePrice();
+        $incoming = $this->effectivePrice($price, $specialPrice);
+
+        if ($current <= 0 || $incoming <= 0) {
+            return $this->allowZeroPrice;
+        }
+
+        $changePercent = abs($incoming - $current) / $current * 100;
+
+        return $changePercent <= $this->maxChangePercent;
+    }
+
+    private function changedPayload(ProductVariant $variant, array $incoming): array
+    {
+        $payload = [];
+
+        foreach (['price', 'special_price'] as $field) {
+            $incomingValue = $incoming[$field];
+            $currentValue = $variant->{$field};
+            if ($incomingValue !== null && round((float) $currentValue, 2) !== round((float) $incomingValue, 2)) {
+                $payload[$field] = $incomingValue;
+            }
+        }
+
+        if ($incoming['stock_quantity'] !== null && (int) $variant->stock_quantity !== (int) $incoming['stock_quantity']) {
+            $payload['stock_quantity'] = (int) $incoming['stock_quantity'];
+        }
+
+        return $payload;
+    }
+
+    private function markMapping(ProductSourceMapping $mapping, string $status, string $note, ?array $incoming = null): void
+    {
+        if (!$this->apply) {
+            return;
+        }
+
+        $payload = [
+            'last_sync_status' => $status,
+            'last_sync_note' => $note,
+            'last_sync_at' => now(),
+        ];
+
+        if ($incoming) {
+            $payload['last_synced_price'] = $incoming['price'];
+            $payload['last_synced_special_price'] = $incoming['special_price'];
+            $payload['last_synced_stock'] = $incoming['stock_quantity'];
+        }
+
+        $mapping->update($payload);
+    }
+
+    private function backfillMappings(array $products): int
+    {
+        $created = 0;
+        $storeId = $this->option('store_id') ? (int) $this->option('store_id') : null;
+        $plannedVariantIds = [];
+
+        foreach ($products as $sourceProduct) {
+            $slug = $this->normalizeSlug($sourceProduct['slug'] ?? '');
+            if ($slug === '') {
+                continue;
+            }
+
+            $productQuery = Product::query()->with('variants')->where('slug', $slug);
+            if ($storeId) {
+                $productQuery->where('store_id', $storeId);
+            }
+
+            $product = $productQuery->first();
+            if (!$product) {
+                continue;
+            }
+
+            foreach ($product->variants as $variant) {
+                if (
+                    isset($plannedVariantIds[$variant->id])
+                    || ProductSourceMapping::where('product_variant_id', $variant->id)->exists()
+                ) {
+                    continue;
+                }
+
+                $sourceVariant = $this->findVariantForBackfill($variant, $sourceProduct);
+                if (!$sourceVariant && count($sourceProduct['variants'] ?? []) > 1) {
+                    continue;
+                }
+
+                if (!$this->apply) {
+                    if ($this->output->isVerbose()) {
+                        $this->line("WOULD BACKFILL variant #{$variant->id} ({$product->slug})");
+                    }
+                    $plannedVariantIds[$variant->id] = true;
+                    $created++;
+                    continue;
+                }
+
+                $incoming = $this->extractIncomingValues($sourceProduct, $sourceVariant);
+                ProductSourceMapping::create([
+                    'source_name' => $this->sourceName,
+                    'store_id' => $product->store_id,
+                    'product_id' => $product->id,
+                    'product_variant_id' => $variant->id,
+                    'source_product_url' => $sourceProduct['url'] ?? null,
+                    'source_product_id' => $sourceProduct['source_product_id'] ?? $sourceProduct['id'] ?? null,
+                    'source_product_slug' => $sourceProduct['slug'] ?? $product->slug,
+                    'source_variant_id' => $sourceVariant['source_variant_id'] ?? $sourceVariant['id'] ?? null,
+                    'source_variant_sku' => $sourceVariant['sku'] ?? $sourceProduct['sku'] ?? null,
+                    'source_variant_barcode' => $sourceVariant['barcode'] ?? $sourceProduct['barcode'] ?? null,
+                    'source_variant_title' => $sourceVariant['title'] ?? $variant->variant_slug,
+                    'last_synced_price' => $incoming['price'],
+                    'last_synced_special_price' => $incoming['special_price'],
+                    'last_synced_stock' => $incoming['stock_quantity'],
+                    'last_sync_status' => 'backfilled',
+                    'last_sync_note' => 'Created by sync backfill.',
+                    'last_sync_at' => now(),
+                ]);
+                $plannedVariantIds[$variant->id] = true;
+                $created++;
+            }
+        }
+
+        return $created;
+    }
+
+    private function findVariantForBackfill(ProductVariant $variant, array $sourceProduct): ?array
+    {
+        $sourceVariants = $sourceProduct['variants'] ?? [];
+        if (!is_array($sourceVariants) || count($sourceVariants) === 0) {
+            return null;
+        }
+
+        $sku = trim((string) $variant->sku);
+        if ($sku !== '') {
+            foreach ($sourceVariants as $sourceVariant) {
+                if (trim((string) ($sourceVariant['sku'] ?? '')) === $sku) {
+                    return $sourceVariant;
+                }
+            }
+        }
+
+        $title = $this->normalizeVariantTitle($variant->variant_slug);
+        if ($title !== '') {
+            foreach ($sourceVariants as $sourceVariant) {
+                if ($this->normalizeVariantTitle($sourceVariant['title'] ?? '') === $title) {
+                    return $sourceVariant;
+                }
+            }
+        }
+
+        return count($sourceVariants) === 1 ? Arr::first($sourceVariants) : null;
+    }
+
+    private function numberOrNull(mixed $value): ?float
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return is_numeric($value) ? round((float) $value, 2) : null;
+    }
+
+    private function effectivePrice(?float $price, ?float $specialPrice): float
+    {
+        $price = (float) ($price ?? 0);
+        $specialPrice = (float) ($specialPrice ?? 0);
+
+        return $specialPrice > 0 && ($price <= 0 || $specialPrice < $price) ? $specialPrice : $price;
+    }
+
+    private function normalizeSourceName(string $value): string
+    {
+        return Str::of($value)->lower()->replace(['_products', '-products'], '')->slug('_')->toString();
+    }
+
+    private function normalizeSlug(?string $value): string
+    {
+        return Str::of((string) $value)->lower()->trim()->toString();
+    }
+
+    private function normalizeVariantTitle(?string $value): string
+    {
+        return Str::of((string) $value)->lower()->trim()->replaceMatches('/\s+/', ' ')->toString();
+    }
+}

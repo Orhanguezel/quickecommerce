@@ -1111,6 +1111,7 @@
     "select_store": "Select Store",
     "select_seller": "Select Seller",
     "select_status": "Select Status",
+    "select_product_report": "Select Product Report",
     "select_reason": "Select Reason",
     "select_priority": "Select Priority",
     "select_department": "Select Department",
@@ -1944,6 +1945,9 @@
     "store_earnings": "Store Earnings",
     "deliveryman_earnings": "Deliveryman Earnings",
     "total_refund_amount": "Total Refund Amount",
+    "unsellable_products": "Unsellable Products",
+    "stock_with_no_price": "Stock In, Price Missing",
+    "pending_unsellable_products": "Pending Unsellable Products",
     "totals": "Totals"
   },
   "product_list": {

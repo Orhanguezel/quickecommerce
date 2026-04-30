@@ -30,6 +30,14 @@ export function RecentlyViewedSection({
   const excludeSet = new Set(excludeIds ?? []);
   const items = allItems
     .filter((i) => !excludeSet.has(i.id))
+    .filter((i) => {
+      const hasDiscount =
+        i.special_price != null &&
+        i.price != null &&
+        i.special_price < i.price;
+      const displayPrice = hasDiscount ? i.special_price : i.price;
+      return displayPrice != null && displayPrice > 0;
+    })
     .slice(0, maxItems ?? allItems.length);
 
   if (!items.length) return null;

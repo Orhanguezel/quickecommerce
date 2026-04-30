@@ -23,6 +23,7 @@ const Products = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchValue, setSearchValue] = useState("");
   const [selectStatus, setSelectStatus] = useState<string>("");
+  const [selectReportType, setSelectReportType] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const StatusList = [
     { label: t("common.draft"), value: "draft" },
@@ -30,6 +31,11 @@ const Products = () => {
     { label: t("common.approved"), value: "approved" },
     { label: t("common.inactive"), value: "inactive" },
     { label: t("common.suspended"), value: "suspended" },
+  ];
+  const ReportTypeList = [
+    { label: t("report.unsellable_products"), value: "unsellable" },
+    { label: t("report.stock_with_no_price"), value: "stock_with_no_price" },
+    { label: t("report.pending_unsellable_products"), value: "pending_unsellable" },
   ];
 
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,6 +56,14 @@ const Products = () => {
       setSelectStatus("");
     } else {
       setSelectStatus(newSelectStatus);
+    }
+  };
+  const handleSelectReportType = (value: string) => {
+    const newSelectReportType = String(value);
+    if (value === "none") {
+      setSelectReportType("");
+    } else {
+      setSelectReportType(newSelectReportType);
     }
   };
 
@@ -115,6 +129,15 @@ const Products = () => {
                 customClass=""
               />
             </div>
+            <div className="flex items-center gap-2 w-full lg:w-64">
+              <AppSelect
+                placeholder={t("place_holder.select_product_report")}
+                value={String(selectReportType)}
+                onSelect={handleSelectReportType}
+                groups={ReportTypeList}
+                customClass=""
+              />
+            </div>
             <div className="relative flex items-center gap-2 w-full">
               <div
                 className={`${
@@ -143,7 +166,11 @@ const Products = () => {
         </CardContent>
       </Card>
       <div>
-        <ProductTable selectStatus={selectStatus} searchValue={searchValue} />
+        <ProductTable
+          selectStatus={selectStatus}
+          selectReportType={selectReportType}
+          searchValue={searchValue}
+        />
       </div>
     </>
   );

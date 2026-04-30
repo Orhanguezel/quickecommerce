@@ -88,6 +88,16 @@ class FrontendController extends Controller
 
     }
 
+    private function applyPublicCatalogScope($query)
+    {
+        return $query->publiclySellable();
+    }
+
+    private function applySellableVariantScope($query)
+    {
+        return $query->publiclySellable();
+    }
+
     public function departments()
     {
         $departments = Department::where('status', 1)->get();
@@ -234,8 +244,7 @@ class FrontendController extends Controller
         $maxSuggestions = 10; // Limit the number of suggestions
 
         // Search dynamically based on product title or description
-        $keywordSuggestions = Product::query()
-            ->where('status', 'approved') // Only active products
+        $keywordSuggestions = $this->applyPublicCatalogScope(Product::query())
             ->where(function ($productQuery) use ($query) {
                 $productQuery->where('name', 'like', "{$query}%")
                     ->orWhere('description', 'like', "{$query}%");
@@ -259,8 +268,7 @@ class FrontendController extends Controller
                 'message' => 'Query parameter is required.',
             ], 200);
         }
-        $productSuggestions = Product::query()
-            ->where('status', 'approved')
+        $productSuggestions = $this->applyPublicCatalogScope(Product::query())
             ->where(function ($productQuery) use ($query) {
                 $productQuery->where('name', 'like', "%{$query}%")
                     ->orWhere('description', 'like', "%{$query}%")
@@ -272,8 +280,12 @@ class FrontendController extends Controller
                             ->orWhere('attributes', 'like', "%{$query}%");
                     });
             })
-            ->whereNull('deleted_at')
-            ->with(['variants:id,product_id,sku,price,stock_quantity,special_price', 'store','category'])
+            ->with([
+                'variants' => fn ($query) => $this->applySellableVariantScope($query)
+                    ->select('id', 'product_id', 'sku', 'price', 'stock_quantity', 'special_price'),
+                'store',
+                'category',
+            ])
             ->get();
         return response()->json([
             'data' => ProductSuggestionPublicResource::collection($productSuggestions),
@@ -283,9 +295,13 @@ class FrontendController extends Controller
     public function popularProducts(Request $request)
     {
         if (isset($request->id)) {
-            $product = Product::with(['variants', 'store', 'related_translations'])
-                ->where('status', 'approved')
-                ->whereNull('deleted_at')
+            $product = $this->applyPublicCatalogScope(
+                Product::with([
+                    'variants' => fn ($query) => $this->applySellableVariantScope($query),
+                    'store',
+                    'related_translations',
+                ])
+            )
                 ->findOrFail($request->id);
 
             return response()->json([
@@ -299,7 +315,7 @@ class FrontendController extends Controller
             ]);
         }
 
-        $query = Product::query();
+        $query = $this->applyPublicCatalogScope(Product::query());
         // Location wise product filter
         $userLat = $request->user_lat;
         $userLng = $request->user_lng;
@@ -430,8 +446,6 @@ class FrontendController extends Controller
         }
 
         // Base filters
-        $query->where('products.status', 'approved')->whereNull('products.deleted_at');
-
         // Order by most viewed
         $query->orderByDesc('views');
 
@@ -441,6 +455,7 @@ class FrontendController extends Controller
         $products = $query->with([
             'category', 'unit', 'tags', 'store', 'brand', 'related_translations',
             'variants' => function ($query) use ($request) {
+                $this->applySellableVariantScope($query);
                 $query->select('*')
                     ->addSelect(DB::raw('
             CASE 
@@ -472,11 +487,14 @@ class FrontendController extends Controller
 
     public function topDeals(Request $request)
     {
-        $query = Product::query();
+        $query = $this->applyPublicCatalogScope(Product::query());
         // Apply filters
         if ($request->filled('id')) {
             $product = $query
-                ->with(['variants', 'store'])
+                ->with([
+                    'variants' => fn ($variantQuery) => $this->applySellableVariantScope($variantQuery),
+                    'store',
+                ])
                 ->findOrFail($request->id);
 
             return response()->json([
@@ -562,6 +580,7 @@ class FrontendController extends Controller
                 'store',
                 'brand',
                 'variants' => function ($q) {
+                    $this->applySellableVariantScope($q);
                     $q->select(
                         'id',
                         'stock_quantity',
@@ -605,9 +624,13 @@ class FrontendController extends Controller
     {
         // If product ID is passed, return a single product with details
         if (isset($request->id)) {
-            $product = Product::with(['variants', 'store', 'related_translations'])
-                ->where('status', 'approved')
-                ->whereNull('deleted_at')
+            $product = $this->applyPublicCatalogScope(
+                Product::with([
+                    'variants' => fn ($query) => $this->applySellableVariantScope($query),
+                    'store',
+                    'related_translations',
+                ])
+            )
                 ->findOrFail($request->id);
 
             return response()->json([
@@ -621,7 +644,7 @@ class FrontendController extends Controller
             ]);
         }
 
-        $query = Product::query();
+        $query = $this->applyPublicCatalogScope(Product::query());
         // Location wise product filter
         $userLat = $request->user_lat;
         $userLng = $request->user_lng;
@@ -756,8 +779,6 @@ class FrontendController extends Controller
             $query->where('is_featured', true);
         }
 
-        $query->where('products.status', 'approved')->whereNull('products.deleted_at');
-
         // Order by best-selling (order_count), then by views as secondary
         $query->orderByDesc('order_count')->orderByDesc('views');
 
@@ -767,9 +788,10 @@ class FrontendController extends Controller
         $products = $query->with([
             'category', 'unit', 'tags', 'store', 'brand', 'related_translations',
             'variants' => function ($query) use ($request) {
+                $this->applySellableVariantScope($query);
                 $query->select('*')
                     ->addSelect(DB::raw('
-            CASE 
+                CASE
                 WHEN special_price IS NOT NULL AND special_price > 0 AND special_price < price 
                     THEN special_price 
                 ELSE price 
@@ -799,9 +821,13 @@ class FrontendController extends Controller
     {
         // If product ID is passed, return a single featured product with details
         if (isset($request->id)) {
-            $product = Product::with(['variants', 'store', 'related_translations'])
-                ->where('status', 'approved')
-                ->whereNull('deleted_at')
+            $product = $this->applyPublicCatalogScope(
+                Product::with([
+                    'variants' => fn ($query) => $this->applySellableVariantScope($query),
+                    'store',
+                    'related_translations',
+                ])
+            )
                 ->where('is_featured', true)
                 ->findOrFail($request->id);
 
@@ -816,7 +842,7 @@ class FrontendController extends Controller
             ]);
         }
 
-        $query = Product::query();
+        $query = $this->applyPublicCatalogScope(Product::query());
         // Location wise product filter
         $userLat = $request->user_lat;
         $userLng = $request->user_lng;
@@ -945,7 +971,7 @@ class FrontendController extends Controller
             }
         }
 
-        $query->where('products.status', 'approved')->where('products.is_featured', true)->whereNull('products.deleted_at');
+        $query->where('products.is_featured', true);
 
         // Pagination
         $perPage = $request->per_page ?? 10;
@@ -953,6 +979,7 @@ class FrontendController extends Controller
         $products = $query->with([
             'category', 'unit', 'tags', 'store', 'brand', 'related_translations',
             'variants' => function ($query) use ($request) {
+                $this->applySellableVariantScope($query);
                 $query->select('*')
                     ->addSelect(DB::raw('
             CASE 
@@ -983,11 +1010,14 @@ class FrontendController extends Controller
 
     public function trendingProducts(Request $request)
     {
-        $query = Product::query();
+        $query = $this->applyPublicCatalogScope(Product::query());
 
         if (isset($request->id)) {
             $product = $query
-                ->with(['variants', 'store'])
+                ->with([
+                    'variants' => fn ($variantQuery) => $this->applySellableVariantScope($variantQuery),
+                    'store',
+                ])
                 ->findOrFail($request->id);
 
             return response()->json([
@@ -1000,9 +1030,10 @@ class FrontendController extends Controller
         // Fetch trending products with scores
         $trendingProducts = $query
             ->withTrendingScore() // Use the trending score scope
-            ->with(['variants', 'store'])
-            ->where('status', 'approved')
-            ->whereNull('deleted_at')
+            ->with([
+                'variants' => fn ($variantQuery) => $this->applySellableVariantScope($variantQuery),
+                'store',
+            ])
             ->orderByDesc('trending_score') // Sort by calculated trending score
             ->paginate($request->per_page ?? 10);
 
@@ -1017,11 +1048,14 @@ class FrontendController extends Controller
 
     public function weekBestProducts(Request $request)
     {
-        $query = Product::query();
+        $query = $this->applyPublicCatalogScope(Product::query());
 
         if (isset($request->id)) {
             $product = $query
-                ->with(['variants', 'store'])
+                ->with([
+                    'variants' => fn ($variantQuery) => $this->applySellableVariantScope($variantQuery),
+                    'store',
+                ])
                 ->findOrFail($request->id);
 
             return response()->json([
@@ -1034,9 +1068,11 @@ class FrontendController extends Controller
         $lastWeek = now()->subWeek();
         // Fetch products with the highest order count or rating in the last week
         $weekBestProducts = $query
-            ->with(['variants', 'store','category'])
-            ->where('status', 'approved')
-            ->where('deleted_at', null)
+            ->with([
+                'variants' => fn ($variantQuery) => $this->applySellableVariantScope($variantQuery),
+                'store',
+                'category',
+            ])
             ->where(function ($query) use ($lastWeek) {
                 $query->where('created_at', '>=', $lastWeek)
                     ->orWhere('updated_at', '>=', $lastWeek);
@@ -1296,7 +1332,7 @@ class FrontendController extends Controller
             return $this->featuredProducts($request);
         }
 
-        $query = Product::query();
+        $query = $this->applyPublicCatalogScope(Product::query());
         // Location wise product filter
         $userLat = $request->user_lat;
         $userLng = $request->user_lng;
@@ -1471,6 +1507,7 @@ class FrontendController extends Controller
         $perPage = $request->per_page ?? 10;
         $products = $query->with(['category', 'unit', 'tags', 'store', 'brand',
             'variants' => function ($query) use ($request) {
+                $this->applySellableVariantScope($query);
                 $shouldRound = shouldRound();
 
                 $discountAmountExpr = $shouldRound
@@ -1531,8 +1568,6 @@ class FrontendController extends Controller
 
             }
             , 'related_translations'])
-            ->where('products.status', 'approved')
-            ->whereNull('products.deleted_at')
             ->paginate($perPage);
         // Extract unique attributes from variants
         $uniqueAttributes = $this->getUniqueAttributesFromVariants($products, $request->input('language', 'en'));
@@ -1609,26 +1644,31 @@ class FrontendController extends Controller
 
     public function productDetails(Request $request, $product_slug)
     {
-        $product = Product::with([
+        $product = $this->applyPublicCatalogScope(Product::with([
             'store' => function ($query) {
                 $query->withCount(['products' => function ($q) {
                     // Add conditions to filter approved products and those that are not deleted
-                    $q->where('status', 'approved')
-                        ->whereNull('deleted_at');
+                    $q->publiclySellable();
                 }]);
             },
             'tags',
             'unit',
-            'variants',
+            'variants' => fn ($query) => $this->applySellableVariantScope($query),
             'brand',
             'category',
             'related_translations',
             'fullSpecifications'
-        ])
-            ->where('status', 'approved')
-            ->whereNull('deleted_at')
+        ]))
             ->where('slug', $product_slug)
             ->first();
+
+        if (!$product) {
+            return response()->json([
+                'messages' => __('messages.data_not_found'),
+                'data' => null,
+                'related_products' => [],
+            ], 404);
+        }
 
         if ($product) {
             // Track unique user views
@@ -1699,9 +1739,14 @@ class FrontendController extends Controller
         }
 
         $products = Product::whereIn('id', $productIds)
-            ->where('status', 'approved')
-            ->whereNull('deleted_at')
-            ->with(['variants', 'store', 'category', 'related_translations', 'flashSaleProduct.flashSale'])
+            ->publiclySellable()
+            ->with([
+                'variants' => fn ($query) => $this->applySellableVariantScope($query),
+                'store',
+                'category',
+                'related_translations',
+                'flashSaleProduct.flashSale',
+            ])
             ->get()
             ->sortBy(fn($product) => $productIds->search($product->id))
             ->take($perPage)
@@ -1716,11 +1761,14 @@ class FrontendController extends Controller
     public
     function newArrivals(Request $request)
     {
-        $query = Product::query();
+        $query = $this->applyPublicCatalogScope(Product::query());
 
         if ($request->has('id') && !empty($request->id)) {
 
-            $product = $query->with(['variants', 'store'])->findOrFail($request->id);
+            $product = $query->with([
+                'variants' => fn ($variantQuery) => $this->applySellableVariantScope($variantQuery),
+                'store',
+            ])->findOrFail($request->id);
 
             return response()->json([
                 'message' => __('messages.data_found'),
@@ -1747,9 +1795,11 @@ class FrontendController extends Controller
 
 
         $products = $query
-            ->with(['variants', 'store', 'category'])
-            ->where('status', 'approved')
-            ->where('deleted_at', null)
+            ->with([
+                'variants' => fn ($variantQuery) => $this->applySellableVariantScope($variantQuery),
+                'store',
+                'category',
+            ])
             ->latest()
             ->paginate($request->per_page ?? 10);
 
@@ -1764,11 +1814,15 @@ class FrontendController extends Controller
     public
     function topRatedProducts(Request $request)
     {
-        $query = Product::query();
+        $query = $this->applyPublicCatalogScope(Product::query());
 
         if ($request->has('id') && !empty($request->id)) {
 
-            $product = $query->with(['variants', 'store','category'])->findOrFail($request->id);
+            $product = $query->with([
+                'variants' => fn ($variantQuery) => $this->applySellableVariantScope($variantQuery),
+                'store',
+                'category',
+            ])->findOrFail($request->id);
 
             return response()->json([
                 'message' => __('messages.data_found'),
@@ -1795,8 +1849,7 @@ class FrontendController extends Controller
 
         $products = $query
             ->with(['variants', 'store', 'category'])
-            ->where('products.status', 'approved')
-            ->whereNull('products.deleted_at')
+            ->with(['variants' => fn ($query) => $this->applySellableVariantScope($query)])
             ->leftJoin('reviews', function ($join) {
                 $join->on('products.id', '=', 'reviews.reviewable_id')
                     ->where('reviews.reviewable_type', '=', Product::class)
@@ -1921,7 +1974,7 @@ class FrontendController extends Controller
     function categoryWiseProducts(Request $request)
     {
         try {
-            $query = Product::query();
+            $query = $this->applyPublicCatalogScope(Product::query());
             // Apply category filter
             if (isset($request->category_id)) {
                 $query->where('category_id', $request->category_id);
@@ -1970,7 +2023,10 @@ class FrontendController extends Controller
             }
             // Pagination
             $perPage = $request->per_page ?? 10;
-            $products = $query->with(['category', 'unit', 'tags', 'store', 'brand', 'variants', 'related_translations'])->paginate($perPage);
+            $products = $query->with([
+                'category', 'unit', 'tags', 'store', 'brand', 'related_translations',
+                'variants' => fn ($query) => $this->applySellableVariantScope($query),
+            ])->paginate($perPage);
 
             return response()->json([
                 'message' => 'Products fetched successfully',

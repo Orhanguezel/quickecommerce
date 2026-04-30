@@ -61,7 +61,7 @@ export const useProductQuery = (options: Partial<ProductQueryOptions>) => {
   const { findAll } = useProductQueryService();
 
   const { data, isPending, error, refetch, isFetching } = useQuery({
-    queryKey: [API_ENDPOINTS.PRODUCT_LIST],
+    queryKey: [API_ENDPOINTS.PRODUCT_LIST, options],
     queryFn: () => findAll(options),
     ...options,
   });

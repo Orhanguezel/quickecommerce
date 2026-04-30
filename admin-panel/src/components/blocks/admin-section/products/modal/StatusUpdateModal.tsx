@@ -35,6 +35,10 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
   };
 
   const handleSave = () => {
+    if (selectStatus === "approved" && row?.is_sellable === false) {
+      return;
+    }
+
     setLoading(true);
     const submissionData = { id: row.id, status: selectStatus };
 
@@ -78,10 +82,17 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
             placeholder={t("place_holder.select_status")}
             value={String(selectStatus)}
             onSelect={handleStatus}
-            groups={StatusList}
+            groups={StatusList.filter(
+              (item) => item.value !== "approved" || row?.is_sellable !== false
+            )}
             hideNone
             onOpenChange={setIsSelectOpen}
           />
+          {row?.is_sellable === false && (
+            <p className="mt-2 text-sm text-red-500">
+              Bu ürün onaylanamaz. En az bir aktif varyantta `0` dan büyük fiyat olmalı.
+            </p>
+          )}
         </div>
       </div>
     </AppModal>

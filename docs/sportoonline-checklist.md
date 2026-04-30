@@ -8,10 +8,10 @@ Detay tartismalari sonraki adimlarda her madde altinda yapilacak.
 ### 1. [x] Cimri Feed -> Google Feed formatina cevrilecek
 - Mevcut `https://sportoonline.com/feeds/cimri.xml` Google Feed formatinda degil.
 - Feed, Google Shopping XML standardina uygun hale getirilecek.
-- `merchantItemId` ve ilgili urun alanlari Cimri beklentisine gore duzenlenecek.
+- Cimri Type Feed'e ait `merchantItemId` ve benzeri ozel urun alanlari kaldirilacak.
 - Guncellenen XML linki Cimri tarafina iletilecek.
-- Mevcut varsayim: Google Feed formatina gecmek Cimri'nin talebini karsilar.
-- Durum: `/feeds/cimri.xml` Google Merchant RSS yapisina cevrildi; `g:id`, `g:title`, `g:price`, `g:sale_price`, `g:availability`, `merchantItemId` alanlari eklendi.
+- Cimri geri bildirimi: XML icinde Cimri Type Feed etiketleri bulunmamali, sadece Google Feed taslagindaki etiketler kalmali.
+- Durum: `/feeds/cimri.xml` Google Merchant RSS yapisinda; urun item'larinda yalniz `g:*` Google Merchant etiketleri kalacak sekilde Cimri tipi ozel etiketler kaldirildi.
 
 ### 2. [x] PAYTR test modu bildirim / callback sorunu
 - Test modunda bildirim kismina takilma oldugu iletilmis.
@@ -129,6 +129,10 @@ Detay tartismalari sonraki adimlarda her madde altinda yapilacak.
 - Slider metinleri arka plan gorselinde daha okunakli olacak.
 - Durum: Next.js hero slider varyantlari tek premium yapida birlestirildi; `bg_image_url` yoksa `image_url` arka plan olarak kullaniliyor, sagdaki ayrik kucuk gorsel render edilmiyor.
 - Durum: Slider metinleri token tabanli foreground/background gradient overlay ve drop-shadow ile okunur hale getirildi; CTA, oklar ve dotlar token siniflariyla calisiyor.
+- Durum: Canli aktif web slider icerikleri standartlastirildi; bozuk/eksik metinler ve uyumsuz CTA'lar duzeltildi. Pickleball, Spor Teknoloji ve Spor Ayakkabi icin 3 yeni slider taslagi eklendi, `status=0` ile pasif birakildi.
+- Durum: Slider basligindaki drop-shadow kaldirildi; mobilde baslik, etiket, aciklama ve CTA alanlari kapsayici genisliginde kalacak sekilde overflow korumalari eklendi.
+- Durum: Mobil ve tablet genisliklerinde slider sag/sol ok butonlari gizlendi; swipe ve dot navigasyon korunarak metinlerin oklar altinda kalmasi engellendi.
+- Durum: Mobil/tablet slider autoplay kapatildi; dokunmatik tut-surukle-birak gecisi eklendi ve slayt kullanici hareketine gore elle degisecek hale getirildi.
 
 ## Dusuk Oncelik / Danisma
 

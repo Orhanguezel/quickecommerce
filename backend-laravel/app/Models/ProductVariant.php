@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Builder;
 
 
 class ProductVariant extends Model
@@ -63,5 +64,35 @@ class ProductVariant extends Model
         } else {
             return 'in_stock';
         }
+    }
+
+    public function effectivePrice(): float
+    {
+        $price = (float) ($this->price ?? 0);
+        $specialPrice = (float) ($this->special_price ?? 0);
+
+        if ($specialPrice > 0 && ($price <= 0 || $specialPrice < $price)) {
+            return $specialPrice;
+        }
+
+        return $price;
+    }
+
+    public function isPubliclySellable(): bool
+    {
+        return (int) ($this->status ?? 1) === 1 && $this->effectivePrice() > 0;
+    }
+
+    public function scopePubliclySellable(Builder $query): Builder
+    {
+        $table = $this->getTable();
+
+        return $query
+            ->where($table . '.status', 1)
+            ->where(function (Builder $sellable) use ($table) {
+                $sellable
+                    ->where($table . '.price', '>', 0)
+                    ->orWhere($table . '.special_price', '>', 0);
+            });
     }
 }

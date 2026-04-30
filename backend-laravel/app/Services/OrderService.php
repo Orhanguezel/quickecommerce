@@ -83,11 +83,19 @@ class OrderService
                     $product = Product::with('variants', 'store', 'flashSaleProduct', 'flashSale')
                         ->find($itemData['product_id']);
 
+                    if (!$this->isPurchasableProduct($product)) {
+                        return false;
+                    }
+
                     if (!empty($product)) {
                         // Validate product variant
                         $variant = ProductVariant::where('id', $itemData['variant_id'])
                             ->where('product_id', $product->id)
                             ->first();
+
+                        if (!$this->isPurchasableVariant($variant)) {
+                            return false;
+                        }
 
                         if ($variant && $variant->stock_quantity < $itemData['quantity']) {
                             return false;
@@ -99,6 +107,10 @@ class OrderService
                             $unitBasePrice = ($variant->special_price !== null && $variant->special_price > 0.00)
                                 ? $variant->special_price
                                 : $variant->price;
+
+                            if ((float) $unitBasePrice <= 0) {
+                                return false;
+                            }
 
                             // Step 2: Check if flash sale applies
                             $discount = 0;
@@ -390,8 +402,14 @@ class OrderService
                 foreach ($packageData['items'] as $itemData) {
                     // find the product
                     $product = Product::with('variants', 'store', 'flashSaleProduct', 'flashSale')->find($itemData['product_id']);
+                    if (!$this->isPurchasableProduct($product)) {
+                        return false;
+                    }
                     // Validate product variant
                     $variant = ProductVariant::where('id', $itemData['variant_id'])->where('product_id', $product->id)->first();
+                    if (!$this->isPurchasableVariant($variant)) {
+                        return false;
+                    }
 
                     $product_discount_amount = ($variant->special_price < $variant->price)
                         ? ($variant->price - $variant->special_price) * $itemData['quantity']
@@ -400,6 +418,9 @@ class OrderService
                     $product_discount_amount_package += $product_discount_amount;
                     if (!empty($variant) && isset($variant->price)) {
                         $basePrice = ($variant->special_price > 0) ? $variant->special_price : $variant->price;
+                        if ((float) $basePrice <= 0) {
+                            return false;
+                        }
                     }
 
                     if (!empty($product) && !empty($variant)) {
@@ -672,6 +693,18 @@ class OrderService
     {
         $order = Order::with(['orderItems', 'sellerStore'])->findOrFail($orderId);
         return $order;
+    }
+
+    private function isPurchasableProduct(?Product $product): bool
+    {
+        return $product !== null
+            && $product->status === 'approved'
+            && $product->deleted_at === null;
+    }
+
+    private function isPurchasableVariant(?ProductVariant $variant): bool
+    {
+        return $variant !== null && $variant->isPubliclySellable();
     }
 
     public function distributeCouponDiscount(OrderMaster $orderMaster): void

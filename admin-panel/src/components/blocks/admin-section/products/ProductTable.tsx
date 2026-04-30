@@ -21,6 +21,7 @@ const ProductTable = ({
   selectStatus,
   selectStoreID,
   selectStoreID2,
+  selectReportType,
 }: any) => {
   const locale = useLocale();
   const t = useTranslations();
@@ -41,6 +42,7 @@ const ProductTable = ({
     store_id: selectStoreID,
     type: selectStoreID2,
     status: selectStatus,
+    report_type: selectReportType,
     per_page: itemsPerPage,
     language: locale,
     page: currentPage,
@@ -159,6 +161,7 @@ const ProductTable = ({
     selectStatus,
     selectStoreID,
     selectStoreID2,
+    selectReportType,
     isPending,
     refetch,
     error,

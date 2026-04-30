@@ -60,6 +60,8 @@ class ProductListResource extends JsonResource
             'price' => optional($displayVariant)->price,
             'special_price' => optional($displayVariant)->special_price,
             'default_variant_id' => optional($displayVariant)->id,
+            'is_sellable' => $this->hasSellableVariants(),
+            'sellability_issue' => $this->sellabilityIssue(),
             'order_count' => $this->order_count,
             'attributes' => $this->attributes,
             'children' => ProductVariantPublicResource::collection($this->variants),

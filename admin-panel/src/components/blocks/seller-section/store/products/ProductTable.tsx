@@ -16,7 +16,7 @@ import { useEffect, useMemo, useState } from "react";
 import SellerProductsList from "./components/SellerProductsList";
 import TableSkeletonLoader from "@/components/molecules/TableSkeletonLoader";
 
-const ProductTable = ({ searchValue, selectStatus }: any) => {
+const ProductTable = ({ searchValue, selectStatus, selectReportType }: any) => {
   const selectedStore = useAppSelector((state) => state.store.selectedStore);
   const { stores } = useStoreListQuery({}, { skip: false });
   const storeList = useMemo(() => (stores as any)?.stores ?? [], [stores]);
@@ -41,6 +41,7 @@ const ProductTable = ({ searchValue, selectStatus }: any) => {
   const { productList, refetch, isPending, isFetching, error } =
     useProductQuery({
       store_id: fallbackStoreId,
+      report_type: selectReportType,
       per_page: itemsPerPage,
       language: locale,
       page: currentPage,

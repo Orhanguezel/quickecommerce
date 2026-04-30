@@ -51,6 +51,7 @@ import {
 } from "@/modules/wishlist/wishlist.service";
 import { useRecentlyViewedStore } from "@/stores/recently-viewed-store";
 import { trackViewItem, trackAddToCart } from "@/lib/gtm";
+import { resolveProductPricing } from "@/lib/product-pricing";
 import {
   useProductQuestionsQuery,
   useAskQuestionMutation,
@@ -386,26 +387,27 @@ export function ProductDetailClient({
     document.getElementById("product-tabs")?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Track recently viewed — price comes from first variant, not product root
+  // Track recently viewed using the first valid variant/root price combination.
   useEffect(() => {
-    const firstVariant = product.variants?.[0];
-    const variantPrice = firstVariant?.price != null ? Number(firstVariant.price) : null;
-    const variantSpecialPrice = firstVariant?.special_price != null && Number(firstVariant.special_price) > 0
-      ? Number(firstVariant.special_price)
-      : null;
-    const hasVariantDiscount = variantSpecialPrice != null && variantPrice != null && variantSpecialPrice < variantPrice;
-    const discountPct = hasVariantDiscount
-      ? Math.round(((variantPrice! - variantSpecialPrice!) / variantPrice!) * 100)
-      : (product.discount_percentage ?? 0);
+    const resolvedPricing = resolveProductPricing(product);
+    if (resolvedPricing.originalPrice == null && resolvedPricing.displayPrice == null) {
+      return;
+    }
 
     addRecentlyViewed({
       id: product.id,
       name: product.name,
       slug: product.slug,
       image_url: product.image_url,
-      price: variantPrice ?? (product.price != null ? Number(product.price) : null),
-      special_price: variantSpecialPrice ?? (product.special_price != null ? Number(product.special_price) : null),
-      discount_percentage: discountPct,
+      price: resolvedPricing.originalPrice,
+      special_price:
+        resolvedPricing.displayPrice != null &&
+        resolvedPricing.originalPrice != null &&
+        resolvedPricing.displayPrice < resolvedPricing.originalPrice
+          ? resolvedPricing.displayPrice
+          : resolvedPricing.discountedBasePrice,
+      discount_percentage:
+        resolvedPricing.discountPercentage || product.discount_percentage || 0,
       rating: product.rating || "0",
       review_count: product.review_count ?? 0,
     });
@@ -529,7 +531,7 @@ export function ProductDetailClient({
   }, [product.variants]);
 
   const handleAddToCart = () => {
-    if (displayPrice == null || !selectedVariant) return;
+    if (displayPrice == null || displayPrice <= 0 || !selectedVariant) return;
     const cartItem: CartItem = {
       id: product.id,
       product_id: product.id,

@@ -16,6 +16,7 @@ import { useTranslations } from "next-intl";
 import { usePrice } from "@/hooks/use-price";
 import { useRef } from "react";
 import { flyToCart } from "@/lib/cart-animation";
+import { resolveProductPricing } from "@/lib/product-pricing";
 
 interface ProductCardProps {
   product: Product;
@@ -52,23 +53,8 @@ export function ProductCard({
 }: ProductCardProps) {
   const t = useTranslations("product");
   const { formatPrice } = usePrice();
-  const price = product.price != null ? Number(product.price) : null;
-  const specialPrice =
-    product.special_price != null && Number(product.special_price) > 0
-      ? Number(product.special_price)
-      : null;
-  const hasSpecialPriceDiscount =
-    specialPrice != null && price != null && specialPrice < price;
-  let displayPrice: number | null = hasSpecialPriceDiscount ? specialPrice : price;
-  if (displayPrice != null && product.flash_sale && product.flash_sale.discount_amount > 0) {
-    const fs = product.flash_sale;
-    const fsDiscount =
-      fs.discount_type === "percentage"
-        ? Math.round((displayPrice * fs.discount_amount) / 100)
-        : fs.discount_amount;
-    displayPrice = Math.max(0, displayPrice - fsDiscount);
-  }
-  const hasDiscount = displayPrice != null && price != null && displayPrice < price;
+  const { originalPrice: price, displayPrice, hasDiscount } =
+    resolveProductPricing(product, product.default_variant_id);
 
   const addItem = useCartStore((s) => s.addItem);
   const openDrawer = useCartStore((s) => s.openDrawer);
@@ -88,7 +74,7 @@ export function ProductCard({
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (displayPrice == null) return;
+    if (displayPrice == null || displayPrice <= 0) return;
     const defaultVariant = product.singleVariant?.[0];
     const variantId = defaultVariant?.id ?? product.default_variant_id;
     const cartItem: CartItem = {
@@ -253,7 +239,7 @@ export function ProductCard({
   );
 
   /* ── Cart button icon (using cart.png) ── */
-  const cartIconButton = isInStock && displayPrice != null ? (
+  const cartIconButton = isInStock && displayPrice != null && displayPrice > 0 ? (
     <div className="relative">
       {isAdding && (
         <span className="animate-cart-pop pointer-events-none absolute -top-1 left-1/2 -translate-x-1/2 z-20 rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-white leading-none">

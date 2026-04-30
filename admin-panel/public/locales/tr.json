@@ -1114,6 +1114,7 @@
     "select_store": "Mağaza Seç",
     "select_seller": "Satıcı Seç",
     "select_status": "Durum Seç",
+    "select_product_report": "Ürün Raporu Seç",
     "select_reason": "Sebep Seç",
     "select_priority": "Öncelik Seç",
     "select_department": "Departman Seç",
@@ -1949,6 +1950,9 @@
     "store_earnings": "Mağaza Kazancı",
     "deliveryman_earnings": "Kurye Kazancı",
     "total_refund_amount": "Toplam İade Tutarı",
+    "unsellable_products": "Satışa Kapalı Ürünler",
+    "stock_with_no_price": "Stok Var, Fiyat Eksik",
+    "pending_unsellable_products": "Onay Bekleyen Satışa Kapalı Ürünler",
     "totals": "Toplamlar"
   },
   "product_list": {

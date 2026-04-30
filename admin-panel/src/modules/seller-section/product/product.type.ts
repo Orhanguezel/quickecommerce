@@ -39,6 +39,7 @@ export interface ProductQueryOptions extends QueryOptions {
   store_id?:any
   status?:any
   per_page?:any
+  report_type?: any
 }
 
 

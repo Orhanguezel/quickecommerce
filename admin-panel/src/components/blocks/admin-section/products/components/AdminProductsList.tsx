@@ -445,6 +445,11 @@ const AdminProductsList = ({
                                 <p className="text-blue-500 font-semibold text-md">
                                   {row.name}
                                 </p>
+                                {row?.is_sellable === false && (
+                                  <p className="text-xs font-medium text-red-500">
+                                    Fiyat eksik, satışa kapalı
+                                  </p>
+                                )}
                               </div>
                             </Link>
                           </div>
@@ -551,7 +556,7 @@ const AdminProductsList = ({
                           </>
                         )}
                         <td className="text-start p-4 ">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <div className="w-24 capitalize">
                               <Badge
                                 className={` ${
@@ -569,6 +574,11 @@ const AdminProductsList = ({
                                 {row?.status}
                               </Badge>
                             </div>
+                            {row?.is_sellable === false && (
+                              <Badge className="bg-red-50 border border-red-500 text-red-500">
+                                price invalid
+                              </Badge>
+                            )}
                             <div className="flex items-center gap-2">
                               {row?.status !== "delivered" && (
                                 <StatusUpdateModal

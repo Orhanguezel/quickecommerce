@@ -42,6 +42,7 @@ class ProductManageRepository implements ProductManageInterface
     public function getPaginatedProduct(int|string $store_id,string $status, int|string $limit, int $page, string $language, string $type, string $search, string $sortField, string $sort, array $filters)
     {
         $product = Product::query();
+        $reportType = $filters['report_type'] ?? '';
         if ($store_id) {
             $product->where('store_id', $store_id);
         }
@@ -95,6 +96,22 @@ class ProductManageRepository implements ProductManageInterface
             $product->where(function ($query) use ($search) {
                 $query->where(DB::raw("CONCAT_WS(' ', products.name, name_translations.value, products.description, description_translations.value, meta_title_translations.value, meta_description_translations.value, meta_keywords_translations.value)"), 'like', "%{$search}%");
             });
+        }
+
+        if ($reportType === 'unsellable') {
+            $product->whereDoesntHave('variants', fn ($query) => $query->publiclySellable());
+        }
+
+        if ($reportType === 'stock_with_no_price') {
+            $product
+                ->whereHas('variants', fn ($query) => $query->where('stock_quantity', '>', 0))
+                ->whereDoesntHave('variants', fn ($query) => $query->publiclySellable());
+        }
+
+        if ($reportType === 'pending_unsellable') {
+            $product
+                ->where('status', 'pending')
+                ->whereDoesntHave('variants', fn ($query) => $query->publiclySellable());
         }
 
         // Apply sorting and pagination
@@ -490,7 +507,14 @@ class ProductManageRepository implements ProductManageInterface
     public function changeStatus(array $data): mixed
     {
         try {
-            $product = Product::findOrFail($data['id']);
+            $product = Product::with('variants')->findOrFail($data['id']);
+
+            if ($data['status'] === 'approved' && !$product->hasSellableVariants()) {
+                throw ValidationException::withMessages([
+                    'status' => ['At least one active variant must have a price greater than zero before approval.'],
+                ]);
+            }
+
             $product->status = $data['status'];
             $product->save();
             try {
@@ -524,8 +548,20 @@ class ProductManageRepository implements ProductManageInterface
     public function approvePendingProducts(array $productIds)
     {
         try {
-            $products = Product::whereIn('id', $productIds)
+            $products = Product::with('variants')
+                ->whereIn('id', $productIds)
                 ->where('deleted_at', null)
+                ->get();
+
+            foreach ($products as $product) {
+                if (!$product->hasSellableVariants()) {
+                    throw ValidationException::withMessages([
+                        'status' => ["Product #{$product->id} cannot be approved without a valid price."],
+                    ]);
+                }
+            }
+
+            Product::whereIn('id', $products->pluck('id'))
                 ->update([
                     'status' => 'approved'
                 ]);

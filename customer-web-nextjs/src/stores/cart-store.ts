@@ -51,6 +51,9 @@ export const useCartStore = create<CartState>()(
 
       addItem: (item) =>
         set((state) => {
+          if (!Number.isFinite(item.price) || item.price <= 0) {
+            return state;
+          }
           const key = getCartKey(item);
           const existing = state.items.find(
             (i) => getCartKey(i) === key

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Traits\DeleteTranslations;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Log;
@@ -170,6 +171,28 @@ class Product extends Model
         return $specialPrice > 0 && ($price <= 0 || $specialPrice < $price)
             ? $specialPrice
             : $price;
+    }
+
+    public function scopePubliclySellable(Builder $query): Builder
+    {
+        return $query
+            ->where('status', 'approved')
+            ->whereNull('deleted_at')
+            ->whereHas('variants', fn (Builder $variantQuery) => $variantQuery->publiclySellable());
+    }
+
+    public function hasSellableVariants(): bool
+    {
+        $variants = $this->relationLoaded('variants')
+            ? $this->variants
+            : $this->variants()->get();
+
+        return $variants->contains(fn ($variant) => $variant->isPubliclySellable());
+    }
+
+    public function sellabilityIssue(): ?string
+    {
+        return $this->hasSellableVariants() ? null : 'missing_valid_price';
     }
 
     public function relatedProductsWithCategoryFallback($limit = 10)

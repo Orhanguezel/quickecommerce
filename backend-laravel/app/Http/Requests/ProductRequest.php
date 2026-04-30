@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Enums\Behaviour;
 use App\Enums\StatusType;
 use App\Enums\StoreType;
+use App\Models\ProductVariant;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
@@ -140,6 +141,36 @@ class ProductRequest extends FormRequest
                     $validator->errors()->add("variants.$index.special_price", __('messages.should_round', ['name' => 'Special price']));
                 }
             }
+
+            if ($this->requestedApprovedStatusWithoutSellableVariant()) {
+                $validator->errors()->add(
+                    'status',
+                    'At least one active variant must have a price greater than zero before the product can be approved.'
+                );
+            }
+        });
+    }
+
+    private function requestedApprovedStatusWithoutSellableVariant(): bool
+    {
+        if (($this->input('status') ?? 'approved') !== 'approved') {
+            return false;
+        }
+
+        $variants = collect($this->input('variants', []));
+
+        if ($variants->isEmpty()) {
+            return true;
+        }
+
+        return !$variants->contains(function ($variant) {
+            $variantModel = new ProductVariant([
+                'status' => $variant['status'] ?? 1,
+                'price' => $variant['price'] ?? 0,
+                'special_price' => $variant['special_price'] ?? 0,
+            ]);
+
+            return $variantModel->isPubliclySellable();
         });
     }
 }
