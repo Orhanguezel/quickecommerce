@@ -62,9 +62,17 @@ class ProductDetailsPublicResource extends JsonResource
             'delivery_time_text' => $this->delivery_time_text,
             'max_cart_qty' => $this->max_cart_qty,
             'stock' => $this->totalStock(),
-            'price' => optional($displayVariant)->price,
-            'special_price' => optional($displayVariant)->special_price,
-            'effective_price' => $this->variantEffectivePrice($displayVariant),
+            // ProductPublicResource (liste) ile tutarlı yuvarlama: site ayarında
+            // "ondalıkları gösterme" aktifse 0 ondalık, değilse 2.
+            'price' => shouldRound()
+                ? round((float) optional($displayVariant)->price)
+                : round((float) optional($displayVariant)->price, 2),
+            'special_price' => shouldRound()
+                ? round((float) optional($displayVariant)->special_price)
+                : round((float) optional($displayVariant)->special_price, 2),
+            'effective_price' => shouldRound()
+                ? round($this->variantEffectivePrice($displayVariant))
+                : round($this->variantEffectivePrice($displayVariant), 2),
             'default_variant_id' => optional($displayVariant)->id,
             'order_count' => $this->order_count,
             'variants' => ProductVariantPublicResource::collection($this->variants),

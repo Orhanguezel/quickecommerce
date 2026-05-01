@@ -27,10 +27,16 @@ class ProductVariantPublicResource extends JsonResource
             'weight_net' => $this->weight_net,
             'attributes' => $this->attributes ? json_decode($this->attributes, true) : [], // Decode the JSON column
             'size' => $this->size,
-            'price' => $this->price,
+            // Liste/detay tutarlılığı için fiyatları da yuvarla. Tek kaynak:
+            // shouldRound() (site ayarı: ondalıkları gösterme NO).
+            'price' => shouldRound()
+                ? round((float) $this->price)
+                : round((float) $this->price, 2),
             'price_input_currency_code' => $this->price_input_currency_code,
             'price_input_amount' => $this->price_input_amount,
-            'special_price' => $this->special_price,
+            'special_price' => shouldRound()
+                ? round((float) $this->special_price)
+                : round((float) $this->special_price, 2),
             'special_price_input_currency_code' => $this->special_price_input_currency_code,
             'special_price_input_amount' => $this->special_price_input_amount,
             'stock_quantity' => $this->stock_quantity,

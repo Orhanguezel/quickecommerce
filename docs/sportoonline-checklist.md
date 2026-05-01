@@ -197,11 +197,12 @@ Site sahibinden gelen 8 madde:
   Sonra `php artisan config:cache && pm2 restart` (PM2 listesinde Laravel yok, php-fpm reload yeter ya da hicbir sey gerekmez — config:cache fpm'yi farkindar etmez, fpm zaten her istekte env okur)
 - Admin tarafindaki "yeni siparis" mail'i `com_site_email` settings'inden okunur — yoksa `MAIL_FROM_ADDRESS`'e duser
 
-### 19. [ ] Flash sale fiyat yuvarlama tutarsizlik
-- `ProductPublicResource` (liste): `shouldRound()` aktif - 250.75 -> 251
-- `ProductDetailsPublicResource` (detay): round YOK - 250.75 olarak kalir
-- Tutarsizlik: liste 251, detay 250.75 (veya tam tersi musteri tarafinda)
-- Cozum: ProductDetailsPublicResource'a da shouldRound() eklemek
+### 19. [x] Flash sale fiyat yuvarlama tutarsizlik (TAMAMLANDI 2026-05-01)
+- ~~`ProductPublicResource` (liste): `shouldRound()` aktif - 250.75 -> 251~~
+- ~~`ProductDetailsPublicResource` (detay): round YOK - 250.75 olarak kalir~~
+- Cozum: `ProductDetailsPublicResource` ve `ProductVariantPublicResource` da
+  `shouldRound() ? round(x) : round(x, 2)` mantigini kullaniyor — site ayari
+  `com_site_enable_disable_decimal_point` tum cikis noktalarinda tutarli
 
 ### 20. [ ] SSS / FAQ sayfasi - tamamen yok
 - Backend: model/migration/controller yok
