@@ -139,8 +139,8 @@ export function CookieBanner({ apiUrl, locale }: Props) {
   return (
     <>
       {!showManage && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-background/80">
-          <div className="container py-4">
+        <div className="fixed bottom-4 left-4 right-4 z-[80] rounded-lg border bg-background/95 shadow-2xl backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:left-6 sm:right-6 lg:bottom-6">
+          <div className="px-4 py-3 sm:px-6 sm:py-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
               <div className="flex flex-1 items-start gap-3">
                 <Cookie className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
