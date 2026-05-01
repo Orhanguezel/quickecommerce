@@ -147,14 +147,16 @@ Detay tartismalari sonraki adimlarda her madde altinda yapilacak.
 
 Site sahibinden gelen 8 madde:
 
-### 15. [ ] Seller panel magaza ekleme akisi - eksik alanlar
-- IBAN / banka hesabi alani yok (komisyon odemesi icin gerekli)
-- Vergi dairesi alani yok (vergi numarasi var, dairesi yok)
-- Teslimat bolgesi (delivery zones) secimi yok
-- Logo/banner upload UI yok (sadece string field)
-- KVKK/aydinlatma metni onay kutusu yok
-- Frontend: `admin-panel/src/modules/seller-section/store/store.schema.ts`
-- Backend: `app/Http/Requests/SellerStoreRequest.php`
+### 15. [~] Seller panel kayit akisi - eksik alanlar (cogu zaten var)
+- ~~IBAN / banka hesabi~~ ✅ Satici basvuru formunda var (`bank_iban`, `bank_account_holder`, `bank_name`, `bank_branch_code`)
+- ~~Vergi dairesi~~ ✅ Basvuruda var (`tax_office`)
+- ~~Logo/banner upload UI~~ ✅ Magaza ekleme formunda `PhotoUploadModal` ile calisiyor
+- ⚠️ Teslimat bolgesi (delivery zones): Polygon-tabanli sistem 2026-05-01 itibariyle kaldirildi (Google Places autocomplete'e gecti). Magaza tablosunda flat `delivery_charge`/`delivery_time` alanlari var, bolgeye gore degisken ucret istenirse ayri feature gerek
+- ❌ **KVKK / Aydinlatma metni onay kutusu** — satici basvuru formunda YOK
+  - Aksiyon: 3 zorunlu checkbox (Aydinlatma Metni, Acik Riza, Uye Sozlesmesi) + `seller_applications.consent_at` timestamp kolonu
+  - Backend: `app/Http/Requests/SellerApplicationRequest.php` (varsa) + migration
+  - Frontend: `customer-web-nextjs/src/app/[locale]/satici-basvuru/become-seller-client.tsx`
+  - Sayfa stub: `/aydinlatma-metni`, `/kvkk-acik-riza`, `/uye-sozlesmesi` yoksa eklenmeli
 
 ### 16. [x] Kargo kampanyasi duzenleme - hata raporu (COZULDU 2026-04-30)
 - Sorun 1: `useShippingCampaignQueryById` data shape'i yanlis cozuyordu (`data?.data` → tek seviye, gerekirken iki seviye `(data?.data)?.data`). Form `isEdit=false` modunda aciliyor, tum alanlar bos, kullanici min_order_value degistirdiginde CREATE yapiliyor, backend `title` zorunlu deyince 422.
@@ -235,6 +237,59 @@ VPS Laravel logundan tespit edilen kritik bug'lar (toplam 5786 hata, son hafta):
   - Frontend duzeltildi: `ara/search-client.tsx`, `urunler/products-client.tsx`, `marka/[slug]/brand-client.tsx`
   - Backend `FrontendController::products()` metoduna `popular` case eklendi (order_count desc, views tiebreaker)
   - kategori sayfasi zaten dogru degerleri kullaniyordu
+
+### 33. [~] PayTR canli mod onboarding — TALEP GONDERILDI 2026-05-01, ONAY BEKLENIYOR
+- Sorun: Odeme sayfasi sari banner ile "BU ISLEMI TEST MODUNDA YAPIYORSUNUZ" gosteriyor
+- Tespit (2026-04-30):
+  - DB `payment_gateways.is_test_mode = 0` (dogru — canli)
+  - Backend `PayTRService::createPaymentToken` `test_mode=0` gonderiyor
+  - PayTR iframe yine de test modu banner'i gosteriyor → bu PayTR tarafindaki **merchant hesabi onboarding** sorunu
+  - PayTR merchant_id: `673164`
+
+**Aksiyon (PayTR merchant panelinde yapilacak, kod degisikligi yok):**
+
+#### a) Bildirim URL duzeltmesi (Bildirim Sureci adimi) — TAMAMLANDI 2026-05-01
+- **Sorun 1**: PayTR'nin Bildirim URL'i `www.sportoonline.com/...` olarak girilmis, nginx 301 redirect verdigi icin POST'lar fail oluyor (338 adet 301 vs 5 adet 200 — PayTR IP `212.252.97.250`)
+  - Cozum: Bildirim URL `sportoonline.com/api/v1/paytr/callback` (www'siz) yapildi
+- **Sorun 2**: URL duzeldikten sonra POST 200 OK donmesine ragmen body 22 byte (gzip stream) donuyor — PayTR'nin checker'i decompress etmedigi icin "OK" string'ini goremiyor, hala fail veriyor
+  - Sebep: Nginx HTTP/2 chunked transfer ile Content-Length gondermedigi icin `gzip_min_length 256` filtresi calismiyor, 2 byte "OK" yine gzip oluyor
+  - Cozum: `/etc/nginx/sites-enabled/sportoonline.com.conf` icine `location ^~ /api/v1/paytr/ { gzip off; ... }` block'u eklendi (longest-prefix match → /api/ block'undan once)
+  - Nginx reload edildi, test: `curl https://sportoonline.com/api/v1/paytr/callback` artik content-encoding: gzip header'i donmuyor, body duz "OK"
+  - Backup: `/tmp/sportoonline.com.conf.bak.*` (VPS uzerinde)
+
+#### b) Odeme Transfer Ayarlari (zorunlu — onaysiz canli moda gecmez)
+- IBAN: Sirket/sahis adina kayitli banka hesabi (PayTR satislari buraya yatirir)
+  - Ilk kayit sonrasi PayTR 1 kurus dogrulama gonderebilir (1-2 is gunu)
+- Transfer Periyodu: **Haftalik** onerilir (gunluk daha yuksek komisyon, aylik nakit akisi yavas)
+- Minimum Transfer Tutari: 50 TL (boş birak veya dusuk tut)
+- Otomatik Transfer: **Acik**
+- Hak Edis Suresi: PayTR yeni magazalarda 1-7 gun bekletir, kidemli magazalarda 0-1 gune duser
+
+#### c) Diger evrak ve dogrulamalar
+- Vergi levhasi yukle
+- Imza sirkuleri / faaliyet belgesi yukle
+- PayTR sozlesmesi imzala
+- Banka hesap dogrulama (IBAN'a gelen 1 kurus)
+- PayTR onayi bekle (genelde 1-3 is gunu)
+- Onay sonrasi banner kaybolacak ve gercek karttan tahsilat baslar
+- Onay gelene kadar: Test kartlari (`9792 0303 9444 0796` / 12/99 / 000) ile akis test edilebilir, gercek kart kabul edilmez
+
+#### d) Defansif kod onerisi (opsiyonel, gelecekte benzer redirect sorunu yasamamak icin)
+- Nginx `sportoonline.com.conf` line 53-55: `return 301 https://sportoonline.com$request_uri;` → `return 308 ...` yapilirsa POST method korunur
+- Riski az, faydasi: ileride baska entegrator www URL kullanirsa fail olmaz
+- SEO etkisi: 301 ve 308 search engine icin esdeger
+
+### 32. [ ] Sifir stoklu urunleri musteriden gizle (admin'de gorulebilir kalsin)
+- Tespit (2026-04-30): 7 magazada toplam 86 urunun tum varyantlari `stock_quantity = 0`
+- Ornek: https://sportoonline.com/tr/urun/everlast-spor-ayakkabi-jugs-c5 (5 varyant da 0)
+- Davranis:
+  - Musteri tarafinda: kategori/arama/listelerde gorunmesin, urun sayfasi 404 ya da "stokta yok" mesaji versin
+  - Admin tarafinda: urun listesi normal gorunsun, "stokta yok" filtre/badge ile isaretlensin
+- Olasi yaklasim:
+  - Backend: `applyPublicCatalogScope` icine `whereHas('variants', fn($q) => $q->where('stock_quantity', '>', 0))` ekle
+  - Admin urun listesinde stok durumu sutunu/filtre ekle (zaten var mi kontrol et)
+- Etkilenen yerler: kategori, arama, magaza detay, marka, urunler, tum slider/section'lar
+- NOT: Bu degisiklik onemli SEO etkisi olabilir — urun URL'leri 410 mu 404 mu donsun karari verilmeli
 
 ## Tekrarlayan maddeler birlestirildi
 

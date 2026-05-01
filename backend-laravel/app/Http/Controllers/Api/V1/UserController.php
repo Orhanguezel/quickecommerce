@@ -507,6 +507,10 @@ class UserController extends Controller
                 'application_details.bank.bank_name' => 'required|string|max:255',
                 'application_details.bank.account_holder' => 'required|string|max:255',
                 'application_details.bank.iban' => 'required|string|max:50',
+                // KVKK / Aydınlatma / Üye Sözleşmesi onayları — 3'ü de zorunlu accepted
+                'consent_kvkk' => 'required|accepted',
+                'consent_disclosure' => 'required|accepted',
+                'consent_membership' => 'required|accepted',
             ]);
         }
 
@@ -576,6 +580,7 @@ class UserController extends Controller
                     'bank_swift_code' => $bank['swift_code'] ?? null,
                     'note' => $request->input('application_details.note'),
                     'status' => SellerApplication::STATUS_PENDING,
+                    'consent_at' => now(),
                 ]);
             }
 

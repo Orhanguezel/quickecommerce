@@ -20,6 +20,7 @@ class SellerApplication extends Model
     protected $casts = [
         'reviewed_at' => 'datetime',
         'iyzico_registered_at' => 'datetime',
+        'consent_at' => 'datetime',
     ];
 
     public function user()

@@ -101,7 +101,9 @@ interface SellerApplicationFormData {
   bank_branch_code: string;
   swift_code: string;
   application_note: string;
-  agree: boolean;
+  consent_kvkk: boolean;
+  consent_disclosure: boolean;
+  consent_membership: boolean;
 }
 
 const sectorOptions = [
@@ -156,7 +158,9 @@ export function BecomeSellerClient({ content, translations: t }: BecomeSellerCli
     bank_branch_code: "",
     swift_code: "",
     application_note: "",
-    agree: false,
+    consent_kvkk: false,
+    consent_disclosure: false,
+    consent_membership: false,
   });
 
   const [loading, setLoading] = useState(false);
@@ -196,8 +200,11 @@ export function BecomeSellerClient({ content, translations: t }: BecomeSellerCli
       return;
     }
 
-    if (!formData.agree) {
-      setError(t.agree_required || "Şartları ve koşulları kabul etmelisiniz");
+    if (!formData.consent_disclosure || !formData.consent_kvkk || !formData.consent_membership) {
+      setError(
+        t.agree_required ||
+          "Aydınlatma Metni, KVKK Açık Rıza Beyanı ve Üye Sözleşmesi onaylarının üçü de zorunludur",
+      );
       return;
     }
 
@@ -253,6 +260,9 @@ export function BecomeSellerClient({ content, translations: t }: BecomeSellerCli
             phone: formData.phone,
             password: formData.password,
             password_confirmation: formData.password_confirmation,
+            consent_kvkk: formData.consent_kvkk,
+            consent_disclosure: formData.consent_disclosure,
+            consent_membership: formData.consent_membership,
             ...applicationDetails,
             application_details: applicationDetails,
           }),
@@ -692,15 +702,76 @@ export function BecomeSellerClient({ content, translations: t }: BecomeSellerCli
                       </div>
                     </div>
 
-                    <div className="mt-4 flex items-start gap-2">
-                      <Checkbox
-                        id="agree"
-                        checked={formData.agree}
-                        onCheckedChange={(checked) => updateFormField("agree", !!checked)}
-                      />
-                      <label htmlFor="agree" className="cursor-pointer text-sm leading-tight">
-                        {t.agree_terms}
-                      </label>
+                    <div className="mt-4 space-y-2">
+                      <div className="flex items-start gap-2">
+                        <Checkbox
+                          id="consent_disclosure"
+                          checked={formData.consent_disclosure}
+                          onCheckedChange={(checked) =>
+                            updateFormField("consent_disclosure", !!checked)
+                          }
+                        />
+                        <label
+                          htmlFor="consent_disclosure"
+                          className="cursor-pointer text-sm leading-tight"
+                        >
+                          <a
+                            href="/aydinlatma-metni"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary underline underline-offset-2"
+                          >
+                            Aydınlatma Metni
+                          </a>
+                          &lsquo;ni okudum, kabul ediyorum.
+                        </label>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <Checkbox
+                          id="consent_kvkk"
+                          checked={formData.consent_kvkk}
+                          onCheckedChange={(checked) =>
+                            updateFormField("consent_kvkk", !!checked)
+                          }
+                        />
+                        <label
+                          htmlFor="consent_kvkk"
+                          className="cursor-pointer text-sm leading-tight"
+                        >
+                          <a
+                            href="/kvkk-acik-riza"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary underline underline-offset-2"
+                          >
+                            KVKK Açık Rıza Beyanı
+                          </a>
+                          &lsquo;nı okudum, kişisel verilerimin işlenmesini kabul ediyorum.
+                        </label>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <Checkbox
+                          id="consent_membership"
+                          checked={formData.consent_membership}
+                          onCheckedChange={(checked) =>
+                            updateFormField("consent_membership", !!checked)
+                          }
+                        />
+                        <label
+                          htmlFor="consent_membership"
+                          className="cursor-pointer text-sm leading-tight"
+                        >
+                          <a
+                            href="/uye-sozlesmesi"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary underline underline-offset-2"
+                          >
+                            Üye Sözleşmesi
+                          </a>
+                          &lsquo;ni okudum, kabul ediyorum.
+                        </label>
+                      </div>
                     </div>
 
                     {error && (
