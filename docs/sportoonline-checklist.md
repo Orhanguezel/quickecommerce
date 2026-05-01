@@ -164,10 +164,13 @@ Site sahibinden gelen 8 madde:
 - Sorun 3: zod schema `title.min(2)` — sebepsiz katiydi, `min(1)` yapildi
 - Dosyalar: `shipping-campaign.action.ts`, `shipping-campaign.schema.ts`, `public/locales/tr.json`, `public/locales/en.json`
 
-### 17. [ ] Cerez politikasi banner - kullanici tarafinda yok
-- Admin'de `gdpr-cookie-settings` form var ama frontend'de banner yok
-- KVKK/GDPR uyum icin gerekli
+### 17. [x] Cerez politikasi banner (TAMAMLANDI 2026-05-01)
+- Backend `/gdpr-cookie-settings` zaten public endpoint (admin tarafindan KVKK & Cerez baslik/mesaj/buton metinleri ve cerez kategorileri DB'de tutuluyor)
 - Yeni component: `customer-web-nextjs/src/components/cookie-banner.tsx`
+- Akis: ilk ziyarette banner gosterir → "Kabul Et / Reddet / Yonet" — Yonet modal'inda kategoriler tek tek toggle edilebilir (Zorunlu kategoriler kilitli)
+- Onay localStorage'a `sportoonline_cookie_consent_v1` anahtariyla yaziliyor, daha sonra banner cikmiyor
+- `[locale]/layout.tsx`'e entegre edildi, `com_gdpr_enable_disable === "on"` ise gosterilir
+- `com_gdpr_show_delay` ms cinsinden gecikme ayari respect ediliyor
 
 ### 18. [ ] Siparis confirmation email (admin + customer'a anida)
 - Mail config var, queue var, OrderPlaced event WebSocket yayini var

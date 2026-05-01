@@ -20,6 +20,7 @@ import { ExitIntentPopup } from '@/components/cart/exit-intent-popup';
 import { CartSnapshotSync } from '@/components/cart/cart-snapshot-sync';
 import { ExperimentProvider } from '@/components/providers/experiment-provider';
 import { AnalyticsProvider } from '@/components/providers/analytics-provider';
+import { CookieBanner } from '@/components/cookie-banner';
 import { Geist } from 'next/font/google';
 import Script from 'next/script';
 import '../globals.css';
@@ -296,6 +297,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             />
             <Script id="ga-script" strategy="afterInteractive">
               {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
+function sportoonlineAnalyticsConsentGranted(){var cookie=(document.cookie||'')+';';var m=/(?:^|;\\s*)(sportoonline_cookie_consent|cookie_consent|gdpr_cookie_consent|CookieConsent)=([^;]*)/i.exec(cookie);var v=m&&m[2]?decodeURIComponent(m[2]).toLowerCase():'';if(v&&/decline|denied|reject|false|necessary/.test(v))return false;try{var stored=localStorage.getItem('sportoonline_cookie_consent')||localStorage.getItem('cookie_consent')||localStorage.getItem('gdpr_cookie_consent')||'';if(/decline|denied|reject|false|necessary/i.test(stored))return false;}catch(e){}return true;}
+gtag('consent','default',{analytics_storage:sportoonlineAnalyticsConsentGranted()?'granted':'denied',ad_storage:sportoonlineAnalyticsConsentGranted()?'granted':'denied',ad_user_data:sportoonlineAnalyticsConsentGranted()?'granted':'denied',ad_personalization:sportoonlineAnalyticsConsentGranted()?'granted':'denied'});
 gtag('js',new Date());
 ${gtagIds.map((id: string) => `gtag('config','${id}');`).join('\n')}
 window.__GOOGLE_ADS_CONVERSION_ID__='${googleAdsConversionId}';
@@ -322,6 +325,7 @@ window.__GOOGLE_ADS_PURCHASE_LABEL__='${googleAdsPurchaseLabel}';`}
                 <CartSnapshotSync />
                 <ExperimentProvider>{null}</ExperimentProvider>
                 <AnalyticsProvider />
+                <CookieBanner apiUrl={API_URL} locale={locale} />
                 <ScrollToTop />
               </ThemeProvider>
             </NextThemesProvider>

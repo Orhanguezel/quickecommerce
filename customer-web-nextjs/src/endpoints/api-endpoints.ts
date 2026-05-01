@@ -19,6 +19,7 @@ export const API_ENDPOINTS = {
   FOOTER: "/footer",
   PAGES: "/pages",
   THEME: "/theme",
+  GDPR_COOKIE_SETTINGS: "/gdpr-cookie-settings",
 
   // Products
   PRODUCTS: "/product-list",
