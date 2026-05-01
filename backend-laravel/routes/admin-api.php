@@ -285,6 +285,7 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => ['auth:sanctum']], functi
             Route::get('applications/{id}', [AdminSellerManageController::class, 'getSellerApplicationById']);
             Route::patch('applications/approve', [AdminSellerManageController::class, 'approveSellerApplication']);
             Route::patch('applications/reject', [AdminSellerManageController::class, 'rejectSellerApplication']);
+            Route::post('applications/retry-submerchant', [AdminSellerManageController::class, 'retrySellerSubMerchant']);
         });
         // Department manage
         Route::group(['prefix' => 'department/'], function () {

@@ -6,6 +6,7 @@ import {
   useSellerApplicationDetailsService,
   useSellerApplicationApproveService,
   useSellerApplicationRejectService,
+  useSellerApplicationRetrySubMerchantService,
 } from "./seller-application.service";
 import { SellerApplicationQueryOptions } from "./seller-application.type";
 
@@ -75,6 +76,25 @@ export const useSellerApplicationReject = () => {
     onError: async (data) => {
       const errorText = (data as any)?.response?.data;
       toast.error(errorText?.message || "Bir hata oluştu");
+    },
+  });
+};
+
+/**
+ * KYC zaten APPROVED ama iyzico_sub_merchant_key boş olduğunda
+ * sub-merchant'ı yeniden oluşturma denemesi.
+ */
+export const useSellerApplicationRetrySubMerchant = () => {
+  const { create } = useSellerApplicationRetrySubMerchantService();
+  return useMutation({
+    mutationFn: (values: { id: string }) => create(values),
+    mutationKey: [API_ENDPOINTS.ADMIN_SELLER_APPLICATION_RETRY_SUBMERCHANT],
+    onSuccess: async (data) => {
+      toast.success((data as any)?.data?.message || "Sub-merchant oluşturuldu.");
+    },
+    onError: async (data) => {
+      const errorText = (data as any)?.response?.data;
+      toast.error(errorText?.message || "Sub-merchant oluşturulamadı");
     },
   });
 };

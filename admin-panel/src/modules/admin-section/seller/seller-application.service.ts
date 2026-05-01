@@ -21,3 +21,9 @@ export const useSellerApplicationApproveService = () => {
 export const useSellerApplicationRejectService = () => {
   return useBaseService<any>(API_ENDPOINTS.ADMIN_SELLER_APPLICATION_REJECT);
 };
+
+export const useSellerApplicationRetrySubMerchantService = () => {
+  return useBaseService<any>(
+    API_ENDPOINTS.ADMIN_SELLER_APPLICATION_RETRY_SUBMERCHANT,
+  );
+};

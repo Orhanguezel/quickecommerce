@@ -5,6 +5,7 @@ import { Badge, Button, Card, CardContent } from "@/components/ui";
 import {
   useSellerApplicationApprove,
   useSellerApplicationReject,
+  useSellerApplicationRetrySubMerchant,
 } from "@/modules/admin-section/seller/seller-application.action";
 import { Building2, CreditCard, MapPin, ShieldCheck, ShieldAlert, ShieldQuestion, Copy, Check } from "lucide-react";
 import ApplicationRejectModal from "./modal/ApplicationRejectModal";
@@ -49,7 +50,17 @@ export default function SellerKycPanel({ seller }: Props) {
   const dispatch = useAppDispatch();
   const { mutate: approve, isPending: isApproving } = useSellerApplicationApprove();
   const { mutate: reject, isPending: isRejecting } = useSellerApplicationReject();
+  const { mutate: retrySubMerchant, isPending: isRetrying } =
+    useSellerApplicationRetrySubMerchant();
   const [copied, setCopied] = useState(false);
+
+  const onRetry = () => {
+    if (!seller.application_id) return;
+    retrySubMerchant(
+      { id: String(seller.application_id) },
+      { onSuccess: () => dispatch(setRefetch(true)) },
+    );
+  };
 
   if (!seller?.application_id) {
     return (
@@ -160,33 +171,58 @@ export default function SellerKycPanel({ seller }: Props) {
 
           {/* Iyzico merchant key — onaylandıysa */}
           {seller.kyc_status === 1 && (
-            <div className="mb-4 rounded-md border bg-emerald-50 dark:bg-emerald-950/20 p-3">
-              <div className="text-xs uppercase tracking-wide text-emerald-700 dark:text-emerald-400 font-medium mb-1">
+            <div
+              className={`mb-4 rounded-md border p-3 ${
+                seller.iyzico_sub_merchant_key
+                  ? "bg-emerald-50 dark:bg-emerald-950/20"
+                  : "bg-amber-50 dark:bg-amber-950/20 border-amber-300"
+              }`}
+            >
+              <div
+                className={`text-xs uppercase tracking-wide font-medium mb-1 ${
+                  seller.iyzico_sub_merchant_key
+                    ? "text-emerald-700 dark:text-emerald-400"
+                    : "text-amber-700 dark:text-amber-400"
+                }`}
+              >
                 iyzico Sub-Merchant Key
               </div>
               {seller.iyzico_sub_merchant_key ? (
-                <div className="flex items-center gap-2">
-                  <code className="flex-1 text-sm font-mono break-all">
-                    {seller.iyzico_sub_merchant_key}
-                  </code>
-                  <button
-                    type="button"
-                    onClick={copyMerchantKey}
-                    className="shrink-0 rounded p-1.5 hover:bg-emerald-100 dark:hover:bg-emerald-900/40"
-                    title="Kopyala"
-                  >
-                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  </button>
-                </div>
+                <>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 text-sm font-mono break-all">
+                      {seller.iyzico_sub_merchant_key}
+                    </code>
+                    <button
+                      type="button"
+                      onClick={copyMerchantKey}
+                      className="shrink-0 rounded p-1.5 hover:bg-emerald-100 dark:hover:bg-emerald-900/40"
+                      title="Kopyala"
+                    >
+                      {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  {seller.iyzico_registered_at && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Kayıt tarihi: {new Date(seller.iyzico_registered_at).toLocaleString("tr-TR")}
+                    </p>
+                  )}
+                </>
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  Sub-merchant oluşturulamamış. iyzico marketplace mode kapalı olabilir veya hata oluşmuş — backend log&apos;una bakın.
-                </p>
-              )}
-              {seller.iyzico_registered_at && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Kayıt tarihi: {new Date(seller.iyzico_registered_at).toLocaleString("tr-TR")}
-                </p>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-sm text-amber-800 dark:text-amber-200">
+                    Sub-merchant oluşturulamamış. iyzico API hata döndürmüş olabilir; başvurudaki bilgileri (IBAN, vergi no, TC) düzeltip yeniden deneyin.
+                  </p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="shrink-0 border-amber-500 bg-white text-amber-700 hover:bg-amber-100"
+                    onClick={onRetry}
+                    disabled={isRetrying}
+                  >
+                    {isRetrying ? "Deneniyor..." : "Yeniden Dene"}
+                  </Button>
+                </div>
               )}
             </div>
           )}
