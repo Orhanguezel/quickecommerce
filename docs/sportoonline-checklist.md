@@ -172,11 +172,30 @@ Site sahibinden gelen 8 madde:
 - `[locale]/layout.tsx`'e entegre edildi, `com_gdpr_enable_disable === "on"` ise gosterilir
 - `com_gdpr_show_delay` ms cinsinden gecikme ayari respect ediliyor
 
-### 18. [ ] Siparis confirmation email (admin + customer'a anida)
-- Mail config var, queue var, OrderPlaced event WebSocket yayini var
-- Eksik: siparis OLUSTURURKEN customer'a "siparisin alindi" emaili
-- Eksik: admin'e yeni siparis bildirimi (anida email)
-- Olasi yer: `App\Listeners\OrderPlacedListener` veya `App\Notifications\OrderCreated`
+### 18. [~] Siparis confirmation email (KOD HAZIR — production SMTP gerekli)
+- Tespit (2026-05-01):
+  - `OrderPlaced` event class var ama hicbir yerden DISPATCH edilmiyor
+  - `OrderManageNotificationService` in-app (UniversalNotification) + Firebase push gonderiyor ama EMAIL gondermiyor
+  - Production .env'de **MAIL config tamamen yok** — tum transactional mail'ler default `log` driver'a dusuyor
+- Yapildi (commit pending):
+  - `App\Mail\OrderCreatedToCustomer` + `OrderCreatedToAdmin` Mailable
+  - Blade view'lari: `resources/views/emails/order-created-{customer,admin}.blade.php`
+  - `OrderManageNotificationService::createOrderNotification` icinde `$otherCheckData === 'new-order'` durumunda `Mail::queue()` ile her ikisi de tetikleniyor
+  - SMTP yapilmazsa tek log entry'sine duser, checkout akisini bloklamaz (try/catch + Log::warning)
+  - `.env.example`'da Yandex/Gmail SMTP ornegi ile rehberlik
+- **Production'da yapilacak:** VPS `/var/www/quikecommerce/backend-laravel/.env` icine ekle:
+  ```
+  MAIL_MAILER=smtp
+  MAIL_HOST=smtp.yandex.com  (veya smtp.gmail.com)
+  MAIL_PORT=465  (Gmail: 587)
+  MAIL_USERNAME=info@sportoonline.com
+  MAIL_PASSWORD="<app-password>"
+  MAIL_ENCRYPTION=ssl  (Gmail: tls)
+  MAIL_FROM_ADDRESS="info@sportoonline.com"
+  MAIL_FROM_NAME="Sportoonline"
+  ```
+  Sonra `php artisan config:cache && pm2 restart` (PM2 listesinde Laravel yok, php-fpm reload yeter ya da hicbir sey gerekmez — config:cache fpm'yi farkindar etmez, fpm zaten her istekte env okur)
+- Admin tarafindaki "yeni siparis" mail'i `com_site_email` settings'inden okunur — yoksa `MAIL_FROM_ADDRESS`'e duser
 
 ### 19. [ ] Flash sale fiyat yuvarlama tutarsizlik
 - `ProductPublicResource` (liste): `shouldRound()` aktif - 250.75 -> 251

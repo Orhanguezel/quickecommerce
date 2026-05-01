@@ -2,9 +2,13 @@
 
 namespace App\Services\Order;
 
+use App\Mail\OrderCreatedToAdmin;
+use App\Mail\OrderCreatedToCustomer;
 use App\Models\Order;
 use App\Models\UniversalNotification;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification;
@@ -55,6 +59,13 @@ class OrderManageNotificationService
                 $this->notifyStore($order_details, $messages['title'], $messages['store'], $data);
                 $this->notifyCustomer($order_details, $messages['title'], $messages['customer'], $data);
                 $this->notifyDeliveryman($order_details, $messages['title'], $messages['deliveryman'], $data);
+
+                // E-posta bildirimi: yalnızca yeni sipariş oluştuğunda — sipariş başına
+                // bir kez customer'a "siparişin alındı", admin'e "yeni sipariş" maili.
+                // SMTP yoksa tek bir log entry'sine düşer ve checkout akışını bloklamaz.
+                if ($otherCheckData === 'new-order') {
+                    $this->sendOrderCreatedEmails($order_details);
+                }
 
                 // admin change order status
                 if ($otherCheckData === 'admin_order_status_cpps' || $otherCheckData === 'admin_order_status_delivery') {
@@ -218,6 +229,37 @@ class OrderManageNotificationService
         }catch (\Exception $exception){}
 
 
+    }
+
+    /**
+     * Yeni siparişte customer + admin'e email gönderir. Sipariş yanıtını
+     * yavaşlatmamak için Mail::queue (sync queue ile bile non-blocking değil
+     * ama database queue ile worker varsa async). SMTP yapılandırılmadığında
+     * Laravel default `log` driver'ı yazar — gerçek emailler için VPS .env'e
+     * MAIL_MAILER=smtp + host/user/pass eklenmelidir.
+     */
+    private function sendOrderCreatedEmails(Order $order): void
+    {
+        try {
+            $customerEmail = optional($order->orderMaster?->customer)->email;
+            if ($customerEmail) {
+                Mail::to($customerEmail)->queue(new OrderCreatedToCustomer($order));
+            }
+
+            // Admin tarafına: önce site ayarlarındaki com_site_email,
+            // yoksa MAIL_FROM_ADDRESS env'i, o da yoksa hiç gönderme.
+            $adminEmail = com_option_get('com_site_email')
+                ?: config('mail.from.address');
+
+            if ($adminEmail) {
+                Mail::to($adminEmail)->queue(new OrderCreatedToAdmin($order));
+            }
+        } catch (\Throwable $e) {
+            Log::warning('OrderCreated email dispatch failed', [
+                'order_id' => $order->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     private function sendOrderNotification($recipient_user, $idKey, $idValue, $orderId, $title, $body)
