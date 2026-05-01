@@ -147,16 +147,16 @@ Detay tartismalari sonraki adimlarda her madde altinda yapilacak.
 
 Site sahibinden gelen 8 madde:
 
-### 15. [~] Seller panel kayit akisi - eksik alanlar (cogu zaten var)
+### 15. [x] Seller panel kayit akisi - eksik alanlar (TAMAMLANDI 2026-05-01)
 - ~~IBAN / banka hesabi~~ ✅ Satici basvuru formunda var (`bank_iban`, `bank_account_holder`, `bank_name`, `bank_branch_code`)
 - ~~Vergi dairesi~~ ✅ Basvuruda var (`tax_office`)
 - ~~Logo/banner upload UI~~ ✅ Magaza ekleme formunda `PhotoUploadModal` ile calisiyor
 - ⚠️ Teslimat bolgesi (delivery zones): Polygon-tabanli sistem 2026-05-01 itibariyle kaldirildi (Google Places autocomplete'e gecti). Magaza tablosunda flat `delivery_charge`/`delivery_time` alanlari var, bolgeye gore degisken ucret istenirse ayri feature gerek
-- ❌ **KVKK / Aydinlatma metni onay kutusu** — satici basvuru formunda YOK
-  - Aksiyon: 3 zorunlu checkbox (Aydinlatma Metni, Acik Riza, Uye Sozlesmesi) + `seller_applications.consent_at` timestamp kolonu
-  - Backend: `app/Http/Requests/SellerApplicationRequest.php` (varsa) + migration
-  - Frontend: `customer-web-nextjs/src/app/[locale]/satici-basvuru/become-seller-client.tsx`
-  - Sayfa stub: `/aydinlatma-metni`, `/kvkk-acik-riza`, `/uye-sozlesmesi` yoksa eklenmeli
+- ✅ **KVKK / Aydinlatma metni onay kutusu** (commit `cbfe7b49`)
+  - 3 zorunlu checkbox eklendi (Aydinlatma Metni, KVKK Acik Riza, Uye Sozlesmesi)
+  - Backend: `seller_applications.consent_at` timestamp + `consent_kvkk/disclosure/membership` request validation `required|accepted`
+  - Frontend: `become-seller-client.tsx`'te tek `agree` alani 3 ayri state'e bolundu, hepsi linkli, hepsi isaretlenmeden submit olmuyor
+  - Stub sayfalar: `/aydinlatma-metni`, `/kvkk-acik-riza`, `/uye-sozlesmesi` (200 OK; backend pages slug'i bos oldugu icin "Bu sayfa henuz hazirlaniyor" gosteriyor — admin panelinden icerik girilmesi gerekiyor)
 
 ### 16. [x] Kargo kampanyasi duzenleme - hata raporu (COZULDU 2026-04-30)
 - Sorun 1: `useShippingCampaignQueryById` data shape'i yanlis cozuyordu (`data?.data` → tek seviye, gerekirken iki seviye `(data?.data)?.data`). Form `isEdit=false` modunda aciliyor, tum alanlar bos, kullanici min_order_value degistirdiginde CREATE yapiliyor, backend `title` zorunlu deyince 422.
