@@ -285,16 +285,27 @@ export const Sidebar = memo(({ setIsLoading }: any) => {
             />
             <Input
               type="search"
-              name="sidebar_search"
+              name="menu-filter"
               placeholder="Search...."
-              autoComplete="off"
+              autoComplete="new-password"
               autoCorrect="off"
               spellCheck={false}
               data-form-type="other"
               data-1p-ignore
               data-lpignore="true"
               value={search}
-              onChange={(e) => setSearch(e.target.value || "")}
+              onChange={(e) => {
+                const v = e.target.value || "";
+                // Chrome'un agresif autofill'i form alanı sansa email/password
+                // sızdırıyor — '@' içeren veya 50 karakteri aşan değerleri
+                // gerçek arama saymıyoruz, böylece "Veri bulunamadı" yerine
+                // tüm menü görünür kalır.
+                if (v.includes("@") || v.length > 50) {
+                  setSearch("");
+                  return;
+                }
+                setSearch(v);
+              }}
               className="text-white focus-visible:ring-transparent ring-offset-0 sidebar-search bg-transparent dark:bg-[#072441]"
             />
           </div>
