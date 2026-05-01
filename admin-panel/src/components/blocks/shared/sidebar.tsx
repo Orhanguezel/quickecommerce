@@ -114,9 +114,32 @@ export const Sidebar = memo(({ setIsLoading }: any) => {
       : "/admin/dashboard";
 
   const [search, setSearch] = useState("");
+  // Hesabım / KYC top-level entry — backend permission listesinde yok,
+  // satıcının profil + şirket bilgilerine sidebar'dan tek tıkla ulaşması için.
+  const accountGroup = useMemo(
+    () =>
+      getPermissions?.activity_scope === "store_level"
+        ? [
+            {
+              perm_title: "Hesabım",
+              children: [
+                {
+                  perm_title: "Profil & KYC",
+                  perm_name: "/seller/profile",
+                  icon: "UserCircle",
+                  children: [],
+                },
+              ],
+            },
+          ]
+        : [],
+    [getPermissions?.activity_scope],
+  );
   const menuItems: any =
     storedSlug === "" && getPermissions?.activity_scope === "store_level"
-      ? [...(MenuItems || [])]
+      ? [...accountGroup, ...(MenuItems || [])]
+      : getPermissions?.activity_scope === "store_level"
+      ? [...accountGroup, ...(MenuItems || [])]
       : MenuItems || [];
 
 
@@ -261,8 +284,16 @@ export const Sidebar = memo(({ setIsLoading }: any) => {
               }  `}
             />
             <Input
-              type="text"
+              type="search"
+              name="sidebar_search"
               placeholder="Search...."
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+              data-form-type="other"
+              data-1p-ignore
+              data-lpignore="true"
+              value={search}
               onChange={(e) => setSearch(e.target.value || "")}
               className="text-white focus-visible:ring-transparent ring-offset-0 sidebar-search bg-transparent dark:bg-[#072441]"
             />
