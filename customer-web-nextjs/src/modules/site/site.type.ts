@@ -20,6 +20,7 @@ export interface SiteSettings {
   com_google_tag_manager_id?: string | null;
   com_google_ads_conversion_id?: string | null;
   com_google_ads_purchase_label?: string | null;
+  com_google_map_api_key?: string | null;
 }
 
 export interface SiteGeneralInfo {

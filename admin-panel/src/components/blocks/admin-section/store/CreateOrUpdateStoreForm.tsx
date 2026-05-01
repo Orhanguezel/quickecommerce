@@ -18,6 +18,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Loader from '@/components/molecules/Loader';
 import multiLang from '@/components/molecules/multiLang.json';
 import { AppSelect } from '@/components/blocks/common';
+import AddressAutocomplete from '@/components/blocks/common/AddressAutocomplete';
 import { AppStoreTypeMultiSelect } from '@/components/blocks/common/AppStoreTypeMultiSelect';
 import {
   Button,
@@ -467,11 +468,19 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
     return safeStr(editData?.address) || safeStr(byLocale) || safeStr(byFirstLang) || safeStr(firstAny);
   }, [editData, locale, firstUILangId]);
 
-  // Map UI state
+  // Map UI state — Türkiye merkezli default (eski 23.8103/90.4125 = Dakka)
   const [polygonCoords, setPolygonCoords] = useState<any>(null);
-  const [center, setCenter] = useState({ lat: 23.8103, lng: 90.4125 });
-  const [markerPosition, setMarkerPosition] = useState({ lat: 23.8103, lng: 90.4125 });
-  const [zoom, setZoom] = useState(8);
+  const _initialCenter = useMemo(() => {
+    const lat = Number(editData?.latitude);
+    const lng = Number(editData?.longitude);
+    if (Number.isFinite(lat) && Number.isFinite(lng) && lat !== 0 && lng !== 0) {
+      return { lat, lng };
+    }
+    return { lat: 41.0082, lng: 28.9784 }; // İstanbul
+  }, [editData?.latitude, editData?.longitude]);
+  const [center, setCenter] = useState(_initialCenter);
+  const [markerPosition, setMarkerPosition] = useState(_initialCenter);
+  const [zoom, setZoom] = useState(editData?.latitude ? 14 : 6);
   const [errorMessage, setErrorMessage] = useState('');
 
   // Images
@@ -738,25 +747,27 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
   const handleMarkerDrag = async (event: { latLng: { lat: () => any; lng: () => any } }) => {
     const newLat = event.latLng.lat();
     const newLng = event.latLng.lng();
-
-    if (!polygonCoords?.length) return;
-
-    const point = new window.google.maps.LatLng(newLat, newLng);
-    const polygon = new window.google.maps.Polygon({ paths: polygonCoords });
-
-    const isInsideZone = window.google.maps.geometry.poly.containsLocation(point, polygon);
-    if (!isInsideZone) {
-      setErrorMessage('The marker is out of the selected zone.');
-      return;
-    }
-
     setErrorMessage('');
     const address = await fetchAddress(newLat, newLng);
-
     setMarkerPosition({ lat: newLat, lng: newLng });
     setValueAny('latitude', String(newLat), { shouldDirty: true, shouldTouch: true });
     setValueAny('longitude', String(newLng), { shouldDirty: true, shouldTouch: true });
     setValueAny('address', String(address), { shouldDirty: true, shouldTouch: true });
+  };
+
+  const handleAddressSelect = (selected: {
+    formattedAddress: string;
+    lat: number;
+    lng: number;
+  }) => {
+    const { lat, lng, formattedAddress } = selected;
+    setMarkerPosition({ lat, lng });
+    setCenter({ lat, lng });
+    setZoom(15);
+    setValueAny('latitude', String(lat), { shouldDirty: true, shouldTouch: true });
+    setValueAny('longitude', String(lng), { shouldDirty: true, shouldTouch: true });
+    setValueAny('address', String(formattedAddress), { shouldDirty: true, shouldTouch: true });
+    setErrorMessage('');
   };
 
   const handleSaveImages = (images: UploadedImage[]) => {
@@ -1255,23 +1266,46 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
 
                   <div className="space-y-3">
                     <div>
-                      <p className="text-sm font-medium mb-1">{t('label.area')}</p>
-                      <Controller
-                        control={control}
-                        name="area_id"
-                        render={({ field }) => (
-                          <AppSelect
-                            value={String(field.value || effectiveAreaValue || '')}
-                            onSelect={(value) => {
-                              const v = toSelectValue(value);
-                              field.onChange(v);
-                              handleAreaSelect(v);
-                            }}
-                            groups={EffectiveAreaOptions}
-                          />
-                        )}
-                      />
+                      <p className="text-sm font-medium mb-1">Adres / Konum Ara</p>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Mağazanın adresini yazın, haritada otomatik işaretlenir. Pin&apos;i sürükleyerek konumu hassaslaştırabilirsiniz.
+                      </p>
+                      {googleMapKey ? (
+                        <AddressAutocomplete
+                          apiKey={googleMapKey}
+                          defaultValue={editData?.address || ''}
+                          onSelect={handleAddressSelect}
+                        />
+                      ) : (
+                        <p className="text-xs text-yellow-600">
+                          Google Maps API anahtarı tanımlı değil — koordinatları manuel girin.
+                        </p>
+                      )}
                       {errorMessage ? <p className="text-red-500 text-sm mt-2">{errorMessage}</p> : null}
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <p className="text-sm font-medium mb-1">{t('label.latitude')}</p>
+                        <Input
+                          disabled
+                          type="text"
+                          id="latitude"
+                          {...register('latitude' as any)}
+                          className="app-input"
+                          placeholder="41.0082"
+                        />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium mb-1">{t('label.longitude')}</p>
+                        <Input
+                          disabled
+                          type="text"
+                          id="longitude"
+                          {...register('longitude' as any)}
+                          className="app-input"
+                          placeholder="28.9784"
+                        />
+                      </div>
                     </div>
                     <div>
                       <p className="text-sm font-medium mb-1">{t('label.address')}</p>

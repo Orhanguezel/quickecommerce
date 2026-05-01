@@ -45,7 +45,8 @@ import {
 } from "@/modules/wallet/wallet.service";
 import type { WalletTransaction } from "@/modules/wallet/wallet.type";
 import { useRecentlyViewedStore } from "@/stores/recently-viewed-store";
-import { TURKEY_CITIES } from "@/data/turkey-cities";
+import AddressAutocomplete from "@/components/AddressAutocomplete";
+import { useSiteInfoQuery } from "@/modules/site/site.action";
 import { usePrice } from "@/hooks/use-price";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -131,6 +132,8 @@ export function AccountClient({ translations: t }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const logout = useAuthStore((s) => s.logout);
+  const { siteInfo } = useSiteInfoQuery();
+  const googleMapsApiKey = (siteInfo?.com_google_map_api_key as string) || "";
   const [mounted, setMounted] = useState(false);
   const hasAuthToken = mounted && Boolean(Cookies.get(AUTH_TOKEN_KEY));
   const [activeTab, setActiveTab] = useState<Tab>("profile");
@@ -1026,6 +1029,29 @@ export function AccountClient({ translations: t }: Props) {
                         </div>
                       </div>
 
+                      {/* Adres Arama (Google Places) — il/ilçe + adresi otomatik doldurur */}
+                      {googleMapsApiKey && (
+                        <div className="space-y-2">
+                          <Label>Adres Ara</Label>
+                          <p className="text-xs text-muted-foreground -mt-1">
+                            Adresinizi yazın, il ve ilçe otomatik doldurulacak. Gerekirse aşağıdaki alanları düzenleyebilirsiniz.
+                          </p>
+                          <AddressAutocomplete
+                            apiKey={googleMapsApiKey}
+                            defaultValue={addressForm.address}
+                            onSelect={(s) =>
+                              setAddressForm((prev) => ({
+                                ...prev,
+                                address: s.formattedAddress,
+                                city_name: s.city || prev.city_name,
+                                district_name: s.district || prev.district_name,
+                                postal_code: s.postalCode || prev.postal_code,
+                              }))
+                            }
+                          />
+                        </div>
+                      )}
+
                       <div className="space-y-2">
                         <Label>{t.address_field}</Label>
                         <Textarea
@@ -1040,59 +1066,33 @@ export function AccountClient({ translations: t }: Props) {
                         />
                       </div>
 
-                      {/* İl / İlçe */}
+                      {/* İl / İlçe — manuel düzeltme için açık kalıyor */}
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label>İl</Label>
-                          <Select
+                          <Input
                             value={addressForm.city_name}
-                            onValueChange={(v) =>
+                            onChange={(e) =>
                               setAddressForm({
                                 ...addressForm,
-                                city_name: v,
-                                district_name: "",
+                                city_name: e.target.value,
                               })
                             }
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="İl seçiniz..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {TURKEY_CITIES.map((city) => (
-                                <SelectItem key={city.value} value={city.value}>
-                                  {city.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                            placeholder="İstanbul"
+                          />
                         </div>
                         <div className="space-y-2">
                           <Label>İlçe</Label>
-                          <Select
+                          <Input
                             value={addressForm.district_name}
-                            onValueChange={(v) =>
+                            onChange={(e) =>
                               setAddressForm({
                                 ...addressForm,
-                                district_name: v,
+                                district_name: e.target.value,
                               })
                             }
-                            disabled={!addressForm.city_name}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="İlçe seçiniz..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {(
-                                TURKEY_CITIES.find(
-                                  (c) => c.value === addressForm.city_name
-                                )?.districts ?? []
-                              ).map((district) => (
-                                <SelectItem key={district} value={district}>
-                                  {district}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                            placeholder="Beşiktaş"
+                          />
                         </div>
                       </div>
 

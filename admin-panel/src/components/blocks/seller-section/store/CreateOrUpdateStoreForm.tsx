@@ -5,6 +5,7 @@ import VectorIcon from '@/assets/icons/VectorIcon';
 import Loader from '@/components/molecules/Loader';
 import multiLang from '@/components/molecules/multiLang.json';
 import { AppSelect } from '@/components/blocks/common';
+import AddressAutocomplete from '@/components/blocks/common/AddressAutocomplete';
 import { AppStoreTypeMultiSelect } from '@/components/blocks/common/AppStoreTypeMultiSelect';
 import {
   Button,
@@ -342,14 +343,19 @@ export default function CreateOrUpdateStoreForm({ data }: any) {
     height: '200px',
   };
 
-  const defaultCenter = { lat: 23.8103, lng: 90.4125 };
+  // Türkiye merkezli default — eski Dakka koordinatları (23.8103, 90.4125) BizMic template kalıntısıydı
+  const defaultCenter = useMemo(() => {
+    const lat = Number(editData?.latitude);
+    const lng = Number(editData?.longitude);
+    if (Number.isFinite(lat) && Number.isFinite(lng) && lat !== 0 && lng !== 0) {
+      return { lat, lng };
+    }
+    return { lat: 41.0082, lng: 28.9784 }; // İstanbul
+  }, [editData?.latitude, editData?.longitude]);
   const [center, setCenter] = useState(defaultCenter);
   const [errorMessage, setErrorMessage] = useState('');
-  const [markerPosition, setMarkerPosition] = useState({
-    lat: 23.8103,
-    lng: 90.4125,
-  });
-  const [zoom, setZoom] = useState(8);
+  const [markerPosition, setMarkerPosition] = useState(defaultCenter);
+  const [zoom, setZoom] = useState(editData?.latitude ? 14 : 6);
   const handleSelectItem = async (value: string, inputType: string) => {
     setValue(inputType as any, value);
     if (inputType === 'area_id') {
@@ -381,19 +387,27 @@ export default function CreateOrUpdateStoreForm({ data }: any) {
   const handleMarkerDrag: any = async (event: { latLng: { lat: () => any; lng: () => any } }) => {
     const newLat = event.latLng.lat();
     const newLng = event.latLng.lng();
-    const point = new window.google.maps.LatLng(newLat, newLng);
-    const polygon = new window.google.maps.Polygon({ paths: polygonCoords });
-    const isInsideZone = window.google.maps.geometry.poly.containsLocation(point, polygon);
-    if (isInsideZone) {
-      setErrorMessage('');
-      const address = await fetchAddress(newLat, newLng);
-      setMarkerPosition({ lat: newLat, lng: newLng });
-      setValue('latitude', newLat);
-      setValue('longitude', newLng);
-      setValue('address', address);
-    } else {
-      setErrorMessage('The marker is out of the selected zone.');
-    }
+    setErrorMessage('');
+    const address = await fetchAddress(newLat, newLng);
+    setMarkerPosition({ lat: newLat, lng: newLng });
+    setValue('latitude', newLat);
+    setValue('longitude', newLng);
+    setValue('address', address);
+  };
+
+  const handleAddressSelect = (selected: {
+    formattedAddress: string;
+    lat: number;
+    lng: number;
+  }) => {
+    const { lat, lng, formattedAddress } = selected;
+    setMarkerPosition({ lat, lng });
+    setCenter({ lat, lng });
+    setZoom(15);
+    setValue('latitude', String(lat));
+    setValue('longitude', String(lng));
+    setValue('address', formattedAddress);
+    setErrorMessage('');
   };
 
   const fetchAddress = async (lat: any, lng: any) => {
@@ -1114,52 +1128,46 @@ export default function CreateOrUpdateStoreForm({ data }: any) {
                               <div className="space-y-3">
                                 <div>
                                   <p className="text-sm font-medium mb-1">
-                                    {t('label.area')}
-                                    <span className="text-red-500 mx-0.5">*</span>
+                                    Adres / Konum Ara <span className="text-red-500 mx-0.5">*</span>
                                   </p>
-                                  <Controller
-                                    control={control}
-                                    name="area_id"
-                                    defaultValue={
-                                      editData?.area?.id ? String(editData?.area?.id) : ''
-                                    }
-                                    render={({ field }) => (
-                                      <>
-                                        <AppSelect
-                                          value={field.value || ''}
-                                          onSelect={(value) => {
-                                            field.onChange(value);
-                                            handleSelectItem(value, 'area_id');
-                                          }}
-                                          groups={AreaList}
-                                        />
-                                      </>
-                                    )}
-                                  />
+                                  <p className="text-xs text-muted-foreground mb-2">
+                                    Mağazanın adresini yazın, haritada otomatik işaretlenir. Pin&apos;i sürükleyerek konumu hassaslaştırabilirsiniz.
+                                  </p>
+                                  {googleMapKey ? (
+                                    <AddressAutocomplete
+                                      apiKey={googleMapKey}
+                                      defaultValue={editData?.address || ''}
+                                      onSelect={handleAddressSelect}
+                                    />
+                                  ) : (
+                                    <p className="text-xs text-yellow-600">
+                                      Google Maps API anahtarı tanımlı değil — koordinatları manuel girin.
+                                    </p>
+                                  )}
                                 </div>
-                                <div>
-                                  <p className="text-sm font-medium mb-1">{t('label.latitude')}</p>
-                                  <Input
-                                    disabled
-                                    defaultValue={editData?.area?.center_latitude}
-                                    type="text"
-                                    id="latitude"
-                                    {...register('latitude' as keyof StoreFormData)}
-                                    className="app-input"
-                                    placeholder="Enter latitude"
-                                  />
-                                </div>
-                                <div>
-                                  <p className="text-sm font-medium mb-1">{t('label.longitude')}</p>
-                                  <Input
-                                    disabled
-                                    defaultValue={editData?.area?.center_longitude}
-                                    type="text"
-                                    id="longitude"
-                                    {...register('longitude' as keyof StoreFormData)}
-                                    className="app-input"
-                                    placeholder="Enter longitude"
-                                  />
+                                <div className="grid grid-cols-2 gap-2">
+                                  <div>
+                                    <p className="text-sm font-medium mb-1">{t('label.latitude')}</p>
+                                    <Input
+                                      disabled
+                                      type="text"
+                                      id="latitude"
+                                      {...register('latitude' as keyof StoreFormData)}
+                                      className="app-input"
+                                      placeholder="41.0082"
+                                    />
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-medium mb-1">{t('label.longitude')}</p>
+                                    <Input
+                                      disabled
+                                      type="text"
+                                      id="longitude"
+                                      {...register('longitude' as keyof StoreFormData)}
+                                      className="app-input"
+                                      placeholder="28.9784"
+                                    />
+                                  </div>
                                 </div>
                                 {errorMessage && (
                                   <p className="text-red-500 text-sm mt-2">{errorMessage}</p>
