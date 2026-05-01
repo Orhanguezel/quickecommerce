@@ -50,8 +50,11 @@ class SellerDetailsResource extends JsonResource
     {
         $app = SellerApplication::where('user_id', $userId)->latest()->first();
         return [
+            'application_id'      => $app?->id,
             'kyc_status'          => $app?->status,
             'kyc_admin_note'      => $app?->admin_note,
+            'kyc_reviewed_at'     => $app?->reviewed_at,
+            'consent_at'          => $app?->consent_at,
             'company_name'        => $app?->company_name,
             'brand_name'          => $app?->brand_name,
             'sector'              => $app?->sector,
@@ -71,6 +74,9 @@ class SellerDetailsResource extends JsonResource
             'bank_account_number' => $app?->bank_account_number,
             'bank_branch_code'    => $app?->bank_branch_code,
             'bank_swift_code'     => $app?->bank_swift_code,
+            // iyzico marketplace sub-merchant (mersis/merchant numarası karşılığı)
+            'iyzico_sub_merchant_key' => $app?->iyzico_sub_merchant_key,
+            'iyzico_registered_at'    => $app?->iyzico_registered_at,
         ];
     }
 

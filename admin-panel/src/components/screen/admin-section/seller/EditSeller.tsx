@@ -3,6 +3,7 @@ import { AttributeIcon } from "@/assets/icons";
 import Loader from "@/components/molecules/Loader";
 import LoaderOverlay from "@/components/molecules/LoaderOverlay";
 import CreateOrUpdateSellerForm from "@/components/blocks/admin-section/seller/CreateOrUpdateSellerForm";
+import SellerKycPanel from "@/components/blocks/admin-section/seller/SellerKycPanel";
 import { Card, CardContent } from "@/components/ui";
 import { Routes } from "@/config/routes";
 import { useSellerQueryById } from "@/modules/admin-section/seller/seller.action";
@@ -81,11 +82,14 @@ const EditSeller = ({ ID }: any) => {
       {isPending || !Seller ? (
         <CardSkletonLoader />
       ) : (
-        <Card className="mt-4">
-          <CardContent className="p-6">
-            <CreateOrUpdateSellerForm data={Seller} />
-          </CardContent>
-        </Card>
+        <>
+          <SellerKycPanel seller={Seller as any} />
+          <Card className="mt-4">
+            <CardContent className="p-6">
+              <CreateOrUpdateSellerForm data={Seller} />
+            </CardContent>
+          </Card>
+        </>
       )}
     </>
   );
