@@ -1,5 +1,51 @@
 # CLAUDE.md — QuickEcommerce
 
+> **Claude Code talimati:** Bu dosya quickecommerce dizininde calisirken otomatik baglama dahil olur. "Aktif Hatirlatmalar" bolumunde her madde icin `Today's date` ile karsilastir, vakti gelmis maddeleri kullaniciya **proaktif olarak** hatirlat — kullanici sormasa bile.
+
+## 🔔 Aktif Hatirlatmalar (TARIH ILE KONTROL ET)
+
+### 🔔 2026-05-03 sabahi (ILK CRON RUN — KRITIK)
+**Yapilacak:** Cron yarın sabah 05:00 TR'de ilk kez çalısacak. Sabah kullaniciya sor:
+```bash
+ssh vps-sportoonline '/var/www/quikecommerce/scrapers/health.sh'
+```
+- Beklenen: 6 scraper "OK" (0 saat once), `Bu Gunkun Cron` → 6 basarili, sync exit code 0
+- **Eger fail varsa**: log oku → `tail -100 /var/www/quikecommerce/logs/scrapers-20260503.log`
+  - Maraton timeout → scraper-service down olabilir, `curl https://scraper.guezelwebdesign.com/health` kontrol
+  - Diger scraperlar hata → site yapisi degismis olabilir, manuel test et
+  - sync exit !=0 → JSON formatinda alan eksik veya laravel parameter degisimi gerek
+
+### 🔔 2026-05-09 civari (1 HAFTA GOZLEM)
+**Yapilacak:** Hafta boyunca cron gunluk basarili calisti mi?
+```bash
+ssh vps-sportoonline 'ls -la /var/www/quikecommerce/logs/scrapers-*.log | tail -10'
+```
+- 7 log dosyasi olmasi gerek (her gun 1)
+- Eksik gun varsa: cron tetiklenmedi mi, fail oldu mu? → `tail /var/log/cron-scrapers.log`
+
+### 🔔 2026-05-15 civari (LOG RETENTION)
+**Yapilacak:** Log dosyalari birikiyor (gunluk ~5MB). 30+ gun olanlari sil:
+```bash
+ssh vps-sportoonline 'find /var/www/quikecommerce/logs -name "scrapers-*.log" -mtime +30 -delete'
+```
+- Bunu **otomatik cron** yap: `crontab -e` -> `0 4 * * 0 find /var/www/quikecommerce/logs -name "scrapers-*.log" -mtime +30 -delete`
+
+### 🔔 BEKLEYEN: dropick + norfolk scraper yazimi
+**Why:** `dropick_products.json` (74 urun) ve `norfolk_products.json` (309 urun) JSON'lari **manuel** yukleniyor. Scraper script yok.
+**Yapilacak (kullanici onaylarsa):**
+- JSON'larda `url` alani var mi kontrol → `python3 -c "import json; d=json.load(open('dropick_products.json')); print(d[0].keys())"`
+- URL pattern net ise her ikisi icin scraper yaz (dropick.com, norfolk.com.tr — anti-bot kontrol et)
+- run-all.sh'a ekle, gunluk cron'a katil
+
+### 🔔 BEKLEYEN: Maraton sitemap full scrape (yeni urun discovery)
+**Why:** Mevcut cron `--urls-from maraton_products.json` kullaniyor — sadece 401 mevcut urun guncel. Maraton katalogunda 2737 urun var. Yeni eklenenleri yakalamak icin haftada 1 full sitemap scrape lazim.
+**Yapilacak:**
+- Ayri cron: `0 22 * * 0` (her Pazar gece 22:00 UTC = 01:00 Pazartesi TR) → sitemap full ~16 saat
+- `--urls-from` flag'i kaldir, scraper sitemap discover yapar
+- Yeni urunler import:products ile DB'ye eklenmeli (manuel onay)
+
+---
+
 ## ⚡ ÖNCE BUNU ÇALIŞTIR (her oturum başında)
 
 Bu projeye baktığında **ilk iş** scraper sağlık raporunu kontrol et:
