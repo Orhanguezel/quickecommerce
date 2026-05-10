@@ -25,6 +25,7 @@ export const sellerSchema = z
     password: z.string().optional(),
     password_confirmation: z.string().optional(),
     // KYC fields
+    business_type:       z.enum(["individual", "company"]).optional(),
     company_name:        z.string().max(255).optional(),
     brand_name:          z.string().max(255).optional(),
     sector:              z.string().max(255).optional(),

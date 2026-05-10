@@ -41,9 +41,15 @@ export default function CreateOrUpdateSellerForm({ data }: any) {
     formState: { errors },
     setValue,
     reset,
+    watch,
   } = useForm<SellerFormData>({
     resolver: zodResolver(sellerSchema),
+    defaultValues: {
+      business_type: "company",
+    },
   });
+  const businessType = watch("business_type") ?? "company";
+  const isIndividual = businessType === "individual";
 
   useEffect(() => {
     if (data) {
@@ -53,6 +59,7 @@ export default function CreateOrUpdateSellerForm({ data }: any) {
       setPhoneNumber(data?.phone ?? "");
       setValue("email", data.email ?? "");
       // KYC fields
+      setValue("business_type", data.business_type ?? "company");
       setValue("company_name", data.company_name ?? "");
       setValue("brand_name", data.brand_name ?? "");
       setValue("sector", data.sector ?? "");
@@ -88,6 +95,7 @@ export default function CreateOrUpdateSellerForm({ data }: any) {
       phone:                values.phone,
       email:                values.email,
       // KYC
+      business_type:        values.business_type ?? "company",
       company_name:         values.company_name,
       brand_name:           values.brand_name,
       sector:               values.sector,
@@ -228,15 +236,30 @@ export default function CreateOrUpdateSellerForm({ data }: any) {
             {/* Şirket Bilgileri */}
             <AccordionItem value="company">
               <AccordionTrigger className="px-4 py-3 text-sm font-semibold">
-                <span className="flex items-center gap-2"><Building2 className="w-4 h-4" /> Şirket Bilgileri</span>
+                <span className="flex items-center gap-2"><Building2 className="w-4 h-4" /> Vergi / Kimlik Bilgileri</span>
               </AccordionTrigger>
               <AccordionContent className="px-4 pb-4 space-y-3">
-                {field("company_name", "Şirket Adı", "Şirket Adı A.Ş.")}
+                <div>
+                  <p className="text-sm font-medium mb-1">Hesap Tipi</p>
+                  <select
+                    {...register("business_type")}
+                    className="app-input"
+                    value={businessType}
+                    onChange={(event) => setValue("business_type", event.target.value as SellerFormData["business_type"])}
+                  >
+                    <option value="individual">Bireysel</option>
+                    <option value="company">Şirket</option>
+                  </select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Bireysel hesapta TC kimlik numarası kullanılır. Şirket hesabına geçildiğinde vergi/MERSİS bilgileri tekrar incelenir.
+                  </p>
+                </div>
+                {!isIndividual && field("company_name", "Şirket Adı", "Şirket Adı A.Ş.")}
                 {field("brand_name", "Marka Adı", "Marka adı (varsa)")}
                 {field("sector", "Sektör", "Spor, Tekstil...")}
-                {field("tax_office", "Vergi Dairesi", "Vergi dairesi adı")}
-                {field("tax_number", "Vergi / TC No", "10 haneli vergi no veya 11 haneli TC")}
-                {field("mersis_number", "MERSİS No", "MERSİS numarası (isteğe bağlı)")}
+                {!isIndividual && field("tax_office", "Vergi Dairesi", "Vergi dairesi adı")}
+                {field("tax_number", isIndividual ? "TC Kimlik No" : "Vergi / TC No", isIndividual ? "11 haneli TC kimlik no" : "10 haneli vergi no veya 11 haneli TC")}
+                {!isIndividual && field("mersis_number", "MERSİS No", "Şirketler için MERSİS numarası")}
                 {field("website_url", "Web Sitesi", "https://...")}
               </AccordionContent>
             </AccordionItem>

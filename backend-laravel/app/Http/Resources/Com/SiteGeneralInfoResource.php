@@ -36,6 +36,7 @@ class SiteGeneralInfoResource extends JsonResource
             'com_google_recaptcha_enable_disable' => com_option_get('com_google_recaptcha_enable_disable'),
             'otp_login_enabled_disable' => com_option_get('otp_login_enabled_disable'),
             'com_google_login_enabled' => com_option_get('com_google_login_enabled'),
+            'com_google_app_id' => com_option_get('com_google_app_id'),
             'com_facebook_login_enabled' => com_option_get('com_facebook_login_enabled'),
             'active_theme' => $active_theme,
             'com_openai_enable_disable' => com_option_get('com_openai_enable_disable'),

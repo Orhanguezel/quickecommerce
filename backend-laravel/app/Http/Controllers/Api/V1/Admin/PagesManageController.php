@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Helpers\MultilangSlug;
 use App\Http\Controllers\Api\V1\Controller;
+use App\Http\Resources\PageDetailsResource;
 use App\Interfaces\PageManageInterface;
 use App\Models\Page;
 use App\Models\Translation;
@@ -29,6 +30,33 @@ class PagesManageController extends Controller
             $request->sort ?? 'asc',
             []
         );
+    }
+
+    public function aboutSettings(Request $request): JsonResponse
+    {
+        $activeTheme = config('themes.active_theme') ?? config('themes.default_theme', 'default');
+        $themeName = $request->theme_name ?? $activeTheme;
+
+        $page = Page::with('related_translations')
+            ->where('slug', 'about')
+            ->where('theme_name', $themeName)
+            ->first();
+
+        if (!$page) {
+            $page = Page::with('related_translations')
+                ->where('slug', 'about')
+                ->first();
+        }
+
+        if (!$page) {
+            return response()->json([
+                'message' => __('messages.data_not_found'),
+            ], 404);
+        }
+
+        return response()->json([
+            'data' => new PageDetailsResource($page),
+        ]);
     }
 
     public function createPage(Request $request): JsonResponse

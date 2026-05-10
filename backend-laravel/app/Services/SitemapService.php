@@ -54,7 +54,7 @@ class SitemapService
         }
 
         foreach (\App\Models\Store::where('status', 1)->get() as $seller) {
-            $sitemap->add(Url::create($baseUrl . "/store/details/{$seller->slug}")
+            $sitemap->add(Url::create($baseUrl . "/tr/magaza/{$seller->slug}")
                 ->setLastModificationDate($seller->updated_at));
         }
 

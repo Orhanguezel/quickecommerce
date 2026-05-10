@@ -107,12 +107,20 @@ class IyzicoService
         // Vergi / TC no'dan rakamları al
         $taxNumber = preg_replace('/\D/', '', $application->tax_number ?? '');
 
-        // 11 hane → TC kimlik numarası (şahıs veya şahıs şirketi)
-        // 10 hane → vergi numarası (limited/anonim şirket)
+        $businessType = $application->business_type ?? null;
+
+        // business_type yoksa eski kayıtlar için vergi/TC no ve unvan üzerinden tahmin et.
+        // 11 hane → TC kimlik numarası, 10 hane → vergi numarası.
         $isPersonalId = strlen($taxNumber) === 11;
         $hasCompany   = !empty(trim($application->company_name ?? ''));
 
-        if ($isPersonalId && !$hasCompany) {
+        if ($businessType === 'individual') {
+            $type = SubMerchantType::PERSONAL;
+        } elseif ($businessType === 'company') {
+            $type = $isPersonalId
+                ? SubMerchantType::PRIVATE_COMPANY
+                : SubMerchantType::LIMITED_OR_JOINT_STOCK_COMPANY;
+        } elseif ($isPersonalId && !$hasCompany) {
             $type = SubMerchantType::PERSONAL;
         } elseif ($isPersonalId) {
             $type = SubMerchantType::PRIVATE_COMPANY;

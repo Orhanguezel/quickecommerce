@@ -54,6 +54,7 @@ class SellerManageController extends Controller
             'image' => 'nullable|string',
             'def_lang' => 'nullable|string|max:5',
             // KYC fields
+            'business_type' => 'nullable|in:individual,company',
             'company_name' => 'nullable|string|max:255',
             'brand_name' => 'nullable|string|max:255',
             'sector' => 'nullable|string|max:255',
@@ -105,6 +106,7 @@ class SellerManageController extends Controller
 
                 // Update KYC fields in seller_applications if any KYC data provided
                 $kycFields = [
+                    'business_type',
                     'company_name', 'brand_name', 'sector', 'tax_office', 'tax_number',
                     'mersis_number', 'website_url', 'address_country', 'address_city',
                     'address_district', 'address_postal_code', 'address_line1', 'address_line2',
@@ -116,7 +118,7 @@ class SellerManageController extends Controller
                     $application = SellerApplication::where('user_id', $userId)->latest()->first();
                     if ($application) {
                         // Reset to pending if key identity/bank fields changed
-                        $sensitiveFields = ['tax_number', 'bank_iban', 'bank_account_holder'];
+                        $sensitiveFields = ['business_type', 'tax_number', 'bank_iban', 'bank_account_holder'];
                         $sensitiveChanged = collect($sensitiveFields)
                             ->contains(fn($f) => $request->filled($f) && $request->input($f) !== $application->{$f});
                         $application->update($kycData);

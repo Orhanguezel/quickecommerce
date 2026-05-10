@@ -12,7 +12,59 @@ const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
   async redirects() {
-    return [];
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.sportoonline.com" }],
+        destination: "https://sportoonline.com/:path*",
+        permanent: true,
+      },
+      {
+        source: "/",
+        destination: "/tr",
+        permanent: true,
+      },
+      {
+        source: "/:locale/stores/details/:slug",
+        destination: "/:locale/magaza/:slug",
+        permanent: true,
+      },
+      {
+        source: "/:locale/store/details/:slug",
+        destination: "/:locale/magaza/:slug",
+        permanent: true,
+      },
+      {
+        source: "/:locale/product-details/:slug",
+        destination: "/:locale/urun/:slug",
+        permanent: true,
+      },
+      {
+        source: "/:locale/products/details/:slug",
+        destination: "/:locale/urun/:slug",
+        permanent: true,
+      },
+      {
+        source: "/stores/details/:slug",
+        destination: "/tr/magaza/:slug",
+        permanent: true,
+      },
+      {
+        source: "/store/details/:slug",
+        destination: "/tr/magaza/:slug",
+        permanent: true,
+      },
+      {
+        source: "/product-details/:slug",
+        destination: "/tr/urun/:slug",
+        permanent: true,
+      },
+      {
+        source: "/products/details/:slug",
+        destination: "/tr/urun/:slug",
+        permanent: true,
+      },
+    ];
   },
   async rewrites() {
     return [
@@ -27,6 +79,15 @@ const nextConfig: NextConfig = {
       {
         source: "/(.*)",
         headers: [
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=31536000; includeSubDomains; preload",
+          },
+          {
+            key: "Content-Security-Policy-Report-Only",
+            value:
+              "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'",
+          },
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
@@ -36,6 +97,24 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      {
+        source: "/_next/static/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      ...["/sitemap.xml", "/sitemap_index.xml", "/robots.txt", "/llms.txt", "/llms-full.txt"].map((source) => ({
+        source,
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800",
+          },
+        ],
+      })),
     ];
   },
   images: {

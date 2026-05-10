@@ -345,7 +345,7 @@ const TrashListTableComponent = ({
                         <div className="flex items-center gap-2">
                           <Link
                             className="text-blue-500 hover:underline dark:text-[#93c5fd] dark:hover:text-white"
-                            href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/store/details/${row?.store?.slug}`}
+                            href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/tr/magaza/${row?.store?.slug}`}
                             target="_blank"
                             rel="noopener noreferrer"
                           >

@@ -3,6 +3,8 @@ import { getTranslations } from "next-intl/server";
 import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import { ContentPageClient } from "@/components/common/content-page-client";
+import { localizedAlternates } from "@/lib/seo";
+import { pageContentOrFallback, policyContent } from "../policy-content";
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -28,10 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       "Sportoonline KVKK kapsamında açık rıza beyanı",
     alternates: {
       canonical: `/${locale}/kvkk-acik-riza`,
-      languages: {
-        tr: `/tr/kvkk-acik-riza`,
-        en: `/en/kvkk-acik-riza`,
-      },
+      languages: localizedAlternates("/kvkk-acik-riza"),
     },
   };
 }
@@ -44,7 +43,7 @@ export default async function KvkkConsentPage({ params }: Props) {
   return (
     <ContentPageClient
       title="KVKK Açık Rıza Beyanı"
-      content={data?.content}
+      content={pageContentOrFallback(data?.content, policyContent.explicitConsent)}
       breadcrumbs={[
         { label: t("home"), href: "/" },
         { label: "KVKK Açık Rıza Beyanı" },

@@ -20,6 +20,7 @@ class SellerApplicationResource extends JsonResource
                 'email' => $this->user->email,
                 'phone' => $this->user->phone,
             ],
+            'business_type' => $this->business_type ?? 'company',
             'company_name' => $this->company_name,
             'brand_name' => $this->brand_name,
             'sector' => $this->sector,

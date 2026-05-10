@@ -15,6 +15,8 @@ export interface Store {
   banner: string | null;
   banner_url: string | null;
   address: string | null;
+  latitude?: string | number | null;
+  longitude?: string | number | null;
   is_featured: number;
   opening_time: string | null;
   closing_time: string | null;
@@ -50,6 +52,8 @@ export interface StoreDetail {
   banner: string | null;
   banner_url: string | null;
   address: string | null;
+  latitude?: string | number | null;
+  longitude?: string | number | null;
   is_featured: number;
   opening_time: string | null;
   closing_time: string | null;

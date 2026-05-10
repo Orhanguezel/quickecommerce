@@ -48,6 +48,7 @@ interface ProductsPageClientProps {
   perPage: number;
   currentSort?: string;
   currentFilters: FilterState;
+  currentFlashSaleId?: string;
   categories: FilterCategory[];
   brands: FilterBrand[];
   attributes: FilterAttribute[];
@@ -96,6 +97,7 @@ export function ProductsPageClient({
   perPage,
   currentSort,
   currentFilters,
+  currentFlashSaleId,
   categories,
   brands,
   attributes,
@@ -108,6 +110,7 @@ export function ProductsPageClient({
     const params = new URLSearchParams();
     if (page > 1) params.set("page", String(page));
     if (currentSort) params.set("sort", currentSort);
+    if (currentFlashSaleId) params.set("flash_sale_id", currentFlashSaleId);
     currentFilters.category_id?.forEach((id) =>
       params.append("category_id", id)
     );
@@ -125,6 +128,7 @@ export function ProductsPageClient({
   function handleSort(sort: string) {
     const params = new URLSearchParams();
     if (sort) params.set("sort", sort);
+    if (currentFlashSaleId) params.set("flash_sale_id", currentFlashSaleId);
     currentFilters.category_id?.forEach((id) =>
       params.append("category_id", id)
     );

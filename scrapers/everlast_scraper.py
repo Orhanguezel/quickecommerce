@@ -1,15 +1,16 @@
 """
 Everlast.com.tr Urun Scraper (Shopify JSON API)
 -------------------------------------------------
-Kullanim: python everlast_scraper.py
-Cikti: everlast_products.json, everlast_images/
+Kullanim: python scrapers/everlast_scraper.py
+Cikti: data/source-products/everlast_products.json, assets/source-images/everlast_images/
 """
 
 import requests, json, time, os, re, hashlib
+from paths import source_image_dir, source_product_path
 
 BASE_URL = "https://everlast.com.tr"
-IMAGE_DIR = "everlast_images"
-OUTPUT_FILE = "everlast_products.json"
+IMAGE_DIR = source_image_dir("everlast_images")
+OUTPUT_FILE = source_product_path("everlast_products.json")
 HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
 
 session = requests.Session()

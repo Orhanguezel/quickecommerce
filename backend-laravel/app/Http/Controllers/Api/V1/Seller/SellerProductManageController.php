@@ -8,6 +8,7 @@ use App\Helpers\MultilangSlug;
 use App\Http\Controllers\Api\V1\Controller;
 use App\Http\Requests\ImportRequest;
 use App\Http\Requests\ProductRequest;
+use App\Http\Requests\ProductUpdateRequest;
 use App\Http\Resources\Com\Pagination\PaginationResource;
 use App\Http\Resources\Product\LowStockProductResource;
 use App\Http\Resources\Product\OutOfStockProductResource;
@@ -140,7 +141,7 @@ class SellerProductManageController extends Controller
         return $this->productRepo->getProductBySlug($slug);
     }
 
-    public function updateProduct(ProductRequest $request)
+    public function updateProduct(ProductUpdateRequest $request)
     {
         $request['meta_keywords'] = json_encode($request['meta_keywords']);
         $product = $this->productRepo->update($request->all());

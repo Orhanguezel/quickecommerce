@@ -11,7 +11,7 @@ import {
   useWishlistToggleMutation,
 } from "@/modules/wishlist/wishlist.service";
 import Image from "next/image";
-import { Star, Heart, Eye, Zap, Flame, Award } from "lucide-react";
+import { Star, Heart, Eye, Zap, Flame, Award, PackageX } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { usePrice } from "@/hooks/use-price";
 import { useRef } from "react";
@@ -68,6 +68,7 @@ export function ProductCard({
   const [mounted, setMounted] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const imageRef = useRef<HTMLDivElement>(null);
+  const isInStock = product.stock === null || product.stock > 0;
 
   useEffect(() => {
     setMounted(true);
@@ -75,7 +76,7 @@ export function ProductCard({
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (displayPrice == null || displayPrice <= 0) return;
+    if (!isInStock || displayPrice == null || displayPrice <= 0) return;
     const defaultVariant = product.singleVariant?.[0];
     const variantId = defaultVariant?.id ?? product.default_variant_id;
     const cartItem: CartItem = {
@@ -132,7 +133,6 @@ export function ProductCard({
     });
   };
 
-  const isInStock = product.stock === null || product.stock > 0;
   const ratingNum = Number(product.rating) || 0;
   const reviewCount = product.review_count || 0;
 
@@ -173,7 +173,7 @@ export function ProductCard({
 
   /* ── Discount badge (shared) ── */
   const discountBadge =
-    hasDiscount && discountText ? (
+    isInStock && hasDiscount && discountText ? (
       <span className="absolute right-2 top-2.5 z-10 flex items-center gap-0.5 rounded bg-[#EB5A25] px-1.5 py-0.5 text-xs font-bold text-white">
         {flashSaleDiscountPct != null && <Zap className="h-2.5 w-2.5 fill-white" />}
         {discountText}
@@ -181,7 +181,7 @@ export function ProductCard({
     ) : null;
 
   /* ── Flash sale strip (bottom of image, grid only) ── */
-  const flashSaleStrip = product.flash_sale ? (
+  const flashSaleStrip = isInStock && product.flash_sale ? (
     <div className="absolute bottom-0 left-0 right-0 z-10 flex items-center justify-center gap-1.5 bg-gradient-to-r from-red-600 to-orange-500 py-1.5">
       <Zap className="h-3 w-3 fill-white text-white" />
       <span className="text-[11px] font-bold uppercase tracking-wider text-white">
@@ -191,7 +191,7 @@ export function ProductCard({
   ) : null;
 
   /* ── Flash sale badge (list variant) ── */
-  const flashSaleListBadge = product.flash_sale ? (
+  const flashSaleListBadge = isInStock && product.flash_sale ? (
     <div className="absolute bottom-0 left-0 right-0 z-10 flex items-center justify-center gap-1 bg-gradient-to-r from-red-600 to-orange-500 py-1">
       <Zap className="h-2.5 w-2.5 fill-white text-white" />
       <span className="text-[11px] font-bold uppercase text-white">Flash</span>
@@ -229,9 +229,18 @@ export function ProductCard({
     </span>
   );
 
+  const outOfStockOverlay = !isInStock ? (
+    <div className="absolute inset-0 z-30 flex items-center justify-center bg-background/70 backdrop-blur-[1px]">
+      <span className="inline-flex items-center gap-1.5 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 shadow-sm dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+        <PackageX className="h-3.5 w-3.5" />
+        {t("out_of_stock")}
+      </span>
+    </div>
+  ) : null;
+
   /* ── Price display ── */
   const priceDisplay = (
-    <div className="flex items-baseline gap-2">
+    <div className={`flex items-baseline gap-2 ${!isInStock ? "opacity-70" : ""}`}>
       {hasDiscount && price != null ? (
         <>
           <span className="text-sm font-bold text-primary">
@@ -305,6 +314,7 @@ export function ProductCard({
           {bestSellerBadge}
           {discountBadge}
           {flashSaleListBadge}
+          {outOfStockOverlay}
         </div>
 
         {/* Info */}
@@ -350,6 +360,7 @@ export function ProductCard({
         {bestSellerBadge}
         {discountBadge}
         {flashSaleStrip}
+        {outOfStockOverlay}
 
         {/* Hover action buttons */}
         <div className="absolute bottom-11 left-0 right-0 z-20 flex items-center justify-center gap-2 opacity-0 transition-all duration-200 group-hover:opacity-100">

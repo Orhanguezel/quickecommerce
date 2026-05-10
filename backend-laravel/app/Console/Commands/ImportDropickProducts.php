@@ -497,7 +497,7 @@ class ImportDropickProducts extends Command
     {
         $absPath = base_path("../{$localPath}");
 
-        // dropick_images/ proje kokunde olabilir
+        // assets/source-images/... proje kokunde olabilir
         if (!file_exists($absPath)) {
             $absPath = base_path($localPath);
         }

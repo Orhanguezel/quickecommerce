@@ -3,6 +3,7 @@ export const Routes = {
   signin: "/admin/signin",
   admin: "/admin",
   dashboard: "/admin/dashboard",
+  analytics: "/admin/analytics",
   password: "/admin/reset-password",
   permissions: "/admin/permissions",
   roles: "/admin/roles/list",

@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import { ContentPageClient } from "@/components/common/content-page-client";
+import { pageContentOrFallback, policyContent } from "../policy-content";
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -41,7 +42,7 @@ export default async function ShippingPolicyPage({ params }: Props) {
   return (
     <ContentPageClient
       title={pageT("shipping_policy")}
-      content={data?.content}
+      content={pageContentOrFallback(data?.content, policyContent.shippingPolicy)}
       breadcrumbs={[{ label: t("home"), href: "/" }, { label: pageT("shipping_policy") }]}
     />
   );

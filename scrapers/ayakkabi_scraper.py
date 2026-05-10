@@ -2,17 +2,18 @@
 AyakkabıMalzemeMarket.com Scraper (OpenCart)
 ----------------------------------------------
 Sadece "Ayakkabi Ic Tabanliklar" ve "Ayak Sagligi Urunleri" kategorileri.
-Kullanim: python ayakkabi_scraper.py
-Cikti: ayakkabi_products.json, ayakkabi_images/
+Kullanim: python scrapers/ayakkabi_scraper.py
+Cikti: data/source-products/ayakkabi_products.json, assets/source-images/ayakkabi_images/
 """
 
 import requests, json, time, os, re, hashlib
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
+from paths import source_image_dir, source_product_path
 
 BASE_URL = "https://www.ayakkabimalzememarket.com"
-IMAGE_DIR = "ayakkabi_images"
-OUTPUT_FILE = "ayakkabi_products.json"
+IMAGE_DIR = source_image_dir("ayakkabi_images")
+OUTPUT_FILE = source_product_path("ayakkabi_products.json")
 HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
 
 CATEGORIES = [

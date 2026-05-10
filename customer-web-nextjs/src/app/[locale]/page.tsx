@@ -7,6 +7,7 @@ import type { Category } from "@/modules/site/site.type";
 import type { FlashDeal } from "@/modules/flash-deal/flash-deal.type";
 import type { BlogPost } from "@/modules/blog/blog.type";
 import { HomePageClient } from "./home-client";
+import { absoluteUrl, localizedAlternates, SITE_URL } from "@/lib/seo";
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -53,16 +54,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: metaTitle,
       description: metaDesc,
       type: "website",
+      url: absoluteUrl(`/${locale}`),
       locale: locale === "tr" ? "tr_TR" : "en_US",
       siteName,
       ...(ogImage ? { images: [{ url: ogImage }] } : {}),
     },
     alternates: {
       canonical: `/${locale}`,
-      languages: {
-        tr: "/tr",
-        en: "/en",
-      },
+      languages: localizedAlternates("/"),
     },
   };
 }
@@ -119,11 +118,11 @@ export default async function HomePage({ params }: Props) {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: siteName,
-    url: `https://sportoonline.com/${locale}`,
+    url: SITE_URL,
     description: settings?.com_meta_description || seoT("home_description"),
     potentialAction: {
       "@type": "SearchAction",
-      target: `https://sportoonline.com/${locale}/ara?q={search_term_string}`,
+      target: `${SITE_URL}/${locale}/ara?q={search_term_string}`,
       "query-input": "required name=search_term_string",
     },
   };

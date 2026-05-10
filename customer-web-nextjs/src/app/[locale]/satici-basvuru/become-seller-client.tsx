@@ -811,6 +811,7 @@ export function BecomeSellerClient({ content, translations: t }: BecomeSellerCli
                           }}
                           showGoogle={showGoogle}
                           showFacebook={showFacebook}
+                          googleClientId={siteInfo?.com_google_app_id}
                         />
                       </Suspense>
                     </div>

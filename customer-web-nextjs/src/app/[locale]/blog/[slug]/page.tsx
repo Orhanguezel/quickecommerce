@@ -5,6 +5,8 @@ import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { BlogDetailResponse } from "@/modules/blog/blog.type";
 import { BlogDetailClient } from "./blog-detail-client";
+import { DEFAULT_ORGANIZATION, localizedAlternates, SITE_URL, stripHtml, toIsoDate, truncateText } from "@/lib/seo";
+import { getEnginEserAuthor } from "@/lib/authors";
 
 interface Props {
   params: Promise<{ locale: string; slug: string }>;
@@ -34,7 +36,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const blog = data.blog_details;
   const title = blog.meta_title || blog.title;
   const description =
-    blog.meta_description || stripHtml(blog.description).slice(0, 160);
+    blog.meta_description || truncateText(stripHtml(blog.description), 160);
+  const publishedTime = toIsoDate(blog.created_at);
 
   return {
     title,
@@ -46,15 +49,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "article",
       locale: locale === "tr" ? "tr_TR" : "en_US",
       siteName: "Sporto Online",
-      publishedTime: blog.created_at,
+      publishedTime,
       ...(blog.image_url ? { images: [{ url: blog.image_url }] } : {}),
     },
     alternates: {
       canonical: `/${locale}/blog/${slug}`,
-      languages: {
-        tr: `/tr/blog/${slug}`,
-        en: `/en/blog/${slug}`,
-      },
+      languages: localizedAlternates(`/blog/${slug}`),
     },
   };
 }
@@ -70,6 +70,8 @@ export default async function BlogDetailPage({ params }: Props) {
   const blog = data.blog_details;
   const t = await getTranslations({ locale, namespace: "common" });
   const blogT = await getTranslations({ locale, namespace: "blog" });
+  const publishedDate = toIsoDate(blog.created_at);
+  const author = getEnginEserAuthor(locale);
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -97,21 +99,37 @@ export default async function BlogDetailPage({ params }: Props) {
 
   const articleJsonLd = {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": "BlogPosting",
     headline: blog.title,
     ...(blog.image_url ? { image: blog.image_url } : {}),
-    datePublished: blog.created_at,
-    ...(blog.meta_description
-      ? { description: blog.meta_description }
-      : {}),
+    ...(publishedDate ? { datePublished: publishedDate, dateModified: publishedDate } : {}),
+    author: {
+      "@type": "Person",
+      name: author.name,
+      url: author.localizedUrl,
+      ...(author.image ? { image: author.image } : {}),
+      jobTitle: author.title,
+      description: author.bio,
+      sameAs: author.sameAs,
+      affiliation: {
+        "@type": "Organization",
+        name: DEFAULT_ORGANIZATION.name,
+        url: SITE_URL,
+      },
+    },
+    description: blog.meta_description || truncateText(stripHtml(blog.description), 240),
     publisher: {
       "@type": "Organization",
-      name: "Sporto Online",
-      url: "https://sportoonline.com",
+      name: DEFAULT_ORGANIZATION.name,
+      url: SITE_URL,
+      logo: {
+        "@type": "ImageObject",
+        url: DEFAULT_ORGANIZATION.logo,
+      },
     },
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": `https://sportoonline.com/${locale}/blog/${slug}`,
+      "@id": `${SITE_URL}/${locale}/blog/${slug}`,
     },
   };
 
@@ -132,6 +150,7 @@ export default async function BlogDetailPage({ params }: Props) {
         relatedPosts={data.related_posts}
         comments={data.blog_comments}
         totalComments={data.total_comments}
+        locale={locale}
         translations={{
           blog: blogT("blog"),
           details: blogT("details"),
@@ -153,8 +172,4 @@ export default async function BlogDetailPage({ params }: Props) {
       />
     </>
   );
-}
-
-function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, "");
 }

@@ -38,6 +38,14 @@ class CustomerProfileResource extends JsonResource
 
     protected function getPhoneData($phone)
     {
+        if (empty($phone)) {
+            return [
+                'e164' => null,
+                'country_code' => null,
+                'iso_country' => null,
+            ];
+        }
+
         try {
             $phoneUtil = PhoneNumberUtil::getInstance();
 

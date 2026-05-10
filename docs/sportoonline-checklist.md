@@ -81,7 +81,7 @@ Detay tartismalari sonraki adimlarda her madde altinda yapilacak.
 - `https://swanuniform.com/` urunleri sisteme yuklenecek.
 - Durum: urunler cekildi.
 - Sonraki adim gerekiyorsa import sureci yapilacak.
-- Durum: `swan_products.json` icinde 357 urun dogrulandi. Mevcut `import:products` komutu Swan/Norfolk/Dropick formatlari icin genisletildi ve Swan varyant stoklarini JSON'daki gercek `stock_quantity` degeriyle alacak hale getirildi.
+- Durum: `data/source-products/swan_products.json` icinde 357 urun dogrulandi. Mevcut `import:products` komutu Swan/Norfolk/Dropick formatlari icin genisletildi ve Swan varyant stoklarini JSON'daki gercek `stock_quantity` degeriyle alacak hale getirildi.
 - Durum: `Swan Uniform` magazasi olusturuldu (`store_id=25`) ve import calistirildi. 327 urun, 2094 varyant yuklendi; 30 duplicate slug atlandi, hata yok.
 
 ## Orta Oncelik
@@ -93,7 +93,7 @@ Detay tartismalari sonraki adimlarda her madde altinda yapilacak.
 - Durum: Next.js storefront header'ina urunler, firsatlar ve kuponlar icin ikonlu hizli erisim seridi eklendi; kategori dropdown'u alt kategori ve urun adedi bilgisini gosterecek sekilde zenginlestirildi.
 - Durum: Trendyol DE referansina benzer kompakt ust bar, genis arama alani, ikon+metin hesap/favori/sepet aksiyonlari ve kategori odakli yatay nav yapisi uygulandi. Renk tokenleri degistirilmedi; mevcut theme tokenlari kullanildi.
 - Durum: `Kategoriler` tiklandiginda tam genislikte overlay mega menu aciliyor; sol kategori rail'i, orta alt kategori kolonlari ve sagda kategori gorselli kampanya kartlari eklendi.
-- Durum: `/sportoonline-trendyol.html` taslagina daha yakin olacak sekilde koyu topbar, token tabanli header/main/nav yapisi, cizgili arama kutusu ve dikey ikon aksiyonlari guncellendi.
+- Durum: `docs/reports/sportoonline-trendyol.html` taslagina daha yakin olacak sekilde koyu topbar, token tabanli header/main/nav yapisi, cizgili arama kutusu ve dikey ikon aksiyonlari guncellendi.
 - Durum: Kategori mega menu paneli Trendyol referansina daha yakin olacak sekilde viewport genisligine yayildi; sol kategori rail'i, orta kolonlar ve sag kampanya kartlari daha dengeli olculere cekildi.
 - Durum: Aktif olmayan `2 al 1 ode` / `3 al 2 ode` gibi satin-al/ode kampanya kategorileri header nav ve mega menu kategori agacindan haric tutuldu; normal kategori deneyimi Trendyol referansina yaklastirildi.
 - Durum: Mega menude hard-coded firsat/yeni gelen rail satirlari kaldirildi; sol rail, orta kolonlar ve gorsel kartlar sadece dinamik kategori verisinden uretiliyor. Bos `display_order` degerli import kategorileri nav basina gelmeyecek sekilde siralama duzeltildi.
@@ -124,7 +124,7 @@ Detay tartismalari sonraki adimlarda her madde altinda yapilacak.
 - Durum: Turkce karakterli kategori slug'lari URL encode edilince kategori bulunamama sorunu duzeltildi; `/kategori/kamp-mutfa%C4%9F%C4%B1` gibi linkler dogru kategoriye eslesiyor.
 
 ### 15. [x] Premium hero slider taslak uyumu
-- `sportoonline-trendyol.html` taslagindaki tek buyuk gorsel + okunakli metin konsepti uygulanacak.
+- `docs/reports/sportoonline-trendyol.html` taslagindaki tek buyuk gorsel + okunakli metin konsepti uygulanacak.
 - Slider icinde sagdaki ayrik kucuk urun/gorsel kullanimi kaldirilacak.
 - Slider metinleri arka plan gorselinde daha okunakli olacak.
 - Durum: Next.js hero slider varyantlari tek premium yapida birlestirildi; `bg_image_url` yoksa `image_url` arka plan olarak kullaniliyor, sagdaki ayrik kucuk gorsel render edilmiyor.

@@ -338,7 +338,7 @@ const QuestionsTable = ({ searchValue, selectStatus, selectReplied }: any) => {
           render: (store: any, row: RecordType) => (
             <Link
               className="text-blue-500 hover:underline dark:text-[#93c5fd] dark:hover:text-white"
-              href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/store/details/${row?.store_slug}`}
+              href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/tr/magaza/${row?.store_slug}`}
               target="_blank"
               rel="noopener noreferrer"
             >

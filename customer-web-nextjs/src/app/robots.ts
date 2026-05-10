@@ -1,30 +1,50 @@
 import type { MetadataRoute } from "next";
+import { SITE_URL } from "@/lib/seo";
 
 export default function robots(): MetadataRoute.Robots {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://sportoonline.com";
+  const privatePaths = [
+    "/*/giris",
+    "/*/kayit",
+    "/*/sifremi-unuttum",
+    "/*/sepet",
+    "/*/odeme",
+    "/*/siparis-basarili",
+    "/*/siparislerim",
+    "/*/siparis/",
+    "/*/hesabim",
+    "/*/favorilerim",
+    "/*/adreslerim",
+    "/*/cuzdan",
+    "/*/destek",
+  ];
+  const aiCrawlers = [
+    "GPTBot",
+    "OAI-SearchBot",
+    "ChatGPT-User",
+    "ClaudeBot",
+    "anthropic-ai",
+    "PerplexityBot",
+    "Google-Extended",
+    "Googlebot",
+    "CCBot",
+    "Applebot-Extended",
+    "meta-externalagent",
+    "Bingbot",
+  ];
 
   return {
     rules: [
       {
         userAgent: "*",
         allow: "/",
-        disallow: [
-          "/*/giris",
-          "/*/kayit",
-          "/*/sifremi-unuttum",
-          "/*/sepet",
-          "/*/odeme",
-          "/*/siparis-basarili",
-          "/*/siparislerim",
-          "/*/siparis/",
-          "/*/hesabim",
-          "/*/favorilerim",
-          "/*/adreslerim",
-          "/*/cuzdan",
-          "/*/destek",
-        ],
+        disallow: privatePaths,
       },
+      ...aiCrawlers.map((userAgent) => ({
+        userAgent,
+        allow: "/",
+        disallow: privatePaths,
+      })),
     ],
-    sitemap: `${siteUrl}/sitemap.xml`,
+    sitemap: `${SITE_URL}/sitemap.xml`,
   };
 }

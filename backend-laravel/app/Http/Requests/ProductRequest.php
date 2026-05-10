@@ -17,6 +17,18 @@ class ProductRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $nullableIds = ['brand_id', 'unit_id'];
+
+        foreach ($nullableIds as $field) {
+            $value = $this->input($field);
+            if ($value === '' || $value === 'null' || $value === 'undefined' || $value === 'NaN') {
+                $this->merge([$field => null]);
+            }
+        }
+    }
+
     public function rules(): array
     {
         $rules = [

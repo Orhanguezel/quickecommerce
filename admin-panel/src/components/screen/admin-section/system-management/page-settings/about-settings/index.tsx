@@ -1,10 +1,14 @@
 "use client";
 import AboutSettingsForm from "@/components/blocks/admin-section/system-management/page-settings/about-settings/AboutSettingsForm";
+import CardSkletonLoader from "@/components/molecules/CardSkletonLoader";
 import { Card, CardContent } from "@/components/ui";
+import { usePageSettingsAboutQuery } from "@/modules/admin-section/system-management/page-settings/page-settings.action";
 import { useTranslations } from "next-intl";
 
 const AboutSettings = () => {
   const t = useTranslations();
+  const { AboutSettingsData, isPending } = usePageSettingsAboutQuery({});
+
   return (
     <div>
       <Card>
@@ -16,7 +20,7 @@ const AboutSettings = () => {
           </div>
         </CardContent>
       </Card>
-      <AboutSettingsForm />
+      {isPending ? <CardSkletonLoader /> : <AboutSettingsForm data={AboutSettingsData} />}
     </div>
   );
 };

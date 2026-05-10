@@ -2,12 +2,12 @@
 SWAN Uniform scraper (ikas / Next.js embedded JSON)
 ---------------------------------------------------
 Kullanim:
-  python swan_scraper.py
-  python swan_scraper.py --limit 10 --skip-images
+  python scrapers/swan_scraper.py
+  python scrapers/swan_scraper.py --limit 10 --skip-images
 
 Cikti:
-  - swan_products.json
-  - swan_images/
+  - data/source-products/swan_products.json
+  - assets/source-images/swan_images/
 """
 
 import argparse
@@ -23,12 +23,13 @@ from urllib.parse import urlparse
 
 import requests
 from bs4 import BeautifulSoup
+from paths import source_image_dir, source_product_path
 
 
 BASE_URL = "https://swanuniform.com"
 SITEMAP_URL = f"{BASE_URL}/products.xml"
-OUTPUT_FILE = "swan_products.json"
-IMAGE_DIR = "swan_images"
+OUTPUT_FILE = source_product_path("swan_products.json")
+IMAGE_DIR = source_image_dir("swan_images")
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "

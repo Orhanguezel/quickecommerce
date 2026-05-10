@@ -1,4 +1,6 @@
 import { Metadata } from "next";
+import { Toaster } from "@/components/ui/toaster";
+import { SITE_URL } from "@/lib/seo";
 
 interface SiteInfo {
   com_site_title: string;
@@ -25,10 +27,9 @@ async function fetchSiteInfo(): Promise<SiteInfo | null> {
 
 export async function generateMetadata(): Promise<Metadata> {
   const siteInfo = await fetchSiteInfo();
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://sportoonline.com';
 
   return {
-    metadataBase: new URL(siteUrl),
+    metadataBase: new URL(SITE_URL),
     title: siteInfo?.com_site_title || "Sportoonline",
     description: siteInfo?.com_site_subtitle || "Modern e-commerce platform",
     icons: {
@@ -57,5 +58,28 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return (
+    <html lang="tr" suppressHydrationWarning>
+      <head>
+        <script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=AW-315699693"
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.dataLayer=window.dataLayer||[];
+function gtag(){dataLayer.push(arguments);}
+window.__GOOGLE_ADS_CONVERSION_ID__='AW-315699693';
+window.__GOOGLE_ADS_PURCHASE_LABEL__='INsdC03LslwZEO3jxJYB';
+gtag('js',new Date());
+gtag('config','AW-315699693');`,
+          }}
+        />
+      </head>
+      <body suppressHydrationWarning>
+        {children}
+        <Toaster />
+      </body>
+    </html>
+  );
 }

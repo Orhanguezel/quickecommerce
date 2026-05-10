@@ -2,16 +2,17 @@
 BodyfitShop.com.tr Muscle Pump Scraper (AKINSOFT HTML)
 -------------------------------------------------------
 Sadece Muscle Pump marka urunlerini ceker.
-Kullanim: python musclepump_scraper.py
-Cikti: musclepump_products.json, musclepump_images/
+Kullanim: python scrapers/musclepump_scraper.py.bak
+Cikti: data/source-products/musclepump_products.json, assets/source-images/musclepump_images/
 """
 
 import requests, json, time, os, re, hashlib
 from bs4 import BeautifulSoup
+from paths import source_image_dir, source_product_path
 
 BASE_URL = "https://bodyfitshop.com.tr"
-IMAGE_DIR = "musclepump_images"
-OUTPUT_FILE = "musclepump_products.json"
+IMAGE_DIR = source_image_dir("musclepump_images")
+OUTPUT_FILE = source_product_path("musclepump_products.json")
 HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
 
 session = requests.Session()

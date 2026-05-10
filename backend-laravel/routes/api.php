@@ -120,7 +120,7 @@ Route::group(['prefix' => 'v1/'], function () {
         Route::post('/cart/unsubscribe', [\App\Http\Controllers\Api\V1\AbandonedCartController::class, 'unsubscribe']);
         Route::post('/experiments/assign', [\App\Http\Controllers\Api\V1\ExperimentController::class, 'assign']);
         Route::post('/experiments/track', [\App\Http\Controllers\Api\V1\ExperimentController::class, 'track']);
-        Route::post('/funnel/track', [\App\Http\Controllers\Api\V1\FunnelEventController::class, 'track']);
+        Route::post('/funnel/track', [\App\Http\Controllers\Api\V1\FunnelEventController::class, 'track'])->middleware('throttle:funnel');
 
         Route::get('/bundles', [\App\Http\Controllers\Api\V1\BundleController::class, 'index']);
         Route::post('/cart/validate-bundles', [\App\Http\Controllers\Api\V1\BundleController::class, 'validateBundles']);

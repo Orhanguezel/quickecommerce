@@ -23,6 +23,7 @@ import { AnalyticsProvider } from '@/components/providers/analytics-provider';
 import { CookieBanner } from '@/components/cookie-banner';
 import { Geist } from 'next/font/google';
 import Script from 'next/script';
+import { DEFAULT_ORGANIZATION, SITE_URL } from '@/lib/seo';
 import '../globals.css';
 
 const API_URL = process.env.NEXT_PUBLIC_REST_API_ENDPOINT || 'https://sportoonline.com/api/v1';
@@ -112,7 +113,7 @@ const geistSans = Geist({
   subsets: ['latin'],
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://sportoonline.com';
+const siteUrl = SITE_URL;
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -140,6 +141,8 @@ export async function generateMetadata({ params }: LayoutProps): Promise<Metadat
   const author = settings?.com_meta_author || undefined;
   const robots = settings?.com_meta_robots || 'index,follow';
   const publisher = settings?.com_meta_publisher || undefined;
+  const googleVerification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined;
+  const bingVerification = process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION || undefined;
 
   return {
     title: {
@@ -169,6 +172,14 @@ export async function generateMetadata({ params }: LayoutProps): Promise<Metadat
       description: ogDescription,
       ...(ogImage ? { images: [ogImage] } : {}),
     },
+    verification: googleVerification
+      ? {
+          google: googleVerification,
+          other: bingVerification ? { "msvalidate.01": bingVerification } : undefined,
+        }
+      : bingVerification
+        ? { other: { "msvalidate.01": bingVerification } }
+        : undefined,
     ...(publisher ? { other: { publisher } } : {}),
     icons: {
       icon: settings?.com_site_favicon
@@ -202,12 +213,13 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
     getThemeColors(),
   ]);
 
-  const gaId = settings?.com_google_analytics_id || '';
-  const gtmId = settings?.com_google_tag_manager_id || '';
-  const googleAdsConversionId = settings?.com_google_ads_conversion_id || '';
-  const googleAdsPurchaseLabel = settings?.com_google_ads_purchase_label || '';
-  const gtagIds = [gaId, googleAdsConversionId].filter(Boolean);
+  const gaId = settings?.com_google_analytics_id || process.env.NEXT_PUBLIC_GA_ID || '';
+  const gtmId = settings?.com_google_tag_manager_id || process.env.NEXT_PUBLIC_GTM_ID || '';
+  const googleAdsConversionId = settings?.com_google_ads_conversion_id || process.env.NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_ID || '';
+  const googleAdsPurchaseLabel = settings?.com_google_ads_purchase_label || process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL || '';
+  const gtagIds = Array.from(new Set([gaId].filter(Boolean)));
   const primaryGtagId = gtagIds[0] || '';
+  const metaPixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID || '';
 
   const isMaintenanceMode = settings?.com_maintenance_mode === 'on';
 
@@ -227,11 +239,9 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
     };
 
     return (
-      <html lang={locale} suppressHydrationWarning>
-        <body className={`${geistSans.variable} font-sans antialiased`} suppressHydrationWarning>
-          <MaintenancePage data={maintenanceData} locale={locale} />
-        </body>
-      </html>
+      <div className={`${geistSans.variable} font-sans antialiased`}>
+        <MaintenancePage data={maintenanceData} locale={locale} />
+      </div>
     );
   }
 
@@ -258,13 +268,49 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
   }
 
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <>
       {themeStyles && (
-        <head>
-          <style dangerouslySetInnerHTML={{ __html: themeStyles }} />
-        </head>
+        <style dangerouslySetInnerHTML={{ __html: themeStyles }} />
       )}
-      <body className={`${geistSans.variable} font-sans antialiased`} suppressHydrationWarning>
+      <div className={`${geistSans.variable} font-sans antialiased`}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              ...DEFAULT_ORGANIZATION,
+              telephone:
+                settings?.com_site_contact_number ||
+                DEFAULT_ORGANIZATION.telephone,
+              email: settings?.com_site_email || DEFAULT_ORGANIZATION.email,
+              contactPoint: {
+                "@type": "ContactPoint",
+                telephone:
+                  settings?.com_site_contact_number ||
+                  DEFAULT_ORGANIZATION.telephone,
+                email: settings?.com_site_email || DEFAULT_ORGANIZATION.email,
+                contactType: "customer service",
+                areaServed: "TR",
+                availableLanguage: ["tr", "en"],
+              },
+              address: {
+                "@type": "PostalAddress",
+                streetAddress:
+                  settings?.com_site_full_address ||
+                  DEFAULT_ORGANIZATION.address.streetAddress,
+                addressLocality:
+                  settings?.com_site_full_address
+                    ? DEFAULT_ORGANIZATION.address.addressLocality
+                    : DEFAULT_ORGANIZATION.address.addressLocality,
+                addressRegion: DEFAULT_ORGANIZATION.address.addressRegion,
+                postalCode: DEFAULT_ORGANIZATION.address.postalCode,
+                addressCountry: DEFAULT_ORGANIZATION.address.addressCountry,
+              },
+              logo: settings?.com_site_logo || DEFAULT_ORGANIZATION.logo,
+            }),
+          }}
+        />
         {/* Google Tag Manager (noscript) */}
         {gtmId && (
           <noscript>
@@ -306,6 +352,17 @@ window.__GOOGLE_ADS_PURCHASE_LABEL__='${googleAdsPurchaseLabel}';`}
             </Script>
           </>
         )}
+        {metaPixelId && (
+          <Script id="meta-pixel" strategy="afterInteractive">
+            {`!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init','${metaPixelId}');
+fbq('track','PageView');`}
+          </Script>
+        )}
         <NextIntlClientProvider locale={locale} messages={messages}>
           <QueryProvider>
             <NextThemesProvider attribute="class" defaultTheme="light" enableSystem={false}>
@@ -331,7 +388,7 @@ window.__GOOGLE_ADS_PURCHASE_LABEL__='${googleAdsPurchaseLabel}';`}
             </NextThemesProvider>
           </QueryProvider>
         </NextIntlClientProvider>
-      </body>
-    </html>
+      </div>
+    </>
   );
 }

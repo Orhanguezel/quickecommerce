@@ -106,6 +106,10 @@ const SignInForm = ({
     () => (AdminSignInData as any)?.data || [],
     [AdminSignInData]
   );
+  const hasCustomLoginImage = Boolean(QueryGeneralSettingsData?.com_login_page_image);
+  const loginImageSrc = hasCustomLoginImage
+    ? QueryGeneralSettingsData.com_login_page_image
+    : "/images/admin.png";
   const { token: firebaseToken, notifications } = useFirebaseNotifications();
 
   async function onSubmit({ email, password }: LoginInput) {
@@ -151,34 +155,34 @@ const SignInForm = ({
                 "--register-bg-image": `url(/images/reg_bg.png)`,
               } as React.CSSProperties
             }
-            className="h-[91.3vh] bg-cover grid 2xl:grid-cols-2 xl:grid-cols-2 lg:grid-cols-1 grid-cols-1 bg-gray-100"
+            className="min-h-[calc(100vh-70px)] bg-cover grid 2xl:grid-cols-2 xl:grid-cols-2 lg:grid-cols-1 grid-cols-1 bg-gray-100"
           >
             <div className="2xl:inline-block xl:inline-block  lg:hidden hidden">
-              <div className="h-full flex items-center justify-center p-4">
+              <div className="h-full flex items-center justify-center p-8">
                 {isQuerying ? (
-                  <Skeleton className="w-64 h-64 rounded-xl" />
-                ) : QueryGeneralSettingsData?.com_login_page_image ? (
-                  <div className="relative w-full max-w-[1200px] aspect-[3/2]">
-                    <Image
-                      loader={GlobalImageLoader}
-                      src={QueryGeneralSettingsData.com_login_page_image}
-                      alt="Login illustration"
-                      fill
-                      sizes="(max-width: 768px) 100vw, 1200px"
-                      className="object-contain rounded-md"
-                      priority
-                    />
-                  </div>
+                  <Skeleton className="w-full max-w-[560px] aspect-[4/3] rounded-md" />
                 ) : (
-                  <div className="relative w-full max-w-[200px]">
-                    <Image
-                      src="/images/no-image.png"
-                      alt="Login illustration"
-                      width={200}
-                      height={200}
-                      className="w-full h-auto object-contain rounded-md"
-                      priority
-                    />
+                  <div className="relative flex h-full w-full max-w-[680px] flex-col justify-center overflow-hidden rounded-md bg-white/80 p-10 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900/80 dark:ring-slate-700">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(59,130,246,0.14),transparent_32%),radial-gradient(circle_at_80%_75%,rgba(16,185,129,0.12),transparent_30%)]" />
+                    <div className="relative mx-auto flex aspect-square w-full max-w-[380px] items-center justify-center rounded-md bg-slate-50 p-10 dark:bg-slate-800">
+                      <Image
+                        {...(hasCustomLoginImage ? { loader: GlobalImageLoader } : {})}
+                        src={loginImageSrc}
+                        alt="Admin login"
+                        fill
+                        sizes="(max-width: 1280px) 0px, 380px"
+                        className="object-contain p-8"
+                        priority
+                      />
+                    </div>
+                    <div className="relative mt-10 text-center">
+                      <p className="text-sm font-semibold uppercase tracking-[0.16em] text-blue-600 dark:text-blue-400">
+                        Sportoonline
+                      </p>
+                      <h1 className="mt-3 text-3xl font-bold text-slate-900 dark:text-white">
+                        {QueryGeneralSettingsData?.com_login_page_title || t("button.login")}
+                      </h1>
+                    </div>
                   </div>
                 )}
               </div>

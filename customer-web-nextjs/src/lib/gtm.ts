@@ -14,23 +14,76 @@ type GtagItem = {
   discount?: number;
 };
 
+type GoogleEventParams = Record<string, string | number | boolean | undefined | null>;
+
+type GtagCommand = [string, string, GoogleEventParams] | [string, Date] | [string, string];
+type WindowWithAnalytics = Window & {
+  dataLayer?: Array<Record<string, unknown> | GtagCommand>;
+  gtag?: (command: string, event: string, params?: GoogleEventParams) => void;
+  __GOOGLE_ADS_CONVERSION_ID__?: string;
+  __GOOGLE_ADS_PURCHASE_LABEL__?: string;
+};
+
+export function analyticsConsentGranted(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const cookieSource = `${document.cookie};`;
+  const declinedCookie = /(?:^|;\s*)(sportoonline_cookie_consent|cookie_consent|gdpr_cookie_consent|CookieConsent)=([^;]*)/i.exec(cookieSource);
+  const declinedValue = declinedCookie?.[2] ? decodeURIComponent(declinedCookie[2]).toLowerCase() : '';
+
+  if (declinedValue && /decline|denied|reject|false|necessary/.test(declinedValue)) {
+    return false;
+  }
+
+  try {
+    const stored = window.localStorage.getItem('sportoonline_cookie_consent')
+      || window.localStorage.getItem('cookie_consent')
+      || window.localStorage.getItem('gdpr_cookie_consent');
+    if (stored && /decline|denied|reject|false|necessary/i.test(stored)) {
+      return false;
+    }
+  } catch {
+    return true;
+  }
+
+  return true;
+}
+
 function pushDataLayer(event: string, ecommerce: Record<string, unknown>) {
   if (typeof window === 'undefined') return;
-  (window as any).dataLayer = (window as any).dataLayer || [];
+  if (!analyticsConsentGranted()) return;
+  const analyticsWindow = window as WindowWithAnalytics;
+  analyticsWindow.dataLayer = analyticsWindow.dataLayer || [];
   // Clear previous ecommerce data to avoid stale values
-  (window as any).dataLayer.push({ ecommerce: null });
-  (window as any).dataLayer.push({ event, ecommerce });
+  analyticsWindow.dataLayer.push({ ecommerce: null });
+  analyticsWindow.dataLayer.push({ event, ecommerce });
+}
+
+export function trackGoogleEvent(event: string, params: GoogleEventParams = {}) {
+  if (typeof window === 'undefined') return;
+  if (!analyticsConsentGranted()) return;
+
+  const analyticsWindow = window as WindowWithAnalytics;
+  if (typeof analyticsWindow.gtag === 'function') {
+    analyticsWindow.gtag('event', event, params);
+    return;
+  }
+
+  analyticsWindow.dataLayer = analyticsWindow.dataLayer || [];
+  analyticsWindow.dataLayer.push({ event, ...params });
 }
 
 function trackGoogleAdsPurchase(value: number, currency: string, transactionId: string) {
   if (typeof window === 'undefined') return;
+  if (!analyticsConsentGranted()) return;
 
-  const conversionId = (window as any).__GOOGLE_ADS_CONVERSION_ID__;
-  const purchaseLabel = (window as any).__GOOGLE_ADS_PURCHASE_LABEL__;
+  const analyticsWindow = window as WindowWithAnalytics;
+  const conversionId = analyticsWindow.__GOOGLE_ADS_CONVERSION_ID__;
+  const purchaseLabel = analyticsWindow.__GOOGLE_ADS_PURCHASE_LABEL__;
 
   // Diagnostic — surfaces silent-skip cases to the browser console so admins
   // can verify why Ads conversions aren't firing without needing server access.
-  if (typeof (window as any).gtag !== 'function') {
+  if (typeof analyticsWindow.gtag !== 'function') {
     console.warn('[GoogleAds] gtag() is not available — Ads script may have failed to load.');
     return;
   }
@@ -43,7 +96,7 @@ function trackGoogleAdsPurchase(value: number, currency: string, transactionId: 
   }
 
   const sendTo = `${conversionId}/${purchaseLabel}`;
-  (window as any).gtag('event', 'conversion', {
+  analyticsWindow.gtag('event', 'conversion', {
     send_to: sendTo,
     value,
     currency,

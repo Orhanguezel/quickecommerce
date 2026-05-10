@@ -10,6 +10,7 @@ use App\Models\ProductVariant;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 
 class ProductUpdateRequest extends FormRequest
@@ -17,6 +18,18 @@ class ProductUpdateRequest extends FormRequest
     public function authorize(): bool
     {
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $nullableIds = ['brand_id', 'unit_id'];
+
+        foreach ($nullableIds as $field) {
+            $value = $this->input($field);
+            if ($value === '' || $value === 'null' || $value === 'undefined' || $value === 'NaN') {
+                $this->merge([$field => null]);
+            }
+        }
     }
 
     public function rules(): array
@@ -115,6 +128,13 @@ class ProductUpdateRequest extends FormRequest
 
     public function failedValidation(Validator $validator)
     {
+        Log::warning('Product update validation failed', [
+            'product_id' => $this->input('id'),
+            'store_id' => $this->input('store_id'),
+            'user_id' => optional($this->user())->id,
+            'errors' => $validator->errors()->toArray(),
+        ]);
+
         throw new HttpResponseException(response()->json($validator->errors(), 422));
     }
 

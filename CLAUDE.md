@@ -31,14 +31,14 @@ ssh vps-sportoonline 'find /var/www/quikecommerce/logs -name "scrapers-*.log" -m
 - Bunu **otomatik cron** yap: `crontab -e` -> `0 4 * * 0 find /var/www/quikecommerce/logs -name "scrapers-*.log" -mtime +30 -delete`
 
 ### 🔔 BEKLEYEN: dropick + norfolk scraper yazimi
-**Why:** `dropick_products.json` (74 urun) ve `norfolk_products.json` (309 urun) JSON'lari **manuel** yukleniyor. Scraper script yok.
+**Why:** `data/source-products/dropick_products.json` (74 urun) ve `data/source-products/norfolk_products.json` (309 urun) JSON'lari **manuel** yukleniyor. Scraper script yok.
 **Yapilacak (kullanici onaylarsa):**
-- JSON'larda `url` alani var mi kontrol → `python3 -c "import json; d=json.load(open('dropick_products.json')); print(d[0].keys())"`
+- JSON'larda `url` alani var mi kontrol → `python3 -c "import json; d=json.load(open('data/source-products/dropick_products.json')); print(d[0].keys())"`
 - URL pattern net ise her ikisi icin scraper yaz (dropick.com, norfolk.com.tr — anti-bot kontrol et)
 - run-all.sh'a ekle, gunluk cron'a katil
 
 ### 🔔 BEKLEYEN: Maraton sitemap full scrape (yeni urun discovery)
-**Why:** Mevcut cron `--urls-from maraton_products.json` kullaniyor — sadece 401 mevcut urun guncel. Maraton katalogunda 2737 urun var. Yeni eklenenleri yakalamak icin haftada 1 full sitemap scrape lazim.
+**Why:** Mevcut cron `--urls-from data/source-products/maraton_products.json` kullaniyor — sadece 401 mevcut urun guncel. Maraton katalogunda 2737 urun var. Yeni eklenenleri yakalamak icin haftada 1 full sitemap scrape lazim.
 **Yapilacak:**
 - Ayri cron: `0 22 * * 0` (her Pazar gece 22:00 UTC = 01:00 Pazartesi TR) → sitemap full ~16 saat
 - `--urls-from` flag'i kaldir, scraper sitemap discover yapar
@@ -74,7 +74,7 @@ ssh vps-sportoonline '/var/www/quikecommerce/scrapers/health.sh'
 
 | Scraper | Anti-bot | Yontem | Sure (yaklasik) |
 |---|---|---|---|
-| **maraton** | Cloudflare | Scrapling Stealthy (`maraton_scraper_v2.py`) | ~2.4 saat (401 urun) |
+| **maraton** | Cloudflare | Scrapling Stealthy (`scrapers/maraton_scraper_v2.py`) | ~2.4 saat (401 urun) |
 | musclepump | Yok | Direct requests | 5 dk |
 | everlast | Yok (Shopify API) | Direct | 5 dk |
 | swan | Yok | Direct | 10 dk |

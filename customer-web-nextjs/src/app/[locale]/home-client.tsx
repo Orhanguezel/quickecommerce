@@ -194,6 +194,40 @@ function normalizeHomeBlockOrder(blocks: HomeLayoutBlock[]): HomeLayoutBlock[] {
   return normalizeRecentlyViewedAfterFlash(normalizeHeroCategoryOrder(blocks));
 }
 
+function getFlashDealProductsHref(deal: FlashDeal): string {
+  const fallback = `/urunler?flash_sale_id=${deal.id}`;
+  const rawUrl = deal.button_url?.trim();
+
+  if (!rawUrl) return fallback;
+
+  const appendFlashSaleId = (pathWithQuery: string) => {
+    const [path, query = ""] = pathWithQuery.split("?");
+    const normalizedPath = path.replace(/^\/(tr|en)(?=\/)/, "") || "/urunler";
+
+    if (normalizedPath !== "/urunler") {
+      return pathWithQuery;
+    }
+
+    const params = new URLSearchParams(query);
+    params.set("flash_sale_id", String(deal.id));
+    return `${normalizedPath}?${params.toString()}`;
+  };
+
+  if (/^https?:\/\//i.test(rawUrl)) {
+    try {
+      const url = new URL(rawUrl);
+      if (url.hostname === "sportoonline.com" || url.hostname === "www.sportoonline.com") {
+        return appendFlashSaleId(`${url.pathname}${url.search}`);
+      }
+    } catch {
+      return fallback;
+    }
+    return rawUrl;
+  }
+
+  return appendFlashSaleId(rawUrl);
+}
+
 export function HomePageClient({ data, translations: t }: HomePageClientProps) {
   const { homeConfig } = useThemeConfig();
   const { banners, isPending: isBannerLoading } = useBannerQuery();
@@ -407,8 +441,8 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
               labelColor={deal.title_color}
             />
 
-            {deal.button_text && deal.button_url && (
-              <Link href={deal.button_url}>
+            {deal.button_text && (
+              <Link href={getFlashDealProductsHref(deal)}>
                 <span
                   className="mt-1 inline-block rounded-lg px-4 py-2.5 text-sm font-semibold tracking-wide shadow-lg transition-all duration-200 hover:shadow-xl hover:brightness-110 sm:px-5 sm:py-2.5"
                   style={{

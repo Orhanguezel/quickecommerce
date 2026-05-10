@@ -55,6 +55,7 @@ class SellerDetailsResource extends JsonResource
             'kyc_admin_note'      => $app?->admin_note,
             'kyc_reviewed_at'     => $app?->reviewed_at,
             'consent_at'          => $app?->consent_at,
+            'business_type'       => $app?->business_type ?? 'company',
             'company_name'        => $app?->company_name,
             'brand_name'          => $app?->brand_name,
             'sector'              => $app?->sector,

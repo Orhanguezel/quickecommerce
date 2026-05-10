@@ -149,15 +149,16 @@ const SellerApplicationDetail = ({ id }: { id: string }) => {
         <Card>
           <CardContent className="p-4">
             <h2 className="text-base font-semibold mb-4 flex items-center gap-2">
-              <Building2 width={18} height={18} /> Şirket Bilgileri
+              <Building2 width={18} height={18} /> Vergi / Kimlik Bilgileri
             </h2>
             <div className="space-y-3">
-              <InfoRow label="Şirket Adı" value={application.company_name} />
+              <InfoRow label="Hesap Tipi" value={application.business_type === "individual" ? "Bireysel" : "Şirket"} />
+              {application.business_type !== "individual" && <InfoRow label="Şirket Adı" value={application.company_name} />}
               <InfoRow label="Marka Adı" value={application.brand_name || "-"} />
               <InfoRow label="Sektör" value={application.sector} />
-              <InfoRow label="Vergi Dairesi" value={application.tax_office || "-"} />
-              <InfoRow label="Vergi No" value={application.tax_number} />
-              <InfoRow label="MERSİS No" value={application.mersis_number || "-"} />
+              {application.business_type !== "individual" && <InfoRow label="Vergi Dairesi" value={application.tax_office || "-"} />}
+              <InfoRow label={application.business_type === "individual" ? "TC Kimlik No" : "Vergi No"} value={application.tax_number} />
+              {application.business_type !== "individual" && <InfoRow label="MERSİS No" value={application.mersis_number || "-"} />}
               <InfoRow label="Web Sitesi" value={application.website_url || "-"} />
             </div>
           </CardContent>

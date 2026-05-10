@@ -9,4 +9,4 @@ Route::get('/', function () {
 
 // Product Feeds — fiyat karsilastirma siteleri (Cimri, Akakce vs.)
 Route::get('/feeds/cimri.xml', [ProductFeedController::class, 'cimri']);
-
+Route::get('/feeds/google.xml', [ProductFeedController::class, 'google']);

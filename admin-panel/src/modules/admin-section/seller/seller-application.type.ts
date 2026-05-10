@@ -13,6 +13,7 @@ export interface SellerApplication {
   id: string;
   user_id: string;
   user: SellerApplicationUser;
+  business_type: "individual" | "company";
   company_name: string;
   brand_name: string;
   sector: string;

@@ -52,6 +52,7 @@ interface Props {
   };
   showGoogle?: boolean;
   showFacebook?: boolean;
+  googleClientId?: string | null;
 }
 
 interface InnerProps extends Props {
@@ -221,16 +222,16 @@ function SocialLoginWithGoogle(props: Props) {
 }
 
 export function SocialLoginButtons(props: Props) {
-  const googleClientId = env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-  const canUseGoogle = props.showGoogle ?? true;
+  const googleClientId =
+    props.googleClientId || env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+  const canUseGoogle = Boolean((props.showGoogle ?? true) && googleClientId);
   const canUseFacebook = props.showFacebook ?? true;
 
   if (!canUseGoogle && !canUseFacebook) {
     return null;
   }
 
-  // If Google client ID exists and Google is enabled, use OAuth provider
-  if (googleClientId && canUseGoogle) {
+  if (canUseGoogle && googleClientId) {
     return (
       <GoogleOAuthProvider clientId={googleClientId}>
         <SocialLoginWithGoogle {...props} />
@@ -238,7 +239,6 @@ export function SocialLoginButtons(props: Props) {
     );
   }
 
-  // Show buttons (Google visible but non-functional without client ID)
   return (
     <SocialLoginInner
       {...props}

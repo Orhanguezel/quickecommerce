@@ -20,6 +20,7 @@ import {
   useCancelOrder,
   useOrdersQuery,
 } from "@/modules/seller-section/orders/orders.action";
+import { useStoreListQuery } from "@/modules/seller-section/product/product.action";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { setRefetch } from "@/redux/slices/refetchSlice";
 import { format } from "date-fns";
@@ -73,7 +74,13 @@ const OrdersTable = ({
 }: any) => {
   const t = useTranslations();
   const selectedStore = useAppSelector((state) => state.store.selectedStore);
-  const storeID = selectedStore?.id;
+  const { stores } = useStoreListQuery({}, { skip: false });
+  const storeList = useMemo(() => (stores as any)?.stores ?? [], [stores]);
+  const fallbackStoreId = useMemo(() => {
+    if (selectedStore?.id) return selectedStore.id;
+    const first = Array.isArray(storeList) ? storeList[0] : null;
+    return first?.value ?? "";
+  }, [selectedStore?.id, storeList]);
   const locale = useLocale();
   const [itemsPerPage, setItemsPerPage] = useState<number>(() => {
     return parseInt(localStorage.getItem("itemsPerPage") || "10");
@@ -117,7 +124,7 @@ const OrdersTable = ({
     status: statusFilter,
     refund_status: refundFilter,
     payment_status: selectPaymentStatus,
-    store_id: storeID,
+    store_id: fallbackStoreId,
     start_date: startDate,
     end_date: endDate,
   });

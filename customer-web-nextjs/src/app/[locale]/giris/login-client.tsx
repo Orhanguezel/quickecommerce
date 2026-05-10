@@ -306,6 +306,7 @@ export function LoginClient({ translations: t }: Props) {
                   }}
                   showGoogle={showGoogle}
                   showFacebook={showFacebook}
+                  googleClientId={siteInfo?.com_google_app_id}
                 />
               </Suspense>
             )}

@@ -226,6 +226,7 @@ class AdminSellerManageController extends Controller
             'phone'        => 'nullable|string',
             'image'        => 'nullable',
             // KYC fields
+            'business_type'       => 'nullable|in:individual,company',
             'company_name'        => 'nullable|string|max:255',
             'brand_name'          => 'nullable|string|max:255',
             'sector'              => 'nullable|string|max:255',
@@ -273,6 +274,7 @@ class AdminSellerManageController extends Controller
 
         // Save KYC fields to seller_applications
         $kycFields = [
+            'business_type',
             'company_name', 'brand_name', 'sector', 'tax_office', 'tax_number',
             'mersis_number', 'website_url', 'address_country', 'address_city',
             'address_district', 'address_postal_code', 'address_line1', 'address_line2',
@@ -283,7 +285,18 @@ class AdminSellerManageController extends Controller
         if (!empty(array_filter($kycData, fn($v) => $v !== null && $v !== ''))) {
             $application = SellerApplication::where('user_id', $user->id)->latest()->first();
             if ($application) {
+                $sensitiveFields = ['business_type', 'tax_number', 'bank_iban', 'bank_account_holder'];
+                $sensitiveChanged = collect($sensitiveFields)
+                    ->contains(fn($field) => $request->filled($field) && $request->input($field) !== $application->{$field});
                 $application->update($kycData);
+                if ($sensitiveChanged) {
+                    $application->update([
+                        'status' => SellerApplication::STATUS_PENDING,
+                        'admin_note' => null,
+                        'reviewed_by' => null,
+                        'reviewed_at' => null,
+                    ]);
+                }
             } else {
                 SellerApplication::create(array_merge($kycData, [
                     'user_id' => $user->id,

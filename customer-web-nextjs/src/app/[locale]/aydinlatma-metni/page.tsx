@@ -3,6 +3,8 @@ import { getTranslations } from "next-intl/server";
 import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import { ContentPageClient } from "@/components/common/content-page-client";
+import { localizedAlternates } from "@/lib/seo";
+import { pageContentOrFallback, policyContent } from "../policy-content";
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -28,10 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       "Sportoonline kişisel veri işleme ve aydınlatma metni",
     alternates: {
       canonical: `/${locale}/aydinlatma-metni`,
-      languages: {
-        tr: `/tr/aydinlatma-metni`,
-        en: `/en/aydinlatma-metni`,
-      },
+      languages: localizedAlternates("/aydinlatma-metni"),
     },
   };
 }
@@ -44,7 +43,7 @@ export default async function DisclosurePage({ params }: Props) {
   return (
     <ContentPageClient
       title="Aydınlatma Metni"
-      content={data?.content}
+      content={pageContentOrFallback(data?.content, policyContent.disclosureText)}
       breadcrumbs={[{ label: t("home"), href: "/" }, { label: "Aydınlatma Metni" }]}
     />
   );

@@ -188,7 +188,7 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => ['auth:sanctum', 'check.e
 
 
             // dynamic fields manage
-            Route::group(['prefix' => 'dynamic-fields/', 'middleware' => ['permission:' . PermissionKey::SELLER_PRODUCT_ATTRIBUTE_ADD->value]], function () {
+            Route::group(['prefix' => 'dynamic-fields/', 'middleware' => ['permission:' . PermissionKey::SELLER_STORE_PRODUCT_LIST->value]], function () {
                 Route::get('/', [DynamicFieldsManageController::class, 'getDynamicOptionForProduct']);
             });
 

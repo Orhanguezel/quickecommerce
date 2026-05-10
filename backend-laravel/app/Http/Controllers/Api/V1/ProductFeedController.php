@@ -13,13 +13,13 @@ class ProductFeedController extends Controller
      * Cimri XML Product Feed
      * URL: /feeds/cimri.xml
      *
-     * Tum aktif urunleri Google Merchant RSS yapisinda XML olarak doner.
+     * Tum aktif urunleri fiyat karsilastirma feed'i olarak doner.
      * 6 saat cache'lenir — cache temizlemek icin: php artisan cache:clear
      */
     public function cimri(): Response
     {
-        $xml = Cache::remember('cimri_product_feed_google_only_v2', 6 * 60 * 60, function () {
-            return $this->generateCimriXml();
+        $xml = Cache::remember('cimri_product_feed_v3', 6 * 60 * 60, function () {
+            return $this->generateProductXml('cimri');
         });
 
         return response($xml, 200, [
@@ -27,10 +27,26 @@ class ProductFeedController extends Controller
         ]);
     }
 
-    private function generateCimriXml(): string
+    /**
+     * Google Merchant XML Product Feed
+     * URL: /feeds/google.xml
+     *
+     * Google Merchant icin sorun cikarabilecek urunleri feed disinda birakir.
+     */
+    public function google(): Response
+    {
+        $xml = Cache::remember('google_product_feed_v2', 6 * 60 * 60, function () {
+            return $this->generateProductXml('google');
+        });
+
+        return response($xml, 200, [
+            'Content-Type' => 'application/xml; charset=UTF-8',
+        ]);
+    }
+
+    private function generateProductXml(string $feedType): string
     {
         $siteUrl = rtrim(config('app.frontend_url', 'https://sportoonline.com'), '/');
-        $backendUrl = rtrim(config('app.url', 'https://api.sportoonline.com'), '/');
 
         // Aktif urunleri variant + kategori + marka ile cek
         $products = Product::where('status', 'approved')
@@ -39,15 +55,16 @@ class ProductFeedController extends Controller
                 'variants' => fn($q) => $q->where('status', 1)->whereNull('deleted_at'),
                 'category',
                 'brand',
+                'store',
             ])
             ->get();
 
         $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
         $xml .= '<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">' . "\n";
         $xml .= "  <channel>\n";
-        $xml .= "    <title>Sportoonline Product Feed</title>\n";
+        $xml .= "    <title>Sportoonline " . ($feedType === 'google' ? 'Google Merchant' : 'Cimri') . " Product Feed</title>\n";
         $xml .= "    <link>" . $this->xmlEscape($siteUrl) . "</link>\n";
-        $xml .= "    <description>Sportoonline Google Merchant product feed</description>\n";
+        $xml .= "    <description>Sportoonline " . ($feedType === 'google' ? 'Google Merchant' : 'price comparison') . " product feed</description>\n";
 
         foreach ($products as $product) {
             $variant = $product->displayVariant();
@@ -72,9 +89,18 @@ class ProductFeedController extends Controller
             if ($product->image) {
                 $imageUrl = com_option_get_id_wise_url($product->image);
             }
+            if ($imageUrl === '') {
+                continue;
+            }
+            if ($feedType === 'google' && !$this->hasMerchantSafeImageUrl($imageUrl)) {
+                continue;
+            }
 
             // Kategori yolu
             $categoryPath = $this->buildCategoryPath($product->category);
+            if ($feedType === 'google' && $this->isRestrictedForGoogleMerchant($product, $categoryPath)) {
+                continue;
+            }
 
             // Marka — Google g:brand zorunlu sayilir. Bos ise site adi kullanilir.
             $brandName = $product->brand?->brand_name ?: 'Sportoonline';
@@ -82,8 +108,17 @@ class ProductFeedController extends Controller
             // Description — Google Merchant zorunlu alan. Bossa feed'den exclude et.
             // >5000 karakter ise truncate.
             $descriptionText = trim(strip_tags((string) $product->description));
-            if ($descriptionText === '') {
-                continue; // Google reject etmesin diye description bos urunleri atlayalim
+            $descriptionText = preg_replace('/\s+/', ' ', $descriptionText) ?: '';
+            if ($feedType === 'google' && !$this->hasMerchantSafeDescription($descriptionText)) {
+                continue; // Google reject etmesin diye zayif/placeholder aciklamali urunleri atlayalim
+            }
+
+            if ($feedType === 'cimri' && $descriptionText === '') {
+                $descriptionText = (string) $product->name;
+            }
+
+            if ($feedType === 'google' && !$this->hasMerchantSafeStore($product->store)) {
+                continue; // Satici seffafligi icin iletisim bilgisi eksik urunleri feed'e koymayalim
             }
             if (mb_strlen($descriptionText) > 5000) {
                 $descriptionText = mb_substr($descriptionText, 0, 4997) . '...';
@@ -97,6 +132,9 @@ class ProductFeedController extends Controller
 
             // Stok durumu
             $stockStatus = ($variant->stock_quantity > 0) ? 'in stock' : 'out of stock';
+            if ($feedType === 'google' && $stockStatus !== 'in stock') {
+                continue;
+            }
 
             // SKU / Barkod
             $sku = $variant->sku ?: ('SP-' . $product->id);
@@ -168,6 +206,132 @@ class ProductFeedController extends Controller
         }
 
         return implode(' > ', array_reverse($parts));
+    }
+
+    private function hasMerchantSafeDescription(string $description): bool
+    {
+        if ($description === '' || mb_strlen($description) < 20) {
+            return false;
+        }
+
+        if (preg_match('/^\$[a-z0-9]+$/i', $description)) {
+            return false;
+        }
+
+        return !preg_match('/\b(lorem|placeholder|demo|test)\b/i', $description);
+    }
+
+    private function hasMerchantSafeStore($store): bool
+    {
+        if (!$store) {
+            return false;
+        }
+
+        return trim((string) $store->phone) !== ''
+            && trim((string) $store->email) !== ''
+            && trim((string) $store->address) !== ''
+            && !preg_match('/^(address not found|adres bulunamad[ıi]|no address)$/i', trim((string) $store->address));
+    }
+
+    private function isRestrictedForGoogleMerchant(Product $product, string $categoryPath): bool
+    {
+        $haystack = mb_strtolower(implode(' ', [
+            $categoryPath,
+            (string) $product->name,
+            strip_tags((string) $product->description),
+            (string) $product->type,
+            (string) $product->store?->store_type,
+        ]));
+
+        $restrictedTerms = [
+            'spor beslenmesi',
+            'sporcu besin',
+            'besin takviyesi',
+            'supplement',
+            'protein',
+            'whey',
+            'kreatin',
+            'creatine',
+            'bcaa',
+            'amino',
+            'pre-workout',
+            'pre workout',
+            'vitamin',
+            'mineral',
+            'zma',
+            'kolajen',
+            'collagen',
+            'cla',
+            'omega',
+            'tribulus',
+            'testo',
+            'carnitine',
+            'l-carnitine',
+            'yağ yak',
+            'detox',
+            'takviye',
+            'gıda takviyesi',
+            'gida takviyesi',
+            'beslenme desteği',
+            'beslenme destegi',
+            'cilt bakımı',
+            'cilt bakimi',
+            'ayak kokusu',
+            'krem',
+            'kozmetik',
+            'pekmez',
+            'bal',
+            'reçel',
+            'recel',
+            'bitkisel',
+            'organik',
+            'doğal',
+            'dogal',
+            'tütün',
+            'tutun',
+            'tobacco',
+            'sigara',
+            'puro',
+            'nargile',
+            'alkol',
+            'alkollü',
+            'alkollu',
+            'alcohol',
+            'bira',
+            'şarap',
+            'sarap',
+            'rakı',
+            'raki',
+            'viski',
+            'vodka',
+            'likör',
+            'likor',
+        ];
+
+        foreach ($restrictedTerms as $term) {
+            if (str_contains($haystack, $term)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function hasMerchantSafeImageUrl(string $imageUrl): bool
+    {
+        $path = parse_url($imageUrl, PHP_URL_PATH) ?: '';
+        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+
+        if (!in_array($extension, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true)) {
+            return false;
+        }
+
+        $imageInfo = @getimagesize($imageUrl);
+        if (!$imageInfo) {
+            return false;
+        }
+
+        return (int) $imageInfo[0] >= 100 && (int) $imageInfo[1] >= 100;
     }
 
     private function xmlEscape(string $value): string

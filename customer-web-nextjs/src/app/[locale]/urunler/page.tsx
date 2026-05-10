@@ -16,6 +16,7 @@ interface Props {
     max_price?: string;
     min_rating?: string;
     search?: string;
+    flash_sale_id?: string;
   }>;
 }
 
@@ -56,7 +57,8 @@ async function getProductsData(
   minPrice?: string,
   maxPrice?: string,
   minRating?: string,
-  search?: string
+  search?: string,
+  flashSaleId?: string
 ) {
   const productParams: Record<string, string | number | boolean> = {
     per_page: 15,
@@ -67,15 +69,17 @@ async function getProductsData(
   if (maxPrice) productParams.max_price = maxPrice;
   if (minRating) productParams.min_rating = minRating;
   if (search) productParams.search = search;
+  if (flashSaleId) productParams.flash_sale_id = flashSaleId;
 
   // Build category and brand array params
   const extraParams = new URLSearchParams();
   categoryIds?.forEach((id) => extraParams.append("category_id[]", id));
   brandIds?.forEach((id) => extraParams.append("brand_id[]", id));
+  const endpoint = flashSaleId ? API_ENDPOINTS.FLASH_DEAL_PRODUCTS : API_ENDPOINTS.PRODUCTS;
 
   const [productsRes, categoriesRes, brandsRes, attributesRes] = await Promise.allSettled([
     fetchAPI<any>(
-      `${API_ENDPOINTS.PRODUCTS}${extraParams.toString() ? `?${extraParams.toString()}` : ""}`,
+      `${endpoint}${extraParams.toString() ? `?${extraParams.toString()}` : ""}`,
       productParams,
       locale
     ),
@@ -183,7 +187,8 @@ export default async function ProductsPage({ params, searchParams }: Props) {
     sp.min_price,
     sp.max_price,
     sp.min_rating,
-    sp.search
+    sp.search,
+    sp.flash_sale_id
   );
 
   const t = await getTranslations({ locale, namespace: "products_page" });
@@ -208,6 +213,7 @@ export default async function ProductsPage({ params, searchParams }: Props) {
         min_rating: sp.min_rating,
         sort,
       }}
+      currentFlashSaleId={sp.flash_sale_id}
       categories={data.categories}
       brands={data.brands.map((b) => ({ id: b.id, name: b.label }))}
       attributes={data.attributes.map((a) => ({

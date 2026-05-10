@@ -38,5 +38,18 @@ class RateLimitServiceProvider extends ServiceProvider
                 ], Response::HTTP_TOO_MANY_REQUESTS, $headers);
             });
         });
+
+        RateLimiter::for('funnel', function (Request $request) {
+            return Limit::perMinute(120)->by(
+                $request->input('events.0.visitor_id')
+                    ?: $request->input('events.0.session_id')
+                    ?: $request->ip()
+            )->response(function (Request $request, array $headers) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Too many analytics events. Please try again later.',
+                ], Response::HTTP_TOO_MANY_REQUESTS, $headers);
+            });
+        });
     }
 }

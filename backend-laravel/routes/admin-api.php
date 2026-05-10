@@ -597,6 +597,7 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => ['auth:sanctum']], functi
         /*--------------------- System management ----------------------------*/
         Route::group(['prefix' => 'system-management/'], function () {
             Route::match(['get', 'post'], '/general-settings', [SystemManagementController::class, 'generalSettings'])->middleware('permission:' . PermissionKey::GENERAL_SETTINGS->value);
+            Route::get('/page-settings/about', [PagesManageController::class, 'aboutSettings'])->middleware('permission:' . PermissionKey::ADMIN_PAGES_LIST->value);
             // menu manage
             Route::prefix('menu-customization/')->middleware(['permission:' . PermissionKey::MENU_CUSTOMIZATION->value])->group(function () {
                 Route::get('list', [MenuManageController::class, 'menus']);

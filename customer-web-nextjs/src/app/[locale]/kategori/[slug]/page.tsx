@@ -9,6 +9,7 @@ import {
   sortCategoriesForNavigation,
 } from "@/modules/site/category-utils";
 import { CategoryPageClient } from "./category-client";
+import { absoluteUrl, localizedAlternates, SITE_URL } from "@/lib/seo";
 
 interface Props {
   params: Promise<{ locale: string; slug: string }>;
@@ -186,15 +187,13 @@ export async function generateMetadata({
       title,
       description,
       type: "website",
+      url: absoluteUrl(`/${locale}/kategori/${slug}`),
       locale: locale === "tr" ? "tr_TR" : "en_US",
       siteName: "Sporto Online",
     },
     alternates: {
       canonical: `/${locale}/kategori/${slug}`,
-      languages: {
-        tr: `/tr/kategori/${slug}`,
-        en: `/en/kategori/${slug}`,
-      },
+      languages: localizedAlternates(`/kategori/${slug}`),
     },
   };
 }
@@ -257,12 +256,74 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       },
     ],
   };
+  const collectionJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: data.categoryName,
+    url: `${SITE_URL}/${locale}/kategori/${slug}`,
+    description:
+      locale === "tr"
+        ? `${data.categoryName} kategorisindeki ürünleri, markaları ve fiyat seçeneklerini Sportoonline'da keşfedin.`
+        : `Discover products, brands, and price options in the ${data.categoryName} category on Sportoonline.`,
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: data.products.length,
+      itemListElement: data.products.slice(0, 12).map((product, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        url: `${SITE_URL}/${locale}/urun/${product.slug}`,
+        name: product.name,
+      })),
+    },
+  };
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name:
+          locale === "tr"
+            ? `${data.categoryName} ürünleri nasıl seçilir?`
+            : `How should ${data.categoryName} products be selected?`,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text:
+            locale === "tr"
+              ? "Kullanım amacı, beden veya teknik özellikler, marka güvenilirliği, kullanıcı yorumları, fiyat ve stok durumu birlikte değerlendirilmelidir."
+              : "Compare intended use, size or technical specifications, brand reliability, customer reviews, price, and availability together.",
+        },
+      },
+      {
+        "@type": "Question",
+        name:
+          locale === "tr"
+            ? `${data.categoryName} fiyatları neye göre değişir?`
+            : `What affects ${data.categoryName} prices?`,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text:
+            locale === "tr"
+              ? "Fiyatlar marka, ürün özellikleri, satıcı, kampanya, stok ve teslimat koşullarına göre değişebilir. Güncel fiyat ürün sayfasında doğrulanmalıdır."
+              : "Prices can vary by brand, features, seller, campaign, stock, and delivery terms. Verify the current price on the product page.",
+        },
+      },
+    ],
+  };
 
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
       <CategoryPageClient
         products={data.products}

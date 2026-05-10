@@ -9,6 +9,7 @@ import type { ShippingCampaign } from "@/modules/shipping-campaign/shipping-camp
 import type { BannerGroupedResponse } from "@/modules/banner/banner.type";
 import type { PublicCoupon } from "@/modules/coupon/coupon.type";
 import { ProductDetailClient } from "./product-detail-client";
+import { absoluteUrl, localizedAlternates, priceValidUntil, stripHtml, truncateText } from "@/lib/seo";
 
 interface Props {
   params: Promise<{ locale: string; slug: string }>;
@@ -57,6 +58,15 @@ function convertPriceFromDefault(
   if (!defaultRate || !targetRate) return amount;
   const converted = amount * (targetRate / defaultRate);
   return Number(converted.toFixed(2));
+}
+
+function findSpecificationValue(
+  specifications: Array<{ name: string; value: string }> | undefined,
+  patterns: RegExp[]
+) {
+  return specifications?.find((spec) =>
+    patterns.some((pattern) => pattern.test(spec.name))
+  )?.value;
 }
 
 async function getShippingCampaigns(locale: string): Promise<ShippingCampaign[]> {
@@ -135,7 +145,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = product.meta_title || product.name;
   const description =
     product.meta_description ||
-    product.description?.replace(/<[^>]*>/g, "").slice(0, 160) ||
+    truncateText(stripHtml(product.description), 160) ||
     "";
 
   return {
@@ -146,6 +156,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       type: "website",
+      url: absoluteUrl(`/${locale}/urun/${slug}`),
       locale: locale === "tr" ? "tr_TR" : "en_US",
       siteName: "Sporto Online",
       images: product.meta_image_url || product.image_url
@@ -154,10 +165,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     alternates: {
       canonical: `/${locale}/urun/${slug}`,
-      languages: {
-        tr: `/tr/urun/${slug}`,
-        en: `/en/urun/${slug}`,
-      },
+      languages: localizedAlternates(`/urun/${slug}`),
     },
     other: price
       ? {
@@ -196,16 +204,38 @@ export default async function ProductDetailPage({ params }: Props) {
     seoCurrency.defaultRate,
     seoCurrency.targetRate
   );
+  const variantStock = product.variants?.reduce(
+    (sum, variant) => sum + Number(variant.stock_quantity || 0),
+    0
+  );
+  const availableStock =
+    product.stock != null ? Number(product.stock) : variantStock;
+  const hasReviews = Number(product.review_count || 0) > 0 && parseFloat(product.rating) > 0;
+  const gtin = findSpecificationValue(product.specifications, [
+    /^gtin$/i,
+    /^ean$/i,
+    /^upc$/i,
+    /barkod/i,
+    /barcode/i,
+  ]);
+  const mpn = findSpecificationValue(product.specifications, [
+    /^mpn$/i,
+    /model/i,
+    /uretici kodu/i,
+    /üretici kodu/i,
+  ]);
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
-    description: product.description?.replace(/<[^>]*>/g, "").slice(0, 500),
+    description: truncateText(stripHtml(product.description), 1000),
     image: product.gallery_images_urls?.length
       ? product.gallery_images_urls
       : [product.image_url],
     sku: product.variants?.[0]?.sku || String(product.id),
+    ...(gtin ? { gtin } : {}),
+    ...(mpn ? { mpn } : {}),
     brand: product.brand
       ? { "@type": "Brand", name: product.brand.label }
       : undefined,
@@ -214,17 +244,19 @@ export default async function ProductDetailPage({ params }: Props) {
       "@type": "Offer",
       url: `https://sportoonline.com/${locale}/urun/${slug}`,
       priceCurrency: seoCurrency.code,
-      price: price ?? 0,
+      ...(price != null ? { price } : {}),
+      priceValidUntil: priceValidUntil(),
       availability:
-        product.stock != null && product.stock > 0
+        availableStock > 0
           ? "https://schema.org/InStock"
           : "https://schema.org/OutOfStock",
+      itemCondition: "https://schema.org/NewCondition",
       seller: product.store
         ? { "@type": "Organization", name: product.store.name }
         : undefined,
     },
     aggregateRating:
-      parseFloat(product.rating) > 0
+      hasReviews
         ? {
             "@type": "AggregateRating",
             ratingValue: product.rating,

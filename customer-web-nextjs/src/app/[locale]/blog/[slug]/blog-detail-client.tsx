@@ -16,6 +16,7 @@ import type {
 } from "@/modules/blog/blog.type";
 import { useAuthStore } from "@/stores/auth-store";
 import { useBaseService } from "@/lib/base-service";
+import { ENGIN_ESER_AUTHOR, getEnginEserAuthor } from "@/lib/authors";
 
 interface BlogDetailTranslations {
   blog: string;
@@ -43,6 +44,7 @@ interface BlogDetailClientProps {
   relatedPosts: BlogPost[];
   comments: BlogComment[];
   totalComments: number;
+  locale: string;
   translations: BlogDetailTranslations;
 }
 
@@ -75,8 +77,10 @@ export function BlogDetailClient({
   relatedPosts,
   comments,
   totalComments,
+  locale,
   translations: t,
 }: BlogDetailClientProps) {
+  const author = getEnginEserAuthor(locale);
   const tags =
     blog.tag_name
       ?.split(",")
@@ -160,6 +164,39 @@ export function BlogDetailClient({
                 {t.views}: {blog.views}
               </span>
             )}
+          </div>
+
+          <div className="mb-5 flex gap-3 rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
+            {author.image ? (
+              <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full bg-muted">
+                <Image
+                  src={author.image}
+                  alt={author.name}
+                  fill
+                  className="object-cover"
+                  sizes="40px"
+                />
+              </div>
+            ) : (
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted">
+                <User className="h-4 w-4 text-muted-foreground" />
+              </div>
+            )}
+            <div className="min-w-0">
+              <Link
+                href={author.path}
+                className="font-medium text-foreground underline-offset-2 hover:underline"
+              >
+                {t.home === "Ana Sayfa" ? "Yazar: " : "Author: "}
+                {author.name}
+              </Link>
+              <p className="mt-1">{author.title}</p>
+              <p className="mt-1">
+                {t.home === "Ana Sayfa"
+                  ? "Bu içerik bilgilendirme amaçlıdır. Egzersiz, beslenme veya takviye kararlarında kişisel sağlık durumunuz için uzman görüşü alın. Ürün karşılaştırmalarında Sportoonline üzerinde satılan ürünlere yer verilebilir."
+                  : "This content is for informational purposes. For exercise, nutrition, or supplement decisions, consult a qualified professional for your personal health context. Product comparisons may include products sold on Sportoonline."}
+              </p>
+            </div>
           </div>
 
           {/* Title */}
@@ -384,7 +421,11 @@ function RelatedPostCard({ post }: { post: BlogPost }) {
         <h3 className="mb-2 line-clamp-2 text-sm font-semibold leading-snug group-hover:text-primary">
           {post.title}
         </h3>
-        <p className="text-xs text-muted-foreground">{post.created_at}</p>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+          <span>{post.created_at}</span>
+          <span aria-hidden="true">/</span>
+          <span>{ENGIN_ESER_AUTHOR.name}</span>
+        </div>
       </div>
     </Link>
   );

@@ -494,7 +494,8 @@ class UserController extends Controller
         // Application fields required only for public registration
         if (!$isAdminCreating) {
             $rules = array_merge($rules, [
-                'company_name' => 'required|string|max:255',
+                'business_type' => 'nullable|in:individual,company',
+                'company_name' => 'required_if:business_type,company|nullable|string|max:255',
                 'sector' => 'required|string|max:255',
                 'tax_number' => 'required|string|max:50',
                 'tax_office' => 'nullable|string|max:255',
@@ -559,6 +560,7 @@ class UserController extends Controller
 
                 SellerApplication::create([
                     'user_id' => $user->id,
+                    'business_type' => $request->input('business_type', 'company'),
                     'company_name' => $request->company_name,
                     'brand_name' => $request->brand_name,
                     'sector' => $request->sector,
@@ -1081,6 +1083,7 @@ class UserController extends Controller
 
                     // Save KYC fields to seller_applications if provided
                     $kycFields = [
+                        'business_type',
                         'company_name', 'brand_name', 'sector', 'tax_office', 'tax_number',
                         'mersis_number', 'website_url', 'address_country', 'address_city',
                         'address_district', 'address_postal_code', 'address_line1', 'address_line2',

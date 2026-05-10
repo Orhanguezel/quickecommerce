@@ -6,6 +6,7 @@ import Cookies from "js-cookie";
 import { useLocale } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
+import { toast } from "@/hooks/use-toast";
 import { getApiBaseUrl } from "@/lib/api-url";
 import { AUTH_TOKEN_KEY, AUTH_USER } from "@/lib/constants";
 import { useAuthStore } from "@/stores/auth-store";
@@ -50,6 +51,10 @@ export function useLoginMutation() {
         localStorage.setItem("expires_at", data.expires_at);
       }
       setUser(data.user);
+      toast({
+        title: "Giriş başarılı",
+        description: "Hesabınıza giriş yapıldı.",
+      });
       const redirectTo = searchParams.get("redirect");
       router.push(redirectTo || `/${locale}`);
     },
@@ -105,6 +110,10 @@ export function useSocialLoginMutation() {
         localStorage.setItem("expires_at", data.expires_at);
       }
       setUser(data.user);
+      toast({
+        title: "Giriş başarılı",
+        description: "Hesabınıza giriş yapıldı.",
+      });
       const redirectTo = searchParams.get("redirect");
       router.push(redirectTo || `/${locale}`);
     },

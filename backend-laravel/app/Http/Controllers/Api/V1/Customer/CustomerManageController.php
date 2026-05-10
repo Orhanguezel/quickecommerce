@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\PersonalAccessToken;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -52,6 +53,10 @@ class CustomerManageController extends Controller
 
     public function loginCustomer(Request $request)
     {
+        if ($request->boolean('social_login')) {
+            return $this->socialLoginCustomer($request);
+        }
+
         $validator = Validator::make($request->all(), [
             'email' => 'required|string|email|max:255',
             'password' => 'required|string|min:8|max:32',
@@ -135,6 +140,101 @@ class CustomerManageController extends Controller
                 "activity_notification" => (bool)$customer->activity_notification,
             ]);
         }
+    }
+
+    protected function socialLoginCustomer(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'access_token' => 'required|string',
+            'type' => 'required|string|in:google,facebook',
+            'firebase_device_token' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                "status" => false,
+                "message" => $validator->errors(),
+            ], 422);
+        }
+
+        $type = $request->input('type');
+        $profile = $type === 'google'
+            ? verifyGoogleToken($request->input('access_token'))
+            : verifyFacebookToken($request->input('access_token'));
+
+        if (!$profile || empty($profile['id']) || empty($profile['email'])) {
+            return response()->json([
+                "status" => false,
+                "message" => __('messages.invalid_token'),
+            ], 422);
+        }
+
+        $socialColumn = $type . '_id';
+        $customer = Customer::where($socialColumn, $profile['id'])
+            ->orWhere('email', $profile['email'])
+            ->first();
+
+        if ($customer && $customer->deleted_at !== null) {
+            return response()->json([
+                'error' => 'Your account has been deleted. Please contact support.',
+            ], Response::HTTP_GONE);
+        }
+
+        if ($customer && $customer->status === 0) {
+            return response()->json([
+                'error' => 'Your account has been deactivated. Please contact support.',
+            ], Response::HTTP_FORBIDDEN);
+        }
+
+        if ($customer && $customer->status === 2) {
+            return response()->json([
+                'error' => 'Your account has been suspended by the admin.',
+            ], Response::HTTP_FORBIDDEN);
+        }
+
+        $name = trim($profile['name'] ?? '');
+        [$firstName, $lastName] = array_pad(preg_split('/\s+/', $name, 2), 2, null);
+
+        if (!$customer) {
+            $customer = Customer::create([
+                'first_name' => $firstName ?: $profile['email'],
+                'last_name' => $lastName,
+                'email' => $profile['email'],
+                $socialColumn => $profile['id'],
+                'email_verified' => 1,
+                'email_verified_at' => Carbon::now(),
+                'firebase_token' => $request->input('firebase_device_token'),
+                'password' => Hash::make(Str::random(32)),
+                'status' => 1,
+            ]);
+        } else {
+            $customer->update([
+                $socialColumn => $profile['id'],
+                'email_verified' => 1,
+                'email_verified_at' => $customer->email_verified_at ?? Carbon::now(),
+                'firebase_token' => $request->input('firebase_device_token'),
+            ]);
+        }
+
+        $token = $customer->createToken('customer_social_auth_token');
+        $accessToken = $token->accessToken;
+        $accessToken->expires_at = Carbon::now()->addMinutes((int)1440);
+        $accessToken->save();
+
+        return response()->json([
+            "status" => true,
+            "status_code" => 200,
+            "message" => __('messages.login_success'),
+            "token" => $token->plainTextToken,
+            "expires_at" => $accessToken->expires_at->format('Y-m-d H:i:s'),
+            "user" => new CustomerProfileResource($customer),
+            "email" => $customer->email,
+            "email_verified" => (bool)$customer->email_verified,
+            "email_verification_settings" => com_option_get('com_user_email_verification', null, false) ?? 'off',
+            "account_status" => $customer->deactivated_at ? 'deactivated' : 'active',
+            "marketing_email" => (bool)$customer->marketing_email,
+            "activity_notification" => (bool)$customer->activity_notification,
+        ]);
     }
 
     public function refreshToken(Request $request)

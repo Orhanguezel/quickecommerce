@@ -1,20 +1,80 @@
 import type { MetadataRoute } from "next";
 import axios from "axios";
+import {
+  isDisplayableProductCategory,
+} from "@/modules/site/category-utils";
+import type { Category } from "@/modules/site/site.type";
+import { SITE_URL, toIsoDate } from "@/lib/seo";
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_REST_API_ENDPOINT ||
   "https://sportoonline.com/api/v1";
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://sportoonline.com";
+interface SitemapItem {
+  slug: string;
+  updatedAt?: string;
+}
 
-async function fetchSlugs(endpoint: string): Promise<string[]> {
+type SitemapRawItem = Record<string, unknown>;
+
+function normalizeSitemapItem(item: SitemapRawItem): SitemapItem | null {
+  const slug =
+    item.slug ||
+    item.category_slug ||
+    item.blog_slug ||
+    item.product_slug ||
+    item.store_slug;
+
+  if (!slug || typeof slug !== "string") return null;
+
+  const updatedAt =
+    typeof item.updated_at === "string"
+      ? item.updated_at
+      : typeof item.created_at === "string"
+        ? item.created_at
+        : undefined;
+
+  return { slug, updatedAt };
+}
+
+function normalizeLastModified(value: string | undefined, fallback: string): string {
+  return (toIsoDate(value) || fallback).slice(0, 10);
+}
+
+function encodeSlug(slug: string): string {
+  try {
+    return encodeURIComponent(decodeURIComponent(slug));
+  } catch {
+    return encodeURIComponent(slug);
+  }
+}
+
+async function fetchSlugs(endpoint: string): Promise<SitemapItem[]> {
   try {
     const res = await axios.get(`${BASE_URL}${endpoint}`, {
       params: { per_page: 1000, language: "tr" },
-      timeout: 10000,
+      timeout: 60000,
     });
     const items = res.data?.data ?? [];
-    return items.map((item: { slug: string }) => item.slug).filter(Boolean);
+    return items
+      .map((item: Record<string, unknown>) => normalizeSitemapItem(item))
+      .filter(Boolean) as SitemapItem[];
+  } catch {
+    return [];
+  }
+}
+
+async function fetchCategorySlugs(): Promise<SitemapItem[]> {
+  try {
+    const res = await axios.get(`${BASE_URL}/product-category/list`, {
+      params: { per_page: 1000, language: "tr" },
+      timeout: 60000,
+    });
+    const items = (res.data?.data ?? []) as SitemapRawItem[];
+
+    return items
+      .filter((item) => isDisplayableProductCategory(item as unknown as Category))
+      .map((item) => normalizeSitemapItem(item))
+      .filter(Boolean) as SitemapItem[];
   } catch {
     return [];
   }
@@ -22,12 +82,13 @@ async function fetchSlugs(endpoint: string): Promise<string[]> {
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const locales = ["tr", "en"];
-  const now = new Date().toISOString();
+  const now = new Date().toISOString().slice(0, 10);
 
   // Static pages
   const staticPages = [
     { path: "", priority: 1.0, changeFrequency: "daily" as const },
     { path: "/blog", priority: 0.7, changeFrequency: "daily" as const },
+    { path: "/yazar/engin-eser", priority: 0.4, changeFrequency: "monthly" as const },
     { path: "/kampanyalar", priority: 0.6, changeFrequency: "daily" as const },
     { path: "/magazalar", priority: 0.6, changeFrequency: "weekly" as const },
     { path: "/kuponlar", priority: 0.5, changeFrequency: "weekly" as const },
@@ -40,6 +101,36 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       path: "/gizlilik-politikasi",
+      priority: 0.2,
+      changeFrequency: "monthly" as const,
+    },
+    {
+      path: "/iade-degisim",
+      priority: 0.2,
+      changeFrequency: "monthly" as const,
+    },
+    {
+      path: "/iade-politikasi",
+      priority: 0.2,
+      changeFrequency: "monthly" as const,
+    },
+    {
+      path: "/kargo-politikasi",
+      priority: 0.2,
+      changeFrequency: "monthly" as const,
+    },
+    {
+      path: "/kargo-teslimat",
+      priority: 0.2,
+      changeFrequency: "monthly" as const,
+    },
+    {
+      path: "/mesafeli-satis-sozlesmesi",
+      priority: 0.2,
+      changeFrequency: "monthly" as const,
+    },
+    {
+      path: "/uye-sozlesmesi",
       priority: 0.2,
       changeFrequency: "monthly" as const,
     },
@@ -63,7 +154,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [productSlugs, categorySlugs, brandSlugs, blogSlugs, storeSlugs] =
     await Promise.all([
       fetchSlugs("/product-list"),
-      fetchSlugs("/product-category/list"),
+      fetchCategorySlugs(),
       fetchSlugs("/brand-list"),
       fetchSlugs("/blogs"),
       fetchSlugs("/store-list"),
@@ -72,11 +163,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const dynamicEntries: MetadataRoute.Sitemap = [];
 
   // Products
-  for (const slug of productSlugs) {
+  for (const item of productSlugs) {
+    const slug = encodeSlug(item.slug);
     for (const locale of locales) {
       dynamicEntries.push({
         url: `${SITE_URL}/${locale}/urun/${slug}`,
-        lastModified: now,
+        lastModified: normalizeLastModified(item.updatedAt, now),
         changeFrequency: "daily",
         priority: 0.8,
         alternates: {
@@ -89,11 +181,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   // Categories
-  for (const slug of categorySlugs) {
+  for (const item of categorySlugs) {
+    const slug = encodeSlug(item.slug);
     for (const locale of locales) {
       dynamicEntries.push({
         url: `${SITE_URL}/${locale}/kategori/${slug}`,
-        lastModified: now,
+        lastModified: normalizeLastModified(item.updatedAt, now),
         changeFrequency: "weekly",
         priority: 0.7,
         alternates: {
@@ -106,11 +199,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   // Brands
-  for (const slug of brandSlugs) {
+  for (const item of brandSlugs) {
+    const slug = encodeSlug(item.slug);
     for (const locale of locales) {
       dynamicEntries.push({
         url: `${SITE_URL}/${locale}/marka/${slug}`,
-        lastModified: now,
+        lastModified: normalizeLastModified(item.updatedAt, now),
         changeFrequency: "weekly",
         priority: 0.6,
         alternates: {
@@ -123,11 +217,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   // Blog posts
-  for (const slug of blogSlugs) {
+  for (const item of blogSlugs) {
+    const slug = encodeSlug(item.slug);
     for (const locale of locales) {
       dynamicEntries.push({
         url: `${SITE_URL}/${locale}/blog/${slug}`,
-        lastModified: now,
+        lastModified: normalizeLastModified(item.updatedAt, now),
         changeFrequency: "weekly",
         priority: 0.7,
         alternates: {
@@ -140,11 +235,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   // Stores
-  for (const slug of storeSlugs) {
+  for (const item of storeSlugs) {
+    const slug = encodeSlug(item.slug);
     for (const locale of locales) {
       dynamicEntries.push({
         url: `${SITE_URL}/${locale}/magaza/${slug}`,
-        lastModified: now,
+        lastModified: normalizeLastModified(item.updatedAt, now),
         changeFrequency: "weekly",
         priority: 0.6,
         alternates: {

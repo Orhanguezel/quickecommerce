@@ -5,16 +5,16 @@
 1. SSH ile sunucuya baglan
 2. Proje dizinine gec: `cd /var/www/quickecommerce/backend-laravel` (ya da canli path neyse)
 3. Asagidaki dosyalarin sunucuda olmasi gerekir:
-   - `dropick_products.json` (74 urun verisi — scraper ciktisi)
-   - `dropick_images/` klasoru (248 gorsel, ~200 MB)
+   - `data/source-products/dropick_products.json` (74 urun verisi — scraper ciktisi)
+   - `assets/source-images/dropick_images/` klasoru (248 gorsel, ~200 MB)
    - `app/Console/Commands/ImportDropickProducts.php` (artisan komutu)
 
 ## Adim 1: Dosyalari Sunucuya Yukle
 
 ```bash
 # Lokaldeki dosyalari sunucuya kopyala
-scp dropick_products.json kullanici@sunucu:/var/www/quickecommerce/
-scp -r dropick_images/ kullanici@sunucu:/var/www/quickecommerce/
+scp data/source-products/dropick_products.json kullanici@sunucu:/var/www/quickecommerce/data/source-products/
+rsync -az assets/source-images/dropick_images/ kullanici@sunucu:/var/www/quickecommerce/assets/source-images/dropick_images/
 
 # Import komut dosyasi zaten git'te — deploy ettiysen otomatik gelir
 # Degilse elle kopyala:
@@ -37,7 +37,7 @@ Ciktisindan Dropick urunlerini eklemek istedigin magazanin ID'sini not al.
 Gercek import oncesi mutlaka dry-run yap:
 
 ```bash
-php artisan import:dropick ../dropick_products.json {STORE_ID} --dry-run --status=approved --type=sports --lang=tr
+php artisan import:dropick ../data/source-products/dropick_products.json {STORE_ID} --dry-run --status=approved --type=sports --lang=tr
 ```
 
 Beklenen cikti:
@@ -48,7 +48,7 @@ Beklenen cikti:
 ## Adim 4: Gercek Import
 
 ```bash
-php artisan import:dropick ../dropick_products.json {STORE_ID} --status=approved --type=sports --lang=tr
+php artisan import:dropick ../data/source-products/dropick_products.json {STORE_ID} --status=approved --type=sports --lang=tr
 ```
 
 Bu komut su islemleri yapar:

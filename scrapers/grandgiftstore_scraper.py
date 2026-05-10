@@ -1,16 +1,17 @@
 """
 GrandGiftStore.com Ürün Scraper (WooCommerce Store API)
 --------------------------------------------------------
-Kullanım: python grandgiftstore_scraper.py
-Çıktı: grandgiftstore_products.json, grandgiftstore_images/
+Kullanım: python scrapers/grandgiftstore_scraper.py
+Çıktı: data/source-products/grandgiftstore_products.json, assets/source-images/grandgiftstore_images/
 """
 
 import requests, json, time, os, re, hashlib
+from paths import source_image_dir, source_product_path
 
 API_BASE = "https://grandapi.tasarimhizmetim.com/wp-json/wc/store/v1"
 SITE_URL = "https://www.grandgiftstore.com"
-IMAGE_DIR = "grandgiftstore_images"
-OUTPUT_FILE = "grandgiftstore_products.json"
+IMAGE_DIR = source_image_dir("grandgiftstore_images")
+OUTPUT_FILE = source_product_path("grandgiftstore_products.json")
 PER_PAGE = 10  # Store API max per_page
 
 HEADERS = {

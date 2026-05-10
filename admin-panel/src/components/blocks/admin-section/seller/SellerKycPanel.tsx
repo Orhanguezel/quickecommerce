@@ -19,6 +19,7 @@ type Seller = {
   kyc_admin_note?: string | null;
   kyc_reviewed_at?: string | null;
   consent_at?: string | null;
+  business_type?: "individual" | "company" | null;
   company_name?: string | null;
   brand_name?: string | null;
   sector?: string | null;
@@ -53,6 +54,7 @@ export default function SellerKycPanel({ seller }: Props) {
   const { mutate: retrySubMerchant, isPending: isRetrying } =
     useSellerApplicationRetrySubMerchant();
   const [copied, setCopied] = useState(false);
+  const isIndividual = seller.business_type === "individual";
 
   const onRetry = () => {
     if (!seller.application_id) return;
@@ -236,13 +238,14 @@ export default function SellerKycPanel({ seller }: Props) {
 
           {/* Sections */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Section icon={<Building2 className="h-4 w-4" />} title="Şirket">
-              <Row label="Ünvan" value={seller.company_name} />
+            <Section icon={<Building2 className="h-4 w-4" />} title={isIndividual ? "Bireysel" : "Şirket"}>
+              <Row label="Hesap Tipi" value={isIndividual ? "Bireysel" : "Şirket"} />
+              {!isIndividual && <Row label="Ünvan" value={seller.company_name} />}
               <Row label="Marka" value={seller.brand_name} />
               <Row label="Sektör" value={seller.sector} />
-              <Row label="Vergi Dairesi" value={seller.tax_office} />
-              <Row label="Vergi / TC No" value={seller.tax_number} />
-              <Row label="MERSİS No" value={seller.mersis_number} />
+              {!isIndividual && <Row label="Vergi Dairesi" value={seller.tax_office} />}
+              <Row label={isIndividual ? "TC Kimlik No" : "Vergi / TC No"} value={seller.tax_number} />
+              {!isIndividual && <Row label="MERSİS No" value={seller.mersis_number} />}
               <Row label="Web Sitesi" value={seller.website_url} />
             </Section>
 

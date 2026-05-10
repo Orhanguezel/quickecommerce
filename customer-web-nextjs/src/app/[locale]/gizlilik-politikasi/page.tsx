@@ -3,6 +3,8 @@ import { getTranslations } from "next-intl/server";
 import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import { ContentPageClient } from "@/components/common/content-page-client";
+import { localizedAlternates } from "@/lib/seo";
+import { pageContentOrFallback, policyContent } from "../policy-content";
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -27,7 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: data?.meta_description || t("privacy_description"),
     alternates: {
       canonical: `/${locale}/gizlilik-politikasi`,
-      languages: { tr: `/tr/gizlilik-politikasi`, en: `/en/gizlilik-politikasi` },
+      languages: localizedAlternates("/gizlilik-politikasi"),
     },
   };
 }
@@ -41,7 +43,7 @@ export default async function PrivacyPage({ params }: Props) {
   return (
     <ContentPageClient
       title={pageT("privacy")}
-      content={data?.content}
+      content={pageContentOrFallback(data?.content, policyContent.privacyPolicy)}
       breadcrumbs={[{ label: t("home"), href: "/" }, { label: pageT("privacy") }]}
     />
   );

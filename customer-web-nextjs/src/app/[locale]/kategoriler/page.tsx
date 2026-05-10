@@ -8,6 +8,7 @@ import {
   sortCategoriesForNavigation,
 } from "@/modules/site/category-utils";
 import { CategoriesPageClient } from "./categories-client";
+import { localizedAlternates } from "@/lib/seo";
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -45,10 +46,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     alternates: {
       canonical: `/${locale}/kategoriler`,
-      languages: {
-        tr: `/tr/kategoriler`,
-        en: `/en/kategoriler`,
-      },
+      languages: localizedAlternates("/kategoriler"),
     },
   };
 }

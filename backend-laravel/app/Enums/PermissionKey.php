@@ -75,6 +75,7 @@ enum PermissionKey: string
     case ADMIN_FINANCIAL_COLLECT_CASH = '/admin/financial/cash-collect';
     case ADMIN_REPORT_ANALYTICS_ORDER = '/admin/report-analytics/order';
     case ADMIN_REPORT_ANALYTICS_TRANSACTION = '/admin/report-analytics/transaction';
+    case ADMIN_FUNNEL_ANALYTICS = '/admin/analytics';
     case ADMIN_STORE_TYPE_MANAGE = '/admin/business-operations/store-type';
     case ADMIN_GEO_AREA_MANAGE = '/admin/business-operations/area/list';
     case ADMIN_SUBSCRIPTION_PACKAGE_MANAGE = '/admin/business-operations/subscription/package/list';

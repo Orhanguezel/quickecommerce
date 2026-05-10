@@ -14,8 +14,10 @@ class AboutUsPublicResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        // Get the requested language from the query parameter
-        $language = $request->input('language', 'en');
+        $language = $request->input('language')
+            ?: $request->header('X-localization')
+            ?: app()->getLocale();
+
         // Get the translation for the requested language
         $translation = $this->related_translations->where('language', $language);
         return [

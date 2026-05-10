@@ -344,7 +344,9 @@ if (!function_exists('createOrUpdateTranslationJson')) {
                     ->first();
 
                 if ($trans) {
-                    $trans->value = $translatedValue;
+                    $trans->value = is_array($translatedValue)
+                        ? json_encode($translatedValue)
+                        : $translatedValue;
                     $trans->save();
                 } else {
                     $translations[] = [

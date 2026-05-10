@@ -4,6 +4,7 @@ import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { Store, StoreType } from "@/modules/store/store.type";
 import { StoreListClient } from "./store-list-client";
+import { localizedAlternates, SITE_URL } from "@/lib/seo";
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -59,10 +60,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     alternates: {
       canonical: `/${locale}/magazalar`,
-      languages: {
-        tr: `/tr/magazalar`,
-        en: `/en/magazalar`,
-      },
+      languages: localizedAlternates("/magazalar"),
     },
   };
 }
@@ -94,12 +92,32 @@ export default async function StoresPage({ params, searchParams }: Props) {
       },
     ],
   };
+  const itemListJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: storeT("stores"),
+    url: `${SITE_URL}/${locale}/magazalar`,
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: data.stores.length,
+      itemListElement: data.stores.map((store, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        url: `${SITE_URL}/${locale}/magaza/${store.slug}`,
+        name: store.name,
+      })),
+    },
+  };
 
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
       />
       <StoreListClient
         stores={data.stores}

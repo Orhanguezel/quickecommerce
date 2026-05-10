@@ -4,6 +4,7 @@ import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { BlogPost } from "@/modules/blog/blog.type";
 import { BlogListClient } from "./blog-list-client";
+import { absoluteUrl, localizedAlternates } from "@/lib/seo";
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -58,15 +59,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       type: "website",
+      url: absoluteUrl(`/${locale}/blog`),
       locale: locale === "tr" ? "tr_TR" : "en_US",
       siteName: "Sporto Online",
     },
     alternates: {
       canonical: `/${locale}/blog`,
-      languages: {
-        tr: `/tr/blog`,
-        en: `/en/blog`,
-      },
+      languages: localizedAlternates("/blog"),
     },
   };
 }

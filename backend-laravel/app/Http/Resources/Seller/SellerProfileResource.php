@@ -37,6 +37,7 @@ class SellerProfileResource extends JsonResource
             // KYC / company info from seller_applications
             'kyc_status' => $application ? $application->status : null,
             'kyc_admin_note' => $application ? $application->admin_note : null,
+            'business_type' => $application ? ($application->business_type ?? 'company') : 'company',
             'company_name' => $application ? $application->company_name : null,
             'brand_name' => $application ? $application->brand_name : null,
             'sector' => $application ? $application->sector : null,

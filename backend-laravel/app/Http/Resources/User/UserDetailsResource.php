@@ -46,6 +46,7 @@ class UserDetailsResource extends JsonResource
         return [
             'kyc_status'          => $app?->status,
             'kyc_admin_note'      => $app?->admin_note,
+            'business_type'       => $app?->business_type ?? 'company',
             'company_name'        => $app?->company_name,
             'brand_name'          => $app?->brand_name,
             'sector'              => $app?->sector,

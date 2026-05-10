@@ -92,6 +92,34 @@ if (fs.existsSync(envPath)) {
   fse.copySync(envPath, path.join(deployDir, '.env'));
 }
 
+const deployEnvPath = path.join(deployDir, '.env');
+const buildTimeEnvKeys = [
+  'NEXT_PUBLIC_ADMIN_FRONT_URL',
+  'NEXT_PUBLIC_SITE_URL',
+  'NEXT_PUBLIC_WEBSITE_URL',
+  'NEXT_PUBLIC_REST_API_ENDPOINT',
+  'NEXT_IMAGE_HOST',
+  'APPLICATION_MODE',
+  'NODE_ENV',
+];
+
+if (fs.existsSync(deployEnvPath)) {
+  let envContent = fs.readFileSync(deployEnvPath, 'utf8');
+
+  for (const key of buildTimeEnvKeys) {
+    const value = process.env[key];
+    if (!value) continue;
+
+    const line = `${key}=${value}`;
+    const pattern = new RegExp(`^${key}=.*$`, 'm');
+    envContent = pattern.test(envContent)
+      ? envContent.replace(pattern, line)
+      : `${envContent.trimEnd()}\n${line}\n`;
+  }
+
+  fs.writeFileSync(deployEnvPath, envContent);
+}
+
 // ---------------------------
 // STEP 6: Copy node_modules from standalone
 // ---------------------------

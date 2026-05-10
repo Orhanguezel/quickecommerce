@@ -5,6 +5,7 @@ import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { StoreDetail } from "@/modules/store/store.type";
 import { StoreDetailClient } from "./store-detail-client";
+import { localizedAlternates, SITE_URL } from "@/lib/seo";
 
 interface Props {
   params: Promise<{ locale: string; slug: string }>;
@@ -14,6 +15,12 @@ interface StoreDetailResponse {
   message?: string;
   messages?: string;
   data: StoreDetail;
+}
+
+function parseCoordinate(value: string | number | null | undefined): number | null {
+  if (value === null || value === undefined || value === "") return null;
+  const coordinate = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(coordinate) ? coordinate : null;
 }
 
 async function getStoreDetail(slug: string, locale: string) {
@@ -56,10 +63,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     alternates: {
       canonical: `/${locale}/magaza/${slug}`,
-      languages: {
-        tr: `/tr/magaza/${slug}`,
-        en: `/en/magaza/${slug}`,
-      },
+      languages: localizedAlternates(`/magaza/${slug}`),
     },
   };
 }
@@ -75,6 +79,8 @@ export default async function StoreDetailPage({ params }: Props) {
   const t = await getTranslations({ locale, namespace: "common" });
   const storeT = await getTranslations({ locale, namespace: "store" });
   const productT = await getTranslations({ locale, namespace: "product" });
+  const latitude = parseCoordinate(store.latitude);
+  const longitude = parseCoordinate(store.longitude);
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -113,7 +119,22 @@ export default async function StoreDetailPage({ params }: Props) {
           address: {
             "@type": "PostalAddress",
             streetAddress: store.address,
+            addressCountry: "TR",
           },
+        }
+      : {}),
+    ...(latitude !== null && longitude !== null
+      ? {
+          geo: {
+            "@type": "GeoCoordinates",
+            latitude,
+            longitude,
+          },
+        }
+      : {}),
+    ...(store.opening_time && store.closing_time
+      ? {
+          openingHours: `Mo-Su ${store.opening_time}-${store.closing_time}`,
         }
       : {}),
     ...(store.rating > 0
@@ -125,7 +146,7 @@ export default async function StoreDetailPage({ params }: Props) {
           },
         }
       : {}),
-    url: `https://sportoonline.com/${locale}/magaza/${slug}`,
+    url: `${SITE_URL}/${locale}/magaza/${slug}`,
   };
 
   return (

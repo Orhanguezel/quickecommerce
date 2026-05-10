@@ -2,12 +2,17 @@
 
 import { Suspense, useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { initializeFirebaseAnalytics } from "@/lib/firebase";
 import { trackFunnelEvent } from "@/lib/funnel-tracker";
 
 function AnalyticsEvents() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const lastTrackedRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    void initializeFirebaseAnalytics();
+  }, []);
 
   useEffect(() => {
     const query = searchParams.toString();

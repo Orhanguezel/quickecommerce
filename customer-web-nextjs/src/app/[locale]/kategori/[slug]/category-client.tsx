@@ -170,6 +170,17 @@ export function CategoryPageClient({
         <span className="font-medium text-foreground">{categoryName}</span>
       </nav>
 
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold tracking-normal text-foreground sm:text-3xl">
+          {categoryName}
+        </h1>
+        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+          {t.home === "Ana Sayfa"
+            ? `${categoryName} kategorisindeki ürünleri, markaları ve güncel fiyat seçeneklerini karşılaştırın.`
+            : `Compare products, brands, and current price options in the ${categoryName} category.`}
+        </p>
+      </div>
+
       {/* Subcategories */}
       {subcategories.length > 0 && (
         <div className="mb-6">

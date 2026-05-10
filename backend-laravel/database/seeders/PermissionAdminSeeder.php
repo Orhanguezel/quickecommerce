@@ -1097,6 +1097,17 @@ class PermissionAdminSeeder extends Seeder
                                 'en' => 'Transaction Report',
                                 'tr' => 'İşlem Raporu'
                             ]
+                        ],
+                        [
+                            'PermissionName' => PermissionKey::ADMIN_FUNNEL_ANALYTICS->value,
+                            'PermissionTitle' => 'Funnel Analytics',
+                            'activity_scope' => 'system_level',
+                            'icon' => 'ChartSpline',
+                            'options' => ['view'],
+                            'translations' => [
+                                'en' => 'Funnel Analytics',
+                                'tr' => 'Funnel Analitiği'
+                            ]
                         ]
                     ]
                 ],

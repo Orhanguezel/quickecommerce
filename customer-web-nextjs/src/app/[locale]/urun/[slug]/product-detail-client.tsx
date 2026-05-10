@@ -15,7 +15,9 @@ import {
   Truck,
   RotateCcw,
   ShieldCheck,
+  AlertTriangle,
   PackageCheck,
+  PackageX,
   Minus,
   Plus,
   ShoppingCart,
@@ -471,6 +473,16 @@ export function ProductDetailClient({
     ? selectedVariant.stock_quantity
     : product.stock ?? 0;
   const inStock = stock > 0;
+  const maxPurchasableQuantity = inStock
+    ? Math.max(1, Math.min(product.max_cart_qty || 99, stock))
+    : 0;
+
+  useEffect(() => {
+    setQuantity((current) => {
+      if (!inStock) return 1;
+      return Math.min(Math.max(1, current), maxPurchasableQuantity);
+    });
+  }, [inStock, maxPurchasableQuantity, selectedVariant?.id]);
 
   // "Yeni Ürün" badge: son 30 gün içinde eklenen ürünler
   const isNewProduct = useMemo(() => {
@@ -543,7 +555,7 @@ export function ProductDetailClient({
   }, [product.variants]);
 
   const handleAddToCart = () => {
-    if (displayPrice == null || displayPrice <= 0 || !selectedVariant) return;
+    if (!inStock || displayPrice == null || displayPrice <= 0 || !selectedVariant) return;
     const cartItem: CartItem = {
       id: product.id,
       product_id: product.id,
@@ -555,7 +567,7 @@ export function ProductDetailClient({
       price: displayPrice,
       original_price: price ?? undefined,
       quantity,
-      max_cart_qty: product.max_cart_qty || 99,
+      max_cart_qty: maxPurchasableQuantity,
       variant_label: variantOptions.find((v) => v.id === selectedVariant.id)?.text,
     };
     addItem(cartItem);
@@ -593,6 +605,7 @@ export function ProductDetailClient({
   };
 
   const handleBuyNow = () => {
+    if (!inStock) return;
     handleAddToCart();
     router.push("/odeme");
   };
@@ -807,7 +820,7 @@ export function ProductDetailClient({
               type="button"
               onClick={handleWishlistClick}
               disabled={isWishlistLoading}
-              className="absolute right-3 top-3 inline-flex h-10 w-10 items-center justify-center rounded-full border bg-background/95 text-muted-foreground hover:text-foreground"
+              className="absolute right-3 top-3 z-30 inline-flex h-10 w-10 items-center justify-center rounded-full border bg-background/95 text-muted-foreground hover:text-foreground"
               aria-label={isWishlisted ? t.remove_from_wishlist : t.add_to_wishlist}
             >
               <Heart
@@ -818,7 +831,7 @@ export function ProductDetailClient({
             </button>
 
             {/* Badges - stacked vertically */}
-            <div className="absolute left-2 top-2 z-10 flex flex-col gap-1.5 sm:left-3 sm:top-3 sm:gap-2">
+            <div className="absolute left-2 top-2 z-30 flex flex-col gap-1.5 sm:left-3 sm:top-3 sm:gap-2">
               {!!product.is_featured && (
                 <span className="flex items-center gap-1 rounded-md bg-gradient-to-r from-blue-700 to-blue-500 px-2 py-1 text-xs font-bold text-white shadow-md sm:gap-1.5 sm:rounded-lg sm:px-3 sm:py-1.5 sm:text-sm">
                   <Award className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -846,6 +859,14 @@ export function ProductDetailClient({
                 </span>
               )}
             </div>
+            {!inStock && (
+              <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/75 backdrop-blur-[1px]">
+                <span className="inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm font-bold text-red-700 shadow-sm dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+                  <PackageX className="h-4 w-4" />
+                  {t.out_of_stock}
+                </span>
+              </div>
+            )}
           </div>
 
           {allImages.length > 1 && (
@@ -985,6 +1006,20 @@ export function ProductDetailClient({
                 %{effectiveDiscountPercent} indirimli fiyat
               </div>
             )}
+            <div
+              className={`mt-3 inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-semibold ${
+                inStock
+                  ? "border-green-200 bg-green-50 text-green-700 dark:border-green-900 dark:bg-green-950 dark:text-green-300"
+                  : "border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300"
+              }`}
+            >
+              {inStock ? (
+                <PackageCheck className="h-4 w-4" />
+              ) : (
+                <PackageX className="h-4 w-4" />
+              )}
+              {inStock ? `${t.in_stock} (${stock})` : t.out_of_stock}
+            </div>
           </div>
 
           <div className="mt-4 space-y-3 border-y py-4">
@@ -1007,10 +1042,17 @@ export function ProductDetailClient({
                     className={`rounded px-3 py-1.5 text-sm transition-colors ${
                       selectedVariant?.id === variant.id
                         ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-foreground hover:bg-muted/70"
+                        : variant.stock_quantity <= 0
+                          ? "border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 dark:border-red-900 dark:bg-red-950 dark:text-red-300"
+                          : "bg-muted text-foreground hover:bg-muted/70"
                     }`}
                   >
                     {variantOptions[idx]?.text}
+                    {variant.stock_quantity <= 0 && (
+                      <span className="ml-1 text-xs font-semibold">
+                        ({t.out_of_stock})
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>
@@ -1176,21 +1218,32 @@ export function ProductDetailClient({
           )}
 
           <div className="rounded-lg border bg-card p-5">
+            {!inStock && (
+              <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <p>{t.out_of_stock}. Bu ürün şu anda sepete eklenemez.</p>
+                </div>
+              </div>
+            )}
             <div className="mb-3 flex items-center justify-between rounded-md border">
               <button
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="px-3 py-2 hover:bg-muted"
-                disabled={quantity <= 1}
+                className="px-3 py-2 hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={!inStock || quantity <= 1}
                 aria-label={t.decrease_quantity}
               >
                 <Minus className="h-4 w-4" />
               </button>
-              <span className="min-w-12 text-center text-sm font-semibold">{quantity}</span>
+              <span className="min-w-12 text-center text-sm font-semibold">
+                {inStock ? quantity : 0}
+              </span>
               <button
                 onClick={() =>
-                  setQuantity(Math.min(product.max_cart_qty || 99, quantity + 1))
+                  setQuantity(Math.min(maxPurchasableQuantity, quantity + 1))
                 }
-                className="px-3 py-2 hover:bg-muted"
+                className="px-3 py-2 hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={!inStock || quantity >= maxPurchasableQuantity}
                 aria-label={t.increase_quantity}
               >
                 <Plus className="h-4 w-4" />
@@ -1202,14 +1255,14 @@ export function ProductDetailClient({
               className="flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <ShoppingCart className="h-4 w-4" />
-              {t.add_to_cart}
+              {inStock ? t.add_to_cart : t.out_of_stock}
             </button>
             <button
               onClick={handleBuyNow}
               disabled={!inStock}
               className="mt-2 w-full rounded-md bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {t.buy_now}
+              {inStock ? t.buy_now : t.out_of_stock}
             </button>
 
             {/* Kupon */}
@@ -1670,7 +1723,7 @@ export function ProductDetailClient({
             className="flex shrink-0 items-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <ShoppingCart className="h-4 w-4" />
-            {t.add_to_cart}
+            {inStock ? t.add_to_cart : t.out_of_stock}
           </button>
         </div>
       </div>
