@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Models\Translation;
 use Modules\Blog\app\Models\Blog;
 
 require __DIR__ . '/../backend-laravel/vendor/autoload.php';
@@ -92,6 +93,7 @@ function backupBlogs(array $slugs): string
 
     $rows = Blog::query()
         ->whereIn('slug', $slugs)
+        ->with('related_translations')
         ->get(['id', 'slug', 'title', 'description', 'meta_title', 'meta_description', 'updated_at'])
         ->toArray();
 
@@ -102,6 +104,19 @@ function backupBlogs(array $slugs): string
     }
 
     return $path;
+}
+
+function upsertBlogTranslation(Blog $blog, string $language, string $key, string $value): void
+{
+    Translation::query()->updateOrCreate(
+        [
+            'translatable_type' => Blog::class,
+            'translatable_id' => $blog->id,
+            'language' => $language,
+            'key' => $key,
+        ],
+        ['value' => $value]
+    );
 }
 
 $updates = [
@@ -339,13 +354,19 @@ HTML
 
 if ($verifyCurrent) {
     foreach (array_keys($updates) as $slug) {
-        $blog = Blog::query()->where('slug', $slug)->first();
+        $blog = Blog::query()->with('related_translations')->where('slug', $slug)->first();
         if (!$blog) {
             echo "missing\t{$slug}\n";
             continue;
         }
 
-        echo "current\t{$blog->id}\t{$blog->slug}\twords=" . countWordsHtml($blog->description) . "\n";
+        $trDescription = $blog->related_translations
+            ->where('language', 'tr')
+            ->where('key', 'description')
+            ->first()?->value;
+
+        echo "current\t{$blog->id}\t{$blog->slug}\tbase_words=" . countWordsHtml($blog->description)
+            . "\ttr_words=" . countWordsHtml((string) $trDescription) . "\n";
     }
     exit(0);
 }
@@ -375,6 +396,11 @@ foreach ($updates as $slug => $payload) {
         $blog->meta_title = $payload['title'];
         $blog->meta_description = $payload['meta_description'];
         $blog->save();
+
+        upsertBlogTranslation($blog, 'tr', 'title', $payload['title']);
+        upsertBlogTranslation($blog, 'tr', 'description', $description);
+        upsertBlogTranslation($blog, 'tr', 'meta_title', $payload['title']);
+        upsertBlogTranslation($blog, 'tr', 'meta_description', $payload['meta_description']);
     }
 
     echo ($dryRun ? 'dry-run' : 'updated') . "\t{$blog->id}\t{$slug}\twords={$words}\n";
