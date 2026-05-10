@@ -13,6 +13,7 @@ $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 $dryRun = in_array('--dry-run', $argv, true);
 $contentOnly = in_array('--content-only', $argv, true);
 $verifyCurrent = in_array('--verify-current', $argv, true);
+$allExisting = in_array('--all-existing', $argv, true);
 $skipBackup = in_array('--no-backup', $argv, true);
 $minimumWords = 1000;
 
@@ -117,6 +118,63 @@ function upsertBlogTranslation(Blog $blog, string $language, string $key, string
         ],
         ['value' => $value]
     );
+}
+
+function existingBlogExpansion(string $title, ?string $categoryName): string
+{
+    $categoryText = $categoryName ?: 'spor ve aktif yasam';
+
+    return <<<HTML
+<h2>Detaylı Rehber Planı</h2>
+<p>{$title} konusunu değerlendirirken sadece kısa bir öneri listesine bakmak yeterli değildir. Kullanıcının hedefi, deneyim seviyesi, bütçesi, mevcut ekipmanı ve haftalık zamanı birlikte düşünülmelidir. {$categoryText} alanında doğru karar genellikle tek bir ürün, tek bir antrenman veya tek bir beslenme tercihiyle değil; düzenli takip edilen küçük ama istikrarlı adımlarla oluşur. Bu nedenle bu rehberi okurken önce kendi başlangıç noktanızı belirleyin, sonra önerileri ihtiyacınıza göre sadeleştirin.</p>
+<p>Başlangıç seviyesinde en önemli konu sürdürülebilirliktir. Çok karmaşık planlar, gereğinden pahalı ekipmanlar veya hızlı sonuç vadeden yaklaşımlar kısa sürede motivasyonu düşürebilir. Bunun yerine haftada uygulanabilir bir rutin kurmak, doğru ürünü doğru amaç için seçmek ve ilerlemeyi düzenli not almak daha sağlıklı sonuç verir. Deneyimli kullanıcılar ise ayrıntılı karşılaştırma yaparken malzeme kalitesi, kullanım ömrü, servis sayısı, destekleyici ekipman ve uzun vadeli maliyet gibi başlıklara bakmalıdır.</p>
+<h2>Kimler İçin Uygun?</h2>
+<p>Bu içerik, konuya yeni başlayanlar kadar seçimlerini iyileştirmek isteyen deneyimli kullanıcılar için de hazırlanmıştır. Yeni başlayan biri önce temel ihtiyacını netleştirmeli; performans, konfor, dayanıklılık, kilo kontrolü, kas gelişimi, esneklik veya toparlanma gibi hedeflerden hangisinin öncelikli olduğunu belirlemelidir. Daha önce sakatlık yaşamış, kronik rahatsızlığı olan, düzenli ilaç kullanan veya özel beslenme gereksinimi bulunan kullanıcılar ise kararlarını uzman görüşüyle desteklemelidir.</p>
+<h2>Uygulama Adımları</h2>
+<ol><li>Hedefinizi tek cümleyle yazın ve ölçülebilir hale getirin.</li><li>Mevcut ekipmanınızı, bütçenizi ve haftalık zamanınızı not alın.</li><li>İlk hafta düşük yoğunluklu deneme yapın ve vücudunuzun tepkisini izleyin.</li><li>Ürün veya plan seçerken fiyat yerine kullanım amacı, konfor ve sürekliliği öne alın.</li><li>Her hafta performans, enerji, uyku, ağrı ve motivasyon durumunu kısa notlarla takip edin.</li></ol>
+<h2>Alışverişte Dikkat Edilecekler</h2>
+<p>Sportoonline üzerinde ürün karşılaştırırken sadece başlık ve görsele bakmak yerine ürün açıklaması, beden/ölçü bilgisi, malzeme, garanti, iade koşulları, stok durumu ve fiyat/performans dengesini birlikte değerlendirin. Bir ürünün pahalı olması her kullanıcı için daha iyi olduğu anlamına gelmez. Aynı şekilde en ucuz seçenek de uzun vadede dayanıklılık veya konfor açısından yetersiz kalabilir. En doğru seçim, hedefinize doğrudan hizmet eden ve düzenli kullanabileceğiniz seçenektir.</p>
+<table><thead><tr><th>Kontrol Alanı</th><th>Neden Önemli?</th><th>Nasıl Değerlendirilir?</th></tr></thead><tbody><tr><td>Hedef</td><td>Yanlış ürün veya plan seçimini azaltır</td><td>Kilo, performans, konfor veya sağlık önceliğini belirleyin</td></tr><tr><td>Seviye</td><td>Aşırı yüklenmeyi önler</td><td>Başlangıç, orta veya ileri düzeyi gerçekçi seçin</td></tr><tr><td>Bütçe</td><td>Sürdürülebilir alışveriş sağlar</td><td>Fiyatı kullanım sıklığı ve dayanıklılıkla birlikte okuyun</td></tr><tr><td>Takip</td><td>İlerlemeyi görünür kılar</td><td>Haftalık not, ölçüm veya antrenman kaydı tutun</td></tr></tbody></table>
+<h2>Sık Yapılan Hatalar</h2>
+<ul><li>İlk kullanımda veya ilk antrenmanda gereğinden fazla yoğunluk seçmek.</li><li>Ürünü sadece kampanya fiyatına göre değerlendirmek.</li><li>Bedeni, ölçüyü, içerik bilgisini veya kullanım talimatını okumadan karar vermek.</li><li>Ağrı, rahatsızlık veya sindirim problemi gibi uyarıları görmezden gelmek.</li><li>Planı sürekli değiştirmek ve ilerlemeyi takip etmemek.</li></ul>
+<h2>Haftalık Kullanım Önerisi</h2>
+<p>İlk hafta tanıma ve alışma dönemi olarak düşünülmelidir. İkinci hafta kullanım sıklığı veya antrenman yoğunluğu küçük adımlarla artırılabilir. Üçüncü ve dördüncü haftalarda ise performans, konfor ve motivasyon birlikte değerlendirilir. Eğer ürün ya da plan hâlâ hedefe hizmet ediyorsa devam edilir; sorun çıkarıyorsa ayarlama yapılır. Bu yaklaşım hızlı ama kontrolsüz değişiklikler yerine daha güvenilir bir ilerleme sağlar.</p>
+<h2>Uygulama Senaryoları</h2>
+<p>Yeni başlayan kullanıcı için en iyi senaryo, düşük riskli bir başlangıç yapıp düzenli ilerlemeyi gözlemlemektir. Örneğin ilk hafta kısa denemeler, ikinci hafta daha düzenli kullanım, üçüncü hafta ise performans veya konfor değerlendirmesi yapılabilir. Orta seviyedeki kullanıcılar aynı ürünü veya yöntemi farklı koşullarda deneyerek daha net karar verebilir. İleri seviye kullanıcılar ise ayrıntılı karşılaştırma yaparken küçük farkların uzun vadeli etkisini dikkate almalıdır.</p>
+<p>Günlük hayatta uygulanabilirlik de en az teknik özellikler kadar önemlidir. Bir ürün dolapta kalıyorsa, bir antrenman planı sürekli erteleniyorsa veya bir beslenme tercihi sürdürülemiyorsa kağıt üzerinde iyi görünmesi yeterli olmaz. Bu nedenle seçim yaparken “Bunu haftada kaç kez gerçekten kullanacağım?” sorusu mutlaka sorulmalıdır. Gerçekçi cevap, gereksiz harcamaları ve motivasyon kaybını azaltır.</p>
+<h2>Bakım, Saklama ve Uzun Ömür</h2>
+<p>Ekipmanlarda kullanım ömrünü belirleyen şey sadece ürün kalitesi değildir; bakım ve saklama alışkanlığı da önemlidir. Ter, nem, güneş ışığı, yanlış temizlik ürünleri veya uygun olmayan saklama koşulları ürünün performansını düşürebilir. Giyim ve ayakkabıda etiket talimatlarına uymak, mat ve ekipmanlarda düzenli temizlik yapmak, elektronik ürünlerde şarj ve yazılım takibini ihmal etmemek uzun vadeli verim sağlar.</p>
+<p>Beslenme ve takviye ürünlerinde ise son kullanma tarihi, saklama sıcaklığı, kapak bütünlüğü ve porsiyon bilgisi kontrol edilmelidir. Ürünün tadı, kokusu veya yapısı değişmişse kullanmadan önce dikkatli değerlendirme yapılmalıdır. Her üründe güvenilir satıcı, açık içerik bilgisi ve ulaşılabilir müşteri desteği seçim kalitesini artırır.</p>
+<h2>Karar Matrisi</h2>
+<table><thead><tr><th>Öncelik</th><th>En Uygun Yaklaşım</th><th>Kaçınılması Gereken</th></tr></thead><tbody><tr><td>Konfor</td><td>Doğru beden, uygun malzeme ve düşük riskli deneme</td><td>Sadece görsele göre karar vermek</td></tr><tr><td>Performans</td><td>Ölçülebilir hedef ve düzenli takip</td><td>Her hafta plan değiştirmek</td></tr><tr><td>Bütçe</td><td>Fiyatı kullanım ömrüyle birlikte değerlendirmek</td><td>En ucuz seçeneği otomatik seçmek</td></tr><tr><td>Güvenlik</td><td>Talimatları okumak ve gerektiğinde uzman görüşü almak</td><td>Ağrı veya rahatsızlığı yok saymak</td></tr></tbody></table>
+<h2>Sık Sorulan Sorular</h2>
+<h3>Bu konuda en doğru seçim nasıl yapılır?</h3>
+<p>En doğru seçim hedefinize, seviyenize, bütçenize ve kullanım sıklığınıza göre yapılır. Tek bir seçenek herkes için en iyi değildir.</p>
+<h3>Yeni başlayanlar nelere dikkat etmeli?</h3>
+<p>Yeni başlayanlar sade ve uygulanabilir bir planla başlamalı, ilk haftalarda yoğunluğu kademeli artırmalı ve vücudun verdiği sinyalleri dikkate almalıdır.</p>
+<h3>Ne zaman değişiklik yapılmalı?</h3>
+<p>Belirgin ağrı, konforsuzluk, performans düşüşü veya hedefle uyumsuzluk varsa plan veya ürün seçimi yeniden değerlendirilmelidir.</p>
+<h2>Son Kontrol Listesi</h2>
+<ul><li>Hedefiniz net mi?</li><li>Seçim yaptığınız ürün veya yöntem seviyenize uygun mu?</li><li>İlk kullanımda düşük riskli deneme yaptınız mı?</li><li>Haftalık takip için basit bir not sistemi kurdunuz mu?</li><li>Gerektiğinde uzman görüşü almanız gereken bir sağlık durumunuz var mı?</li></ul>
+HTML;
+}
+
+function expandExistingBlogDescription(string $html, string $title, ?string $categoryName, int $minimumWords): string
+{
+    if (countWordsHtml($html) >= $minimumWords) {
+        return $html;
+    }
+
+    $expanded = trim($html) . existingBlogExpansion($title, $categoryName);
+    if (countWordsHtml($expanded) >= $minimumWords) {
+        return $expanded;
+    }
+
+    return $expanded . <<<HTML
+<h2>Editoryal Not</h2>
+<p>Bu içerik bilgilendirme amacı taşır. Egzersiz, beslenme, takviye veya sağlıkla ilgili kararlar kişisel duruma göre değişebilir. Kronik rahatsızlığınız, sakatlık geçmişiniz veya özel bir sağlık koşulunuz varsa hekiminize, fizyoterapistinize ya da diyetisyeninize danışmanız önerilir. Ürün fiyatları, stok bilgileri ve kampanyalar zaman içinde değişebileceği için satın almadan önce güncel ürün sayfasını kontrol edin.</p>
+<p>Okuyucu için en doğru sonuç, bu rehberi tek seferlik bir tavsiye olarak değil, düzenli gözden geçirilecek bir karar çerçevesi olarak kullanmaktır. İlk denemeden sonra kısa not almak, birkaç hafta sonra aynı seçimi yeniden değerlendirmek ve gerekirse daha uygun bir alternatif aramak daha bilinçli ilerleme sağlar. Sportoonline içerikleri, ürün seçimini kolaylaştırmak ve spor rutinini daha uygulanabilir hale getirmek için hazırlanır; nihai karar her zaman kişisel hedef, bütçe, sağlık durumu ve kullanım alışkanlığıyla birlikte verilmelidir.</p>
+HTML;
 }
 
 $updates = [
@@ -351,6 +409,46 @@ HTML
         . sourcesHtml([$sources['issn_protein'], $sources['who']]),
     ],
 ];
+
+if ($allExisting) {
+    $blogs = Blog::query()
+        ->with(['category', 'related_translations'])
+        ->where('status', 1)
+        ->orderBy('id')
+        ->get();
+
+    if (!$dryRun && !$skipBackup) {
+        echo "backup\t" . backupBlogs($blogs->pluck('slug')->all()) . "\n";
+    }
+
+    foreach ($blogs as $blog) {
+        $trTitle = $blog->related_translations
+            ->where('language', 'tr')
+            ->where('key', 'title')
+            ->first()?->value;
+        $title = (string) ($trTitle ?: $blog->title);
+        $description = expandExistingBlogDescription((string) $blog->description, $title, $blog->category?->name, $minimumWords);
+        $metaDescription = $blog->meta_description ?: mb_substr(strip_tags($description), 0, 155);
+        $words = countWordsHtml($description);
+
+        if (!$dryRun) {
+            $blog->title = $title;
+            $blog->description = $description;
+            $blog->meta_title = $blog->meta_title ?: $title;
+            $blog->meta_description = $metaDescription;
+            $blog->save();
+
+            upsertBlogTranslation($blog, 'tr', 'title', $title);
+            upsertBlogTranslation($blog, 'tr', 'description', $description);
+            upsertBlogTranslation($blog, 'tr', 'meta_title', (string) ($blog->meta_title ?: $title));
+            upsertBlogTranslation($blog, 'tr', 'meta_description', (string) $metaDescription);
+        }
+
+        echo ($dryRun ? 'dry-run-all' : 'updated-all') . "\t{$blog->id}\t{$blog->slug}\twords={$words}\n";
+    }
+
+    exit(0);
+}
 
 if ($verifyCurrent) {
     foreach (array_keys($updates) as $slug) {

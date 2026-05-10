@@ -65,19 +65,19 @@ const palette = [
 let colorIndex = 0;
 
 const articleBodyClassName = [
-  "prose max-w-none dark:prose-invert",
-  "prose-p:my-5 prose-p:text-[16px] prose-p:leading-8 prose-p:text-foreground/85",
-  "sm:prose-p:text-[17px] sm:prose-p:leading-8",
-  "prose-strong:text-foreground",
-  "prose-a:font-semibold prose-a:text-primary prose-a:no-underline hover:prose-a:underline",
-  "prose-h2:mb-4 prose-h2:mt-10 prose-h2:border-b prose-h2:border-border prose-h2:pb-3 prose-h2:text-2xl prose-h2:font-extrabold prose-h2:tracking-tight",
-  "prose-h3:mb-2 prose-h3:mt-7 prose-h3:text-lg prose-h3:font-bold prose-h3:text-foreground",
-  "prose-ul:my-5 prose-ul:rounded-md prose-ul:border prose-ul:bg-muted/25 prose-ul:p-5 prose-ul:pl-8",
-  "prose-li:my-2 prose-li:leading-7 prose-li:text-foreground/85",
-  "prose-table:my-7 prose-table:overflow-hidden prose-table:rounded-md prose-table:border prose-table:text-sm",
-  "prose-th:bg-muted prose-th:px-4 prose-th:py-3 prose-th:text-left prose-th:font-bold",
-  "prose-td:border-t prose-td:px-4 prose-td:py-3 prose-td:align-top",
-  "prose-blockquote:rounded-md prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-primary/5 prose-blockquote:px-5 prose-blockquote:py-3 prose-blockquote:not-italic",
+  "max-w-none text-[16px] leading-8 text-foreground/85 sm:text-[17px]",
+  "[&_p]:my-5 [&_p]:leading-8",
+  "[&_strong]:font-bold [&_strong]:text-foreground",
+  "[&_a]:font-semibold [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4",
+  "[&_h2]:mb-4 [&_h2]:mt-10 [&_h2]:border-b [&_h2]:border-border [&_h2]:pb-3 [&_h2]:text-2xl [&_h2]:font-extrabold [&_h2]:leading-tight [&_h2]:tracking-tight [&_h2]:text-foreground",
+  "[&_h3]:mb-2 [&_h3]:mt-7 [&_h3]:text-lg [&_h3]:font-bold [&_h3]:leading-snug [&_h3]:text-foreground",
+  "[&_ul]:my-5 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:rounded-md [&_ul]:border [&_ul]:bg-muted/25 [&_ul]:p-5 [&_ul]:pl-8",
+  "[&_ol]:my-5 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:rounded-md [&_ol]:border [&_ol]:bg-muted/25 [&_ol]:p-5 [&_ol]:pl-8",
+  "[&_li]:leading-7",
+  "[&_table]:my-7 [&_table]:w-full [&_table]:border-collapse [&_table]:overflow-hidden [&_table]:rounded-md [&_table]:border [&_table]:text-sm",
+  "[&_th]:border [&_th]:bg-muted [&_th]:px-4 [&_th]:py-3 [&_th]:text-left [&_th]:font-bold [&_th]:text-foreground",
+  "[&_td]:border [&_td]:px-4 [&_td]:py-3 [&_td]:align-top",
+  "[&_blockquote]:rounded-md [&_blockquote]:border-l-4 [&_blockquote]:border-primary [&_blockquote]:bg-primary/5 [&_blockquote]:px-5 [&_blockquote]:py-3 [&_blockquote]:italic",
 ].join(" ");
 
 function getCategoryColor(category: string): string {
