@@ -23,8 +23,8 @@ class AdminFunnelAnalyticsController extends Controller
         $days = $this->windowDays($request);
         $since = Carbon::now()->subDays($days);
 
-        $base = FunnelEvent::query()->where('created_at', '>=', $since);
-        $human = (clone $base)->where('is_bot', false);
+        $base = FunnelEvent::query()->where('funnel_events.created_at', '>=', $since);
+        $human = (clone $base)->where('funnel_events.is_bot', false);
 
         $eventCounts = (clone $human)
             ->select('event', DB::raw('COUNT(*) as total'))
@@ -87,7 +87,7 @@ class AdminFunnelAnalyticsController extends Controller
 
         $recentEvents = (clone $base)
             ->select('event', 'subject', 'visitor_id', 'session_id', 'ip_address', 'path', 'product_id', 'amount', 'is_bot', 'device_type', 'browser', 'os', 'created_at')
-            ->latest('created_at')
+            ->latest('funnel_events.created_at')
             ->limit(25)
             ->get();
 
@@ -98,7 +98,7 @@ class AdminFunnelAnalyticsController extends Controller
                 'summary' => [
                     'events' => (int) (clone $base)->count(),
                     'human_events' => (int) (clone $human)->count(),
-                    'bot_events' => (int) (clone $base)->where('is_bot', true)->count(),
+                    'bot_events' => (int) (clone $base)->where('funnel_events.is_bot', true)->count(),
                     'visitors' => (int) (clone $human)->distinct('visitor_id')->whereNotNull('visitor_id')->count('visitor_id'),
                     'sessions' => (int) (clone $human)->distinct('session_id')->whereNotNull('session_id')->count('session_id'),
                     'page_views' => (int) ($eventCounts['page_view'] ?? 0),
