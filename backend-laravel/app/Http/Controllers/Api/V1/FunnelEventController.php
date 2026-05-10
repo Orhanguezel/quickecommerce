@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Models\FunnelEvent;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 /**
  * Collects lightweight funnel events from the frontend. Fire-and-forget —
@@ -126,7 +127,7 @@ class FunnelEventController extends Controller
                 'block_type'   => $e['block_type'] ?? null,
                 'amount'       => $e['amount'] ?? null,
                 'meta'         => isset($e['meta']) ? json_encode($e['meta']) : null,
-                'occurred_at'  => $e['occurred_at'] ?? now(),
+                'occurred_at'  => $this->normalizeOccurredAt($e['occurred_at'] ?? null),
                 'created_at'   => now(),
                 'updated_at'   => now(),
             ];
@@ -145,6 +146,19 @@ class FunnelEventController extends Controller
     private function normalizeEvent(string $event): string
     {
         return self::LEGACY_EVENT_MAP[$event] ?? $event;
+    }
+
+    private function normalizeOccurredAt(?string $occurredAt): string
+    {
+        if (!$occurredAt) {
+            return now()->toDateTimeString();
+        }
+
+        try {
+            return Carbon::parse($occurredAt)->toDateTimeString();
+        } catch (\Throwable) {
+            return now()->toDateTimeString();
+        }
     }
 
     /**
