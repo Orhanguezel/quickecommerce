@@ -17,6 +17,7 @@ import {
   Banknote,
 } from "lucide-react";
 import { usePaymentGatewaysQuery } from "@/modules/checkout/checkout.service";
+import { cleanContactPhone } from "@/lib/seo";
 
 export function Footer() {
   const t = useTranslations();
@@ -24,6 +25,7 @@ export function Footer() {
   const { footerData } = useFooterQuery();
   const { footerConfig } = useThemeConfig();
   const { data: paymentGateways } = usePaymentGatewaysQuery();
+  const contactPhone = cleanContactPhone(siteInfo?.com_site_contact_number);
 
   const quickAccess: FooterLinkItem[] = footerData?.com_quick_access ?? [];
   const ourInfo: FooterLinkItem[] = footerData?.com_our_info ?? [];
@@ -132,7 +134,7 @@ export function Footer() {
                   </div>
                 </div>
               )}
-              {siteInfo?.com_site_contact_number && (
+              {contactPhone && (
                 <div className="flex items-start gap-3">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-500/20">
                     <Phone className="h-4 w-4 text-emerald-400" />
@@ -143,10 +145,10 @@ export function Footer() {
                     </span>
                     <p className="text-sm text-gray-300">
                       <a
-                        href={`tel:${siteInfo.com_site_contact_number}`}
+                        href={`tel:${contactPhone}`}
                         className="hover:text-white"
                       >
-                        {siteInfo.com_site_contact_number}
+                        {contactPhone}
                       </a>
                     </p>
                   </div>

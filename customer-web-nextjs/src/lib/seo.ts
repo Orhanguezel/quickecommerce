@@ -24,7 +24,6 @@ export const DEFAULT_ORGANIZATION = {
   url: SITE_URL,
   logo: `${SITE_URL}/favicon/favicon-96x96.png`,
   email: "info@sportoonline.com",
-  telephone: "+90 212 555 0 123",
   address: {
     streetAddress: "Levent Mah. Büyükdere Cad. No:185",
     addressLocality: "Şişli",
@@ -41,6 +40,22 @@ export const DEFAULT_ORGANIZATION = {
     "https://www.sikayetvar.com/sportoonline",
   ],
 };
+
+export function cleanContactPhone(value?: string | null): string | undefined {
+  const phone = value?.trim();
+  if (!phone) return undefined;
+
+  const digits = phone.replace(/\D/g, "");
+  const compact = phone.toLocaleLowerCase("tr-TR");
+  const looksPlaceholder =
+    /(^|\D)555(\D|$)/.test(phone) ||
+    digits.includes("212555") ||
+    compact.includes("placeholder") ||
+    compact.includes("örnek") ||
+    compact.includes("ornek");
+
+  return looksPlaceholder ? undefined : phone;
+}
 
 const turkishMonths: Record<string, string> = {
   ocak: "01",

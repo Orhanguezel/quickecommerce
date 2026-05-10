@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import { ContactPageClient } from "./contact-client";
-import { absoluteUrl, DEFAULT_ORGANIZATION, localizedAlternates, SITE_URL } from "@/lib/seo";
+import { absoluteUrl, cleanContactPhone, DEFAULT_ORGANIZATION, localizedAlternates, SITE_URL } from "@/lib/seo";
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -142,6 +142,8 @@ export default async function ContactPage({ params }: Props) {
   const tCommon = await getTranslations({ locale, namespace: "common" });
   const tPages = await getTranslations({ locale, namespace: "pages" });
   const tFooter = await getTranslations({ locale, namespace: "footer" });
+  const sitePhone = cleanContactPhone(siteInfo?.com_site_contact_number);
+  const contentPhone = cleanContactPhone(content.contact_details_section?.phone);
 
   const socialFromPage: ContactSocialLink[] = (content.contact_details_section?.social ?? [])
     .map((item) => ({
@@ -179,8 +181,7 @@ export default async function ContactPage({ params }: Props) {
       name: DEFAULT_ORGANIZATION.name,
       url: SITE_URL,
       email: siteInfo?.com_site_email || DEFAULT_ORGANIZATION.email,
-      telephone:
-        siteInfo?.com_site_contact_number || DEFAULT_ORGANIZATION.telephone,
+      ...(sitePhone ? { telephone: sitePhone } : {}),
       address: {
         "@type": "PostalAddress",
         streetAddress:
@@ -194,8 +195,7 @@ export default async function ContactPage({ params }: Props) {
       contactPoint: {
         "@type": "ContactPoint",
         contactType: "customer service",
-        telephone:
-          siteInfo?.com_site_contact_number || DEFAULT_ORGANIZATION.telephone,
+        ...(sitePhone ? { telephone: sitePhone } : {}),
         email: siteInfo?.com_site_email || DEFAULT_ORGANIZATION.email,
         areaServed: "TR",
         availableLanguage: ["tr", "en"],
@@ -218,7 +218,7 @@ export default async function ContactPage({ params }: Props) {
         }}
         detailsSection={{
           address: siteInfo?.com_site_full_address || content.contact_details_section?.address || null,
-          phone: siteInfo?.com_site_contact_number || content.contact_details_section?.phone || null,
+          phone: sitePhone || contentPhone || null,
           email: siteInfo?.com_site_email || content.contact_details_section?.email || null,
           website: siteInfo?.com_site_website_url || content.contact_details_section?.website || null,
           imageUrl: content.contact_details_section?.image_url || null,

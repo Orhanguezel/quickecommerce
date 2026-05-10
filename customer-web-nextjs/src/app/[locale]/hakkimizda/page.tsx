@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import { AboutPageClient } from "./about-client";
-import { absoluteUrl, DEFAULT_ORGANIZATION, localizedAlternates, SITE_URL } from "@/lib/seo";
+import { absoluteUrl, cleanContactPhone, DEFAULT_ORGANIZATION, localizedAlternates, SITE_URL } from "@/lib/seo";
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -166,6 +166,7 @@ export default async function AboutPage({ params }: Props) {
   ]);
   const t = await getTranslations({ locale, namespace: "common" });
   const pageT = await getTranslations({ locale, namespace: "pages" });
+  const sitePhone = cleanContactPhone(siteInfo?.com_site_contact_number);
 
   const aboutJsonLd = {
     "@context": "https://schema.org",
@@ -176,9 +177,9 @@ export default async function AboutPage({ params }: Props) {
       "@type": "Organization",
       name: "Sportoonline",
       url: SITE_URL,
-      ...(siteInfo?.com_site_contact_number
+      ...(sitePhone
         ? {
-            telephone: siteInfo.com_site_contact_number,
+            telephone: sitePhone,
           }
         : {}),
       ...(siteInfo?.com_site_email

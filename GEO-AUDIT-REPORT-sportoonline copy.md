@@ -74,11 +74,12 @@
 
 - [x] Hakkımızda fallback meta description uzatıldı.
 - [x] İletişim fallback meta description uzatıldı.
-- [ ] CMS'teki Hakkımızda meta description fallback'i eziyorsa CMS alanı güncellenecek.
-- [ ] CMS'teki İletişim meta description fallback'i eziyorsa CMS alanı güncellenecek.
-- [ ] `twitter:site` için gerçek X/Twitter hesabı varsa eklenecek; yoksa hesap açma kararı verilecek.
-- [ ] Organization telefon numarası placeholder ise gerçek numara ile değiştirilecek.
-- [ ] Footer ve schema'daki NAP bilgisi aynı kaynak üzerinden doğrulanacak.
+- [x] CMS'teki Hakkımızda meta description alanı fallback ile aynı kaliteye getirildi; public API artık CMS meta alanını frontend'e döndürüyor.
+- [x] CMS'teki İletişim meta description alanı fallback ile aynı kaliteye getirildi; public API artık CMS meta alanını frontend'e döndürüyor.
+- [x] `twitter:site` kontrol edildi; doğrulanabilir resmi X/Twitter hesabı bulunmadığı için meta'ya eklenmedi.
+- [ ] Resmi X/Twitter hesabı açılırsa `twitter:site` ve footer sosyal linki eklenecek.
+- [x] Organization telefon placeholder'ı schema ve footer çıktısından kaldırıldı; gerçek telefon girilene kadar fake numara basılmayacak.
+- [x] Footer ve schema NAP bilgisi aynı site ayarı kaynağından okunacak şekilde doğrulandı.
 
 ## P1 - Kategori ve Ürün İçerikleri
 
@@ -159,12 +160,12 @@
 
 ## Sonraki Uygulama Sırası
 
-1. CMS meta alanlarının fallback'i ezip ezmediğini kontrol et.
-2. Google Search Console, Bing Webmaster Tools ve Merchant Center panel kontrollerini yap.
-3. Product/Article Rich Results manuel testlerini yap.
-4. Kategori açıklamaları, ürün/kategori görsel alt textleri ve seller schema iyileştirmelerini tamamla.
-5. Header/CSP/Brotli/Unsplash CDN teknik P2 işlerini sırayla kapat.
-6. Off-site marka profillerini aynı NAP bilgisiyle güçlendir.
+1. Google Search Console, Bing Webmaster Tools ve Merchant Center panel kontrollerini yap.
+2. Product/Article Rich Results manuel testlerini yap.
+3. Kategori açıklamaları, ürün/kategori görsel alt textleri ve seller schema iyileştirmelerini tamamla.
+4. Header/CSP/Brotli/Unsplash CDN teknik P2 işlerini sırayla kapat.
+5. Off-site marka profillerini aynı NAP bilgisiyle güçlendir.
+6. Resmi X/Twitter hesabı açılacaksa sosyal/meta entegrasyonunu tamamla.
 7. 30/90 günlük içerik planını CMS'e sırayla uygula.
 
 *Not: Bu checklist eski audit raporundan türetildi; canlı deploy sonrası gerçek durumla çelişen “blog yok” gibi maddeler düzeltilmiştir.*

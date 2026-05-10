@@ -23,7 +23,7 @@ import { AnalyticsProvider } from '@/components/providers/analytics-provider';
 import { CookieBanner } from '@/components/cookie-banner';
 import { Geist } from 'next/font/google';
 import Script from 'next/script';
-import { DEFAULT_ORGANIZATION, SITE_URL } from '@/lib/seo';
+import { cleanContactPhone, DEFAULT_ORGANIZATION, SITE_URL } from '@/lib/seo';
 import '../globals.css';
 
 const API_URL = process.env.NEXT_PUBLIC_REST_API_ENDPOINT || 'https://sportoonline.com/api/v1';
@@ -222,6 +222,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
   const metaPixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID || '';
 
   const isMaintenanceMode = settings?.com_maintenance_mode === 'on';
+  const sitePhone = cleanContactPhone(settings?.com_site_contact_number);
 
   if (isMaintenanceMode) {
     const maintenancePage = await getMaintenancePageData(locale);
@@ -280,20 +281,20 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
               "@context": "https://schema.org",
               "@type": "Organization",
               ...DEFAULT_ORGANIZATION,
-              telephone:
-                settings?.com_site_contact_number ||
-                DEFAULT_ORGANIZATION.telephone,
+              ...(sitePhone ? { telephone: sitePhone } : {}),
               email: settings?.com_site_email || DEFAULT_ORGANIZATION.email,
-              contactPoint: {
-                "@type": "ContactPoint",
-                telephone:
-                  settings?.com_site_contact_number ||
-                  DEFAULT_ORGANIZATION.telephone,
-                email: settings?.com_site_email || DEFAULT_ORGANIZATION.email,
-                contactType: "customer service",
-                areaServed: "TR",
-                availableLanguage: ["tr", "en"],
-              },
+              ...(sitePhone
+                ? {
+                    contactPoint: {
+                      "@type": "ContactPoint",
+                      telephone: sitePhone,
+                      email: settings?.com_site_email || DEFAULT_ORGANIZATION.email,
+                      contactType: "customer service",
+                      areaServed: "TR",
+                      availableLanguage: ["tr", "en"],
+                    },
+                  }
+                : {}),
               address: {
                 "@type": "PostalAddress",
                 streetAddress:
