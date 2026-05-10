@@ -178,6 +178,8 @@ class Product extends Model
         return $query
             ->where('status', 'approved')
             ->whereNull('deleted_at')
+            ->whereNotNull('image')
+            ->where('image', '!=', '')
             ->whereHas('variants', fn (Builder $variantQuery) => $variantQuery->publiclySellable());
     }
 
