@@ -213,6 +213,11 @@ function getCategoryColor(category: string): string {
   return categoryColors[category];
 }
 
+function getBlogImageAlt(post: BlogPost): string {
+  const category = post.category ? `${post.category} kategorisinde` : "Sportoonline blogda";
+  return `${category} ${post.title} rehber görseli`;
+}
+
 /* ── Blog Card ── */
 function BlogCard({ post }: { post: BlogPost }) {
   return (
@@ -225,7 +230,7 @@ function BlogCard({ post }: { post: BlogPost }) {
         {post.image_url ? (
           <Image
             src={post.image_url}
-            alt={post.title}
+            alt={getBlogImageAlt(post)}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
           />

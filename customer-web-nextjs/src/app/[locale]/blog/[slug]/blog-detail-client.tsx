@@ -88,6 +88,11 @@ function getCategoryColor(category: string): string {
   return categoryColors[category];
 }
 
+function getBlogImageAlt(post: BlogPost): string {
+  const category = post.category ? `${post.category} kategorisinde` : "Sportoonline blogda";
+  return `${category} ${post.title} rehber görseli`;
+}
+
 export function BlogDetailClient({
   blog,
   categories,
@@ -200,7 +205,7 @@ export function BlogDetailClient({
             <div className="relative mb-5 aspect-[16/9] overflow-hidden rounded-md border bg-muted">
               <Image
                 src={blog.image_url}
-                alt={blog.title}
+                alt={getBlogImageAlt(blog)}
                 fill
                 className="object-cover"
                 priority
@@ -397,7 +402,7 @@ export function BlogDetailClient({
                       <div className="relative h-16 w-20 shrink-0 overflow-hidden rounded">
                         <Image
                           src={post.image_url}
-                          alt={post.title}
+                          alt={getBlogImageAlt(post)}
                           fill
                           className="object-cover"
                         />
@@ -438,7 +443,7 @@ function RelatedPostCard({ post }: { post: BlogPost }) {
         {post.image_url ? (
           <Image
             src={post.image_url}
-            alt={post.title}
+            alt={getBlogImageAlt(post)}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
           />

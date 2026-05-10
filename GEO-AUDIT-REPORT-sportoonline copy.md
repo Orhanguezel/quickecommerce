@@ -1,7 +1,7 @@
 # Sportoonline GEO Audit Checklist
 
 **Denetim tarihi:** 2026-05-10  
-**Son kontrol:** 2026-05-10 canlı deploy sonrası  
+**Son kontrol:** 2026-05-10 blog içerik + blog detay stil canlı deploy sonrası  
 **URL:** https://sportoonline.com  
 **Amaç:** Bu dosya artık okunabilir rapor değil, eksikleri adım adım kapatmak için çalışma checklist'idir. Tamamlanan işler tekrar eksik sayılmamalı.
 
@@ -11,6 +11,8 @@
 - [x] Organization, WebSite, Product, BreadcrumbList, CollectionPage, FAQPage, AboutPage ve BlogPosting schema altyapısı eklendi.
 - [x] Canlı `NEXT_PUBLIC_SITE_URL=http://localhost:3003` etkisi kodda normalize edildi; canlı HTML'de `localhost` sızıntısı son kontrolde görünmedi.
 - [x] Blog sayfası var ve canlı API blog döndürüyor. Eski rapordaki “Blog 0 yazı” bulgusu güncel değil.
+- [x] Tüm 15 aktif blog yazısı canlıda 1.000+ kelimeye çıkarıldı; `tr` translation kayıtları da güncellendi.
+- [x] Blog detay sayfası okuma stili düzeltildi; başlık, paragraf, liste ve tablo ayrımları canlıda daha okunur hale getirildi.
 - [ ] Bu checklist tamamlandıkça madde işaretleri güncellenecek; yeni denetim skoru daha sonra tekrar ölçülecek.
 
 ## Canlı Blog Durumu
@@ -20,7 +22,9 @@
 - [x] Blog API canlı toplamı: `15` yayımlanmış yazı.
 - [x] İlk sayfada `10` yazı dönüyor; backend `per_page` parametresini destekliyor.
 - [x] Blog detay sayfalarında `BlogPosting` JSON-LD, `Person` author, publisher Organization ve breadcrumb var.
-- [ ] Blog içerikleri GEO açısından hâlâ zayıf: kaynak, uzunluk, tablo, SSS ve doğrudan cevap formatı eksik.
+- [x] Blog içeriklerinin temel uzunluk problemi kapatıldı: tüm 15 aktif yazı 1.000+ kelime.
+- [x] Bloglarda temel tablo ve SSS yapısı eklendi.
+- [x] Blog içeriklerinde Öncelik 1 kalite derinleştirmesi tamamlandı: tüm 15 yazıya konuya özel kısa cevap, güvenilir kaynak ve hedefli iç link bloğu eklendi.
 - [x] Audit aracının “blog yok” demesinin ilk kontrolü yapıldı: canlı API 15 yazı döndürüyor; blog liste sayfasına `Blog` + `ItemList` JSON-LD eklendi. İçerik kalitesi ayrı madde olarak kalıyor.
 
 ## P0 - Kritik Teknik ve Schema
@@ -48,22 +52,23 @@
 - [x] Engin Eser yazar profil route'u var: `/tr/yazar/engin-eser`.
 - [x] BlogPosting author `Person` schema ile bağlandı.
 - [x] Fitness/beslenme içeriklerine uyarı ve ticari ilişki açıklaması altyapısı eklendi.
-- [ ] Her blog yazısına 3-5 güvenilir kaynak eklenecek.
-- [ ] En yüksek potansiyelli ilk 3 yazı 1.000+ kelimeye genişletilecek.
+- [x] Her blog yazısına 3-5 güvenilir kaynak eklendi.
+- [x] En yüksek potansiyelli ilk 3 yazı 1.000+ kelimeye genişletildi.
+- [x] Tüm 15 aktif blog yazısı 1.000+ kelimeye genişletildi.
 - [ ] Başlıkta vaat edilen liste sayısı içerikte gerçekten tamamlanacak.
-- [ ] Her rehbere 40-60 kelimelik doğrudan cevap özeti eklenecek.
-- [ ] Her rehbere karşılaştırma tablosu eklenecek.
-- [ ] Her rehbere SSS bölümü eklenecek.
-- [ ] Blog görsellerine konu odaklı Türkçe alt text girilecek.
-- [ ] İç linkler ürün/kategori sayfalarına bilinçli şekilde yerleştirilecek.
+- [x] Her rehbere 40-60 kelimelik konuya özel doğrudan cevap özeti eklendi.
+- [x] Her rehbere temel karşılaştırma/karar tablosu eklendi.
+- [x] Her rehbere temel SSS bölümü eklendi.
+- [x] Blog görsellerine konu odaklı Türkçe alt text frontend üretimi eklendi.
+- [x] İç linkler ürün/kategori aramalarına bilinçli şekilde yerleştirildi.
 
 ### Öncelikli Blog Revizyonları
 
-- [ ] “Evde Yapabileceğiniz 10 Etkili Egzersiz” yazısı gerçekten 10 egzersizi kapsayacak şekilde genişletilecek.
-- [ ] “Sporcular İçin En İyi 10 Protein Kaynağı” yazısı 10 kaynağı tamamlayacak.
-- [ ] “İlk Maratonunuza Nasıl Hazırlanırsınız?” yazısı 1.200+ kelime rehber formatına getirilecek.
-- [ ] “Doğru Koşu Ayakkabısı Nasıl Seçilir?” yazısı tablo + SSS + kaynaklarla güçlendirilecek.
-- [ ] “Kas Kütlesi Artırmak İçin 5 Altın Kural” yazısı kaynak ve sağlık uyarılarıyla güçlendirilecek.
+- [x] “Evde Yapabileceğiniz 10 Etkili Egzersiz” yazısı gerçekten 10 egzersizi kapsayacak şekilde genişletildi.
+- [x] “Sporcular İçin En İyi 10 Protein Kaynağı” yazısı 10 kaynağı tamamlayacak şekilde genişletildi.
+- [x] “İlk Maratonunuza Nasıl Hazırlanırsınız?” yazısı 1.200+ kelime rehber formatına getirildi. Canlı API doğrulamasında 1.300+ kelime döndü.
+- [x] “Doğru Koşu Ayakkabısı Nasıl Seçilir?” yazısı tablo + SSS + kaynaklarla güçlendirildi.
+- [x] “Kas Kütlesi Artırmak İçin 5 Altın Kural” yazısı sağlık uyarıları ve kaynaklarla güçlendirildi.
 
 ## P1 - Meta ve Sayfa Kalitesi
 
@@ -154,11 +159,12 @@
 
 ## Sonraki Uygulama Sırası
 
-1. Blog içeriklerini gerçek rehber standardına yükselt.
-2. CMS meta alanlarının fallback'i ezip ezmediğini kontrol et.
-3. Header tekrarları ve CSP enforce işini tamamla.
-4. Product/Article Rich Results manuel testlerini yap.
-5. Off-site marka profillerini aynı NAP bilgisiyle güçlendir.
-6. 30/90 günlük içerik planını CMS'e sırayla uygula.
+1. CMS meta alanlarının fallback'i ezip ezmediğini kontrol et.
+2. Google Search Console, Bing Webmaster Tools ve Merchant Center panel kontrollerini yap.
+3. Product/Article Rich Results manuel testlerini yap.
+4. Kategori açıklamaları, ürün/kategori görsel alt textleri ve seller schema iyileştirmelerini tamamla.
+5. Header/CSP/Brotli/Unsplash CDN teknik P2 işlerini sırayla kapat.
+6. Off-site marka profillerini aynı NAP bilgisiyle güçlendir.
+7. 30/90 günlük içerik planını CMS'e sırayla uygula.
 
 *Not: Bu checklist eski audit raporundan türetildi; canlı deploy sonrası gerçek durumla çelişen “blog yok” gibi maddeler düzeltilmiştir.*
