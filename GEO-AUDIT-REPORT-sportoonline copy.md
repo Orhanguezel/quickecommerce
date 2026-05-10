@@ -93,7 +93,7 @@
 - [x] CSP Report-Only aktif.
 - [x] Redirect zinciri tek ana production domain'e yönleniyor.
 - [x] Görsellerde sabit oran/CLS azaltma düzenlemeleri yapıldı.
-- [x] Nginx + Next.js security header tekrarları için Next tarafındaki `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy` kaldırıldı. Canlı header deploy sonrası tekrar doğrulanacak.
+- [x] Nginx + Next.js security header tekrarları için Next tarafındaki `Strict-Transport-Security`, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy` kaldırıldı. Canlı header deploy sonrası tekrar doğrulanacak.
 - [ ] CSP report-only politikası test sonrası enforce moduna alınacak.
 - [ ] Brotli için sunucu modül durumu ayrıca değerlendirilecek.
 - [ ] Unsplash görselleri kritik alanlardan kendi CDN'e taşınacak.
