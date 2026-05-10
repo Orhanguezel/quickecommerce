@@ -4,7 +4,9 @@ import { useState } from "react";
 import { Link } from "@/i18n/routing";
 import Image from "next/image";
 import {
+  CalendarDays,
   ChevronRight,
+  Clock3,
   Eye,
   FileText,
   User,
@@ -62,6 +64,22 @@ const palette = [
 ];
 let colorIndex = 0;
 
+const articleBodyClassName = [
+  "prose max-w-none dark:prose-invert",
+  "prose-p:my-5 prose-p:text-[16px] prose-p:leading-8 prose-p:text-foreground/85",
+  "sm:prose-p:text-[17px] sm:prose-p:leading-8",
+  "prose-strong:text-foreground",
+  "prose-a:font-semibold prose-a:text-primary prose-a:no-underline hover:prose-a:underline",
+  "prose-h2:mb-4 prose-h2:mt-10 prose-h2:border-b prose-h2:border-border prose-h2:pb-3 prose-h2:text-2xl prose-h2:font-extrabold prose-h2:tracking-tight",
+  "prose-h3:mb-2 prose-h3:mt-7 prose-h3:text-lg prose-h3:font-bold prose-h3:text-foreground",
+  "prose-ul:my-5 prose-ul:rounded-md prose-ul:border prose-ul:bg-muted/25 prose-ul:p-5 prose-ul:pl-8",
+  "prose-li:my-2 prose-li:leading-7 prose-li:text-foreground/85",
+  "prose-table:my-7 prose-table:overflow-hidden prose-table:rounded-md prose-table:border prose-table:text-sm",
+  "prose-th:bg-muted prose-th:px-4 prose-th:py-3 prose-th:text-left prose-th:font-bold",
+  "prose-td:border-t prose-td:px-4 prose-td:py-3 prose-td:align-top",
+  "prose-blockquote:rounded-md prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-primary/5 prose-blockquote:px-5 prose-blockquote:py-3 prose-blockquote:not-italic",
+].join(" ");
+
 function getCategoryColor(category: string): string {
   if (!categoryColors[category]) {
     categoryColors[category] = palette[colorIndex % palette.length];
@@ -86,6 +104,9 @@ export function BlogDetailClient({
       ?.split(",")
       .map((tag) => tag.trim())
       .filter(Boolean) ?? [];
+  const plainText = blog.description?.replace(/<[^>]+>/g, " ").trim() ?? "";
+  const wordCount = plainText.split(/\s+/).filter(Boolean).length;
+  const readingTime = Math.max(1, Math.ceil(wordCount / 220));
 
   const { isAuthenticated } = useAuthStore();
   const { create } = useBaseService("/customer/blog/comment");
@@ -125,9 +146,10 @@ export function BlogDetailClient({
   }
 
   return (
-    <div className="container py-6">
+    <div className="bg-muted/20">
+      <div className="container py-5 sm:py-7">
       {/* Breadcrumb */}
-      <nav className="mb-6 flex items-center gap-1.5 text-sm text-muted-foreground">
+      <nav className="mb-5 flex items-center gap-1.5 text-sm text-muted-foreground">
         <Link href="/" className="hover:text-foreground">
           {t.home}
         </Link>
@@ -139,12 +161,43 @@ export function BlogDetailClient({
         <span className="text-primary">{t.details}</span>
       </nav>
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,820px)_320px] xl:justify-center">
         {/* ── Main Content ── */}
-        <article>
+        <article className="min-w-0">
+          <div className="mb-5">
+            {blog.category && (
+              <span
+                className={`mb-4 inline-flex rounded-full px-3 py-1 text-xs font-bold ${getCategoryColor(blog.category)}`}
+              >
+                {blog.category}
+              </span>
+            )}
+
+            <h1 className="max-w-3xl text-balance text-3xl font-extrabold leading-tight tracking-tight text-foreground sm:text-4xl">
+              {blog.title}
+            </h1>
+
+            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+              <span className="inline-flex items-center gap-1.5">
+                <CalendarDays className="h-4 w-4" />
+                {blog.created_at}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Clock3 className="h-4 w-4" />
+                {readingTime} dk okuma
+              </span>
+              {blog.views !== undefined && blog.views > 0 && (
+                <span className="inline-flex items-center gap-1.5">
+                  <Eye className="h-4 w-4" />
+                  {t.views}: {blog.views}
+                </span>
+              )}
+            </div>
+          </div>
+
           {/* Featured Image */}
           {blog.image_url && (
-            <div className="relative mb-4 aspect-[16/9] overflow-hidden rounded-lg">
+            <div className="relative mb-5 aspect-[16/9] overflow-hidden rounded-md border bg-muted">
               <Image
                 src={blog.image_url}
                 alt={blog.title}
@@ -155,18 +208,7 @@ export function BlogDetailClient({
             </div>
           )}
 
-          {/* Date + Views */}
-          <div className="mb-3 flex items-center justify-between text-sm text-muted-foreground">
-            <span>{blog.created_at}</span>
-            {blog.views !== undefined && blog.views > 0 && (
-              <span className="flex items-center gap-1.5">
-                <Eye className="h-4 w-4" />
-                {t.views}: {blog.views}
-              </span>
-            )}
-          </div>
-
-          <div className="mb-5 flex gap-3 rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
+          <div className="mb-7 flex gap-3 rounded-md border bg-background p-4 text-sm text-muted-foreground shadow-sm">
             {author.image ? (
               <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full bg-muted">
                 <Image
@@ -199,14 +241,9 @@ export function BlogDetailClient({
             </div>
           </div>
 
-          {/* Title */}
-          <h1 className="mb-6 text-2xl font-bold leading-tight sm:text-3xl">
-            {blog.title}
-          </h1>
-
           {/* Body */}
           <div
-            className="prose prose-sm max-w-none dark:prose-invert sm:prose-base"
+            className={articleBodyClassName}
             dangerouslySetInnerHTML={{ __html: blog.description }}
           />
 
@@ -322,10 +359,10 @@ export function BlogDetailClient({
         </article>
 
         {/* ── Sidebar ── */}
-        <aside className="space-y-6">
+        <aside className="space-y-6 xl:sticky xl:top-28 xl:self-start">
           {/* Categories */}
           {categories.length > 0 && (
-            <div className="rounded-lg border p-5">
+            <div className="rounded-md border bg-background p-5 shadow-sm">
               <h3 className="mb-4 border-b pb-3 text-base font-bold">
                 {t.categories}
               </h3>
@@ -345,7 +382,7 @@ export function BlogDetailClient({
 
           {/* Popular Posts */}
           {popularPosts.length > 0 && (
-            <div className="rounded-lg border p-5">
+            <div className="rounded-md border bg-background p-5 shadow-sm">
               <h3 className="mb-4 border-b pb-3 text-base font-bold">
                 {t.popular_posts}
               </h3>
@@ -384,6 +421,7 @@ export function BlogDetailClient({
             </div>
           )}
         </aside>
+      </div>
       </div>
     </div>
   );
