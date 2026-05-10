@@ -21,12 +21,12 @@ class FooterSettingsSeeder extends Seeder
 
         // ── TR (default) content ────────────────────────────────────
         $trContent = [
-            'com_social_links_facebook_url'       => 'https://facebook.com/quickecommerce',
-            'com_social_links_twitter_url'        => 'https://twitter.com/quickecommerce',
-            'com_social_links_instagram_url'      => 'https://instagram.com/quickecommerce',
-            'com_social_links_linkedin_url'       => 'https://linkedin.com/company/quickecommerce',
-            'com_download_app_link_one'           => 'https://play.google.com/store',
-            'com_download_app_link_two'           => 'https://apps.apple.com',
+            'com_social_links_facebook_url'       => 'https://facebook.com/sportoonline',
+            'com_social_links_twitter_url'        => '',
+            'com_social_links_instagram_url'      => 'https://instagram.com/sportoonline',
+            'com_social_links_linkedin_url'       => 'https://linkedin.com/company/sportoonline',
+            'com_download_app_link_one'           => '',
+            'com_download_app_link_two'           => '',
             'com_payment_methods_enable_disable'  => 'on',
             'com_quick_access_enable_disable'     => 'on',
             'com_our_info_enable_disable'         => 'on',
@@ -58,12 +58,12 @@ class FooterSettingsSeeder extends Seeder
 
         // ── EN content ──────────────────────────────────────────────
         $enContent = [
-            'com_social_links_facebook_url'       => 'https://facebook.com/quickecommerce',
-            'com_social_links_twitter_url'        => 'https://twitter.com/quickecommerce',
-            'com_social_links_instagram_url'      => 'https://instagram.com/quickecommerce',
-            'com_social_links_linkedin_url'       => 'https://linkedin.com/company/quickecommerce',
-            'com_download_app_link_one'           => 'https://play.google.com/store',
-            'com_download_app_link_two'           => 'https://apps.apple.com',
+            'com_social_links_facebook_url'       => 'https://facebook.com/sportoonline',
+            'com_social_links_twitter_url'        => '',
+            'com_social_links_instagram_url'      => 'https://instagram.com/sportoonline',
+            'com_social_links_linkedin_url'       => 'https://linkedin.com/company/sportoonline',
+            'com_download_app_link_one'           => '',
+            'com_download_app_link_two'           => '',
             'com_payment_methods_enable_disable'  => 'on',
             'com_quick_access_enable_disable'     => 'on',
             'com_our_info_enable_disable'         => 'on',
