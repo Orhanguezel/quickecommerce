@@ -25,6 +25,8 @@ interface ProductCardProps {
   compact?: boolean;
   /** variant: "grid" (vertical card) or "list" (horizontal card) */
   variant?: "grid" | "list";
+  /** Recommendation block context, used to attribute add-to-cart events. */
+  recommendationBlockType?: string;
 }
 
 function StarRating({ rating, count }: { rating: number; count: number }) {
@@ -51,6 +53,7 @@ export function ProductCard({
   product,
   compact = false,
   variant = "grid",
+  recommendationBlockType,
 }: ProductCardProps) {
   const t = useTranslations("product");
   const { formatPrice } = usePrice();
@@ -103,6 +106,19 @@ export function ProductCard({
         quantity: 1,
       },
     });
+
+    if (recommendationBlockType) {
+      trackFunnelEvent({
+        event: "recommendation_add",
+        block_type: recommendationBlockType,
+        product_id: product.id,
+        amount: displayPrice,
+        meta: {
+          slug: product.slug,
+          quantity: 1,
+        },
+      });
+    }
     
     // Fly to cart animation
     if (imageRef.current) {
@@ -304,7 +320,7 @@ export function ProductCard({
       <Link
       href={`/urun/${product.slug}`}
       title={product.name}
-      onClickCapture={handleProductClick}
+      onClick={handleProductClick}
       className="group flex items-stretch overflow-hidden rounded-lg border bg-card transition-all hover:border-primary/50 hover:shadow-md"
       >
         {/* Image */}
@@ -343,7 +359,7 @@ export function ProductCard({
     <Link
       href={`/urun/${product.slug}`}
       title={product.name}
-      onClickCapture={handleProductClick}
+      onClick={handleProductClick}
       className={`group relative flex flex-col overflow-hidden rounded-xl border bg-card transition-all duration-200 hover:border-primary/50 hover:shadow-lg ${
         compact ? "h-full w-full" : "h-[380px] w-[260px] shrink-0"
       }`}

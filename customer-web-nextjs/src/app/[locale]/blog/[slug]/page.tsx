@@ -47,6 +47,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       type: "article",
+      url: `${SITE_URL}/${locale}/blog/${slug}`,
       locale: locale === "tr" ? "tr_TR" : "en_US",
       siteName: "Sporto Online",
       publishedTime,

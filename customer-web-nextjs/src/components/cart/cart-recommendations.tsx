@@ -103,6 +103,19 @@ function CartRecommendationBlockView({
     });
   };
 
+  const handleRecommendationClick = (
+    event: React.MouseEvent<HTMLDivElement>,
+    productId: number
+  ) => {
+    if ((event.target as HTMLElement).closest("button")) return;
+
+    trackFunnelEvent({
+      event: "recommendation_click",
+      block_type: block.type,
+      product_id: productId,
+    });
+  };
+
   // Translation keys are sent from backend with a namespace prefix —
   // e.g. "recommendations.frequently_bought_together". Fall back to the
   // raw key so missing translations don't break the UI.
@@ -159,15 +172,9 @@ function CartRecommendationBlockView({
         {block.products.map((product) => (
           <div
             key={product.id}
-            onClickCapture={() =>
-              trackFunnelEvent({
-                event: "recommendation_click",
-                block_type: block.type,
-                product_id: product.id,
-              })
-            }
+            onClick={(event) => handleRecommendationClick(event, product.id)}
           >
-            <ProductCard product={product} />
+            <ProductCard product={product} recommendationBlockType={block.type} />
           </div>
         ))}
       </div>

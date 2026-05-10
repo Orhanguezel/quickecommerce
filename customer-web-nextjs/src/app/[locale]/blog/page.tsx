@@ -4,7 +4,8 @@ import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { BlogPost } from "@/modules/blog/blog.type";
 import { BlogListClient } from "./blog-list-client";
-import { absoluteUrl, localizedAlternates } from "@/lib/seo";
+import { DEFAULT_ORGANIZATION, SITE_URL, absoluteUrl, localizedAlternates, stripHtml, toIsoDate, truncateText } from "@/lib/seo";
+import { getEnginEserAuthor } from "@/lib/authors";
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -96,12 +97,60 @@ export default async function BlogPage({ params, searchParams }: Props) {
       },
     ],
   };
+  const author = getEnginEserAuthor(locale);
+  const blogListJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    name: blogT("blog"),
+    url: `${SITE_URL}/${locale}/blog`,
+    publisher: {
+      "@type": "Organization",
+      name: DEFAULT_ORGANIZATION.name,
+      url: SITE_URL,
+      logo: {
+        "@type": "ImageObject",
+        url: DEFAULT_ORGANIZATION.logo,
+      },
+    },
+    blogPost: data.posts.slice(0, 12).map((post) => ({
+      "@type": "BlogPosting",
+      headline: post.title,
+      url: `${SITE_URL}/${locale}/blog/${post.slug}`,
+      ...(post.image_url ? { image: post.image_url } : {}),
+      ...(toIsoDate(post.created_at) ? { datePublished: toIsoDate(post.created_at) } : {}),
+      author: {
+        "@type": "Person",
+        name: author.name,
+        url: author.localizedUrl,
+      },
+      description: post.meta_description || truncateText(stripHtml(post.description), 180),
+    })),
+  };
+  const itemListJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: blogT("blog"),
+    itemListElement: data.posts.slice(0, 12).map((post, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: `${SITE_URL}/${locale}/blog/${post.slug}`,
+      name: post.title,
+    })),
+  };
 
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogListJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
       />
       <BlogListClient
         posts={data.posts}
