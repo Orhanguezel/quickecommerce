@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Models\Page;
 use App\Models\SettingOption;
 use App\Models\Translation;
+use Illuminate\Support\Facades\DB;
 
 require __DIR__ . '/../backend-laravel/vendor/autoload.php';
 
@@ -15,6 +16,18 @@ $dryRun = in_array('--dry-run', $argv, true);
 $verify = in_array('--verify', $argv, true);
 
 const PLACEHOLDER_PHONE = '+90 212 555 0 123';
+const FALLBACK_SITE_ADDRESS_TR = '1671 sokak no 151c aksoy karşıyaka izmir';
+const FALLBACK_SITE_ADDRESS_EN = FALLBACK_SITE_ADDRESS_TR;
+
+const BAD_ADDRESSES = [
+    'Levent Mah. Büyükdere Cad. No:185, Şişli, İstanbul, Türkiye',
+    'Levent Mah. Buyukdere Cad. No:185, Sisli, Istanbul, Turkey',
+    'Levent Mah. Buyukdere Cad. No:185, Sisli, Istanbul, Türkiye',
+    'Levent Mah. Büyükdere Cad. No:185',
+    'Levent Mah. Buyukdere Cad. No:185',
+    'Şişli, İstanbul',
+    'Sisli, Istanbul',
+];
 
 $meta = [
     'about' => [
@@ -57,6 +70,9 @@ function cleanString(?string $value): ?string
 
     $value = str_replace(
         [
+            'Levent Mah. Buyukdere Cad. No:185, Sisli, Istanbul, Turkey',
+            'Levent Mah. Büyükdere Cad. No:185, Şişli, İstanbul, Türkiye',
+            'Levent Mah. Buyukdere Cad. No:185, Sisli, Istanbul, Türkiye',
             ' adresi, +90 212 555 0 123 telefonu ve info@sportoonline.com e-postası',
             ' adresi, +90 212 555 0 123 telefonu ve info@sportoonline.com e-postasi',
             ', +90 212 555 0 123 telefonu',
@@ -66,6 +82,9 @@ function cleanString(?string $value): ?string
             ', Facebook ve Twitter (@sportoonlinecom)',
         ],
         [
+            canonicalAddressTr(),
+            canonicalAddressTr(),
+            canonicalAddressTr(),
             ' adresi ve info@sportoonline.com e-postası',
             ' adresi ve info@sportoonline.com e-postasi',
             '',
@@ -80,6 +99,30 @@ function cleanString(?string $value): ?string
     return preg_replace('/\s{2,}/u', ' ', trim($value));
 }
 
+function canonicalAddressTr(): string
+{
+    static $address = null;
+    if ($address !== null) {
+        return $address;
+    }
+
+    $row = DB::table('stores')
+        ->where('store_seller_id', 3)
+        ->where('address', 'like', '%karşıyaka%')
+        ->where('address', 'like', '%izmir%')
+        ->where('address', 'like', '%151c%')
+        ->orderByDesc('id')
+        ->first();
+
+    $address = trim((string) ($row->address ?? '')) ?: FALLBACK_SITE_ADDRESS_TR;
+    return $address;
+}
+
+function canonicalAddressEn(): string
+{
+    return canonicalAddressTr() ?: FALLBACK_SITE_ADDRESS_EN;
+}
+
 function cleanContent(mixed $value): mixed
 {
     if (is_string($value)) {
@@ -88,6 +131,11 @@ function cleanContent(mixed $value): mixed
 
     if (is_array($value)) {
         foreach ($value as $key => $item) {
+            if (($key === 'address' || $key === 'subtitle') && is_string($item)) {
+                $value[$key] = cleanString($item);
+                continue;
+            }
+
             if ($key === 'phone' && is_string($item) && isPlaceholderPhone($item)) {
                 $value[$key] = null;
                 continue;
@@ -169,11 +217,12 @@ function backupState(): string
 
 if ($verify) {
     $settings = SettingOption::query()
-        ->whereIn('option_name', ['com_site_contact_number', 'footer_settings'])
+        ->whereIn('option_name', ['com_site_contact_number', 'com_site_full_address', 'footer_settings'])
         ->get()
         ->keyBy('option_name');
     $settingValues = $settings->map(static fn (SettingOption $setting): ?string => $setting->option_value);
     $phoneSetting = $settings->get('com_site_contact_number');
+    $addressSetting = $settings->get('com_site_full_address');
     $phoneTranslations = $phoneSetting
         ? Translation::query()
             ->where('translatable_type', SettingOption::class)
@@ -186,6 +235,8 @@ if ($verify) {
     $footerContent = $footer['content'] ?? $footer;
 
     echo 'site_phone=' . (($settingValues['com_site_contact_number'] ?? '') ?: '[empty]') . "\n";
+    echo 'source_address=' . canonicalAddressTr() . "\n";
+    echo 'site_address=' . (($settingValues['com_site_full_address'] ?? '') ?: '[empty]') . "\n";
     echo 'phone_translations=' . (json_encode($phoneTranslations, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]') . "\n";
     echo 'phone_placeholder=' . (isPlaceholderPhone($settingValues['com_site_contact_number'] ?? null) || array_filter($phoneTranslations, 'isPlaceholderPhone') ? 'yes' : 'no') . "\n";
     echo 'footer_twitter=' . (($footerContent['com_social_links_twitter_url'] ?? '') ?: '[empty]') . "\n";
@@ -223,6 +274,26 @@ if ($sitePhone) {
                 $translation->value = '';
                 $translation->save();
             }
+        }
+    }
+}
+
+$siteAddress = SettingOption::query()->where('option_name', 'com_site_full_address')->first();
+if ($siteAddress) {
+    $addressTr = canonicalAddressTr();
+    $addressEn = canonicalAddressEn();
+
+    if ((string) $siteAddress->option_value !== $addressTr) {
+        echo "update_setting\tcom_site_full_address\t{$siteAddress->option_value}\n";
+        if (!$dryRun) {
+            $siteAddress->option_value = $addressTr;
+            $siteAddress->save();
+        }
+    }
+
+    foreach (['tr' => $addressTr, 'en' => $addressEn] as $language => $address) {
+        if (!$dryRun) {
+            upsertSettingTranslation($siteAddress, $language, 'com_site_full_address', $address);
         }
     }
 }

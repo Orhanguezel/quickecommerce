@@ -25,8 +25,8 @@ class GeneralSettingsSeeder extends Seeder
             // Translatable
             'com_site_title'            => 'Sportoonline',
             'com_site_subtitle'         => 'Spor Giyim & Ekipman Mağazası',
-            'com_site_contact_number'   => '+90 212 555 0 123',
-            'com_site_full_address'     => 'Levent Mah. Büyükdere Cad. No:185, Şişli, İstanbul, Türkiye',
+            'com_site_contact_number'   => '',
+            'com_site_full_address'     => '1671 sokak no 151c aksoy karşıyaka izmir',
             'com_site_footer_copyright' => '© 2025 Sportoonline. Tüm hakları saklıdır.',
 
             // Global (non-translatable)
@@ -114,8 +114,8 @@ class GeneralSettingsSeeder extends Seeder
         $enValues = [
             'com_site_title'              => 'Sportoonline',
             'com_site_subtitle'           => 'Sports Apparel & Equipment Store',
-            'com_site_contact_number'     => '+90 212 555 0 123',
-            'com_site_full_address'       => 'Levent Mah. Buyukdere Cad. No:185, Sisli, Istanbul, Turkey',
+            'com_site_contact_number'     => '',
+            'com_site_full_address'       => '1671 sokak no 151c aksoy karşıyaka izmir',
             'com_site_footer_copyright'   => '© 2025 Sportoonline. All rights reserved.',
             'com_maintenance_title'       => 'Under Maintenance',
             'com_maintenance_description' => 'Our site is temporarily unavailable due to scheduled maintenance. We will be back online shortly.',

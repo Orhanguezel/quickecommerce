@@ -25,10 +25,10 @@ export const DEFAULT_ORGANIZATION = {
   logo: `${SITE_URL}/favicon/favicon-96x96.png`,
   email: "info@sportoonline.com",
   address: {
-    streetAddress: "Levent Mah. Büyükdere Cad. No:185",
-    addressLocality: "Şişli",
-    addressRegion: "İstanbul",
-    postalCode: "34394",
+    streetAddress: "1671 sokak no 151c aksoy",
+    addressLocality: "Karşıyaka",
+    addressRegion: "İzmir",
+    postalCode: "",
     addressCountry: "TR",
   },
   sameAs: [
