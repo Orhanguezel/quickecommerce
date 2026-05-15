@@ -226,7 +226,14 @@ class OrderManageNotificationService
 
             }
 
-        }catch (\Exception $exception){}
+        }catch (\Exception $exception){
+            // Müşteriye yansıtma; sessiz kalmasın diye logla.
+            Log::error('[order-email] createOrderNotification failed', [
+                'error' => $exception->getMessage(),
+                'file' => $exception->getFile(),
+                'line' => $exception->getLine(),
+            ]);
+        }
 
 
     }
@@ -434,7 +441,12 @@ class OrderManageNotificationService
             $messaging->sendMulticast($message, $firebaseTokens);
 
 
-        }catch (\Exception $exception){}
+        }catch (\Exception $exception){
+            // Push bildirimi hatası müşteriye yansımasın; logla.
+            Log::error('[order-push] firebase multicast failed', [
+                'error' => $exception->getMessage(),
+            ]);
+        }
     }
 
 

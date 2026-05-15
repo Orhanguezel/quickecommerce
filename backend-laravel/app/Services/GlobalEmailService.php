@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Mail\DynamicEmail;
 use App\Models\EmailTemplate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class GlobalEmailService
@@ -68,6 +69,12 @@ class GlobalEmailService
                 }
             }
         } catch (\Exception $e) {
+            // Müşteriye hiçbir şey yansıtma; sadece logla (sessiz kalmasın).
+            Log::error('[order-email] DispatchOrderEmails failed', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
         }
     }
 
