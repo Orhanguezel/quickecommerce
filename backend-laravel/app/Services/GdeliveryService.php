@@ -208,10 +208,13 @@ class GdeliveryService
         // 1. Önce müşteri adresindeki city_name/district_name alanlarını dene
         // 2. Yoksa store_areas üzerinden il/ilçe bul
         // 3. Yoksa adres metninden şehir tahmin et
+        // ÖNEMLİ: Geliver şehir/ilçeyi TÜRKÇE karakterlerle eşleştirir
+        // ("Küçükçekmece" gibi). ASCII'ye normalize etmek "Şehir/İlçe
+        // bulunamadı" hatasına yol açar — bu yüzden ham Türkçe gönderilir.
         if ($orderAddress->city_name) {
-            $cityName     = $this->normalizeAscii($orderAddress->city_name);
+            $cityName     = trim($orderAddress->city_name);
             $districtName = $orderAddress->district_name
-                ? $this->normalizeAscii($orderAddress->district_name)
+                ? trim($orderAddress->district_name)
                 : null;
         } else {
             $storeArea = $orderAddress->area_id
@@ -219,9 +222,9 @@ class GdeliveryService
                 : null;
 
             $cityName     = $storeArea
-                ? $this->normalizeAscii($storeArea->state)
+                ? trim($storeArea->state)
                 : $this->getCityName($orderAddress->address);
-            $districtName = $storeArea ? $this->normalizeAscii($storeArea->city) : null;
+            $districtName = $storeArea ? trim($storeArea->city) : null;
         }
 
         $cityCode = $this->getCityCode($cityName);
@@ -453,10 +456,10 @@ class GdeliveryService
 
         $recipientName = $orderAddress->name ?: ($orderAddress->email ?: 'Müşteri');
 
-        // Müşteri adresinden şehir bilgisi çöz
+        // Müşteri adresinden şehir bilgisi çöz (Geliver Türkçe ister — ASCII'ye çevirme)
         if ($orderAddress->city_name) {
-            $cityName = $this->normalizeAscii($orderAddress->city_name);
-            $districtName = $orderAddress->district_name ? $this->normalizeAscii($orderAddress->district_name) : null;
+            $cityName = trim($orderAddress->city_name);
+            $districtName = $orderAddress->district_name ? trim($orderAddress->district_name) : null;
         } else {
             $cityName = $this->getCityName($orderAddress->address);
             $districtName = null;
@@ -607,10 +610,11 @@ class GdeliveryService
      */
     private function getCityName(string $address): string
     {
+        // Geliver Türkçe il ismi bekler — değerler Türkçe karakterli tutulur.
         $cityMap = [
-            'istanbul'  => 'Istanbul',
+            'istanbul'  => 'İstanbul',
             'ankara'    => 'Ankara',
-            'izmir'     => 'Izmir',
+            'izmir'     => 'İzmir',
             'bursa'     => 'Bursa',
             'antalya'   => 'Antalya',
             'adana'     => 'Adana',
@@ -618,11 +622,11 @@ class GdeliveryService
             'gaziantep' => 'Gaziantep',
             'mersin'    => 'Mersin',
             'kayseri'   => 'Kayseri',
-            'eskişehir' => 'Eskisehir',
-            'diyarbakır'=> 'Diyarbakir',
+            'eskişehir' => 'Eskişehir',
+            'diyarbakır'=> 'Diyarbakır',
             'samsun'    => 'Samsun',
             'denizli'   => 'Denizli',
-            'şanlıurfa' => 'Sanliurfa',
+            'şanlıurfa' => 'Şanlıurfa',
             'trabzon'   => 'Trabzon',
             'malatya'   => 'Malatya',
         ];
@@ -634,7 +638,7 @@ class GdeliveryService
             }
         }
 
-        return 'Istanbul'; // Default
+        return 'İstanbul'; // Default
     }
 
     /**
