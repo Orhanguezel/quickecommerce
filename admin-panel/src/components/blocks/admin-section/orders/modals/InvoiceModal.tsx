@@ -50,6 +50,28 @@ const InvoiceModal: React.FC<ConfirmationModalProps> = ({
     packages,
   } = InvoiceListData;
 
+  // Adresi temiz tek satıra çevir: `address` zaten tam serbest metin;
+  // house/road/floor önekleri ve tekrar eden il/ilçe gösterilmez.
+  const formatInvoiceAddress = (a: any): string => {
+    if (!a) return "";
+    const base = String(a.address || "").trim();
+    if (base) {
+      const lower = base.toLowerCase();
+      const tail = [a.district_name, a.city_name]
+        .filter((v: any) => v && !lower.includes(String(v).toLowerCase()))
+        .join(" / ");
+      let line = tail ? `${base}, ${tail}` : base;
+      if (a.postal_code && !lower.includes(String(a.postal_code)))
+        line += ` ${a.postal_code}`;
+      return line.trim();
+    }
+    return [a.road, a.house, a.floor, a.district_name, a.city_name, a.postal_code]
+      .filter(Boolean)
+      .join(", ")
+      .trim();
+  };
+  const invoiceAddressText = formatInvoiceAddress(customer?.shipping_address);
+
   const { currency, refetch: refetchCurrency } = useCurrencyQuery({});
   const currencyData = useMemo(() => {
     const data = (currency as any) || {};
@@ -242,22 +264,7 @@ const InvoiceModal: React.FC<ConfirmationModalProps> = ({
                 )}
                 <p className="text-sm ">{customer?.phone}</p>
                 <p className="text-sm ">{customer?.email}</p>
-                <p className="text-sm">
-                  {customer?.shipping_address?.house &&
-                    `#H-${customer?.shipping_address?.house}, `}
-                  {customer?.shipping_address?.floor &&
-                    `F-${customer?.shipping_address?.floor}, `}
-                  {customer?.shipping_address?.road &&
-                    `R-${customer?.shipping_address?.road}, `}
-                  {customer?.shipping_address?.address &&
-                    `${customer?.shipping_address?.address}, `}
-                  {customer?.shipping_address?.district_name &&
-                    `${customer?.shipping_address?.district_name} / `}
-                  {customer?.shipping_address?.city_name &&
-                    `${customer?.shipping_address?.city_name} `}
-                  {customer?.shipping_address?.postal_code &&
-                    customer?.shipping_address?.postal_code}
-                </p>
+                <p className="text-sm">{invoiceAddressText}</p>
               </div>
             </div>
 

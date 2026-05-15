@@ -127,6 +127,30 @@ const OrdersDetailsCard = ({ data, refetch, ID }: any) => {
     OrderDetails?.order_master?.customer?.shipping_address ||
     (address && typeof address === "object" ? address : null);
 
+  // Adres metnini temiz tek satıra çevir: `address` zaten tam serbest
+  // metin (sokak/no/ilçe/il içerir); house/road/floor önekleri ve
+  // tekrar eden il/ilçe gösterilmez. address boşsa (eski dropdown
+  // siparişleri) yapılandırılmış parçalardan kurulur.
+  const formatDeliveryAddress = (a: any): string => {
+    if (!a) return "";
+    const base = String(a.address || "").trim();
+    if (base) {
+      const lower = base.toLowerCase();
+      const tail = [a.district_name, a.city_name]
+        .filter((v: any) => v && !lower.includes(String(v).toLowerCase()))
+        .join(" / ");
+      let line = tail ? `${base}, ${tail}` : base;
+      if (a.postal_code && !lower.includes(String(a.postal_code)))
+        line += ` ${a.postal_code}`;
+      return line.trim();
+    }
+    return [a.road, a.house, a.floor, a.district_name, a.city_name, a.postal_code]
+      .filter(Boolean)
+      .join(", ")
+      .trim();
+  };
+  const deliveryAddressText = formatDeliveryAddress(deliveryAddress);
+
   const {
     name = "Unknown",
     rating = 0,
@@ -821,20 +845,7 @@ const OrdersDetailsCard = ({ data, refetch, ID }: any) => {
                       <span>{t("orders.delivery_location")} :</span>
                     </div>
                     <p className="text-gray-500 dark:text-white mx-4">
-                      {deliveryAddress?.house &&
-                        `#H-${deliveryAddress?.house}, `}
-                      {deliveryAddress?.floor &&
-                        `Floor-${deliveryAddress?.floor}, `}
-                      {deliveryAddress?.road &&
-                        `Road-${deliveryAddress?.road}, `}
-                      {deliveryAddress?.address &&
-                        `${deliveryAddress?.address}, `}
-                      {deliveryAddress?.district_name &&
-                        `${deliveryAddress?.district_name} / `}
-                      {deliveryAddress?.city_name &&
-                        `${deliveryAddress?.city_name} `}
-                      {deliveryAddress?.postal_code &&
-                        deliveryAddress?.postal_code}
+                      {deliveryAddressText}
                     </p>
                   </div>
                 )}
