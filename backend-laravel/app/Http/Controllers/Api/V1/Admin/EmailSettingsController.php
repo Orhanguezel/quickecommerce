@@ -26,12 +26,13 @@ class EmailSettingsController extends Controller
                 com_option_update($field, $value);
             }
             updateEnvValues([
-                'MAIL_DRIVER' => $request->com_site_smtp_mail_mailer,
+                'MAIL_MAILER' => $request->com_site_smtp_mail_mailer,
                 'MAIL_HOST' => $request->com_site_smtp_mail_host,
                 'MAIL_PORT' => $request->com_site_smtp_mail_post,
                 'MAIL_USERNAME' => $request->com_site_smtp_mail_username,
                 'MAIL_PASSWORD' => $request->com_site_smtp_mail_password,
                 'MAIL_ENCRYPTION' => $request->com_site_smtp_mail_encryption,
+                'MAIL_FROM_ADDRESS' => $request->com_site_smtp_mail_username,
             ]);
             return $this->success(translate('messages.update_success', ['name' => 'SMTP Settings']));
         }else{
