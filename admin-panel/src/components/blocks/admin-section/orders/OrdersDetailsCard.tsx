@@ -118,6 +118,15 @@ const OrdersDetailsCard = ({ data, refetch, ID }: any) => {
     type = "",
   } = OrderDetails?.order_master?.customer || {};
 
+  // Teslimat adresi siparişin KENDİ adresinden gelir (orderAddress /
+  // shipping_address). customer.address müşterinin profil/varsayılan
+  // adresidir — sipariş teslimat adresi DEĞİL; bu yüzden eskiden adres
+  // hiç render edilmiyordu (çoğu siparişte profil adresi boş).
+  const deliveryAddress =
+    OrderDetails?.order_master?.shipping_address ||
+    OrderDetails?.order_master?.customer?.shipping_address ||
+    (address && typeof address === "object" ? address : null);
+
   const {
     name = "Unknown",
     rating = 0,
@@ -805,18 +814,27 @@ const OrdersDetailsCard = ({ data, refetch, ID }: any) => {
                     )}
                   </div>
                 </div>
-                {address && (
+                {deliveryAddress && (
                   <div className="mt-1">
                     <div className="flex items-center gap-1 text-md font-semibold ">
                       <MapPin width={16} height={16} />
                       <span>{t("orders.delivery_location")} :</span>
                     </div>
                     <p className="text-gray-500 dark:text-white mx-4">
-                      {address?.house && `#H-${address?.house},`}{" "}
-                      {address?.floor && `Floor-${address?.floor},`}{" "}
-                      {address?.road && `Road-${address?.road},`}{" "}
-                      {address?.address && `${address?.address},`}{" "}
-                      {address?.postal_code && address?.postal_code}
+                      {deliveryAddress?.house &&
+                        `#H-${deliveryAddress?.house}, `}
+                      {deliveryAddress?.floor &&
+                        `Floor-${deliveryAddress?.floor}, `}
+                      {deliveryAddress?.road &&
+                        `Road-${deliveryAddress?.road}, `}
+                      {deliveryAddress?.address &&
+                        `${deliveryAddress?.address}, `}
+                      {deliveryAddress?.district_name &&
+                        `${deliveryAddress?.district_name} / `}
+                      {deliveryAddress?.city_name &&
+                        `${deliveryAddress?.city_name} `}
+                      {deliveryAddress?.postal_code &&
+                        deliveryAddress?.postal_code}
                     </p>
                   </div>
                 )}
