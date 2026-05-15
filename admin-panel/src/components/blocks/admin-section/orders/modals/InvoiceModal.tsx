@@ -237,19 +237,26 @@ const InvoiceModal: React.FC<ConfirmationModalProps> = ({
               </div>
               <div className="space-y-1 text-right">
                 <p className="font-semibold">{t("orders.billed_to")}</p>
+                {customer?.name && (
+                  <p className="text-sm font-medium">{customer?.name}</p>
+                )}
                 <p className="text-sm ">{customer?.phone}</p>
                 <p className="text-sm ">{customer?.email}</p>
                 <p className="text-sm">
                   {customer?.shipping_address?.house &&
-                    `#H-${customer?.shipping_address?.house},`}
+                    `#H-${customer?.shipping_address?.house}, `}
                   {customer?.shipping_address?.floor &&
                     `F-${customer?.shipping_address?.floor}, `}
                   {customer?.shipping_address?.road &&
-                    `R-${customer?.shipping_address?.road},`}{" "}
+                    `R-${customer?.shipping_address?.road}, `}
                   {customer?.shipping_address?.address &&
-                    `${customer?.shipping_address?.address},`}
+                    `${customer?.shipping_address?.address}, `}
+                  {customer?.shipping_address?.district_name &&
+                    `${customer?.shipping_address?.district_name} / `}
+                  {customer?.shipping_address?.city_name &&
+                    `${customer?.shipping_address?.city_name} `}
                   {customer?.shipping_address?.postal_code &&
-                    customer?.shipping_address?.postal_code}{" "}
+                    customer?.shipping_address?.postal_code}
                 </p>
               </div>
             </div>

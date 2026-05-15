@@ -130,7 +130,7 @@ class AdminOrderManageController extends Controller
     public function invoice(Request $request)
     {
         $order_id = $request->order_id;
-        $order = Order::with(['orderMaster.customer', 'orderDetail', 'orderMaster', 'store', 'deliveryman', 'orderMaster.shippingAddress'])
+        $order = Order::with(['orderMaster.customer', 'orderDetail', 'orderMaster', 'store', 'deliveryman', 'orderMaster.shippingAddress', 'orderMaster.orderAddress'])
             ->where('id', $order_id)
             ->first();
         if (!$order) {

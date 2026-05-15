@@ -26,19 +26,35 @@ class InvoiceResource extends JsonResource
         // Use line_total_price (already includes tax and coupon adjustments) for consistency
         $total_amount = round($this->orderDetail->sum('line_total_price'), 2) + $shipping_charge + $additional_charge;
 
+        // Teslimat adresi siparişin orderAddress'idir (order_master_id ile bağlı).
+        // shippingAddress (FK customer_addresses) çoğu siparişte boş olduğundan
+        // önce orderAddress, yoksa shippingAddress kullanılır.
+        $addr = $this->orderMaster?->orderAddress ?: $this->orderMaster?->shippingAddress;
+
+        $customerName = trim(
+            ($this->orderMaster?->customer?->first_name . ' ' . $this->orderMaster?->customer?->last_name)
+        );
+        if ($customerName === '') {
+            $customerName = $this->orderMaster?->customer?->full_name
+                ?: ($this->orderMaster?->customer?->name
+                ?: ($addr?->name ?: '-'));
+        }
+
         return [
             'customer' => $this->orderMaster?->customer ? [
-                'name' => $this->orderMaster?->customer?->first_name . ' ' . $this->orderMaster?->customer?->last_name,
+                'name' => $customerName,
                 'email' => $this->orderMaster?->customer?->email,
-                'phone' => $this->orderMaster?->customer?->phone,
-                'shipping_address' => $this->orderMaster?->shippingAddress ? [
-                    'house' => $this->orderMaster?->shippingAddress?->house,
-                    'road' => $this->orderMaster?->shippingAddress?->road,
-                    'floor' => $this->orderMaster?->shippingAddress?->floor,
-                    'address' => $this->orderMaster?->shippingAddress?->address,
-                    'postal_code' => $this->orderMaster?->shippingAddress?->postal_code,
-                    'contact' => $this->orderMaster?->shippingAddress?->contact_number
-                ] : null
+                'phone' => $this->orderMaster?->customer?->phone ?: $addr?->contact_number,
+                'shipping_address' => $addr ? [
+                    'house' => $addr->house,
+                    'road' => $addr->road,
+                    'floor' => $addr->floor,
+                    'address' => $addr->address,
+                    'district_name' => $addr->district_name ?? null,
+                    'city_name' => $addr->city_name ?? null,
+                    'postal_code' => $addr->postal_code,
+                    'contact' => $addr->contact_number,
+                ] : null,
             ] : null,
             'invoice_number' => '#' . $this->invoice_number,
             'invoice_date' => $this->invoice_date ? Carbon::parse($this->invoice_date)->format('d-M-Y') : null,
