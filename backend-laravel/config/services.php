@@ -50,6 +50,15 @@ return [
         'default_sender_address_id' => env('GELIVER_SENDER_ADDRESS_ID'),
     ],
 
+    'einvoice' => [
+        'enabled'         => env('EINVOICE_ENABLED', false),
+        'base_url'        => env('EINVOICE_BASE_URL', 'http://127.0.0.1:8210'),
+        'api_key'         => env('EINVOICE_API_KEY'),
+        'webhook_secret'  => env('EINVOICE_WEBHOOK_SECRET'),
+        'default_tckn'    => env('EINVOICE_DEFAULT_TCKN', '11111111111'),
+        'timeout'         => (int) env('EINVOICE_TIMEOUT', 30),
+    ],
+
     'local_scraper' => [
         'url'     => env('LOCAL_SCRAPER_URL', 'http://127.0.0.1:8200'),
         'api_key' => env('LOCAL_SCRAPER_API_KEY', ''),
