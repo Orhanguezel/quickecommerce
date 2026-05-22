@@ -5,14 +5,19 @@ Kullanım: python scrapers/grandgiftstore_scraper.py
 Çıktı: data/source-products/grandgiftstore_products.json, assets/source-images/grandgiftstore_images/
 """
 
-import requests, json, time, os, re, hashlib
-from paths import source_image_dir, source_product_path
+import requests, json, time, os, re, hashlib, sys
+from shopify_scraper import resolve_image_dir, resolve_output
 
 API_BASE = "https://grandapi.tasarimhizmetim.com/wp-json/wc/store/v1"
 SITE_URL = "https://www.grandgiftstore.com"
-IMAGE_DIR = source_image_dir("grandgiftstore_images")
-OUTPUT_FILE = source_product_path("grandgiftstore_products.json")
+IMAGE_DIR = resolve_image_dir("grandgiftstore_images")
+OUTPUT_FILE = resolve_output("grandgiftstore_products.json")
 PER_PAGE = 10  # Store API max per_page
+
+# Kaynak API fiyatlari USD; perakende TL = USD * kur * (1 + kur farki).
+# Kar marji eklenmez — kar zaten kaynak fiyatin icinde (musteri karari).
+RATE_API = "https://api.exchangerate-api.com/v4/latest/USD"
+RATE_BUFFER = 0.05  # %5 kur farki payi
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -59,6 +64,19 @@ def download_image(url, subfolder=""):
         return None
 
 
+def fetch_usd_try_rate():
+    """USD/TRY kurunu ceker. Basarisizsa None (cagiran abort etmeli)."""
+    try:
+        resp = session.get(RATE_API, timeout=15)
+        resp.raise_for_status()
+        rate = resp.json().get("rates", {}).get("TRY")
+        if rate and float(rate) > 0:
+            return float(rate)
+    except Exception as e:
+        print(f"  Kur cekme HATASI: {e}")
+    return None
+
+
 def fetch_all_products():
     """Store API ile tüm ürünleri çek."""
     all_products = []
@@ -92,8 +110,11 @@ def fetch_all_products():
     return all_products
 
 
-def process_products(raw_products):
-    """Ham API verisini standart formata dönüştür."""
+def process_products(raw_products, price_factor):
+    """Ham API verisini standart formata dönüştür. Fiyatlar USD->TL cevrilir.
+
+    price_factor = USD/TRY kuru * (1 + RATE_BUFFER)
+    """
     processed = []
 
     for raw in raw_products:
@@ -105,18 +126,21 @@ def process_products(raw_products):
         sku = raw.get("sku", "") or ""
         product_type = raw.get("type", "simple")
 
-        # Fiyat bilgisi
+        # Fiyat bilgisi — kaynak USD; price_factor ile TL'ye cevrilir.
         prices = raw.get("prices", {})
-        currency_minor_unit = prices.get("currency_minor_unit", 2)
-        divisor = 10 ** currency_minor_unit
+        divisor = 10 ** prices.get("currency_minor_unit", 2)
 
-        regular_price = float(prices.get("regular_price", 0)) / divisor
-        sale_price = float(prices.get("sale_price", 0)) / divisor
-        current_price = float(prices.get("price", 0)) / divisor
+        regular_usd = float(prices.get("regular_price", 0) or 0) / divisor
+        sale_usd = float(prices.get("sale_price", 0) or 0) / divisor
+        current_usd = float(prices.get("price", 0) or 0) / divisor
 
-        original_price = regular_price if regular_price > 0 else current_price
-        discounted_price = sale_price if raw.get("on_sale") and sale_price < original_price else None
-        currency = prices.get("currency_code", "USD")
+        base_usd = regular_usd if regular_usd > 0 else current_usd
+        original_price = round(base_usd * price_factor, 2)
+        discounted_price = (
+            round(sale_usd * price_factor, 2)
+            if raw.get("on_sale") and 0 < sale_usd < base_usd
+            else None
+        )
 
         # Görseller
         images = raw.get("images", [])
@@ -138,8 +162,8 @@ def process_products(raw_products):
                 "id": var.get("id"),
                 "name": " / ".join([a.get("value", "") for a in var.get("attributes", [])]),
                 "sku": var.get("sku", ""),
-                "price": float(var_prices.get("price", 0)) / var_divisor,
-                "regular_price": float(var_prices.get("regular_price", 0)) / var_divisor,
+                "price": round(float(var_prices.get("price", 0) or 0) / var_divisor * price_factor, 2),
+                "regular_price": round(float(var_prices.get("regular_price", 0) or 0) / var_divisor * price_factor, 2),
                 "in_stock": var.get("is_in_stock", True),
             })
 
@@ -163,7 +187,9 @@ def process_products(raw_products):
             "categories": category_names,
             "original_price": original_price,
             "discounted_price": discounted_price,
-            "currency": currency,
+            "currency": "TRY",
+            "source_currency": "USD",
+            "price_factor": round(price_factor, 4),
             "in_stock": raw.get("is_in_stock", True),
             "on_sale": raw.get("on_sale", False),
             "average_rating": raw.get("average_rating", "0"),
@@ -207,21 +233,29 @@ def main():
     print("GrandGiftStore.com Ürün Scraper")
     print("=" * 60)
 
-    print("\n[1/4] Ürünler çekiliyor...")
+    print("\n[1/5] USD/TRY kuru çekiliyor...")
+    rate = fetch_usd_try_rate()
+    if not rate:
+        print("  Kur alınamadı — abort. Eski fiyatlar korunsun diye JSON yazılmıyor.")
+        sys.exit(1)
+    price_factor = rate * (1 + RATE_BUFFER)
+    print(f"  USD/TRY = {rate:.4f}  ×(1+{RATE_BUFFER}) → çarpan = {price_factor:.4f}")
+
+    print("\n[2/5] Ürünler çekiliyor...")
     raw_products = fetch_all_products()
 
     if not raw_products:
         print("Hiç ürün bulunamadı!")
-        return
+        sys.exit(1)
 
-    print("\n[2/4] Ürünler işleniyor...")
-    products = process_products(raw_products)
+    print("\n[3/5] Ürünler işleniyor (USD→TL)...")
+    products = process_products(raw_products, price_factor)
     print(f"  {len(products)} ürün işlendi.")
 
-    print("\n[3/4] Görseller indiriliyor...")
+    print("\n[4/5] Görseller indiriliyor...")
     download_all_images(products)
 
-    print("\n[4/4] JSON kaydediliyor...")
+    print("\n[5/5] JSON kaydediliyor...")
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         json.dump(products, f, ensure_ascii=False, indent=2)
     print(f"  {OUTPUT_FILE} kaydedildi.")
