@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
+use Modules\PaymentGateways\app\Models\Currency;
 use Modules\Subscription\app\Models\StoreSubscription;
 
 class AdminProductManageController extends Controller
@@ -226,9 +227,24 @@ class AdminProductManageController extends Controller
         }
 
         $variant = ProductVariant::findOrFail($validated['variant_id']);
+
+        // price_input_amount da guncellenmezse ExchangeRateService::
+        // syncVariantBasePricesFromInputCurrency() price'i eski input'tan geri
+        // yazar -> admin'in fiyat degisikligi tutmaz. Admin girdigi fiyat
+        // varsayilan para biriminde oldugundan input alanlari ona sabitlenir.
+        $defaultCurrencyCode = Currency::where('is_default', true)
+            ->where('status', true)
+            ->value('code') ?? 'TRY';
+
+        $specialPrice = $validated['special_price'] ?? null;
+
         $variant->update([
             'price' => $validated['price'],
-            'special_price' => $validated['special_price'] ?? null,
+            'price_input_amount' => $validated['price'],
+            'price_input_currency_code' => $defaultCurrencyCode,
+            'special_price' => $specialPrice,
+            'special_price_input_amount' => $specialPrice,
+            'special_price_input_currency_code' => $specialPrice !== null ? $defaultCurrencyCode : null,
         ]);
 
         return $this->success(translate('messages.update_success', ['name' => 'Product prices']));
