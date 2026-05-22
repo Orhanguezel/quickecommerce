@@ -67,20 +67,6 @@ class ProductFeedController extends Controller
         $xml .= "    <description>Sportoonline " . ($feedType === 'google' ? 'Google Merchant' : 'price comparison') . " product feed</description>\n";
 
         foreach ($products as $product) {
-            $variant = $product->displayVariant();
-            if (!$variant) {
-                continue;
-            }
-
-            // Gercek fiyat: special_price > 0 ise o, degilse price
-            $effectivePrice = ((float) $variant->special_price > 0)
-                ? (float) $variant->special_price
-                : (float) $variant->price;
-
-            if ($effectivePrice <= 0) {
-                continue;
-            }
-
             // Urun URL
             $productUrl = $siteUrl . '/tr/urun/' . $product->slug;
 
@@ -102,8 +88,9 @@ class ProductFeedController extends Controller
                 continue;
             }
 
-            // Marka — Google g:brand zorunlu sayilir. Bos ise site adi kullanilir.
-            $brandName = $product->brand?->brand_name ?: 'Sportoonline';
+            // Marka — Google g:brand zorunlu sayilir. Bos ise bilinen marka adini
+            // urun adindan cikarmaya calisir, son care site adini kullanir.
+            $brandName = $this->resolveBrandName($product);
 
             // Description — Google Merchant zorunlu alan. Bossa feed'den exclude et.
             // >5000 karakter ise truncate.
@@ -124,60 +111,85 @@ class ProductFeedController extends Controller
                 $descriptionText = mb_substr($descriptionText, 0, 4997) . '...';
             }
 
-            // Fiyat
-            $price = number_format((float) $variant->price, 2, '.', '');
-            $specialPrice = ($variant->special_price && (float) $variant->special_price > 0)
-                ? number_format((float) $variant->special_price, 2, '.', '')
-                : null;
+            $feedVariants = $feedType === 'cimri'
+                ? $product->variants
+                : collect([$product->displayVariant()])->filter();
 
-            // Stok durumu
-            $stockStatus = ($variant->stock_quantity > 0) ? 'in stock' : 'out of stock';
-            if ($feedType === 'google' && $stockStatus !== 'in stock') {
-                continue;
-            }
+            foreach ($feedVariants as $variant) {
+                if (!$variant) {
+                    continue;
+                }
 
-            // SKU / Barkod
-            $sku = $variant->sku ?: ('SP-' . $product->id);
+                // Gercek fiyat: special_price > 0 ise o, degilse price
+                $effectivePrice = ((float) $variant->special_price > 0)
+                    ? (float) $variant->special_price
+                    : (float) $variant->price;
 
-            $xml .= "    <item>\n";
-            $xml .= "      <g:id>" . $this->xmlEscape($sku) . "</g:id>\n";
-            $xml .= "      <g:title><![CDATA[" . $product->name . "]]></g:title>\n";
-            $xml .= "      <g:description><![CDATA[" . $descriptionText . "]]></g:description>\n";
-            $xml .= "      <g:link><![CDATA[" . $productUrl . "]]></g:link>\n";
-            $xml .= "      <g:image_link><![CDATA[" . $imageUrl . "]]></g:image_link>\n";
+                if ($effectivePrice <= 0) {
+                    continue;
+                }
 
-            // Galeri gorselleri
-            if ($product->gallery_images) {
-                $galleryIds = explode(',', $product->gallery_images);
-                foreach (array_slice($galleryIds, 0, 5) as $imgId) {
-                    $galleryUrl = com_option_get_id_wise_url(trim($imgId));
-                    if ($galleryUrl) {
-                        $xml .= "      <g:additional_image_link><![CDATA[" . $galleryUrl . "]]></g:additional_image_link>\n";
+                // Fiyat
+                $price = number_format((float) $variant->price, 2, '.', '');
+                $specialPrice = ($variant->special_price && (float) $variant->special_price > 0)
+                    ? number_format((float) $variant->special_price, 2, '.', '')
+                    : null;
+
+                // Stok durumu
+                $stockStatus = ($variant->stock_quantity > 0) ? 'in stock' : 'out of stock';
+                if ($feedType === 'google' && $stockStatus !== 'in stock') {
+                    continue;
+                }
+
+                // SKU / Barkod
+                $sku = $variant->sku ?: ('SP-' . $product->id . '-' . $variant->id);
+                $title = $this->buildFeedTitle($product, $variant, $feedType);
+                $variantText = $this->variantAttributesText($variant);
+                $itemDescription = $descriptionText;
+                if ($feedType === 'cimri' && $variantText !== '' && !str_contains($itemDescription, $variantText)) {
+                    $itemDescription = trim($itemDescription . ' Seçenek: ' . $variantText);
+                }
+
+                $xml .= "    <item>\n";
+                $xml .= "      <g:id>" . $this->xmlEscape($sku) . "</g:id>\n";
+                $xml .= "      <g:title><![CDATA[" . $title . "]]></g:title>\n";
+                $xml .= "      <g:description><![CDATA[" . $itemDescription . "]]></g:description>\n";
+                $xml .= "      <g:link><![CDATA[" . $productUrl . "]]></g:link>\n";
+                $xml .= "      <g:image_link><![CDATA[" . $imageUrl . "]]></g:image_link>\n";
+
+                // Galeri gorselleri
+                if ($product->gallery_images) {
+                    $galleryIds = explode(',', $product->gallery_images);
+                    foreach (array_slice($galleryIds, 0, 5) as $imgId) {
+                        $galleryUrl = com_option_get_id_wise_url(trim($imgId));
+                        if ($galleryUrl) {
+                            $xml .= "      <g:additional_image_link><![CDATA[" . $galleryUrl . "]]></g:additional_image_link>\n";
+                        }
                     }
                 }
+
+                $xml .= "      <g:condition>new</g:condition>\n";
+                $xml .= "      <g:availability>" . $stockStatus . "</g:availability>\n";
+
+                // Fiyat — Google Feed TRY para birimiyle fiyat bekler
+                if ($specialPrice && $specialPrice < $price) {
+                    $xml .= "      <g:price>" . $price . " TRY</g:price>\n";
+                    $xml .= "      <g:sale_price>" . $specialPrice . " TRY</g:sale_price>\n";
+                } else {
+                    $xml .= "      <g:price>" . $price . " TRY</g:price>\n";
+                }
+
+                $xml .= "      <g:product_type><![CDATA[" . $categoryPath . "]]></g:product_type>\n";
+
+                // brandName her zaman dolu (default "Sportoonline")
+                $xml .= "      <g:brand><![CDATA[" . $brandName . "]]></g:brand>\n";
+
+                if ($variant->sku) {
+                    $xml .= "      <g:mpn>" . $this->xmlEscape($variant->sku) . "</g:mpn>\n";
+                }
+
+                $xml .= "    </item>\n";
             }
-
-            $xml .= "      <g:condition>new</g:condition>\n";
-            $xml .= "      <g:availability>" . $stockStatus . "</g:availability>\n";
-
-            // Fiyat — Google Feed TRY para birimiyle fiyat bekler
-            if ($specialPrice && $specialPrice < $price) {
-                $xml .= "      <g:price>" . $price . " TRY</g:price>\n";
-                $xml .= "      <g:sale_price>" . $specialPrice . " TRY</g:sale_price>\n";
-            } else {
-                $xml .= "      <g:price>" . $price . " TRY</g:price>\n";
-            }
-
-            $xml .= "      <g:product_type><![CDATA[" . $categoryPath . "]]></g:product_type>\n";
-
-            // brandName her zaman dolu (default "Sportoonline")
-            $xml .= "      <g:brand><![CDATA[" . $brandName . "]]></g:brand>\n";
-
-            if ($variant->sku) {
-                $xml .= "      <g:mpn>" . $this->xmlEscape($variant->sku) . "</g:mpn>\n";
-            }
-
-            $xml .= "    </item>\n";
         }
 
         $xml .= "  </channel>\n";
@@ -206,6 +218,74 @@ class ProductFeedController extends Controller
         }
 
         return implode(' > ', array_reverse($parts));
+    }
+
+    private function buildFeedTitle(Product $product, $variant, string $feedType): string
+    {
+        $title = trim((string) $product->name);
+
+        if ($feedType !== 'cimri') {
+            return $title;
+        }
+
+        $variantText = $this->variantAttributesText($variant);
+        if ($variantText === '') {
+            return $title;
+        }
+
+        return str_contains($title, $variantText) ? $title : trim($title . ' ' . $variantText);
+    }
+
+    private function variantAttributesText($variant): string
+    {
+        $attributes = $variant->attributes ?? null;
+        if (is_string($attributes)) {
+            $attributes = json_decode($attributes, true);
+        }
+
+        if (!is_array($attributes)) {
+            return '';
+        }
+
+        $values = [];
+        foreach ($attributes as $value) {
+            if (is_array($value)) {
+                foreach ($value as $subValue) {
+                    $values[] = trim((string) $subValue);
+                }
+            } else {
+                $values[] = trim((string) $value);
+            }
+        }
+
+        $values = array_values(array_unique(array_filter($values)));
+        return implode(' ', $values);
+    }
+
+    private function resolveBrandName(Product $product): string
+    {
+        $brandName = trim((string) $product->brand?->brand_name);
+        if ($brandName !== '') {
+            return $brandName;
+        }
+
+        $haystack = mb_strtolower($product->name . ' ' . $product->slug);
+        $knownBrands = [
+            'xpro nutrition' => 'Xpro Nutrition',
+            'yeşilmarka' => 'YEŞİLMARKA',
+            'yesilmarka' => 'YEŞİLMARKA',
+            'west nutrition' => 'West Nutrition',
+            'torq nutrition' => 'Torq Nutrition',
+            'torq' => 'Torq Nutrition',
+        ];
+
+        foreach ($knownBrands as $needle => $label) {
+            if (str_contains($haystack, $needle)) {
+                return $label;
+            }
+        }
+
+        return 'Sportoonline';
     }
 
     private function hasMerchantSafeDescription(string $description): bool
@@ -319,19 +399,20 @@ class ProductFeedController extends Controller
 
     private function hasMerchantSafeImageUrl(string $imageUrl): bool
     {
+        // Google Merchant mutlak http(s) URL + standart gorsel uzantisi bekler.
+        // NOT: gorsel boyutu burada getimagesize() ile DOGRULANMAZ — uzak URL'de
+        // getimagesize her urun icin gorseli HTTP ile indirir; ~3000 urunluk
+        // feed'de bu, 30 sn PHP execution limitini asip /feeds/google.xml'i
+        // surekli 500'e dusururdu. Uzanti + protokol kontrolu yeterli; dusuk
+        // cozunurluklu nadir gorselleri Google Merchant kendi tarafinda eler.
+        if (!preg_match('#^https?://#i', $imageUrl)) {
+            return false;
+        }
+
         $path = parse_url($imageUrl, PHP_URL_PATH) ?: '';
         $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
 
-        if (!in_array($extension, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true)) {
-            return false;
-        }
-
-        $imageInfo = @getimagesize($imageUrl);
-        if (!$imageInfo) {
-            return false;
-        }
-
-        return (int) $imageInfo[0] >= 100 && (int) $imageInfo[1] >= 100;
+        return in_array($extension, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true);
     }
 
     private function xmlEscape(string $value): string
