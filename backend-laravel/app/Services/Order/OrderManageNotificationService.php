@@ -346,8 +346,10 @@ class OrderManageNotificationService
     // Notify Store Owner
     protected function notifyStore($order_details, $title, $message, $data)
     {
-        if ($order_details->store) {
-            $this->sendNotification($order_details->store?->seller?->id, 'store', $title, $message, $data);
+        // store ilişkisi olsa bile seller null olabilir; notifiable_id NOT NULL.
+        $sellerId = $order_details->store?->seller?->id;
+        if ($sellerId) {
+            $this->sendNotification($sellerId, 'store', $title, $message, $data);
         }
     }
 

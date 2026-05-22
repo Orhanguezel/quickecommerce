@@ -17,6 +17,7 @@ class SyncSourcePrices extends Command
                             {--store_id= : Sadece belirli magazayi sync et}
                             {--apply : Degisiklikleri DB\'ye yaz}
                             {--backfill-by-slug : Mapping yoksa slug + varyant bilgisiyle esleme onizle/olustur}
+                            {--backfill-by-name : Mapping yoksa urun adiyla esleme (slug uyusmazsa; birebir ad, ayni ad birden fazlaysa atlar)}
                             {--backfill-only : Sadece mapping backfill yap, fiyat/stok sync calistirma}
                             {--max-change-percent=30 : Fiyat degisim yuzdesi bu siniri asarsa atla}
                             {--allow-zero-price : 0 fiyat gelirse de uygula (varsayilan: engelle)}';
@@ -27,6 +28,7 @@ class SyncSourcePrices extends Command
     private array $sourceProducts = [];
     private bool $apply = false;
     private bool $backfillBySlug = false;
+    private bool $backfillByName = false;
     private bool $allowZeroPrice = false;
     private float $maxChangePercent = 30.0;
 
@@ -36,6 +38,7 @@ class SyncSourcePrices extends Command
         $jsonFile = $this->argument('json_file');
         $this->apply = (bool) $this->option('apply');
         $this->backfillBySlug = (bool) $this->option('backfill-by-slug');
+        $this->backfillByName = (bool) $this->option('backfill-by-name');
         $this->allowZeroPrice = (bool) $this->option('allow-zero-price');
         $this->maxChangePercent = (float) $this->option('max-change-percent');
 
@@ -54,7 +57,7 @@ class SyncSourcePrices extends Command
         $this->line($this->apply ? 'APPLY modu aktif.' : 'DRY-RUN modu aktif. DB yazimi yok.');
 
         $backfilled = 0;
-        if ($this->backfillBySlug) {
+        if ($this->backfillBySlug || $this->backfillByName) {
             $backfilled = $this->backfillMappings($products);
         }
 
@@ -371,18 +374,29 @@ class SyncSourcePrices extends Command
         $storeId = $this->option('store_id') ? (int) $this->option('store_id') : null;
         $plannedVariantIds = [];
 
+        // Isim modu: ayni ada sahip DB urunlerini onceden indeksle; bir ad
+        // birden fazla urune denk geliyorsa belirsizdir, eslestirilmez.
+        $nameIndex = $this->backfillByName ? $this->buildNameIndex($storeId) : [];
+
         foreach ($products as $sourceProduct) {
             $slug = $this->normalizeSlug($sourceProduct['slug'] ?? '');
             if ($slug === '') {
                 continue;
             }
 
-            $productQuery = Product::query()->with('variants')->where('slug', $slug);
-            if ($storeId) {
-                $productQuery->where('store_id', $storeId);
+            if ($this->backfillByName) {
+                $nameKey = $this->normalizeName($sourceProduct['name'] ?? '');
+                $product = ($nameKey !== '' && count($nameIndex[$nameKey] ?? []) === 1)
+                    ? $nameIndex[$nameKey][0]
+                    : null;
+            } else {
+                $productQuery = Product::query()->with('variants')->where('slug', $slug);
+                if ($storeId) {
+                    $productQuery->where('store_id', $storeId);
+                }
+                $product = $productQuery->first();
             }
 
-            $product = $productQuery->first();
             if (!$product) {
                 continue;
             }
@@ -490,6 +504,34 @@ class SyncSourcePrices extends Command
     private function normalizeSlug(?string $value): string
     {
         return Str::of((string) $value)->lower()->trim()->toString();
+    }
+
+    /**
+     * Backfill icin: store urunlerini normalize edilmis ada gore indeksler.
+     *
+     * @return array<string, list<Product>>
+     */
+    private function buildNameIndex(?int $storeId): array
+    {
+        $query = Product::query()->with('variants');
+        if ($storeId) {
+            $query->where('store_id', $storeId);
+        }
+
+        $index = [];
+        foreach ($query->get() as $product) {
+            $key = $this->normalizeName($product->name);
+            if ($key !== '') {
+                $index[$key][] = $product;
+            }
+        }
+
+        return $index;
+    }
+
+    private function normalizeName(?string $value): string
+    {
+        return Str::of((string) $value)->lower()->trim()->replaceMatches('/\s+/', ' ')->toString();
     }
 
     private function normalizeVariantTitle(?string $value): string
