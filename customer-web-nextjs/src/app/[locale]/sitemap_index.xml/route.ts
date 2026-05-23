@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { SITE_URL } from "@/lib/seo";
 
 export function GET(_: Request, { params }: { params: Promise<{ locale: string }> }) {
