@@ -152,7 +152,7 @@
          (WC Store API), `scrapers/opencart_scraper.py` (OpenCart, JSON-LD + HTML
          fallback), `scrapers/ideasoft_scraper.py` (IdeaSoft + Scrapling). Çıktı
          şeması everlast/shopify ile aynı → `sync`/`import` değişmeden çalışır.
-       - **✓ CANLI yeni mağazalar (14/16 site, toplam 10797 ürün):**
+       - **✓ CANLI yeni mağazalar (16/16 site, toplam 11165 ürün):**
 
          | Mağaza | ID | Ürün | Site | Yöntem |
          |---|---|---|---|---|
@@ -170,16 +170,19 @@
          | Cresta | #67 | 211 | crestaofficial.com | custom Laravel OG meta |
          | eProtein | #69 | 572 | eprotein.com.tr | IdeaSoft+CF (Scrapling) |
          | Compex Türkiye | #70 | 161 | compexturkiye.com | WC API+CF (Scrapling) |
+         | ProteinAVM | #68 | 279 | proteinavm.com | IdeaSoft+CF (Scrapling) |
+         | Powertec | #71 | 89 | powertecshop.com | Ticimax+CF (Scrapling, UA fix 2026-05-24) |
 
-       - **🔄 Devam eden / sorunlu:**
-         - **proteinavm #68:** IdeaSoft+CF, ilk batch 6sa timeout'a takıldı; retry
-           v2 SCRAPER_TIMEOUT=90 + incremental write (her 50 üründe checkpoint) +
-           AggregateOffer.highPrice fix ile yeniden çalışıyor (125/461, avg 50sn/
-           ürün, ETA ~5sa). Bitiş + import bekleniyor.
-         - **powertec #12 — kapsam dışı:** `powertec.com.tr` tanıtım sitesi;
-           gerçek mağaza `powertecshop.com` (Ticimax) sert Cloudflare ASN bloğu
-           arkasında. `powertec_scraper.py` kod-hazır ama Scrapling IP bloklu →
-           VPS IP'sinden denenmeli ya da site sahibinden whitelist.
+       - **✅ Çözülen sorunlar (2026-05-24):**
+         - **proteinavm #68:** retry v2 başarıyla bitti — **279 ürün canlı**
+           (350 scrape + 44 duplicate + 27 hata). SCRAPER_TIMEOUT=90 + incremental
+           write (her 50 üründe checkpoint) + AggregateOffer.highPrice fix uygulandı.
+         - **powertec #71 (CF bypass açıldı!):** `powertec_scraper.py`'da
+           `scrape_via_service()` Python-urllib varsayılan UA gönderiyordu,
+           Scrapling önündeki CF 403'lüyordu. UA: `Mozilla/5.0` header eklenince
+           **bypass çalışıyor** (commit 2733cb37). Incremental write de eklendi
+           (commit 4d164ace). 91 URL → 90 scrape → **89 ürün canlı**. Eski subagent
+           "ASN bloklu, çözümsüz" yargısı yanlışmış.
 
        - **🐛 Bug fix'leri (2026-05-23):**
          - **Description CSS kirliliği:** `shopify_scraper.py`'a `clean_description_html()`
