@@ -288,6 +288,19 @@ def main():
         else:
             skipped += 1
             print(f"  [{i}/{len(urls)}] JSON-LD yok / fiyatsiz: {url[-55:]}")
+        # Incremental write: her 20 üründe checkpoint -> timeout vurursa
+        # partial veri korunur (2026-05-24 fix; powertec'in 91 ürün × ~20sn
+        # scrape süresi 30+ dakika sürebilir).
+        if len(products) > 0 and len(products) % 20 == 0:
+            try:
+                tmp = f"{output_file}.tmp"
+                with open(tmp, "w", encoding="utf-8") as f:
+                    json.dump(products, f, ensure_ascii=False, indent=2)
+                os.replace(tmp, output_file)
+                print(f"  [checkpoint] {len(products)} urun yazildi -> {output_file}",
+                      flush=True)
+            except Exception as exc:  # noqa: BLE001
+                print(f"  WARN: incremental write hatasi: {exc}", flush=True)
         time.sleep(0.4)
 
     with open(output_file, "w", encoding="utf-8") as f:
