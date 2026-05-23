@@ -93,6 +93,10 @@ def scrape_via_service(url, mode="stealthy"):
             "Authorization": f"Bearer {SCRAPER_API_KEY}",
             "Content-Type": "application/json",
             "Cache-Control": "no-cache",
+            # Scrapling servisi onundeki Cloudflare default Python-urllib UA'yi
+            # 403'ler -> tarayici UA'si zorunlu (2026-05-23 fix, ideasoft_scraper
+            # ve maraton_scraper_v2 patternine birebir uyumlu).
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         },
         method="POST",
     )
