@@ -18,9 +18,9 @@ class InvoiceResource extends JsonResource
         $subtotal = round($this->orderDetail->sum('line_total_price_with_qty'), 2);
         $coupon_discount = round($this->orderDetail->sum('coupon_discount_amount'), 2);
         $total_tax_amount = round($this->orderDetail->sum('total_tax_amount'), 2);
-        $product_discount_amount = round(abs($this->product_discount_amount), 2);
-        $shipping_charge = round($this->shipping_charge, 2);
-        $additional_charge = round($this->order_additional_charge_amount, 2) ?? 0;
+        $product_discount_amount = round(abs($this->product_discount_amount ?? 0), 2);
+        $shipping_charge = round($this->shipping_charge ?? 0, 2);
+        $additional_charge = round($this->order_additional_charge_amount ?? 0, 2);
 
         // Total Amount Calculation
         // Use line_total_price (already includes tax and coupon adjustments) for consistency
