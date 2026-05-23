@@ -55,6 +55,49 @@ def strip_html(html_str):
     return re.sub(r"\s+", " ", unescape(text)).strip()
 
 
+def clean_description_html(html):
+    """Urun aciklamasindan CSS/JS kirligini temizler.
+
+    - <style>...</style> ve <script>...</script> bloklarini cikartir
+    - Aciklamanin BASINDA yer alan CSS yorum/kurallarini (`/* ... */`,
+      `.cls { ... }`, `#id { ... }`, `@media { ... }`) tek tek siler;
+      ilk CSS-olmayan icerikte (HTML tag, normal metin) durur
+
+    eprotein/Body Attack tarzi JSON-LD description'lar bazen style+HTML
+    karisik gelir; bu fonksiyon olmadan CSS musteriye text olarak gorunur
+    (2026-05-23 bug). Plain text icerik korunur.
+    """
+    if not html:
+        return ""
+    cleaned = re.sub(r'<style[^>]*>.*?</style>', '', html, flags=re.S | re.I)
+    cleaned = re.sub(r'<script[^>]*>.*?</script>', '', cleaned, flags=re.S | re.I)
+
+    # Bastaki CSS yorum + kurallarini sira ile sok — selector .class/#id/@media
+    # ile basliyorsa CSS olarak kabul et (text ile karistirmamak icin
+    # konservatif: harf-baslangiclari islenmez).
+    # `@media { .x{} .y{} }` gibi tek-seviye nested bloklari da yakalar.
+    css_block = re.compile(
+        r'[\.\#@][^{}]*?\{(?:[^{}]|\{[^{}]*?\})*\}', re.S
+    )
+    css_comment = re.compile(r'/\*.*?\*/', re.S)
+    while True:
+        s = cleaned.lstrip()
+        if not s:
+            cleaned = ""
+            break
+        m = css_comment.match(s)
+        if m:
+            cleaned = s[m.end():]
+            continue
+        m = css_block.match(s)
+        if m:
+            cleaned = s[m.end():]
+            continue
+        cleaned = s
+        break
+    return cleaned.strip()
+
+
 def make_slug(name):
     slug = (name or "").lower()
     slug = slug.translate(str.maketrans("şçğüöıİŞÇĞÜÖ", "scguoiISCGUO"))

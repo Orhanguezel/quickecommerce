@@ -1,0 +1,36 @@
+"""
+proteinavm.com Urun Scraper (IdeaSoft + Cloudflare, Scrapling stealth)
+----------------------------------------------------------------------
+proteinavm.com protein / sporcu besinleri sitesidir. IdeaSoft altyapisi
+SERT bir Cloudflare duvari arkasindadir -> duz curl/requests 403 doner;
+tum istekler scraper-service stealth tarayicisi uzerinden gider.
+
+Tum katalog hedeflenir (/protein-tozu sadece bir kategoridir): urun URL'leri
+/sitemap.xml -> sitemap/products/N.xml zincirinden kesfedilir, her urun
+sayfasindaki JSON-LD `Product` parse edilir.
+
+Kullanim:
+  SCRAPER_URL=https://scraper.guezelwebdesign.com \\
+  SCRAPER_API_KEY=scraper-sportoonline-... \\
+    python3 scrapers/proteinavm_scraper.py [--limit 5]
+
+Cikti: data/source-products/proteinavm_products.json
+"""
+
+import argparse
+
+from ideasoft_scraper import run
+from shopify_scraper import resolve_output
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--limit", type=int, default=0, help="Sadece ilk N urun (test icin)")
+    args = parser.parse_args()
+
+    run(
+        site_base="https://www.proteinavm.com",
+        output_file=resolve_output("proteinavm_products.json"),
+        vendor="proteinAVM",
+        default_category="Sporcu Besinleri",
+        limit=args.limit,
+    )
