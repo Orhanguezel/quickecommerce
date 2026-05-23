@@ -34,6 +34,7 @@ import { toast } from 'react-toastify';
 import AppPhoneNumberInput from '../../common/AppPhoneNumberInput';
 import Cancel from '../../custom-icons/Cancel';
 import PhotoUploadModal, { type UploadedImage } from '@/components/blocks/shared/PhotoUploadModal';
+import GeliverSenderAddressPanel from '@/components/blocks/shared/GeliverSenderAddressPanel';
 // JSON scaffold stack (standard)
 import {
   AdminI18nJsonPanel,
@@ -451,6 +452,11 @@ export default function UpdateStoreForm({ data }: any) {
     <div>
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="">
+          <GeliverSenderAddressPanel
+            storeId={editData?.id}
+            endpoint={`v1/seller/store/${editData?.id}/geliver-sender-address`}
+            store={editData}
+          />
           <>
             <div className="grid grid-cols-1 lg:grid-col-2 2xl:grid-cols-3  gap-4">
               <Card className="col-span-1 2xl:col-span-2 ">

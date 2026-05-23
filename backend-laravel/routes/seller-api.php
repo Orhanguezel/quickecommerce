@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\V1\Seller\SellerReviewController;
 use App\Http\Controllers\Api\V1\Seller\SellerProductCategoryController;
 use App\Http\Controllers\Api\V1\Seller\SellerStoreDashboardManageController;
 use App\Http\Controllers\Api\V1\Seller\SellerStoreManageController;
+use App\Http\Controllers\Api\V1\Seller\StoreGeliverSenderAddressController;
 use App\Http\Controllers\Api\V1\Seller\SellerStoreNoticeController;
 use App\Http\Controllers\Api\V1\Seller\SellerStoreOrderController;
 use App\Http\Controllers\Api\V1\Seller\SellerStoreOrderRefundManageController;
@@ -120,8 +121,10 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => ['auth:sanctum', 'check.e
             Route::group(['middleware' => ['permission:' . PermissionKey::SELLER_STORE_MY_SHOP->value]], function () {
                 Route::get('list', [SellerStoreManageController::class, 'listStores']);
                 Route::get('details/{id}', [SellerStoreManageController::class, 'getStoreById']);
+                Route::get('{id}/geliver-sender-address', [StoreGeliverSenderAddressController::class, 'show']);
                 Route::post('add', [SellerStoreManageController::class, 'createStore']); // create store
                 Route::post('update', [SellerStoreManageController::class, 'updateStore']);
+                Route::post('{id}/geliver-sender-address', [StoreGeliverSenderAddressController::class, 'store']);
                 Route::delete('remove/{id}', [SellerStoreManageController::class, 'deleteStore']);
                 Route::get('get-commission-settings', [SellerStoreManageController::class, 'commissionSettings']);
             });

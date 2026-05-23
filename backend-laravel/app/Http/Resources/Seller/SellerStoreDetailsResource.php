@@ -44,6 +44,7 @@ class SellerStoreDetailsResource extends JsonResource
             "banner" => $this->banner,
             "banner_url" => ImageModifier::generateImageUrl($this->banner),
             "address" => $this->address,
+            "geliver_sender_address_id" => $this->geliver_sender_address_id,
             "latitude" => $this->latitude,
             "longitude" => $this->longitude,
             "is_featured" => $this->is_featured,

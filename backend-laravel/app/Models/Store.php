@@ -31,6 +31,7 @@ class Store extends Model
         'logo',
         'banner',
         'address',
+        'geliver_sender_address_id',
         'latitude',
         'longitude',
         'is_featured',
