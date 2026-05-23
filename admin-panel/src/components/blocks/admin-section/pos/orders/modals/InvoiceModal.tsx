@@ -7,6 +7,7 @@ import {
   useGeneralQuery,
 } from "@/modules/common/com/com.action";
 import { useInvoiceQuery } from "@/modules/seller-section/orders/orders.action";
+import { formatOrderAddress } from "@/lib/order-address";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { useLocale, useTranslations } from "next-intl";
@@ -43,6 +44,7 @@ const InvoiceModal: React.FC<ConfirmationModalProps> = ({
   const InvoiceListData = InvoiceList as any;
   const { customer, invoice_date, invoice_number, additional_charge_name } =
     InvoiceListData;
+  const invoiceAddressText = formatOrderAddress(customer?.shipping_address);
   const { currency, refetch: refetchCurrency } = useCurrencyQuery({});
   const currencyData = useMemo(() => {
     const data = (currency as any) || {};
@@ -232,18 +234,7 @@ const InvoiceModal: React.FC<ConfirmationModalProps> = ({
                 <p className="text-sm capitalize">{customer?.name}</p>
                 <p className="text-sm ">{customer?.phone}</p>
                 <p className="text-sm ">{customer?.email}</p>
-                <p className="text-sm">
-                  {customer?.shipping_address?.house &&
-                    `#H-${customer?.shipping_address?.house},`}
-                  {customer?.shipping_address?.floor &&
-                    `F-${customer?.shipping_address?.floor}, `}
-                  {customer?.shipping_address?.road &&
-                    `R-${customer?.shipping_address?.road},`}{" "}
-                  {customer?.shipping_address?.address &&
-                    `${customer?.shipping_address?.address},`}
-                  {customer?.shipping_address?.postal_code &&
-                    customer?.shipping_address?.postal_code}{" "}
-                </p>
+                <p className="text-sm">{invoiceAddressText}</p>
               </div>
             </div>
 

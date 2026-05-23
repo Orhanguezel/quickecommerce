@@ -7,6 +7,7 @@ import LoaderOverlay from "@/components/molecules/LoaderOverlay";
 import { Button, Card, CardContent } from "@/components/ui";
 import { SellerRoutes } from "@/config/sellerRoutes";
 import GlobalImageLoader from "@/lib/imageLoader";
+import { formatOrderAddress } from "@/lib/order-address";
 import { formatLabel } from "@/lib/utils";
 import { useCurrencyQuery } from "@/modules/common/com/com.action";
 import { useRefundRequestStatusUpdate } from "@/modules/seller-section/orders/refund-request/refund-request.action";
@@ -73,6 +74,8 @@ const OrdersDetailsCard = ({ data, refetch, ID }: any) => {
     id: customer_id = "",
     type = "",
   } = OrderDetails?.order_master?.customer || {};
+  const deliveryAddress = order_master?.shipping_address || address;
+  const deliveryAddressText = formatOrderAddress(deliveryAddress);
 
   const handleClick = (e: React.MouseEvent) => {
     const isNewTab = e.metaKey || e.ctrlKey || e.button === 1;
@@ -738,18 +741,14 @@ const OrdersDetailsCard = ({ data, refetch, ID }: any) => {
                     )}
                   </div>
                 </div>
-                {address && (
+                {deliveryAddress && (
                   <div className="mt-1">
                     <div className="flex items-center gap-1 text-md font-semibold ">
                       <MapPin width={16} height={16} />
                       <span>{t("orders.delivery_location")} :</span>
                     </div>
                     <p className="text-gray-500 dark:text-white mx-4">
-                      {address?.house && `#H-${address?.house},`}{" "}
-                      {address?.floor && `Floor-${address?.floor},`}{" "}
-                      {address?.road && `Road-${address?.road},`}{" "}
-                      {address?.address && `${address?.address},`}{" "}
-                      {address?.postal_code && address?.postal_code}
+                      {deliveryAddressText}
                     </p>
                   </div>
                 )}
