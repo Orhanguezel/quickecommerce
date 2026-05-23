@@ -29,6 +29,7 @@ type Props = {
   disabled?: boolean;
   country?: string;
   onSelect: (selected: AddressSelected) => void;
+  onError?: (message: string) => void;
 };
 
 export default function AddressAutocomplete({
@@ -39,6 +40,7 @@ export default function AddressAutocomplete({
   disabled,
   country = "tr",
   onSelect,
+  onError,
 }: Props) {
   const inputId = useId();
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -51,6 +53,12 @@ export default function AddressAutocomplete({
   const [loading, setLoading] = useState(false);
   const [sdkReady, setSdkReady] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  function showError(message: string) {
+    setError(message);
+    onError?.(message);
+  }
 
   useEffect(() => {
     setValue(defaultValue);
@@ -68,7 +76,10 @@ export default function AddressAutocomplete({
         placesServiceRef.current = new g.maps.places.PlacesService(dummy);
         setSdkReady(true);
       })
-      .catch(() => {});
+      .catch(() => {
+        if (cancelled) return;
+        showError("Adres arama servisi yüklenemedi. İl ve ilçe alanlarını manuel doldurun.");
+      });
     return () => {
       cancelled = true;
     };
@@ -99,12 +110,18 @@ export default function AddressAutocomplete({
         componentRestrictions: country ? { country } : undefined,
         language: "tr",
       },
-      (preds: any[] | null) => {
+      (preds: any[] | null, status: string) => {
         setLoading(false);
+        if (status !== "OK" && status !== "ZERO_RESULTS") {
+          setSuggestions([]);
+          showError("Adres arama sırasında hata oluştu. İl ve ilçe alanlarını manuel doldurun.");
+          return;
+        }
         if (!preds) {
           setSuggestions([]);
           return;
         }
+        setError(null);
         setSuggestions(
           preds.slice(0, 6).map((p) => ({
             description: p.description,
@@ -141,11 +158,17 @@ export default function AddressAutocomplete({
         sessionToken: sessionRef.current,
       },
       (place: any, status: string) => {
-        if (status !== "OK" || !place) return;
+        if (status !== "OK" || !place) {
+          showError("Seçilen adres detayları alınamadı. İl ve ilçe alanlarını manuel doldurun.");
+          return;
+        }
 
         const lat = place.geometry?.location?.lat?.();
         const lng = place.geometry?.location?.lng?.();
-        if (typeof lat !== "number" || typeof lng !== "number") return;
+        if (typeof lat !== "number" || typeof lng !== "number") {
+          showError("Seçilen adres için konum bilgisi alınamadı. İl ve ilçe alanlarını manuel doldurun.");
+          return;
+        }
 
         const components = parseAddressComponents(place.address_components || []);
 
@@ -159,6 +182,7 @@ export default function AddressAutocomplete({
         if ((window as any).google?.maps?.places) {
           sessionRef.current = new (window as any).google.maps.places.AutocompleteSessionToken();
         }
+        setError(null);
       },
     );
   }
@@ -213,6 +237,9 @@ export default function AddressAutocomplete({
             </li>
           ))}
         </ul>
+      )}
+      {error && (
+        <p className="mt-1 text-xs text-destructive">{error}</p>
       )}
     </div>
   );

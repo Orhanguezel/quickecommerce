@@ -20,12 +20,14 @@ import {
 import { useWalletInfoQuery } from "@/modules/wallet/wallet.service";
 import { useProfileQuery } from "@/modules/profile/profile.service";
 import { useBaseService } from "@/lib/base-service";
+import { useSiteInfoQuery } from "@/modules/site/site.action";
 import type {
   CustomerAddress,
   PlaceOrderInput,
   CheckoutPackage,
   PaymentGateway,
 } from "@/modules/checkout/checkout.type";
+import AddressAutocomplete from "@/components/AddressAutocomplete";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -101,6 +103,7 @@ export function CheckoutClient({ translations: t }: Props) {
   } | null>(null);
   const [orderNotes, setOrderNotes] = useState("");
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [addressSearchError, setAddressSearchError] = useState<string | null>(null);
 
   // Address form state
   const [addressForm, setAddressForm] = useState({
@@ -109,6 +112,8 @@ export function CheckoutClient({ translations: t }: Props) {
     email: "",
     contact_number: "",
     address: "",
+    city_name: "",
+    district_name: "",
     road: "",
     house: "",
     floor: "",
@@ -117,6 +122,8 @@ export function CheckoutClient({ translations: t }: Props) {
 
   // Queries & Mutations
   const { data: profile } = useProfileQuery();
+  const { siteInfo } = useSiteInfoQuery();
+  const googleMapsApiKey = (siteInfo?.com_google_map_api_key as string) || "";
   const { data: addresses, isLoading: addressesLoading, isError: addressesError, refetch: refetchAddresses } =
     useAddressListQuery();
   const addAddressMutation = useAddAddressMutation();
@@ -181,6 +188,15 @@ export function CheckoutClient({ translations: t }: Props) {
       ? 0
       : minimumShippingCharge;
   const total = payableSubtotal + shippingAmount;
+  const selectedAddress = addresses?.find((addr) => addr.id === selectedAddressId) ?? null;
+  const selectedAddressMissingLocation = !!selectedAddress && (
+    !selectedAddress.city_name?.trim() || !selectedAddress.district_name?.trim()
+  );
+  const isAddressFormComplete = !!addressForm.email.trim()
+    && !!addressForm.contact_number.trim()
+    && !!addressForm.address.trim()
+    && !!addressForm.city_name.trim()
+    && !!addressForm.district_name.trim();
 
   // GA4: begin_checkout (once per page load)
   const checkoutTrackedRef = useRef(false);
@@ -261,6 +277,11 @@ export function CheckoutClient({ translations: t }: Props) {
   }
 
   const handleAddAddress = () => {
+    if (!isAddressFormComplete) {
+      setAddressSearchError("Adres, il ve ilçe alanları zorunludur.");
+      return;
+    }
+
     addAddressMutation.mutate(
       {
         ...addressForm,
@@ -276,6 +297,8 @@ export function CheckoutClient({ translations: t }: Props) {
             email: "",
             contact_number: "",
             address: "",
+            city_name: "",
+            district_name: "",
             road: "",
             house: "",
             floor: "",
@@ -320,6 +343,15 @@ export function CheckoutClient({ translations: t }: Props) {
 
   const handlePlaceOrder = async () => {
     // Auto-resolve items missing variant_id or store_id (stale localStorage data)
+    if (!selectedAddressId) {
+      return;
+    }
+
+    if (selectedAddressMissingLocation) {
+      setAddressSearchError("Seçili adresin il ve ilçe bilgisi eksik. Lütfen adresi güncelleyin veya yeni adres ekleyin.");
+      return;
+    }
+
     const needsResolve = items.filter((i) => !i.variant_id || !i.store_id);
     let resolvedItems = [...items];
 
@@ -553,6 +585,16 @@ export function CheckoutClient({ translations: t }: Props) {
                     <p className="text-sm text-muted-foreground">
                       {addr.address}
                     </p>
+                    {(addr.city_name || addr.district_name) && (
+                      <p className="text-xs text-muted-foreground">
+                        {[addr.district_name, addr.city_name].filter(Boolean).join(" / ")}
+                      </p>
+                    )}
+                    {(!addr.city_name || !addr.district_name) && (
+                      <p className="mt-1 text-xs text-destructive">
+                        İl ve ilçe bilgisi eksik
+                      </p>
+                    )}
                     <p className="text-xs text-muted-foreground">
                       {addr.contact_number}
                     </p>
@@ -637,6 +679,33 @@ export function CheckoutClient({ translations: t }: Props) {
                   </div>
                 </div>
 
+                {googleMapsApiKey && (
+                  <div className="space-y-2">
+                    <Label>Adres Ara</Label>
+                    <AddressAutocomplete
+                      apiKey={googleMapsApiKey}
+                      defaultValue={addressForm.address}
+                      onError={setAddressSearchError}
+                      onSelect={(selected) => {
+                        setAddressSearchError(null);
+                        setAddressForm((prev) => ({
+                          ...prev,
+                          address: selected.formattedAddress,
+                          city_name: selected.city || prev.city_name,
+                          district_name: selected.district || prev.district_name,
+                          postal_code: selected.postalCode || prev.postal_code,
+                        }));
+                      }}
+                    />
+                  </div>
+                )}
+
+                {addressSearchError && (
+                  <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                    {addressSearchError}
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <Label>{t.address_field}</Label>
                   <Textarea
@@ -649,6 +718,29 @@ export function CheckoutClient({ translations: t }: Props) {
                     }
                     rows={2}
                   />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>İl *</Label>
+                    <Input
+                      value={addressForm.city_name}
+                      onChange={(e) =>
+                        setAddressForm({ ...addressForm, city_name: e.target.value })
+                      }
+                      placeholder="İstanbul"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>İlçe *</Label>
+                    <Input
+                      value={addressForm.district_name}
+                      onChange={(e) =>
+                        setAddressForm({ ...addressForm, district_name: e.target.value })
+                      }
+                      placeholder="Şişli"
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -699,9 +791,7 @@ export function CheckoutClient({ translations: t }: Props) {
                     onClick={handleAddAddress}
                     disabled={
                       addAddressMutation.isPending ||
-                      !addressForm.email ||
-                      !addressForm.contact_number ||
-                      !addressForm.address
+                      !isAddressFormComplete
                     }
                   >
                     {addAddressMutation.isPending ? t.loading : t.save}
@@ -926,6 +1016,7 @@ export function CheckoutClient({ translations: t }: Props) {
                   createPaytrSessionMutation.isPending ||
                   !paymentMethod ||
                   (!selectedAddressId && paymentMethod !== "takeaway") ||
+                  selectedAddressMissingLocation ||
                   (paymentMethod === "wallet" && (walletData?.wallets?.total_balance ?? 0) < total)
                 }
               >

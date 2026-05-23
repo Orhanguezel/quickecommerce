@@ -5,6 +5,7 @@ namespace App\Http\Requests\Order;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use App\Models\CustomerAddress;
 
 class PlaceOrderRequest extends FormRequest
 {
@@ -155,6 +156,30 @@ class PlaceOrderRequest extends FormRequest
             ],
             'packages.*.items.*.line_total_price' => 'nullable|numeric',
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $hasHomeDelivery = collect($this->input('packages', []))->contains(function ($package) {
+                return ($package['delivery_option'] ?? 'home_delivery') === 'home_delivery';
+            });
+
+            if (! $hasHomeDelivery) {
+                return;
+            }
+
+            $addressId = $this->input('shipping_address_id');
+            if (! $addressId) {
+                $validator->errors()->add('shipping_address_id', 'Teslimat adresi zorunludur.');
+                return;
+            }
+
+            $address = CustomerAddress::find($addressId);
+            if (! $address || blank($address->city_name) || blank($address->district_name)) {
+                $validator->errors()->add('shipping_address_id', 'Teslimat adresinde il ve ilçe bilgisi zorunludur.');
+            }
+        });
     }
 
     protected function failedValidation(Validator $validator)
