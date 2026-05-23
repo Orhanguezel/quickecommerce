@@ -275,6 +275,11 @@ Thumbs.db
 .env.*
 !.env.example
 
+# Firebase service account (private key — never commit)
+*firebase-adminsdk*.json
+backend-laravel/storage/app/firebase/
+
 sosialmedia/
 docs/
 data/
+reports/

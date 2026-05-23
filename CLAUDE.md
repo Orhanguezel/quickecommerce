@@ -4,6 +4,20 @@
 
 ## 🔔 Aktif Hatirlatmalar (TARIH ILE KONTROL ET)
 
+### 🔔 2026-05-22 civari (SIPARIS MAIL LOGLARI — OKU)
+**Why:** 2026-05-15'te Gmail SMTP canliya alindi (`sportoonlinecom@gmail.com`) ve daha once sessizce yutulan sipariş mail/push hatalari artik loglaniyor. Bir hafta gercek siparis trafigi sonrasi loglar okunup teslimat saglikli mi dogrulanmali.
+**Yapilacak:** Kullaniciya proaktif hatirlat ve calistir:
+```bash
+ssh vps-sportoonline "grep -E '\[order-email\]|\[order-push\]' /var/www/quikecommerce/backend-laravel/storage/logs/laravel*.log | tail -50"
+```
+- **Cikti bos** → mail/push akisi temiz, sorun yok (ideal).
+- **`[order-email]` satirlari var** → siparis maili gitmiyor olabilir. Hata mesajina bak:
+  - Gmail auth/limit (5xx, "Daily user sending limit exceeded") → ~500/gun limiti asildi, transactional servise gecis konus
+  - Connection/timeout → VPS'ten smtp.gmail.com:587 erisimi/firewall
+  - Template/data hatasi → `order-created*` sablonlari veya order verisi
+- **`[order-push]` satirlari** → Firebase push; mail kritik degil, ikincil.
+- Not: Musteriye hicbir sey yansimiyor (catch'ler hala yutuyor, sadece logluyor) — sessiz hata riski bu yuzden manuel kontrol gerektiriyor.
+
 ### 🔔 2026-05-03 sabahi (ILK CRON RUN — KRITIK)
 **Yapilacak:** Cron yarın sabah 05:00 TR'de ilk kez çalısacak. Sabah kullaniciya sor:
 ```bash
