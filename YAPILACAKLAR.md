@@ -307,15 +307,15 @@
 
 ### 🚨 PERFORMANS — KRİTİK (Codex'e atandı: AGENTS.md Görev 9)
 
-- [ ] **15. Site yavaş — ana sayfa 9.7s, Provitanya 7.4s + 12.6 MB payload**
-  - Test (2026-05-24): Ana sayfa **TTFB 9.7s**, kategori **8.3s**, Provitanya **7.4s + 12.6 MB**.
-    Backend API'ler 200-400ms; sorun Next.js'in 10 paralel cache'siz endpoint çağrısı + Provitanya'da `all_products: list[1854]` (2.4 MB serialization) + N+1 + cache yok.
-  - **Codex'e detaylı brief AGENTS.md Görev 9 (9a/9b/9c):**
-    - 9a: `StoreDetailsPublicResource.php:68` `all_products` → take(20) veya kaldır (tek-dosya fix, en hızlı kazanım)
-    - 9b: Ana sayfa 10 API endpoint'i Redis cache (CACHE_STORE=redis zaten yapılandırılmış ama kullanılmıyor; 1sa TTL)
-    - 9c: DB composite index (`products.status` + `products.deleted_at` + `products.store_id`; `product_variants.stock_quantity` + `status`) + N+1 audit
-  - Test script: `/tmp/perf_test.sh` (lokalde saklı, repo'ya commit edilebilir)
-  - Hedef: tüm sayfalar TTFB < 1s.
+- [~] **15. Site yavaş — KISMEN DÜZELDİ (9a tamam, 9b/9c Codex'te)**
+  - **9a TAMAM (commit `89a63d39`):** `StoreDetailsPublicResource.php` `all_products` + `featured_products` `take(20)` eklendi. Sonuç:
+    - API store-details: TTFB **6.5s → 0.43s** (15x)
+    - Payload: **12.6 MB → 22 KB** (560x)
+    - Next.js mağaza sayfası: TTFB **7.4s → 0.45s** (16x)
+  - **KALAN (Codex AGENTS.md 9b + 9c):**
+    - 9b: Ana sayfa hala TTFB 7-8s (10 cache'siz API call). Redis cache layer.
+    - 9c: Kategori sayfası TTFB 7s. DB composite index + N+1 audit.
+  - Test script: `scripts/perf_test.sh` (commit'li, tekrar ölçüm için).
 
 ### ✋ Codex'e atanan (AGENTS.md Görev 5-9)
 
