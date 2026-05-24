@@ -39,7 +39,7 @@ export interface ProductDetail {
   image: string;
   image_url: string;
   gallery_images: string[];
-  gallery_images_urls: string[];
+  gallery_images_urls: string | string[] | null;
   video_url: string | null;
   price: string | number | null;
   special_price: string | number | null;

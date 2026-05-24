@@ -230,9 +230,11 @@ export default async function ProductDetailPage({ params }: Props) {
     "@type": "Product",
     name: product.name,
     description: truncateText(stripHtml(product.description), 1000),
-    image: product.gallery_images_urls?.length
+    image: Array.isArray(product.gallery_images_urls)
       ? product.gallery_images_urls
-      : [product.image_url],
+      : product.gallery_images_urls
+        ? String(product.gallery_images_urls).split(",").map((url) => url.trim()).filter(Boolean)
+        : [product.image_url],
     sku: product.variants?.[0]?.sku || String(product.id),
     ...(gtin ? { gtin } : {}),
     ...(mpn ? { mpn } : {}),

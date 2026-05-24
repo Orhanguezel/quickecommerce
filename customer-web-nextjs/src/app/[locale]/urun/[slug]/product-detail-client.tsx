@@ -34,6 +34,7 @@ import {
   MessageCircleQuestion,
   Send,
   LogIn,
+  Maximize2,
 } from "lucide-react";
 import type {
   ProductDetail,
@@ -500,11 +501,11 @@ export function ProductDetailClient({
   const galleryUrls = product.gallery_images_urls
     ? String(product.gallery_images_urls).split(',').map((s: string) => s.trim()).filter(Boolean)
     : [];
-  const allImages = [
+  const allImages = Array.from(new Set([
     selectedVariant?.image_url,
     product.image_url,
     ...galleryUrls,
-  ].filter(Boolean) as string[];
+  ].filter(Boolean))) as string[];
 
   const normalizedImageIndex = Math.min(
     selectedImage,
@@ -799,8 +800,12 @@ export function ProductDetailClient({
         <div className="space-y-3 overflow-hidden rounded-lg border bg-card p-2 sm:p-4">
           <div
             ref={mainImageRef}
-            className="relative aspect-square cursor-zoom-in overflow-hidden rounded-md border bg-muted"
-            onClick={() => allImages[normalizedImageIndex] && openLightbox(normalizedImageIndex)}
+            className="relative aspect-square cursor-pointer overflow-hidden rounded-md border bg-muted"
+            onClick={() => {
+              if (allImages.length > 1) {
+                setSelectedImage((prev) => (prev + 1) % allImages.length);
+              }
+            }}
           >
             {allImages[normalizedImageIndex] ? (
               <Image
@@ -818,7 +823,10 @@ export function ProductDetailClient({
             )}
             <button
               type="button"
-              onClick={handleWishlistClick}
+              onClick={(event) => {
+                event.stopPropagation();
+                handleWishlistClick();
+              }}
               disabled={isWishlistLoading}
               className="absolute right-3 top-3 z-30 inline-flex h-10 w-10 items-center justify-center rounded-full border bg-background/95 text-muted-foreground hover:text-foreground"
               aria-label={isWishlisted ? t.remove_from_wishlist : t.add_to_wishlist}
@@ -829,6 +837,19 @@ export function ProductDetailClient({
                 }`}
               />
             </button>
+            {allImages[normalizedImageIndex] && (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  openLightbox(normalizedImageIndex);
+                }}
+                className="absolute right-3 top-16 z-30 inline-flex h-10 w-10 items-center justify-center rounded-full border bg-background/95 text-muted-foreground hover:text-foreground"
+                aria-label="Görseli büyüt"
+              >
+                <Maximize2 className="h-5 w-5" />
+              </button>
+            )}
 
             {/* Badges - stacked vertically */}
             <div className="absolute left-2 top-2 z-30 flex flex-col gap-1.5 sm:left-3 sm:top-3 sm:gap-2">
