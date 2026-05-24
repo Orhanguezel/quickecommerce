@@ -68,6 +68,7 @@ use App\Models\Unit;
 use App\Services\FlashSaleService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpSpreadsheet\Calculation\Category;
 
@@ -1903,17 +1904,47 @@ class FrontendController extends Controller
             $all = $request->all ?? false;
             $parentId = $request->parent_id;
             $hasProducts = $request->boolean('has_products', false);
+            $cacheKey = 'public_product_category_list:' . md5(json_encode($request->query()));
+
+            if ($request->isMethod('GET') && Cache::has($cacheKey)) {
+                return response()->json(Cache::get($cacheKey), 200);
+            }
+
+            $categoryStats = DB::table('products')
+                ->join('product_variants', 'product_variants.product_id', '=', 'products.id')
+                ->join('stores', 'stores.id', '=', 'products.store_id')
+                ->select(
+                    'products.category_id',
+                    DB::raw('COUNT(DISTINCT products.id) as products_count'),
+                    DB::raw("SUBSTRING_INDEX(GROUP_CONCAT(products.image ORDER BY products.id DESC SEPARATOR '||'), '||', 1) as representative_product_image")
+                )
+                ->whereNull('products.deleted_at')
+                ->where('products.status', 'approved')
+                ->whereNotNull('products.image')
+                ->where('products.image', '!=', '')
+                ->whereNull('product_variants.deleted_at')
+                ->where('product_variants.status', 1)
+                ->where('product_variants.stock_quantity', '>', 0)
+                ->where(function ($query) {
+                    $query->where('product_variants.price', '>', 0)
+                        ->orWhere('product_variants.special_price', '>', 0);
+                })
+                ->where('stores.status', 1)
+                ->whereNull('stores.deleted_at')
+                ->groupBy('products.category_id');
 
             $categories = ProductCategory::leftJoin('translations', function ($join) use ($language) {
                 $join->on('product_category.id', '=', 'translations.translatable_id')
                     ->where('translations.translatable_type', '=', ProductCategory::class)
                     ->where('translations.language', '=', $language)
                     ->where('translations.key', '=', 'category_name');
+            })->leftJoinSub($categoryStats, 'category_stats', function ($join) {
+                $join->on('category_stats.category_id', '=', 'product_category.id');
             })->select(
                 'product_category.*',
                 DB::raw('COALESCE(translations.value, product_category.category_name) as category_name'),
-                DB::raw('(SELECT COUNT(*) FROM products WHERE products.category_id = product_category.id AND products.deleted_at IS NULL AND products.status = "approved" AND products.image IS NOT NULL AND products.image != "" AND EXISTS (SELECT 1 FROM product_variants WHERE product_variants.product_id = products.id AND product_variants.deleted_at IS NULL AND product_variants.status = 1 AND product_variants.stock_quantity > 0 AND (product_variants.price > 0 OR product_variants.special_price > 0))) as products_count'),
-                DB::raw('(SELECT products.image FROM products WHERE products.category_id = product_category.id AND products.deleted_at IS NULL AND products.status IN ("approved", "1") AND products.image IS NOT NULL AND products.image != "" AND EXISTS (SELECT 1 FROM product_variants WHERE product_variants.product_id = products.id AND product_variants.deleted_at IS NULL AND product_variants.status = 1 AND product_variants.stock_quantity > 0 AND (product_variants.price > 0 OR product_variants.special_price > 0)) ORDER BY products.id DESC LIMIT 1) as representative_product_image')
+                DB::raw('COALESCE(category_stats.products_count, 0) as products_count'),
+                DB::raw('category_stats.representative_product_image as representative_product_image')
             );
 
             if ($type) {
@@ -1939,11 +1970,17 @@ class FrontendController extends Controller
                     ->where('product_category.status', 1)
                     ->orderBy($sortField, $sort)
                     ->paginate($per_page);
-                return response()->json([
+                $payload = [
                     'message' => __('messages.data_found'),
-                    'data' => ProductCategoryPublicResource::collection($categories),
-                    'meta' => new PaginationResource($categories)
-                ], 200);
+                    'data' => ProductCategoryPublicResource::collection($categories)->resolve($request),
+                    'meta' => (new PaginationResource($categories))->resolve($request)
+                ];
+
+                if ($request->isMethod('GET')) {
+                    Cache::put($cacheKey, $payload, now()->addMinutes(10));
+                }
+
+                return response()->json($payload, 200);
             }
 
             // Non-all mode: filter by parent_id or root categories
@@ -1963,11 +2000,17 @@ class FrontendController extends Controller
                 ->orderBy($sortField, $sort)
                 ->paginate($per_page);
 
-            return response()->json([
+            $payload = [
                 'message' => __('messages.data_found'),
-                'data' => ProductCategoryResource::collection($categories),
-                'meta' => new PaginationResource($categories)
-            ], 200);
+                'data' => ProductCategoryResource::collection($categories)->resolve($request),
+                'meta' => (new PaginationResource($categories))->resolve($request)
+            ];
+
+            if ($request->isMethod('GET')) {
+                Cache::put($cacheKey, $payload, now()->addMinutes(10));
+            }
+
+            return response()->json($payload, 200);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage(),
