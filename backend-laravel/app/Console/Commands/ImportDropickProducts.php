@@ -208,14 +208,30 @@ class ImportDropickProducts extends Command
 
         $slug = Str::slug($name);
 
-        // Mevcut kategoriyi bul
-        $query = ProductCategory::where('category_slug', $slug);
-        if ($parentId) {
-            $query->where('parent_id', $parentId);
+        // 1. Alias map kontrolü: silinen/merge edilen slug'lar canonical ID'ye
+        //    (config/category_aliases.php — taxonomy cleanup 2026-05-24)
+        $aliases = config('category_aliases', []);
+        if (!$aliases && file_exists(config_path('category_aliases.php'))) {
+            $aliases = require config_path('category_aliases.php');
         }
-        $existing = $query->first();
+        if (isset($aliases[$slug])) {
+            $aliasedId = (int) $aliases[$slug];
+            $aliasedCat = ProductCategory::find($aliasedId);
+            if ($aliasedCat) {
+                $this->categoryCache[$cacheKey] = $aliasedId;
+                return $aliasedId;
+            }
+        }
+
+        // 2. Slug-only matching (parent_id eşleşmesi zorunlu değil) —
+        //    duplicate kategori yaratılmasını önler. Eğer mevcut kategori farklı
+        //    bir parent altındaysa warn log basıp yine kullan.
+        $existing = ProductCategory::where('category_slug', $slug)->first();
 
         if ($existing) {
+            if ($parentId && $existing->parent_id !== null && (int) $existing->parent_id !== (int) $parentId) {
+                \Log::warning("[import:products] kategori parent_id mismatch: slug={$slug} mevcut parent={$existing->parent_id} istenen parent={$parentId} — mevcut kullaniliyor (#{$existing->id})");
+            }
             $this->categoryCache[$cacheKey] = $existing->id;
             return $existing->id;
         }

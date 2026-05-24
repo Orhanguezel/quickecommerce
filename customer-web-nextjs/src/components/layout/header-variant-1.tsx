@@ -1,6 +1,6 @@
 'use client';
 
-import { Link, useRouter } from '@/i18n/routing';
+import { Link, useRouter, usePathname } from '@/i18n/routing';
 import { ROUTES } from '@/config/routes';
 import { useSiteInfoQuery, useMenuQuery, useCategoryQuery } from '@/modules/site/site.action';
 import {
@@ -106,6 +106,14 @@ export function HeaderVariant1() {
     topCategories.find((cat) => cat.id === activeCatId) ?? topCategories[0] ?? null;
   const activeChildren = activeCategory ? getRenderableChildren(activeCategory.id) : [];
   const visibleNavCategories = topCategories.slice(0, 9);
+
+  // Aktif kategori URL'den belirlenir: /tr/kategori/{slug}
+  const pathname = usePathname();
+  const activePathSlug = (() => {
+    if (!pathname) return null;
+    const m = pathname.match(/^\/kategori\/([^/?]+)/);
+    return m ? decodeURIComponent(m[1]) : null;
+  })();
   const centerCategories =
     activeChildren.length > 0
       ? activeChildren
@@ -340,25 +348,28 @@ export function HeaderVariant1() {
 
             <div className="flex min-w-0 flex-1 items-center gap-0 overflow-hidden text-[13px] font-bold">
               {visibleNavCategories.length > 0
-                ? visibleNavCategories.map((cat, index) => (
-                    <Link
-                      key={cat.id}
-                      href={ROUTES.CATEGORY(cat.category_slug)}
-                      prefetch
-                      className={`relative flex h-11 shrink-0 items-center border-b-[3px] px-3 transition-colors hover:text-primary ${
-                        index === 0
-                          ? 'border-primary text-primary'
-                          : 'border-transparent'
-                      }`}
-                      style={
-                        index === 0
-                          ? undefined
-                          : { color: 'hsl(var(--header-nav-text))' }
-                      }
-                    >
-                      {cat.category_name}
-                    </Link>
-                  ))
+                ? visibleNavCategories.map((cat) => {
+                    const isActive = activePathSlug === cat.category_slug;
+                    return (
+                      <Link
+                        key={cat.id}
+                        href={ROUTES.CATEGORY(cat.category_slug)}
+                        prefetch
+                        className={`relative flex h-11 shrink-0 items-center border-b-[3px] px-3 transition-colors hover:text-primary ${
+                          isActive
+                            ? 'border-primary text-primary'
+                            : 'border-transparent'
+                        }`}
+                        style={
+                          isActive
+                            ? undefined
+                            : { color: 'hsl(var(--header-nav-text))' }
+                        }
+                      >
+                        {cat.category_name}
+                      </Link>
+                    );
+                  })
                 : fallbackMenuLinks.map((menu: MenuItem) => (
                     <Link
                       key={menu.id}
