@@ -83,10 +83,20 @@ export function HeaderVariant1() {
         isDisplayableProductCategory(category) ||
         getDisplayableDescendants(category.id).length > 0;
 
+      // Header'da/mega-menude SADECE onemli kategoriler:
+      // - display_order set edilmis (admin oncelikli)
+      // - VEYA en az 30 urunu olan (anlamli icerik)
+      // Anahtarlik (4 urun) gibi niche kategoriler menude gozukmesin.
+      const MIN_PRODUCTS_FOR_HEADER = 30;
+      const isImportantForHeader = (category: Category) =>
+        (Number(category.display_order) > 0) ||
+        (Number(category.product_count || 0) >= MIN_PRODUCTS_FOR_HEADER);
+
       return allCats
         .filter((c) => c.parent_id === null)
         .filter((parent) => !isBuyPayCampaignCategory(parent))
         .filter(hasDisplayableCategory)
+        .filter(isImportantForHeader)
         .sort(sortCategoriesForNavigation);
     },
     [allCats]
@@ -105,7 +115,12 @@ export function HeaderVariant1() {
   const activeCategory =
     topCategories.find((cat) => cat.id === activeCatId) ?? topCategories[0] ?? null;
   const activeChildren = activeCategory ? getRenderableChildren(activeCategory.id) : [];
-  const visibleNavCategories = topCategories.slice(0, 9);
+  // Header inline nav: SADECE display_order set edilmis kategoriler gozuksun.
+  // Gerisi 'Tum Kategoriler' mega-menu'de zaten erisilebilir — header bar'da
+  // 'Anahtarlik' gibi rastgele/alfabetik kategoriler cikmasin.
+  const visibleNavCategories = topCategories
+    .filter((c) => Number(c.display_order) > 0)
+    .slice(0, 9);
 
   // Aktif kategori URL'den belirlenir: /tr/kategori/{slug}
   const pathname = usePathname();
