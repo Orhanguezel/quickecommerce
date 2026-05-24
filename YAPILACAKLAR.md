@@ -4,6 +4,15 @@
 > 5 günlük trafik raporu + ayrı nginx log, Geliver Türkçe il/ilçe fix + #113,
 > Google Places API, admin sipariş detayı/fatura adres + isim + temiz format.
 
+## 🆕 Provitanya kozmetik düzeltme — 131 ürün (2026-05-25)
+
+- Kullanıcı raporu: <https://sportoonline.com/tr/urun/akat-sac-kopugu-conditioning-200-ml> "Sporcu Besinleri" kategorisinde.
+- Kök neden: Provitanya scraper tüm 1854 ürünü tek kategori (Sağlık & Sporcu Besinleri #863) altında topluyordu. Biz #863 → #711 merge ettik, kozmetik ürünler de "Sporcu Besinleri" altında kaldı.
+- Düzeltme: marka/keyword bazlı tarama — Akat, Splat, Marvis, Curaprox, Batiste, Dalan d'Olive, Old Spice, Signal, Gillette, Esemmat vb. + saç köpüğü/şampuan/diş macunu/duş jeli/parfüm/deodorant/tıraş köpüğü içeren tüm Provitanya ürünleri **131 ürün** → Kişisel Bakım #1070 taşındı.
+- Sayım: Sporcu Besinleri #711: 4111 → 3980. Kişisel Bakım #1070: 89 → 220.
+- Yöntem: `/tmp/fix_akat.php` (DB-only, kod değişikliği yok).
+- **Bekleyen:** Provitanya'daki tüm 1854 ürünü tek tek kategorize etmek için Faz 2 (taxonomi restrukt) yapılmalı; mevcut script sadece kesin kozmetik kelimeler için temizledi.
+
 ## 🆕 Kategori taxonomy refactor — Faz 1 + Faz 3 TAMAM (2026-05-24)
 
 - Ana sayfa kategori link: **138 → 85** (38% azaldi); navigasyon temizlendi.
