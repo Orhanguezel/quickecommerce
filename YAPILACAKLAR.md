@@ -305,6 +305,18 @@
     (BeautifulSoup ile `<img src>` + `<a href>` rewrite). Yeni import'larda
     aynı hata olmasın.
 
+### 🚨 PERFORMANS — KRİTİK (Codex'e atandı: AGENTS.md Görev 9)
+
+- [ ] **15. Site yavaş — ana sayfa 9.7s, Provitanya 7.4s + 12.6 MB payload**
+  - Test (2026-05-24): Ana sayfa **TTFB 9.7s**, kategori **8.3s**, Provitanya **7.4s + 12.6 MB**.
+    Backend API'ler 200-400ms; sorun Next.js'in 10 paralel cache'siz endpoint çağrısı + Provitanya'da `all_products: list[1854]` (2.4 MB serialization) + N+1 + cache yok.
+  - **Codex'e detaylı brief AGENTS.md Görev 9 (9a/9b/9c):**
+    - 9a: `StoreDetailsPublicResource.php:68` `all_products` → take(20) veya kaldır (tek-dosya fix, en hızlı kazanım)
+    - 9b: Ana sayfa 10 API endpoint'i Redis cache (CACHE_STORE=redis zaten yapılandırılmış ama kullanılmıyor; 1sa TTL)
+    - 9c: DB composite index (`products.status` + `products.deleted_at` + `products.store_id`; `product_variants.stock_quantity` + `status`) + N+1 audit
+  - Test script: `/tmp/perf_test.sh` (lokalde saklı, repo'ya commit edilebilir)
+  - Hedef: tüm sayfalar TTFB < 1s.
+
 ### ✋ Codex'e atanan (AGENTS.md Görev 5-9)
 
 - [X] **10. Ürün detay galeri — duplicate + tıklama** (AGENTS.md Görev 5)

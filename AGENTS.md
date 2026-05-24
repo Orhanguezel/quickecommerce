@@ -173,6 +173,72 @@ Canlı server `vps-sportoonline` SSH kısa yolundadır. Sunucu yolu: `/var/www/q
 
 ---
 
+### 🚀 Görev 9 — KRİTİK: Site performans optimizasyonu (büyük, çok-katmanlı)
+
+**Bağlam (2026-05-24 perf test sonuçları):** Ürün sayısı 13607'ye çıktı, ana sayfa **9.7sn TTFB**, kategori sayfası **8.3sn**, Provitanya mağaza sayfası **7.4sn TTFB + 12.6 MB payload**. Kabul edilemez. Müşteri kaybı garanti.
+
+**Test komutu** (yeniden ölçmek için): `/tmp/perf_test.sh` (lokalde var, repo'ya commit edilebilir).
+
+**Tespit edilen 3 ana sorun:**
+
+#### 9a. `store-details` endpoint'i tüm ürünleri payload'a koyuyor — 12.6 MB
+
+**Dosya:** `backend-laravel/app/Http/Resources/Seller/Store/StoreDetailsPublicResource.php:68`
+
+Şu an:
+```php
+'all_products' => StoreProductListPublicResource::collection(
+    $this->products()->publiclySellable()
+        ->with(['variants' => fn($q) => $q->publiclySellable()->withoutTrashed()->take(1)])
+        ->latest()->get()  // ← TÜM ürünler! Provitanya'da 1854 kayıt
+),
+```
+
+Provitanya store-details response: 12.6 MB, 2.4 MB sadece `all_products` JSON serialization.
+
+**Fix:** ya `->take(20)->get()` ile ilk 20 ürünle sınırla, ya da `all_products`'u TAMAMEN KALDIR ve frontend `/api/v1/product-list?store_id=X` paginated endpoint kullansın. Frontend tarafında `magaza/[slug]/store-detail-client.tsx`'in `all_products`'u nasıl kullandığını incele, gerekirse pagination'a geç.
+
+**Beklenen etki:** mağaza sayfası 7.4s → ~500ms, payload 12.6 MB → ~50 KB.
+
+#### 9b. Ana sayfa 10 paralel API çağrısı, cache yok
+
+**Dosya:** `customer-web-nextjs/src/app/[locale]/page.tsx:82-91`
+
+Ana sayfa server-side 10 endpoint çağırıyor (SLIDER, CATEGORIES per_page=500, FEATURED, NEW_ARRIVALS, BEST_SELLING, TRENDING, FLASH_DEALS, FLASH_DEAL_PRODUCTS, POPULAR_PRODUCTS, BLOGS). Paralel ama en yavaş call total süreyi belirler.
+
+**Backend cache layer:** `.env` `CACHE_STORE=redis` set ama API endpoint'leri kullanmıyor (her request fresh DB hit). Laravel controller'larda:
+```php
+return Cache::remember("home:featured_products:{$locale}", 3600, function () {
+    // mevcut query
+});
+```
+Her endpoint'e 1 saatlik TTL cache ekle. Featured/NewArrivals/BestSelling/Trending/Popular/FlashDeals/Slider/Blogs için ayrı cache key'ler.
+
+**Beklenen etki:** Ana sayfa cache miss durumunda hala 7s (ilk request), cache hit'te <500ms. Cache invalidation: ürün/mağaza/banner CRUD'unda ilgili cache key flush et.
+
+#### 9c. DB query optimizasyonu — N+1 + index eksikleri
+
+**Audit:**
+- `php artisan tinker --execute="DB::enableQueryLog(); /* call endpoint */; print_r(DB::getQueryLog());"` ile N+1 ara
+- `EXPLAIN` ile slow query analizi
+- `products.status` + `product_variants.stock_quantity` composite index ekle (Codex 2026-05-23 stok filter sonrası slow olabilir)
+- `products.store_id` + `products.deleted_at` + `products.status` composite index (publiclySellable scope için)
+- `with(['variants', 'brand', 'category', 'store'])` eager loading'in her ürün resource'ünde tutarlı uygulandığını doğrula
+
+**Beklenen etki:** Backend API her endpoint 200-400ms'den 50-150ms'ye iner.
+
+---
+
+**Görev önceliği:** 9a (en hızlı kazanım, tek dosya) → 9b (Redis cache, 10+ controller endpoint) → 9c (index migration + audit).
+
+**Bitti tanımı:**
+- Ana sayfa TTFB < 1s (cache hit)
+- Mağaza sayfası TTFB < 1s (her mağaza için, ürün sayısından bağımsız)
+- Kategori sayfası TTFB < 1s
+- `/tmp/perf_test.sh` çıktısında tüm endpoint'ler yeşil.
+
+---
+
 ### 🎲 Görev 8 — Tüm Ürünler section: kategori rotation random (orta)
 
 **Bağlam:** Kullanıcı raporu (2026-05-24): "tüm ürünler section'ında kategorilere göre ürünler gelsin. Ama hangi kategori ile başlayacağı random olsun. Ben sitede hep aynı ürünler varmış gibi olsun istemiyorum."
