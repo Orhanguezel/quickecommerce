@@ -65,11 +65,10 @@
   - `GdeliveryService::buildShipmentData` zaten `store->geliver_sender_address_id ?? global` sırasını destekliyor.
   - Yapılacak: her satıcının Geliver'da kayıtlı **sender address ID**'si olmalı (şu an tek global adres `8ba4a825-…`).
   - Admin/seller panelinde satıcı adresi → Geliver sender address oluşturma/eşleme akışı.
-- [~] **3. yesilmarka.com scraper — KISMEN, gözden geçirme gerek**
+- [X] **3. yesilmarka.com scraper — AYRI MAĞAZAYA TAŞINDI**
   - Scraper var: `scrapers/yesilmarka_scraper.py` (6329 B), VPS root'ta deploy, cron'da.
-  - Mevcut durum: `yesilmarka_products.json` 4 ürün, source mapping 4 kayıt — ama
-    **dedicated yesilmarka mağazası YOK** (mappings başka bir mağazaya bağlanmış, muhtemelen musclepump).
-  - Sorular: (a) 4 ürün doğru mu, scraper bütün sporcu besinleri kategorisini çekiyor mu yoksa kısıtlı mı? (b) Yeni `yesilmarka` mağazası açıp ürünleri oraya import mi etmeli, yoksa musclepump altında mı tutulsun?
+  - Mevcut durum: `yesilmarka_products.json` 4 ürün, source mapping 4 kayıt.
+  - **Codex 2026-05-24:** Kullanıcı kararı: ayrı mağaza olacak. Canlıda `Yeşilmarka` store #73 oluşturuldu (`slug=yesilmarka`, `store_type=sports`, aktif/commission). 4 ürün ve 4 `source_name=yesilmarka` mapping store #73'e taşındı; eski store #33 altında Yeşilmarka mapping kalmadı. Scraper bilinçli olarak sadece breadcrumb'da `Sporcu Besinleri` geçen 4 ürünü alıyor.
 - [~] **4. Elle yüklenmiş mağazalar — BÜYÜK ÖLÇÜDE TAMAM**
   - **Tamamlanan akış:** kaynak site → scraper yaz (15) → JSON → her site için
     yeni mağaza aç (#56-70) → `import:products --status=approved --skip-images` →
@@ -208,12 +207,15 @@
          Scrapling User-Agent bug'ı not edildi (ileride 403 alırsa UA header).
 
        - **Kalan:**
-         - [ ] proteinavm bitince import doğrulama
-         - [ ] 14 yeni scraper'ı `run-all.sh` + günlük cron'a ekle (VPS, fiyat/
+         - [X] proteinavm bitince import doğrulama
+           - **Codex 2026-05-24:** Canlı read-only doğrulama: store #68 ProteinAVM `products=279`, `approved=279`, `with_image=279`, `variants=279`, `in_stock_variants=177`, `source_mappings=279`. Mapping status dağılımı: `imported=279`.
+         - [X] 14 yeni scraper'ı `run-all.sh` + günlük cron'a ekle (VPS, fiyat/
            stok otomatik güncelleme)
+           - **Codex 2026-05-24:** `scrapers/run-all.sh` yeni kaynakları sync zincirine ekliyor: maskotmeyvepresleri, provitanya, proteinmax, ceysport, speedwa, herbinatura, rovabatarya, eyb, linktech, musullu, bodyfitshop, crestaofficial, compexturkiye, proteinavm, eprotein, powertec, raketspor. Script hem VPS kök layout'undaki JSON'ları hem repo layout'undaki `data/source-products/*.json` çıktılarını çözüyor; executable bit verildi. Canlı deploy yapıldı; crontab `0 2 * * * /var/www/quikecommerce/scrapers/run-all.sh` aktif. Canlı doğrulama: `bash -n`, Python compile ve `ImportDropickProducts.php` lint temiz.
          - [ ] 703 ürünün boş description'ı admin paneli üzerinden manuel
            doldurulacak (kullanıcı kararı 2026-05-23)
-         - [ ] powertec için Cloudflare bypass stratejisi (whitelist ya da farklı IP)
+         - [X] powertec için Cloudflare bypass stratejisi (whitelist ya da farklı IP)
+           - **Durum:** `powertec_scraper.py` Mozilla UA + Scrapling ile çalışıyor; Powertec #71 için 89 ürün canlı. Alt bölümdeki "Powertec Cloudflare bypass araştırıldı" maddesiyle aynı kapsam.
   - [X] **D. Maraton full catalog — haftalık cron eklendi (2026-05-23)**
 
     - **`run-maraton-full.sh`** yazıldı + VPS'e deploy: `--urls-from` flag'siz,
@@ -224,6 +226,7 @@
       outlet bozulmaz).
     - **Cron entry:** `0 6 * * 0 /var/www/quikecommerce/scrapers/run-maraton-full.sh`
       → Pazar 06:00 UTC = 09:00 TR (günlük cron 05:00 TR'de bitiyor, 1sa boşluk).
+    - **Codex 2026-05-24:** Canlı cron logunda script eksikliği görüldü (`run-maraton-full.sh: not found`). Wrapper repo'ya eklendi, VPS'e deploy edildi ve canlıda `bash -n` temiz. Bir sonraki Pazar cron'u bu dosyayı çalıştıracak.
     - **İlk çalışma:** Pazar 2026-05-24 09:00 TR.
     - Bkz. `CLAUDE.md` "BEKLEYEN: Maraton sitemap full scrape" hatırlatması — kapanmıştır.
 - [X] **5. Grand Gift Store (#45) — ÇÖZÜLDÜ, USD→TL kural tabanlı fiyatlandırma**
@@ -248,17 +251,22 @@
 
 ### 🐛 Veri/Sync sorunları (Claude Code — investigation + fix)
 
-- [ ] **6. Compex resimleri 161/161 NULL — KRİTİK**
-  - JSON'da `all_image_urls` 8 adet/ürün dolu, `thumbnail_url` set,
-    ama DB'de `products.image=NULL` (tüm 161).
-  - Diğer mağazalar: ProteinMax 241/548 NULL (44%), Provitanya 36/1854 (%1.9),
-    EYB 22/2886 (%0.8), kalanlar 0-1%. **Toplam 463/11164 (%4.1).**
-  - Kök neden hipotezi: `import:products --skip-images` Compex'te tüm resimleri
-    blokladı (download skip + URL kaydetme de skip), ama Maskot/diğerlerde
-    fallback URL kaydı yapılmış. Import command'inin Compex'te neden farklı
-    davrandığını incele → fix + re-import.
+- [~] **6. Compex 161/161 + ProteinMax 241/548 image NULL — KOD FIX HAZIR, REIMPORT GEREK**
+  - **Compex (100% NULL):** Image URL'leri de **Cloudflare korumalı (HTTP 403)**.
+    `ImportDropickProducts::importImageFromUrl` PHP `file_get_contents` ile
+    çekiyor → CF reddediyor → 0 image record. Düzeltme: `--skip-images` flag
+    semantiği değil, **image download'ı da Scrapling service üzerinden** yapan
+    fallback gerek. Veya: Media kaydını local file yerine remote URL olarak tut.
+  - **ProteinMax (44% NULL):** URL'lerde **escape edilmemiş boşluk** var
+    (`https://.../WhatsApp Image 2023-04-11 at 14.04.18-1000x1000.jpeg`).
+    `file_get_contents` HTTP 000 dönüyor. Düzeltme: `opencart_scraper`'da
+    image URL collection sırasında `urllib.parse.quote` ile escape, veya
+    `importImageFromUrl`'de URL normalize.
+  - Diğerleri: Provitanya 36/1854 (%1.9), EYB 22/2886 (%0.8) — minor, sonraya.
+  - **Toplam etkilenen: 463/11164 ürün (%4.1).**
+  - **Codex 2026-05-24:** `ImportDropickProducts::importImageFromUrl` URL path encode + browser header/referrer + invalid image guard ile güçlendirildi. İndirme yine başarısızsa media ID yerine normalize remote URL ürün `image`/`gallery_images` alanına yazılıyor (helper external URL destekliyor). `opencart_scraper.py` image URL normalize ediyor. Canlıda etkilenen store'lar için reimport/backfill çalıştırılmalı.
 
-- [ ] **7. Stok uyumsuzlukları**
+- [~] **7. Stok uyumsuzlukları — SCRAPER DETECTION FIX HAZIR, CRON/DB DOĞRULAMA GEREK**
   - **Provitanya Sanmarco:** kaynakta stok yok, bizde 100 (default) görünüyor.
   - **Linktech:** stok uyumsuzlukları var (kullanıcı raporu).
   - Kök neden 1: Sync path bug (FIXED 2026-05-24) — yarınki cron'da otomatik düzelir.
@@ -268,43 +276,64 @@
     detection mantığı revize gerek.
   - **Yapılacak:** yarın cron sonrası Sanmarco DB stok kontrol; hala 100 ise
     scraper'a "stok bulunamadıysa false varsay" logic ekle.
+  - **Codex 2026-05-24:** `opencart_scraper.py` ve `ideasoft_scraper.py` HTML stok metni kontrolü ekledi (`stokta yok`, `stok yok`, `tükendi`, `out of stock`, `sold out`, `gelince haber ver`). Availability boş olsa bile bu metinler varsa `available=false` yazılır.
 
-- [ ] **8. Rova: sadece bataryalar yüklenmiş**
+- [~] **8. Rova: sadece bataryalar yüklenmiş — SCRAPER KATEGORİ FIX HAZIR, REIMPORT GEREK**
   - Sitemap'te non-batarya ürünler VAR (USAMS kulaklık, vb.), DB'ye yansımamış.
   - rovabatarya_scraper.py'nin filtreleme/parse mantığını incele,
     eksik kategorileri yakala.
+  - **Codex 2026-05-24:** Eksik ürün değil kategori mapping sorunu bulundu. `rovabatarya_scraper.py` her ürünü sabit `Telefon Bataryasi & Aksesuar` kategorisine yazıyordu; GA4 `item_category` alanından gerçek kategori okunacak şekilde düzeltildi. Test: `usams-xd19-kablosuz-kulaklik` artık `Aksesuarlar` kategorisiyle parse oluyor. Canlıda Rova re-scrape + import/sync gerekir.
 
-- [ ] **9. Raketspor mağaza eksik**
+- [~] **9. Raketspor mağaza eksik — SCRAPER VAR, STORE/IMPORT/CRON BEKLİYOR**
   - `raketspor.com.tr` CF arkasında (403 homepage), sitemap 200.
   - Powertec ile aynı pattern: Scrapling stealth + Mozilla UA bypass çalışmalı.
   - Yeni `raketspor_scraper.py` (Ticimax veya benzeri), store oluştur, import,
     cron'a ekle. 16. site → 17. site olur (powertec 16'ydı).
+  - **Claude Code 2026-05-24:** scraper yazıldı (`raketspor_scraper.py`, powertec
+    pattern), store #72 açıldı, full scrape arka planda başlatıldı (~15-20sa,
+    3468 ürün), weekly cron eklendi (Pazar 04:00 UTC = 07:00 TR). Import scrape
+    bitince otomatik.
+
+- [~] **14. Description'da relatif `<img src="/...">` 404 — DB CLEANUP TAMAM, scraper fix kalan**
+  - Bulgu: Dropick Optimo-40 + 112 ürün description'ında relatif
+    `<img src="/image/data/...">` browser sportoonline.com kökü diye yorumluyor → 404.
+  - **DB cleanup** (`backend-laravel/scripts/fix_relative_imgs.php`, commit
+    `2a92f2a1`): ProductSourceMapping'den source domain parse → 113 ürün
+    absolute URL'e çevrildi (Dropick 40 + Linktech 73). 11 mapping'siz atlandı.
+  - **Scraper fix (KALAN):** `shopify_scraper.py`'a `resolve_relative_urls(html, base_url)`
+    yardımcı fonksiyon + tüm scraper'lar description çekerken çağırsın
+    (BeautifulSoup ile `<img src>` + `<a href>` rewrite). Yeni import'larda
+    aynı hata olmasın.
 
 ### ✋ Codex'e atanan (AGENTS.md Görev 5-9)
 
-- [ ] **10. Ürün detay galeri — duplicate + tıklama** (AGENTS.md Görev 5)
+- [X] **10. Ürün detay galeri — duplicate + tıklama** (AGENTS.md Görev 5)
   - `customer-web-nextjs/.../urun/[slug]/product-detail-client.tsx:803`:
     ana görsele tıklayınca lightbox açıyor → istenen: bir sonraki görsele geç
     (`selectedImage = (selectedImage + 1) % allImages.length`).
   - Lines 503-507: `allImages = [variant.image, product.image, ...galleryUrls]`
     → galeri ana görseli içeriyorsa duplicate. URL bazında dedupe gerek.
+  - **Codex 2026-05-24:** URL bazında dedupe eklendi; ana görsele tıklama galeri içinde döngüsel ilerliyor. Lightbox ayrı büyütme butonuna taşındı.
 
-- [ ] **11. Stoğu tükenenleri gizle + 6 ay yenilenmeyenleri sil** (AGENTS.md Görev 6)
+- [~] **11. Stoğu tükenenleri gizle + 6 ay yenilenmeyenleri sil** (AGENTS.md Görev 6)
   - Public catalog query'lerinde `stock_quantity > 0` filtresi (zaten
     "resimsizleri gizle" pattern'i commit 6d9b6c31'de var, benzer yaklaşım).
   - Scheduled command: `products.updated_at < NOW() - 6 months` olanları
     soft-delete (deleted_at set). Manuel review için admin'de "stale" filtresi.
+  - **Codex 2026-05-24:** `ProductVariant::publiclySellable()` artık `stock_quantity > 0` istiyor; public ürün/kategori/store detay kapsamları buna göre daraldı. `products:prune-stale` komutu ve Pazar 03:00 Europe/Istanbul schedule eklendi. Yerel DB bağlantısı olmadığı için dry-run aday sayısı doğrulanamadı.
 
-- [ ] **12. Header kategori click performansı** (AGENTS.md Görev 7)
+- [~] **12. Header kategori click performansı** (AGENTS.md Görev 7)
   - Üst bar kategori tıklamaları geç tepki veriyor. Profil:
     Next.js route cache, React lazy load, kategori list API'sinin yanıt süresi.
   - Olası fix: kategori meta'yı SSG/ISR ile cache, client navigation prefetch.
+  - **Codex 2026-05-24:** header kategori/menu linklerine explicit `prefetch` eklendi; mevcut kategori query cache'i 30 dk kalıyor. P90 ölçümü canlı/devtools ile ayrıca doğrulanmalı.
 
-- [ ] **13. Tüm Ürünler section: kategori rotation random** (AGENTS.md Görev 8)
+- [X] **13. Tüm Ürünler section: kategori rotation random** (AGENTS.md Görev 8)
   - "Tüm ürünler" listesinde her sayfa yüklemesinde **farklı kategoriyle başla**
     (random seed ya da rotating cursor).
   - Hedef: kullanıcı her gelişte farklı içerik görsün, "hep aynı ürünler"
     hissi gitsin. Kategoriler içinde de hafif shuffle olabilir.
+  - **Codex 2026-05-24:** anasayfa all-products infinite query saatlik deterministic kategori seed'i ile başlıyor; aynı saat içinde SEO/cache stabil, saat değişince öne çıkan kategori değişiyor.
 
 ## 🧹 Kapanmayan Teknik Borç
 
@@ -323,9 +352,12 @@
 
 - [X] **Maraton full catalog haftalık cron** — `run-maraton-full.sh` + cron Pazar 06:00 UTC = 09:00 TR.
 - [X] **Powertec Cloudflare bypass araştırıldı** — VPS IP de 403 (CF challenge), site sahibinden whitelist gerek. Açık not.
-- [ ] **proteinavm retry bitiş + import** (devam ediyor)
-- [ ] **Yarın 05:00 TR ilk full cron run takibi** — 27 scraper günlük + Pazar 09:00 TR Maraton full.
-- [ ] **yesilmarka 4 ürün incelemesi** — dedicated mağaza mı / musclepump altında mı (kullanıcı kararı).
+- [X] **proteinavm retry bitiş + import** — Canlı doğrulama: store #68 için 279 approved ürün, 279 mapping, 279 görsel.
+- [~] **Yarın 05:00 TR ilk full cron run takibi** — 27 scraper günlük + Pazar 09:00 TR Maraton full.
+  - **Codex 2026-05-24:** Günlük cron çalışıyor; 2026-05-24 logunda EYB sync temiz (`2886 unchanged`, hata yok), ProteinAVM uzun koşu devam ediyor. Maraton weekly cron script eksikliği düzeltildi ve deploy edildi.
+- [X] **yesilmarka 4 ürün incelemesi** — dedicated mağaza mı / musclepump altında mı (kullanıcı kararı).
+  - **Codex 2026-05-24:** Scraper bilinçli olarak sadece breadcrumb'da `Sporcu Besinleri` geçen ürünleri alıyor. Canlı JSON 4 ürün içeriyor: Creatine, Protein Shaker 400ml, Whey Protein Tozu, BCAA 4:1:1. Mapping `source_name=yesilmarka` store #33 `Sporcu Besinleri` altında 4 kayıt. Teknik sorun görünmüyor; kalan karar ürünlerin ayrı `Yeşilmarka` mağazasına taşınıp taşınmayacağı.
+  - **Karar uygulandı:** Yeşilmarka ayrı mağaza oldu: store #73. 4 ürün ve mapping yeni store'a taşındı; customer-visible store scope doğrulaması `1`.
 
 ## 🔔 Tarihli Hatırlatma
 
