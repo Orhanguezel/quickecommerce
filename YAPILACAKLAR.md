@@ -4,6 +4,26 @@
 > 5 günlük trafik raporu + ayrı nginx log, Geliver Türkçe il/ilçe fix + #113,
 > Google Places API, admin sipariş detayı/fatura adres + isim + temiz format.
 
+## 🆕 Kategori taxonomy refactor — Faz 1 + Faz 3 TAMAM (2026-05-24)
+
+- Ana sayfa kategori link: **138 → 85** (38% azaldi); navigasyon temizlendi.
+- **32 kategori silindi** (garbage `?Brand=`, `?S=`, ECO double-suffix + 24 duplicate'in non-canonical kopyalari).
+- **77 slug normalize** (Türkçe karakter ASCII, `>` ve diger özel karakter temizligi).
+- **24 duplicate grup merge** edildi (Whey Protein 3×, Aksesuarlar 3×, Üst Giyim 3×, vb.) — ürünler kanonik ID'ye taşindi.
+- **#863 'Sağlık & Sporcu Besinleri' → #711 'Sporcu Besinleri' merge** (1854 ürün). Sporcu Besinleri kanonik root, **3570 ürün** toplam.
+- **96 root kategori** spor disi (Nano/batarya/mum/screen protector/ECO) **'Diğer (Arşiv)' #1084 altina** alındı (`status=0`, navigasyon'da gizli, direkt URL ile erisilebilir).
+- **Display order set:**
+  1. Sporcu Besinleri (3570)
+  2. Spor Aletleri (694)
+  3. Erkek (337 alt+direkt)
+  4. Kadın (284)
+  5. Outdoor Giyim (211)
+- **Backup CSV:** VPS-sportoonline `/tmp/cat_cleanup_20260524_235606/` (categories_before, categories_after, product_movements 1855 satir).
+- **Yanlis pozitif düzeltme:** #678 'Sağlık Çorabı' yanlislikla Diger'e gitti ('çorap' Türkçe çekim `çorabı` ile eşleşemedi), geri root yapıldı.
+- **Bekleyen / kullanici aksiyonu:**
+  - Admin paneldeki "Egzersiz Ürünlerini Gör" banner CTA `button_url=/kategori/fitness-egzersiz` artık var olmayan kategoriye yonlendiriyor — banner URL guncellenmeli.
+  - Faz 2 (taxonomi restrukt): top-level 137 → 12-15 ana root için kullanıcı kararı bekleniyor.
+
 ## 🆕 Compex resim 140/161 OK + kalan 21 SOFT-DELETED (2026-05-24)
 
 - 140 ürün gerçek resimle canlı.
