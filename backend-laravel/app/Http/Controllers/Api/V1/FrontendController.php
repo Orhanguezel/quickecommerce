@@ -1941,6 +1941,26 @@ class FrontendController extends Controller
                 })
                 ->where('stores.status', 1)
                 ->whereNull('stores.deleted_at')
+                // Product model'deki storeOrderLimit global scope ile uyumlu:
+                // commission magazalar her zaman OK; subscription magazalar
+                // sadece aktif subscription varsa sayilir. Bu filter olmayinca
+                // suresi dolmus subscription magazalarinin urunleri sayilarak
+                // pc>0 gosterilir ama products() endpoint'i 0 doner (kullanici
+                // bos kategori sayfasi gorur).
+                ->where(function ($q) {
+                    $q->where('stores.subscription_type', 'commission')
+                      ->orWhere(function ($q2) {
+                          $q2->where('stores.subscription_type', 'subscription')
+                             ->whereExists(function ($sub) {
+                                 $sub->select(DB::raw(1))
+                                     ->from('store_subscriptions')
+                                     ->whereColumn('store_subscriptions.store_id', 'stores.id')
+                                     ->where('store_subscriptions.status', 1)
+                                     ->whereDate('store_subscriptions.expire_date', '>=', now())
+                                     ->where('store_subscriptions.order_limit', '>', 0);
+                             });
+                      });
+                })
                 ->groupBy('products.category_id');
 
             $categories = ProductCategory::leftJoin('translations', function ($join) use ($language) {
