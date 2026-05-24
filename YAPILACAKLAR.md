@@ -39,25 +39,19 @@
 - **Antigravity briefi:** [`ANTIGRAVITY.md`](ANTIGRAVITY.md) → Gorev 1
 - **Baglam:** Ekosistem-sosyal-medya SaaS'in ilk paying tenant'i (sozial.wirubu.de) 2026-05-23'te canli oldu. Artik SaaS sportoonline magazasinda satilik bir urun/hizmet olarak listelenebilir.
 
-### Claude Code (Orhan adina urun ekleyici rolu)
+### Claude Code (Orhan adina urun ekleyici rolu) — TAMAM
 - [X] **2026-05-24:** DB'ye **product #15365** eklendi.
-  - Slug: `sosyal-medya-yonetim-paneli-icerik-otomasyon-altyapisi`
-  - Store #54 GZL Teknoloji, kategori #775 Yazilim
-  - Variant #23290: SKU `GZL-SOSYALPANEL-BASLANGIC`, fiyat **12.900 TL** (placeholder — Wiribu 5k sonrasi 2026-05-29+ revize edilecek), stok 999
-  - Aciklama (HTML), meta_title, meta_description, 12 keyword tamam — SportoFlow/Hazir E-Ticaret kalip
-  - **status=pending** — frontend'de 404 (gorsel hazir degil). `total_product` GZL store'da 2 (gizli ✓).
-- [ ] **Antigravity gorseli hazir olunca:**
-  - [ ] Image upload + media ID al, `products.image = {id}` set
-  - [ ] Galeri gorselleri yukle, `products.gallery_images = "{id1},{id2},..."` set
-  - [ ] `products.status = 'approved'` yap
-  - [ ] Frontend dogrula: `/tr/urun/sosyal-medya-yonetim-paneli-icerik-otomasyon-altyapisi` HTTP 200
-  - [ ] GZL store sayfasinda gorunsun: `/tr/magaza/gzl-teknoloji` total_product 3
-- [ ] **2026-05-29 sonrasi:** Fiyat netlestir, `product_variants.price` guncelle.
+- [X] **2026-05-24 (gorsel deploy):** 9 Antigravity gorseli (`main` + 5 dashboard galeri + 3 carousel slide) Media tablosuna kaydedildi (#39348-39356), product.image + gallery_images set, **status=approved**.
+  - **Main image:** banner kullanildi (Sportoonline branded, Türkçe — "Sosyal Medya Yönetimini Otomatiğe Bağla"). Antigravity'nin "main" cikan dashboard'unda farkli SaaS markasi (ApexSocial) gözüküyordu, mevcut #3644 GZL stiline gore tutarsizdi.
+  - **Galeri (8 görsel):** Antigravity gallery-1..5 (farkli markali dashboard mockup'lari) + 3 carousel slide ("Ne Yapar / Kimler Için / Nasil Baslarim", Sportoonline branded).
+  - **Description'a not eklendi:** "Görsellerdeki dashboard mockup'lari örnek/referans amaclidir; gercek panel kurulumu kendi marka kimliğinizle yapilandirilir." — marka tutarsizligini telafi için.
+  - Canli URL: <https://sportoonline.com/tr/urun/sosyal-medya-yonetim-paneli-icerik-otomasyon-altyapisi> (HTTP 200, TTFB 0.37s, 9 görsel render).
+  - GZL store sayfasi: `/tr/magaza/gzl-teknoloji` total_product **3** (çnce 2 idi).
+- [ ] **2026-05-29 sonrasi:** Fiyat netlestir, `product_variants.price` guncelle (su an placeholder 12.900 TL).
 
-### Antigravity (gorsel uretici — bloke ediyor)
-- [`ANTIGRAVITY.md`](ANTIGRAVITY.md) Gorev 1 — su an `assets/products/` klasoru bos.
-- 5 cikti gerek: ana gorsel + 5 galeri + banner + sosyal post + kategori ikonu (SVG).
-- Bittiginde Claude Code'a haber → image set + status=approved.
+### Antigravity (gorsel uretici — TAMAMLANDI 2026-05-24)
+- [`ANTIGRAVITY.md`](ANTIGRAVITY.md) Gorev 1 — Tüm gorsel ve UI ciktilari hazirlandi.
+- **Marka uyari (yeni oturum farkindaligi):** Antigravity'nin urettiği 5 dashboard mockup'inda **farkli SaaS markalari** (ApexSocial, PulseFlow, AetherFlow AI, PreviewPro, prevora.com) gözüküyor. Banner + carousel slide'lari Sportoonline branded Türkçe. Mevcut GZL Teknoloji ürünleri (#3644, #3645) ise "GZL Teknoloji" markali özel mockup ile. Gelecekte GZL için tutarli mockup serisi istenirse Antigravity'ye "GZL Teknoloji markali, #3644 stiliyle" notu eklenmeli.
 
 ### Codex
 - Gorev YOK. Ozel "hizmet/SaaS urun tipi" gerekirse acilir.
