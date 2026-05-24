@@ -4,6 +4,40 @@
 > 5 günlük trafik raporu + ayrı nginx log, Geliver Türkçe il/ilçe fix + #113,
 > Google Places API, admin sipariş detayı/fatura adres + isim + temiz format.
 
+## 🆕 Kategori sayfası filtre genişletme — ÇEKLİST (2026-05-25)
+
+> Mevcut filtreler: Fiyat (min/max), Değerlendirme, (saklı: Marka, Alt Kategori).
+> Kullanıcı isteği: filtre seçeneklerini artıralım. Bu çekliste yazıldı, sonra düzenleyecek.
+
+**Eklenebilir filtre seçenekleri (öncelikli):**
+- [ ] **Stok durumu** — Stokta (varsayılan) / Tümü (stoksuz dahil göster)
+- [ ] **Sıralama gelişmiş** — En Yeni, En Çok Satan, En Yüksek Puan, A-Z, Z-A (mevcut "varsayılan" yetersiz)
+- [ ] **Sadece indirimli** — `special_price > 0 AND special_price < price` ürünleri filtrele
+- [ ] **Mağaza / Satıcı** — Provitanya, Compex, Sports Nutrition vb. dropdown (mevcut store_id backend zaten destekliyor)
+- [ ] **Kargo durumu** — Hızlı teslimat (1-3 gün), normal teslimat
+- [ ] **Cinsiyet** (giyim kategorileri için) — Kadın / Erkek / Unisex
+- [ ] **Beden** (giyim için) — XS, S, M, L, XL, XXL, sayısal (38, 40 vb.)
+- [ ] **Renk** (giyim için) — color swatch (variant.color attribute backend'de var mı kontrol)
+
+**Sport-specific (sportoonline marka):**
+- [ ] **Aktivite** — Koşu, Fitness, Futbol, Outdoor (kategori cross-reference)
+- [ ] **Yaş grubu** — Çocuk, Yetişkin
+
+**Ürün özelliği bazlı:**
+- [ ] **Ağırlık / Hacim** — Sporcu besinleri için: 300gr, 1kg, 2kg, vs. (variant.weight)
+- [ ] **Marka tipi** — Premium / Ekonomik (manuel etiketleme)
+
+**UI iyileştirme:**
+- [ ] Marka listesi: arama + kaydırılabilir (mevcut brand_id zaten array, brand listesi kategori bazlı çekilebilir)
+- [ ] Filtreler toggle açıkken default açık olsun (Fiyat default kapalı)
+- [ ] Mobilde "Filtre" bottom-sheet (şu an sidebar yok mobilde)
+- [ ] Aktif filtreleri sayfa başında chip gösterimi ("Provitanya × | 100-500 TL × | Temizle")
+
+**Faz:** Faz 2 (taxonomi restruktur) ile birlikte ele alınmalı çünkü:
+- "Aktivite", "Cinsiyet", "Yaş grubu" yeni taxonomy attribute'lar gerektirir
+- Backend product_variants tablosunda color/size attribute'ları kontrol edilmeli
+- Eksik attribute'lar için scraper güncellemesi
+
 ## 🆕 Provitanya kozmetik düzeltme — 131 ürün (2026-05-25)
 
 - Kullanıcı raporu: <https://sportoonline.com/tr/urun/akat-sac-kopugu-conditioning-200-ml> "Sporcu Besinleri" kategorisinde.
