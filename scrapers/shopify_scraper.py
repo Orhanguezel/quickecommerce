@@ -97,6 +97,30 @@ def clean_description_html(html):
             continue
         cleaned = s
         break
+
+    # Sondaki CSS bloklarini kes — eProtein/Real-Pharm tarzi description
+    # icinde "html, body, body *," veya "*::selection" ile baslayan browser
+    # extension/site-wide CSS yapilarini yakalar (2026-05-24 bug). Bu
+    # kaliplar normal aciklama metninde gecmez, guvenli marker'dir.
+    trailing_css_markers = [
+        re.compile(r'\bhtml\s*,?\s*body\s*[,*{]', re.I),
+        re.compile(r'\*::(?:-moz-)?selection\b', re.I),
+        re.compile(r'user-select\s*:\s*text\s*!important', re.I),
+    ]
+    earliest = None
+    for pat in trailing_css_markers:
+        m = pat.search(cleaned)
+        if m and (earliest is None or m.start() < earliest):
+            earliest = m.start()
+    if earliest is not None:
+        cleaned = cleaned[:earliest].rstrip()
+        # Sondaki yarim acik HTML tag'i (orn. <p ...) varsa sil
+        if cleaned and cleaned[-1] != '>':
+            last_open = cleaned.rfind('<')
+            last_close = cleaned.rfind('>')
+            if last_open > last_close:
+                cleaned = cleaned[:last_open].rstrip()
+
     return cleaned.strip()
 
 
