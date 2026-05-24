@@ -95,6 +95,7 @@ async function getCategoryData(
       categoryName: decodedSlug.replace(/-/g, " "),
       subcategories: [] as Category[],
       brands: [] as Brand[],
+      filterCategoryIds: [] as string[],
       found: false,
     };
   }
@@ -163,6 +164,7 @@ async function getCategoryData(
     categoryName: category.category_name,
     subcategories,
     brands: (brandsData?.data ?? []) as Brand[],
+    filterCategoryIds,
     found: true,
   };
 }
@@ -335,6 +337,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         totalProducts={data.totalProducts}
         currentPage={data.currentPage}
         perPage={data.perPage}
+        filterCategoryIds={data.filterCategoryIds}
         currentSort={sort}
         currentFilters={{
           brand_id: brandIds,

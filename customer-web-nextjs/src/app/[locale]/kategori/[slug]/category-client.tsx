@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { Link, useRouter } from "@/i18n/routing";
 import Image from "next/image";
 import {
   ChevronRight,
-  ChevronLeft,
   Grid3X3,
   List,
   ShoppingBag,
+  Loader2,
 } from "lucide-react";
 import type { Product } from "@/modules/product/product.type";
 import type { Category } from "@/modules/site/site.type";
@@ -19,6 +20,17 @@ import {
   type FilterBrand,
   type FilterCategory,
 } from "@/components/product/filter-sidebar";
+import { useBaseService } from "@/lib/base-service";
+import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
+
+interface ProductListPage {
+  data: Product[];
+  current_page: number;
+  last_page: number;
+  per_page: number;
+  total: number;
+  meta?: { current_page: number; last_page: number };
+}
 
 interface CategoryTranslations {
   products: string;
@@ -53,10 +65,11 @@ interface CategoryPageClientProps {
   categorySlug: string;
   subcategories: Category[];
   brands: FilterBrand[];
-  totalPages: number;
+  totalPages?: number; // SSR'dan gelir ama infinite scroll kullanmiyor
   totalProducts: number;
-  currentPage: number;
+  currentPage?: number; // SSR'dan gelir ama infinite scroll kullanmiyor
   perPage: number;
+  filterCategoryIds: string[];
   currentSort?: string;
   currentFilters: FilterState;
   translations: CategoryTranslations;
@@ -102,9 +115,9 @@ export function CategoryPageClient({
   categorySlug,
   subcategories,
   brands,
-  totalPages,
   totalProducts,
-  currentPage,
+  perPage,
+  filterCategoryIds,
   currentSort,
   currentFilters,
   translations: t,
@@ -113,21 +126,100 @@ export function CategoryPageClient({
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const basePath = `/kategori/${categorySlug}`;
 
-  function buildPageUrl(page: number) {
-    const params = new URLSearchParams();
-    if (page > 1) params.set("page", String(page));
-    if (currentSort) params.set("sort", currentSort);
-    currentFilters.brand_id?.forEach((id) => params.append("brand_id", id));
-    currentFilters.category_id?.forEach((id) => params.append("category_id", id));
-    if (currentFilters.min_price)
-      params.set("min_price", currentFilters.min_price);
-    if (currentFilters.max_price)
-      params.set("max_price", currentFilters.max_price);
-    if (currentFilters.min_rating)
-      params.set("min_rating", currentFilters.min_rating);
-    const query = params.toString();
-    return `${basePath}${query ? `?${query}` : ""}`;
-  }
+  // Infinite scroll: SSR ilk sayfayı verir, client devamını paginated fetch eder
+  const { getAxiosInstance } = useBaseService<ProductListPage>(API_ENDPOINTS.PRODUCTS);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const hasNextPageRef = useRef(false);
+  const isFetchingNextPageRef = useRef(false);
+  const fetchNextPageRef = useRef<() => void>(() => {});
+
+  // queryKey: kategori_id + filter + sort değişince yeniden başla
+  const queryKey = [
+    "category-products",
+    categorySlug,
+    filterCategoryIds.join(","),
+    currentFilters.brand_id?.join(",") ?? "",
+    currentFilters.min_price ?? "",
+    currentFilters.max_price ?? "",
+    currentFilters.min_rating ?? "",
+    currentSort ?? "",
+  ];
+
+  const productsQuery = useInfiniteQuery({
+    queryKey,
+    queryFn: async ({ pageParam }) => {
+      const extraParams = new URLSearchParams();
+      extraParams.set("per_page", String(perPage));
+      extraParams.set("page", String(pageParam));
+      if (currentSort) extraParams.set("sort", currentSort);
+      if (currentFilters.min_price) extraParams.set("min_price", currentFilters.min_price);
+      if (currentFilters.max_price) extraParams.set("max_price", currentFilters.max_price);
+      if (currentFilters.min_rating) extraParams.set("min_rating", currentFilters.min_rating);
+      filterCategoryIds.forEach((id) => extraParams.append("category_id[]", id));
+      currentFilters.brand_id?.forEach((id) => extraParams.append("brand_id[]", id));
+      const endpoint = `${API_ENDPOINTS.PRODUCTS}?${extraParams.toString()}`;
+      const res = await getAxiosInstance().get(endpoint);
+      return res.data as unknown as ProductListPage;
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const current = lastPage?.meta?.current_page ?? lastPage?.current_page ?? 0;
+      const last = lastPage?.meta?.last_page ?? lastPage?.last_page ?? 0;
+      return current && last && current < last ? current + 1 : undefined;
+    },
+    initialData:
+      products.length > 0
+        ? {
+            pages: [
+              {
+                data: products,
+                current_page: 1,
+                last_page: Math.max(1, Math.ceil(totalProducts / perPage)),
+                per_page: perPage,
+                total: totalProducts,
+                meta: {
+                  current_page: 1,
+                  last_page: Math.max(1, Math.ceil(totalProducts / perPage)),
+                },
+              },
+            ],
+            pageParams: [1],
+          }
+        : undefined,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  useEffect(() => {
+    hasNextPageRef.current = productsQuery.hasNextPage ?? false;
+    isFetchingNextPageRef.current = productsQuery.isFetchingNextPage;
+    fetchNextPageRef.current = productsQuery.fetchNextPage;
+  }, [
+    productsQuery.fetchNextPage,
+    productsQuery.hasNextPage,
+    productsQuery.isFetchingNextPage,
+  ]);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0]?.isIntersecting &&
+          hasNextPageRef.current &&
+          !isFetchingNextPageRef.current
+        ) {
+          fetchNextPageRef.current();
+        }
+      },
+      { threshold: 0, rootMargin: "400px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const allProducts =
+    productsQuery.data?.pages.flatMap((p) => p?.data ?? []) ?? products;
 
   function handleSort(sort: string) {
     const params = new URLSearchParams();
@@ -284,81 +376,41 @@ export function CategoryPageClient({
             </div>
           </div>
 
-          {/* Products Grid / List */}
-          {products.length > 0 ? (
-            <div
-              className={
-                viewMode === "grid"
-                  ? "grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4"
-                  : "grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"
-              }
-            >
-              {products.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  compact
-                  variant={viewMode}
-                />
-              ))}
-            </div>
+          {/* Products Grid / List (infinite scroll) */}
+          {allProducts.length > 0 ? (
+            <>
+              <div
+                className={
+                  viewMode === "grid"
+                    ? "grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4"
+                    : "grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"
+                }
+              >
+                {allProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    compact
+                    variant={viewMode}
+                  />
+                ))}
+              </div>
+
+              {/* Infinite scroll sentinel */}
+              <div
+                ref={sentinelRef}
+                className="mt-8 flex min-h-[48px] items-center justify-center"
+              >
+                {productsQuery.isFetchingNextPage && (
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                )}
+              </div>
+            </>
           ) : (
             <div className="flex flex-col items-center justify-center rounded-xl border bg-background py-24 text-center shadow-sm">
               <ShoppingBag className="mb-4 h-12 w-12 text-muted-foreground/50" />
               <p className="text-lg text-muted-foreground">{t.no_results}</p>
             </div>
-          )}
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <nav className="mt-10 flex items-center justify-center gap-1.5">
-              {currentPage > 1 && (
-                <Link
-                  href={buildPageUrl(currentPage - 1)}
-                  className="flex h-10 items-center gap-1 rounded-lg border px-4 text-sm font-medium transition-colors hover:bg-muted"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  {t.previous}
-                </Link>
-              )}
-
-              {Array.from({ length: Math.min(totalPages, 7) }).map((_, i) => {
-                let page: number;
-                if (totalPages <= 7) {
-                  page = i + 1;
-                } else if (currentPage <= 4) {
-                  page = i + 1;
-                } else if (currentPage >= totalPages - 3) {
-                  page = totalPages - 6 + i;
-                } else {
-                  page = currentPage - 3 + i;
-                }
-
-                return (
-                  <Link
-                    key={page}
-                    href={buildPageUrl(page)}
-                    className={`flex h-10 w-10 items-center justify-center rounded-lg text-sm font-medium transition-colors ${
-                      page === currentPage
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : "border hover:bg-muted"
-                    }`}
-                  >
-                    {page}
-                  </Link>
-                );
-              })}
-
-              {currentPage < totalPages && (
-                <Link
-                  href={buildPageUrl(currentPage + 1)}
-                  className="flex h-10 items-center gap-1 rounded-lg border px-4 text-sm font-medium transition-colors hover:bg-muted"
-                >
-                  {t.next}
-                  <ChevronRight className="h-4 w-4" />
-                </Link>
-              )}
-            </nav>
           )}
         </div>
       </div>
