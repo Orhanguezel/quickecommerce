@@ -242,6 +242,70 @@
   - Not: kalan ~5 API ürünü `type=variable` varyant eşleşmesi tutmadığı için
     mapping'siz; istenirse ayrıca ele alınır.
 
+## 🆕 2026-05-24 Yeni İşler — Buglar + İyileştirmeler
+
+> Kullanıcı raporu (canlı sitede gezerken). Codex + Claude Code birlikte tamamlayacak.
+
+### 🐛 Veri/Sync sorunları (Claude Code — investigation + fix)
+
+- [ ] **6. Compex resimleri 161/161 NULL — KRİTİK**
+  - JSON'da `all_image_urls` 8 adet/ürün dolu, `thumbnail_url` set,
+    ama DB'de `products.image=NULL` (tüm 161).
+  - Diğer mağazalar: ProteinMax 241/548 NULL (44%), Provitanya 36/1854 (%1.9),
+    EYB 22/2886 (%0.8), kalanlar 0-1%. **Toplam 463/11164 (%4.1).**
+  - Kök neden hipotezi: `import:products --skip-images` Compex'te tüm resimleri
+    blokladı (download skip + URL kaydetme de skip), ama Maskot/diğerlerde
+    fallback URL kaydı yapılmış. Import command'inin Compex'te neden farklı
+    davrandığını incele → fix + re-import.
+
+- [ ] **7. Stok uyumsuzlukları**
+  - **Provitanya Sanmarco:** kaynakta stok yok, bizde 100 (default) görünüyor.
+  - **Linktech:** stok uyumsuzlukları var (kullanıcı raporu).
+  - Kök neden 1: Sync path bug (FIXED 2026-05-24) — yarınki cron'da otomatik düzelir.
+  - Kök neden 2: Scraper'lar `stock_quantity` için kaynak gerçek sayısı yerine
+    default 100 atıyor (in_stock true→100, false→0). Sanmarco gibi sources
+    `availability=OutOfStock` ataşmamış olabilir. ideasoft_scraper availability
+    detection mantığı revize gerek.
+  - **Yapılacak:** yarın cron sonrası Sanmarco DB stok kontrol; hala 100 ise
+    scraper'a "stok bulunamadıysa false varsay" logic ekle.
+
+- [ ] **8. Rova: sadece bataryalar yüklenmiş**
+  - Sitemap'te non-batarya ürünler VAR (USAMS kulaklık, vb.), DB'ye yansımamış.
+  - rovabatarya_scraper.py'nin filtreleme/parse mantığını incele,
+    eksik kategorileri yakala.
+
+- [ ] **9. Raketspor mağaza eksik**
+  - `raketspor.com.tr` CF arkasında (403 homepage), sitemap 200.
+  - Powertec ile aynı pattern: Scrapling stealth + Mozilla UA bypass çalışmalı.
+  - Yeni `raketspor_scraper.py` (Ticimax veya benzeri), store oluştur, import,
+    cron'a ekle. 16. site → 17. site olur (powertec 16'ydı).
+
+### ✋ Codex'e atanan (AGENTS.md Görev 5-9)
+
+- [ ] **10. Ürün detay galeri — duplicate + tıklama** (AGENTS.md Görev 5)
+  - `customer-web-nextjs/.../urun/[slug]/product-detail-client.tsx:803`:
+    ana görsele tıklayınca lightbox açıyor → istenen: bir sonraki görsele geç
+    (`selectedImage = (selectedImage + 1) % allImages.length`).
+  - Lines 503-507: `allImages = [variant.image, product.image, ...galleryUrls]`
+    → galeri ana görseli içeriyorsa duplicate. URL bazında dedupe gerek.
+
+- [ ] **11. Stoğu tükenenleri gizle + 6 ay yenilenmeyenleri sil** (AGENTS.md Görev 6)
+  - Public catalog query'lerinde `stock_quantity > 0` filtresi (zaten
+    "resimsizleri gizle" pattern'i commit 6d9b6c31'de var, benzer yaklaşım).
+  - Scheduled command: `products.updated_at < NOW() - 6 months` olanları
+    soft-delete (deleted_at set). Manuel review için admin'de "stale" filtresi.
+
+- [ ] **12. Header kategori click performansı** (AGENTS.md Görev 7)
+  - Üst bar kategori tıklamaları geç tepki veriyor. Profil:
+    Next.js route cache, React lazy load, kategori list API'sinin yanıt süresi.
+  - Olası fix: kategori meta'yı SSG/ISR ile cache, client navigation prefetch.
+
+- [ ] **13. Tüm Ürünler section: kategori rotation random** (AGENTS.md Görev 8)
+  - "Tüm ürünler" listesinde her sayfa yüklemesinde **farklı kategoriyle başla**
+    (random seed ya da rotating cursor).
+  - Hedef: kullanıcı her gelişte farklı içerik görsün, "hep aynı ürünler"
+    hissi gitsin. Kategoriler içinde de hafif shuffle olabilir.
+
 ## 🧹 Kapanmayan Teknik Borç
 
 - [X] Checkout harita akışı: Places hatasını sessiz yutuyor + city/district zorunlu değil (D adımı). → Codex: UI uyarı + city/district zorunluluk + backend 422 eklendi.
