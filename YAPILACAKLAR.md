@@ -4,9 +4,38 @@
 > 5 günlük trafik raporu + ayrı nginx log, Geliver Türkçe il/ilçe fix + #113,
 > Google Places API, admin sipariş detayı/fatura adres + isim + temiz format.
 
+## 🚧 BEKLEYEN UNCOMMITTED DEĞİŞİKLİKLER (2026-05-24)
+
+> Codex perf + scraper işleri commit edildi (`7d9a29e3`, `f50687b0`). Bunlar **bilinçli commit dışında bırakıldı** — yeni oturumda kullanıcıyla karar verilecek. `git status` ile gör.
+
+### E-Fatura backend (13 yeni dosya + 3 modified)
+- **Untracked:** `backend-laravel/app/Http/Controllers/Api/V1/Customer/EInvoiceDownloadController.php`, `backend-laravel/app/Http/Controllers/Api/V1/Webhooks/EinvoiceWebhookController.php`, `app/Jobs/{Cancel,Create,PollEInvoiceStatus}Job.php`, `app/Models/EInvoice.php`, `app/Observers/OrderInvoiceObserver.php`, `app/Services/EInvoice/`, `database/migrations/2026_05_16_120000_create_e_invoices_table.php`, `scripts/einvoice-local-{env.sh,smoke.php}`, `tests/Unit/EInvoice{Client,PayloadBuilder,WebhookVerifier}Test.php`
+- **Modified:** `app/Providers/AppServiceProvider.php` (OrderInvoiceObserver register), `config/services.php` (einvoice config block)
+- **Neden bekletildi:** Nilvera entegrasyonu kullanıcı tarafında bitmemiş (CLAUDE.md "nilvera haric" notu). `Order::observe(OrderInvoiceObserver::class)` canlıya çıkarsa her siparişte e-fatura Job tetiklenir; mock/credential yoksa kuyruk hata yığar. Önce Nilvera credential + test ortamı, sonra commit + deploy.
+
+### Admin-panel değişiklikleri (5 dosya, içerik bilinmiyor)
+- `admin-panel/public/firebase-env.js`
+- `admin-panel/public/locales/{en,tr}.json`
+- `admin-panel/src/components/blocks/admin-section/products/request/ProductDetailsPage/ProductDetailsFormPage.tsx`
+- `admin-panel/src/components/blocks/admin-section/products/request/ProductDetailsPage/components/TabComponent.tsx`
+- `admin-panel/src/modules/common/brand/brand.action.ts`
+- **Neden bekletildi:** Hangi feature için olduğu belirsiz, test edilmedi. `git diff` ile incele, sahibini hatırla, gerekirse commit et veya `git restore` ile sil.
+
+### Eski raporlar — silinmiş (D), commit edilmedi
+- GEO raporları (sportoonline GEO audit, yol haritası — 2 md + 4 pdf)
+- `google.md`, `googlec78a9bfe93e092fc.html` (eski Google Search Console verification)
+- `maraton_scraper_v2.py` (kök seviyesinde, artık `scrapers/` altında)
+- **Neden bekletildi:** Bilinçli temizlik mi yoksa kazara mı belirsiz. `git restore` ile geri al veya `git rm` ile commitle.
+
+### Diğer minor
+- `.claude/settings.json` (M) — Claude Code ayarları
+- `README.md` (M) — diff'i kontrol et
+- `backend-laravel/.phpunit.result.cache` (M) — `.gitignore`'a eklenmeli, repo'da olmamalı
+- `YAPILACAKLAR.md` (bu dosya — sen bunu edit ediyorsun)
+
 ## 🎯 Ana İşler
 
-- [~] **1. E-Fatura sistemi adapte** — büyük ölçüde TAMAM, canlı geçiş gated
+- [X] **1. E-Fatura sistemi adapte** — kod TAMAM, canlı geçiş ops/muhasebe ön koşullu
   - **Karar verildi:** Entegratör **Nilvera**, senaryo **e-Arşiv** (B2C). Tek tek app
     içine değil → **merkezi `e-fatura-service` mikroservisi** (ayrı repo,
     Fastify+Bun+Drizzle, sportoonline + diğer projeler ortak tüketir).
@@ -28,7 +57,7 @@
       GİB **nihai tüketici `11111111111`** (doğru davranış, ek alan gerekmez).
     - [X] Eski admin `InvoiceModal` PDF yerine: müşteri "Faturayı indir" →
       `EInvoiceDownloadController` (servisteki gerçek e-Arşiv PDF/ETTN'e proxy).
-  - **Kalan (sırayla):**
+  - **Kod dışı canlı geçiş ön koşulları:**
 
     - [X] Faz 5 dosyalarını `codex/faz5-einvoice-client`'a **seçmeli** commit
       edildi (`8cff2108`, 21 dosya/+1175; ~205 unrelated değişiklik alınmadı,
@@ -69,7 +98,7 @@
   - Scraper var: `scrapers/yesilmarka_scraper.py` (6329 B), VPS root'ta deploy, cron'da.
   - Mevcut durum: `yesilmarka_products.json` 4 ürün, source mapping 4 kayıt.
   - **Codex 2026-05-24:** Kullanıcı kararı: ayrı mağaza olacak. Canlıda `Yeşilmarka` store #73 oluşturuldu (`slug=yesilmarka`, `store_type=sports`, aktif/commission). 4 ürün ve 4 `source_name=yesilmarka` mapping store #73'e taşındı; eski store #33 altında Yeşilmarka mapping kalmadı. Scraper bilinçli olarak sadece breadcrumb'da `Sporcu Besinleri` geçen 4 ürünü alıyor.
-- [~] **4. Elle yüklenmiş mağazalar — BÜYÜK ÖLÇÜDE TAMAM**
+- [X] **4. Elle yüklenmiş mağazalar — TAMAM**
   - **Tamamlanan akış:** kaynak site → scraper yaz (15) → JSON → her site için
     yeni mağaza aç (#56-70) → `import:products --status=approved --skip-images` →
     7 eski elle mağaza soft-delete + status=0.
@@ -251,8 +280,8 @@
 
 ### 🐛 Veri/Sync sorunları (Claude Code — investigation + fix)
 
-- [~] **6. Compex 161/161 + ProteinMax 241/548 image NULL — KOD FIX HAZIR, REIMPORT GEREK**
-  - **Compex (100% NULL):** Image URL'leri de **Cloudflare korumalı (HTTP 403)**.
+- [X] **6. Compex + ProteinMax image NULL — BACKFILL TAMAM**
+  - **Compex ilk bulgu:** Image URL'leri **Cloudflare korumalı (HTTP 403)**.
     `ImportDropickProducts::importImageFromUrl` PHP `file_get_contents` ile
     çekiyor → CF reddediyor → 0 image record. Düzeltme: `--skip-images` flag
     semantiği değil, **image download'ı da Scrapling service üzerinden** yapan
@@ -264,58 +293,70 @@
     `importImageFromUrl`'de URL normalize.
   - Diğerleri: Provitanya 36/1854 (%1.9), EYB 22/2886 (%0.8) — minor, sonraya.
   - **Toplam etkilenen: 463/11164 ürün (%4.1).**
-  - **Codex 2026-05-24:** `ImportDropickProducts::importImageFromUrl` URL path encode + browser header/referrer + invalid image guard ile güçlendirildi. İndirme yine başarısızsa media ID yerine normalize remote URL ürün `image`/`gallery_images` alanına yazılıyor (helper external URL destekliyor). `opencart_scraper.py` image URL normalize ediyor. Canlıda etkilenen store'lar için reimport/backfill çalıştırılmalı.
+  - **Codex 2026-05-24:** `ImportDropickProducts::importImageFromUrl` URL path encode + browser header/referrer + invalid image guard ile güçlendirildi. İndirme yine başarısızsa media ID yerine normalize remote URL ürün `image`/`gallery_images` alanına yazılıyor (helper external URL destekliyor). `opencart_scraper.py` image URL normalize ediyor.
+  - **Codex 2026-05-24 canlı backfill:** `source-images:backfill` Artisan komutu eklendi ve ProteinMax #58 için uygulandı. Sonuç: ProteinMax `image NULL` **241 → 3**, `gallery_images` dolu ürün **172**. Compex #70 kontrolde zaten **0 NULL**. Kalan 3 ProteinMax üründe kaynak JSON'da kullanılabilir image yok (`Bigjoy Iso Clear ...` 2 ürün + `Fit Bites Protein Bar Muz`).
 
-- [~] **7. Stok uyumsuzlukları — SCRAPER DETECTION FIX HAZIR, CRON/DB DOĞRULAMA GEREK**
+- [X] **7. Stok uyumsuzlukları — SANMARCO CANLIDA DÜZELDİ**
   - **Provitanya Sanmarco:** kaynakta stok yok, bizde 100 (default) görünüyor.
-  - **Linktech:** stok uyumsuzlukları var (kullanıcı raporu).
+  - **Linktech:** stok uyumsuzluğu için somut ürün URL/isim örneği gelmedi; toplu DB müdahalesi yapılmadı.
   - Kök neden 1: Sync path bug (FIXED 2026-05-24) — yarınki cron'da otomatik düzelir.
   - Kök neden 2: Scraper'lar `stock_quantity` için kaynak gerçek sayısı yerine
     default 100 atıyor (in_stock true→100, false→0). Sanmarco gibi sources
     `availability=OutOfStock` ataşmamış olabilir. ideasoft_scraper availability
     detection mantığı revize gerek.
-  - **Yapılacak:** yarın cron sonrası Sanmarco DB stok kontrol; hala 100 ise
-    scraper'a "stok bulunamadıysa false varsay" logic ekle.
-  - **Codex 2026-05-24:** `opencart_scraper.py` ve `ideasoft_scraper.py` HTML stok metni kontrolü ekledi (`stokta yok`, `stok yok`, `tükendi`, `out of stock`, `sold out`, `gelince haber ver`). Availability boş olsa bile bu metinler varsa `available=false` yazılır.
+  - **Not:** Linktech için kullanıcıdan somut ürün URL/isim örneği gelirse
+    kaynak HTML + canlı stok birebir kontrol edilecek.
+  - **Codex 2026-05-24:** `opencart_scraper.py` ve `ideasoft_scraper.py` HTML stok metni kontrolü ekledi (`stokta yok`, `stok yok`, `tükendi`, `out of stock`, `sold out`, `gelince haber ver`). `opencart_scraper.py` stok önceliği düzeltildi: HTML'de `tükendi` varsa JSON-LD `InStock` yanlış olsa bile `available=false`.
+  - **Codex 2026-05-24 canlı düzeltme:** Provitanya #57 Sanmarco kaynak HTML'inde `tukendi_dty` doğrulandı; 24 Sanmarco ürünün varyant stoğu **100 → 0** çekildi. Doğrulama: `sanmarco_100=0`, `sanmarco_zero=24`. Linktech için somut ürün örneği olmadan toplu DB müdahalesi yapılmadı.
 
-- [~] **8. Rova: sadece bataryalar yüklenmiş — SCRAPER KATEGORİ FIX HAZIR, REIMPORT GEREK**
+- [X] **8. Rova: kategori mapping sorunu — CANLI BACKFILL TAMAM**
   - Sitemap'te non-batarya ürünler VAR (USAMS kulaklık, vb.), DB'ye yansımamış.
   - rovabatarya_scraper.py'nin filtreleme/parse mantığını incele,
     eksik kategorileri yakala.
-  - **Codex 2026-05-24:** Eksik ürün değil kategori mapping sorunu bulundu. `rovabatarya_scraper.py` her ürünü sabit `Telefon Bataryasi & Aksesuar` kategorisine yazıyordu; GA4 `item_category` alanından gerçek kategori okunacak şekilde düzeltildi. Test: `usams-xd19-kablosuz-kulaklik` artık `Aksesuarlar` kategorisiyle parse oluyor. Canlıda Rova re-scrape + import/sync gerekir.
+  - **Codex 2026-05-24:** Eksik ürün değil kategori mapping sorunu bulundu. `rovabatarya_scraper.py` her ürünü sabit `Telefon Bataryasi & Aksesuar` kategorisine yazıyordu; GA4 `item_category` alanından gerçek kategori okunacak şekilde düzeltildi.
+  - **Codex 2026-05-24 canlı backfill:** Rova full re-scrape tamamlandı (**528 ürün**, 434 stokta). Store #62 ürünleri kaynak kategoriye göre güncellendi: Samsung Batarya 149, Xiaomi Batarya 106, Huawei Batarya 80, Telefon Bataryaları 61, iPhone Batarya 58, Honor Batarya 30, Tablet Bataryası 26, General Mobile Batarya 12, Lg Batarya 2, Aksesuarlar 1, Akıllı Saatler 1, Sony Batarya 1, Lenovo Batarya 1. `Usams XD19 Bluetooth Kablosuz Kulaklık` artık `Aksesuarlar` kategorisinde.
 
-- [~] **9. Raketspor mağaza eksik — SCRAPER VAR, STORE/IMPORT/CRON BEKLİYOR**
+- [X] **9. Raketspor mağaza — CODEX KAPSAMI TAMAM, CLOUDFLARE BLOKER DOKÜMANTE**
   - `raketspor.com.tr` CF arkasında (403 homepage), sitemap 200.
   - Powertec ile aynı pattern: Scrapling stealth + Mozilla UA bypass çalışmalı.
   - Yeni `raketspor_scraper.py` (Ticimax veya benzeri), store oluştur, import,
     cron'a ekle. 16. site → 17. site olur (powertec 16'ydı).
   - **Claude Code 2026-05-24:** scraper yazıldı (`raketspor_scraper.py`, powertec
     pattern), store #72 açıldı, full scrape arka planda başlatıldı (~15-20sa,
-    3468 ürün), weekly cron eklendi (Pazar 04:00 UTC = 07:00 TR). Import scrape
-    bitince otomatik.
+    3468 ürün), weekly cron eklendi (Pazar 04:00 UTC = 07:00 TR).
+  - **Codex 2026-05-24 canlı durum:** Store #72 mevcut fakat ürün/mapping **0**. Full scrape işi durduruldu; tüm ürün detayları scraper-service üzerinden HTTP 524'e düşüyor. Scraper-service sağlıklı (`/health ok`), fakat Raketspor ürün sayfaları ve feed adayları (`google.xml`, `googlebase.xml`, `akakce.xml`, `cimri.xml`) Cloudflare managed challenge/403 veriyor. `raketspor_scraper.py` ilk 30 detay sayfası tamamen bloklanırsa erken çıkacak şekilde güncellendi ve canlıya deploy edildi. Codex tarafında yapılacak kod işi kalmadı; import için Raketspor tarafında whitelist/farklı IP/CF bypass gerekiyor.
 
-- [~] **14. Description'da relatif `<img src="/...">` 404 — DB CLEANUP TAMAM, scraper fix kalan**
+- [X] **14. Description'da relatif `<img src="/...">` 404 — DB + SCRAPER FIX TAMAM**
   - Bulgu: Dropick Optimo-40 + 112 ürün description'ında relatif
     `<img src="/image/data/...">` browser sportoonline.com kökü diye yorumluyor → 404.
   - **DB cleanup** (`backend-laravel/scripts/fix_relative_imgs.php`, commit
     `2a92f2a1`): ProductSourceMapping'den source domain parse → 113 ürün
     absolute URL'e çevrildi (Dropick 40 + Linktech 73). 11 mapping'siz atlandı.
-  - **Scraper fix (KALAN):** `shopify_scraper.py`'a `resolve_relative_urls(html, base_url)`
-    yardımcı fonksiyon + tüm scraper'lar description çekerken çağırsın
-    (BeautifulSoup ile `<img src>` + `<a href>` rewrite). Yeni import'larda
-    aynı hata olmasın.
+  - **Scraper fix (Codex 2026-05-24):** `shopify_scraper.py`'a `resolve_relative_urls(html, base_url)`
+    yardımcı fonksiyon eklendi ve tüm aktif scraper'ların description akışına bağlandı.
+    `img/src`, `data-src`, `srcset`, `source/src`, `a/href` relatif URL'leri kaynak domain'e
+    çevriliyor; `data:`, `mailto:`, `tel:`, `#` korunuyor. Canlı deploy + Python compile temiz.
 
 ### 🚨 PERFORMANS — KRİTİK (Codex'e atandı: AGENTS.md Görev 9)
 
-- [~] **15. Site yavaş — KISMEN DÜZELDİ (9a tamam, 9b/9c Codex'te)**
+- [X] **15. Site yavaş — BACKEND/API DARBOĞAZI TEMİZLENDİ**
   - **9a TAMAM (commit `89a63d39`):** `StoreDetailsPublicResource.php` `all_products` + `featured_products` `take(20)` eklendi. Sonuç:
     - API store-details: TTFB **6.5s → 0.43s** (15x)
     - Payload: **12.6 MB → 22 KB** (560x)
     - Next.js mağaza sayfası: TTFB **7.4s → 0.45s** (16x)
-  - **KALAN (Codex AGENTS.md 9b + 9c):**
-    - 9b: Ana sayfa hala TTFB 7-8s (10 cache'siz API call). Redis cache layer.
-    - 9c: Kategori sayfası TTFB 7s. DB composite index + N+1 audit.
+  - **Önceki kalan hedefler:** Ana sayfa API beklemesi, kategori endpoint'i,
+    DB composite index + N+1 audit.
   - Test script: `scripts/perf_test.sh` (commit'li, tekrar ölçüm için).
+  - **Codex 2026-05-24:** Public catalog index migration eklendi ve canlıda çalıştırıldı
+    (`products_public_catalog_idx`, `products_store_status_idx`,
+    `product_variants_public_sellable_idx`, `product_category_public_idx`,
+    `stores_customer_view_idx`). `productCategoryList` correlated subquery yerine
+    aggregate join + 10 dk Laravel cache kullanıyor.
+  - **Canlı ölçüm (VPS, 2026-05-24):** `product-list?per_page=10` **170ms**,
+    `store-details/provitanya` **264ms**, `product-category/list` sıcak cache
+    **279ms**. Ana sayfa `/tr` **~2.3s TTFB**; önceki 15s/timeout API
+    darboğazı temizlendi, kalan süre Next.js SSR/payload optimizasyonu olarak
+    ayrı ele alınabilir.
 
 ### ✋ Codex'e atanan (AGENTS.md Görev 5-9)
 
@@ -327,18 +368,18 @@
     → galeri ana görseli içeriyorsa duplicate. URL bazında dedupe gerek.
   - **Codex 2026-05-24:** URL bazında dedupe eklendi; ana görsele tıklama galeri içinde döngüsel ilerliyor. Lightbox ayrı büyütme butonuna taşındı.
 
-- [~] **11. Stoğu tükenenleri gizle + 6 ay yenilenmeyenleri sil** (AGENTS.md Görev 6)
+- [X] **11. Stoğu tükenenleri gizle + 6 ay yenilenmeyenleri sil** (AGENTS.md Görev 6)
   - Public catalog query'lerinde `stock_quantity > 0` filtresi (zaten
     "resimsizleri gizle" pattern'i commit 6d9b6c31'de var, benzer yaklaşım).
   - Scheduled command: `products.updated_at < NOW() - 6 months` olanları
     soft-delete (deleted_at set). Manuel review için admin'de "stale" filtresi.
-  - **Codex 2026-05-24:** `ProductVariant::publiclySellable()` artık `stock_quantity > 0` istiyor; public ürün/kategori/store detay kapsamları buna göre daraldı. `products:prune-stale` komutu ve Pazar 03:00 Europe/Istanbul schedule eklendi. Yerel DB bağlantısı olmadığı için dry-run aday sayısı doğrulanamadı.
+  - **Codex 2026-05-24:** `ProductVariant::publiclySellable()` artık `stock_quantity > 0` istiyor; public ürün/kategori/store detay kapsamları buna göre daraldı. `products:prune-stale` komutu ve Pazar 03:00 Europe/Istanbul schedule eklendi. Canlı dry-run: `No stale products older than 6 month(s) found.`
 
-- [~] **12. Header kategori click performansı** (AGENTS.md Görev 7)
+- [X] **12. Header kategori click performansı** (AGENTS.md Görev 7)
   - Üst bar kategori tıklamaları geç tepki veriyor. Profil:
     Next.js route cache, React lazy load, kategori list API'sinin yanıt süresi.
   - Olası fix: kategori meta'yı SSG/ISR ile cache, client navigation prefetch.
-  - **Codex 2026-05-24:** header kategori/menu linklerine explicit `prefetch` eklendi; mevcut kategori query cache'i 30 dk kalıyor. P90 ölçümü canlı/devtools ile ayrıca doğrulanmalı.
+  - **Codex 2026-05-24:** header kategori/menu linklerine explicit `prefetch` eklendi; kategori API sorgusu aggregate join + 10 dk backend cache ile hızlandırıldı. Canlı ölçüm: sıcak `product-category/list` **262-315ms**.
 
 - [X] **13. Tüm Ürünler section: kategori rotation random** (AGENTS.md Görev 8)
   - "Tüm ürünler" listesinde her sayfa yüklemesinde **farklı kategoriyle başla**
@@ -365,7 +406,7 @@
 - [X] **Maraton full catalog haftalık cron** — `run-maraton-full.sh` + cron Pazar 06:00 UTC = 09:00 TR.
 - [X] **Powertec Cloudflare bypass araştırıldı** — VPS IP de 403 (CF challenge), site sahibinden whitelist gerek. Açık not.
 - [X] **proteinavm retry bitiş + import** — Canlı doğrulama: store #68 için 279 approved ürün, 279 mapping, 279 görsel.
-- [~] **Yarın 05:00 TR ilk full cron run takibi** — 27 scraper günlük + Pazar 09:00 TR Maraton full.
+- [X] **Yarın 05:00 TR ilk full cron run takibi** — 27 scraper günlük + Pazar 09:00 TR Maraton full.
   - **Codex 2026-05-24:** Günlük cron çalışıyor; 2026-05-24 logunda EYB sync temiz (`2886 unchanged`, hata yok), ProteinAVM uzun koşu devam ediyor. Maraton weekly cron script eksikliği düzeltildi ve deploy edildi.
 - [X] **yesilmarka 4 ürün incelemesi** — dedicated mağaza mı / musclepump altında mı (kullanıcı kararı).
   - **Codex 2026-05-24:** Scraper bilinçli olarak sadece breadcrumb'da `Sporcu Besinleri` geçen ürünleri alıyor. Canlı JSON 4 ürün içeriyor: Creatine, Protein Shaker 400ml, Whey Protein Tozu, BCAA 4:1:1. Mapping `source_name=yesilmarka` store #33 `Sporcu Besinleri` altında 4 kayıt. Teknik sorun görünmüyor; kalan karar ürünlerin ayrı `Yeşilmarka` mağazasına taşınıp taşınmayacağı.
