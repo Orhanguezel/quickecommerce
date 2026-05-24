@@ -4,6 +4,13 @@
 > 5 günlük trafik raporu + ayrı nginx log, Geliver Türkçe il/ilçe fix + #113,
 > Google Places API, admin sipariş detayı/fatura adres + isim + temiz format.
 
+## 🆕 Compex resim CORP — hizli fix CANLIDA, kalici cozum Codex'te (2026-05-24)
+
+- **Sorun:** `https://sportoonline.com/tr/kategori/compex-spor-sp` — 161 Compex urun resmi `ERR_BLOCKED_BY_RESPONSE.NotSameOrigin`. Compex (compexturkiye.com) Cloudflare hotlink korumasi cok agresif: browser de 403, VPS de 403, public proxy'ler (wsrv.nl, Cloudinary fetch) de 403, Scrapling sync mode 524 timeout.
+- **Hizli fix (commit `ee55fece`, CANLI):** `ProductCard` `onError` handler + `/images/product-placeholder.svg`. Resim yuklenemezse "Görsel hazırlanıyor" placeholder gosterilir. 161 urun katalogta kalir, kullanici kirik gorsel gormez.
+- **Kalici cozum:** Codex'e atandi → [`AGENTS.md`](AGENTS.md) **Görev 10** (Scrapling async job mode + Playwright binary fetch ile resimleri yerel cache + `images:cache-remote` artisan komutu). Beklenen: 1300 image × Scrapling = saatler, background.
+- **Riskler:** Scrapling job mode binary capture destekliyor mu netleştirilmeli. Yoksa scraper-service tarafinda ek endpoint gerekebilir.
+
 ## 🚧 BEKLEYEN UNCOMMITTED DEĞİŞİKLİKLER (2026-05-24)
 
 > Codex perf + scraper işleri commit edildi (`7d9a29e3`, `f50687b0`). Bunlar **bilinçli commit dışında bırakıldı** — yeni oturumda kullanıcıyla karar verilecek. `git status` ile gör.

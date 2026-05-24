@@ -259,6 +259,39 @@ Her endpoint'e 1 saatlik TTL cache ekle. Featured/NewArrivals/BestSelling/Trendi
 
 ---
 
+### 🖼️ Görev 10 — Cloudflare-protected resimleri Scrapling job mode ile yerel cache'le (orta-büyük, 2026-05-24)
+
+**Bağlam:** 2026-05-24 — Compex (`compexturkiye.com`) 161 ürününün resimleri Cloudflare hotlink koruması nedeniyle browser'a doğrudan yüklenemez (`ERR_BLOCKED_BY_RESPONSE.NotSameOrigin`). VPS'ten de 403 — server-side proxy çalışmıyor. Public proxy'ler (wsrv.nl, Cloudinary fetch) da Compex CF'sinden 403 alıyor. Scrapling sync mode (`/api/v1/scrape`) image URL için 524 timeout veriyor (CF challenge sync mode'da yetişmiyor).
+
+Hızlı fix CANLIDA: `customer-web-nextjs` ProductCard onError handler → placeholder SVG göster (commit `ee55fece`). Kullanıcı kırık görsel yerine "Görsel hazırlanıyor" placeholder görür. Compex 161 ürün katalogta kalır.
+
+**Kalıcı çözüm — Scrapling async job mode + Playwright binary fetch:**
+
+**Yapılacaklar:**
+1. **Scrapling client'a binary download mode ekle.** `scrapers/_scrapling_client.py` (veya benzeri ortak helper) içine:
+   - `download_binary(url, headers=None) -> bytes`: `/api/v1/jobs` POST → `{url, mode: "stealthy", solve_cloudflare: true, return_binary: true}` (eğer endpoint destekliyorsa). Yoksa Playwright `context.request.get(url)` ile fetch + body bytes döner. `Authorization: Bearer ${SCRAPLING_API_KEY}` header.
+   - Job submit → 202 + `job_id` → `/api/v1/jobs/{job_id}` poll (5-10s aralıklarla, max 5dk timeout) → status="completed" olunca `result.body` (base64 veya raw bytes).
+   - **Önce Scrapling servisinin gerçek async API contract'ını doğrula** (`/openapi.json` üzerinden — `/api/v1/jobs` POST/GET endpoint'leri var, request/response şemasını incele).
+2. **Artisan komutu:** `backend-laravel/app/Console/Commands/CacheRemoteImages.php`
+   - Signature: `images:cache-remote {source : compex/dropick/linktech vs.} {--store_id=} {--limit=0} {--apply}`
+   - Akış: `ProductSourceMapping` veya `Product.image` "http://" başlıyorsa → Scrapling binary fetch → `/var/www/quikecommerce/backend-laravel/storage/app/public/uploads/media-uploader/default/{slug}-N.{ext}` olarak yaz → `Media` kaydı oluştur (`format`, `path`, `dimensions`, `alt_text`) → `Product.image` ve `gallery_images` Media ID'leriyle güncelle.
+   - Idempotent: aynı slug için dosya varsa atla, Media kaydı varsa yeniden kullan.
+   - Hata yönetimi: Scrapling 5xx/timeout → loglara yaz, bir sonraki ürüne geç (toplam başarı/başarısızlık özeti).
+3. **İlk hedef:** Compex store #70 (161 ürün, ~8 image/ürün ≈ 1300 image). Scrapling job paralelliği rate-limit'e takılmasın diye 2-3 paralel ile sınırla.
+4. **Test:** `php artisan images:cache-remote compex --store_id=70 --limit=3 --apply` → 3 üründe local image + Media + Product.image güncellendiğini doğrula. Sonra `--limit=0` (tüm 161 ürün).
+5. **Frontend regresyon yok:** ProductCard onError handler bırakılır (gelecekte başka 3rd party kaynaklar için yedek).
+
+**Bitti tanımı:**
+- `php artisan images:cache-remote compex --store_id=70 --apply` 161 ürünün en az %90'ı için local image üretir.
+- <https://sportoonline.com/tr/kategori/compex-spor-sp> 'da resimler `sportoonline.com/storage/...` URL'inden gelir (DevTools Network).
+- Placeholder gözükmez (hepsi başarılı).
+
+**Riskler:**
+- Scrapling job mode response yapısı bilinmiyor; `return_binary` parametresi yoksa Playwright `context.request.get()` ile manual binary capture endpoint eklenmesi gerekebilir (scraper-service tarafında, ayrı PR).
+- 1300 image × Scrapling job ≈ saatler. Cron veya background queue ile çalıştırılmalı (öne çıkarmaz).
+
+---
+
 ### 🔧 Görev 4 — Mikro: `InvoiceResource.php:23` `round(null)` deprecated notice (xs)
 
 **Bağlam:** PHP 8.1+'da `round(null)` deprecated → log'larda gürültü.
