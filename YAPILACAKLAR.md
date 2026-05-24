@@ -46,7 +46,8 @@
   - **Galeri (8 görsel):** Antigravity gallery-1..5 (farkli markali dashboard mockup'lari) + 3 carousel slide ("Ne Yapar / Kimler Için / Nasil Baslarim", Sportoonline branded).
   - **Description'a not eklendi:** "Görsellerdeki dashboard mockup'lari örnek/referans amaclidir; gercek panel kurulumu kendi marka kimliğinizle yapilandirilir." — marka tutarsizligini telafi için.
   - Canli URL: <https://sportoonline.com/tr/urun/sosyal-medya-yonetim-paneli-icerik-otomasyon-altyapisi> (HTTP 200, TTFB 0.37s, 9 görsel render).
-  - GZL store sayfasi: `/tr/magaza/gzl-teknoloji` total_product **3** (çnce 2 idi).
+  - GZL store sayfasi: `/tr/magaza/gzl-teknoloji` total_product **3** (önce 2 idi).
+  - **Onemli ders (yeni urun eklerken):** `is_featured=1` set edilmeli — `store-detail-client.tsx:48` mağaza sayfası default olarak "Öne Çıkan" tab'ında açılıyor (`featured_products.length > 0` ise). Bu tab sadece `is_featured=1` ürünleri gösterir. `is_featured=0` ile eklenen ürün varsayılan tab'da görünmez. Bu sefer ilk eklerken atlamiştim, sonradan duzeltildi.
 - [ ] **2026-05-29 sonrasi:** Fiyat netlestir, `product_variants.price` guncelle (su an placeholder 12.900 TL).
 
 ### Antigravity (gorsel uretici — TAMAMLANDI 2026-05-24)
