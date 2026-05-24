@@ -4,6 +4,54 @@
 > 5 günlük trafik raporu + ayrı nginx log, Geliver Türkçe il/ilçe fix + #113,
 > Google Places API, admin sipariş detayı/fatura adres + isim + temiz format.
 
+## 🆕 Arama çubuğu yeniden tasarım + sesli arama — PLANLAMA (2026-05-25)
+
+> İki iş, hemen uygulanmayacak — planlamaya alındı, sonra uygulanacak.
+
+### 1. Arama çubuğu UI yenileme
+**Mevcut durum:** [header-variant-1.tsx:168-173](customer-web-nextjs/src/components/layout/header-variant-1.tsx#L168-L173) `<form onSubmit>` → `router.push(SEARCH?q=...)`. Tek input + yeşil arama butonu. Placeholder "Ne arıyorsunuz?".
+- Klavye odağı (focus state) zayıf
+- Otomatik tamamlama (autocomplete) YOK
+- Son aramalar / popüler aramalar YOK
+- Trend ürün önerisi YOK
+
+**Önerilen yenileme (öncelik sırası):**
+- [ ] **Type-ahead autocomplete** — kullanıcı yazdıkça `GET /api/v1/search/suggest?q=` backend endpoint'i lazım. Dropdown'da:
+  - Ürün önerileri (3-5 ürün, thumbnail + isim + fiyat)
+  - Kategori önerileri (eşleşen kategoriler)
+  - Marka önerileri
+- [ ] **Son aramalar** — localStorage'da saklı son 5 arama, input boşken göster
+- [ ] **Popüler aramalar** — admin paneldeki + auto-track (en çok aranan 5 terim)
+- [ ] **Trending products** — input boşken "Şu an trend olan" 4-5 ürün
+- [ ] **Klavye navigasyon** — ↑↓ ile öneriler arasında, Enter ile seç, Esc ile kapat
+- [ ] **Focus state iyileştir** — daha belirgin ring, glow effect
+- [ ] **Mobil tam ekran arama** — mobilde input'a tıklayınca tam ekran modal (autocomplete + son aramalar)
+- [ ] **Highlight matched** — sonuçlarda eşleşen karakter bold/renkli
+- [ ] **Search history sync** — login'li kullanıcı için DB'de saklı (cross-device)
+- [ ] **Empty state** — sonuç yoksa "Aradığınız ürün bulunamadı, popüler ürünler"
+
+**Backend endpoint hazırlık:**
+- [ ] `GET /api/v1/search/suggest?q={term}&limit=10` — products + categories + brands
+- [ ] `POST /api/v1/search/track` — kullanıcı aramasını logla (popüler aramalar için)
+- [ ] Frontend debounce 250ms, min 2 karakter
+
+### 2. Sesli arama
+**Tech:** Web Speech API (browser native, ek kütüphane yok). Chrome/Edge/Safari destek var, Firefox sınırlı.
+
+**Yapılacaklar:**
+- [ ] Arama input'unun yanında 🎤 mikrofon ikonu (lucide-react `Mic`)
+- [ ] Tıklayınca tarayıcı mikrofon izni iste
+- [ ] `SpeechRecognition` API ile dinleme başlat (Türkçe `tr-TR`)
+- [ ] Dinleme sırasında pulse animasyonu (kırmızı dot)
+- [ ] Tanınan metin input'a otomatik yazılsın, 1s bekleyip auto-submit
+- [ ] Browser support yoksa ikon gizle (`navigator.mediaDevices` check)
+- [ ] Hata durumları: izin reddedildi, mikrofon yok, ses algılanamadı → toast bildirim
+- [ ] (Opsiyonel) Cümle bittikten sonra "Olimp whey isolate 2kg arıyorum" gibi natural language → keyword extract
+
+**Test:** Türkçe transcript accuracy, accent/dialect testi
+
+**Faz:** Faz 3 (UX iyileştirme) — kategori taxonomi tamamlandıktan sonra, çünkü autocomplete kategori önerisi için temiz taxonomi gerek.
+
 ## 🆕 Kategori sayfası filtre genişletme — ÇEKLİST (2026-05-25)
 
 > Mevcut filtreler: Fiyat (min/max), Değerlendirme, (saklı: Marka, Alt Kategori).
