@@ -26,6 +26,7 @@ use App\Http\Controllers\Api\V1\StripePaymentController;
 use App\Http\Controllers\Api\V1\StripeWebhookController;
 use App\Http\Controllers\Api\V1\TaxInfoController;
 use App\Http\Controllers\Api\V1\UserController;
+use App\Http\Controllers\Api\V1\Webhooks\EinvoiceWebhookController;
 use App\Http\Controllers\Api\V1\Webhooks\GdeliverWebhookController;
 use App\Http\Middleware\ApiAuthMiddleware;
 use Illuminate\Support\Facades\Route;
@@ -202,6 +203,7 @@ Route::group(['prefix' => 'v1/'], function () {
 
     // Geliver kargo takip webhook (Geliver bu endpoint'i çağırır)
     Route::post('webhooks/geliver', [GdeliverWebhookController::class, 'handleWebhook']);
+    Route::post('webhooks/einvoice', [EinvoiceWebhookController::class, 'handle']);
 });
 
 // Admin Currency Management Routes
@@ -238,5 +240,6 @@ Route::group(['prefix' => 'v1/admin', 'middleware' => ['auth:sanctum', ApiAuthMi
         Route::get('/callback-logs', [\App\Http\Controllers\Api\V1\Admin\AdminPayTRLogController::class, 'index']);
         Route::get('/callback-logs/stats', [\App\Http\Controllers\Api\V1\Admin\AdminPayTRLogController::class, 'stats']);
     });
+
 });
 

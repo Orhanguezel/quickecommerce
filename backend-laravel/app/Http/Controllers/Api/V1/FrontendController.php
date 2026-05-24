@@ -1912,8 +1912,8 @@ class FrontendController extends Controller
             })->select(
                 'product_category.*',
                 DB::raw('COALESCE(translations.value, product_category.category_name) as category_name'),
-                DB::raw('(SELECT COUNT(*) FROM products WHERE products.category_id = product_category.id AND products.deleted_at IS NULL AND products.status = "approved") as products_count'),
-                DB::raw('(SELECT products.image FROM products WHERE products.category_id = product_category.id AND products.deleted_at IS NULL AND products.status IN ("approved", "1") AND products.image IS NOT NULL AND products.image != "" ORDER BY products.id DESC LIMIT 1) as representative_product_image')
+                DB::raw('(SELECT COUNT(*) FROM products WHERE products.category_id = product_category.id AND products.deleted_at IS NULL AND products.status = "approved" AND products.image IS NOT NULL AND products.image != "" AND EXISTS (SELECT 1 FROM product_variants WHERE product_variants.product_id = products.id AND product_variants.deleted_at IS NULL AND product_variants.status = 1 AND product_variants.stock_quantity > 0 AND (product_variants.price > 0 OR product_variants.special_price > 0))) as products_count'),
+                DB::raw('(SELECT products.image FROM products WHERE products.category_id = product_category.id AND products.deleted_at IS NULL AND products.status IN ("approved", "1") AND products.image IS NOT NULL AND products.image != "" AND EXISTS (SELECT 1 FROM product_variants WHERE product_variants.product_id = products.id AND product_variants.deleted_at IS NULL AND product_variants.status = 1 AND product_variants.stock_quantity > 0 AND (product_variants.price > 0 OR product_variants.special_price > 0)) ORDER BY products.id DESC LIMIT 1) as representative_product_image')
             );
 
             if ($type) {
@@ -2411,9 +2411,7 @@ class FrontendController extends Controller
     function storeWiseProducts(Request $request)
     {
         // Base query
-        $query = Product::with('store') // Eager load the store relationship
-        ->where('status', 'approved')
-            ->whereNull('deleted_at'); // Only fetch non-deleted products
+        $query = $this->applyPublicCatalogScope(Product::with('store'));
 
         // Apply search filter
         if ($request->has('search') && !empty($request->search)) {

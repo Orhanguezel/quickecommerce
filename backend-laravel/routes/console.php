@@ -13,6 +13,11 @@ Schedule::command('currency:update-rates --base=USD')->hourly();
 Schedule::command('recommendations:build-co-purchase')->dailyAt('03:00')->withoutOverlapping();
 Schedule::command('abandoned-cart:dispatch-reminders')->everyFifteenMinutes()->withoutOverlapping();
 Schedule::command('products:compute-velocity')->dailyAt('04:00')->withoutOverlapping();
+Schedule::command('products:prune-stale --months=' . env('PRODUCT_STALE_RETENTION_MONTHS', 6) . ' --force')
+    ->weeklyOn(0, '03:00')
+    ->timezone('Europe/Istanbul')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/product-prune-stale.log'));
 Schedule::command('analytics:prune-funnel-events --days=' . env('FUNNEL_EVENTS_RETENTION_DAYS', 180))->dailyAt('04:30')->withoutOverlapping();
 Schedule::command('orders:prune-unpaid --hours=' . env('ORDER_UNPAID_RETENTION_HOURS', 6) . ' --force')
     ->hourly()

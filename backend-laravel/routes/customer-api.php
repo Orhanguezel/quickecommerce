@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\Customer\CustomerAddressManageController;
 use App\Http\Controllers\Api\V1\Customer\CustomerBlogController;
 use App\Http\Controllers\Api\V1\Customer\CustomerManageController;
 use App\Http\Controllers\Api\V1\Customer\CustomerOrderController;
+use App\Http\Controllers\Api\V1\Customer\EInvoiceDownloadController;
 use App\Http\Controllers\Api\V1\Customer\CustomerOrderRefundController;
 use App\Http\Controllers\Api\V1\Customer\CustomerProductQueryController;
 use App\Http\Controllers\Api\V1\Customer\CustomerReviewManageController;
@@ -87,6 +88,7 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'customer/', 'middleware' => 
         // order manage
         Route::group(['prefix' => 'orders/'], function () {
             Route::get('invoice', [CustomerOrderController::class, 'orderInvoice']);
+            Route::get('{order_id}/e-invoice/pdf', [EInvoiceDownloadController::class, 'download']);
             Route::post('cancel-order', [CustomerOrderController::class, 'cancelOrder']);
             Route::post('check-coupon', [CustomerOrderController::class, 'checkCoupon']);
             Route::post('request-refund', [CustomerOrderRefundController::class, 'orderRefundRequest']);

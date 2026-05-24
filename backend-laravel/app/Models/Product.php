@@ -125,6 +125,11 @@ class Product extends Model
         return $this->hasMany(ProductVariant::class, "product_id");
     }
 
+    public function orderDetails()
+    {
+        return $this->hasMany(OrderDetail::class, 'product_id');
+    }
+
     public function displayVariant()
     {
         $variants = $this->relationLoaded('variants')
@@ -210,7 +215,7 @@ class Product extends Model
             // Fetch related products
             $relatedProducts = Product::query()
                 ->where('id', '!=', $this->id) // Exclude the current product
-                ->where('status', 'approved') // Filter by approved status
+                ->publiclySellable()
                 ->whereIn('category_id', $categoryIds) // Filter by category and its children
                 ->limit($limit)
                 ->get();
@@ -229,7 +234,7 @@ class Product extends Model
     {
         return Product::query()
             ->where('id', '!=', $this->id) // Exclude the current product
-            ->where('status', 'approved') // Filter by approved status
+            ->publiclySellable()
             ->latest() // Example fallback logic: most popular products
             ->limit($limit)
             ->get();

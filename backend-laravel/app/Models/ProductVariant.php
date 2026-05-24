@@ -80,7 +80,9 @@ class ProductVariant extends Model
 
     public function isPubliclySellable(): bool
     {
-        return (int) ($this->status ?? 1) === 1 && $this->effectivePrice() > 0;
+        return (int) ($this->status ?? 1) === 1
+            && (int) ($this->stock_quantity ?? 0) > 0
+            && $this->effectivePrice() > 0;
     }
 
     public function scopePubliclySellable(Builder $query): Builder
@@ -89,6 +91,7 @@ class ProductVariant extends Model
 
         return $query
             ->where($table . '.status', 1)
+            ->where($table . '.stock_quantity', '>', 0)
             ->where(function (Builder $sellable) use ($table) {
                 $sellable
                     ->where($table . '.price', '>', 0)
