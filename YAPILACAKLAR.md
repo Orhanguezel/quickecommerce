@@ -4,6 +4,14 @@
 > 5 günlük trafik raporu + ayrı nginx log, Geliver Türkçe il/ilçe fix + #113,
 > Google Places API, admin sipariş detayı/fatura adres + isim + temiz format.
 
+## 🆕 Compex resim 140/161 OK + kalan 21 SOFT-DELETED (2026-05-24)
+
+- 140 ürün gerçek resimle canlı.
+- 21 ürün (CF agresif blok, çekilemedi) **soft-deleted** edildi. Frontend'de placeholder gösterilmiyor, mağaza sayfası temiz.
+- Backup CSV (Codex Görev 10 bitince restore icin): VPS-sportoonline `/tmp/compex_removed_20260524_230202.csv`
+- Restore: `Product::onlyTrashed()->whereIn('id', [4668, 4673, 4677, ...])->restore()` (ID'ler CSV'de).
+- VPS-sportoonline'a kurulan Scrapling+Patchright+Chromium-1223 sistemde bırakildi (gelecek scraper işleri için hazır, `scraperuser` user'ı altında `/home/scraperuser/.cache/ms-playwright/`).
+
 ## 🆕 Compex resim CORP — KISMEN COZULDU + KURAL IHLALI ALINDI (2026-05-24)
 
 - **Sorun:** Compex (compexturkiye.com) Cloudflare hotlink korumasi cok agresif: browser de 403, VPS de 403, public proxy'ler de 403, Scrapling sync mode 524 timeout.
