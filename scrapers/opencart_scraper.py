@@ -16,6 +16,7 @@ Cikti semasi everlast_scraper.py ile birebir aynidir
 import json
 import re
 import time
+from urllib.parse import quote, unquote, urlsplit, urlunsplit
 
 import requests
 from bs4 import BeautifulSoup
@@ -115,6 +116,14 @@ def _images_from_jsonld(value):
     return out
 
 
+def _normalize_image_url(url):
+    if not isinstance(url, str) or not url.startswith("http"):
+        return url
+    parts = urlsplit(url.strip())
+    path = "/".join(quote(unquote(segment), safe="") for segment in parts.path.split("/"))
+    return urlunsplit((parts.scheme, parts.netloc, path, parts.query, parts.fragment))
+
+
 def _html_discount_prices(soup):
     """OpenCart indirim markup'i -> (original, discounted) ya da (None, None)."""
     new_el = soup.select_one(".price-new, #price-special, .product-price-new, .special-price")
@@ -140,6 +149,34 @@ def _html_main_price(soup):
             price = _clean_price(el.get_text())
             if price:
                 return price
+    return None
+
+
+def _html_stock_status(soup):
+    text = soup.get_text(" ", strip=True).lower()
+    out_of_stock_terms = (
+        "stokta yok",
+        "stok yok",
+        "tükendi",
+        "tukenmiştir",
+        "tükenmiştir",
+        "out of stock",
+        "sold out",
+        "notify me",
+        "gelince haber ver",
+    )
+    if any(term in text for term in out_of_stock_terms):
+        return False
+
+    in_stock_terms = (
+        "stokta var",
+        "sepete ekle",
+        "add to cart",
+        "in stock",
+    )
+    if any(term in text for term in in_stock_terms):
+        return True
+
     return None
 
 
@@ -196,7 +233,15 @@ def _parse_product(session, url, vendor, default_category):
             discounted_price = None
 
     avail = str(offer.get("availability") or "").lower().replace("/", "").replace("_", "")
-    in_stock = ("instock" in avail) or (avail == "")
+    html_stock = _html_stock_status(soup)
+    if "outofstock" in avail or "soldout" in avail or "discontinued" in avail:
+        in_stock = False
+    elif "instock" in avail or "preorder" in avail or "backorder" in avail:
+        in_stock = True
+    elif html_stock is not None:
+        in_stock = html_stock
+    else:
+        in_stock = True
 
     images = _images_from_jsonld(jsonld.get("image"))
     # OpenCart temalari arasinda galeri markup'i degisir; genis selector +
@@ -210,6 +255,7 @@ def _parse_product(session, url, vendor, default_category):
         og = soup.select_one('meta[property="og:image"]')
         if og and (og.get("content") or "").startswith("http"):
             images.append(og["content"].strip())
+    images = list(dict.fromkeys(_normalize_image_url(img) for img in images if img))
 
     desc_html = jsonld.get("description") or ""
     desc_el = soup.select_one("#tab-description, #product-description, .tab-content")

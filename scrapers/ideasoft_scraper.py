@@ -239,12 +239,29 @@ def parse_product(html: str, url: str, vendor: str, default_category: str) -> di
     # (urunlistesi_tukendi) her sayfada sabit gecer -> yanlis negatif uretir.
     avail_raw = str(offer.get("availability") or "").lower()
     avail_raw = avail_raw.replace("/", "").replace("_", "").replace("-", "")
-    if avail_raw:
+    page_text = soup.get_text(" ", strip=True).lower()
+    out_of_stock_terms = (
+        "stokta yok",
+        "stok yok",
+        "tükendi",
+        "tukenmiştir",
+        "tükenmiştir",
+        "out of stock",
+        "sold out",
+        "gelince haber ver",
+    )
+    html_out_of_stock = any(term in page_text for term in out_of_stock_terms)
+
+    if "outofstock" in avail_raw or "soldout" in avail_raw or "discontinued" in avail_raw:
+        in_stock = False
+    elif avail_raw:
         in_stock = (
             "instock" in avail_raw
             or "preorder" in avail_raw
             or "backorder" in avail_raw
         )
+    elif html_out_of_stock:
+        in_stock = False
     else:
         in_stock = True
 

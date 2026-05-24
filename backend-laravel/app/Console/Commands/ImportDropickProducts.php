@@ -13,6 +13,7 @@ use App\Models\Translation;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Intervention\Image\Facades\Image;
 
@@ -317,7 +318,7 @@ class ImportDropickProducts extends Command
             ]);
 
             // Media binding (main image)
-            if ($mainImageId) {
+            if ($mainImageId && is_numeric($mainImageId)) {
                 Media::where('id', $mainImageId)->update([
                     'user_id'    => $this->storeId,
                     'user_type'  => Store::class,
@@ -326,6 +327,9 @@ class ImportDropickProducts extends Command
 
             // Gallery image bindings
             foreach ($galleryImageIds as $gId) {
+                if (!is_numeric($gId)) {
+                    continue;
+                }
                 Media::where('id', $gId)->update([
                     'user_id'    => $this->storeId,
                     'user_type'  => Store::class,
@@ -537,42 +541,32 @@ class ImportDropickProducts extends Command
         ])->id;
     }
 
-    private function importImageFromUrl(string $url, string $slug, int $index): ?int
+    private function importImageFromUrl(string $url, string $slug, int $index): int|string|null
     {
         if (empty($url) || !str_starts_with($url, 'http')) {
             return null;
         }
 
         try {
-            $response = @file_get_contents($url, false, stream_context_create([
-                'http' => [
-                    'timeout' => 15,
-                    'user_agent' => 'Mozilla/5.0 (compatible; QuickEcommerce/1.0)',
-                ],
-                'ssl' => [
-                    'verify_peer' => false,
-                    'verify_peer_name' => false,
-                ],
-            ]));
+            $normalizedUrl = $this->normalizeImageUrl($url);
+            $response = $this->downloadImageBytes($normalizedUrl);
 
             if (!$response) {
                 // 2000x2000 basarisiz olursa 800x800'e dusur
-                $fallback = preg_replace('/-2000x2000\./', '-800x800.', $url);
-                if ($fallback !== $url) {
-                    $response = @file_get_contents($fallback, false, stream_context_create([
-                        'http' => ['timeout' => 15, 'user_agent' => 'Mozilla/5.0'],
-                        'ssl'  => ['verify_peer' => false, 'verify_peer_name' => false],
-                    ]));
+                $fallback = preg_replace('/-2000x2000\./', '-800x800.', $normalizedUrl);
+                if ($fallback !== $normalizedUrl) {
+                    $response = $this->downloadImageBytes($fallback);
                 }
             }
 
             if (!$response) {
-                return null;
+                return $normalizedUrl;
             }
 
             // Uzantiyi URL'den bul
-            $urlPath = parse_url($url, PHP_URL_PATH);
+            $urlPath = parse_url($normalizedUrl, PHP_URL_PATH);
             $ext = pathinfo($urlPath, PATHINFO_EXTENSION) ?: 'jpg';
+            $ext = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $ext) ?: 'jpg');
             $filename = Str::slug($slug) . '-' . $index . '-' . time() . '.' . $ext;
             $destPath = $this->imageBasePath . '/' . $filename;
 
@@ -580,9 +574,11 @@ class ImportDropickProducts extends Command
 
             $dimensions = '';
             $imgSize = @getimagesize($destPath);
-            if ($imgSize) {
-                $dimensions = $imgSize[0] . ' x ' . $imgSize[1] . ' pixels';
+            if (!$imgSize) {
+                @unlink($destPath);
+                return $normalizedUrl;
             }
+            $dimensions = $imgSize[0] . ' x ' . $imgSize[1] . ' pixels';
 
             $fileSize = filesize($destPath);
 
@@ -598,7 +594,69 @@ class ImportDropickProducts extends Command
             ])->id;
         } catch (\Throwable $e) {
             $this->warn("Gorsel indirilemedi: {$url} - {$e->getMessage()}");
-            return null;
+            return $this->normalizeImageUrl($url);
         }
+    }
+
+    private function normalizeImageUrl(string $url): string
+    {
+        $parts = parse_url(trim($url));
+        if (!$parts || empty($parts['scheme']) || empty($parts['host'])) {
+            return trim($url);
+        }
+
+        $path = $parts['path'] ?? '';
+        $encodedPath = implode('/', array_map(
+            fn (string $segment) => rawurlencode(rawurldecode($segment)),
+            explode('/', $path)
+        ));
+
+        return $parts['scheme'] . '://'
+            . ($parts['user'] ?? '')
+            . (isset($parts['pass']) ? ':' . $parts['pass'] : '')
+            . (isset($parts['user']) ? '@' : '')
+            . $parts['host']
+            . (isset($parts['port']) ? ':' . $parts['port'] : '')
+            . $encodedPath
+            . (isset($parts['query']) ? '?' . $parts['query'] : '')
+            . (isset($parts['fragment']) ? '#' . $parts['fragment'] : '');
+    }
+
+    private function downloadImageBytes(string $url): ?string
+    {
+        $origin = parse_url($url, PHP_URL_SCHEME) . '://' . parse_url($url, PHP_URL_HOST);
+        $headers = [
+            'Accept' => 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+            'Accept-Language' => 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7',
+            'Referer' => $origin,
+            'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Safari/537.36',
+        ];
+
+        try {
+            $response = Http::withHeaders($headers)
+                ->timeout(20)
+                ->withOptions(['verify' => false])
+                ->get($url);
+
+            if ($response->successful() && $response->body() !== '') {
+                return $response->body();
+            }
+        } catch (\Throwable) {
+            // Fall through to stream wrapper below.
+        }
+
+        $streamContext = stream_context_create([
+            'http' => [
+                'timeout' => 20,
+                'header' => collect($headers)->map(fn ($value, $key) => "{$key}: {$value}")->implode("\r\n"),
+            ],
+            'ssl' => [
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+            ],
+        ]);
+
+        $response = @file_get_contents($url, false, $streamContext);
+        return $response !== false && $response !== '' ? $response : null;
     }
 }

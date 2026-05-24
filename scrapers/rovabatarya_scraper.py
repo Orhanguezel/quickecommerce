@@ -114,6 +114,14 @@ def _images_from_html(soup):
     return images
 
 
+def _category_from_html(html):
+    """Rova breadcrumb does not include category; GA4 item_category does."""
+    m = re.search(r'"item_category"\s*:\s*"([^"]+)"', html)
+    if m and m.group(1).strip():
+        return m.group(1).strip()
+    return DEFAULT_CATEGORY
+
+
 def _parse_product(session, url):
     try:
         resp = session.get(url, timeout=25)
@@ -175,11 +183,13 @@ def _parse_product(session, url):
     slug = slug_match.group(1) if slug_match else make_slug(name)
 
     price = original_price if discounted_price is None else discounted_price
+    category = _category_from_html(html)
+
     return {
         "name": name,
         "slug": slug,
         "url": url,
-        "category": DEFAULT_CATEGORY,
+        "category": category,
         "parent_category": None,
         "vendor": brand,
         "product_type": "",
