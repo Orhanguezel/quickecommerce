@@ -263,7 +263,13 @@ Her endpoint'e 1 saatlik TTL cache ekle. Featured/NewArrivals/BestSelling/Trendi
 
 **Bağlam:** 2026-05-24 — Compex (`compexturkiye.com`) 161 ürününün resimleri Cloudflare hotlink koruması nedeniyle browser'a doğrudan yüklenemez (`ERR_BLOCKED_BY_RESPONSE.NotSameOrigin`). VPS'ten de 403 — server-side proxy çalışmıyor. Public proxy'ler (wsrv.nl, Cloudinary fetch) da Compex CF'sinden 403 alıyor. Scrapling sync mode (`/api/v1/scrape`) image URL için 524 timeout veriyor (CF challenge sync mode'da yetişmiyor).
 
-Hızlı fix CANLIDA: `customer-web-nextjs` ProductCard onError handler → placeholder SVG göster (commit `ee55fece`). Kullanıcı kırık görsel yerine "Görsel hazırlanıyor" placeholder görür. Compex 161 ürün katalogta kalır.
+Hızlı fix CANLIDA: `customer-web-nextjs` ProductCard + product-detail onError + SSR `BLOCKED_IMAGE_DOMAINS` (commit `af973944`). Kullanıcı kırık görsel yerine "Görsel hazırlanıyor" placeholder görür.
+
+**2026-05-24 ek olay — KRAL KURAL VIOLATION:** Compex resim fetch'i `guezelwebdesign` canlı müşteri VPS'inde Scrapling worker container içinde çalıştırıldı; load 11.8'e çıktı, 9 zombie chrome + 31 canlı, müşteri sitelerini (sozial.wirubu.de, kamanilan, konigsmassage, gzltemizlik vs.) etkileme riski. Hemen durduruldu (UYARI: `UYARI_2026-05-24_compex_yanlis_vps.md`). 140 ürünün resmi indirilmişti — sportoonline VPS'e taşınıp Laravel ile import edildi (Media #39348+, Product.image local Media ID'ye geçti). **Kalan 21 ürün hala remote URL** (placeholder gösteriyor).
+
+**KESİN KURAL:** Cloudflare arkasi scraping islemleri `guezelwebdesign` VPS'inde **ASLA** calistirilmaz. Yalnız bu iki yer:
+1. **scraper-service** (öncelik) — `scraper.guezelwebdesign.com` ayrı izole API, image binary endpoint eklenmesi gerek
+2. **VPS-sportoonline** — Maraton scraper'i halihazirda burada (cron 02:00 UTC)
 
 **Kalıcı çözüm — Scrapling async job mode + Playwright binary fetch:**
 

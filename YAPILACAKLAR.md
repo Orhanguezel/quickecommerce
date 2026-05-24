@@ -4,12 +4,13 @@
 > 5 günlük trafik raporu + ayrı nginx log, Geliver Türkçe il/ilçe fix + #113,
 > Google Places API, admin sipariş detayı/fatura adres + isim + temiz format.
 
-## 🆕 Compex resim CORP — hizli fix CANLIDA, kalici cozum Codex'te (2026-05-24)
+## 🆕 Compex resim CORP — KISMEN COZULDU + KURAL IHLALI ALINDI (2026-05-24)
 
-- **Sorun:** `https://sportoonline.com/tr/kategori/compex-spor-sp` — 161 Compex urun resmi `ERR_BLOCKED_BY_RESPONSE.NotSameOrigin`. Compex (compexturkiye.com) Cloudflare hotlink korumasi cok agresif: browser de 403, VPS de 403, public proxy'ler (wsrv.nl, Cloudinary fetch) de 403, Scrapling sync mode 524 timeout.
-- **Hizli fix (commit `ee55fece`, CANLI):** `ProductCard` `onError` handler + `/images/product-placeholder.svg`. Resim yuklenemezse "Görsel hazırlanıyor" placeholder gosterilir. 161 urun katalogta kalir, kullanici kirik gorsel gormez.
-- **Kalici cozum:** Codex'e atandi → [`AGENTS.md`](AGENTS.md) **Görev 10** (Scrapling async job mode + Playwright binary fetch ile resimleri yerel cache + `images:cache-remote` artisan komutu). Beklenen: 1300 image × Scrapling = saatler, background.
-- **Riskler:** Scrapling job mode binary capture destekliyor mu netleştirilmeli. Yoksa scraper-service tarafinda ek endpoint gerekebilir.
+- **Sorun:** Compex (compexturkiye.com) Cloudflare hotlink korumasi cok agresif: browser de 403, VPS de 403, public proxy'ler de 403, Scrapling sync mode 524 timeout.
+- **Hizli fix CANLIDA (commit `af973944`):** ProductCard + product-detail-client onError + SSR `BLOCKED_IMAGE_DOMAINS` listesi. Compex URL'leri SSR'da direkt placeholder'a yonlendiriliyor.
+- **Resim cekme — 140/161 OK (commit pending):** Scrapling Stealthy ile 140 ana resim indirildi, sportoonline VPS storage'ina taşindi, Media kayitlari (#39348+) olusturuldu, Product.image local Media ID'ye gecirildi. Test URL `/tr/urun/compex-sp6-0-...` artik gercek resimle aciliyor. Kategori `/tr/kategori/compex-spor-sp` da gercek resimler.
+- **KRITIK OLAY — yanlis VPS kullanildi:** Scrapling fetch isi `guezelwebdesign` canli musteri VPS'inde container icinde calistirildi; load 11.8'e cikti, zombie chrome process'ler birikti. UYARI: [`UYARI_2026-05-24_compex_yanlis_vps.md`](UYARI_2026-05-24_compex_yanlis_vps.md). Kural: **guezelwebdesign'da CF arkasi scraping ASLA**. Dogru yer: scraper-service endpoint veya VPS-sportoonline.
+- **Kalan 21 urun:** Resimleri henuz indirilmedi (placeholder gosteriyor). Codex Gorev 10'da kalici cozum: scraper-service'e binary fetch endpoint + Artisan `images:cache-remote` komutu.
 
 ## 🚧 BEKLEYEN UNCOMMITTED DEĞİŞİKLİKLER (2026-05-24)
 
