@@ -39,7 +39,9 @@ from html import unescape
 from urllib import request as urlrequest
 from urllib.error import HTTPError, URLError
 
-from shopify_scraper import clean_description_html, make_slug, strip_html  # noqa: F401
+from bs4 import BeautifulSoup
+
+from shopify_scraper import clean_description_html, make_slug, resolve_relative_urls, strip_html  # noqa: F401
 
 SCRAPER_URL = os.environ.get("SCRAPER_URL", "https://scraper.guezelwebdesign.com").rstrip("/")
 SCRAPER_API_KEY = os.environ.get(
@@ -200,6 +202,7 @@ def parse_product(html: str, url: str, vendor: str, default_category: str) -> di
     jsonld = _jsonld_product(html)
     if not jsonld:
         return None
+    soup = BeautifulSoup(html, "html.parser")
 
     name = unescape(str(jsonld.get("name") or "")).strip()
     if not name:
@@ -282,7 +285,7 @@ def parse_product(html: str, url: str, vendor: str, default_category: str) -> di
         if og and og.group(1).startswith("http"):
             images.append(og.group(1).strip())
 
-    desc_html = clean_description_html(str(jsonld.get("description") or ""))
+    desc_html = resolve_relative_urls(clean_description_html(str(jsonld.get("description") or "")), url)
     desc_text = strip_html(desc_html)
 
     slug = url.rstrip("/").rsplit("/", 1)[-1] or make_slug(name)

@@ -36,6 +36,7 @@ from shopify_scraper import (
     make_slug,
     resolve_image_dir,
     resolve_output,
+    resolve_relative_urls,
     strip_html,
 )
 
@@ -137,6 +138,7 @@ def _parse_product(session, url):
                               ".product-description, #urun_aciklama")
     if desc_el:
         desc_html = str(desc_el)
+    desc_html = resolve_relative_urls(desc_html, url)
 
     brand = jsonld.get("brand")
     if isinstance(brand, dict):

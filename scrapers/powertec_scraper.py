@@ -43,7 +43,7 @@ from opencart_scraper import (
     _jsonld_product,
     _offer,
 )
-from shopify_scraper import _download_image, make_slug, resolve_image_dir, resolve_output, strip_html
+from shopify_scraper import _download_image, make_slug, resolve_image_dir, resolve_output, resolve_relative_urls, strip_html
 
 # --- repo .env'ini yukle (SCRAPER_* degiskenleri icin) ---
 try:
@@ -198,6 +198,7 @@ def parse_product(html, url):
     )
     if m and len(m.group(1)) > len(strip_html(desc_html)):
         desc_html = m.group(0)
+    desc_html = resolve_relative_urls(desc_html, url)
 
     slug_match = re.search(r"/([^/?#]+?)(?:\.html)?(?:[?#].*)?$", url)
     slug = slug_match.group(1) if slug_match else make_slug(name)

@@ -24,6 +24,7 @@ from urllib.parse import urlparse
 import requests
 from bs4 import BeautifulSoup
 from paths import source_image_dir, source_product_path
+from shopify_scraper import resolve_relative_urls
 
 
 BASE_URL = "https://swanuniform.com"
@@ -234,7 +235,7 @@ def process_product(url: str) -> Dict[str, Any]:
         or ld_product.get("description")
         or ""
     )
-    description_html = description_raw
+    description_html = resolve_relative_urls(description_raw, url)
     description_text = strip_html(description_raw)
 
     category_name = extract_category_name(page_props, soup)

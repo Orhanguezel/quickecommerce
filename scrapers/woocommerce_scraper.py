@@ -28,6 +28,7 @@ from shopify_scraper import (  # noqa: F401  (resolve_* wrapper'lar tarafindan i
     make_slug,
     resolve_image_dir,
     resolve_output,
+    resolve_relative_urls,
     strip_html,
 )
 import re
@@ -192,8 +193,8 @@ def _process(raw_products, base_url, vendor, default_category):
                 "option3": None,
             })
 
-        desc_html = raw.get("description", "") or ""
-        short_html = raw.get("short_description", "") or ""
+        desc_html = resolve_relative_urls(raw.get("description", "") or "", permalink)
+        short_html = resolve_relative_urls(raw.get("short_description", "") or "", permalink)
 
         processed.append({
             "name": name,

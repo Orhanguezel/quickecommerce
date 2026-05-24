@@ -15,8 +15,10 @@ import re
 import time
 from html import unescape
 from pathlib import Path
+from urllib.parse import urljoin
 
 import requests
+from bs4 import BeautifulSoup
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
@@ -96,6 +98,40 @@ def clean_description_html(html):
         cleaned = s
         break
     return cleaned.strip()
+
+
+def resolve_relative_urls(html, base_url):
+    """Description HTML icindeki relatif medya/link URL'lerini absolute yapar."""
+    if not html or not base_url:
+        return html or ""
+
+    soup = BeautifulSoup(html, "html.parser")
+    changed = False
+    for tag, attr in (
+        ("img", "src"),
+        ("img", "data-src"),
+        ("source", "src"),
+        ("source", "srcset"),
+        ("a", "href"),
+    ):
+        for node in soup.find_all(tag):
+            value = node.get(attr)
+            if not value or value.startswith(("http://", "https://", "data:", "mailto:", "tel:", "#")):
+                continue
+            if attr == "srcset":
+                parts = []
+                for candidate in value.split(","):
+                    bits = candidate.strip().split()
+                    if not bits:
+                        continue
+                    bits[0] = urljoin(base_url, bits[0])
+                    parts.append(" ".join(bits))
+                node[attr] = ", ".join(parts)
+            else:
+                node[attr] = urljoin(base_url, value)
+            changed = True
+
+    return str(soup) if changed else html
 
 
 def make_slug(name):
@@ -181,7 +217,7 @@ def _process(raw_products, base_url, vendor, default_category):
     for raw in raw_products:
         handle = raw.get("handle", "")
         title = raw.get("title", "")
-        body_html = raw.get("body_html", "") or ""
+        body_html = resolve_relative_urls(raw.get("body_html", "") or "", base_url)
         product_type = raw.get("product_type", "")
         images = raw.get("images", [])
         image_urls = [img["src"] for img in images if img.get("src")]

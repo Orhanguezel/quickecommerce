@@ -41,6 +41,7 @@ from shopify_scraper import (
     make_slug,
     resolve_image_dir,
     resolve_output,
+    resolve_relative_urls,
     strip_html,
 )
 
@@ -166,6 +167,7 @@ def _parse_product(session, url):
 
     desc_el = soup.select_one("#product_full_description")
     desc_html = str(desc_el) if desc_el else ""
+    desc_html = resolve_relative_urls(desc_html, url)
 
     slug_match = re.search(r"/shop/([^/?#]+)", url)
     slug = slug_match.group(1) if slug_match else make_slug(name)

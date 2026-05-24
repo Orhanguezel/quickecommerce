@@ -25,6 +25,7 @@ from urllib import parse, request
 from urllib.error import HTTPError, URLError
 
 from paths import load_repo_env, source_product_path
+from shopify_scraper import resolve_relative_urls
 
 load_repo_env()
 
@@ -183,6 +184,10 @@ def convert_product(raw: dict[str, Any]) -> dict[str, Any]:
             "stock_quantity": 100 if raw.get("is_in_stock", True) else 0,
         })
 
+    permalink = raw.get("permalink") or f"{SITE_URL}/urun/{raw.get('slug', '')}/"
+    description_html = resolve_relative_urls(raw.get("description") or "", permalink)
+    short_description_html = resolve_relative_urls(raw.get("short_description") or "", permalink)
+
     return {
         "source": "dekomum",
         "source_product_id": raw.get("id"),
@@ -190,9 +195,9 @@ def convert_product(raw: dict[str, Any]) -> dict[str, Any]:
         "sku": raw.get("sku") or "",
         "name": html.unescape(raw.get("name") or ""),
         "slug": raw.get("slug") or "",
-        "url": raw.get("permalink") or f"{SITE_URL}/urun/{raw.get('slug', '')}/",
-        "description_html": raw.get("description") or "",
-        "description_text": strip_html(raw.get("description") or raw.get("short_description")),
+        "url": permalink,
+        "description_html": description_html,
+        "description_text": strip_html(description_html or short_description_html),
         "category": category_names[0] if category_names else "Genel",
         "categories": category_names,
         "original_price": original_price,

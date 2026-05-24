@@ -34,6 +34,7 @@ from shopify_scraper import (
     make_slug,
     resolve_image_dir,
     resolve_output,
+    resolve_relative_urls,
     strip_html,
 )
 
@@ -151,6 +152,7 @@ def _parse_product(session, url):
     else:
         og_desc = _meta(soup, "og:description")
         desc_html = f"<p>{og_desc}</p>" if og_desc else ""
+    desc_html = resolve_relative_urls(desc_html, url)
 
     # Beden varyantlari: feature-select / disable-variant linkleri.
     variants = []

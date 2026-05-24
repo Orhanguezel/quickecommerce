@@ -36,6 +36,7 @@ from shopify_scraper import (
     make_slug,
     resolve_image_dir,
     resolve_output,
+    resolve_relative_urls,
     strip_html,
 )
 
@@ -200,6 +201,7 @@ def _parse_product(session, url):
         md = soup.select_one("meta[itemprop=description], meta[name=description]")
         if md:
             desc_html = md.get("content") or ""
+    desc_html = resolve_relative_urls(desc_html, url)
 
     slug_match = re.search(r"/urun/([^/?#]+)", url)
     slug = slug_match.group(1) if slug_match else make_slug(name)

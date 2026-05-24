@@ -28,6 +28,7 @@ from shopify_scraper import (  # noqa: F401  (resolve_* wrapper'lar tarafindan i
     make_slug,
     resolve_image_dir,
     resolve_output,
+    resolve_relative_urls,
     strip_html,
 )
 
@@ -236,6 +237,8 @@ def _parse_product(session, url, vendor, default_category):
     html_stock = _html_stock_status(soup)
     if "outofstock" in avail or "soldout" in avail or "discontinued" in avail:
         in_stock = False
+    elif html_stock is False:
+        in_stock = False
     elif "instock" in avail or "preorder" in avail or "backorder" in avail:
         in_stock = True
     elif html_stock is not None:
@@ -261,7 +264,7 @@ def _parse_product(session, url, vendor, default_category):
     desc_el = soup.select_one("#tab-description, #product-description, .tab-content")
     if desc_el:
         desc_html = str(desc_el)
-    desc_html = clean_description_html(desc_html)
+    desc_html = resolve_relative_urls(clean_description_html(desc_html), url)
 
     brand = jsonld.get("brand")
     if isinstance(brand, dict):

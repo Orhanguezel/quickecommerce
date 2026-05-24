@@ -10,6 +10,7 @@ import requests, json, time, os, re, hashlib
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from paths import source_image_dir, source_product_path
+from shopify_scraper import resolve_relative_urls
 
 BASE_URL = "https://www.ayakkabimalzememarket.com"
 IMAGE_DIR = source_image_dir("ayakkabi_images")
@@ -72,7 +73,7 @@ def scrape_product_detail(product_url):
     # Aciklama
     desc = soup.select_one("#tab-description, .tab-content, .product-description")
     if desc:
-        detail["description_html"] = str(desc)
+        detail["description_html"] = resolve_relative_urls(str(desc), product_url)
         detail["description_text"] = desc.get_text(separator="\n", strip=True)
 
     # Gorseller

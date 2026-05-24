@@ -33,6 +33,7 @@ from shopify_scraper import (
     make_slug,
     resolve_image_dir,
     resolve_output,
+    resolve_relative_urls,
     strip_html,
 )
 
@@ -227,6 +228,7 @@ def _parse_product(session, url):
     if not desc_html:
         md = soup.select_one('meta[name="description"]')
         desc_html = md.get("content", "") if md else ""
+    desc_html = resolve_relative_urls(desc_html, url)
 
     # Kategori: JSON-LD `category`, yoksa breadcrumb son adimi.
     category = (jsonld.get("category") or "").strip()

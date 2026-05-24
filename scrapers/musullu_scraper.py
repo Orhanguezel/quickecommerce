@@ -28,6 +28,7 @@ from shopify_scraper import (
     make_slug,
     resolve_image_dir,
     resolve_output,
+    resolve_relative_urls,
     strip_html,
 )
 
@@ -133,7 +134,7 @@ def _parse_product(session, url):
     sku = str(jsonld.get("sku") or jsonld.get("mpn") or jsonld.get("productId") or "").strip()
     images = _images_from_jsonld(jsonld.get("image"))
 
-    desc_html = jsonld.get("description") or ""
+    desc_html = resolve_relative_urls(jsonld.get("description") or "", url)
     slug_match = re.search(r"/([^/?#]+?)(?:[?#].*)?$", url)
     slug = slug_match.group(1) if slug_match else make_slug(name)
 

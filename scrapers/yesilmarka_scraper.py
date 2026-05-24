@@ -20,7 +20,7 @@ from html import unescape
 
 import requests
 
-from shopify_scraper import resolve_output
+from shopify_scraper import resolve_output, resolve_relative_urls
 
 BASE_URL = "https://yesilmarka.com"
 SITEMAP = f"{BASE_URL}/products.xml"
@@ -116,6 +116,8 @@ def parse_product(url, html):
                 if category_crumbs else "Sporcu Besinleri")
     parent = "Sporcu Besinleri"
 
+    desc_html = resolve_relative_urls(str(product.get("description", "")), url)
+
     return {
         "name": unescape(str(product.get("name", ""))).strip(),
         "slug": url.rstrip("/").rsplit("/", 1)[-1],
@@ -124,8 +126,8 @@ def parse_product(url, html):
         "parent_category": parent,
         "vendor": brand or "Yeşilmarka",
         "product_type": category,
-        "description_html": str(product.get("description", "")),
-        "description_text": strip_html(str(product.get("description", ""))),
+        "description_html": desc_html,
+        "description_text": strip_html(desc_html),
         "original_price": price,
         "discounted_price": None,
         "discount_rate": None,

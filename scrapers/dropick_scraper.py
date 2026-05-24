@@ -17,7 +17,7 @@ from html import unescape
 
 import requests
 
-from shopify_scraper import resolve_output
+from shopify_scraper import resolve_output, resolve_relative_urls
 
 BASE_URL = "https://www.dropick.com.tr"
 SITEMAP = f"{BASE_URL}/sitemap_productlist.xml"
@@ -129,7 +129,8 @@ def parse_product(url, html):
     parent_category = unescape(breadcrumb[0].strip()) if breadcrumb else None
 
     slug = url.rstrip("/").rsplit("/", 1)[-1]
-    description = strip_html(str(ld.get("description", "")))
+    description_html = resolve_relative_urls(str(ld.get("description", "")), url)
+    description = strip_html(description_html)
 
     return {
         "name": name,
@@ -139,7 +140,7 @@ def parse_product(url, html):
         "parent_category": parent_category,
         "vendor": brand or "Dropick",
         "product_type": category,
-        "description_html": str(ld.get("description", "")),
+        "description_html": description_html,
         "description_text": description,
         "original_price": original_price,
         "discounted_price": discounted_price,

@@ -38,6 +38,7 @@ from shopify_scraper import (
     make_slug,
     resolve_image_dir,
     resolve_output,
+    resolve_relative_urls,
     strip_html,
 )
 
@@ -163,6 +164,7 @@ def _parse_product(session, url):
 
     desc_el = soup.select_one("#tab-description, #product-description")
     desc_html = str(desc_el) if desc_el else (jsonld.get("description") or "")
+    desc_html = resolve_relative_urls(desc_html, url)
 
     # Ozellikler tablosu (#tab-specification).
     specifications = []

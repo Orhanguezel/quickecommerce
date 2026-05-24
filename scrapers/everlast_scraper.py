@@ -7,6 +7,7 @@ Cikti: data/source-products/everlast_products.json, assets/source-images/everlas
 
 import requests, json, time, os, re, hashlib
 from paths import source_image_dir, source_product_path
+from shopify_scraper import resolve_relative_urls
 
 BASE_URL = "https://everlast.com.tr"
 IMAGE_DIR = source_image_dir("everlast_images")
@@ -106,7 +107,7 @@ def process_products(raw_products):
     for raw in raw_products:
         handle = raw.get("handle", "")
         title = raw.get("title", "")
-        body_html = raw.get("body_html", "") or ""
+        body_html = resolve_relative_urls(raw.get("body_html", "") or "", f"{BASE_URL}/products/{handle}")
         product_type = raw.get("product_type", "")
         tags = raw.get("tags", [])
         images = raw.get("images", [])

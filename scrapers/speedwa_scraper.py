@@ -47,6 +47,7 @@ from shopify_scraper import (
     make_slug,
     resolve_image_dir,
     resolve_output,
+    resolve_relative_urls,
     strip_html,
 )
 
@@ -257,7 +258,7 @@ def _build_product(card, detail):
     images = [i for i in images if i and i.startswith("http")]
 
     available = detail.get("available", True)
-    desc_html = detail.get("description_html", "")
+    desc_html = resolve_relative_urls(detail.get("description_html", ""), url)
     current_price = discounted_price if discounted_price is not None else original_price
 
     return {
