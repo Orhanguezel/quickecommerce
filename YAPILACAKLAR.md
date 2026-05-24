@@ -33,6 +33,37 @@
 - `backend-laravel/.phpunit.result.cache` (M) — `.gitignore`'a eklenmeli, repo'da olmamalı
 - `YAPILACAKLAR.md` (bu dosya — sen bunu edit ediyorsun)
 
+## 🆕 GZL Teknoloji — Sosyal Medya Yonetim Paneli (Urun Ekleme) — 2026-05-23
+
+- **Brief:** [`docs/notes/gzl-teknoloji-sosyal-medya-paneli.md`](docs/notes/gzl-teknoloji-sosyal-medya-paneli.md)
+- **Antigravity briefi:** [`ANTIGRAVITY.md`](ANTIGRAVITY.md) → Gorev 1
+- **Baglam:** Ekosistem-sosyal-medya SaaS'in ilk paying tenant'i (sozial.wirubu.de) 2026-05-23'te canli oldu. Artik SaaS sportoonline magazasinda satilik bir urun/hizmet olarak listelenebilir.
+
+### Claude Code (Orhan adina urun ekleyici rolu)
+- [X] **2026-05-24:** DB'ye **product #15365** eklendi.
+  - Slug: `sosyal-medya-yonetim-paneli-icerik-otomasyon-altyapisi`
+  - Store #54 GZL Teknoloji, kategori #775 Yazilim
+  - Variant #23290: SKU `GZL-SOSYALPANEL-BASLANGIC`, fiyat **12.900 TL** (placeholder — Wiribu 5k sonrasi 2026-05-29+ revize edilecek), stok 999
+  - Aciklama (HTML), meta_title, meta_description, 12 keyword tamam — SportoFlow/Hazir E-Ticaret kalip
+  - **status=pending** — frontend'de 404 (gorsel hazir degil). `total_product` GZL store'da 2 (gizli ✓).
+- [ ] **Antigravity gorseli hazir olunca:**
+  - [ ] Image upload + media ID al, `products.image = {id}` set
+  - [ ] Galeri gorselleri yukle, `products.gallery_images = "{id1},{id2},..."` set
+  - [ ] `products.status = 'approved'` yap
+  - [ ] Frontend dogrula: `/tr/urun/sosyal-medya-yonetim-paneli-icerik-otomasyon-altyapisi` HTTP 200
+  - [ ] GZL store sayfasinda gorunsun: `/tr/magaza/gzl-teknoloji` total_product 3
+- [ ] **2026-05-29 sonrasi:** Fiyat netlestir, `product_variants.price` guncelle.
+
+### Antigravity (gorsel uretici — bloke ediyor)
+- [`ANTIGRAVITY.md`](ANTIGRAVITY.md) Gorev 1 — su an `assets/products/` klasoru bos.
+- 5 cikti gerek: ana gorsel + 5 galeri + banner + sosyal post + kategori ikonu (SVG).
+- Bittiginde Claude Code'a haber → image set + status=approved.
+
+### Codex
+- Gorev YOK. Ozel "hizmet/SaaS urun tipi" gerekirse acilir.
+
+---
+
 ## 🎯 Ana İşler
 
 - [X] **1. E-Fatura sistemi adapte** — kod TAMAM, canlı geçiş ops/muhasebe ön koşullu
