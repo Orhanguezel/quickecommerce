@@ -70,6 +70,7 @@ export function ProductCard({
 
   const [mounted, setMounted] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const imageRef = useRef<HTMLDivElement>(null);
   const isInStock = product.stock === null || product.stock > 0;
 
@@ -215,7 +216,9 @@ export function ProductCard({
   ) : null;
 
   /* ── Product image ── */
-  const productImage = product.image_url ? (
+  // Bazi 3.taraf kaynaklarin CORP/hotlink korumasi (ornegin Compex Cloudflare)
+  // remote URL'i browser'a yukletmiyor. onError ile yakala, placeholder goster.
+  const productImage = (product.image_url && !imageError) ? (
     <Image
       src={product.image_url}
       alt={product.name}
@@ -227,10 +230,17 @@ export function ProductCard({
       }
       className="object-cover"
       unoptimized
+      onError={() => setImageError(true)}
     />
   ) : (
-    <div className="flex h-full w-full items-center justify-center bg-muted text-xs text-muted-foreground">
-      No Image
+    <div className="flex h-full w-full items-center justify-center bg-muted">
+      <Image
+        src="/images/product-placeholder.svg"
+        alt={product.name}
+        fill
+        className="object-contain"
+        unoptimized
+      />
     </div>
   );
 
