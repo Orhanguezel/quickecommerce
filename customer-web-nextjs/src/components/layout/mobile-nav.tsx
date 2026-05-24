@@ -134,6 +134,7 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
                                     <li key={child.id}>
                                       <Link
                                         href={toMenuHref(child.url)}
+                                        prefetch
                                         onClick={onClose}
                                         className="flex items-center rounded-md px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                                       >
@@ -147,6 +148,7 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
                         ) : (
                           <Link
                             href={toMenuHref(menu.url)}
+                            prefetch
                             onClick={onClose}
                             className="flex items-center gap-3 rounded-md px-4 py-3 text-base transition-colors hover:bg-accent"
                           >
@@ -159,6 +161,7 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
                     <li key={link.href}>
                       <Link
                         href={link.href}
+                        prefetch
                         onClick={onClose}
                         className="flex items-center gap-3 rounded-md px-4 py-3 text-base transition-colors hover:bg-accent"
                       >
@@ -176,6 +179,7 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
                   <li>
                     <Link
                       href={ROUTES.SELLER_REGISTER}
+                      prefetch
                       onClick={onClose}
                       className="flex items-center gap-3 rounded-md px-4 py-3 text-base font-medium transition-colors hover:bg-accent"
                     >

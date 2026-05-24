@@ -9,6 +9,8 @@ import { useBaseService } from "@/lib/base-service";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import { ProductCard } from "@/components/product/product-card";
 import { SectionHeader } from "./section-header";
+import type { Category } from "@/modules/site/site.type";
+import { isDisplayableProductCategory, sortCategoriesForNavigation } from "@/modules/site/category-utils";
 
 interface ProductListPage {
   data: Product[];
@@ -37,11 +39,34 @@ function ProductSkeleton() {
   );
 }
 
-export function InfiniteProductsSection({ title: titleProp }: { title?: string | null }) {
+function hourlyRotationSeed() {
+  return Math.floor(Date.now() / (1000 * 60 * 60));
+}
+
+function rotate<T>(items: T[], offset: number): T[] {
+  if (!items.length) return items;
+  const normalizedOffset = ((offset % items.length) + items.length) % items.length;
+  return [...items.slice(normalizedOffset), ...items.slice(0, normalizedOffset)];
+}
+
+export function InfiniteProductsSection({
+  title: titleProp,
+  categories = [],
+}: {
+  title?: string | null;
+  categories?: Category[];
+}) {
   const t = useTranslations("home");
   const { findAll } = useBaseService<ProductListPage>(API_ENDPOINTS.PRODUCTS);
   const title = titleProp || t("all_products_title");
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const rotatedCategories = rotate(
+    categories
+      .filter(isDisplayableProductCategory)
+      .sort(sortCategoriesForNavigation),
+    hourlyRotationSeed()
+  );
+  const primaryCategoryId = rotatedCategories[0]?.id;
 
   // Store mutable refs to avoid recreating the IntersectionObserver on every render
   const hasNextPageRef = useRef(false);
@@ -56,9 +81,13 @@ export function InfiniteProductsSection({ title: titleProp }: { title?: string |
     isLoading,
     isError,
   } = useInfiniteQuery({
-    queryKey: ["home-all-products"],
+    queryKey: ["home-all-products", primaryCategoryId],
     queryFn: async ({ pageParam }) => {
-      const res = await findAll({ page: pageParam, per_page: PER_PAGE });
+      const res = await findAll({
+        page: pageParam,
+        per_page: PER_PAGE,
+        ...(primaryCategoryId ? { category_id: [primaryCategoryId] } : {}),
+      });
       return res.data as unknown as ProductListPage;
     },
     initialPageParam: 1,
@@ -71,10 +100,11 @@ export function InfiniteProductsSection({ title: titleProp }: { title?: string |
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Keep refs in sync with latest values every render
-  hasNextPageRef.current = hasNextPage ?? false;
-  isFetchingNextPageRef.current = isFetchingNextPage;
-  fetchNextPageRef.current = fetchNextPage;
+  useEffect(() => {
+    hasNextPageRef.current = hasNextPage ?? false;
+    isFetchingNextPageRef.current = isFetchingNextPage;
+    fetchNextPageRef.current = fetchNextPage;
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   // Create IntersectionObserver once and use refs inside the callback
   useEffect(() => {

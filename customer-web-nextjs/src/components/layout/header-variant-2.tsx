@@ -190,6 +190,7 @@ export function HeaderVariant2() {
             {/* Tab: Products */}
             <Link
               href={ROUTES.PRODUCTS}
+              prefetch
               onClick={() => setActiveTab('Products')}
               className={`text-base font-semibold transition-colors duration-300 ${
                 activeTab === 'Products' ? 'text-red-500' : 'text-foreground hover:text-red-500'
@@ -202,6 +203,7 @@ export function HeaderVariant2() {
             {/* Tab: Category */}
             <Link
               href={ROUTES.CATEGORIES}
+              prefetch
               onClick={() => setActiveTab('Category')}
               className={`text-base font-semibold transition-colors duration-300 ${
                 activeTab === 'Category' ? 'text-red-500' : 'text-foreground hover:text-red-500'

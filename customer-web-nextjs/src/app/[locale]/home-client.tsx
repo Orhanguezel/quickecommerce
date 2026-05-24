@@ -572,6 +572,7 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
         return homeConfig.isAllProductsEnabled ? (
           <InfiniteProductsSection
             title={homeConfig.allProductsTitle}
+            categories={data.categories}
           />
         ) : null;
       case "recently_viewed_section":

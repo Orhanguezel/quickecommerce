@@ -344,6 +344,7 @@ export function HeaderVariant1() {
                     <Link
                       key={cat.id}
                       href={ROUTES.CATEGORY(cat.category_slug)}
+                      prefetch
                       className={`relative flex h-11 shrink-0 items-center border-b-[3px] px-3 transition-colors hover:text-primary ${
                         index === 0
                           ? 'border-primary text-primary'
@@ -409,6 +410,7 @@ export function HeaderVariant1() {
                           <Link
                             key={cat.id}
                             href={ROUTES.CATEGORY(cat.category_slug)}
+                            prefetch
                             onMouseEnter={() => setActiveCatId(cat.id)}
                             onFocus={() => setActiveCatId(cat.id)}
                             onClick={() => setCatOpen(false)}
@@ -434,6 +436,7 @@ export function HeaderVariant1() {
                         <div>
                           <Link
                             href={ROUTES.CATEGORY(activeCategory.category_slug)}
+                            prefetch
                             onClick={() => setCatOpen(false)}
                             className="mb-4 flex items-center gap-1 text-sm font-extrabold text-primary"
                           >
@@ -445,6 +448,7 @@ export function HeaderVariant1() {
                               <Link
                                 key={child.id}
                                 href={ROUTES.CATEGORY(child.category_slug)}
+                                prefetch
                                 onClick={() => setCatOpen(false)}
                                 className="block text-sm font-medium leading-tight text-foreground transition-colors hover:text-primary"
                               >
@@ -462,6 +466,7 @@ export function HeaderVariant1() {
                                 <div key={child.id}>
                                   <Link
                                     href={ROUTES.CATEGORY(child.category_slug)}
+                                    prefetch
                                     onClick={() => setCatOpen(false)}
                                     className="flex items-center gap-1 text-sm font-extrabold text-primary"
                                   >
@@ -474,6 +479,7 @@ export function HeaderVariant1() {
                                         <Link
                                           key={grandchild.id}
                                           href={ROUTES.CATEGORY(grandchild.category_slug)}
+                                          prefetch
                                           onClick={() => setCatOpen(false)}
                                           className="block text-sm leading-tight text-foreground transition-colors hover:text-primary"
                                         >
@@ -517,6 +523,7 @@ export function HeaderVariant1() {
                         <Link
                           key={cat.id}
                           href={ROUTES.CATEGORY(cat.category_slug)}
+                          prefetch
                           onClick={() => setCatOpen(false)}
                           className="group overflow-hidden rounded-lg border bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
                         >
