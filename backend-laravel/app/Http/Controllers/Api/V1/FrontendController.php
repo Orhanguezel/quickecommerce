@@ -1368,6 +1368,16 @@ class FrontendController extends Controller
         if (!empty($request->brand_id) && is_array($request->brand_id)) {
             $query->whereIn('brand_id', $request->brand_id);
         }
+        // Store filter — tekil ID veya CSV/array; magaza sayfasi infinite scroll
+        if (!empty($request->store_id)) {
+            $storeIds = is_array($request->store_id)
+                ? $request->store_id
+                : explode(',', (string) $request->store_id);
+            $storeIds = array_filter(array_map('intval', $storeIds));
+            if (!empty($storeIds)) {
+                $query->whereIn('store_id', $storeIds);
+            }
+        }
         // Apply price range filter
         if (isset($request->min_price) && isset($request->max_price)) {
             $minPrice = $request->min_price;

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { Link } from "@/i18n/routing";
 import Image from "next/image";
 import {
@@ -10,9 +11,24 @@ import {
   Phone,
   Mail,
   ShoppingBag,
+  Loader2,
 } from "lucide-react";
 import type { StoreDetail } from "@/modules/store/store.type";
+import type { Product } from "@/modules/product/product.type";
 import { ProductCard } from "@/components/product/product-card";
+import { useBaseService } from "@/lib/base-service";
+import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
+
+interface ProductListPage {
+  data: Product[];
+  current_page: number;
+  last_page: number;
+  per_page: number;
+  total: number;
+  meta?: { current_page: number; last_page: number };
+}
+
+const ALL_PAGE_SIZE = 20;
 
 interface StoreDetailTranslations {
   stores: string;
@@ -48,9 +64,65 @@ export function StoreDetailClient({
     store.featured_products.length > 0 ? "featured" : "all"
   );
 
-  const products =
-    activeTab === "featured" ? store.featured_products : store.all_products;
   const hasFeatured = store.featured_products.length > 0;
+
+  // "Tüm Ürünler" tab — infinite scroll (SSR'daki 20 ürün take(20) ile sınırlı)
+  const { findAll } = useBaseService<ProductListPage>(API_ENDPOINTS.PRODUCTS);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const hasNextPageRef = useRef(false);
+  const isFetchingNextPageRef = useRef(false);
+  const fetchNextPageRef = useRef<() => void>(() => {});
+
+  const allQuery = useInfiniteQuery({
+    queryKey: ["store-all-products", store.id],
+    queryFn: async ({ pageParam }) => {
+      const res = await findAll({
+        page: pageParam,
+        per_page: ALL_PAGE_SIZE,
+        store_id: store.id,
+      });
+      return res.data as unknown as ProductListPage;
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const current = lastPage?.meta?.current_page ?? lastPage?.current_page ?? 0;
+      const last = lastPage?.meta?.last_page ?? lastPage?.last_page ?? 0;
+      return current && last && current < last ? current + 1 : undefined;
+    },
+    staleTime: 5 * 60 * 1000,
+    enabled: activeTab === "all",
+  });
+
+  useEffect(() => {
+    hasNextPageRef.current = allQuery.hasNextPage ?? false;
+    isFetchingNextPageRef.current = allQuery.isFetchingNextPage;
+    fetchNextPageRef.current = allQuery.fetchNextPage;
+  }, [allQuery.fetchNextPage, allQuery.hasNextPage, allQuery.isFetchingNextPage]);
+
+  useEffect(() => {
+    if (activeTab !== "all") return;
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0]?.isIntersecting &&
+          hasNextPageRef.current &&
+          !isFetchingNextPageRef.current
+        ) {
+          fetchNextPageRef.current();
+        }
+      },
+      { threshold: 0, rootMargin: "400px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [activeTab]);
+
+  const allProducts =
+    allQuery.data?.pages.flatMap((p) => p?.data ?? []) ?? store.all_products;
+  const products =
+    activeTab === "featured" ? store.featured_products : allProducts;
   const formatStartedFrom = (value: string) => {
     const parsed = new Date(value);
     if (Number.isNaN(parsed.getTime())) return value;
@@ -201,11 +273,25 @@ export function StoreDetailClient({
 
       {/* ── Products Grid ── */}
       {products.length > 0 ? (
-        <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} compact />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} compact />
+            ))}
+          </div>
+
+          {/* Infinite scroll sentinel ("Tum Urunler" tab) */}
+          {activeTab === "all" && (
+            <div
+              ref={sentinelRef}
+              className="mt-8 flex min-h-[48px] items-center justify-center"
+            >
+              {allQuery.isFetchingNextPage && (
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              )}
+            </div>
+          )}
+        </>
       ) : (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <ShoppingBag className="mb-4 h-12 w-12 text-muted-foreground/50" />
