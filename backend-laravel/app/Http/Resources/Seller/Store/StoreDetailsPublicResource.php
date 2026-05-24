@@ -64,24 +64,29 @@ class StoreDetailsPublicResource extends JsonResource
             "additional_charge_name" => $store_type_info?->additional_charge_enable_disable ? $store_type_info->additional_charge_name : null,
             "additional_charge_amount" => $store_type_info?->additional_charge_enable_disable ? round($store_type_info->additional_charge_amount) : 0,
             "additional_charge_type" => $store_type_info?->additional_charge_enable_disable ? $store_type_info->additional_charge_type : 'fixed',
-            'total_product' => $this->products()->where('deleted_at', null)->where('status', 'approved')->count(),
+            'total_product' => $this->products()->publiclySellable()->count(),
+            // PERF FIX 2026-05-24: take(20) — onceden tum store urunleri tek
+            // payload'a giriyordu (Provitanya'da 1854 urun = 12.6 MB JSON).
+            // Frontend (magaza/[slug]/store-detail-client.tsx) bu listeyi
+            // tab icinde render eder, "daha fazla" icin product-list?store_id=X
+            // paginated endpoint kullanmali. AGENTS.md Gorev 9a.
             'all_products' => StoreProductListPublicResource::collection($this->products()
-                ->where('deleted_at', null)
-                ->where('status', 'approved')
+                ->publiclySellable()
                 ->with([
                     'variants' => function ($query) {
-                        $query->withoutTrashed()->take(1);
+                        $query->publiclySellable()->withoutTrashed()->take(1);
                     }
                 ])
                 ->latest()
+                ->take(20)
                 ->get()),
             'featured_products' => StoreProductListPublicResource::collection($this->products()
-                ->where('deleted_at', null)
-                ->where('status', 'approved')
+                ->publiclySellable()
                 ->where('is_featured', 1)
                 ->with(['variants' => function ($query) {
-                    $query->withoutTrashed()->take(1);
+                    $query->publiclySellable()->withoutTrashed()->take(1);
                 }])
+                ->take(20)
                 ->get()),
         ];
     }
