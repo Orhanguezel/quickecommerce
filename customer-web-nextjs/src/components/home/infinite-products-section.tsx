@@ -49,6 +49,15 @@ function rotate<T>(items: T[], offset: number): T[] {
   return [...items.slice(normalizedOffset), ...items.slice(0, normalizedOffset)];
 }
 
+interface InfinitePageParam {
+  catIdx: number;
+  page: number;
+}
+
+interface InfinitePageResult extends ProductListPage {
+  catIdx: number;
+}
+
 export function InfiniteProductsSection({
   title: titleProp,
   categories = [],
@@ -66,7 +75,7 @@ export function InfiniteProductsSection({
       .sort(sortCategoriesForNavigation),
     hourlyRotationSeed()
   );
-  const primaryCategoryId = rotatedCategories[0]?.id;
+  const seedKey = rotatedCategories.map((c) => c.id).join(",");
 
   // Store mutable refs to avoid recreating the IntersectionObserver on every render
   const hasNextPageRef = useRef(false);
@@ -81,21 +90,32 @@ export function InfiniteProductsSection({
     isLoading,
     isError,
   } = useInfiniteQuery({
-    queryKey: ["home-all-products", primaryCategoryId],
+    queryKey: ["home-all-products-rotated", seedKey],
     queryFn: async ({ pageParam }) => {
+      const { catIdx, page } = pageParam as InfinitePageParam;
+      const cat = rotatedCategories[catIdx];
       const res = await findAll({
-        page: pageParam,
+        page,
         per_page: PER_PAGE,
-        ...(primaryCategoryId ? { category_id: [primaryCategoryId] } : {}),
+        ...(cat ? { category_id: [cat.id] } : {}),
       });
-      return res.data as unknown as ProductListPage;
+      const payload = res.data as unknown as ProductListPage;
+      return { ...payload, catIdx } as InfinitePageResult;
     },
-    initialPageParam: 1,
+    initialPageParam: { catIdx: 0, page: 1 } as InfinitePageParam,
     getNextPageParam: (lastPage) => {
       const current =
         lastPage?.meta?.current_page ?? lastPage?.current_page ?? 0;
       const last = lastPage?.meta?.last_page ?? lastPage?.last_page ?? 0;
-      return current < last ? current + 1 : undefined;
+      // Aynı kategori içinde sıradaki sayfa varsa onu al
+      if (current && last && current < last) {
+        return { catIdx: lastPage.catIdx, page: current + 1 };
+      }
+      // Kategori bitti → sıradaki rotate kategoriye geç
+      if (lastPage.catIdx + 1 < rotatedCategories.length) {
+        return { catIdx: lastPage.catIdx + 1, page: 1 };
+      }
+      return undefined;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
