@@ -217,10 +217,18 @@ export function ProductCard({
 
   /* ── Product image ── */
   // Bazi 3.taraf kaynaklarin CORP/hotlink korumasi (ornegin Compex Cloudflare)
-  // remote URL'i browser'a yukletmiyor. onError ile yakala, placeholder goster.
-  const productImage = (product.image_url && !imageError) ? (
+  // remote URL'i browser'a yukletmiyor. SSR'da bilinen domain'leri direkt
+  // placeholder'a yonlendir; ayrica onError handler ile yedek koruma.
+  const PLACEHOLDER = "/images/product-placeholder.svg";
+  const BLOCKED_IMAGE_DOMAINS = ["compexturkiye.com"];
+  const isBlockedRemoteSrc =
+    !!product.image_url &&
+    BLOCKED_IMAGE_DOMAINS.some((d) => product.image_url!.includes(d));
+  const shouldShowPlaceholder =
+    !product.image_url || imageError || isBlockedRemoteSrc;
+  const productImage = !shouldShowPlaceholder ? (
     <Image
-      src={product.image_url}
+      src={product.image_url!}
       alt={product.name}
       fill
       sizes={
@@ -235,7 +243,7 @@ export function ProductCard({
   ) : (
     <div className="flex h-full w-full items-center justify-center bg-muted">
       <Image
-        src="/images/product-placeholder.svg"
+        src={PLACEHOLDER}
         alt={product.name}
         fill
         className="object-contain"

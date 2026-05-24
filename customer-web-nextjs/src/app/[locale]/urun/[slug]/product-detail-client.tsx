@@ -335,6 +335,31 @@ export function ProductDetailClient({
   translations: t,
 }: ProductDetailClientProps) {
   const [selectedImage, setSelectedImage] = useState(0);
+  // 3rd party CORP/hotlink korumali (Compex CF gibi) gorseller — placeholder fallback
+  const PRODUCT_IMAGE_PLACEHOLDER = "/images/product-placeholder.svg";
+  const BLOCKED_IMAGE_DOMAINS = ["compexturkiye.com"];
+  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
+  const markImageBroken = (src: string) =>
+    setImageErrors((prev) => {
+      if (prev.has(src)) return prev;
+      const next = new Set(prev);
+      next.add(src);
+      return next;
+    });
+  const safeImageSrc = (src: string | undefined | null) => {
+    if (!src) return PRODUCT_IMAGE_PLACEHOLDER;
+    if (imageErrors.has(src)) return PRODUCT_IMAGE_PLACEHOLDER;
+    if (BLOCKED_IMAGE_DOMAINS.some((d) => src.includes(d))) return PRODUCT_IMAGE_PLACEHOLDER;
+    return src;
+  };
+  const sanitizedDescription = (product.description ?? "").replace(
+    new RegExp(
+      `<img([^>]*?)src=["'](https?://[^"']*?(?:${BLOCKED_IMAGE_DOMAINS.map((d) => d.replace(/\./g, "\\.")).join("|")})[^"']*)["']([^>]*)>`,
+      "gi"
+    ),
+    (_match, before, _origUrl, after) =>
+      `<img${before}src="${PRODUCT_IMAGE_PLACEHOLDER}" style="max-width:300px;opacity:0.6"${after}>`
+  );
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<
     "description" | "specs" | "reviews" | "questions" | "delivery" | "refund"
@@ -715,12 +740,13 @@ export function ProductDetailClient({
                     }`}
                   >
                     <Image
-                      src={img}
+                      src={safeImageSrc(img)}
                       alt={`${product.name} - ${i + 1}`}
                       fill
                       sizes="64px"
                       className="object-cover"
                       unoptimized
+                      onError={() => markImageBroken(img)}
                     />
                   </button>
                 ))}
@@ -742,13 +768,14 @@ export function ProductDetailClient({
 
               <div className="relative h-[50vh] w-full max-w-2xl sm:h-[65vh]">
                 <Image
-                  src={allImages[lightboxIndex]}
+                  src={safeImageSrc(allImages[lightboxIndex])}
                   alt={product.name}
                   fill
                   sizes="(max-width: 768px) 95vw, 700px"
                   className="object-contain"
                   priority
                   unoptimized
+                  onError={() => markImageBroken(allImages[lightboxIndex])}
                 />
               </div>
 
@@ -809,12 +836,14 @@ export function ProductDetailClient({
           >
             {allImages[normalizedImageIndex] ? (
               <Image
-                src={allImages[normalizedImageIndex]}
+                src={safeImageSrc(allImages[normalizedImageIndex])}
                 alt={product.name}
                 fill
                 sizes="(max-width: 1024px) 100vw, 480px"
                 className="object-contain"
                 priority
+                unoptimized
+                onError={() => markImageBroken(allImages[normalizedImageIndex])}
               />
             ) : (
               <div className="flex h-full items-center justify-center text-muted-foreground">
@@ -903,11 +932,13 @@ export function ProductDetailClient({
                   }`}
                 >
                   <Image
-                    src={img}
+                    src={safeImageSrc(img)}
                     alt={`${product.name} - ${i + 1}`}
                     fill
                     sizes="64px"
                     className="object-cover"
+                    unoptimized
+                    onError={() => markImageBroken(img)}
                   />
                 </button>
               ))}
@@ -1440,7 +1471,7 @@ export function ProductDetailClient({
           {activeTab === "description" && (
             <div
               className="prose prose-sm max-w-none overflow-x-auto break-words"
-              dangerouslySetInnerHTML={{ __html: product.description || "" }}
+              dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
             />
           )}
 
