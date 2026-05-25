@@ -19,6 +19,7 @@ import {
   type FilterState,
   type FilterBrand,
   type FilterCategory,
+  type FilterStore,
 } from "@/components/product/filter-sidebar";
 import { useBaseService } from "@/lib/base-service";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
@@ -65,6 +66,7 @@ interface CategoryPageClientProps {
   categorySlug: string;
   subcategories: Category[];
   brands: FilterBrand[];
+  stores?: FilterStore[];
   totalPages?: number; // SSR'dan gelir ama infinite scroll kullanmiyor
   totalProducts: number;
   currentPage?: number; // SSR'dan gelir ama infinite scroll kullanmiyor
@@ -115,6 +117,7 @@ export function CategoryPageClient({
   categorySlug,
   subcategories,
   brands,
+  stores = [],
   totalProducts,
   perPage,
   filterCategoryIds,
@@ -139,6 +142,7 @@ export function CategoryPageClient({
     categorySlug,
     filterCategoryIds.join(","),
     currentFilters.brand_id?.join(",") ?? "",
+    currentFilters.store_id?.join(",") ?? "",
     currentFilters.min_price ?? "",
     currentFilters.max_price ?? "",
     currentFilters.min_rating ?? "",
@@ -159,6 +163,7 @@ export function CategoryPageClient({
       if (currentFilters.has_discount) extraParams.set("has_discount", currentFilters.has_discount);
       filterCategoryIds.forEach((id) => extraParams.append("category_id[]", id));
       currentFilters.brand_id?.forEach((id) => extraParams.append("brand_id[]", id));
+      currentFilters.store_id?.forEach((id) => extraParams.append("store_id[]", id));
       const endpoint = `${API_ENDPOINTS.PRODUCTS}?${extraParams.toString()}`;
       const res = await getAxiosInstance().get(endpoint);
       return res.data as unknown as ProductListPage;
@@ -311,6 +316,7 @@ export function CategoryPageClient({
             <FilterSidebar
               categories={filterCategories}
               brands={brands}
+              stores={stores}
               currentFilters={currentFilters}
               basePath={basePath}
               translations={filterTranslations}
@@ -328,6 +334,7 @@ export function CategoryPageClient({
                 <FilterSidebar
                   categories={filterCategories}
                   brands={brands}
+                  stores={stores}
                   currentFilters={currentFilters}
                   basePath={basePath}
                   translations={filterTranslations}
@@ -348,6 +355,7 @@ export function CategoryPageClient({
                 <option value="">{t.sort_default}</option>
                 <option value="newest">{t.sort_newest}</option>
                 <option value="popular">{t.sort_popular}</option>
+                <option value="rating_desc">En Yüksek Puan</option>
                 <option value="price_low_high">{t.sort_price_asc}</option>
                 <option value="price_high_low">{t.sort_price_desc}</option>
                 <option value="name_asc">A → Z</option>

@@ -25,6 +25,12 @@ export interface FilterState {
   availability?: string;
   sort?: string;
   has_discount?: string; // "1" = sadece indirimli urunler
+  store_id?: string[]; // magaza filtresi
+}
+
+export interface FilterStore {
+  id: number;
+  name: string;
 }
 
 export interface FilterBrand {
@@ -55,6 +61,7 @@ interface FilterSidebarProps {
   attributes?: FilterAttribute[];
   brands?: FilterBrand[];
   categories?: FilterCategory[];
+  stores?: FilterStore[];
   currentFilters: FilterState;
   basePath: string;
   translations: {
@@ -76,6 +83,7 @@ export function FilterSidebar({
   attributes = [],
   brands = [],
   categories = [],
+  stores = [],
   currentFilters,
   basePath,
   translations: t,
@@ -85,11 +93,16 @@ export function FilterSidebar({
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     categories: false,
     brands: false,
+    stores: false,
     price: false,
     rating: false,
   });
   const [expandedCats, setExpandedCats] = useState<Set<number>>(new Set());
   const [brandSearch, setBrandSearch] = useState("");
+  const [storeSearch, setStoreSearch] = useState("");
+  const [selectedStores, setSelectedStores] = useState<string[]>(
+    currentFilters.store_id || []
+  );
 
   const [minPrice, setMinPrice] = useState(currentFilters.min_price || "");
   const [maxPrice, setMaxPrice] = useState(currentFilters.max_price || "");
@@ -116,6 +129,12 @@ export function FilterSidebar({
     const search = brandSearch.toLowerCase();
     return brands.filter((b) => b.name.toLowerCase().includes(search));
   }, [brands, brandSearch]);
+
+  const filteredStores = useMemo(() => {
+    if (!storeSearch.trim()) return stores;
+    const search = storeSearch.toLowerCase();
+    return stores.filter((s) => s.name.toLowerCase().includes(search));
+  }, [stores, storeSearch]);
 
   function toggleSection(key: string) {
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -160,6 +179,7 @@ export function FilterSidebar({
     selectedCategories.forEach((id) => params.append("category_id", id));
     if (selectedRating) params.set("min_rating", selectedRating);
     if (hasDiscount) params.set("has_discount", "1");
+    selectedStores.forEach((id) => params.append("store_id", id));
     if (currentFilters.sort) params.set("sort", currentFilters.sort);
 
     const query = params.toString();
@@ -172,9 +192,11 @@ export function FilterSidebar({
     setMaxPrice("");
     setSelectedBrands([]);
     setSelectedCategories([]);
+    setSelectedStores([]);
     setSelectedRating("");
     setHasDiscount(false);
     setBrandSearch("");
+    setStoreSearch("");
     setSelectedAttributes({});
 
     const params = new URLSearchParams();
@@ -340,6 +362,56 @@ export function FilterSidebar({
                 {filteredBrands.length === 0 && (
                   <p className="py-2 text-center text-xs text-muted-foreground">
                     No brands found
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Stores (Mağazalar) */}
+      {stores.length > 0 && (
+        <div>
+          <SectionHeader label="Mağazalar" sectionKey="stores" />
+          {openSections.stores && (
+            <div className="mt-2 space-y-2 pb-2">
+              {stores.length > 8 && (
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="text"
+                    value={storeSearch}
+                    onChange={(e) => setStoreSearch(e.target.value)}
+                    placeholder="Mağaza ara"
+                    className="h-8 w-full rounded-md border bg-card pl-8 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30"
+                  />
+                </div>
+              )}
+              <div className="max-h-48 space-y-0.5 overflow-y-auto">
+                {filteredStores.map((store) => (
+                  <label
+                    key={store.id}
+                    className="flex cursor-pointer items-center gap-2 py-1.5 text-sm transition-colors hover:text-primary"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedStores.includes(String(store.id))}
+                      onChange={() =>
+                        setSelectedStores((prev) =>
+                          prev.includes(String(store.id))
+                            ? prev.filter((id) => id !== String(store.id))
+                            : [...prev, String(store.id)]
+                        )
+                      }
+                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary/30"
+                    />
+                    <span className="text-foreground">{store.name}</span>
+                  </label>
+                ))}
+                {filteredStores.length === 0 && (
+                  <p className="py-2 text-center text-xs text-muted-foreground">
+                    Mağaza bulunamadı
                   </p>
                 )}
               </div>

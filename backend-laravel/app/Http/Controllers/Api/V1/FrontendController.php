@@ -1517,6 +1517,19 @@ class FrontendController extends Controller
                     $query->orderBy('products.name', 'desc');
                     break;
 
+                case 'rating_desc':
+                    // Reviews tablosundan AVG(rating); review yoksa 0 (NULL coalesce)
+                    $ratingSub = DB::table('reviews')
+                        ->select('reviewable_id', DB::raw('AVG(rating) as avg_rating'))
+                        ->where('reviewable_type', Product::class)
+                        ->where('status', 'approved')
+                        ->groupBy('reviewable_id');
+                    $query->leftJoinSub($ratingSub, 'sort_ratings', function ($join) {
+                        $join->on('products.id', '=', 'sort_ratings.reviewable_id');
+                    })->orderByRaw('COALESCE(sort_ratings.avg_rating, 0) DESC')
+                      ->orderBy('products.created_at', 'desc'); // tiebreaker
+                    break;
+
                 default:
                     $query->latest('products.created_at');
             }

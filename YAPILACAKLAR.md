@@ -4,6 +4,46 @@
 > 5 günlük trafik raporu + ayrı nginx log, Geliver Türkçe il/ilçe fix + #113,
 > Google Places API, admin sipariş detayı/fatura adres + isim + temiz format.
 
+## 🆕 Search backend dinamik + yeni taxonomy attributes — ÇEKLİST (2026-05-25)
+
+> Aşağıdaki çekliste 2026-05-25 oturumunda **statik/yarım uygulanmış** olan iki büyük iş için detaylı plan. Sonraki oturumlarda tamamlanacak.
+
+### 1. Search dinamik backend (şu an SearchBar statik 10 terim kullanıyor)
+
+**Yapılacaklar:**
+- [ ] **Migration:** `search_logs` table (id, term, user_id?, locale, results_count, clicked_product_id?, ip_hash, created_at)
+- [ ] **Model:** `App\Models\SearchLog`
+- [ ] **Endpoint:** `POST /api/v1/search/track` — body: `{term, results_count, clicked_product_id?}` → SearchLog kaydet (ip hashlenmiş, KVKK uyumlu)
+- [ ] **Endpoint:** `GET /api/v1/search/popular?limit=10` — son 7 günün en sık aranan term'lerini grupla (`SELECT term, COUNT(*) c FROM search_logs WHERE created_at > NOW() - INTERVAL 7 DAY GROUP BY term ORDER BY c DESC LIMIT ?`), Cache::remember 1 saat TTL
+- [ ] **Endpoint:** `GET /api/v1/search/suggest?q={term}&limit=10` — type-ahead autocomplete: products (LIKE name), categories (LIKE category_name), brands (LIKE name) — combined response
+- [ ] **Frontend:**
+  - SearchBar input onChange debounce 250ms → `/search/suggest?q=` çağrı
+  - Min 2 karakter
+  - Dropdown'da type-ahead sonuçlar üstte, popüler aramalar altta
+  - Statik `STATIC_POPULAR_TERMS` listesi yerine API'den çek
+  - Submit (Enter / arama butonu / chip tıklama) → `/search/track` POST
+- [ ] **Admin panel:** SearchLog tablosu listele (en çok aranan, conversion rate, "0 sonuç" aramalar)
+
+### 2. Yeni taxonomy attributes (Cinsiyet/Beden/Renk/Aktivite)
+
+**Yapılacaklar:**
+- [ ] **Migration:** `product_variants` tablosuna kolon ekle veya `product_attributes` separate table
+  - `gender` ENUM('male', 'female', 'unisex', null)
+  - `size` VARCHAR (XS, S, M, L, XL veya 38, 40, 42)
+  - `color` VARCHAR + `color_hex` (swatch için)
+  - `activity` SET('running', 'fitness', 'football', 'outdoor', 'yoga', null) — veya ProductCategory tag pattern
+- [ ] **Backend filter:** `products()` method'una yeni filter parametreleri:
+  - `gender=male`, `size[]=M&size[]=L`, `color[]=red&color[]=blue`, `activity[]=running`
+- [ ] **Scraper güncelleme:** Mevcut scraper'lar (Maraton, Provitanya, Compex, vs.) ürün varyantlarından gender/size/color çekmiyor → her scraper'a attribute extraction eklenmeli (Shopify/Ideasoft/OpenCart JSON-LD'de bu bilgi var ama parse edilmiyor)
+- [ ] **Frontend FilterSidebar:** 4 yeni bölüm:
+  - Cinsiyet (radio: Kadın/Erkek/Unisex)
+  - Beden (checkbox grid)
+  - Renk (color swatch dots)
+  - Aktivite (multi-select)
+- [ ] **Migration veri backfill:** Mevcut ~12.000 ürünün attribute'larını doldurma (manuel/script — büyük iş)
+
+**Faz:** Faz 2 (taxonomi restruktur). Migration + scraper update + backfill = 1-2 hafta iş.
+
 ## 🆕 Header topbar non-sticky + wrapper kontrol — ÇEKLİST (2026-05-25)
 
 > Bugün topbar'dan tekrar eden linkler (Tüm Ürünler, Kuponlar) kaldırıldı, Blog linki eklendi. Sıradaki iş: topbar'ı scroll edince gizle (non-sticky).

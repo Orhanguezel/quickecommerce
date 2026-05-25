@@ -18,6 +18,7 @@ interface Props {
     sort?: string;
     brand_id?: string | string[];
     category_id?: string | string[];
+    store_id?: string | string[];
     min_price?: string;
     max_price?: string;
     min_rating?: string;
@@ -96,6 +97,7 @@ async function getCategoryData(
       categoryName: decodedSlug.replace(/-/g, " "),
       subcategories: [] as Category[],
       brands: [] as Brand[],
+      stores: [] as { id: number; name: string }[],
       filterCategoryIds: [] as string[],
       found: false,
     };
@@ -129,7 +131,7 @@ async function getCategoryData(
   if (maxPrice) productParams.max_price = maxPrice;
   if (minRating) productParams.min_rating = minRating;
 
-  const [productsRes, brandsRes] =
+  const [productsRes, brandsRes, storesRes] =
     await Promise.allSettled([
       fetchAPI<any>(
         `${API_ENDPOINTS.PRODUCTS}?${extraParams.toString()}`,
@@ -137,12 +139,15 @@ async function getCategoryData(
         locale
       ),
       fetchAPI<any>(API_ENDPOINTS.BRANDS, { per_page: 100 }, locale),
+      fetchAPI<any>(API_ENDPOINTS.STORES, { per_page: 100 }, locale),
     ]);
 
   const productsData =
     productsRes.status === "fulfilled" ? productsRes.value : null;
   const brandsData =
     brandsRes.status === "fulfilled" ? brandsRes.value : null;
+  const storesData =
+    storesRes.status === "fulfilled" ? storesRes.value : null;
   const directSubcategories = getChildren(categories, category.id)
     .filter(isDisplayableProductCategory)
     .sort(sortCategoriesForNavigation);
@@ -165,6 +170,7 @@ async function getCategoryData(
     categoryName: category.category_name,
     subcategories,
     brands: (brandsData?.data ?? []) as Brand[],
+    stores: (storesData?.data ?? []) as { id: number; name: string }[],
     filterCategoryIds,
     found: true,
   };
@@ -215,6 +221,11 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     ? Array.isArray(sp.category_id)
       ? sp.category_id
       : [sp.category_id]
+    : undefined;
+  const storeIds = sp.store_id
+    ? Array.isArray(sp.store_id)
+      ? sp.store_id
+      : [sp.store_id]
     : undefined;
 
   const data = await getCategoryData(
@@ -334,6 +345,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         categorySlug={slug}
         subcategories={data.subcategories}
         brands={data.brands.map((b) => ({ id: b.id, name: b.label }))}
+        stores={data.stores}
         totalPages={data.totalPages}
         totalProducts={data.totalProducts}
         currentPage={data.currentPage}
@@ -343,6 +355,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         currentFilters={{
           brand_id: brandIds,
           category_id: categoryIds,
+          store_id: storeIds,
           min_price: sp.min_price,
           max_price: sp.max_price,
           min_rating: sp.min_rating,
