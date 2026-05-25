@@ -245,6 +245,83 @@ export function CategoryPageClient({
 
   const filterTranslations = pickFilterTranslations(t);
 
+  // Aktif filtre chips — kullanici filterleri tek tek temizleyebilir
+  function removeParam(remove: (params: URLSearchParams) => void) {
+    const params = new URLSearchParams();
+    currentFilters.brand_id?.forEach((id) => params.append("brand_id", id));
+    currentFilters.store_id?.forEach((id) => params.append("store_id", id));
+    if (currentFilters.min_price) params.set("min_price", currentFilters.min_price);
+    if (currentFilters.max_price) params.set("max_price", currentFilters.max_price);
+    if (currentFilters.min_rating) params.set("min_rating", currentFilters.min_rating);
+    if (currentFilters.has_discount) params.set("has_discount", currentFilters.has_discount);
+    if (currentSort) params.set("sort", currentSort);
+    remove(params);
+    const query = params.toString();
+    router.push(`${basePath}${query ? `?${query}` : ""}`);
+  }
+
+  const activeChips: Array<{ key: string; label: string; onRemove: () => void }> = [];
+  // Markalar
+  currentFilters.brand_id?.forEach((id) => {
+    const brand = brands.find((b) => String(b.id) === String(id));
+    if (brand) {
+      activeChips.push({
+        key: `brand-${id}`,
+        label: brand.name,
+        onRemove: () =>
+          removeParam((p) => {
+            p.delete("brand_id");
+            currentFilters.brand_id?.filter((x) => x !== id).forEach((x) => p.append("brand_id", x));
+          }),
+      });
+    }
+  });
+  // Magazalar
+  currentFilters.store_id?.forEach((id) => {
+    const store = stores.find((s) => String(s.id) === String(id));
+    if (store) {
+      activeChips.push({
+        key: `store-${id}`,
+        label: store.name,
+        onRemove: () =>
+          removeParam((p) => {
+            p.delete("store_id");
+            currentFilters.store_id?.filter((x) => x !== id).forEach((x) => p.append("store_id", x));
+          }),
+      });
+    }
+  });
+  // Fiyat
+  if (currentFilters.min_price || currentFilters.max_price) {
+    const mn = currentFilters.min_price ?? "0";
+    const mx = currentFilters.max_price ?? "∞";
+    activeChips.push({
+      key: "price",
+      label: `${mn} - ${mx} ₺`,
+      onRemove: () =>
+        removeParam((p) => {
+          p.delete("min_price");
+          p.delete("max_price");
+        }),
+    });
+  }
+  // Puan
+  if (currentFilters.min_rating) {
+    activeChips.push({
+      key: "rating",
+      label: `${currentFilters.min_rating}★ ve üzeri`,
+      onRemove: () => removeParam((p) => p.delete("min_rating")),
+    });
+  }
+  // İndirim
+  if (currentFilters.has_discount) {
+    activeChips.push({
+      key: "discount",
+      label: "Sadece İndirimli",
+      onRemove: () => removeParam((p) => p.delete("has_discount")),
+    });
+  }
+
   const filterCategories: FilterCategory[] = subcategories.map((sub) => ({
     id: sub.id,
     category_name: sub.category_name,
@@ -306,6 +383,33 @@ export function CategoryPageClient({
               </Link>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Aktif filtre chip'leri — tek tek temizleme + "Tumunu Temizle" */}
+      {activeChips.length > 0 && (
+        <div className="mb-6 flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold text-muted-foreground">Aktif filtreler:</span>
+          {activeChips.map((chip) => (
+            <button
+              key={chip.key}
+              type="button"
+              onClick={chip.onRemove}
+              className="group flex items-center gap-1.5 rounded-full border bg-primary/5 px-3 py-1 text-xs font-medium text-foreground transition-colors hover:border-primary hover:bg-primary/10"
+            >
+              {chip.label}
+              <span className="text-muted-foreground transition-colors group-hover:text-primary">
+                ×
+              </span>
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => router.push(basePath)}
+            className="ml-1 text-xs font-semibold text-primary hover:underline"
+          >
+            Tümünü Temizle
+          </button>
         </div>
       )}
 

@@ -90,12 +90,13 @@ export function FilterSidebar({
 }: FilterSidebarProps) {
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  // Onemli bolumler default acik (kullanici hemen gorsun)
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    categories: false,
-    brands: false,
-    stores: false,
-    price: false,
-    rating: false,
+    categories: true,
+    brands: true,
+    stores: false, // mağaza opsiyonel, default kapali
+    price: true,
+    rating: false, // puan opsiyonel
   });
   const [expandedCats, setExpandedCats] = useState<Set<number>>(new Set());
   const [brandSearch, setBrandSearch] = useState("");

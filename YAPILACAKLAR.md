@@ -185,10 +185,13 @@
 - [ ] **Marka tipi** — Premium / Ekonomik (manuel etiketleme)
 
 **UI iyileştirme:**
-- [ ] Marka listesi: arama + kaydırılabilir (mevcut brand_id zaten array, brand listesi kategori bazlı çekilebilir)
-- [ ] Filtreler toggle açıkken default açık olsun (Fiyat default kapalı)
-- [ ] Mobilde "Filtre" bottom-sheet (şu an sidebar yok mobilde)
-- [ ] Aktif filtreleri sayfa başında chip gösterimi ("Provitanya × | 100-500 TL × | Temizle")
+- [X] ✅ Marka listesi: arama + kaydırılabilir (zaten var: brandSearch + max-h-48 overflow)
+- [X] ✅ Filtreler toggle default açık (categories, brands, price; stores/rating kapali — UX odakli) — 2026-05-26
+- [X] ✅ Aktif filtreleri sayfa başında chip gösterimi ("Provitanya × | 100-500 TL × | Tümünü Temizle") — 2026-05-26
+- [ ] Mobilde "Filtre" bottom-sheet (şu an sidebar yok mobilde, basit dropdown) — orta iş, Shadcn Sheet ile
+
+**İptal (çelişkili):**
+- ~~Stok durumu — Stokta (varsayılan) / Tümü (stoksuz dahil göster)~~ — Codex Görev 6 ile çelişiyor: o görev "stoksuz tamamen gizlensin" yaklaşımını uygulamış (publiclySellable scope `stock_quantity > 0`). "Tümünü göster" toggle o kararla ters. **Madde kaldırıldı.**
 
 **Faz:** Faz 2 (taxonomi restruktur) ile birlikte ele alınmalı çünkü:
 - "Aktivite", "Cinsiyet", "Yaş grubu" yeni taxonomy attribute'lar gerektirir
