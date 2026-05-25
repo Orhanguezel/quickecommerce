@@ -4,6 +4,31 @@
 > 5 günlük trafik raporu + ayrı nginx log, Geliver Türkçe il/ilçe fix + #113,
 > Google Places API, admin sipariş detayı/fatura adres + isim + temiz format.
 
+## 🆕 Header topbar non-sticky + wrapper kontrol — ÇEKLİST (2026-05-25)
+
+> Bugün topbar'dan tekrar eden linkler (Tüm Ürünler, Kuponlar) kaldırıldı, Blog linki eklendi. Sıradaki iş: topbar'ı scroll edince gizle (non-sticky).
+
+**Mevcut durum:** [header-variant-1.tsx:200-240](customer-web-nextjs/src/components/layout/header-variant-1.tsx#L200-L240) topbar `<div className="hidden lg:block">` sticky bir parent altında. Scroll'da hep görünüyor.
+
+**Yapılacaklar:**
+- [ ] Topbar'ı scroll Y > 50px olduğunda `translate-y-[-100%]` ile gizle (smooth transition)
+- [ ] Geri çıkarken (scroll up) tekrar göster
+- [ ] State management: `useScrollDirection()` custom hook veya basit `useEffect` + scroll listener
+- [ ] **DİKKAT:** Topbar gizlendiğinde altındaki ana header'ın sticky pozisyonu / üstten boşluk kayıyor — content jump olabilir.
+- [ ] **Wrapper kontrolü gerekli sayfalar:**
+  - `/tr` ana sayfa
+  - `/tr/kategori/[slug]` kategori
+  - `/tr/urun/[slug]` ürün detay (sticky add-to-cart bar var)
+  - `/tr/magaza/[slug]` mağaza
+  - `/tr/sepet`, `/tr/odeme` checkout flow (form scroll davranışı kritik)
+  - `/tr/hesabim` + alt sayfaları (sidebar layout)
+  - `/tr/destek`, `/tr/blog`, `/tr/hakkimizda` (basit içerik)
+- [ ] **Layout file:** [src/app/[locale]/layout.tsx](customer-web-nextjs/src/app/[locale]/layout.tsx) — ana header + body padding-top değeri
+- [ ] Mobil: topbar zaten gizli (`hidden lg:block`), sadece masaüstü etkilenir
+- [ ] Test: her sayfa için top scroll davranışı + back-to-top button konumu
+
+**Faz:** Faz 3 UX iyileştirme
+
 ## 🆕 Arama çubuğu Trendyol tarzı dropdown — REFERANS GÖRSEL (2026-05-25)
 
 > Kullanıcı Trendyol arama UI screenshot'unu paylaştı (focus alınca açılan dropdown). Aşağıdaki PLANLAMA bölümüyle birlikte uygulanacak — bu sadece görsel referans + spesifik elementler.

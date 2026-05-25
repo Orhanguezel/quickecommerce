@@ -206,10 +206,7 @@ export function HeaderVariant1() {
         >
           <div className="container flex h-8 items-center justify-between text-[11px] font-medium">
             <div className="flex items-center gap-5">
-              <Link href={ROUTES.PRODUCTS} className="transition-opacity hover:opacity-80">
-                {t('home.all_products_title')}
-              </Link>
-              <span className="h-3 w-px bg-current opacity-20" />
+              {/* "Tüm Ürünler" topbar'dan kaldırıldı — alt nav'da zaten var */}
               <Link href={ROUTES.SELLER_REGISTER} className="transition-opacity hover:opacity-80">
                 {t('common.become_seller')}
               </Link>
@@ -219,8 +216,9 @@ export function HeaderVariant1() {
               </Link>
             </div>
             <div className="flex items-center gap-5">
-              <Link href={ROUTES.COUPONS} className="transition-opacity hover:opacity-80">
-                {t('nav.coupons')}
+              {/* "Kuponlar" topbar'dan kaldırıldı — alt nav'da zaten var */}
+              <Link href={ROUTES.BLOG} className="transition-opacity hover:opacity-80">
+                {t('nav.blog')}
               </Link>
               <Link href={ROUTES.ABOUT} className="transition-opacity hover:opacity-80">
                 {t('nav.about')}
