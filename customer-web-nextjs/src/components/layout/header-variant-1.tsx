@@ -131,26 +131,9 @@ export function HeaderVariant1() {
     return m ? decodeURIComponent(m[1]) : null;
   })();
 
-  // Topbar scroll davranisi: scroll Y > 50 ise collapse, < 30 ise goster (hysteresis)
-  const [topbarVisible, setTopbarVisible] = useState(true);
-  useEffect(() => {
-    let ticking = false;
-    const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        const y = window.scrollY;
-        setTopbarVisible((current) => {
-          if (current && y > 50) return false;
-          if (!current && y < 30) return true;
-          return current;
-        });
-        ticking = false;
-      });
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  // Topbar artik sticky parent'in DISINDA — dogal scroll'la kayar.
+  // overflow-hidden + max-h ile collapse yapilirsa dropdown'lar (dil/tema)
+  // kesilir, bu yuzden topbar'i ayri block yapip dogal scroll'a birakiyoruz.
   const centerCategories =
     activeChildren.length > 0
       ? activeChildren
@@ -215,19 +198,15 @@ export function HeaderVariant1() {
 
   return (
     <>
+      {/* Topbar: sticky parent'in DISINDA — dogal scroll'la kayar.
+          Dropdown'lar (Dil/Tema) overflow-hidden kesilmesin diye ayri block. */}
       <div
-        className="sticky z-[80] w-full shadow-sm"
-        style={{ top: 'var(--theme-popup-top-offset, 0px)' }}
+        className="hidden lg:block"
+        style={{
+          backgroundColor: 'hsl(var(--header-topbar-bg))',
+          color: 'hsl(var(--header-topbar-text))',
+        }}
       >
-        <div
-          className={`hidden overflow-hidden transition-all duration-200 lg:block ${
-            topbarVisible ? 'max-h-8 opacity-100' : 'max-h-0 opacity-0'
-          }`}
-          style={{
-            backgroundColor: 'hsl(var(--header-topbar-bg))',
-            color: 'hsl(var(--header-topbar-text))',
-          }}
-        >
           <div className="container flex h-8 items-center justify-between text-[11px] font-medium">
             <div className="flex items-center gap-5">
               {/* "Tüm Ürünler" topbar'dan kaldırıldı — alt nav'da zaten var */}
@@ -264,8 +243,13 @@ export function HeaderVariant1() {
             </div>
           </div>
         </div>
-        </div>
+      </div>
 
+      {/* Sticky wrapper: ana header + nav. Topbar bu wrapper DISI -> dogal scroll */}
+      <div
+        className="sticky z-[80] w-full shadow-sm"
+        style={{ top: 'var(--theme-popup-top-offset, 0px)' }}
+      >
         <div
           className="border-b"
           style={{ backgroundColor: 'hsl(var(--header-main-bg))' }}
