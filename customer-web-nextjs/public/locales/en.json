@@ -49,7 +49,13 @@
     "select_location": "Select Location",
     "search_placeholder": "What are you looking for?",
     "get_location": "Get Location",
-    "location": "Location"
+    "location": "Location",
+    "voice_search": "Voice search",
+    "recent_searches": "Recent searches",
+    "popular_searches": "Popular searches",
+    "trending_products": "Trending products",
+    "show_all": "Show all",
+    "clear": "Clear"
   },
   "nav": {
     "categories": "Categories",

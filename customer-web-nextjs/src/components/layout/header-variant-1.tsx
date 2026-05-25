@@ -13,6 +13,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
 import { MobileNav } from './mobile-nav';
+import { SearchBar } from './search-bar';
 import { LanguageSwitcher } from './language-switcher';
 import { CurrencySwitcher } from '@/components/common/currency-switcher';
 import {
@@ -129,6 +130,27 @@ export function HeaderVariant1() {
     const m = pathname.match(/^\/kategori\/([^/?]+)/);
     return m ? decodeURIComponent(m[1]) : null;
   })();
+
+  // Topbar scroll davranisi: scroll Y > 50 ise collapse, < 30 ise goster (hysteresis)
+  const [topbarVisible, setTopbarVisible] = useState(true);
+  useEffect(() => {
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const y = window.scrollY;
+        setTopbarVisible((current) => {
+          if (current && y > 50) return false;
+          if (!current && y < 30) return true;
+          return current;
+        });
+        ticking = false;
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
   const centerCategories =
     activeChildren.length > 0
       ? activeChildren
@@ -198,7 +220,9 @@ export function HeaderVariant1() {
         style={{ top: 'var(--theme-popup-top-offset, 0px)' }}
       >
         <div
-          className="hidden lg:block"
+          className={`hidden overflow-hidden transition-all duration-200 lg:block ${
+            topbarVisible ? 'max-h-8 opacity-100' : 'max-h-0 opacity-0'
+          }`}
           style={{
             backgroundColor: 'hsl(var(--header-topbar-bg))',
             color: 'hsl(var(--header-topbar-text))',
@@ -281,24 +305,7 @@ export function HeaderVariant1() {
               )}
             </Link>
 
-            <form onSubmit={handleSearch} className="hidden flex-1 md:flex">
-              <div className="flex h-11 w-full items-center overflow-hidden rounded-[4px] border-2 border-primary bg-background transition-shadow focus-within:shadow-[0_0_0_3px_hsl(var(--primary)/0.14)] lg:h-12">
-                <input
-                  type="search"
-                  placeholder={t('common.search_placeholder')}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-full min-w-0 flex-1 border-none bg-transparent px-4 text-sm text-foreground outline-none placeholder:text-muted-foreground"
-                />
-                <button
-                  type="submit"
-                  aria-label={t('common.search')}
-                  className="mr-1 flex h-9 w-11 shrink-0 items-center justify-center rounded-[3px] bg-primary text-primary-foreground transition-opacity hover:opacity-90"
-                >
-                  <Search className="h-5 w-5" />
-                </button>
-              </div>
-            </form>
+            <SearchBar />
 
             <div className="flex shrink-0 items-center gap-1 sm:gap-2 lg:gap-1">
               <Link
