@@ -566,21 +566,52 @@ export function FilterSidebar({
         )}
       </button>
 
-      {/* Mobile overlay */}
+      {/* Mobile bottom-sheet — alttan yukari kayar, kullanici dostuyla pratik */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
+          {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-black/50 animate-in fade-in duration-200"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="absolute inset-y-0 left-0 w-80 overflow-y-auto bg-background p-5 shadow-xl">
-            <div className="mb-4 flex items-center justify-between">
+          {/* Bottom-sheet */}
+          <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-hidden rounded-t-2xl bg-background shadow-2xl animate-in slide-in-from-bottom duration-300">
+            {/* Drag handle (visual) */}
+            <div className="flex justify-center py-2">
+              <div className="h-1 w-10 rounded-full bg-muted-foreground/30" />
+            </div>
+            {/* Header */}
+            <div className="flex items-center justify-between border-b px-5 pb-3">
               <h2 className="text-lg font-bold">{t.filter_options}</h2>
-              <button onClick={() => setMobileOpen(false)}>
+              <button
+                onClick={() => setMobileOpen(false)}
+                aria-label="Kapat"
+                className="rounded-full p-1.5 transition-colors hover:bg-muted"
+              >
                 <X className="h-5 w-5" />
               </button>
             </div>
-            {filterContent}
+            {/* Scrollable content */}
+            <div className="max-h-[calc(85vh-7rem)] overflow-y-auto px-5 py-4 pb-24">
+              {filterContent}
+            </div>
+            {/* Fixed bottom: apply button */}
+            <div className="absolute inset-x-0 bottom-0 flex gap-2 border-t bg-background px-5 py-3">
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="flex-1 rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors hover:bg-muted"
+              >
+                {t.clear_filters}
+              </button>
+              <button
+                type="button"
+                onClick={applyFilters}
+                className="flex-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90"
+              >
+                {t.apply_filters}
+              </button>
+            </div>
           </div>
         </div>
       )}
