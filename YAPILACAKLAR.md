@@ -6,23 +6,29 @@
 
 ## 🆕 Search backend dinamik + yeni taxonomy attributes — ÇEKLİST (2026-05-25)
 
-> Aşağıdaki çekliste 2026-05-25 oturumunda **statik/yarım uygulanmış** olan iki büyük iş için detaylı plan. Sonraki oturumlarda tamamlanacak.
+> 2026-05-25/26 oturumunda yapılanlar + bekleyenler.
 
-### 1. Search dinamik backend (şu an SearchBar statik 10 terim kullanıyor)
+### 1. Search dinamik backend ✅ TAMAMLANDI (2026-05-26)
 
-**Yapılacaklar:**
-- [ ] **Migration:** `search_logs` table (id, term, user_id?, locale, results_count, clicked_product_id?, ip_hash, created_at)
-- [ ] **Model:** `App\Models\SearchLog`
-- [ ] **Endpoint:** `POST /api/v1/search/track` — body: `{term, results_count, clicked_product_id?}` → SearchLog kaydet (ip hashlenmiş, KVKK uyumlu)
-- [ ] **Endpoint:** `GET /api/v1/search/popular?limit=10` — son 7 günün en sık aranan term'lerini grupla (`SELECT term, COUNT(*) c FROM search_logs WHERE created_at > NOW() - INTERVAL 7 DAY GROUP BY term ORDER BY c DESC LIMIT ?`), Cache::remember 1 saat TTL
-- [ ] **Endpoint:** `GET /api/v1/search/suggest?q={term}&limit=10` — type-ahead autocomplete: products (LIKE name), categories (LIKE category_name), brands (LIKE name) — combined response
-- [ ] **Frontend:**
-  - SearchBar input onChange debounce 250ms → `/search/suggest?q=` çağrı
-  - Min 2 karakter
-  - Dropdown'da type-ahead sonuçlar üstte, popüler aramalar altta
-  - Statik `STATIC_POPULAR_TERMS` listesi yerine API'den çek
-  - Submit (Enter / arama butonu / chip tıklama) → `/search/track` POST
-- [ ] **Admin panel:** SearchLog tablosu listele (en çok aranan, conversion rate, "0 sonuç" aramalar)
+**Migration:** `2026_05_25_120000_create_search_logs_table` — id, term (indexed), user_id, locale, results_count, clicked_product_id, ip_hash (sha256+salt KVKK), created_at + composite index (created_at, term).
+
+**Model:** [`App\Models\SearchLog`](backend-laravel/app/Models/SearchLog.php)
+
+**Endpoints ([SearchController](backend-laravel/app/Http/Controllers/Api/V1/SearchController.php)):**
+- ✅ `GET /api/v1/search/popular?limit=10` — son 7 gün, `Cache::remember` 1 saat TTL
+- ✅ `POST /api/v1/search/track` — KVKK uyumlu (ip hash sha256+APP_KEY)
+- ✅ `GET /api/v1/search/suggest?q={term}&limit=10` — products (publiclySellable, order_count desc) + categories (Diğer Arşiv hariç) + brands (ProductBrand: brand_name as name)
+
+**Frontend ([SearchBar](customer-web-nextjs/src/components/layout/search-bar.tsx)):**
+- ✅ Type-ahead autocomplete: debounce 250ms, min 2 karakter, useQuery
+- ✅ Popüler aramalar: `/search/popular` dinamik (fallback statik 6 terim)
+- ✅ Submit'te `/search/track` POST (sessiz fail)
+- ✅ Dropdown: Öneriler (kategori/marka/ürün) üstte → Popüler aramalar → Trend ürünler
+
+**Bekleyen (sonraki oturum):**
+- [ ] Admin panel: SearchLog listesi (en çok aranan, conversion rate, "0 sonuç" aramalar — funnel analytics)
+- [ ] `clicked_product_id` tracking (kullanıcı suggest'ten ürün tıklarsa logla)
+- [ ] Autocomplete'de highlight matched chars (e.g. "wh" → **wh**ey)
 
 ### 2. Yeni taxonomy attributes (Cinsiyet/Beden/Renk/Aktivite)
 

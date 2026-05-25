@@ -11,26 +11,34 @@ import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import { ROUTES } from "@/config/routes";
 import type { Product } from "@/modules/product/product.type";
 
-// Sportoonline'a uygun statik popüler aramalar. Sonra `search/popular` endpoint
-// ile dinamik yapilacak (admin paneldeki + auto-track).
-const STATIC_POPULAR_TERMS = [
+// Popüler aramalar artik /search/popular endpoint'ten geliyor (son 7 gun analytics).
+// Eger backend bos donerse fallback statik liste:
+const FALLBACK_POPULAR_TERMS = [
   "whey protein",
   "creatine",
   "bcaa",
   "futbol topu",
-  "antrenman eldiveni",
-  "running ayakkabı",
   "yoga matı",
-  "sporcu havlu",
   "shaker",
-  "pre workout",
 ];
 
 const LS_RECENT_KEY = "sportoonline_recent_searches";
 const MAX_RECENT = 5;
+const SUGGEST_DEBOUNCE_MS = 250;
+const SUGGEST_MIN_CHARS = 2;
 
 interface ProductListResponse {
   data: Product[];
+}
+
+interface SuggestResponse {
+  products: Array<{ id: number; name: string; slug: string; image_url: string | null }>;
+  categories: Array<{ id: number; category_name: string; category_slug: string }>;
+  brands: Array<{ id: number; name: string; slug: string }>;
+}
+
+interface PopularResponse {
+  data: string[];
 }
 
 // Browser Web Speech API tip (cross-vendor)
@@ -82,6 +90,44 @@ export function SearchBar() {
     },
     staleTime: 10 * 60 * 1000, // 10dk
     enabled: open, // sadece dropdown açıkken fetch
+  });
+
+  // Popüler aramalar (son 7 gun analytics, 1 saat cache backend'de)
+  const popularQuery = useQuery({
+    queryKey: ["search-popular"],
+    queryFn: async () => {
+      const res = await getAxiosInstance().get("/search/popular?limit=10");
+      return res.data as PopularResponse;
+    },
+    staleTime: 60 * 60 * 1000, // 1 saat
+    enabled: open,
+  });
+  const popularTerms = popularQuery.data?.data?.length
+    ? popularQuery.data.data
+    : FALLBACK_POPULAR_TERMS;
+
+  // Type-ahead autocomplete (debounce 250ms, min 2 char)
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (trimmed.length < SUGGEST_MIN_CHARS) {
+      setDebouncedQuery("");
+      return;
+    }
+    const timer = setTimeout(() => setDebouncedQuery(trimmed), SUGGEST_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  const suggestQuery = useQuery({
+    queryKey: ["search-suggest", debouncedQuery],
+    queryFn: async () => {
+      const res = await getAxiosInstance().get(
+        `/search/suggest?q=${encodeURIComponent(debouncedQuery)}&limit=10`
+      );
+      return res.data as SuggestResponse;
+    },
+    staleTime: 5 * 60 * 1000,
+    enabled: open && debouncedQuery.length >= SUGGEST_MIN_CHARS,
   });
 
   // Recent searches localStorage
@@ -149,6 +195,15 @@ export function SearchBar() {
     if (!q) return;
     persistRecent(q);
     setOpen(false);
+    // KVKK uyumlu analytics: backend ip_hash + sha256
+    getAxiosInstance()
+      .post("/search/track", {
+        term: q,
+        results_count: suggestQuery.data?.products.length ?? 0,
+      })
+      .catch(() => {
+        // tracking sessiz fail — kullaniciya yansimasin
+      });
     router.push(`${ROUTES.SEARCH}?q=${encodeURIComponent(q)}`);
   };
 
@@ -284,13 +339,78 @@ export function SearchBar() {
             </div>
           )}
 
-          {/* Popüler aramalar */}
+          {/* Type-ahead autocomplete sonuclari (sadece 2+ char yazilmissa) */}
+          {debouncedQuery.length >= SUGGEST_MIN_CHARS &&
+            (suggestQuery.data?.products.length ?? 0) +
+              (suggestQuery.data?.categories.length ?? 0) +
+              (suggestQuery.data?.brands.length ?? 0) >
+              0 && (
+              <div className="mb-4 border-b pb-3">
+                <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                  Öneriler
+                </h3>
+                {(suggestQuery.data?.categories ?? []).length > 0 && (
+                  <div className="mb-2">
+                    {suggestQuery.data?.categories.map((c) => (
+                      <Link
+                        key={`cat-${c.id}`}
+                        href={`/kategori/${c.category_slug}`}
+                        onClick={() => setOpen(false)}
+                        className="block rounded px-2 py-1.5 text-sm text-foreground transition-colors hover:bg-muted"
+                      >
+                        <span className="text-xs text-muted-foreground">Kategori:</span>{" "}
+                        <span className="font-medium">{c.category_name}</span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+                {(suggestQuery.data?.brands ?? []).length > 0 && (
+                  <div className="mb-2">
+                    {suggestQuery.data?.brands.map((b) => (
+                      <button
+                        key={`brand-${b.id}`}
+                        type="button"
+                        onClick={() => submitSearch(b.name)}
+                        className="block w-full rounded px-2 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-muted"
+                      >
+                        <span className="text-xs text-muted-foreground">Marka:</span>{" "}
+                        <span className="font-medium">{b.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {(suggestQuery.data?.products ?? []).slice(0, 5).map((p) => (
+                  <Link
+                    key={`prod-${p.id}`}
+                    href={`/urun/${p.slug}`}
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-2 rounded px-2 py-1.5 text-sm text-foreground transition-colors hover:bg-muted"
+                  >
+                    <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded bg-muted">
+                      {p.image_url && (
+                        <Image
+                          src={p.image_url}
+                          alt={p.name}
+                          fill
+                          sizes="32px"
+                          className="object-cover"
+                          unoptimized
+                        />
+                      )}
+                    </div>
+                    <span className="line-clamp-1 flex-1 text-xs">{p.name}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
+
+          {/* Popüler aramalar (dinamik /search/popular, fallback statik) */}
           <div className="mb-4">
             <h3 className="mb-2 text-sm font-bold text-foreground">
               {t("common.popular_searches")}
             </h3>
             <div className="flex flex-wrap gap-2">
-              {STATIC_POPULAR_TERMS.map((term) => (
+              {popularTerms.map((term) => (
                 <button
                   key={term}
                   type="button"

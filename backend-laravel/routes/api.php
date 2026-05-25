@@ -74,6 +74,13 @@ Route::group(['prefix' => 'v1/'], function () {
         });
     });
 
+    // Search endpoints (yeni — type-ahead + popular + analytics)
+    Route::group(['prefix' => 'search'], function () {
+        Route::get('/popular', [\App\Http\Controllers\Api\V1\SearchController::class, 'popular']);
+        Route::get('/suggest', [\App\Http\Controllers\Api\V1\SearchController::class, 'suggest']);
+        Route::post('/track', [\App\Http\Controllers\Api\V1\SearchController::class, 'track']);
+    });
+
     // public routes for frontend
     Route::middleware('detect.platform')->group(function () {
         Route::get('/slider-list', [FrontendController::class, 'sliders']);
