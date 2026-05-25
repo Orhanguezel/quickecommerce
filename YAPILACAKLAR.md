@@ -4,6 +4,35 @@
 > 5 günlük trafik raporu + ayrı nginx log, Geliver Türkçe il/ilçe fix + #113,
 > Google Places API, admin sipariş detayı/fatura adres + isim + temiz format.
 
+## 🆕 Arama çubuğu Trendyol tarzı dropdown — REFERANS GÖRSEL (2026-05-25)
+
+> Kullanıcı Trendyol arama UI screenshot'unu paylaştı (focus alınca açılan dropdown). Aşağıdaki PLANLAMA bölümüyle birlikte uygulanacak — bu sadece görsel referans + spesifik elementler.
+
+**Trendyol pattern (referans):**
+- **Input genişliği:** Sayfanın 60-70%'i, ortalanmış, turuncu border on focus (bizde primary yeşil olacak)
+- **Dropdown:** Input'tan AŞAĞIYA doğru açılır, input'tan biraz daha geniş (taşar), shadow + rounded
+- **Boş input + focus = dropdown direkt açılır** (sadece type-ahead değil, **passive discovery**)
+- **Bölüm 1: "Popüler Aramalar"** — yatay sarılı **pill/chip butonlar** (rounded-full border, hover'da arka plan değişir). Trendyol'da 10 chip görünüyor (weste, hemd, modest, dilvin kleid, vb.).
+- **Bölüm 2: "Popüler Ürünler"** — başlığın yanında sağ üstte **"Tümünü göster →"** linki (primary renkte). Altta yatay scroll'lu ürün kartları:
+  - Sol: 80x80 thumbnail
+  - Sağ: ürün adı (2 satır truncate), fiyat (primary renkte bold)
+  - Opsiyonel: kampanya rozeti (örn. "Tiefstpreis 7 Tage", bizde "Yeni Geldi", "Çok Satan", "Indirim %X")
+- **Kart shadow + hover'da hafif yukarı kalkma**
+- **Sağ scroll button** (chevron) — yatay scroll için
+- **Mobile:** dropdown yerine tam ekran modal
+
+**Trendyol'da OLMAYAN ama biz ekleyebileceğimiz:**
+- Kullanıcı yazmaya başlayınca chip/ürün listesi anlık filtrelenir (autocomplete combine)
+- "Son Aramalarınız" bölümü (login'li veya localStorage)
+- Sesli arama mikrofon ikonu (input içinde sağda)
+- Kategori önerileri (örn. "kosu" yazdırınca → "Koşu kategorisi" link)
+
+**Backend gerekenler (mevcut plan ile aynı):**
+- `GET /api/v1/search/popular?limit=10` — son 7 günün en çok aranan terimleri
+- `GET /api/v1/search/trending-products?limit=8` — son 24 saatte en çok tıklanan ürünler
+- `GET /api/v1/search/suggest?q={term}` — type-ahead
+- `POST /api/v1/search/track` — kullanıcı aramasını + tıklamasını logla
+
 ## 🆕 Arama çubuğu yeniden tasarım + sesli arama — PLANLAMA (2026-05-25)
 
 > İki iş, hemen uygulanmayacak — planlamaya alındı, sonra uygulanacak.
