@@ -34,16 +34,52 @@ from shopify_scraper import (  # noqa: F401  (resolve_* wrapper'lar tarafindan i
 
 
 def _clean_price(text):
-    """'1.234,56 TL' -> 1234.56. Gecersizse None."""
+    """Turkce/uluslararasi fiyat formatlarini guvenli parse eder.
+
+    Kabul edilen ornekler:
+      '1.234,56 TL' -> 1234.56  (TR full: nokta thousands, virgul decimal)
+      '1.600 TL'    -> 1600     (TR thousands sep only — KRITIK: eski bug 1.6 donuyordu)
+      '1,600 TL'    -> 1600     (TR thousands sep with comma)
+      '1.99 TL'     -> 1.99     (decimal point)
+      '1,99 TL'     -> 1.99     (decimal comma)
+      '1.234.567'   -> 1234567  (multiple thousands)
+      '1600'        -> 1600
+    Gecersizse None.
+
+    Heuristic: tek separator + son grup 3 digit ise thousands; aksi decimal.
+    """
     if text is None:
         return None
     t = re.sub(r"[^\d.,]", "", str(text))
     if not t:
         return None
-    if "," in t and "." in t:
-        t = t.replace(".", "").replace(",", ".")
-    elif "," in t:
-        t = t.replace(",", ".")
+
+    has_dot = "." in t
+    has_comma = "," in t
+
+    if has_dot and has_comma:
+        # Karisik: hangisi son? Son olan decimal kabul edilir
+        # "1.234,56" -> nokta thousands, virgul decimal
+        # "1,234.56" -> virgul thousands, nokta decimal
+        if t.rfind(",") > t.rfind("."):
+            t = t.replace(".", "").replace(",", ".")
+        else:
+            t = t.replace(",", "")
+    elif has_comma:
+        parts = t.split(",")
+        # "1,600" (3 digit son) -> thousands; "1,99" (1-2 digit son) -> decimal
+        if len(parts) > 2 or (len(parts) == 2 and len(parts[1]) == 3):
+            t = t.replace(",", "")
+        else:
+            t = t.replace(",", ".")
+    elif has_dot:
+        parts = t.split(".")
+        # "1.600" (3 digit) -> thousands; "1.99" (1-2 digit) -> decimal
+        # "1.234.567" (coklu nokta) -> tum thousands
+        if len(parts) > 2 or (len(parts) == 2 and len(parts[1]) == 3):
+            t = t.replace(".", "")
+        # decimal point - olduğu gibi birak
+
     try:
         val = float(t)
         return round(val, 2) if val > 0 else None
