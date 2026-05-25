@@ -1509,9 +1509,25 @@ class FrontendController extends Controller
                         ->orderBy('products.views', 'desc');
                     break;
 
+                case 'name_asc':
+                    $query->orderBy('products.name', 'asc');
+                    break;
+
+                case 'name_desc':
+                    $query->orderBy('products.name', 'desc');
+                    break;
+
                 default:
                     $query->latest('products.created_at');
             }
+        }
+
+        // "Sadece indirimli" filter — special_price > 0 AND < price olan urunler
+        if ($request->boolean('has_discount')) {
+            $query->whereHas('variants', function ($q) {
+                $q->whereColumn('product_variants.special_price', '<', 'product_variants.price')
+                  ->where('product_variants.special_price', '>', 0);
+            });
         }
         if (!empty($request->search)) {
             $query->where(function ($q) use ($request) {

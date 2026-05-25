@@ -21,6 +21,7 @@ interface Props {
     min_price?: string;
     max_price?: string;
     min_rating?: string;
+    has_discount?: string;
   }>;
 }
 
@@ -345,6 +346,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           min_price: sp.min_price,
           max_price: sp.max_price,
           min_rating: sp.min_rating,
+          has_discount: sp.has_discount,
           sort,
         }}
         translations={{

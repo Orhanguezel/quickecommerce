@@ -24,6 +24,7 @@ export interface FilterState {
   min_rating?: string;
   availability?: string;
   sort?: string;
+  has_discount?: string; // "1" = sadece indirimli urunler
 }
 
 export interface FilterBrand {
@@ -101,6 +102,9 @@ export function FilterSidebar({
   const [selectedRating, setSelectedRating] = useState(
     currentFilters.min_rating || ""
   );
+  const [hasDiscount, setHasDiscount] = useState(
+    currentFilters.has_discount === "1"
+  );
   const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string[]>>({});
 
   const topCategories = categories.filter((c) => !c.parent_id);
@@ -155,6 +159,7 @@ export function FilterSidebar({
     selectedBrands.forEach((id) => params.append("brand_id", id));
     selectedCategories.forEach((id) => params.append("category_id", id));
     if (selectedRating) params.set("min_rating", selectedRating);
+    if (hasDiscount) params.set("has_discount", "1");
     if (currentFilters.sort) params.set("sort", currentFilters.sort);
 
     const query = params.toString();
@@ -168,6 +173,7 @@ export function FilterSidebar({
     setSelectedBrands([]);
     setSelectedCategories([]);
     setSelectedRating("");
+    setHasDiscount(false);
     setBrandSearch("");
     setSelectedAttributes({});
 
@@ -341,6 +347,19 @@ export function FilterSidebar({
           )}
         </div>
       )}
+
+      {/* Sadece Indirimli toggle */}
+      <div className="border-b pb-3">
+        <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-foreground">
+          <input
+            type="checkbox"
+            checked={hasDiscount}
+            onChange={(e) => setHasDiscount(e.target.checked)}
+            className="h-4 w-4 accent-primary"
+          />
+          <span>Sadece İndirimli</span>
+        </label>
+      </div>
 
       {/* Price Range */}
       <div>

@@ -142,6 +142,7 @@ export function CategoryPageClient({
     currentFilters.min_price ?? "",
     currentFilters.max_price ?? "",
     currentFilters.min_rating ?? "",
+    currentFilters.has_discount ?? "",
     currentSort ?? "",
   ];
 
@@ -155,6 +156,7 @@ export function CategoryPageClient({
       if (currentFilters.min_price) extraParams.set("min_price", currentFilters.min_price);
       if (currentFilters.max_price) extraParams.set("max_price", currentFilters.max_price);
       if (currentFilters.min_rating) extraParams.set("min_rating", currentFilters.min_rating);
+      if (currentFilters.has_discount) extraParams.set("has_discount", currentFilters.has_discount);
       filterCategoryIds.forEach((id) => extraParams.append("category_id[]", id));
       currentFilters.brand_id?.forEach((id) => extraParams.append("brand_id[]", id));
       const endpoint = `${API_ENDPOINTS.PRODUCTS}?${extraParams.toString()}`;
@@ -344,10 +346,12 @@ export function CategoryPageClient({
                 className="h-10 rounded-lg border bg-background px-4 text-sm transition-colors hover:border-primary/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30"
               >
                 <option value="">{t.sort_default}</option>
-                <option value="price_low_high">{t.sort_price_asc}</option>
-                <option value="price_high_low">{t.sort_price_desc}</option>
                 <option value="newest">{t.sort_newest}</option>
                 <option value="popular">{t.sort_popular}</option>
+                <option value="price_low_high">{t.sort_price_asc}</option>
+                <option value="price_high_low">{t.sort_price_desc}</option>
+                <option value="name_asc">A → Z</option>
+                <option value="name_desc">Z → A</option>
               </select>
 
               {/* View toggle */}
