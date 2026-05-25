@@ -118,11 +118,44 @@ class SearchController extends Controller
                     // 'Diger (Arsiv)' altindaki kategoriler harict
                     $q->select('id')->from('product_category')->where('category_slug', 'diger-arsiv');
                 })
+                // Bos kategori onerilmez: en az 1 publicly sellable urun olmali
+                // (frontend isDisplayableProductCategory ile uyumlu)
+                ->whereExists(function ($exists) {
+                    $exists->select(DB::raw(1))
+                        ->from('products')
+                        ->whereColumn('products.category_id', 'product_category.id')
+                        ->whereNull('products.deleted_at')
+                        ->where('products.status', 'approved')
+                        ->whereNotNull('products.image')
+                        ->where('products.image', '!=', '')
+                        ->whereExists(function ($variant) {
+                            $variant->select(DB::raw(1))
+                                ->from('product_variants')
+                                ->whereColumn('product_variants.product_id', 'products.id')
+                                ->where('product_variants.status', 1)
+                                ->where('product_variants.stock_quantity', '>', 0)
+                                ->whereNull('product_variants.deleted_at')
+                                ->where(function ($price) {
+                                    $price->where('product_variants.price', '>', 0)
+                                        ->orWhere('product_variants.special_price', '>', 0);
+                                });
+                        });
+                })
                 ->select('id', 'category_name', 'category_slug')
                 ->limit(5)
                 ->get();
 
             $brands = ProductBrand::where('brand_name', 'like', $like)
+                // Bos marka onerilmez: en az 1 publicly sellable urun olmali
+                ->whereExists(function ($exists) {
+                    $exists->select(DB::raw(1))
+                        ->from('products')
+                        ->whereColumn('products.brand_id', 'product_brand.id')
+                        ->whereNull('products.deleted_at')
+                        ->where('products.status', 'approved')
+                        ->whereNotNull('products.image')
+                        ->where('products.image', '!=', '');
+                })
                 ->select('id', 'brand_name as name', 'brand_slug as slug')
                 ->limit(5)
                 ->get();
