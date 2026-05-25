@@ -25,10 +25,19 @@
 - ✅ Submit'te `/search/track` POST (sessiz fail)
 - ✅ Dropdown: Öneriler (kategori/marka/ürün) üstte → Popüler aramalar → Trend ürünler
 
-**Bekleyen (sonraki oturum):**
-- [ ] Admin panel: SearchLog listesi (en çok aranan, conversion rate, "0 sonuç" aramalar — funnel analytics)
-- [ ] `clicked_product_id` tracking (kullanıcı suggest'ten ürün tıklarsa logla)
-- [ ] Autocomplete'de highlight matched chars (e.g. "wh" → **wh**ey)
+**Bekleyen:**
+- [X] ✅ `clicked_product_id` tracking — suggest ürün linkine onClick → `/search/track` POST (2026-05-26)
+- [X] ✅ Autocomplete highlight matched chars — `highlightMatch()` fonksiyonu, eşleşen karakter bold + primary renk (2026-05-26)
+- [ ] **Admin panel: SearchLog modülü** — detaylı brief:
+  - Yeni admin panel route `/admin/search-analytics` + sidebar entry (Settings veya Reports altında)
+  - Tablo 1: **Top aranan terimler (son 7/30 gün)** — term, count, avg_results, conversion_rate (`COUNT(clicked_product_id) / COUNT(*)`)
+  - Tablo 2: **"0 sonuç" aramalar** — `WHERE results_count = 0 GROUP BY term ORDER BY count DESC` → eksik ürün/kategori sinyali
+  - Tablo 3: **Conversion funnel** — term → suggest tıklama → ürün satın alma (Order tablosu join)
+  - Filter: tarih aralığı, locale (tr/en), user_id (üye/misafir)
+  - Backend endpoint: `GET /api/v1/admin/search-logs?period=7d&zero_results=true&page=N`
+  - Adminmiddleware (sanctum + role check)
+  - i18n keys: nav.search_analytics, vs.
+  - Tahmin: 1-2 saat iş
 
 ### 2. Yeni taxonomy attributes (Cinsiyet/Beden/Renk/Aktivite)
 

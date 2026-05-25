@@ -181,6 +181,33 @@ export function SearchBar() {
     });
   };
 
+  // Suggest urunden tiklama -> track icin (analytics: hangi arama hangi urune donustu)
+  const trackProductClick = (term: string, productId: number) => {
+    getAxiosInstance()
+      .post("/search/track", {
+        term,
+        results_count: suggestQuery.data?.products.length ?? 0,
+        clicked_product_id: productId,
+      })
+      .catch(() => {
+        // sessiz fail
+      });
+  };
+
+  // Highlight matched chars: "whey" query'sinde "Whey Protein" -> <b>Whey</b> Protein
+  const highlightMatch = (text: string, term: string): React.ReactNode => {
+    if (!term || term.length < SUGGEST_MIN_CHARS) return text;
+    const idx = text.toLocaleLowerCase("tr-TR").indexOf(term.toLocaleLowerCase("tr-TR"));
+    if (idx === -1) return text;
+    return (
+      <>
+        {text.slice(0, idx)}
+        <span className="font-bold text-primary">{text.slice(idx, idx + term.length)}</span>
+        {text.slice(idx + term.length)}
+      </>
+    );
+  };
+
   const clearRecents = () => {
     setRecents([]);
     try {
@@ -359,7 +386,9 @@ export function SearchBar() {
                         className="block rounded px-2 py-1.5 text-sm text-foreground transition-colors hover:bg-muted"
                       >
                         <span className="text-xs text-muted-foreground">Kategori:</span>{" "}
-                        <span className="font-medium">{c.category_name}</span>
+                        <span className="font-medium">
+                          {highlightMatch(c.category_name, debouncedQuery)}
+                        </span>
                       </Link>
                     ))}
                   </div>
@@ -374,7 +403,9 @@ export function SearchBar() {
                         className="block w-full rounded px-2 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-muted"
                       >
                         <span className="text-xs text-muted-foreground">Marka:</span>{" "}
-                        <span className="font-medium">{b.name}</span>
+                        <span className="font-medium">
+                          {highlightMatch(b.name, debouncedQuery)}
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -383,7 +414,10 @@ export function SearchBar() {
                   <Link
                     key={`prod-${p.id}`}
                     href={`/urun/${p.slug}`}
-                    onClick={() => setOpen(false)}
+                    onClick={() => {
+                      trackProductClick(debouncedQuery, p.id);
+                      setOpen(false);
+                    }}
                     className="flex items-center gap-2 rounded px-2 py-1.5 text-sm text-foreground transition-colors hover:bg-muted"
                   >
                     <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded bg-muted">
@@ -398,7 +432,9 @@ export function SearchBar() {
                         />
                       )}
                     </div>
-                    <span className="line-clamp-1 flex-1 text-xs">{p.name}</span>
+                    <span className="line-clamp-1 flex-1 text-xs">
+                      {highlightMatch(p.name, debouncedQuery)}
+                    </span>
                   </Link>
                 ))}
               </div>
