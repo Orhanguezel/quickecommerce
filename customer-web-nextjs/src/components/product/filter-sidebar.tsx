@@ -26,7 +26,18 @@ export interface FilterState {
   sort?: string;
   has_discount?: string; // "1" = sadece indirimli urunler
   store_id?: string[]; // magaza filtresi
+  weight_min?: string; // gram cinsinden
+  weight_max?: string; // gram cinsinden
 }
+
+// Sabit ağırlık aralıkları (sporcu besinleri + diğer ml/gr ürünler için)
+export const WEIGHT_RANGES = [
+  { label: "<500gr", min: "", max: "499" },
+  { label: "500gr-1kg", min: "500", max: "999" },
+  { label: "1-2kg", min: "1000", max: "1999" },
+  { label: "2-3kg", min: "2000", max: "2999" },
+  { label: "3kg+", min: "3000", max: "" },
+];
 
 export interface FilterStore {
   id: number;
@@ -96,6 +107,7 @@ export function FilterSidebar({
     brands: true,
     stores: false, // mağaza opsiyonel, default kapali
     price: true,
+    weight: false, // agirlik opsiyonel
     rating: false, // puan opsiyonel
   });
   const [expandedCats, setExpandedCats] = useState<Set<number>>(new Set());
@@ -118,6 +130,17 @@ export function FilterSidebar({
   );
   const [hasDiscount, setHasDiscount] = useState(
     currentFilters.has_discount === "1"
+  );
+  // Agirlik filter — secili range index (null = secim yok)
+  const [selectedWeightIdx, setSelectedWeightIdx] = useState<number | null>(
+    (() => {
+      const min = currentFilters.weight_min ?? "";
+      const max = currentFilters.weight_max ?? "";
+      const idx = WEIGHT_RANGES.findIndex(
+        (r) => r.min === min && r.max === max
+      );
+      return idx === -1 ? null : idx;
+    })()
   );
   const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string[]>>({});
 
@@ -181,6 +204,11 @@ export function FilterSidebar({
     if (selectedRating) params.set("min_rating", selectedRating);
     if (hasDiscount) params.set("has_discount", "1");
     selectedStores.forEach((id) => params.append("store_id", id));
+    if (selectedWeightIdx !== null) {
+      const r = WEIGHT_RANGES[selectedWeightIdx];
+      if (r.min) params.set("weight_min", r.min);
+      if (r.max) params.set("weight_max", r.max);
+    }
     if (currentFilters.sort) params.set("sort", currentFilters.sort);
 
     const query = params.toString();
@@ -196,6 +224,7 @@ export function FilterSidebar({
     setSelectedStores([]);
     setSelectedRating("");
     setHasDiscount(false);
+    setSelectedWeightIdx(null);
     setBrandSearch("");
     setStoreSearch("");
     setSelectedAttributes({});
@@ -458,6 +487,35 @@ export function FilterSidebar({
                 min={0}
               />
             </div>
+          </div>
+        )}
+      </div>
+
+      {/* Agirlik / Hacim — sporcu besinleri + ml urunler icin */}
+      <div>
+        <SectionHeader label="Ağırlık / Hacim" sectionKey="weight" />
+        {openSections.weight && (
+          <div className="mt-2 space-y-1 pb-2">
+            {WEIGHT_RANGES.map((r, i) => (
+              <label
+                key={r.label}
+                className="flex cursor-pointer items-center gap-2 py-1.5 text-sm transition-colors hover:text-primary"
+              >
+                <input
+                  type="radio"
+                  name="weight-range"
+                  checked={selectedWeightIdx === i}
+                  onChange={() =>
+                    setSelectedWeightIdx(selectedWeightIdx === i ? null : i)
+                  }
+                  onClick={() => {
+                    if (selectedWeightIdx === i) setSelectedWeightIdx(null);
+                  }}
+                  className="h-4 w-4 accent-primary"
+                />
+                <span className="text-foreground">{r.label}</span>
+              </label>
+            ))}
           </div>
         )}
       </div>

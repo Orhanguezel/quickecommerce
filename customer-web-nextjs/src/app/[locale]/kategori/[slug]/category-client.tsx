@@ -147,6 +147,8 @@ export function CategoryPageClient({
     currentFilters.max_price ?? "",
     currentFilters.min_rating ?? "",
     currentFilters.has_discount ?? "",
+    currentFilters.weight_min ?? "",
+    currentFilters.weight_max ?? "",
     currentSort ?? "",
   ];
 
@@ -161,6 +163,8 @@ export function CategoryPageClient({
       if (currentFilters.max_price) extraParams.set("max_price", currentFilters.max_price);
       if (currentFilters.min_rating) extraParams.set("min_rating", currentFilters.min_rating);
       if (currentFilters.has_discount) extraParams.set("has_discount", currentFilters.has_discount);
+      if (currentFilters.weight_min) extraParams.set("weight_min", currentFilters.weight_min);
+      if (currentFilters.weight_max) extraParams.set("weight_max", currentFilters.weight_max);
       filterCategoryIds.forEach((id) => extraParams.append("category_id[]", id));
       currentFilters.brand_id?.forEach((id) => extraParams.append("brand_id[]", id));
       currentFilters.store_id?.forEach((id) => extraParams.append("store_id[]", id));
@@ -254,6 +258,8 @@ export function CategoryPageClient({
     if (currentFilters.max_price) params.set("max_price", currentFilters.max_price);
     if (currentFilters.min_rating) params.set("min_rating", currentFilters.min_rating);
     if (currentFilters.has_discount) params.set("has_discount", currentFilters.has_discount);
+    if (currentFilters.weight_min) params.set("weight_min", currentFilters.weight_min);
+    if (currentFilters.weight_max) params.set("weight_max", currentFilters.weight_max);
     if (currentSort) params.set("sort", currentSort);
     remove(params);
     const query = params.toString();
@@ -319,6 +325,21 @@ export function CategoryPageClient({
       key: "discount",
       label: "Sadece İndirimli",
       onRemove: () => removeParam((p) => p.delete("has_discount")),
+    });
+  }
+  // Agirlik
+  if (currentFilters.weight_min || currentFilters.weight_max) {
+    const mn = currentFilters.weight_min ?? "0";
+    const mx = currentFilters.weight_max ?? "∞";
+    const fmt = (g: string) => (g === "∞" ? "∞" : Number(g) >= 1000 ? `${Number(g) / 1000}kg` : `${g}gr`);
+    activeChips.push({
+      key: "weight",
+      label: `${fmt(mn)} - ${fmt(mx)}`,
+      onRemove: () =>
+        removeParam((p) => {
+          p.delete("weight_min");
+          p.delete("weight_max");
+        }),
     });
   }
 

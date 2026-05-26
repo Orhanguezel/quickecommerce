@@ -39,7 +39,25 @@
   - i18n keys: nav.search_analytics, vs.
   - Tahmin: 1-2 saat iş
 
-### 2. Yeni taxonomy attributes (Cinsiyet/Beden/Renk/Aktivite)
+### 2a. Ağırlık/Hacim filter ✅ TAMAMLANDI (2026-05-26)
+
+Sporcu besinleri ve ml/gr içerikli ürünler için weight filter — scraper update GEREKMEZ (ürün adından regex extract).
+
+- Migration: `products.extracted_weight_gr` (UNSIGNED INT NULL + index)
+- Backfill: 2985 ürün (regex pattern `(\d+([.,]\d+)?)\s*(kg|gr|ml|lt|l|g)` → gram normalize)
+- Backend: `weight_min`, `weight_max` params (`products.extracted_weight_gr` WHERE BETWEEN)
+- Frontend: FilterSidebar "Ağırlık / Hacim" radio bölümü (5 hazır aralık)
+- Aktif chip: "1kg - 2kg" formatlı, x ile temizle
+- **Test:** weight_min=1000&weight_max=1999 → 177 ürün canlı
+
+**Backfill dağılımı:**
+- <500gr: 1719 (energy gel, kremalar)
+- 500-999gr: 492
+- 1-2kg: 271
+- 2-3kg: 168
+- 3kg+: 335
+
+### 2b. Yeni taxonomy attributes (Cinsiyet/Beden/Renk/Aktivite) — Bekleyen
 
 **Yapılacaklar:**
 - [ ] **Migration:** `product_variants` tablosuna kolon ekle veya `product_attributes` separate table

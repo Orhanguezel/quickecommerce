@@ -1542,6 +1542,17 @@ class FrontendController extends Controller
                   ->where('product_variants.special_price', '>', 0);
             });
         }
+
+        // Ağırlık filter — products.extracted_weight_gr (urun adindan regex extract)
+        if (!empty($request->weight_min) || !empty($request->weight_max)) {
+            $query->whereNotNull('products.extracted_weight_gr');
+            if (!empty($request->weight_min)) {
+                $query->where('products.extracted_weight_gr', '>=', (int) $request->weight_min);
+            }
+            if (!empty($request->weight_max)) {
+                $query->where('products.extracted_weight_gr', '<=', (int) $request->weight_max);
+            }
+        }
         if (!empty($request->search)) {
             $query->where(function ($q) use ($request) {
                 $q->where('products.name', 'like', '%' . $request->search . '%')
