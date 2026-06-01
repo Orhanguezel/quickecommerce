@@ -8,6 +8,7 @@ import LoaderOverlay from "@/components/molecules/LoaderOverlay";
 import { Button, Card, CardContent } from "@/components/ui";
 import { Routes } from "@/config/routes";
 import GlobalImageLoader from "@/lib/imageLoader";
+import { formatOrderAddress } from "@/lib/order-address";
 import { formatLabel } from "@/lib/utils";
 import { useRefundRequestStatusUpdate } from "@/modules/admin-section/orders/refund-request/refund-request.action";
 import { useCurrencyQuery } from "@/modules/common/com/com.action";
@@ -127,29 +128,7 @@ const OrdersDetailsCard = ({ data, refetch, ID }: any) => {
     OrderDetails?.order_master?.customer?.shipping_address ||
     (address && typeof address === "object" ? address : null);
 
-  // Adres metnini temiz tek satıra çevir: `address` zaten tam serbest
-  // metin (sokak/no/ilçe/il içerir); house/road/floor önekleri ve
-  // tekrar eden il/ilçe gösterilmez. address boşsa (eski dropdown
-  // siparişleri) yapılandırılmış parçalardan kurulur.
-  const formatDeliveryAddress = (a: any): string => {
-    if (!a) return "";
-    const base = String(a.address || "").trim();
-    if (base) {
-      const lower = base.toLowerCase();
-      const tail = [a.district_name, a.city_name]
-        .filter((v: any) => v && !lower.includes(String(v).toLowerCase()))
-        .join(" / ");
-      let line = tail ? `${base}, ${tail}` : base;
-      if (a.postal_code && !lower.includes(String(a.postal_code)))
-        line += ` ${a.postal_code}`;
-      return line.trim();
-    }
-    return [a.road, a.house, a.floor, a.district_name, a.city_name, a.postal_code]
-      .filter(Boolean)
-      .join(", ")
-      .trim();
-  };
-  const deliveryAddressText = formatDeliveryAddress(deliveryAddress);
+  const deliveryAddressText = formatOrderAddress(deliveryAddress);
 
   const {
     name = "Unknown",
