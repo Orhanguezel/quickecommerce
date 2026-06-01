@@ -55,7 +55,19 @@ class RateLimitServiceProvider extends ServiceProvider
         // Hassas public API'lar (coupons, flash-deal-products, site-general-info,
         // theme) bot tarafindan ezildiginde sunucu hatasi/yuk uretiyordu.
         // IP basina 30/dk yeterli (gercek kullanici 1-2/dk yeter).
+        //
+        // SSR muafiyeti: Next.js SSR kendi sunucumuzdan API'ya cagri yapiyor;
+        // tum SSR istekleri tek IP'den gelir, normalden cok daha sik. Bu IP'leri
+        // (loopback + VPS public IP) rate-limit'ten muaf tutuyoruz ki kendi
+        // SSR'imizi kazaen blok etmeyelim. Liste TRUSTED_INTERNAL_IPS env ile
+        // genisletilebilir (virgulle ayrik).
         RateLimiter::for('public-api', function (Request $request) {
+            $trusted = array_filter(array_map('trim', explode(',',
+                env('TRUSTED_INTERNAL_IPS', '127.0.0.1,::1,76.13.4.19')
+            )));
+            if (in_array($request->ip(), $trusted, true)) {
+                return Limit::none();
+            }
             return Limit::perMinute(30)->by(
                 $request->user()?->id ?: $request->ip()
             )->response(function (Request $request, array $headers) {

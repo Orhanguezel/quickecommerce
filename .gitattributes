@@ -1,0 +1,29 @@
+# Tum metin dosyalari icin satir-sonu otomatik tespit ve LF normalize.
+# Bu sayede CRLF/LF farkindan kaynakli "whole file modified" diff'leri
+# gelecek commit'lerde olusmaz; deploy hijyeni temiz kalir.
+* text=auto eol=lf
+
+# Binary dosyalar — kesinlikle dokunulmasin
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.svg binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.tar binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.mp4 binary
+*.mp3 binary
+*.wav binary
+
+# Windows-spesifik dosyalar CRLF kalsin
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
