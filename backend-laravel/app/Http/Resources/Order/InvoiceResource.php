@@ -15,16 +15,18 @@ class InvoiceResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $subtotal = round($this->orderDetail->sum('line_total_price_with_qty'), 2);
-        $coupon_discount = round($this->orderDetail->sum('coupon_discount_amount'), 2);
-        $total_tax_amount = round($this->orderDetail->sum('total_tax_amount'), 2);
-        $product_discount_amount = round(abs($this->product_discount_amount ?? 0), 2);
-        $shipping_charge = round($this->shipping_charge ?? 0, 2);
-        $additional_charge = round($this->order_additional_charge_amount ?? 0, 2);
+        // round(null) PHP 8.x'te DEPRECATED — sum() bos koleksiyonda 0 doner
+        // ama orderDetail bazen yuklenmemis/null gelebiliyor; (float) cast guvenli.
+        $subtotal = round((float) $this->orderDetail?->sum('line_total_price_with_qty'), 2);
+        $coupon_discount = round((float) $this->orderDetail?->sum('coupon_discount_amount'), 2);
+        $total_tax_amount = round((float) $this->orderDetail?->sum('total_tax_amount'), 2);
+        $product_discount_amount = round(abs((float) ($this->product_discount_amount ?? 0)), 2);
+        $shipping_charge = round((float) ($this->shipping_charge ?? 0), 2);
+        $additional_charge = round((float) ($this->order_additional_charge_amount ?? 0), 2);
 
         // Total Amount Calculation
         // Use line_total_price (already includes tax and coupon adjustments) for consistency
-        $total_amount = round($this->orderDetail->sum('line_total_price'), 2) + $shipping_charge + $additional_charge;
+        $total_amount = round((float) $this->orderDetail?->sum('line_total_price'), 2) + $shipping_charge + $additional_charge;
 
         // Teslimat adresi siparişin orderAddress'idir (order_master_id ile bağlı).
         // shippingAddress (FK customer_addresses) çoğu siparişte boş olduğundan
@@ -75,7 +77,7 @@ class InvoiceResource extends JsonResource
             }),
             'subtotal' => $subtotal,
             'coupon_discount' => $coupon_discount,
-            'tax_rate_sum' => round($this->orderDetail->sum('tax_rate'), 2),
+            'tax_rate_sum' => round((float) $this->orderDetail?->sum('tax_rate'), 2),
             'total_tax_amount' => $total_tax_amount,
             'product_discount_amount' => $product_discount_amount,
             'shipping_charge' => $shipping_charge,

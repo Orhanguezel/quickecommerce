@@ -32,6 +32,21 @@ Schedule::command('feeds:warm')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/feeds-warm.log'));
 
+// 5xx alarmi: her saat son 1 saatlik hata sayisini kontrol et;
+// esik (varsayilan 100/sa) asilirsa Telegram + Laravel ERROR log'una uyari.
+Schedule::command('monitor:5xx-alarm --threshold=' . env('ALARM_5XX_THRESHOLD', 100))
+    ->hourly()
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/monitor-5xx.log'));
+
+// Haftalik trafik raporu: her Pazartesi 08:00 (TR) son 7 gunluk
+// trafik+hata raporunu storage/app/reports/ altina HTML olarak yazar.
+Schedule::command('reports:weekly-traffic')
+    ->weeklyOn(1, '08:00')
+    ->timezone('Europe/Istanbul')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/reports-weekly.log'));
+
 $swanSyncStoreId = env('SWAN_SYNC_STORE_ID');
 $swanSyncJsonPath = env('SWAN_SYNC_JSON_PATH', 'storage/app/source-sync/swan_products_latest.json');
 
