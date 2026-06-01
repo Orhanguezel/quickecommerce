@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Api\V1\Controller;
+use App\Models\Media;
 use App\Models\Product;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
@@ -48,16 +49,24 @@ class ProductFeedController extends Controller
     {
         $siteUrl = rtrim(config('app.frontend_url', 'https://sportoonline.com'), '/');
 
-        // Aktif urunleri variant + kategori + marka ile cek
+        // Aktif urunleri variant + kategori + marka ile cek. Kategori parent
+        // zincirini eager-load et — aksi halde buildCategoryPath her urunde
+        // lazy-load N+1 sorgu uretir (cimri ~3600 urunde 30 sn'i asar).
         $products = Product::where('status', 'approved')
             ->whereNull('deleted_at')
             ->with([
                 'variants' => fn($q) => $q->where('status', 1)->whereNull('deleted_at'),
-                'category',
+                'category.parent.parent.parent.parent',
                 'brand',
                 'store',
             ])
             ->get();
+
+        // N+1 onleme: tum gerekli Media kayitlarini tek sorguda topla.
+        // com_option_get_id_wise_url her cagri da Media::find yapardi -> binlerce
+        // sorgu. Burada batch fetch + in-memory lookup map kullaniyoruz.
+        $mediaMap = $this->buildMediaMap($products, $feedType);
+        $categoryPathCache = [];
 
         $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
         $xml .= '<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">' . "\n";
@@ -70,11 +79,8 @@ class ProductFeedController extends Controller
             // Urun URL
             $productUrl = $siteUrl . '/tr/urun/' . $product->slug;
 
-            // Gorsel URL
-            $imageUrl = '';
-            if ($product->image) {
-                $imageUrl = com_option_get_id_wise_url($product->image);
-            }
+            // Gorsel URL — batch-fetch'lenmis Media map'inden cozumle (DB sorgusu yok)
+            $imageUrl = $this->resolveImageUrl($product->image, $mediaMap);
             if ($imageUrl === '') {
                 continue;
             }
@@ -82,8 +88,11 @@ class ProductFeedController extends Controller
                 continue;
             }
 
-            // Kategori yolu
-            $categoryPath = $this->buildCategoryPath($product->category);
+            // Kategori yolu — paylasilan kategoriler icin tek sefer hesaplanir
+            $catId = $product->category_id ?? ($product->category?->id);
+            $categoryPath = $catId !== null
+                ? ($categoryPathCache[$catId] ??= $this->buildCategoryPath($product->category))
+                : '';
             if ($feedType === 'google' && $this->isRestrictedForGoogleMerchant($product, $categoryPath)) {
                 continue;
             }
@@ -157,12 +166,12 @@ class ProductFeedController extends Controller
                 $xml .= "      <g:link><![CDATA[" . $productUrl . "]]></g:link>\n";
                 $xml .= "      <g:image_link><![CDATA[" . $imageUrl . "]]></g:image_link>\n";
 
-                // Galeri gorselleri
+                // Galeri gorselleri — batch-fetch map'inden cozumle
                 if ($product->gallery_images) {
                     $galleryIds = explode(',', $product->gallery_images);
                     foreach (array_slice($galleryIds, 0, 5) as $imgId) {
-                        $galleryUrl = com_option_get_id_wise_url(trim($imgId));
-                        if ($galleryUrl) {
+                        $galleryUrl = $this->resolveImageUrl(trim($imgId), $mediaMap);
+                        if ($galleryUrl !== '') {
                             $xml .= "      <g:additional_image_link><![CDATA[" . $galleryUrl . "]]></g:additional_image_link>\n";
                         }
                     }
@@ -303,14 +312,20 @@ class ProductFeedController extends Controller
 
     private function hasMerchantSafeStore($store): bool
     {
+        // Eskiden phone+email+address uclusunun hepsini zorunlu kiliyordu;
+        // sportoonline kataloğunda 70+ magazadan yalnız 1-2'sinde bunlar dolu —
+        // sonuc: Google feed pratikte bos kaliyordu (~13.5k urunden 13.5k'i atilirdi).
+        // Marketplace iletisim bilgisi Google Merchant tarafinda merchant
+        // seviyesinde zaten tanimli; per-store contact info zorunlu degil.
+        // Magaza var ve silinmemis olsun yeterli; placeholder adresleri reddet.
         if (!$store) {
             return false;
         }
-
-        return trim((string) $store->phone) !== ''
-            && trim((string) $store->email) !== ''
-            && trim((string) $store->address) !== ''
-            && !preg_match('/^(address not found|adres bulunamad[ıi]|no address)$/i', trim((string) $store->address));
+        $address = trim((string) ($store->address ?? ''));
+        if ($address !== '' && preg_match('/^(address not found|adres bulunamad[ıi]|no address)$/i', $address)) {
+            return false;
+        }
+        return true;
     }
 
     private function isRestrictedForGoogleMerchant(Product $product, string $categoryPath): bool
@@ -395,6 +410,66 @@ class ProductFeedController extends Controller
         }
 
         return false;
+    }
+
+    /**
+     * Feed icin ihtiyac duyulan tum Media kayitlarini tek sorguda toplar.
+     * Cikti: [id => Media] map'i. resolveImageUrl bunu lookup eder.
+     *
+     * Onceden her urun (ve cimri'de her gallery image) icin Media::find
+     * cagriliyordu -> ~3600 urunde 20.000+ DB sorgusu. Bu metot tek sorgu.
+     *
+     * @param  \Illuminate\Database\Eloquent\Collection<Product>  $products
+     * @return array<int, Media>
+     */
+    private function buildMediaMap($products, string $feedType): array
+    {
+        $ids = [];
+        foreach ($products as $p) {
+            $img = $p->image;
+            if (is_numeric($img)) {
+                $ids[] = (int) $img;
+            }
+            if ($feedType === 'cimri' && $p->gallery_images) {
+                foreach (array_slice(explode(',', $p->gallery_images), 0, 5) as $g) {
+                    $g = trim($g);
+                    if (is_numeric($g)) {
+                        $ids[] = (int) $g;
+                    }
+                }
+            }
+        }
+        $ids = array_values(array_unique(array_filter($ids)));
+        if (empty($ids)) {
+            return [];
+        }
+        return Media::whereIn('id', $ids)->get()->keyBy('id')->all();
+    }
+
+    /**
+     * Image ID veya direkt URL'den public URL cozumler.
+     * - URL ise (http/https) oldugu gibi dondurur.
+     * - Sayi ise mediaMap'ten Media kaydini bulup `asset(storage/{path})` uretir.
+     * - Bulamazsa bos string.
+     *
+     * @param  array<int, Media>  $mediaMap
+     */
+    private function resolveImageUrl($id, array $mediaMap): string
+    {
+        if ($id === null || $id === '') {
+            return '';
+        }
+        if (is_string($id) && (str_starts_with($id, 'http://') || str_starts_with($id, 'https://'))) {
+            return $id;
+        }
+        if (!is_numeric($id)) {
+            return '';
+        }
+        $media = $mediaMap[(int) $id] ?? null;
+        if (!$media) {
+            return '';
+        }
+        return asset('storage/' . $media->path);
     }
 
     private function hasMerchantSafeImageUrl(string $imageUrl): bool

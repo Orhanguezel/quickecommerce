@@ -111,12 +111,12 @@ Route::group(['prefix' => 'v1/'], function () {
         Route::get('/store-details/{slug}', [FrontendController::class, 'storeDetails']);
         Route::get('/department-list', [FrontendController::class, 'departments']);
         Route::get('/flash-deals', [FrontendController::class, 'flashDeals']);
-        Route::get('/flash-deal-products', [FrontendController::class, 'flashDealProducts']);
+        Route::get('/flash-deal-products', [FrontendController::class, 'flashDealProducts'])->middleware('throttle:public-api');
         Route::get('/shipping-campaigns/active', [FrontendController::class, 'getActiveShippingCampaigns']);
         Route::get('/product-suggestion', [FrontendController::class, 'searchSuggestions']);
         Route::get('/keyword-suggestion', [FrontendController::class, 'keywordSuggestions']);
         Route::get('/orders/refund-reason-list', [FrontendController::class, 'orderRefundReasons']);
-        Route::get('/coupons', [FrontendController::class, 'coupons']);
+        Route::get('/coupons', [FrontendController::class, 'coupons'])->middleware('throttle:public-api');
         Route::get('/pages/{slug}', [FrontendController::class, 'page']);
         Route::get('/become-a-seller', [FrontendController::class, 'becomeASeller']);
         Route::get('/all/pages', [FrontendController::class, 'pages']);
@@ -145,11 +145,11 @@ Route::group(['prefix' => 'v1/'], function () {
         Route::get('/product-query/search-question', [CustomerProductQueryController::class, 'searchQuestions']);
 
         // home page footer api route
-        Route::get('/theme', [ThemeManageController::class, 'activeThemeData']);
+        Route::get('/theme', [ThemeManageController::class, 'activeThemeData'])->middleware('throttle:public-api');
         Route::get('/footer', [HeaderFooterController::class, 'siteFooterInfo']);
         Route::get('/footer-settings', [HeaderFooterController::class, 'siteFooterInfo']); // Alias for /footer
-        Route::get('/site-general-info', [ComSiteGeneralController::class, 'siteGeneralInfo']);
-        Route::get('/general-settings', [ComSiteGeneralController::class, 'siteGeneralInfo']); // Alias for /site-general-info
+        Route::get('/site-general-info', [ComSiteGeneralController::class, 'siteGeneralInfo'])->middleware('throttle:public-api');
+        Route::get('/general-settings', [ComSiteGeneralController::class, 'siteGeneralInfo'])->middleware('throttle:public-api'); // Alias for /site-general-info
         Route::get('/currency-list', [ComSiteGeneralController::class, 'currencyList']);
 
         // Currency routes (Public)

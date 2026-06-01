@@ -164,7 +164,7 @@ class FrontendController extends Controller
             ]);
         }
         // Pagination
-        $perPage = $request->get('per_page', 10);
+        $perPage = max(1, min(100, (int) $request->get('per_page', 10)));
         $stores = $query
             ->with(['area', 'seller', 'related_translations', 'products'])
             ->where('status', 1)
@@ -451,7 +451,7 @@ class FrontendController extends Controller
         $query->orderByDesc('views');
 
         // Pagination
-        $perPage = $request->per_page ?? 10;
+        $perPage = max(1, min(100, (int) ($request->per_page ?? 10)));
 
         $products = $query->with([
             'category', 'unit', 'tags', 'store', 'brand', 'related_translations',
@@ -575,7 +575,7 @@ class FrontendController extends Controller
         }
 
         // Pagination
-        $perPage = $request->get('per_page', 10);
+        $perPage = max(1, min(100, (int) $request->get('per_page', 10)));
         $products = $query
             ->with([
                 'store',
@@ -784,7 +784,7 @@ class FrontendController extends Controller
         $query->orderByDesc('order_count')->orderByDesc('views');
 
         // Pagination
-        $perPage = $request->per_page ?? 10;
+        $perPage = max(1, min(100, (int) ($request->per_page ?? 10)));
 
         $products = $query->with([
             'category', 'unit', 'tags', 'store', 'brand', 'related_translations',
@@ -975,7 +975,7 @@ class FrontendController extends Controller
         $query->where('products.is_featured', true);
 
         // Pagination
-        $perPage = $request->per_page ?? 10;
+        $perPage = max(1, min(100, (int) ($request->per_page ?? 10)));
 
         $products = $query->with([
             'category', 'unit', 'tags', 'store', 'brand', 'related_translations',
@@ -1036,7 +1036,7 @@ class FrontendController extends Controller
                 'store',
             ])
             ->orderByDesc('trending_score') // Sort by calculated trending score
-            ->paginate($request->per_page ?? 10);
+            ->paginate(max(1, min(100, (int) ($request->per_page ?? 10))));
 
         return response()->json([
             'message' => __('messages.data_found'),
@@ -1079,7 +1079,7 @@ class FrontendController extends Controller
                     ->orWhere('updated_at', '>=', $lastWeek);
             })
             ->orderByDesc('order_count')
-            ->paginate($request->per_page ?? 10);
+            ->paginate(max(1, min(100, (int) ($request->per_page ?? 10))));
 
         return response()->json([
             'message' => __('messages.data_found'),
@@ -1302,7 +1302,7 @@ class FrontendController extends Controller
         }
 
         // Pagination
-        $perPage = $request->per_page ?? 10;
+        $perPage = max(1, min(100, (int) ($request->per_page ?? 10)));
         $flashSaleProducts = $query->paginate($perPage);
 
         // Collect unique attributes from the variants (if needed)
@@ -1560,7 +1560,7 @@ class FrontendController extends Controller
             });
         }
         // Pagination
-        $perPage = $request->per_page ?? 10;
+        $perPage = max(1, min(100, (int) ($request->per_page ?? 10)));
         $products = $query->with(['category', 'unit', 'tags', 'store', 'brand',
             'variants' => function ($query) use ($request) {
                 $this->applySellableVariantScope($query);
@@ -1857,7 +1857,7 @@ class FrontendController extends Controller
                 'category',
             ])
             ->latest()
-            ->paginate($request->per_page ?? 10);
+            ->paginate(max(1, min(100, (int) ($request->per_page ?? 10))));
 
         return response()->json([
             'message' => __('messages.data_found'),
@@ -1931,7 +1931,7 @@ class FrontendController extends Controller
                 'products.status'
             ])
             ->orderByDesc('avg_rating')
-            ->paginate($request->per_page ?? 10);
+            ->paginate(max(1, min(100, (int) ($request->per_page ?? 10))));
 
         return response()->json([
             'message' => __('messages.data_found'),
@@ -1945,7 +1945,7 @@ class FrontendController extends Controller
     function productCategoryList(Request $request)
     {
         try {
-            $per_page = $request->per_page ?? 100;
+            $per_page = max(1, min(200, (int) ($request->per_page ?? 100)));
             $language = $request->language ?? DEFAULT_LANGUAGE;
             $search = $request->search;
             $sort = $request->sort ?? 'asc';
@@ -2140,7 +2140,7 @@ class FrontendController extends Controller
                 }
             }
             // Pagination
-            $perPage = $request->per_page ?? 10;
+            $perPage = max(1, min(100, (int) ($request->per_page ?? 10)));
             $products = $query->with([
                 'category', 'unit', 'tags', 'store', 'brand', 'related_translations',
                 'variants' => fn ($query) => $this->applySellableVariantScope($query),
@@ -2375,8 +2375,11 @@ class FrontendController extends Controller
             $query->orderBy('created_at', 'asc');
         }
 
-        // Pagination
-        $perPage = $request->input('per_page', 10); // Default to 10 items per page
+        // Pagination — per_page'i mutlaka int'e cast et: non-numeric gelirse
+        // paginate()->forPage($page, $perPage) Builder.php:3116'da string*int
+        // aritmetiginde "A non-numeric value encountered" FatalError'a duser.
+        // Bot trafigi bu yuzden gunde on binlerce 500 ureti yordu.
+        $perPage = max(1, min(100, (int) $request->input('per_page', 10)));
         $today = now()->toDateString();
         if (auth('api_customer')->check()) {
             $customerId = auth('api_customer')->user()->id;

@@ -51,5 +51,19 @@ class RateLimitServiceProvider extends ServiceProvider
                 ], Response::HTTP_TOO_MANY_REQUESTS, $headers);
             });
         });
+
+        // Hassas public API'lar (coupons, flash-deal-products, site-general-info,
+        // theme) bot tarafindan ezildiginde sunucu hatasi/yuk uretiyordu.
+        // IP basina 30/dk yeterli (gercek kullanici 1-2/dk yeter).
+        RateLimiter::for('public-api', function (Request $request) {
+            return Limit::perMinute(30)->by(
+                $request->user()?->id ?: $request->ip()
+            )->response(function (Request $request, array $headers) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Too many requests. Please try again later.',
+                ], Response::HTTP_TOO_MANY_REQUESTS, $headers);
+            });
+        });
     }
 }

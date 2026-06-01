@@ -24,6 +24,14 @@ Schedule::command('orders:prune-unpaid --hours=' . env('ORDER_UNPAID_RETENTION_H
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/order-prune-unpaid.log'));
 
+// Google + Cimri urun feed'lerini her 4 saatte bir onceden uret: HTTP istek
+// anindaki cache miss yerine cron'da kontrollu uretim. Cache 6 saat oldugu
+// icin 4 saatlik aralik her zaman taze tutar; istek <1 sn'de servis edilir.
+Schedule::command('feeds:warm')
+    ->cron('15 */4 * * *')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/feeds-warm.log'));
+
 $swanSyncStoreId = env('SWAN_SYNC_STORE_ID');
 $swanSyncJsonPath = env('SWAN_SYNC_JSON_PATH', 'storage/app/source-sync/swan_products_latest.json');
 
