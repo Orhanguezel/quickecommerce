@@ -107,7 +107,6 @@ const ChatSettingsForm = () => {
   const {
     Messages: conversationMessages,
     pagination: messagePagination,
-    conversation: selectedConversation,
     refetch: refetchConversationMessages,
     isPending: isConversationMessagesLoading,
   } = useAiChatConversationMessagesQuery(selectedConversationId, {
@@ -860,108 +859,110 @@ const ChatSettingsForm = () => {
                             size="sm"
                             variant={selectedConversationId === row.id ? "default" : "outline"}
                             onClick={() => {
-                              setSelectedConversationId(Number(row.id));
+                              setSelectedConversationId(
+                                selectedConversationId === row.id ? null : Number(row.id)
+                              );
                               setMessagePage(1);
                             }}
                           >
-                            Mesajları Gör
+                            {selectedConversationId === row.id ? "Mesajları Gizle" : "Mesajları Gör"}
                           </Button>
                         </div>
                       </div>
                     </div>
+
+                    {selectedConversationId === row.id ? (
+                      <div className="mt-3 border-t pt-3 space-y-3">
+                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                          <p className="text-sm font-semibold">
+                            Konuşma Detayı #{row.id}
+                            {row?.customer
+                              ? ` - ${row.customer.first_name || ""} ${row.customer.last_name || ""}`.trim()
+                              : " - Guest"}
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <select
+                              className="app-input h-9 px-3 rounded-md border"
+                              value={messagePerPage}
+                              onChange={(e) => {
+                                setMessagePerPage(Number(e.target.value));
+                                setMessagePage(1);
+                              }}
+                            >
+                              <option value={20}>20</option>
+                              <option value={30}>30</option>
+                              <option value={50}>50</option>
+                            </select>
+                            <Button type="button" variant="outline" onClick={() => refetchConversationMessages()}>
+                              Yenile
+                            </Button>
+                          </div>
+                        </div>
+
+                        {isConversationMessagesLoading ? <CardSkletonLoader /> : null}
+
+                        {!isConversationMessagesLoading && (!conversationMessages || conversationMessages.length === 0) ? (
+                          <p className="text-sm text-muted-foreground">Bu konuşmada mesaj bulunamadı.</p>
+                        ) : null}
+
+                        {!isConversationMessagesLoading && conversationMessages?.length > 0 ? (
+                          <div className="space-y-2 max-h-[460px] overflow-y-auto pr-1">
+                            {conversationMessages.map((msg: any) => {
+                              const isAssistant = String(msg?.role || "") === "assistant";
+                              const isUser = String(msg?.role || "") === "user";
+                              return (
+                                <div
+                                  key={msg.id}
+                                  className={`p-3 rounded-md border ${
+                                    isAssistant
+                                      ? "bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-700/40"
+                                      : isUser
+                                      ? "bg-gray-50 border-gray-200 dark:bg-slate-800/60 dark:border-slate-700"
+                                      : "bg-white dark:bg-slate-900 dark:border-slate-700"
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between gap-2 mb-1">
+                                    <span className="text-xs font-semibold uppercase text-slate-700 dark:text-slate-200">
+                                      {msg.role || "unknown"}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {msg.created_at ? new Date(msg.created_at).toLocaleString() : "-"}
+                                    </span>
+                                  </div>
+                                  <p className="text-[15px] leading-6 whitespace-pre-wrap break-words text-slate-900 dark:text-slate-100 select-text">
+                                    {msg.content || ""}
+                                  </p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : null}
+
+                        <div className="flex items-center justify-between pt-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            disabled={!messagePagination?.prev_page_url}
+                            onClick={() => setMessagePage((p) => Math.max(1, p - 1))}
+                          >
+                            Önceki
+                          </Button>
+                          <p className="text-sm text-muted-foreground">
+                            Sayfa {messagePagination?.current_page || messagePage} / {messagePagination?.last_page || 1}
+                          </p>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            disabled={!messagePagination?.next_page_url}
+                            onClick={() => setMessagePage((p) => p + 1)}
+                          >
+                            Sonraki
+                          </Button>
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
                 ))}
-              </div>
-            ) : null}
-
-            {selectedConversationId ? (
-              <div className="mt-4 border rounded-md p-3 space-y-3">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-                  <p className="text-sm font-semibold">
-                    Konuşma Detayı #{selectedConversationId}
-                    {selectedConversation?.customer
-                      ? ` - ${selectedConversation.customer.first_name || ""} ${selectedConversation.customer.last_name || ""}`.trim()
-                      : " - Guest"}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <select
-                      className="app-input h-9 px-3 rounded-md border"
-                      value={messagePerPage}
-                      onChange={(e) => {
-                        setMessagePerPage(Number(e.target.value));
-                        setMessagePage(1);
-                      }}
-                    >
-                      <option value={20}>20</option>
-                      <option value={30}>30</option>
-                      <option value={50}>50</option>
-                    </select>
-                    <Button type="button" variant="outline" onClick={() => refetchConversationMessages()}>
-                      Yenile
-                    </Button>
-                  </div>
-                </div>
-
-                {isConversationMessagesLoading ? <CardSkletonLoader /> : null}
-
-                {!isConversationMessagesLoading && (!conversationMessages || conversationMessages.length === 0) ? (
-                  <p className="text-sm text-muted-foreground">Bu konuşmada mesaj bulunamadı.</p>
-                ) : null}
-
-                {!isConversationMessagesLoading && conversationMessages?.length > 0 ? (
-                  <div className="space-y-2 max-h-[460px] overflow-y-auto pr-1">
-                    {conversationMessages.map((msg: any) => {
-                      const isAssistant = String(msg?.role || "") === "assistant";
-                      const isUser = String(msg?.role || "") === "user";
-                      return (
-                        <div
-                          key={msg.id}
-                          className={`p-3 rounded-md border ${
-                            isAssistant
-                              ? "bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-700/40"
-                              : isUser
-                              ? "bg-gray-50 border-gray-200 dark:bg-slate-800/60 dark:border-slate-700"
-                              : "bg-white dark:bg-slate-900 dark:border-slate-700"
-                          }`}
-                        >
-                          <div className="flex items-center justify-between gap-2 mb-1">
-                            <span className="text-xs font-semibold uppercase text-slate-700 dark:text-slate-200">
-                              {msg.role || "unknown"}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {msg.created_at ? new Date(msg.created_at).toLocaleString() : "-"}
-                            </span>
-                          </div>
-                          <p className="text-[15px] leading-6 whitespace-pre-wrap break-words text-slate-900 dark:text-slate-100 select-text">
-                            {msg.content || ""}
-                          </p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : null}
-
-                <div className="flex items-center justify-between pt-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={!messagePagination?.prev_page_url}
-                    onClick={() => setMessagePage((p) => Math.max(1, p - 1))}
-                  >
-                    Önceki
-                  </Button>
-                  <p className="text-sm text-muted-foreground">
-                    Sayfa {messagePagination?.current_page || messagePage} / {messagePagination?.last_page || 1}
-                  </p>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={!messagePagination?.next_page_url}
-                    onClick={() => setMessagePage((p) => p + 1)}
-                  >
-                    Sonraki
-                  </Button>
-                </div>
               </div>
             ) : null}
 
