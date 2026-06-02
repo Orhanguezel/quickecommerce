@@ -19,8 +19,9 @@ class SyncSourcePrices extends Command
                             {--backfill-by-slug : Mapping yoksa slug + varyant bilgisiyle esleme onizle/olustur}
                             {--backfill-by-name : Mapping yoksa urun adiyla esleme (slug uyusmazsa; birebir ad, ayni ad birden fazlaysa atlar)}
                             {--backfill-only : Sadece mapping backfill yap, fiyat/stok sync calistirma}
-                            {--max-change-percent=30 : Fiyat degisim yuzdesi bu siniri asarsa atla}
-                            {--allow-zero-price : 0 fiyat gelirse de uygula (varsayilan: engelle)}';
+                            {--max-change-percent=30 : Fiyat degisim yuzdesi bu siniri asarsa fiyati atla (stok yine guncellenir)}
+                            {--allow-zero-price : 0 fiyat gelirse de uygula (varsayilan: engelle)}
+                            {--keep-missing-stock : Kaynakta bulunamayan urunlerde stogu sifirlama (varsayilan: sifirla)}';
 
     protected $description = 'Kaynak JSON dosyasindan sadece fiyat ve stok senkronu yapar. Varsayilan dry-run modudur.';
 
@@ -31,6 +32,8 @@ class SyncSourcePrices extends Command
     private bool $backfillByName = false;
     private bool $allowZeroPrice = false;
     private float $maxChangePercent = 30.0;
+    private bool $zeroMissingStock = true;
+    private bool $safeToZeroMissing = true;
 
     public function handle(): int
     {
@@ -41,6 +44,7 @@ class SyncSourcePrices extends Command
         $this->backfillByName = (bool) $this->option('backfill-by-name');
         $this->allowZeroPrice = (bool) $this->option('allow-zero-price');
         $this->maxChangePercent = (float) $this->option('max-change-percent');
+        $this->zeroMissingStock = !$this->option('keep-missing-stock');
 
         if (!file_exists($jsonFile)) {
             $this->error("JSON dosyasi bulunamadi: {$jsonFile}");
@@ -93,10 +97,27 @@ class SyncSourcePrices extends Command
             'would_update' => 0,
             'unchanged' => 0,
             'missing' => 0,
+            'missing_zeroed' => 0,
             'invalid_price' => 0,
             'price_guard' => 0,
             'errors' => 0,
         ];
+
+        // Guvenlik: kaynak JSON, mevcut mapping sayisinin yarisindan az urun
+        // iceriyorsa scrape muhtemelen kismidir; 'missing' urunlerde stok
+        // sifirlamayi DEVRE DISI birak (yoksa saglam urunler yanlislikla 0 olur).
+        $mappingTotal = (clone $query)->count();
+        $sourceUnique = max(
+            count($this->sourceProducts['slug']),
+            count($this->sourceProducts['url']),
+            count($this->sourceProducts['id'])
+        );
+        $this->safeToZeroMissing = $this->zeroMissingStock
+            && $sourceUnique >= max(1, (int) floor(0.5 * $mappingTotal));
+
+        if ($this->zeroMissingStock && !$this->safeToZeroMissing) {
+            $this->warn("GUVENLIK: kaynak urun ({$sourceUnique}) < mapping yarisi ({$mappingTotal}); 'missing' stok sifirlama DEVRE DISI (kismi scrape suphesi).");
+        }
 
         $query->orderBy('id')->chunkById(200, function ($mappings) use (&$stats) {
             foreach ($mappings as $mapping) {
@@ -122,8 +143,9 @@ class SyncSourcePrices extends Command
                 [$this->apply ? 'Guncellenen' : 'Guncellenecek', $this->apply ? $stats['updated'] : $stats['would_update']],
                 ['Degismeyen', $stats['unchanged']],
                 ['Kaynakta bulunamayan', $stats['missing']],
-                ['Gecersiz/0 fiyat', $stats['invalid_price']],
-                ['Fiyat degisim limiti', $stats['price_guard']],
+                ['Missing -> stok 0', $stats['missing_zeroed']],
+                ['Gecersiz/0 fiyat (stok yine guncellendi)', $stats['invalid_price']],
+                ['Fiyat limiti (stok yine guncellendi)', $stats['price_guard']],
                 ['Hata', $stats['errors']],
             ]
         );
@@ -133,8 +155,24 @@ class SyncSourcePrices extends Command
 
     private function syncMapping(ProductSourceMapping $mapping): string
     {
+        $variant = $mapping->variant;
+        if (!$variant) {
+            $this->markMapping($mapping, 'missing', 'Local variant not found.');
+            return 'missing';
+        }
+
         $sourceProduct = $this->findSourceProduct($mapping);
         if (!$sourceProduct) {
+            // Kaynaktan kalkmis urun: satisi durdurmak icin stogu sifirla
+            // (yalnizca scrape tam gorunuyorsa — bkz. safeToZeroMissing).
+            if ($this->safeToZeroMissing && (int) $variant->stock_quantity !== 0) {
+                if (!$this->apply) {
+                    return 'missing_zeroed';
+                }
+                $variant->update(['stock_quantity' => 0]);
+                $this->markMapping($mapping, 'missing_zeroed', 'Source product not found; stock zeroed.');
+                return 'missing_zeroed';
+            }
             $this->markMapping($mapping, 'missing', 'Source product not found.');
             return 'missing';
         }
@@ -142,37 +180,55 @@ class SyncSourcePrices extends Command
         $sourceVariant = $this->findSourceVariant($mapping, $sourceProduct);
         $incoming = $this->extractIncomingValues($sourceProduct, $sourceVariant);
 
+        // 1) STOK — fiyattan BAGIMSIZ, her zaman degerlendirilir.
+        $changes = [];
+        if ($incoming['stock_quantity'] !== null
+            && (int) $variant->stock_quantity !== (int) $incoming['stock_quantity']) {
+            $changes['stock_quantity'] = (int) $incoming['stock_quantity'];
+        }
+
+        // 2) FIYAT — kendi korumalari var; basarisizsa SADECE fiyat atlanir,
+        //    stok degisikligi yine uygulanir.
+        $priceStatus = null;
         if (!$this->hasValidPrice($incoming['price'], $incoming['special_price'])) {
-            $this->markMapping($mapping, 'invalid_price', 'Source returned empty or zero price.');
-            return 'invalid_price';
+            $priceStatus = 'invalid_price';
+        } elseif (!$this->withinPriceGuard($variant, $incoming['price'], $incoming['special_price'])) {
+            $priceStatus = 'price_guard';
+        } else {
+            foreach (['price', 'special_price'] as $field) {
+                $incomingValue = $incoming[$field];
+                $currentValue = $variant->{$field};
+                if ($incomingValue !== null && round((float) $currentValue, 2) !== round((float) $incomingValue, 2)) {
+                    $changes[$field] = $incomingValue;
+                }
+            }
         }
 
-        $variant = $mapping->variant;
-        if (!$variant) {
-            $this->markMapping($mapping, 'missing', 'Local variant not found.');
-            return 'missing';
-        }
-
-        if (!$this->withinPriceGuard($variant, $incoming['price'], $incoming['special_price'])) {
-            $this->markMapping($mapping, 'price_guard', 'Price change exceeded max-change-percent.');
-            return 'price_guard';
-        }
-
-        $changes = $this->changedPayload($variant, $incoming);
         if (empty($changes)) {
-            $this->markMapping($mapping, 'unchanged', 'No price or stock change.');
-            return 'unchanged';
+            // Yazilacak bir sey yok: fiyat donduysa onu, degilse 'unchanged' raporla.
+            $status = $priceStatus ?? 'unchanged';
+            $note = match ($priceStatus) {
+                'invalid_price' => 'Source returned empty or zero price.',
+                'price_guard' => 'Price change exceeded max-change-percent.',
+                default => 'No price or stock change.',
+            };
+            $this->markMapping($mapping, $status, $note);
+            return $status;
         }
 
         if (!$this->apply) {
             if ($this->output->isVerbose()) {
-                $this->line("WOULD UPDATE variant #{$variant->id}: " . json_encode($changes, JSON_UNESCAPED_UNICODE));
+                $this->line("WOULD UPDATE variant #{$variant->id}: " . json_encode($changes, JSON_UNESCAPED_UNICODE)
+                    . ($priceStatus ? " (fiyat atlandi: {$priceStatus})" : ''));
             }
             return 'would_update';
         }
 
         $variant->update($changes);
-        $this->markMapping($mapping, 'updated', 'Price/stock updated.', $incoming);
+        $note = $priceStatus
+            ? "Stock updated; price skipped ({$priceStatus})."
+            : 'Price/stock updated.';
+        $this->markMapping($mapping, 'updated', $note, $incoming);
 
         return 'updated';
     }
@@ -326,25 +382,6 @@ class SyncSourcePrices extends Command
         $changePercent = abs($incoming - $current) / $current * 100;
 
         return $changePercent <= $this->maxChangePercent;
-    }
-
-    private function changedPayload(ProductVariant $variant, array $incoming): array
-    {
-        $payload = [];
-
-        foreach (['price', 'special_price'] as $field) {
-            $incomingValue = $incoming[$field];
-            $currentValue = $variant->{$field};
-            if ($incomingValue !== null && round((float) $currentValue, 2) !== round((float) $incomingValue, 2)) {
-                $payload[$field] = $incomingValue;
-            }
-        }
-
-        if ($incoming['stock_quantity'] !== null && (int) $variant->stock_quantity !== (int) $incoming['stock_quantity']) {
-            $payload['stock_quantity'] = (int) $incoming['stock_quantity'];
-        }
-
-        return $payload;
     }
 
     private function markMapping(ProductSourceMapping $mapping, string $status, string $note, ?array $incoming = null): void

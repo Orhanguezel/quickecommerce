@@ -60,8 +60,10 @@ run_scraper() {
 
   # Maraton: URL kaynagi ayri dosya (maraton_urls.json) — scraper kendi
   # ciktisini (maraton_products.json) okumaz, circular dependency kirildi.
-  run_scraper maraton        maraton_scraper_v2.py     maraton_products.json       "--urls-from maraton_urls.json"
-  run_scraper musclepump     musclepump_scraper.py     musclepump_products.json
+  # NOT: sync source_name, ProductSourceMapping kayitlariyla BIREBIR eslesmeli.
+  # maraton/musclepump mapping'leri "*_import" adiyla kayitli; duz ad 0 satir gunceller.
+  run_scraper maraton_import    maraton_scraper_v2.py     maraton_products.json       "--urls-from maraton_urls.json"
+  run_scraper musclepump_import musclepump_scraper.py     musclepump_products.json
   run_scraper everlast       everlast_scraper.py       everlast_products.json
   run_scraper swan           swan_scraper.py           swan_products.json
   run_scraper grandgiftstore grandgiftstore_scraper.py grandgiftstore_products.json
