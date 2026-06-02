@@ -31,7 +31,19 @@ kelime karistiriyor ("hiểu", "họ", "目前"). Model artefakti.
 
 ---
 
-## B. Queue Worker + E-posta (KRITIK)
+## DURUM GUNCELLEMESI (2026-06-02)
+
+- [x] **B — Queue worker:** backlog (12.617 job) tamamen silindi, PM2 `quickecommerce-queue`
+      kuruldu + `pm2 save` + startup. Test maili 3sn'de gitti (failed=0). E-posta kanali ACIK.
+- [x] **C — Admin bildirim kodu:** `AdminNotifier` servisi (DB cani + e-posta + best-effort
+      Firebase), yeni uyelik bildirimi, siparis admin sorgu fix (system_level), AI canli destek
+      AdminNotifier'a tasindi + e-posta. Test edildi (DB cani + mail kuyrugu calisiyor).
+- [ ] **A — Gemini model:** API key bekleniyor.
+- [ ] **D — Firebase:** service account JSON + admin token (frontend) bekleniyor.
+
+---
+
+## B. Queue Worker + E-posta (KRITIK) — ✅ TAMAM
 
 **Sorun:** `QUEUE_CONNECTION=database` ama queue worker HIC calismiyor.
 `jobs` tablosunda **12.605 takili is** (18 Subat'tan beri):
