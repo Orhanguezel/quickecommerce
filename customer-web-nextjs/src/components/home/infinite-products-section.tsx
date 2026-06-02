@@ -10,7 +10,6 @@ import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import { ProductCard } from "@/components/product/product-card";
 import { SectionHeader } from "./section-header";
 import type { Category } from "@/modules/site/site.type";
-import { isDisplayableProductCategory, sortCategoriesForNavigation } from "@/modules/site/category-utils";
 
 interface ProductListPage {
   data: Product[];
@@ -39,43 +38,20 @@ function ProductSkeleton() {
   );
 }
 
-function hourlyRotationSeed() {
-  return Math.floor(Date.now() / (1000 * 60 * 60));
-}
-
-function rotate<T>(items: T[], offset: number): T[] {
-  if (!items.length) return items;
-  const normalizedOffset = ((offset % items.length) + items.length) % items.length;
-  return [...items.slice(normalizedOffset), ...items.slice(0, normalizedOffset)];
-}
-
-interface InfinitePageParam {
-  catIdx: number;
-  page: number;
-}
-
-interface InfinitePageResult extends ProductListPage {
-  catIdx: number;
-}
-
 export function InfiniteProductsSection({
   title: titleProp,
-  categories = [],
+  categories: _categories = [],
 }: {
   title?: string | null;
+  // categories prop'u eski API ile uyumluluk icin tutuldu ama artik
+  // kullanilmiyor — /products endpoint'i tum satilabilir urunleri
+  // paginate eder (kategori filtresi yok).
   categories?: Category[];
 }) {
   const t = useTranslations("home");
   const { findAll } = useBaseService<ProductListPage>(API_ENDPOINTS.PRODUCTS);
   const title = titleProp || t("all_products_title");
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const rotatedCategories = rotate(
-    categories
-      .filter(isDisplayableProductCategory)
-      .sort(sortCategoriesForNavigation),
-    hourlyRotationSeed()
-  );
-  const seedKey = rotatedCategories.map((c) => c.id).join(",");
 
   // Store mutable refs to avoid recreating the IntersectionObserver on every render
   const hasNextPageRef = useRef(false);
@@ -90,30 +66,21 @@ export function InfiniteProductsSection({
     isLoading,
     isError,
   } = useInfiniteQuery({
-    queryKey: ["home-all-products-rotated", seedKey],
+    queryKey: ["home-all-products"],
     queryFn: async ({ pageParam }) => {
-      const { catIdx, page } = pageParam as InfinitePageParam;
-      const cat = rotatedCategories[catIdx];
       const res = await findAll({
-        page,
+        page: pageParam as number,
         per_page: PER_PAGE,
-        ...(cat ? { category_id: [cat.id] } : {}),
       });
-      const payload = res.data as unknown as ProductListPage;
-      return { ...payload, catIdx } as InfinitePageResult;
+      return res.data as unknown as ProductListPage;
     },
-    initialPageParam: { catIdx: 0, page: 1 } as InfinitePageParam,
+    initialPageParam: 1,
     getNextPageParam: (lastPage) => {
       const current =
         lastPage?.meta?.current_page ?? lastPage?.current_page ?? 0;
       const last = lastPage?.meta?.last_page ?? lastPage?.last_page ?? 0;
-      // Aynı kategori içinde sıradaki sayfa varsa onu al
       if (current && last && current < last) {
-        return { catIdx: lastPage.catIdx, page: current + 1 };
-      }
-      // Kategori bitti → sıradaki rotate kategoriye geç
-      if (lastPage.catIdx + 1 < rotatedCategories.length) {
-        return { catIdx: lastPage.catIdx + 1, page: 1 };
+        return current + 1;
       }
       return undefined;
     },
