@@ -64,7 +64,13 @@ run_scraper() {
   # ciktisini (maraton_products.json) okumaz, circular dependency kirildi.
   # NOT: sync source_name, ProductSourceMapping kayitlariyla BIREBIR eslesmeli.
   # maraton/musclepump mapping'leri "*_import" adiyla kayitli; duz ad 0 satir gunceller.
-  run_scraper maraton_import    maraton_scraper_v2.py     maraton_products.json       "--urls-from maraton_urls.json"
+  #
+  # 2026-06-02 PASIF: maraton/powertec/raketspor Cloudflare 1010 (IP bani) yiyor;
+  # proxy yapilmayacagina karar verildi. Bu kaynaklar kapali — urunleri sportoonline'da
+  # status=inactive yapildi. Her gun bosuna deneyip hata loglamasin diye cron'dan cikarildi.
+  # Proxy eklenirse (bkz. vps-guezel/scraper-service/ISTEK-cloudflare-1010-proxy-fix.md)
+  # asagidaki 3 satir geri acilabilir.
+  # run_scraper maraton_import    maraton_scraper_v2.py     maraton_products.json       "--urls-from maraton_urls.json"
   run_scraper musclepump_import musclepump_scraper.py     musclepump_products.json
   run_scraper everlast       everlast_scraper.py       everlast_products.json
   run_scraper swan           swan_scraper.py           swan_products.json
@@ -93,8 +99,9 @@ run_scraper() {
   run_scraper compexturkiye       compexturkiye_scraper.py       compexturkiye_products.json
   run_scraper proteinavm          proteinavm_scraper.py          proteinavm_products.json
   run_scraper eprotein            eprotein_scraper.py            eprotein_products.json
-  run_scraper powertec            powertec_scraper.py            powertec_products.json
-  run_scraper raketspor           raketspor_scraper.py           raketspor_products.json
+  # 2026-06-02 PASIF (Cloudflare 1010 IP bani, proxy yapilmadi) — bkz. yukaridaki not.
+  # run_scraper powertec            powertec_scraper.py            powertec_products.json
+  # run_scraper raketspor           raketspor_scraper.py           raketspor_products.json
 
   echo
   echo "════ Hepsi bitti: $(date -Iseconds) ════"
