@@ -378,7 +378,7 @@ export function HeaderVariant1() {
                     <Link
                       key={menu.id}
                       href={menu.url ? `/${menu.url}` : '/'}
-                      className="flex h-11 shrink-0 items-center border-b-2 border-transparent transition-colors hover:text-primary"
+                      className="relative flex h-11 shrink-0 items-center border-b-[3px] border-transparent px-3 transition-colors hover:text-primary"
                       style={{ color: 'hsl(var(--header-nav-text))' }}
                     >
                       {menu.name}
