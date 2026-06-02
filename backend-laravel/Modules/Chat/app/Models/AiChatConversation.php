@@ -13,6 +13,11 @@ class AiChatConversation extends Model
         'customer_id',
         'session_id',
         'status',
+        'support_notified_at',
+    ];
+
+    protected $casts = [
+        'support_notified_at' => 'datetime',
     ];
 
     public function customer()

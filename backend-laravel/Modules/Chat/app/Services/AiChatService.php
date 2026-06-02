@@ -5,6 +5,8 @@ namespace Modules\Chat\app\Services;
 use App\Models\OrderMaster;
 use App\Models\Product;
 use App\Models\Translation;
+use App\Models\UniversalNotification;
+use App\Models\User;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Modules\Chat\app\Models\AiChatConversation;
@@ -73,11 +75,152 @@ class AiChatService
             'provider' => $provider,
         ]);
 
+        // Musteri canli destek / insan temsilci istediyse admine GERCEK bildirim
+        // gonder (AI'in sahte "bagladim" yanitlari yerine). Sohbeti asla bozmaz.
+        if ($this->wantsHumanSupport($message)) {
+            $this->notifyAdminLiveSupport($conversation, $message);
+        }
+
         return [
             'content' => $result['content'],
             'conversation_id' => $conversation->id,
             'tokens_used' => $result['tokens_used'],
+            'support_requested' => $this->wantsHumanSupport($message),
         ];
+    }
+
+    /**
+     * Kullanici insan/canli destek talep ediyor mu? (TR + EN sinyaller)
+     */
+    private function wantsHumanSupport(string $message): bool
+    {
+        $m = mb_strtolower($message, 'UTF-8');
+        // Turkce karakterleri sadelestir (i/ı, ş, ç, ğ, ü, ö)
+        $m = strtr($m, ['ı' => 'i', 'ş' => 's', 'ç' => 'c', 'ğ' => 'g', 'ü' => 'u', 'ö' => 'o', 'İ' => 'i']);
+
+        $signals = [
+            'canli destek', 'musteri temsilci', 'temsilci', 'yetkili',
+            'operator', 'gercek kisi', 'musteri hizmet', 'destek ekibi',
+            'insana bag', 'insanla', 'bir insan', 'birine bag', 'yetkiliye bag',
+            'gercek biri', 'canli yardim',
+            'human', 'live support', 'live agent', 'real person', 'real human',
+            'speak to someone', 'talk to a human', 'customer representative', 'agent',
+        ];
+
+        foreach ($signals as $needle) {
+            if (str_contains($m, $needle)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Canli destek talebini admine bildir: panel cani (DB) + Firebase push.
+     * Ayni konusmada bir kez. Her turlu hata sessizce loglanir, sohbet bozulmaz.
+     */
+    private function notifyAdminLiveSupport(AiChatConversation $conversation, string $message): void
+    {
+        try {
+            // Ayni konusmada tekrar bildirim gonderme
+            if ($conversation->support_notified_at) {
+                return;
+            }
+
+            $super_admin = User::where('activity_scope', 'system_level')
+                ->where('slug', 'super_admin')
+                ->first();
+
+            if (!$super_admin) {
+                $super_admin = User::whereHas('roles', function ($q) {
+                    $q->where('slug', 'super_admin');
+                })->first();
+            }
+
+            if (!$super_admin) {
+                Log::warning('AI Chat live-support: super_admin bulunamadi, bildirim atlandi.', [
+                    'conversation_id' => $conversation->id,
+                ]);
+                return;
+            }
+
+            $customerLabel = $conversation->customer_id
+                ? ('Musteri #' . $conversation->customer_id)
+                : 'Misafir';
+
+            $title = 'Canli destek talebi (AI sohbet)';
+            $body = $customerLabel . ' canli destek istedi: "' . mb_substr(trim($message), 0, 120) . '"';
+
+            $data = [
+                'type' => 'ai_chat_live_support',
+                'conversation_id' => $conversation->id,
+                'customer_id' => $conversation->customer_id,
+                'session_id' => $conversation->session_id,
+                'message' => mb_substr(trim($message), 0, 250),
+                'screen' => 'ai-chat',
+            ];
+
+            // 1) Panel cani (DB) — kesin calisir
+            UniversalNotification::create([
+                'notifiable_id' => $super_admin->id,
+                'title' => $title,
+                'message' => $body,
+                'data' => json_encode($data, JSON_UNESCAPED_UNICODE),
+                'notifiable_type' => 'admin',
+                'status' => 'unread',
+            ]);
+
+            // 2) Firebase push — best-effort (token yoksa/hata olursa sessiz gec)
+            $this->pushToAdmin($super_admin, $title, $body, $data);
+
+            $conversation->forceFill(['support_notified_at' => now()])->save();
+        } catch (\Throwable $e) {
+            Log::error('AI Chat live-support bildirim hatasi', [
+                'conversation_id' => $conversation->id ?? null,
+                'message' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Super admin'e Firebase push (best-effort). OrderManageNotificationService
+     * ile ayni Kreait Factory yaklasimini kullanir.
+     */
+    private function pushToAdmin(User $admin, string $title, string $body, array $data): void
+    {
+        try {
+            if (empty($admin->firebase_token)) {
+                return;
+            }
+
+            $tokens = is_array($admin->firebase_token) ? $admin->firebase_token : [$admin->firebase_token];
+            $tokens = array_filter(array_unique($tokens));
+            if (empty($tokens)) {
+                return;
+            }
+
+            $credentialsPath = storage_path('app/firebase/firebase.json');
+            if (!file_exists($credentialsPath)) {
+                return;
+            }
+
+            $factory = (new \Kreait\Firebase\Factory)->withServiceAccount($credentialsPath);
+            $messaging = $factory->createMessaging();
+
+            $payload = array_map(fn ($v) => is_scalar($v) ? (string) $v : json_encode($v), $data);
+
+            foreach ($tokens as $token) {
+                $cloud = \Kreait\Firebase\Messaging\CloudMessage::withTarget('token', $token)
+                    ->withNotification(\Kreait\Firebase\Messaging\Notification::create($title, $body))
+                    ->withData($payload);
+                $messaging->send($cloud);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('AI Chat live-support Firebase push basarisiz', [
+                'message' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**
