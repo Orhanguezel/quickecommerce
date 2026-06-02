@@ -303,17 +303,20 @@ class OrderManageNotificationService
 
         if ($this->adminNotified) return;
 
-        $super_admin = User::where('activity_scope', 'system_level')
-            ->where('slug', 'super_admin')
-            ->first();
+        // Adminler activity_scope='system_level' (super_admin slug YOK).
+        $admins = User::where('activity_scope', 'system_level')->get();
+        if ($admins->isEmpty()) return;
 
-        if (!$super_admin || empty($super_admin->firebase_token)) return;
-
-        $tokens = is_array($super_admin->firebase_token)
-            ? $super_admin->firebase_token
-            : [$super_admin->firebase_token];
+        $tokens = [];
+        foreach ($admins as $admin) {
+            if (empty($admin->firebase_token)) continue;
+            foreach ((is_array($admin->firebase_token) ? $admin->firebase_token : [$admin->firebase_token]) as $t) {
+                $tokens[] = $t;
+            }
+        }
 
         $tokens = array_filter(array_unique($tokens));
+        if (empty($tokens)) return;
 
         $notification_data = [
             "title" => $title,
@@ -335,9 +338,9 @@ class OrderManageNotificationService
     // Notify Admins
     protected function notifyAdmin($title, $message, $data)
     {
-        $admin = User::whereHas('roles', function ($query) {
-            $query->where('slug', 'super_admin');
-        })->first();
+        // Adminler activity_scope='system_level' ile tanimli (super_admin slug YOK).
+        // Admin tipi bildirimleri tum adminler gorur; tek kayit yeterli.
+        $admin = User::where('activity_scope', 'system_level')->first();
 
         if ($admin) {
             $this->sendNotification($admin->id, 'admin', $title, $message, $data);

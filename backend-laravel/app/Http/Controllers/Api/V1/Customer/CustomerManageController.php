@@ -32,6 +32,22 @@ class CustomerManageController extends Controller
         try {
             $customer = Customer::create($request->all());
             $token = $customer->createToken('customer_auth_token')->plainTextToken;
+
+            // Yeni uyelik -> admine bildir (panel cani + e-posta). Bildirim
+            // hatasi kayit akisini bozmaz (AdminNotifier kendi icinde yutar).
+            $fullName = trim(($customer->first_name ?? '') . ' ' . ($customer->last_name ?? ''));
+            \App\Services\AdminNotifier::notify(
+                'Yeni uyelik',
+                ($fullName !== '' ? $fullName : 'Yeni musteri') . ' kayit oldu (' . $customer->email . ')',
+                [
+                    'type' => 'new_customer',
+                    'customer_id' => $customer->id,
+                    'email' => $customer->email,
+                    'screen' => 'customers',
+                ],
+                true
+            );
+
             // Return a successful response with the token and permissions
             return response()->json([
                 "status" => true,

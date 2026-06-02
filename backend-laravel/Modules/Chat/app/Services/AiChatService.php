@@ -5,8 +5,6 @@ namespace Modules\Chat\app\Services;
 use App\Models\OrderMaster;
 use App\Models\Product;
 use App\Models\Translation;
-use App\Models\UniversalNotification;
-use App\Models\User;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Modules\Chat\app\Models\AiChatConversation;
@@ -117,111 +115,35 @@ class AiChatService
     }
 
     /**
-     * Canli destek talebini admine bildir: panel cani (DB) + Firebase push.
-     * Ayni konusmada bir kez. Her turlu hata sessizce loglanir, sohbet bozulmaz.
+     * Canli destek talebini admine bildir (ortak AdminNotifier: panel cani +
+     * e-posta + best-effort Firebase). Ayni konusmada bir kez.
      */
     private function notifyAdminLiveSupport(AiChatConversation $conversation, string $message): void
     {
-        try {
-            // Ayni konusmada tekrar bildirim gonderme
-            if ($conversation->support_notified_at) {
-                return;
-            }
+        // Ayni konusmada tekrar bildirim gonderme
+        if ($conversation->support_notified_at) {
+            return;
+        }
 
-            // Bu kurulumda adminler activity_scope='system_level' ile tanimli
-            // (super_admin slug'i yok). Tum sistem adminlerine bildir.
-            $admins = User::where('activity_scope', 'system_level')->get();
+        $customerLabel = $conversation->customer_id
+            ? ('Musteri #' . $conversation->customer_id)
+            : 'Misafir';
 
-            if ($admins->isEmpty()) {
-                Log::warning('AI Chat live-support: sistem admini bulunamadi, bildirim atlandi.', [
-                    'conversation_id' => $conversation->id,
-                ]);
-                return;
-            }
-
-            $customerLabel = $conversation->customer_id
-                ? ('Musteri #' . $conversation->customer_id)
-                : 'Misafir';
-
-            $title = 'Canli destek talebi (AI sohbet)';
-            $body = $customerLabel . ' canli destek istedi: "' . mb_substr(trim($message), 0, 120) . '"';
-
-            $data = [
+        \App\Services\AdminNotifier::notify(
+            'Canli destek talebi (AI sohbet)',
+            $customerLabel . ' canli destek istedi: "' . mb_substr(trim($message), 0, 120) . '"',
+            [
                 'type' => 'ai_chat_live_support',
                 'conversation_id' => $conversation->id,
                 'customer_id' => $conversation->customer_id,
                 'session_id' => $conversation->session_id,
                 'message' => mb_substr(trim($message), 0, 250),
                 'screen' => 'ai-chat',
-            ];
+            ],
+            true
+        );
 
-            // 1) Panel cani (DB) — kesin calisir. Admin tipi bildirimleri tum
-            // adminler gorur; tek kayit yeterli (notifiable_id = ilk admin).
-            UniversalNotification::create([
-                'notifiable_id' => $admins->first()->id,
-                'title' => $title,
-                'message' => $body,
-                'data' => json_encode($data, JSON_UNESCAPED_UNICODE),
-                'notifiable_type' => 'admin',
-                'status' => 'unread',
-            ]);
-
-            // 2) Firebase push — best-effort (token yoksa/hata olursa sessiz gec)
-            $this->pushToAdmins($admins, $title, $body, $data);
-
-            $conversation->forceFill(['support_notified_at' => now()])->save();
-        } catch (\Throwable $e) {
-            Log::error('AI Chat live-support bildirim hatasi', [
-                'conversation_id' => $conversation->id ?? null,
-                'message' => $e->getMessage(),
-            ]);
-        }
-    }
-
-    /**
-     * Sistem adminlerine Firebase push (best-effort). OrderManageNotificationService
-     * ile ayni Kreait Factory yaklasimini kullanir.
-     *
-     * @param  \Illuminate\Support\Collection<int,User>  $admins
-     */
-    private function pushToAdmins($admins, string $title, string $body, array $data): void
-    {
-        try {
-            $tokens = [];
-            foreach ($admins as $admin) {
-                if (empty($admin->firebase_token)) {
-                    continue;
-                }
-                foreach ((is_array($admin->firebase_token) ? $admin->firebase_token : [$admin->firebase_token]) as $t) {
-                    $tokens[] = $t;
-                }
-            }
-            $tokens = array_filter(array_unique($tokens));
-            if (empty($tokens)) {
-                return;
-            }
-
-            $credentialsPath = storage_path('app/firebase/firebase.json');
-            if (!file_exists($credentialsPath)) {
-                return;
-            }
-
-            $factory = (new \Kreait\Firebase\Factory)->withServiceAccount($credentialsPath);
-            $messaging = $factory->createMessaging();
-
-            $payload = array_map(fn ($v) => is_scalar($v) ? (string) $v : json_encode($v), $data);
-
-            foreach ($tokens as $token) {
-                $cloud = \Kreait\Firebase\Messaging\CloudMessage::withTarget('token', $token)
-                    ->withNotification(\Kreait\Firebase\Messaging\Notification::create($title, $body))
-                    ->withData($payload);
-                $messaging->send($cloud);
-            }
-        } catch (\Throwable $e) {
-            Log::warning('AI Chat live-support Firebase push basarisiz', [
-                'message' => $e->getMessage(),
-            ]);
-        }
+        $conversation->forceFill(['support_notified_at' => now()])->save();
     }
 
     /**
