@@ -411,11 +411,31 @@ class AiChatService
             }
         }
 
+        // Anthropic: roller user/assistant SIRAYLA olmali ve user ile baslamali.
+        // (OpenAI/groq esnek; Anthropic ardisik ayni rolde 400 verir.)
+        $normalized = [];
+        foreach ($chatMessages as $msg) {
+            $role = ($msg['role'] === 'assistant') ? 'assistant' : 'user';
+            if (empty($normalized)) {
+                if ($role !== 'user') {
+                    continue; // bastaki assistant mesajlarini atla
+                }
+                $normalized[] = ['role' => $role, 'content' => $msg['content']];
+            } elseif ($normalized[count($normalized) - 1]['role'] === $role) {
+                $normalized[count($normalized) - 1]['content'] .= "\n" . $msg['content'];
+            } else {
+                $normalized[] = ['role' => $role, 'content' => $msg['content']];
+            }
+        }
+        if (empty($normalized)) {
+            $normalized[] = ['role' => 'user', 'content' => '(bos)'];
+        }
+
         $body = [
             'model' => $model,
             'max_tokens' => $maxTokens,
             'temperature' => $temperature,
-            'messages' => $chatMessages,
+            'messages' => $normalized,
         ];
 
         if ($system) {
