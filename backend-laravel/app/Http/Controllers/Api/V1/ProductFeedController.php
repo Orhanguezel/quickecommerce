@@ -54,6 +54,11 @@ class ProductFeedController extends Controller
         }
 
         try {
+            // FPM memory_limit (php.ini) genelde 128M; cimri feed 37 MB string'e
+            // ulasiyor + concat/foreach heap kullanir -> 128M asilir, FPM kill
+            // eder. CLI'da limit -1 oldugu icin feeds:warm cron sorunsuz calisir;
+            // HTTP route'unda cache miss durumunda burada lokal olarak artiriyoruz.
+            ini_set('memory_limit', '512M');
             $xml = $this->generateProductXml($feedType);
             Cache::put($cacheKey, $xml, 6 * 60 * 60);
             return $this->xmlResponse($xml);
