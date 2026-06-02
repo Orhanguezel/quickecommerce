@@ -38,8 +38,9 @@ kelime karistiriyor ("hiểu", "họ", "目前"). Model artefakti.
 - [x] **C — Admin bildirim kodu:** `AdminNotifier` servisi (DB cani + e-posta + best-effort
       Firebase), yeni uyelik bildirimi, siparis admin sorgu fix (system_level), AI canli destek
       AdminNotifier'a tasindi + e-posta. Test edildi (DB cani + mail kuyrugu calisiyor).
-- [ ] **A — Gemini model:** API key bekleniyor.
-- [ ] **D — Firebase:** service account JSON + admin token (frontend) bekleniyor.
+- [x] **A — AI model:** anthropic / **claude-haiku-4-5** (key hal-fiyatlari .env'inden — PAYLASIMLI).
+      Test edildi: temiz Turkce, dil sizintisi yok. Rol normalizasyonu eklendi.
+- [ ] **D — Firebase:** service account JSON + admin token (frontend) bekleniyor (ERTELENDI).
 
 ---
 
