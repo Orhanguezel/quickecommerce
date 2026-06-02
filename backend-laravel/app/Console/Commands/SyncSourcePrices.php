@@ -336,8 +336,10 @@ class SyncSourcePrices extends Command
             ];
         }
 
+        // Bazi scraperlar ( or. musclepump) variant uretmez ve farkli alan
+        // adlari kullanir: original_price yerine 'price'.
         return [
-            'price' => $this->numberOrNull($sourceProduct['original_price'] ?? null),
+            'price' => $this->numberOrNull($sourceProduct['original_price'] ?? $sourceProduct['price'] ?? null),
             'special_price' => $this->numberOrNull($sourceProduct['discounted_price'] ?? null),
             'stock_quantity' => $this->stockFromSource($sourceProduct),
         ];
@@ -354,8 +356,14 @@ class SyncSourcePrices extends Command
             }
         }
 
-        if (array_key_exists('available', $source)) {
-            return $source['available'] ? 100 : 0;
+        // Bool stok bayraklari: 'available' (Shopify) veya 'in_stock' (musclepump vb.)
+        foreach (['available', 'in_stock'] as $boolKey) {
+            if (array_key_exists($boolKey, $source)) {
+                return $source[$boolKey] ? 100 : 0;
+            }
+            if ($fallback && array_key_exists($boolKey, $fallback)) {
+                return $fallback[$boolKey] ? 100 : 0;
+            }
         }
 
         return 100;
