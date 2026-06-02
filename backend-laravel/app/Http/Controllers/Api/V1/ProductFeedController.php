@@ -19,13 +19,7 @@ class ProductFeedController extends Controller
      */
     public function cimri(): Response
     {
-        $xml = Cache::remember('cimri_product_feed_v3', 6 * 60 * 60, function () {
-            return $this->generateProductXml('cimri');
-        });
-
-        return response($xml, 200, [
-            'Content-Type' => 'application/xml; charset=UTF-8',
-        ]);
+        return $this->serveFeed('cimri_product_feed_v3', 'feed_lock_cimri', 'cimri');
     }
 
     /**
@@ -36,10 +30,40 @@ class ProductFeedController extends Controller
      */
     public function google(): Response
     {
-        $xml = Cache::remember('google_product_feed_v2', 6 * 60 * 60, function () {
-            return $this->generateProductXml('google');
-        });
+        return $this->serveFeed('google_product_feed_v2', 'feed_lock_google', 'google');
+    }
 
+    /**
+     * Cache lock pattern: ayni anda gelen 4 cache-miss istegi, hep birlikte
+     * regenerate edip 4-5 ardisik 500 dondurmek yerine yalniz 1 istek regenerate
+     * eder; digerleri 503 + Retry-After ile geri cevirilir. Bot/crawler retry
+     * yapar; sonraki istekler cache HIT olur.
+     */
+    private function serveFeed(string $cacheKey, string $lockKey, string $feedType): Response
+    {
+        $cached = Cache::get($cacheKey);
+        if ($cached !== null) {
+            return $this->xmlResponse($cached);
+        }
+
+        $lock = Cache::lock($lockKey, 60);
+        if (!$lock->get()) {
+            return response('Feed regenerating, retry shortly', 503, [
+                'Retry-After' => '30',
+            ]);
+        }
+
+        try {
+            $xml = $this->generateProductXml($feedType);
+            Cache::put($cacheKey, $xml, 6 * 60 * 60);
+            return $this->xmlResponse($xml);
+        } finally {
+            $lock->release();
+        }
+    }
+
+    private function xmlResponse(string $xml): Response
+    {
         return response($xml, 200, [
             'Content-Type' => 'application/xml; charset=UTF-8',
         ]);

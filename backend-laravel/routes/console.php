@@ -24,11 +24,12 @@ Schedule::command('orders:prune-unpaid --hours=' . env('ORDER_UNPAID_RETENTION_H
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/order-prune-unpaid.log'));
 
-// Google + Cimri urun feed'lerini her 4 saatte bir onceden uret: HTTP istek
+// Google + Cimri urun feed'lerini her 2 saatte bir onceden uret: HTTP istek
 // anindaki cache miss yerine cron'da kontrollu uretim. Cache 6 saat oldugu
-// icin 4 saatlik aralik her zaman taze tutar; istek <1 sn'de servis edilir.
+// icin 2 saatlik aralik cache eviction olsa bile her zaman taze tutar.
+// (4 saat aralikta arada eviction olursa bot 4-5 ardisik 500 alirdi)
 Schedule::command('feeds:warm')
-    ->cron('15 */4 * * *')
+    ->cron('15 */2 * * *')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/feeds-warm.log'));
 
