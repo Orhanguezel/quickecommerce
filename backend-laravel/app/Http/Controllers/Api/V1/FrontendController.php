@@ -1945,7 +1945,12 @@ class FrontendController extends Controller
     function productCategoryList(Request $request)
     {
         try {
-            $per_page = max(1, min(200, (int) ($request->per_page ?? 100)));
+            // Kategoriler bot saldirisi hedefi degil (DB'de bounded ~700 kayit,
+            // tree query'leri agir degil). Cap 1000 — frontend useCategoryQuery
+            // per_page:500 ile cagiriyor; onceki min(200,...) cap'i kategori
+            // listesini truncate ediyor, header'da cogu kategori "yok"
+            // gibi gozukuyordu.
+            $per_page = max(1, min(1000, (int) ($request->per_page ?? 100)));
             $language = $request->language ?? DEFAULT_LANGUAGE;
             $search = $request->search;
             $sort = $request->sort ?? 'asc';
