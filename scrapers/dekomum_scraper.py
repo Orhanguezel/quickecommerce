@@ -103,12 +103,34 @@ def scrape_body(url: str) -> ScrapeResult:
     )
 
 
+DIRECT_UA = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+)
+
+
 def fetch_json(path: str, params: dict[str, Any] | None = None) -> Any:
     query = f"?{parse.urlencode(params)}" if params else ""
     url = f"{API_BASE}{path}{query}"
+
+    # dekomum.net Cloudflare DEGIL; WooCommerce Store API dogrudan erisilebilir.
+    # scraper-service IP'si bu sitede 403 aliyor, bu yuzden ONCE dogrudan dene.
+    try:
+        req = request.Request(url, headers={
+            "User-Agent": DIRECT_UA,
+            "Accept": "application/json",
+        })
+        with request.urlopen(req, timeout=30) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as exc:
+        direct_err = exc
+
+    # Yedek: scraper-service uzerinden dene
     result = scrape_body(url)
     if not result.ok or not result.body:
-        raise RuntimeError(f"scrape failed: {url} ({result.status}) {result.error}")
+        raise RuntimeError(
+            f"fetch failed: {url} | direct={direct_err} | svc=({result.status}) {result.error}"
+        )
     return json.loads(result.body)
 
 
