@@ -48,7 +48,9 @@ run_scraper() {
   fi
 
   cd /var/www/quikecommerce/backend-laravel
-  php artisan sync:source-prices "$name" "/var/www/quikecommerce/$json_path" --apply
+  # Fiyat kaynakla birebir izlensin (30% guard drift'e yol aciyordu).
+  # 0/bos fiyat korumasi (hasValidPrice) yine aktif; sadece % limiti kalkti.
+  php artisan sync:source-prices "$name" "/var/www/quikecommerce/$json_path" --apply --max-change-percent=100000
   echo "  sync exit: $?"
   cd /var/www/quikecommerce
 }
