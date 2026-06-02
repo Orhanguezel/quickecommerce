@@ -128,18 +128,12 @@ class AiChatService
                 return;
             }
 
-            $super_admin = User::where('activity_scope', 'system_level')
-                ->where('slug', 'super_admin')
-                ->first();
+            // Bu kurulumda adminler activity_scope='system_level' ile tanimli
+            // (super_admin slug'i yok). Tum sistem adminlerine bildir.
+            $admins = User::where('activity_scope', 'system_level')->get();
 
-            if (!$super_admin) {
-                $super_admin = User::whereHas('roles', function ($q) {
-                    $q->where('slug', 'super_admin');
-                })->first();
-            }
-
-            if (!$super_admin) {
-                Log::warning('AI Chat live-support: super_admin bulunamadi, bildirim atlandi.', [
+            if ($admins->isEmpty()) {
+                Log::warning('AI Chat live-support: sistem admini bulunamadi, bildirim atlandi.', [
                     'conversation_id' => $conversation->id,
                 ]);
                 return;
@@ -161,9 +155,10 @@ class AiChatService
                 'screen' => 'ai-chat',
             ];
 
-            // 1) Panel cani (DB) — kesin calisir
+            // 1) Panel cani (DB) — kesin calisir. Admin tipi bildirimleri tum
+            // adminler gorur; tek kayit yeterli (notifiable_id = ilk admin).
             UniversalNotification::create([
-                'notifiable_id' => $super_admin->id,
+                'notifiable_id' => $admins->first()->id,
                 'title' => $title,
                 'message' => $body,
                 'data' => json_encode($data, JSON_UNESCAPED_UNICODE),
@@ -172,7 +167,7 @@ class AiChatService
             ]);
 
             // 2) Firebase push — best-effort (token yoksa/hata olursa sessiz gec)
-            $this->pushToAdmin($super_admin, $title, $body, $data);
+            $this->pushToAdmins($admins, $title, $body, $data);
 
             $conversation->forceFill(['support_notified_at' => now()])->save();
         } catch (\Throwable $e) {
@@ -184,17 +179,23 @@ class AiChatService
     }
 
     /**
-     * Super admin'e Firebase push (best-effort). OrderManageNotificationService
+     * Sistem adminlerine Firebase push (best-effort). OrderManageNotificationService
      * ile ayni Kreait Factory yaklasimini kullanir.
+     *
+     * @param  \Illuminate\Support\Collection<int,User>  $admins
      */
-    private function pushToAdmin(User $admin, string $title, string $body, array $data): void
+    private function pushToAdmins($admins, string $title, string $body, array $data): void
     {
         try {
-            if (empty($admin->firebase_token)) {
-                return;
+            $tokens = [];
+            foreach ($admins as $admin) {
+                if (empty($admin->firebase_token)) {
+                    continue;
+                }
+                foreach ((is_array($admin->firebase_token) ? $admin->firebase_token : [$admin->firebase_token]) as $t) {
+                    $tokens[] = $t;
+                }
             }
-
-            $tokens = is_array($admin->firebase_token) ? $admin->firebase_token : [$admin->firebase_token];
             $tokens = array_filter(array_unique($tokens));
             if (empty($tokens)) {
                 return;
