@@ -106,6 +106,15 @@ def clean_description_html(html):
         re.compile(r'\bhtml\s*,?\s*body\s*[,*{]', re.I),
         re.compile(r'\*::(?:-moz-)?selection\b', re.I),
         re.compile(r'user-select\s*:\s*text\s*!important', re.I),
+        # 2026-06-04: TICIMAX SCOPED CSS yorum + #tmx-* selector blok
+        # (eprotein bazi urunlerde scoped CSS aciklama icine sizdiriyor).
+        re.compile(r'/\*\s*T[Iİ]C[Iİ]MAX\s+SCOPED\s+CSS', re.I),
+        re.compile(r'#tmx-product-showcase\s*\{', re.I),
+        # JSON-LD literal sizinti: { '@context': 'https://schema.org', ...}
+        # FAQPage/Product schema'lari description'a kacarsa
+        # (eprotein torq-pea-protein vakasi).
+        re.compile(r"\{\s*['\"]@context['\"]\s*:\s*['\"]https?://schema\.org", re.I),
+        re.compile(r"['\"]@type['\"]\s*:\s*['\"]FAQPage['\"]", re.I),
     ]
     earliest = None
     for pat in trailing_css_markers:
