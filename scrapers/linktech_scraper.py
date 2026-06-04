@@ -76,26 +76,37 @@ def _discover_urls(session):
     return list(dict.fromkeys(urls))
 
 
-def _url_to_slug(url):
-    """URL'in son path segmentini doner (locale-agnostik).
+_PRODUCT_ID_RE = re.compile(r"-(\d+)/?$")
 
-    LinkTech /shop/ ve /en/shop/ aynı urune farklı locale prefix'leri ile gider.
-    Slug eşleştirmesi için son segment (örn. 's100-...-34164') kanoniktir.
+
+def _url_to_product_id(url):
+    """URL'den Odoo product ID'sini cekar (son -NNNN).
+
+    LinkTech /shop/ ve /en/shop/ ayni urune farkli LOCALE'lerle gider ve slug
+    cevirisi de degisir (orn. /shop/...akilli-saati-34164 vs /en/shop/...aklli-
+    saati-34164). Sondaki sayisal ID Odoo product_id'sidir, locale'den bagimsiz
+    kanonik anahtar.
     """
-    return url.rstrip("/").rsplit("/", 1)[-1] if url else ""
+    if not url:
+        return None
+    m = _PRODUCT_ID_RE.search(url.rstrip("/"))
+    return m.group(1) if m else None
 
 
-def _fetch_oos_slugs(session):
+def _fetch_oos_product_ids(session):
     """LinkTech /shop sayfalarini gezer, OUT OF STOCK badge'i tasiyan urunlerin
-    slug'larini doner.
+    Odoo product ID'lerini doner.
 
     2026-06-04: LinkTech (Odoo) urun DETAY sayfasinda stok sinyali VERMEZ
     (`.availability_messages` her ürünte boş gelir, JSON-LD availability yok).
     Sadece /shop LISTING sayfasında `.tp-product-stock-label` (tema-spesifik
     Theme Product Label) ile gosterilir. Bu yuzden detay scrape oncesi tum
     listing tarayip OOS set kuruyoruz; ardindan _parse_product set'e bakar.
+
+    Slug locale-bagimli oldugu icin (TR/EN cevirileri farkli), URL sonundaki
+    sayisal product_id ile eslestiriyoruz.
     """
-    slugs = set()
+    product_ids = set()
     seen_urls = set()   # tum sayfalardan toplanan urun URL'leri (loop dedektoru)
     page = 1
     # LinkTech /shop pagination overlap'li (sayfa basi 22 yeni URL); 1748 urun
@@ -144,14 +155,14 @@ def _fetch_oos_slugs(session):
                     link_href = a.get("href")
                     break
             if link_href:
-                slug = _url_to_slug(link_href)
-                if slug and slug not in slugs:
-                    slugs.add(slug)
+                pid = _url_to_product_id(link_href)
+                if pid and pid not in product_ids:
+                    product_ids.add(pid)
                     page_new_oos += 1
-        print(f"  Listing sayfa {page}: {len(page_urls)} urun, {len(new_urls)} yeni, {page_new_oos} yeni OOS slug")
+        print(f"  Listing sayfa {page}: {len(page_urls)} urun, {len(new_urls)} yeni, {page_new_oos} yeni OOS")
         page += 1
         time.sleep(0.4)
-    return slugs
+    return product_ids
 
 
 def _price_2dec(raw):
@@ -181,7 +192,7 @@ def _spec_value(soup, label):
     return ""
 
 
-def _parse_product(session, url, oos_slugs=None):
+def _parse_product(session, url, oos_product_ids=None):
     try:
         resp = session.get(url, timeout=25)
         resp.raise_for_status()
@@ -226,8 +237,10 @@ def _parse_product(session, url, oos_slugs=None):
     else:
         in_stock = True
 
-    if oos_slugs is not None and _url_to_slug(url) in oos_slugs:
-        in_stock = False
+    if oos_product_ids is not None:
+        pid = _url_to_product_id(url)
+        if pid and pid in oos_product_ids:
+            in_stock = False
 
     sku = _spec_value(soup, "Internal Reference") or _spec_value(soup, "Dahili Referans")
     barcode = _spec_value(soup, "Barcode") or _spec_value(soup, "Barkod")
@@ -317,17 +330,17 @@ def main():
         print("HATA: urun URL'i bulunamadi.")
         raise SystemExit(1)
 
-    # Detay sayfasinda stok sinyali yok; listing'den OOS slug'lari topla.
-    print("\n  Listing taramasi (OUT OF STOCK badge -> slug set)...")
-    oos_slugs = _fetch_oos_slugs(session)
-    print(f"  -> Toplam {len(oos_slugs)} OOS slug.")
+    # Detay sayfasinda stok sinyali yok; listing'den OOS product_id'leri topla.
+    print("\n  Listing taramasi (OUT OF STOCK badge -> product_id set)...")
+    oos_product_ids = _fetch_oos_product_ids(session)
+    print(f"  -> Toplam {len(oos_product_ids)} OOS product_id.")
 
     products = []
     skipped = 0
     for i, url in enumerate(urls, 1):
         if i == 1 or i % 50 == 0:
             print(f"  [{i}/{len(urls)}] ...")
-        prod = _parse_product(session, url, oos_slugs=oos_slugs)
+        prod = _parse_product(session, url, oos_product_ids=oos_product_ids)
         if prod:
             products.append(prod)
         else:
