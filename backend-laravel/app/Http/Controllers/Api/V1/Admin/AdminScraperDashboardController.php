@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\V1\Controller;
 use App\Models\ScraperAlert;
 use App\Models\ScraperRun;
 use App\Services\ScraperHealthSnapshot;
