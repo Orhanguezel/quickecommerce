@@ -1700,21 +1700,31 @@ class FrontendController extends Controller
 
     public function productDetails(Request $request, $product_slug)
     {
-        $product = $this->applyPublicCatalogScope(Product::with([
+        // 2026-06-04: Tukenen urunler (variant stok=0) publiclySellable() filtre
+        // ile 404 oluyordu — SEO + UX kotu (Cellucor C4 vakasi). Detay sayfasi
+        // icin publiclySellable scope kaldirildi; sadece status + soft delete
+        // check kaldi. Variant'lar applySellableVariantScope ile zaten filtre
+        // ediliyor (tukenmis variant gizli; tek variant ise frontend "Tukendi"
+        // gosterir). Listing/search hala applyPublicCatalogScope kullanir.
+        $product = Product::with([
             'store' => function ($query) {
                 $query->withCount(['products' => function ($q) {
-                    // Add conditions to filter approved products and those that are not deleted
                     $q->publiclySellable();
                 }]);
             },
             'tags',
             'unit',
-            'variants' => fn ($query) => $this->applySellableVariantScope($query),
+            // 2026-06-04: Variants da filtersiz cekiliyor — tukenmis variant
+            // da detay sayfasinda gosterilsin (kullanici "Bu variant tukendi"
+            // bilgisini gormeli, secim yapabilmeli).
+            'variants',
             'brand',
             'category',
             'related_translations',
             'fullSpecifications'
-        ]))
+        ])
+            ->where('status', 'approved')
+            ->whereNull('deleted_at')
             ->where('slug', $product_slug)
             ->first();
 
