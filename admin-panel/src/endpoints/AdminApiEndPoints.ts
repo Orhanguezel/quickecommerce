@@ -453,6 +453,12 @@ export const API_ENDPOINTS = {
   ADMIN_ORDER_GROWTH_LIST: "v1/admin/dashboard/order-growth-summary",
   ADMIN_OTHER_SUMMARY_LIST: "v1/admin/dashboard/other-summary",
 
+  // 2026-06-04 Scraper Health Dashboard
+  ADMIN_SCRAPER_OVERVIEW: "v1/admin/scrapers/overview",
+  ADMIN_SCRAPER_SOURCES: "v1/admin/scrapers/sources",
+  ADMIN_SCRAPER_SOURCE_DETAIL: "v1/admin/scrapers/sources", // + /{name}
+  ADMIN_SCRAPER_ALERTS: "v1/admin/scrapers/alerts",
+
   DEPARTMENT: "v1/admin/department/list",
   GET_DEPARTMENT: "v1/admin/department/details",
   DEPARTMENT_ADD: "v1/admin/department/add",
