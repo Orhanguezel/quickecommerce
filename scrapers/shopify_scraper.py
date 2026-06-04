@@ -152,6 +152,16 @@ def clean_description_html(html):
         # (eprotein torq-pea-protein vakasi).
         re.compile(r"\{\s*['\"]@context['\"]\s*:\s*['\"]https?://schema\.org", re.I),
         re.compile(r"['\"]@type['\"]\s*:\s*['\"]FAQPage['\"]", re.I),
+        # 2026-06-04 v3: Tedarikci sayfasinin diger bolumleri (yorumlar widget,
+        # taksit secenekleri, "ilk yorumu siz yapin" placeholder) aciklamanin
+        # sonuna yapisiyor (eprotein bromelain vakasi). Bu markerlar normal
+        # urun aciklamasinin sonu degil, sayfanin sonraki section'larinin
+        # baslangici — guvenle kesilebilir.
+        re.compile(r'\bYorumlar\s+(?:Bu\s+(?:ürüne|urune)\s+ilk\s+yorumu|İlk\s+yorumu)', re.I),
+        re.compile(r'\bBu\s+(?:ürüne|urune)\s+ilk\s+yorumu\s+siz\s+yapın', re.I),
+        re.compile(r'\bTaksit\s+Seçenekleri\b', re.I),
+        re.compile(r'\bYorum\s+Yaz\s+Taksit\b', re.I),
+        re.compile(r'\bHenüz\s+değerlendirme\s+yapılmamış', re.I),
     ]
     earliest = None
     for pat in trailing_css_markers:
