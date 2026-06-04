@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from paths import source_image_dir, source_product_path
 from shopify_scraper import resolve_relative_urls
+from opencart_scraper import _html_stock_status  # OpenCart tema detection (tek kaynak)
 
 BASE_URL = "https://www.ayakkabimalzememarket.com"
 IMAGE_DIR = source_image_dir("ayakkabi_images")
@@ -60,8 +61,9 @@ def download_image(url, subfolder=""):
 
 
 def scrape_product_detail(product_url):
-    """Detay sayfasindan aciklama ve gorseller."""
-    detail = {"description_html": "", "description_text": "", "all_images": [], "specifications": []}
+    """Detay sayfasindan aciklama, gorseller ve stok durumu."""
+    detail = {"description_html": "", "description_text": "", "all_images": [],
+              "specifications": [], "available": None}
     try:
         resp = session.get(product_url, timeout=15)
         resp.raise_for_status()
@@ -69,6 +71,12 @@ def scrape_product_detail(product_url):
         return detail
 
     soup = BeautifulSoup(resp.text, "html.parser")
+
+    # 2026-06-04: Stok durumu — opencart_scraper'in 3 katmanli detection'i.
+    # Daha once hic kontrol edilmiyordu, tum urunler "100 stok" gorunuyordu.
+    stock_signal = _html_stock_status(soup, raw_html=resp.text)
+    # None (belirsiz) -> tedbirli False (kullanici kurali: stok yok sinyali yoksa satma)
+    detail["available"] = bool(stock_signal) if stock_signal is not None else False
 
     # Aciklama
     desc = soup.select_one("#tab-description, .tab-content, .product-description")
@@ -240,6 +248,7 @@ def main():
         p["description_text"] = detail["description_text"]
         p["specifications"] = detail["specifications"]
         p["all_image_urls"] = detail["all_images"]
+        p["available"] = detail["available"]
         p["slug"] = make_slug(p["name"])
         p["sku"] = ""
         p["barcode"] = ""

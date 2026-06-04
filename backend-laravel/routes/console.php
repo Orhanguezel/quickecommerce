@@ -40,6 +40,16 @@ Schedule::command('monitor:5xx-alarm --threshold=' . env('ALARM_5XX_THRESHOLD', 
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/monitor-5xx.log'));
 
+// Scraper saglik kontrolu: gunluk scrape cron'u 02:00 UTC'de basladigi icin
+// ~7 saat sonra (TR 09:00) sonuclari rapor et. Sorun varsa Telegram'a digest.
+// 2026-06-04: provitanya 10 gun sessizce 404 alip yok satisa sebep oldu;
+// bu rapor sessiz fail'leri yakalamak icin.
+Schedule::command('scrapers:health-check --quiet-when-ok')
+    ->dailyAt('09:00')
+    ->timezone('Europe/Istanbul')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/scrapers-health.log'));
+
 // Haftalik trafik raporu: her Pazartesi 08:00 (TR) son 7 gunluk
 // trafik+hata raporunu storage/app/reports/ altina HTML olarak yazar.
 Schedule::command('reports:weekly-traffic')

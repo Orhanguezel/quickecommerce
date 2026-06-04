@@ -345,6 +345,23 @@ class SyncSourcePrices extends Command
         ];
     }
 
+    /**
+     * Kaynaktan gelen stok sinyalini DB miktarina cevirir.
+     *
+     * 2026-06-04 KOKLU DEGISIKLIK: bool sinyal -> 100 yerine 1. Tedarikci
+     * siteler genelde gercek miktari vermez, sadece "stokta var/yok" boolean
+     * doner. Eskiden bool true -> 100 yaziyorduk, musteri "Stokta (100)"
+     * goruyordu ve 50 siparis verebiliyordu. Gercek stok 0 cikinca yok satis.
+     *
+     * Yeni semantik:
+     *   - INT stok varsa (real number)  -> oldugu gibi kullan
+     *   - BOOL true                     -> 1 (var ama miktar bilinmiyor)
+     *   - BOOL false                    -> 0 (kesin yok)
+     *   - Hicbir sinyal yok             -> 0 (kullanici kurali: belirsizse satma)
+     *
+     * UI tarafi stock_quantity sayisini gizler, sadece "Stokta"/"Tukendi"
+     * gosterir (Faz 4). 1 degeri sembolik: oversell minimize.
+     */
     private function stockFromSource(array $source, ?array $fallback = null): int
     {
         foreach (['stock_quantity', 'stock'] as $key) {
@@ -356,17 +373,19 @@ class SyncSourcePrices extends Command
             }
         }
 
-        // Bool stok bayraklari: 'available' (Shopify) veya 'in_stock' (musclepump vb.)
         foreach (['available', 'in_stock'] as $boolKey) {
             if (array_key_exists($boolKey, $source)) {
-                return $source[$boolKey] ? 100 : 0;
+                return $source[$boolKey] ? 1 : 0;
             }
             if ($fallback && array_key_exists($boolKey, $fallback)) {
-                return $fallback[$boolKey] ? 100 : 0;
+                return $fallback[$boolKey] ? 1 : 0;
             }
         }
 
-        return 100;
+        // Hicbir stok sinyali yok: tedbirli davran, satma.
+        // Daha onceki 100 default'u 13000+ urunde yanlis "100 stok" iddiasi
+        // dogurdu (provitanya/proteinmax/ayakkabi vs.).
+        return 0;
     }
 
     private function hasValidPrice(?float $price, ?float $specialPrice): bool

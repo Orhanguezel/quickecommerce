@@ -20,11 +20,14 @@ if __name__ == "__main__":
 
     run(
         base_url="https://www.provitanya.com",
-        sitemap_url="https://www.provitanya.com/index.php?route=extension/feed/google_sitemap",
+        # 2026-06-04: extension/feed/google_sitemap eklentisi 404 doniyor (10 gun
+        # sessiz fail). Standart /sitemap.xml index'i product URL'lerini iceriyor;
+        # urun-disi URL'leri url_pattern ile eler.
+        sitemap_url="https://www.provitanya.com/sitemap.xml",
         output_file=resolve_output("provitanya_products.json"),
         vendor="Provitanya",
         default_category="Sağlık & Sporcu Besinleri",
-        url_pattern=None,  # google_sitemap feed yalniz urun URL'i listeler
+        url_pattern=r"^https://www\.provitanya\.com/[^/?#]+$",
         image_dir=resolve_image_dir("provitanya_images"),
         with_images="--images" in sys.argv,
         limit=limit,

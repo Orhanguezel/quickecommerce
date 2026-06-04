@@ -87,21 +87,41 @@ def _clean_price(text):
         return None
 
 
-def _discover_urls(session, sitemap_url, url_pattern=None):
+def _discover_urls(session, sitemap_url, url_pattern=None, _depth=0, _seen=None):
     """Sitemap'ten urun URL'lerini toplar (tekil, sirali).
 
     OpenCart google_sitemap feed'i tum katalogu anlik uretir -> yavas
     olabilir, bu yuzden uzun timeout verilir.
+
+    <sitemapindex> ise nested <loc>'lari recursive olarak izler (max 3 seviye).
+    Modern OpenCart / Magento / Shopify magazalari sitemap index kullanir;
+    bu olmadan provitanya tarzi feed'ler kacirilir (2026-06-04 sessiz fail).
     """
+    if _seen is None:
+        _seen = set()
+    if sitemap_url in _seen or _depth > 3:
+        return []
+    _seen.add(sitemap_url)
+
     try:
         resp = session.get(sitemap_url, timeout=180)
         resp.raise_for_status()
     except Exception as exc:  # noqa: BLE001
-        print(f"  Sitemap HATASI: {exc}")
+        print(f"  Sitemap HATASI ({sitemap_url}): {exc}")
         return []
-    locs = re.findall(r"<loc>\s*([^<\s]+)\s*</loc>", resp.text)
+
+    text = resp.text
+    locs = [loc.strip() for loc in re.findall(r"<loc>\s*([^<\s]+)\s*</loc>", text)]
+
+    # Sitemap index ise nested'lara in.
+    if "<sitemapindex" in text:
+        urls = []
+        for nested in locs:
+            urls.extend(_discover_urls(session, nested, url_pattern, _depth + 1, _seen))
+        return list(dict.fromkeys(urls))
+
     pat = re.compile(url_pattern) if url_pattern else None
-    urls = [loc.strip() for loc in locs if not pat or pat.search(loc.strip())]
+    urls = [loc for loc in locs if not pat or pat.search(loc)]
     return list(dict.fromkeys(urls))
 
 
@@ -189,30 +209,82 @@ def _html_main_price(soup):
     return None
 
 
-def _html_stock_status(soup):
+_OUT_OF_STOCK_SELECTORS = (
+    # OpenCart tema-spesifik out-of-stock butonlari (regex/text aramadan daha
+    # guvenilir cunku HTML get_text() bazi durumlarda script-yazilan div'leri
+    # atliyor — proteinmax 2026-06-04 sessiz fail).
+    ".ekle_button_stokta_yok",     # proteinmax
+    ".out-of-stock",
+    ".outofstock",
+    ".stokta-yok",
+    ".stok-yok",
+    ".stock-out",
+    ".product-out-of-stock",
+    ".sold-out",
+    ".product-sold-out",
+    "button[data-out-of-stock]",
+    "a[href*='/notify']",          # notify-me linki
+)
+
+_OUT_OF_STOCK_RAW_PATTERNS = (
+    # bs4 get_text() bazi temalarda kacirir (ornegin script.innerHTML icinden
+    # render edilen container'lar). Ham HTML uzerinde regex fallback.
+    r"gelince\s*haber\s*ver",
+    r"stok\s*ta?\s*yok",            # "stokta yok" + "stok yok" + "stok ta yok"
+    r"t[uü]kenmi[sş]?t?[iı]?r?",    # tükendi/tükenmiştir
+    r"out\s*of\s*stock",
+    r"sold\s*out",
+    r"ekle_button_stokta_yok",      # tema class (proteinmax)
+    r'class\s*=\s*["\'][^"\']*\bout-of-stock\b',
+)
+
+_IN_STOCK_SELECTORS = (
+    "#button-cart",
+    "button#button-cart",
+    ".btn-add-to-cart",
+    ".add-to-cart-btn",
+    "button[data-add-to-cart]",
+)
+
+
+def _html_stock_status(soup, raw_html=None):
+    """Sayfa HTML'inden stok sinyali okur. 3 katmanli:
+    1) CSS selector (en guvenilir) — out-of-stock spesifik class'lar
+    2) Ham HTML regex (bs4 get_text() kacirsa bile yakalar)
+    3) Gorulebilir text taramasi (eski mantik)
+
+    Returns: True/False/None.
+    """
+    # 1) CSS class detection
+    for sel in _OUT_OF_STOCK_SELECTORS:
+        if soup.select_one(sel):
+            return False
+
+    # 2) Raw HTML regex (script-rendered div'ler dahil)
+    if raw_html:
+        for pat in _OUT_OF_STOCK_RAW_PATTERNS:
+            if re.search(pat, raw_html, re.I):
+                return False
+
+    # 3) Gorunur text (fallback)
     text = soup.get_text(" ", strip=True).lower()
     out_of_stock_terms = (
-        "stokta yok",
-        "stok yok",
-        "tükendi",
-        "tukenmiştir",
-        "tükenmiştir",
-        "out of stock",
-        "sold out",
-        "notify me",
-        "gelince haber ver",
+        "stokta yok", "stok yok", "tükendi", "tukenmiştir", "tükenmiştir",
+        "out of stock", "sold out", "notify me", "gelince haber ver",
     )
     if any(term in text for term in out_of_stock_terms):
         return False
 
-    in_stock_terms = (
-        "stokta var",
-        "sepete ekle",
-        "add to cart",
-        "in stock",
-    )
+    # In-stock sinyalleri (text-tabanli)
+    in_stock_terms = ("stokta var", "sepete ekle", "add to cart", "in stock")
     if any(term in text for term in in_stock_terms):
         return True
+
+    # CSS in-stock buton — disabled olmadigi surece in-stock varsayilir
+    for sel in _IN_STOCK_SELECTORS:
+        el = soup.select_one(sel)
+        if el is not None and not el.has_attr("disabled"):
+            return True
 
     return None
 
@@ -270,17 +342,23 @@ def _parse_product(session, url, vendor, default_category):
             discounted_price = None
 
     avail = str(offer.get("availability") or "").lower().replace("/", "").replace("_", "")
-    html_stock = _html_stock_status(soup)
+    html_stock = _html_stock_status(soup, raw_html=html)
     if "outofstock" in avail or "soldout" in avail or "discontinued" in avail:
         in_stock = False
     elif html_stock is False:
         in_stock = False
     elif "instock" in avail or "preorder" in avail or "backorder" in avail:
         in_stock = True
-    elif html_stock is not None:
-        in_stock = html_stock
-    else:
+    elif html_stock is True:
         in_stock = True
+    else:
+        # 2026-06-04 KOKLU DEGISIKLIK: hicbir net "stokta var" sinyali yok =
+        # tedbirli davran (False). Eskiden default True idi -> yok satissa yol
+        # aciyordu. Tedarikciler genelde "stokta yok" sinyalini gosterir; bu
+        # sinyal goremedigimizde "muhtemelen var" varsayimi yanlis -> default
+        # "muhtemelen yok" yapildi. Yan etki: ayri "tek sinyalli" temalar
+        # icin tema-spesifik in-stock selector eklemek gerekebilir.
+        in_stock = False
 
     images = _images_from_jsonld(jsonld.get("image"))
     # OpenCart temalari arasinda galeri markup'i degisir; genis selector +

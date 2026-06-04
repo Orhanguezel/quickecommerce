@@ -12,6 +12,30 @@ export SCRAPER_URL=https://scraper.guezelwebdesign.com
 export SCRAPER_API_KEY=scraper-sportoonline-Eq4lGI4KV4CLCMluihY9t9pn0jrZMmf-
 export SCRAPER_TIMEOUT=90
 
+# 2026-06-04: Telegram fail bildirim (provitanya 10 gun sessiz fail sonrasi).
+# .env'den config oku — yoksa send_tg no-op.
+ENV_FILE="/var/www/quikecommerce/backend-laravel/.env"
+TG_TOKEN=""
+TG_CHAT=""
+if [ -f "$ENV_FILE" ]; then
+  TG_TOKEN=$(grep -E '^TELEGRAM_ALARM_BOT_TOKEN=' "$ENV_FILE" | head -1 | cut -d'=' -f2- | tr -d '"' | tr -d "'")
+  TG_CHAT=$(grep -E '^TELEGRAM_ALARM_CHAT_ID=' "$ENV_FILE" | head -1 | cut -d'=' -f2- | tr -d '"' | tr -d "'")
+fi
+
+send_tg() {
+  [ -z "$TG_TOKEN" ] && return 0
+  [ -z "$TG_CHAT" ] && return 0
+  curl -sS --max-time 10 \
+    "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+    -d "chat_id=${TG_CHAT}" \
+    --data-urlencode "text=$1" \
+    -d "parse_mode=HTML" \
+    -d "disable_web_page_preview=true" > /dev/null
+}
+
+FAIL_COUNT=0
+FAIL_LIST=""
+
 run_scraper() {
   local name=$1
   local script=$2
@@ -44,6 +68,9 @@ run_scraper() {
 
   if [ $exit -ne 0 ] || [ ! -s "$json_path" ]; then
     echo "  FAIL: $name scraper, sync atlaniyor"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+    FAIL_LIST="${FAIL_LIST}
+• ${name} (exit=${exit})"
     return 1
   fi
 
@@ -105,4 +132,12 @@ run_scraper() {
 
   echo
   echo "════ Hepsi bitti: $(date -Iseconds) ════"
+  echo "FAIL toplam: ${FAIL_COUNT}"
 } 2>&1 | tee -a "$LOG"
+
+# Telegram fail bildirim (gunluk cron disinda manuel calistirmada da gecerli).
+if [ "${FAIL_COUNT}" -gt 0 ]; then
+  send_tg "🚨 <b>Scraper FAIL — ${DATE}</b>${FAIL_LIST}
+
+Log: <code>${LOG}</code>"
+fi

@@ -4,6 +4,34 @@
 
 ## 🔔 Aktif Hatirlatmalar (TARIH ILE KONTROL ET)
 
+### 🔔 2026-06-05 sabah (KOKLU STOK SISTEMI — ILK GERCEK CRON SONRASI)
+**Why:** 2026-06-04'te scraper stok sistemi koklu refactor edildi: provitanya 10 gunluk sessiz fail duzeltildi, proteinmax "GELINCE HABER VER" detection eklendi, SyncSourcePrices bool→100 yerine bool→1 yapildi, Telegram alarm sistemi kuruldu (`@haldefiyat_fiyat_bot`). Yarin 05:00 TR'de ilk gercek cron tum sistemle calisacak.
+**Yapilacak (sabah ilk is):**
+```bash
+# 1) Telegram'a saglik raporu geldi mi kontrol et (sportoonlinecom hesabi)
+# Bos = tum sistem temiz. Sorun varsa digest gelir.
+
+# 2) DB tarafinda stok=100 oraninin dustugunu dogrula (bool→1 etkisi)
+ssh vps-sportoonline 'cd /var/www/quikecommerce/backend-laravel && php artisan scrapers:health-check --quiet-when-ok'
+# Beklenen: 0 sorun (stok=100 oranlari %1'in altina dusmus olmali)
+
+# 3) Spot check: yok satan urunler artik tukendi mi
+ssh vps-sportoonline 'cd /var/www/quikecommerce/backend-laravel && php artisan tinker --execute="
+echo \"stok=0 / source: \"; echo App\\Models\\ProductVariant::whereHas(\"sourceMapping\")->where(\"stock_quantity\", 0)->count();
+echo \" / stok=1 / source: \"; echo App\\Models\\ProductVariant::whereHas(\"sourceMapping\")->where(\"stock_quantity\", 1)->count();
+"'
+```
+- **Eger sorun yoksa**: Sistem koklu calisiyor, manuel kontrol bitti.
+- **Telegram'a sorun digest geldi**: log oku → `tail -100 /var/www/quikecommerce/logs/scrapers-20260605.log`
+- **stok=1 sayisi ~13.000 civari**: bool→1 etkisi dogru, frontend "Stokta" gosteriyor (sayi gizli).
+- **scrapers-health.log da incele**: `tail /var/www/quikecommerce/backend-laravel/storage/logs/scrapers-health.log`
+
+### 🔔 2026-06-08 civari (1 HAFTA STOK SISTEMI GOZLEM)
+**Yapilacak:** 4 gun stok sistemi calistiktan sonra:
+- Telegram'da kac alarm geldi? (cron fail'leri yakalandi mi?)
+- Yok satan urunler oldu mu? (musteri sikayeti / siparis kontrol)
+- Hangi scraper'lar hala "bool only" donduruyorsa onlara da CSS class detection eklenmesi gerekebilir (linktech/eprotein/herbinatura — %100 true donduruyorlar)
+
 ### 🔔 2026-05-22 civari (SIPARIS MAIL LOGLARI — OKU)
 **Why:** 2026-05-15'te Gmail SMTP canliya alindi (`sportoonlinecom@gmail.com`) ve daha once sessizce yutulan sipariş mail/push hatalari artik loglaniyor. Bir hafta gercek siparis trafigi sonrasi loglar okunup teslimat saglikli mi dogrulanmali.
 **Yapilacak:** Kullaniciya proaktif hatirlat ve calistir:

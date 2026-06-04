@@ -1070,7 +1070,10 @@ export function ProductDetailClient({
               ) : (
                 <PackageX className="h-4 w-4" />
               )}
-              {inStock ? `${t.in_stock} (${stock})` : t.out_of_stock}
+              {/* 2026-06-04: stok sayisi gizlendi. Kaynak tedarikciler genelde
+                 gercek miktari vermez; bool sinyalleri 1 (var) / 0 (yok) DB'ye
+                 yaziliyor. Musteriye "Stokta (1)" gostermek yanil­ticidir. */}
+              {inStock ? t.in_stock : t.out_of_stock}
             </div>
           </div>
 
