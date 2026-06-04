@@ -135,12 +135,33 @@ export const Sidebar = memo(({ setIsLoading }: any) => {
         : [],
     [getPermissions?.activity_scope],
   );
+  // 2026-06-04: Scraper Saglik Paneli — backend permission listesinde yok,
+  // direkt admin'lere static link olarak gosterilir (sadece system_level).
+  const adminToolsGroup = useMemo(
+    () =>
+      getPermissions?.activity_scope === "system_level"
+        ? [
+            {
+              perm_title: "Sistem Araclari",
+              children: [
+                {
+                  perm_title: "Scraper Saglik",
+                  perm_name: "/admin/scrapers",
+                  icon: "Database",
+                  children: [],
+                },
+              ],
+            },
+          ]
+        : [],
+    [getPermissions?.activity_scope],
+  );
   const menuItems: any =
     storedSlug === "" && getPermissions?.activity_scope === "store_level"
       ? [...accountGroup, ...(MenuItems || [])]
       : getPermissions?.activity_scope === "store_level"
       ? [...accountGroup, ...(MenuItems || [])]
-      : MenuItems || [];
+      : [...(MenuItems || []), ...adminToolsGroup];
 
 
   useEffect(() => {
