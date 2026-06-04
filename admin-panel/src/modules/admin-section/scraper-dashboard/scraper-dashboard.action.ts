@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   useScraperOverviewService,
   useScraperSourcesService,
@@ -54,5 +54,24 @@ export const useScraperAlertsQuery = (params: { limit?: number; level?: string; 
     refetchInterval: POLLING_INTERVAL_MS,
     refetchOnWindowFocus: false,
     retry: false,
+  });
+};
+
+/**
+ * Manuel scrape tetikleme mutation'i.
+ * POST /v1/admin/scrapers/sources/{name}/trigger -> 202 Accepted + run_id
+ *
+ * Sucess durumda kaynak listesi + detail invalidate edilir.
+ */
+export const useScraperTriggerMutation = () => {
+  const { postItem } = useScraperSourceDetailService();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (name: string) => postItem(`${name}/trigger`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [API_ENDPOINTS.ADMIN_SCRAPER_SOURCES] });
+      qc.invalidateQueries({ queryKey: [API_ENDPOINTS.ADMIN_SCRAPER_OVERVIEW] });
+      qc.invalidateQueries({ queryKey: [API_ENDPOINTS.ADMIN_SCRAPER_SOURCE_DETAIL] });
+    },
   });
 };

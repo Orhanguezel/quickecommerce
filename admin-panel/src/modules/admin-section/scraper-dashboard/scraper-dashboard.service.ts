@@ -18,3 +18,6 @@ export const useScraperSourceDetailService = () =>
 
 export const useScraperAlertsService = () =>
   useBaseService<ScraperAlert[]>(API_ENDPOINTS.ADMIN_SCRAPER_ALERTS);
+
+// Trigger endpoint icin useBaseService'in `create` benzeri pattern'i yok —
+// dogrudan axios instance kullanmak yerine action.ts icinde inline fetch.

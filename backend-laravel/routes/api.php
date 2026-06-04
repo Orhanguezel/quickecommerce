@@ -221,6 +221,7 @@ Route::group(['prefix' => 'v1/admin', 'middleware' => ['auth:sanctum', ApiAuthMi
         Route::get('/overview', [AdminScraperDashboardController::class, 'overview']);
         Route::get('/sources', [AdminScraperDashboardController::class, 'sources']);
         Route::get('/sources/{name}', [AdminScraperDashboardController::class, 'source']);
+        Route::post('/sources/{name}/trigger', [AdminScraperDashboardController::class, 'trigger']);
         Route::get('/alerts', [AdminScraperDashboardController::class, 'alerts']);
     });
 

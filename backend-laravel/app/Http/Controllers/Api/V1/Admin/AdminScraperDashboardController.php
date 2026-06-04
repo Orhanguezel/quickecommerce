@@ -62,6 +62,79 @@ class AdminScraperDashboardController extends Controller
         ]);
     }
 
+    /**
+     * Manuel scrape tetikle (admin'in "Simdi Calistir" butonu).
+     *
+     * Korumalar:
+     *  - Rate limit: ayni kaynak son 10 dakikada zaten tetiklendiyse 429
+     *  - Concurrent guard: ayni kaynak icin acik (finished_at NULL) run varsa 409
+     *  - Pasif kaynaklar engellenir (CF 1010 vb.)
+     *
+     * Davranis: ScraperRun olusturulur, arkaplanda nohup ile scrapers:run-one
+     * baslatilir, 202 Accepted + run_id doner. Admin polling ile takip eder.
+     */
+    public function trigger(string $name): JsonResponse
+    {
+        $reg = \App\Services\ScraperSourceRegistry::find($name);
+        if (!$reg) {
+            return response()->json(['status' => false, 'message' => "Source not found: {$name}"], 404);
+        }
+        if ($reg['status'] === \App\Services\ScraperSourceRegistry::STATUS_PASSIVE) {
+            return response()->json([
+                'status' => false,
+                'message' => "Bu kaynak pasif: {$reg['notes']}",
+            ], 400);
+        }
+
+        // Concurrent guard: acik run varsa engelle
+        $openRun = \App\Models\ScraperRun::where('source_name', $name)
+            ->whereNull('finished_at')
+            ->where('started_at', '>=', now()->subHours(2))
+            ->first();
+        if ($openRun) {
+            return response()->json([
+                'status' => false,
+                'message' => "Bu kaynak icin zaten calisan bir scrape var (run #{$openRun->id})",
+                'run_id' => $openRun->id,
+            ], 409);
+        }
+
+        // Rate limit: son 10 dakikada manuel tetiklendi mi
+        $recent = \App\Models\ScraperRun::where('source_name', $name)
+            ->where('triggered_by', 'manual')
+            ->where('started_at', '>=', now()->subMinutes(10))
+            ->exists();
+        if ($recent) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Bu kaynak son 10 dakikada manuel calisitirildi, biraz bekleyin.',
+            ], 429);
+        }
+
+        $run = \App\Models\ScraperRun::create([
+            'source_name' => $name,
+            'triggered_by' => 'manual',
+            'started_at' => now(),
+        ]);
+
+        // Fire-and-forget: nohup ile arka planda baslat, hemen don
+        $artisan = base_path('artisan');
+        $logFile = "/tmp/scraper_run_{$run->id}.log";
+        $cmd = "nohup php {$artisan} scrapers:run-one --source=" . escapeshellarg($name)
+            . " --run-id={$run->id} > {$logFile} 2>&1 &";
+        // shell_exec async (background) — PHP 8.x'de sorunsuz
+        shell_exec($cmd);
+
+        return response()->json([
+            'status' => true,
+            'message' => "Scrape baslatildi: {$name}",
+            'data' => [
+                'run_id' => $run->id,
+                'started_at' => $run->started_at?->toIso8601String(),
+            ],
+        ], 202);
+    }
+
     /** Son alarmlar (alert feed). */
     public function alerts(Request $request): JsonResponse
     {

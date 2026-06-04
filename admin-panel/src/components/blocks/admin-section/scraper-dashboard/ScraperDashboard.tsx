@@ -7,7 +7,9 @@ import {
   useScraperSourcesQuery,
   useScraperAlertsQuery,
   useScraperSourceDetailQuery,
+  useScraperTriggerMutation,
 } from "@/modules/admin-section/scraper-dashboard/scraper-dashboard.action";
+import { toast } from "react-toastify";
 import {
   ScraperStatus,
   ScraperLevel,
@@ -22,6 +24,7 @@ import {
   Clock,
   Database,
   Pause,
+  Play,
   RefreshCcw,
   Search,
   XCircle,
@@ -103,6 +106,21 @@ const ScraperDashboard = () => {
   const allSources: ScraperSourceRow[] = (sourcesResp as any)?.data?.data ?? [];
   const alerts = (alertsResp as any)?.data?.data ?? [];
   const detail = (detailResp as any)?.data?.data;
+
+  const triggerMut = useScraperTriggerMutation();
+  const handleTrigger = (name: string) => {
+    if (!confirm(`${name} kaynağını şimdi çalıştır?\n\nScrape + sync chain arka planda başlatılır. Sayfayı kapatabilirsin, sonuç otomatik yansır.`)) return;
+    triggerMut.mutate(name, {
+      onSuccess: (resp: any) => {
+        const runId = resp?.data?.data?.run_id;
+        toast.success(`Scrape başlatıldı (run #${runId ?? "?"})`);
+      },
+      onError: (err: any) => {
+        const msg = err?.response?.data?.message ?? "Tetikleme başarısız";
+        toast.error(msg);
+      },
+    });
+  };
 
   // Filter + sort
   const sources = (() => {
@@ -402,8 +420,8 @@ const ScraperDashboard = () => {
             className="absolute right-0 top-0 h-full w-full max-w-2xl overflow-y-auto bg-background p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="mb-4 flex items-start justify-between">
-              <div>
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
                 <h2 className="text-xl font-bold">{detail.name}</h2>
                 <a
                   href={detail.site_url}
@@ -415,12 +433,29 @@ const ScraperDashboard = () => {
                   <ExternalLink className="h-3 w-3" />
                 </a>
               </div>
-              <button
-                onClick={() => setSelectedSource(null)}
-                className="rounded-md p-1 hover:bg-muted"
-              >
-                ×
-              </button>
+              <div className="flex shrink-0 items-center gap-2">
+                {detail.registry_status === "active" && (
+                  <button
+                    onClick={() => handleTrigger(detail.name)}
+                    disabled={triggerMut.isPending}
+                    className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+                    title="Şimdi çalıştır — scrape + sync chain başlatır"
+                  >
+                    {triggerMut.isPending ? (
+                      <RefreshCcw className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Play className="h-3.5 w-3.5" />
+                    )}
+                    Şimdi Çalıştır
+                  </button>
+                )}
+                <button
+                  onClick={() => setSelectedSource(null)}
+                  className="rounded-md p-1 hover:bg-muted"
+                >
+                  ×
+                </button>
+              </div>
             </div>
 
             <div className="space-y-4">
