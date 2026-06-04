@@ -54,7 +54,7 @@ class ScrapersRunOne extends Command
         $jsonPath = ScraperSourceRegistry::jsonPath($source);
 
         if (!is_file($scriptPath)) {
-            $this->fail($run, 99, "Script bulunamadi: {$scriptPath}");
+            $this->markFailed($run, 99, "Script bulunamadi: {$scriptPath}");
             return self::FAILURE;
         }
 
@@ -78,7 +78,7 @@ class ScrapersRunOne extends Command
 
         if ($scraperExit !== 0) {
             $excerpt = mb_substr($scraperOutput, -500);
-            $this->fail($run, $scraperExit, $excerpt, $duration, $jsonSize);
+            $this->markFailed($run, $scraperExit, $excerpt, $duration, $jsonSize);
             return self::FAILURE;
         }
 
@@ -113,7 +113,7 @@ class ScrapersRunOne extends Command
         return self::SUCCESS;
     }
 
-    private function fail(ScraperRun $run, int $exit, string $excerpt, int $duration = 0, int $jsonSize = 0): void
+    private function markFailed(ScraperRun $run, int $exit, string $excerpt, int $duration = 0, int $jsonSize = 0): void
     {
         $run->update([
             'finished_at' => now(),
