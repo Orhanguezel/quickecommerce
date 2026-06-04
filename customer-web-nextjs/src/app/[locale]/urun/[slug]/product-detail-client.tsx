@@ -1478,7 +1478,7 @@ export function ProductDetailClient({
           ))}
         </div>
 
-        <div className="py-6">
+        <div className="py-4">
           {activeTab === "description" && (
             <div
               // 2026-06-04: whitespace-pre-line ile plain-text description'larin
@@ -1626,10 +1626,17 @@ export function ProductDetailClient({
           )}
 
           {activeTab === "reviews" && (
-            <div className="space-y-6">
+            // 2026-06-04: space-y-6 -> space-y-3 (24px -> 12px); border-b'ye
+            // belirgin foreground rengi (border-foreground/15) verildi —
+            // onceki "border-b" tema dependent solgun cikiyordu, ardisik
+            // yorumlar arasi ayraс gozukmuyordu.
+            <div className="space-y-3">
               {product.reviews?.length > 0 ? (
                 product.reviews.map((review) => (
-                  <div key={review.review_id} className="border-b pb-4 last:border-0">
+                  <div
+                    key={review.review_id}
+                    className="border-b border-foreground/15 pb-3 last:border-0"
+                  >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium">
@@ -1652,7 +1659,7 @@ export function ProductDetailClient({
                         {review.reviewed_at}
                       </span>
                     </div>
-                    <p className="mt-2 text-sm text-muted-foreground">
+                    <p className="mt-1.5 text-sm text-muted-foreground">
                       {review.review}
                     </p>
                   </div>
