@@ -1,10 +1,28 @@
 {
   "permissions": {
-    "defaultMode": "bypassPermissions",
     "allow": [
       "Bash(sshpass -p '' ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no root@76.13.4.19 \"cd /var/www/quikecommerce/admin-panel && rm -rf .next && bun run build 2>&1\")",
       "Bash(git push origin main)",
-      "Bash(ssh -o PreferredAuthentications=publickey vps-76 \"echo ''=== CHECK WHAT fetchAPI RETURNS ==='' && cd /var/www/quikecommerce/customer-web-nextjs && node -e '':*)"
-    ]
+      "Bash(ssh -o PreferredAuthentications=publickey vps-76 \"echo ''=== CHECK WHAT fetchAPI RETURNS ==='' && cd /var/www/quikecommerce/customer-web-nextjs && node -e '':*)",
+      "Bash(awk 'NR>=124 && NR<=135' .env)",
+      "Bash(awk -F= '{print $1\" length=\"length\\($2\\)}')",
+      "Bash(git apply *)",
+      "Bash(scp -q /tmp/source_audit.php vps-sportoonline:/var/www/quikecommerce/backend-laravel/scripts/source_audit.php)",
+      "Bash(scp -q /tmp/source_audit.php vps-sportoonline:/var/www/quikecommerce/backend-laravel/source_audit.php)",
+      "Bash(scp -q /tmp/dropick_match.php vps-sportoonline:/var/www/quikecommerce/backend-laravel/dropick_match.php)",
+      "Bash(scp -q /tmp/ggs_price.php vps-sportoonline:/var/www/quikecommerce/backend-laravel/ggs_price.php)",
+      "Bash(php -l app/Console/Commands/SyncSourcePrices.php)",
+      "Bash(scp -q app/Console/Commands/SyncSourcePrices.php vps-sportoonline:/var/www/quikecommerce/backend-laravel/app/Console/Commands/SyncSourcePrices.php)",
+      "Bash(scp -q backend-laravel/app/Services/Order/OrderManageNotificationService.php vps-sportoonline:/var/www/quikecommerce/backend-laravel/app/Services/Order/OrderManageNotificationService.php)",
+      "Bash(php -l app/Http/Controllers/Api/V1/Admin/AdminProductManageController.php)",
+      "Bash(scp -q app/Http/Controllers/Api/V1/Admin/AdminProductManageController.php vps-sportoonline:/var/www/quikecommerce/backend-laravel/app/Http/Controllers/Api/V1/Admin/AdminProductManageController.php)",
+      "Bash(scp -q /tmp/run-all2.sh vps-sportoonline:/var/www/quikecommerce/scrapers/run-all.sh)",
+      "Bash(scp -q /tmp/verify_import.php vps-sportoonline:/var/www/quikecommerce/backend-laravel/verify_import.php)",
+      "Bash(scp -q /tmp/traffic_analyze.py vps-sportoonline:/tmp/traffic_analyze.py)",
+      "Bash(weasyprint sportoonline-trafik-15-22-mayis-2026.html sportoonline-trafik-15-22-mayis-2026.pdf)",
+      "Bash(php -l app/Http/Controllers/Api/V1/ProductFeedController.php)",
+      "Bash(scp -q app/Http/Controllers/Api/V1/ProductFeedController.php vps-sportoonline:/var/www/quikecommerce/backend-laravel/app/Http/Controllers/Api/V1/ProductFeedController.php)"
+    ],
+    "defaultMode": "bypassPermissions"
   }
 }

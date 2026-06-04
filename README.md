@@ -59,6 +59,8 @@ flutter run
 
 - Website: `https://sportoonline.com`
 - Repo: `https://github.com/Orhanguezel/quickecommerce`
+- Canli server: `vps-sportoonline`
+- Key ile sifresiz SSH: `ssh vps-sportoonline`
 
 ## Dokumantasyon Notu
 
