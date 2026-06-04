@@ -74,14 +74,30 @@ def clean_description_html(html):
     cleaned = re.sub(r'<style[^>]*>.*?</style>', '', html, flags=re.S | re.I)
     cleaned = re.sub(r'<script[^>]*>.*?</script>', '', cleaned, flags=re.S | re.I)
 
-    # Bastaki CSS yorum + kurallarini sira ile sok — selector .class/#id/@media
-    # ile basliyorsa CSS olarak kabul et (text ile karistirmamak icin
-    # konservatif: harf-baslangiclari islenmez).
-    # `@media { .x{} .y{} }` gibi tek-seviye nested bloklari da yakalar.
-    css_block = re.compile(
-        r'[\.\#@][^{}]*?\{(?:[^{}]|\{[^{}]*?\})*\}', re.S
-    )
+    # Bastaki CSS yorum + kurallarini sira ile sok.
+    # 2026-06-04 v2: brace-balanced parser — `@media{...}`, `:root{...}`,
+    # `.nutrever-container h1, .nutrever-container h2 { ... }` gibi nested ve
+    # multi-selector durumlari da yakalar. Selector ne olursa olsun, brace
+    # icinde CSS property syntax (`prop: value;`) varsa CSS bloku kabul edilir.
     css_comment = re.compile(r'/\*.*?\*/', re.S)
+    css_property = re.compile(r'[a-z-]+\s*:\s*[^;}\n]{1,200}\s*(?:;|$)', re.I)
+
+    def find_matching_brace(s):
+        """Ilk { ile eslesen kapanis } indexini doner; yoksa None."""
+        start = s.find('{')
+        if start < 0:
+            return None
+        depth = 1
+        for i in range(start + 1, len(s)):
+            c = s[i]
+            if c == '{':
+                depth += 1
+            elif c == '}':
+                depth -= 1
+                if depth == 0:
+                    return i
+        return None
+
     while True:
         s = cleaned.lstrip()
         if not s:
@@ -91,9 +107,30 @@ def clean_description_html(html):
         if m:
             cleaned = s[m.end():]
             continue
-        m = css_block.match(s)
-        if m:
-            cleaned = s[m.end():]
+        # Generic CSS block detection: ilk brace block'a bak, body CSS gibi mi?
+        first_brace = s.find('{')
+        if first_brace < 0:
+            cleaned = s
+            break
+        selector_part = s[:first_brace]
+        # Selector cok uzun veya HTML iceriyorsa: CSS degil
+        if len(selector_part) > 1000:
+            cleaned = s
+            break
+        if re.search(r'<[a-z!/]', selector_part, re.I):
+            cleaned = s
+            break
+        if not selector_part.strip() or ';' in selector_part:
+            cleaned = s
+            break
+        end = find_matching_brace(s)
+        if end is None:
+            cleaned = s
+            break
+        block = s[:end + 1]
+        body = block[block.find('{') + 1:-1]
+        if css_property.search(body):
+            cleaned = s[end + 1:]
             continue
         cleaned = s
         break
