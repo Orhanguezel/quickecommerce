@@ -76,6 +76,84 @@ def _discover_urls(session):
     return list(dict.fromkeys(urls))
 
 
+def _url_to_slug(url):
+    """URL'in son path segmentini doner (locale-agnostik).
+
+    LinkTech /shop/ ve /en/shop/ aynı urune farklı locale prefix'leri ile gider.
+    Slug eşleştirmesi için son segment (örn. 's100-...-34164') kanoniktir.
+    """
+    return url.rstrip("/").rsplit("/", 1)[-1] if url else ""
+
+
+def _fetch_oos_slugs(session):
+    """LinkTech /shop sayfalarini gezer, OUT OF STOCK badge'i tasiyan urunlerin
+    slug'larini doner.
+
+    2026-06-04: LinkTech (Odoo) urun DETAY sayfasinda stok sinyali VERMEZ
+    (`.availability_messages` her ürünte boş gelir, JSON-LD availability yok).
+    Sadece /shop LISTING sayfasında `.tp-product-stock-label` (tema-spesifik
+    Theme Product Label) ile gosterilir. Bu yuzden detay scrape oncesi tum
+    listing tarayip OOS set kuruyoruz; ardindan _parse_product set'e bakar.
+    """
+    slugs = set()
+    seen_urls = set()   # tum sayfalardan toplanan urun URL'leri (loop dedektoru)
+    page = 1
+    # LinkTech /shop pagination overlap'li (sayfa basi 22 yeni URL); 1748 urun
+    # icin ~80 sayfa. 120 guvenli ust sinir (overflow detect zaten yeni URL
+    # kontroluyle calisiyor).
+    while page <= 120:
+        url = f"{BASE_URL}/shop" if page == 1 else f"{BASE_URL}/shop/page/{page}"
+        try:
+            resp = session.get(url, timeout=30)
+            resp.raise_for_status()
+        except Exception as exc:  # noqa: BLE001
+            print(f"  Listing sayfa {page} HATASI: {exc}; durduruldu.")
+            break
+        soup = BeautifulSoup(resp.text, "html.parser")
+
+        # Sayfadaki tum urun link'lerini topla
+        page_urls = {
+            (a.get("href") or "").rstrip("/")
+            for a in soup.select("a[href*='/shop/']")
+            if PRODUCT_URL_RE.search(a.get("href") or "")
+        }
+        if not page_urls:
+            print(f"  Listing sayfa {page}: urun karti yok, durduruldu.")
+            break
+
+        new_urls = page_urls - seen_urls
+        if not new_urls and page > 1:
+            # LinkTech /shop/page/N son sayfayi gectikten sonra anasayfayi tekrar
+            # gosteriyor — yeni URL yoksa loop'tayiz, dur.
+            print(f"  Listing sayfa {page}: yeni urun URL yok (son sayfa gecildi), durduruldu.")
+            break
+        seen_urls.update(page_urls)
+
+        # OOS badge'leri ve en yakin urun link'leri
+        labels = soup.select(".tp-product-stock-label")
+        page_new_oos = 0
+        for label in labels:
+            parent = label
+            link_href = None
+            for _ in range(10):
+                parent = parent.parent
+                if parent is None:
+                    break
+                a = parent.select_one("a[href*='/shop/']")
+                if a:
+                    link_href = a.get("href")
+                    break
+            if link_href:
+                slug = _url_to_slug(link_href)
+                if slug and slug not in slugs:
+                    slugs.add(slug)
+                    page_new_oos += 1
+        print(f"  Listing sayfa {page}: {len(page_urls)} urun, {len(new_urls)} yeni, {page_new_oos} yeni OOS slug")
+        page += 1
+        time.sleep(0.4)
+    return slugs
+
+
 def _price_2dec(raw):
     """Odoo'nun ham ondalikli fiyatini 2 haneye yuvarlar."""
     if raw is None:
@@ -103,7 +181,7 @@ def _spec_value(soup, label):
     return ""
 
 
-def _parse_product(session, url):
+def _parse_product(session, url, oos_slugs=None):
     try:
         resp = session.get(url, timeout=25)
         resp.raise_for_status()
@@ -137,7 +215,8 @@ def _parse_product(session, url):
             original_price = list_price
             discounted_price = price
 
-    # Stok: availability_messages bos ise stokta.
+    # Stok: detay sayfasinda kismi sinyal (cogu zaman bos), listing'den toplanan
+    # oos_slugs set kanonik kabul edilir (bkz. _fetch_oos_slugs).
     avail_el = soup.select_one(".availability_messages")
     if avail_el is not None:
         avail_text = avail_el.get_text(strip=True).lower()
@@ -146,6 +225,9 @@ def _parse_product(session, url):
             in_stock = False
     else:
         in_stock = True
+
+    if oos_slugs is not None and _url_to_slug(url) in oos_slugs:
+        in_stock = False
 
     sku = _spec_value(soup, "Internal Reference") or _spec_value(soup, "Dahili Referans")
     barcode = _spec_value(soup, "Barcode") or _spec_value(soup, "Barkod")
@@ -235,12 +317,17 @@ def main():
         print("HATA: urun URL'i bulunamadi.")
         raise SystemExit(1)
 
+    # Detay sayfasinda stok sinyali yok; listing'den OOS slug'lari topla.
+    print("\n  Listing taramasi (OUT OF STOCK badge -> slug set)...")
+    oos_slugs = _fetch_oos_slugs(session)
+    print(f"  -> Toplam {len(oos_slugs)} OOS slug.")
+
     products = []
     skipped = 0
     for i, url in enumerate(urls, 1):
         if i == 1 or i % 50 == 0:
             print(f"  [{i}/{len(urls)}] ...")
-        prod = _parse_product(session, url)
+        prod = _parse_product(session, url, oos_slugs=oos_slugs)
         if prod:
             products.append(prod)
         else:
