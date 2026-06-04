@@ -352,14 +352,22 @@ export function ProductDetailClient({
     if (BLOCKED_IMAGE_DOMAINS.some((d) => src.includes(d))) return PRODUCT_IMAGE_PLACEHOLDER;
     return src;
   };
-  const sanitizedDescription = (product.description ?? "").replace(
-    new RegExp(
-      `<img([^>]*?)src=["'](https?://[^"']*?(?:${BLOCKED_IMAGE_DOMAINS.map((d) => d.replace(/\./g, "\\.")).join("|")})[^"']*)["']([^>]*)>`,
-      "gi"
-    ),
-    (_match, before, _origUrl, after) =>
-      `<img${before}src="${PRODUCT_IMAGE_PLACEHOLDER}" style="max-width:300px;opacity:0.6"${after}>`
-  );
+  const sanitizedDescription = (product.description ?? "")
+    .replace(
+      new RegExp(
+        `<img([^>]*?)src=["'](https?://[^"']*?(?:${BLOCKED_IMAGE_DOMAINS.map((d) => d.replace(/\./g, "\\.")).join("|")})[^"']*)["']([^>]*)>`,
+        "gi"
+      ),
+      (_match, before, _origUrl, after) =>
+        `<img${before}src="${PRODUCT_IMAGE_PLACEHOLDER}" style="max-width:300px;opacity:0.6"${after}>`
+    )
+    // 2026-06-04: 3+ ardısık newline'i 2'ye indir (paragraf ayraci yeterli).
+    // Bazi scrape edilmis description'larda 4-5 newline ust uste birikiyor —
+    // whitespace-pre-line ile renderlanirken bos satirlar uzayip okumayi
+    // bozuyordu (Nutrend Glutamine ASPARTAM/DOMUZ KATKISI/GDO arasi).
+    .replace(/\n{3,}/g, "\n\n")
+    // Satir basindaki gereksiz cok bosluklari da kis (4+ space -> 2)
+    .replace(/[ \t]{4,}/g, "  ");
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<
     "description" | "specs" | "reviews" | "questions" | "delivery" | "refund"
