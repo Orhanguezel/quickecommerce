@@ -15,11 +15,15 @@ import {
 } from "@/modules/admin-section/scraper-dashboard/scraper-dashboard.type";
 import {
   AlertCircle,
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
   CheckCircle2,
   Clock,
   Database,
   Pause,
   RefreshCcw,
+  Search,
   XCircle,
   ExternalLink,
 } from "lucide-react";
@@ -72,17 +76,92 @@ const ageBadgeClass = (h: number | null) => {
   return "bg-red-100 text-red-700";
 };
 
+type SortKey = "name" | "platform" | "total_mappings" | "stock_0" | "json_age_hours" | "status";
+type SortDir = "asc" | "desc";
+
+const STATUS_ORDER: Record<ScraperStatus, number> = {
+  critical: 0,
+  warning: 1,
+  healthy: 2,
+  passive: 3,
+};
+
 const ScraperDashboard = () => {
-  const { data: overviewResp, isFetching: isOvFetching } = useScraperOverviewQuery();
-  const { data: sourcesResp, isFetching: isSrcFetching } = useScraperSourcesQuery();
-  const { data: alertsResp } = useScraperAlertsQuery({ limit: 10 });
+  const { data: overviewResp, isFetching: isOvFetching, isLoading: isOvLoading } = useScraperOverviewQuery();
+  const { data: sourcesResp, isFetching: isSrcFetching, isLoading: isSrcLoading } = useScraperSourcesQuery();
+  const { data: alertsResp, isLoading: isAlLoading } = useScraperAlertsQuery({ limit: 10 });
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
   const { data: detailResp } = useScraperSourceDetailQuery(selectedSource);
 
+  // Filter + sort state
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<ScraperStatus | "all">("all");
+  const [sortKey, setSortKey] = useState<SortKey>("status");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+
   const overview = (overviewResp as any)?.data?.data;
-  const sources: ScraperSourceRow[] = (sourcesResp as any)?.data?.data ?? [];
+  const allSources: ScraperSourceRow[] = (sourcesResp as any)?.data?.data ?? [];
   const alerts = (alertsResp as any)?.data?.data ?? [];
   const detail = (detailResp as any)?.data?.data;
+
+  // Filter + sort
+  const sources = (() => {
+    let list = allSources;
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter(
+        (s) =>
+          s.name.toLowerCase().includes(q) ||
+          s.platform.toLowerCase().includes(q)
+      );
+    }
+    if (statusFilter !== "all") {
+      list = list.filter((s) => s.status === statusFilter);
+    }
+    const dir = sortDir === "asc" ? 1 : -1;
+    const sorted = [...list].sort((a, b) => {
+      let av: any;
+      let bv: any;
+      if (sortKey === "status") {
+        av = STATUS_ORDER[a.status];
+        bv = STATUS_ORDER[b.status];
+      } else if (sortKey === "json_age_hours") {
+        av = a.json_age_hours ?? 99999;
+        bv = b.json_age_hours ?? 99999;
+      } else {
+        av = (a as any)[sortKey];
+        bv = (b as any)[sortKey];
+      }
+      if (typeof av === "string") return av.localeCompare(bv) * dir;
+      return ((av ?? 0) - (bv ?? 0)) * dir;
+    });
+    return sorted;
+  })();
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir(sortDir === "asc" ? "desc" : "asc");
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  };
+
+  const SortHeader = ({ keyName, label, align = "left" }: { keyName: SortKey; label: string; align?: "left" | "right" }) => (
+    <th
+      className={`px-3 py-2 cursor-pointer select-none hover:bg-muted ${align === "right" ? "text-right" : "text-left"}`}
+      onClick={() => toggleSort(keyName)}
+    >
+      <span className="inline-flex items-center gap-1">
+        {label}
+        {sortKey === keyName ? (
+          sortDir === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+        ) : (
+          <ArrowUpDown className="h-3 w-3 opacity-30" />
+        )}
+      </span>
+    </th>
+  );
 
   return (
     <div className="space-y-6 p-4">
@@ -105,6 +184,19 @@ const ScraperDashboard = () => {
       </div>
 
       {/* KPI Cards */}
+      {isOvLoading && !overview && (
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-4">
+                <div className="h-3 w-20 animate-pulse rounded bg-muted" />
+                <div className="mt-2 h-8 w-16 animate-pulse rounded bg-muted" />
+                <div className="mt-2 h-3 w-24 animate-pulse rounded bg-muted" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
       {overview && (
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <KPICard
@@ -138,23 +230,81 @@ const ScraperDashboard = () => {
         {/* Sources Table */}
         <Card>
           <CardContent className="p-0">
-            <div className="border-b px-4 py-3">
-              <h2 className="font-semibold">Kaynak Listesi</h2>
+            <div className="border-b px-4 py-3 space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="font-semibold">
+                  Kaynak Listesi
+                  <span className="ml-2 text-xs font-normal text-muted-foreground">
+                    {sources.length} / {allSources.length}
+                  </span>
+                </h2>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="relative flex-1 min-w-[180px]">
+                  <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Kaynak veya platform ara..."
+                    className="w-full rounded-md border bg-background pl-8 pr-3 py-1.5 text-sm outline-none focus:border-primary"
+                  />
+                </div>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as any)}
+                  className="rounded-md border bg-background px-2 py-1.5 text-sm outline-none focus:border-primary"
+                >
+                  <option value="all">Tüm durumlar</option>
+                  <option value="critical">Kritik</option>
+                  <option value="warning">Uyarı</option>
+                  <option value="healthy">Sağlıklı</option>
+                  <option value="passive">Pasif</option>
+                </select>
+                {(search || statusFilter !== "all") && (
+                  <button
+                    onClick={() => {
+                      setSearch("");
+                      setStatusFilter("all");
+                    }}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    Temizle
+                  </button>
+                )}
+              </div>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-muted/50 text-xs uppercase tracking-wider text-muted-foreground">
                   <tr>
-                    <th className="px-3 py-2 text-left">Kaynak</th>
-                    <th className="px-3 py-2 text-left">Platform</th>
-                    <th className="px-3 py-2 text-right">Mapping</th>
+                    <SortHeader keyName="name" label="Kaynak" />
+                    <SortHeader keyName="platform" label="Platform" />
+                    <SortHeader keyName="total_mappings" label="Mapping" align="right" />
                     <th className="px-3 py-2 text-right">Stokta</th>
-                    <th className="px-3 py-2 text-right">Tükendi</th>
-                    <th className="px-3 py-2 text-left">JSON Yaşı</th>
-                    <th className="px-3 py-2 text-left">Durum</th>
+                    <SortHeader keyName="stock_0" label="Tükendi" align="right" />
+                    <SortHeader keyName="json_age_hours" label="JSON Yaşı" />
+                    <SortHeader keyName="status" label="Durum" />
                   </tr>
                 </thead>
                 <tbody className="divide-y">
+                  {isSrcLoading && (
+                    <tr>
+                      <td colSpan={7} className="px-3 py-8 text-center text-sm text-muted-foreground">
+                        <RefreshCcw className="mx-auto h-5 w-5 animate-spin opacity-50" />
+                        <div className="mt-2">Yükleniyor...</div>
+                      </td>
+                    </tr>
+                  )}
+                  {!isSrcLoading && sources.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="px-3 py-8 text-center text-sm text-muted-foreground">
+                        {allSources.length === 0
+                          ? "Henüz kaynak verisi yok"
+                          : "Filtreyle eşleşen kaynak yok"}
+                      </td>
+                    </tr>
+                  )}
                   {sources.map((s) => {
                     const sc = statusColors[s.status];
                     const inStock = s.stock_1 + s.stock_other + s.stock_100;
@@ -207,7 +357,12 @@ const ScraperDashboard = () => {
               <h2 className="font-semibold">Son Alarmlar</h2>
             </div>
             <div className="max-h-[500px] overflow-y-auto divide-y">
-              {alerts.length === 0 && (
+              {isAlLoading && (
+                <div className="px-4 py-6 text-center">
+                  <RefreshCcw className="mx-auto h-4 w-4 animate-spin text-muted-foreground opacity-50" />
+                </div>
+              )}
+              {!isAlLoading && alerts.length === 0 && (
                 <div className="px-4 py-6 text-center text-sm text-muted-foreground">
                   Henüz alarm yok
                 </div>
