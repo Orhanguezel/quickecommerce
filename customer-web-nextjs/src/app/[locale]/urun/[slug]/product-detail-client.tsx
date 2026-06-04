@@ -1473,7 +1473,11 @@ export function ProductDetailClient({
         <div className="py-6">
           {activeTab === "description" && (
             <div
-              className="prose prose-sm max-w-none overflow-x-auto break-words"
+              // 2026-06-04: whitespace-pre-line ile plain-text description'larin
+              // \n satir sonlarini gorsel olarak render et. HTML icerikte yan
+              // etki yok (block-level tag'ler zaten kendi spacing'ini kor).
+              // leading-relaxed ile satir aralasagi okumayi kolaylastirir.
+              className="prose prose-sm max-w-none overflow-x-auto whitespace-pre-line break-words leading-relaxed"
               dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
             />
           )}
