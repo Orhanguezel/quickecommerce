@@ -190,7 +190,19 @@ class SyncSourcePrices extends Command
         // 2) FIYAT — kendi korumalari var; basarisizsa SADECE fiyat atlanir,
         //    stok degisikligi yine uygulanir.
         $priceStatus = null;
-        if (!$this->hasValidPrice($incoming['price'], $incoming['special_price'])) {
+        $incomingStockZero = isset($changes['stock_quantity'])
+            ? (int) $changes['stock_quantity'] === 0
+            : (int) $variant->stock_quantity === 0
+              && $incoming['stock_quantity'] !== null
+              && (int) $incoming['stock_quantity'] === 0;
+
+        if ($incomingStockZero) {
+            // 2026-06-04: Tukenmis (stok=0) urunlerde tedarikciler fiyat alanini
+            // genelde bozuk veriyor (eprotein Cellucor C4: 1500 TL gercek ->
+            // tukendiginde JSON-LD'de 194 TL gosterildi). Bu yuzden stok=0 ise
+            // fiyati hic sync etme — DB'deki son guvenilir fiyat korunsun.
+            $priceStatus = 'stock_zero_skip_price';
+        } elseif (!$this->hasValidPrice($incoming['price'], $incoming['special_price'])) {
             $priceStatus = 'invalid_price';
         } elseif (!$this->withinPriceGuard($variant, $incoming['price'], $incoming['special_price'])) {
             $priceStatus = 'price_guard';
@@ -210,6 +222,7 @@ class SyncSourcePrices extends Command
             $note = match ($priceStatus) {
                 'invalid_price' => 'Source returned empty or zero price.',
                 'price_guard' => 'Price change exceeded max-change-percent.',
+                'stock_zero_skip_price' => 'Stock is zero; price not synced (source price may be unreliable).',
                 default => 'No price or stock change.',
             };
             $this->markMapping($mapping, $status, $note);
