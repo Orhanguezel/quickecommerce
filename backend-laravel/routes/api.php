@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Admin\AdminDeliverymanManageController;
+use App\Http\Controllers\Api\V1\Admin\AdminScraperDashboardController;
 use App\Http\Controllers\Api\V1\Admin\CurrencyController as AdminCurrencyController;
 use App\Http\Controllers\Api\V1\Admin\ThemeManageController;
 use App\Http\Controllers\Api\V1\Com\ComSiteGeneralController;
@@ -215,6 +216,14 @@ Route::group(['prefix' => 'v1/'], function () {
 
 // Admin Currency Management Routes
 Route::group(['prefix' => 'v1/admin', 'middleware' => ['auth:sanctum', ApiAuthMiddleware::class, 'detect.platform']], function () {
+    // 2026-06-04: Scraper Health Dashboard — admin paneldeki anlik durum sayfasi.
+    Route::group(['prefix' => 'scrapers'], function () {
+        Route::get('/overview', [AdminScraperDashboardController::class, 'overview']);
+        Route::get('/sources', [AdminScraperDashboardController::class, 'sources']);
+        Route::get('/sources/{name}', [AdminScraperDashboardController::class, 'source']);
+        Route::get('/alerts', [AdminScraperDashboardController::class, 'alerts']);
+    });
+
     Route::group(['prefix' => 'currencies'], function () {
         Route::get('/', [AdminCurrencyController::class, 'index']);
         Route::post('/update-rates', [AdminCurrencyController::class, 'updateRates']);

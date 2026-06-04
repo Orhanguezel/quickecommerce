@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\ScraperAlert;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -29,13 +30,33 @@ class ScraperAlerter
         self::LEVEL_CRIT => '🚨',
     ];
 
-    public static function alert(string $title, string $body, string $level = self::LEVEL_WARN): bool
-    {
+    /**
+     * Alarm gonder + DB'ye kaydet.
+     *
+     * @param array{source_name?: ?string, scraper_run_id?: ?int} $context
+     */
+    public static function alert(
+        string $title,
+        string $body,
+        string $level = self::LEVEL_WARN,
+        array $context = []
+    ): bool {
+        // 2026-06-04: Her alarm DB'ye log edilir (admin dashboard feed icin).
+        // Telegram gonderimi basarisiz olsa bile kayit tutulur.
+        $record = ScraperAlert::create([
+            'level' => $level,
+            'title' => $title,
+            'body' => $body,
+            'source_name' => $context['source_name'] ?? null,
+            'scraper_run_id' => $context['scraper_run_id'] ?? null,
+            'telegram_sent' => false,
+        ]);
+
         $token = env('TELEGRAM_ALARM_BOT_TOKEN');
         $chatId = env('TELEGRAM_ALARM_CHAT_ID');
 
         if (!$token || !$chatId) {
-            Log::info('ScraperAlerter: Telegram config yok, alarm sadece log\'a yazildi.', [
+            Log::info('ScraperAlerter: Telegram config yok, alarm sadece DB+log\'a yazildi.', [
                 'title' => $title, 'level' => $level,
             ]);
             return false;
@@ -59,6 +80,12 @@ class ScraperAlerter
                 ]);
                 return false;
             }
+            $msgId = (string) ($resp->json('result.message_id') ?? '');
+            $record->update([
+                'telegram_sent' => true,
+                'telegram_message_id' => $msgId,
+                'sent_at' => now(),
+            ]);
             return true;
         } catch (\Throwable $e) {
             Log::warning('ScraperAlerter: Telegram istek hatasi', [

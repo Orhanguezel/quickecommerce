@@ -53,18 +53,41 @@ run_scraper() {
     return 1
   fi
 
+  local start_ts=$(date +%s)
   if [ -n "$extra_args" ]; then
     $VENV "$script_path" $extra_args
   else
     $VENV "$script_path"
   fi
   local exit=$?
-  echo "  scraper exit: $exit"
+  local end_ts=$(date +%s)
+  local duration=$((end_ts - start_ts))
+  echo "  scraper exit: $exit (sure: ${duration}s)"
 
   local json_path=$json
   if [ ! -s "$json_path" ] && [ -s "data/source-products/$(basename "$json")" ]; then
     json_path="data/source-products/$(basename "$json")"
   fi
+
+  local json_size=0
+  if [ -s "$json_path" ]; then
+    json_size=$(stat -c%s "$json_path" 2>/dev/null || echo 0)
+  fi
+
+  # 2026-06-04: Admin dashboard icin DB'ye run kaydi yaz.
+  # Fail durumunda son 15 log satiri error_log_excerpt'e konur, otomatik
+  # alarm uretilir (ScrapersRecordRun komutu icinde).
+  local err_excerpt=""
+  if [ $exit -ne 0 ]; then
+    err_excerpt=$(tail -15 "$LOG" 2>/dev/null | tr '\n' ' ' | head -c 500)
+  fi
+  (cd /var/www/quikecommerce/backend-laravel && php artisan scrapers:record-run \
+      --source="$name" \
+      --exit-code="$exit" \
+      --duration="$duration" \
+      --json-size="$json_size" \
+      --triggered-by="cron" \
+      --error-log="$err_excerpt" 2>&1 | head -5) || true
 
   if [ $exit -ne 0 ] || [ ! -s "$json_path" ]; then
     echo "  FAIL: $name scraper, sync atlaniyor"
