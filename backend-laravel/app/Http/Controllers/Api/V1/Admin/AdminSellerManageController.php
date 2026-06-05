@@ -433,18 +433,31 @@ class AdminSellerManageController extends Controller
         // Açıksa: önce sub-merchant oluştur, sonra onay state'ini yaz.
         // Sub-merchant fail olursa hiçbir şeye dokunma — başvuru pending kalsın
         // ki admin sebep düzeltip yeniden onaylayabilsin.
+        //
+        // 2026-06-05: Daha onceki bir denemede (ornegin reject sonrasi tekrar
+        // pending'e dusen veya manuel reset) sub_merchant_key zaten DB'de
+        // kayitliysa, yeniden createSubMerchant cagirmayalim — iyzico
+        // 'duplicate subMerchantExternalId' hatasi verir. Mevcut key'i koru.
         $subMerchantKey = null;
         if ($marketplaceActive) {
-            try {
-                $subMerchantKey = $iyzicoService->createSubMerchant($application);
-            } catch (\Exception $e) {
-                Log::warning('iyzico sub-merchant oluşturulamadı (seller_id=' . $application->user_id . '): ' . $e->getMessage());
-                return response()->json([
-                    'status'      => false,
-                    'status_code' => 422,
-                    'message'     => 'iyzico alt üye hesabı oluşturulamadı, onay iptal edildi: ' . $e->getMessage(),
-                    'iyzico_error' => $e->getMessage(),
-                ], 422);
+            if (!empty($application->iyzico_sub_merchant_key)) {
+                $subMerchantKey = $application->iyzico_sub_merchant_key;
+                Log::info('SellerApprove: iyzico sub-merchant zaten kayitli, yeniden olusturulmadi.', [
+                    'seller_application_id' => $application->id,
+                    'sub_merchant_key' => $subMerchantKey,
+                ]);
+            } else {
+                try {
+                    $subMerchantKey = $iyzicoService->createSubMerchant($application);
+                } catch (\Exception $e) {
+                    Log::warning('iyzico sub-merchant oluşturulamadı (seller_id=' . $application->user_id . '): ' . $e->getMessage());
+                    return response()->json([
+                        'status'      => false,
+                        'status_code' => 422,
+                        'message'     => 'iyzico alt üye hesabı oluşturulamadı, onay iptal edildi: ' . $e->getMessage(),
+                        'iyzico_error' => $e->getMessage(),
+                    ], 422);
+                }
             }
         }
 
