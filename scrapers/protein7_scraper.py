@@ -50,6 +50,27 @@ def _fetch_detail_description(html):
     return ""
 
 
+def _fetch_aciklama_images(html):
+    """Protein7'de bazi urunlerde yazili description yerine `aciklama-*.png`
+    resimleri kullanir. B (buyuk) boyut secilir, <img> tag'i ile HTML doner.
+
+    Pattern: .../{slug}-urunaciklama-{brand}-{cat}-{nnn}-{kk}-{B/K/O}.png
+    """
+    urls = re.findall(
+        r'https?://[^"\'\s>]+?urunaciklama[^"\'\s>]*-B\.(?:png|jpg|jpeg|webp)',
+        html, re.I,
+    )
+    # Tekrarlari at, sirayi koru
+    seen = []
+    for u in urls:
+        if u not in seen:
+            seen.append(u)
+    if not seen:
+        return ""
+    imgs = "\n".join(f'<p><img src="{u}" alt="Ürün açıklaması" style="max-width:100%;height:auto" /></p>' for u in seen)
+    return imgs
+
+
 def slug_from_url(url):
     return url.rstrip("/").rsplit("/", 1)[-1]
 
@@ -160,6 +181,13 @@ def main():
                             if detail_desc:
                                 product["description_text"] = detail_desc
                                 product["description_html"] = detail_desc
+                            else:
+                                # 2026-06-05: bazi protein7 urunlerinde yazili
+                                # desc yerine "aciklama-*.png" resimleri var
+                                img_html = _fetch_aciklama_images(detail.text)
+                                if img_html:
+                                    product["description_html"] = img_html
+                                    product["description_text"] = "Ürün açıklaması görseli sağlanmıştır"
                     except Exception:
                         pass
                 products[product["slug"]] = product
