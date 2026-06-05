@@ -59,7 +59,9 @@ class OrderDetail extends Model
 
     public function product()
     {
-        return $this->belongsTo(Product::class, 'product_id');
+        // Soft-deleted urunler de gozuksun: siparis anindaki urun sonradan
+        // silinmis olsa bile admin/musteri detayda urun adi/resmi gormeli.
+        return $this->belongsTo(Product::class, 'product_id')->withTrashed();
     }
 
     public function productVariant()
