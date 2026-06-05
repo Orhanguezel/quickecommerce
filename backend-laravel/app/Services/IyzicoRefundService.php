@@ -88,13 +88,44 @@ class IyzicoRefundService
             $master->payment_status = 'refunded';
             $master->save();
 
-            // Etkilenen sub-order'lari cancelled yap
+            // Etkilenen sub-order'lari cancelled yap + refund_status set
             $orderIds = array_unique(array_column($outOfStockLines, 'order_id'));
             DB::table('orders')->whereIn('id', $orderIds)->update([
                 'status' => 'cancelled',
+                'refund_status' => 'refunded',
                 'cancelled_at' => now(),
                 'updated_at' => now(),
             ]);
+
+            // Otomatik refund reason'i bul/yarat (admin paneli "refund-request"
+            // sayfasinda kategorize gozuksun diye)
+            $reasonId = DB::table('order_refund_reasons')
+                ->where('reason', 'Tedarikci stogu tukenmis (otomatik)')
+                ->value('id')
+                ?: DB::table('order_refund_reasons')->insertGetId([
+                    'reason' => 'Tedarikci stogu tukenmis (otomatik)',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+            // order_refunds tablosuna kayit yaz (admin'in "iade edilenler"
+            // sayfasinda otomatik iadeler de gozuksun)
+            foreach ($master->orders as $sub) {
+                if (!in_array($sub->id, $orderIds, true)) continue;
+                $existing = DB::table('order_refunds')->where('order_id', $sub->id)->first();
+                if ($existing) continue;
+                DB::table('order_refunds')->insert([
+                    'order_id' => $sub->id,
+                    'customer_id' => $master->customer_id,
+                    'store_id' => $sub->store_id,
+                    'order_refund_reason_id' => $reasonId,
+                    'customer_note' => 'Otomatik: post-order canli stok kontrolu "tukendi" sinyali aldi.',
+                    'status' => 'refunded',
+                    'amount' => $sub->order_amount,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
 
             // Activity log
             foreach ($orderIds as $oid) {
