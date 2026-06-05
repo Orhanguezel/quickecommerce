@@ -33,6 +33,7 @@ class OrderMasterResource extends JsonResource
             'order_notes' => $this->order_notes,
             'currency_code' => $this->currency_code,
             'exchange_rate' => $this->exchange_rate,
+            'iyzico_approved_at' => $this->iyzico_approved_at,
             'customer' => new CustomerResource($this->whenLoaded('customer')),
         ];
     }
