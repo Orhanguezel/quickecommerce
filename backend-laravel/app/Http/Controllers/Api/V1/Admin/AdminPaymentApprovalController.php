@@ -90,7 +90,11 @@ class AdminPaymentApprovalController extends Controller
         }
 
         // Her transactionId icin ayri Approval
+        // 5249 = "Tamami iade edilmis kirilim" / 5088 = "Odeme iptal edilmis"
+        // donerse: iyzico tarafindan zaten iade/iptal — DB'yi refunded isaretle.
         $results = ['approved' => [], 'failed' => []];
+        $refundedCodes = ['5249', '5088'];
+        $isRefundedOnIyzico = false;
         foreach ($transactionIds as $i => $tid) {
             try {
                 $convId = "approve_{$orderMaster->id}_{$i}_" . time();
@@ -98,20 +102,35 @@ class AdminPaymentApprovalController extends Controller
                 if ($approval->getStatus() === 'success') {
                     $results['approved'][] = $tid;
                 } else {
+                    $errCode = (string) ($approval->getErrorCode() ?? '');
+                    if (in_array($errCode, $refundedCodes, true)) {
+                        $isRefundedOnIyzico = true;
+                    }
                     $results['failed'][] = [
                         'tid' => $tid,
                         'error' => $approval->getErrorMessage() ?: 'unknown',
+                        'code' => $errCode,
                     ];
                     Log::warning('Iyzico approval failed', [
                         'order_master_id' => $orderMaster->id,
                         'tid' => $tid,
-                        'error_code' => $approval->getErrorCode(),
+                        'error_code' => $errCode,
                         'error_message' => $approval->getErrorMessage(),
                     ]);
                 }
             } catch (\Throwable $e) {
                 $results['failed'][] = ['tid' => $tid, 'error' => $e->getMessage()];
             }
+        }
+
+        if ($isRefundedOnIyzico && empty($results['approved'])) {
+            $orderMaster->payment_status = 'refunded';
+            $orderMaster->save();
+            return response()->json([
+                'success' => false,
+                'message' => 'Bu sipariş iyzico tarafında iade/iptal edilmiş. Sipariş durumu refunded olarak isaretlendi.',
+                'data' => $results,
+            ], 409);
         }
 
         if (!empty($results['failed'])) {
