@@ -9,7 +9,7 @@ class FlashSaleSeeder extends Seeder
 {
     public function run(): void
     {
-        $customerBaseUrl = rtrim((string) env('CUSTOMER_WEB_URL', 'http://localhost:3003'), '/');
+        $customerBaseUrl = rtrim((string) env('CUSTOMER_WEB_URL', env('FRONTEND_URL', 'https://sportoonline.com')), '/');
         $flashSaleTargetUrl = $customerBaseUrl . '/tr/urunler';
 
         $flashSales = [
