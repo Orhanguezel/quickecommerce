@@ -52,7 +52,7 @@ class AdminPaymentApprovalController extends Controller
                 : \Carbon\Carbon::parse((string) $orderMaster->iyzico_approved_at);
             return response()->json([
                 'success' => false,
-                'message' => "Bu sipariş zaten onaylandi ({$approvedAt->format('d.m.Y H:i')})",
+                'message' => "Bu sipariş icin iyzico para onayi zaten gonderilmis ({$approvedAt->format('d.m.Y H:i')}). Para iyzico'nun haftalik gonderim doneminde hesabiniza yatar.",
             ], 400);
         }
 
