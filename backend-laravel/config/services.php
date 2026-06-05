@@ -50,4 +50,9 @@ return [
         'default_sender_address_id' => env('GELIVER_SENDER_ADDRESS_ID'),
     ],
 
+    'local_scraper' => [
+        'url'     => env('LOCAL_SCRAPER_URL', 'http://127.0.0.1:8200'),
+        'api_key' => env('LOCAL_SCRAPER_API_KEY', ''),
+    ],
+
 ];

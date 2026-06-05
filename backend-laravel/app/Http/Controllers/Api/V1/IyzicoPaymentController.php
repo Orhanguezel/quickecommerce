@@ -541,11 +541,18 @@ class IyzicoPaymentController extends Controller
                 $orderMaster->save();
                 $orderMaster->orders()->update(['payment_status' => 'paid']);
 
+                // 2026-06-05: Post-order stok teyit jobu — 30 dk sonra canli
+                // scraper ile dogrula. Bool-only kaynaklar (provitanya, proteinmax)
+                // gun icinde stok bitirebilir; bu noktada otomatik iptal+iade.
+                \App\Jobs\PostOrderStockCheckJob::dispatch($orderMaster->id)
+                    ->delay(now()->addMinutes(30));
+
                 Log::info('Iyzico payment verified', [
                     'order_master_id' => $orderMaster->id,
                     'payment_id' => $result->getPaymentId(),
                     'token' => $token,
                     'transaction_ids' => count($transactionIds),
+                    'post_order_check_at' => now()->addMinutes(30)->toIso8601String(),
                 ]);
 
                 return $request->expectsJson()

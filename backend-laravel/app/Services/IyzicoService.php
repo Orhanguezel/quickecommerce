@@ -351,6 +351,24 @@ class IyzicoService
         return $result;
     }
 
+    /**
+     * Henuz Approval gonderilmemis bir payment'i tamamen iptal eder.
+     * Approve edilmis transaction'lar icin Refund kullanmak gerek.
+     * Bu metod post-order stok kontrol akisi icin: paid + iyzico_approved_at NULL durumda.
+     */
+    public function cancelPayment(string $paymentId, string $conversationId, string $reason = 'BUYER_REQUEST'): \Iyzipay\Model\Cancel
+    {
+        $request = new \Iyzipay\Request\CreateCancelRequest();
+        $request->setLocale(Locale::TR);
+        $request->setConversationId($conversationId);
+        $request->setPaymentId($paymentId);
+        $request->setIp('127.0.0.1');
+        $request->setReason($reason);
+        $request->setDescription('Otomatik iptal: tedarikci stogu tukenmis (post-order check)');
+
+        return \Iyzipay\Model\Cancel::create($request, $this->options());
+    }
+
     public function approvePayment(string $paymentTransactionId, string $conversationId): \Iyzipay\Model\Approval
     {
         $request = new \Iyzipay\Request\CreateApprovalRequest();
