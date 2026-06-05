@@ -249,31 +249,67 @@ class IyzicoService
         }
 
         $user = $application->user ?? \App\Models\User::find($application->user_id);
-        $address = new Address();
-        $address->setAddress(trim(($application->address_line1 ?? '') . ' ' . ($application->address_line2 ?? '')) ?: 'Bilinmiyor');
-        $address->setCity($application->address_city ?: 'Istanbul');
-        $address->setCountry($application->address_country ?: 'Turkey');
-        $address->setZipCode($application->address_postal_code ?: '34000');
-        $address->setContactName($application->bank_account_holder ?: ($user->full_name ?? 'Bilinmiyor'));
 
-        $gsm = preg_replace('/\s+/', '', (string) ($user->phone ?? '+905555555555'));
-        $hasCompany = !empty($application->company_name);
-        $type = $hasCompany ? SubMerchantType::PRIVATE_COMPANY : SubMerchantType::PERSONAL;
-        $taxNumber = (string) ($application->tax_number ?: $application->mersis_number ?: '11111111111');
+        // 2026-06-05: Tip tespiti createSubMerchant ile bire bir ayni olmali —
+        // aksi halde iyzico mevcut LIMITED kaydi PRIVATE_COMPANY olarak update
+        // etmeyi reddeder ("Sistem hatasi code:1") ve IBAN saklanmaz.
+        $taxNumber = preg_replace('/\D/', '', (string)($application->tax_number ?? ''));
+        $businessType = $application->business_type ?? null;
+        $isPersonalId = strlen($taxNumber) === 11;
+        $hasCompany   = !empty(trim($application->company_name ?? ''));
 
-        $parts = explode(' ', trim($user->full_name ?? 'Ad Soyad'), 2);
-        $firstName = $parts[0];
-        $lastName  = $parts[1] ?? '';
+        if ($businessType === 'individual') {
+            $type = SubMerchantType::PERSONAL;
+        } elseif ($businessType === 'company') {
+            $type = $isPersonalId
+                ? SubMerchantType::PRIVATE_COMPANY
+                : SubMerchantType::LIMITED_OR_JOINT_STOCK_COMPANY;
+        } elseif ($isPersonalId && !$hasCompany) {
+            $type = SubMerchantType::PERSONAL;
+        } elseif ($isPersonalId) {
+            $type = SubMerchantType::PRIVATE_COMPANY;
+        } else {
+            $type = SubMerchantType::LIMITED_OR_JOINT_STOCK_COMPANY;
+        }
+
+        // GSM normalize (createSubMerchant ile ayni)
+        $rawPhone = preg_replace('/\D/', '', (string) ($user->phone ?? ''));
+        if (strlen($rawPhone) === 10) {
+            $gsm = '+90' . $rawPhone;
+        } elseif (strlen($rawPhone) === 11 && str_starts_with($rawPhone, '0')) {
+            $gsm = '+9' . $rawPhone;
+        } elseif (strlen($rawPhone) >= 12 && str_starts_with($rawPhone, '90')) {
+            $gsm = '+' . $rawPhone;
+        } else {
+            $gsm = '+905350000000';
+        }
+
+        // Adres birlestirme — createSubMerchant ile ayni
+        $addressParts = array_filter([
+            $application->address_line1,
+            $application->address_district,
+            $application->address_city,
+        ]);
+        $addressStr = implode(', ', $addressParts) ?: ($application->address_country ?? 'Türkiye');
+
+        // Ad / soyad
+        $firstName = trim($user->first_name ?? '');
+        $lastName  = trim($user->last_name ?? '');
+        if (empty($firstName)) {
+            $parts     = explode(' ', trim($user->full_name ?? 'Ad Soyad'), 2);
+            $firstName = $parts[0];
+            $lastName  = $parts[1] ?? '';
+        }
 
         $request = new \Iyzipay\Request\UpdateSubMerchantRequest();
         $request->setLocale(Locale::TR);
         $request->setConversationId('update-seller-' . $application->user_id . '-' . time());
         $request->setSubMerchantKey($application->iyzico_sub_merchant_key);
-        $request->setAddress($address);
+        $request->setAddress($addressStr);
         $request->setEmail($user->email);
         $request->setGsmNumber($gsm);
         $request->setName($hasCompany ? $application->company_name : trim("$firstName $lastName"));
-        $request->setIban(preg_replace('/\s/', '', $application->bank_iban));
+        $request->setIban(preg_replace('/\s/', '', (string) $application->bank_iban));
         $request->setCurrency(Currency::TL);
 
         if ($type === SubMerchantType::PERSONAL) {
@@ -284,9 +320,35 @@ class IyzicoService
             $request->setTaxOffice($application->tax_office ?: 'Bilinmiyor');
             $request->setLegalCompanyTitle($application->company_name);
             $request->setIdentityNumber($taxNumber);
+        } else {
+            // LIMITED_OR_JOINT_STOCK_COMPANY
+            $request->setTaxOffice($application->tax_office ?: 'Bilinmiyor');
+            $request->setTaxNumber($taxNumber);
+            $request->setLegalCompanyTitle($application->company_name);
         }
 
-        return \Iyzipay\Model\SubMerchant::update($request, $this->options());
+        \Illuminate\Support\Facades\Log::info('Iyzico updateSubMerchant request', [
+            'seller_application_id' => $application->id,
+            'sub_merchant_key' => $application->iyzico_sub_merchant_key,
+            'computed_type' => $type,
+            'name' => $request->getName(),
+            'iban' => preg_replace('/^(.{4}).+(.{4})$/', '$1****$2', $request->getIban() ?? ''),
+            'gsm' => $gsm,
+            'tax_number' => $taxNumber,
+        ]);
+
+        $result = \Iyzipay\Model\SubMerchant::update($request, $this->options());
+
+        \Illuminate\Support\Facades\Log::info('Iyzico updateSubMerchant response', [
+            'seller_application_id' => $application->id,
+            'status' => $result->getStatus(),
+            'error_code' => $result->getErrorCode(),
+            'error_message' => $result->getErrorMessage(),
+            'error_group' => $result->getErrorGroup(),
+            'raw_response' => $result->getRawResult(),
+        ]);
+
+        return $result;
     }
 
     public function approvePayment(string $paymentTransactionId, string $conversationId): \Iyzipay\Model\Approval
