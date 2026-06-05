@@ -5,7 +5,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { CreditCard, Loader2 } from "lucide-react";
 import axios from "axios";
-import { Cookies } from "react-cookie";
+import Cookies from "js-cookie";
+import { AUTH_TOKEN_KEY } from "@/lib/constants";
 
 /**
  * iyzico PreAuth ile yetkilendirilmiş (authorized) bir sipariş ödemesini
@@ -33,8 +34,7 @@ export default function CapturePaymentButton({
 
     setPending(true);
     try {
-      const cookies = new Cookies();
-      const token = cookies.get("auth_token") ?? cookies.get("token");
+      const token = Cookies.get(AUTH_TOKEN_KEY);
       const base =
         process.env.NEXT_PUBLIC_REST_API_ENDPOINT ||
         "https://sportoonline.com/api";
