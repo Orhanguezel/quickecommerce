@@ -351,8 +351,6 @@ const OrdersDetailsCard = ({ data, refetch, ID }: any) => {
                     className={` ${
                       OrderDetails?.payment_status === "paid"
                         ? "border border-green-500 bg-green-50 text-green-500"
-                        : OrderDetails?.payment_status === "authorized"
-                        ? "border border-amber-500 bg-amber-50 text-amber-600"
                         : OrderDetails?.payment_status === "partially_paid"
                         ? "border border-blue-500 bg-blue-50 text-blue-500"
                         : OrderDetails?.payment_status === "refunded"
@@ -364,13 +362,19 @@ const OrdersDetailsCard = ({ data, refetch, ID }: any) => {
                         : "border border-gray-500 bg-gray-50 text-gray-500"
                     } capitalize py-1 px-2 rounded`}
                   >
-                    {OrderDetails?.payment_status === "authorized"
-                      ? "Onay Bekliyor"
-                      : getLocalizedCommonValue(OrderDetails?.payment_status)}
+                    {getLocalizedCommonValue(OrderDetails?.payment_status)}
                   </span>
-                  {/* 2026-06-05: PreAuth ile tutulan iyzico odemeleri tahsil et */}
-                  {OrderDetails?.payment_status === "authorized" && (
+                  {/* 2026-06-05: iyzico ile odenmis (paid) ama henuz Approval
+                      gonderilmemis siparisler icin "iyzico Onay Gonder" butonu */}
+                  {OrderDetails?.payment_status === "paid"
+                    && String(order_master?.payment_gateway ?? "").toLowerCase() === "iyzico"
+                    && !order_master?.iyzico_approved_at && (
                     <CapturePaymentButton orderMasterId={order_master?.id} />
+                  )}
+                  {order_master?.iyzico_approved_at && (
+                    <span className="inline-flex items-center gap-1 rounded-md border border-green-300 bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
+                      ✓ iyzico onaylandı
+                    </span>
                   )}
                 </div>
                 <div className="flex items-center gap-2">

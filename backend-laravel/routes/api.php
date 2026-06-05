@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Admin\AdminDeliverymanManageController;
-use App\Http\Controllers\Api\V1\Admin\AdminPaymentCaptureController;
+use App\Http\Controllers\Api\V1\Admin\AdminPaymentApprovalController;
 use App\Http\Controllers\Api\V1\Admin\AdminScraperDashboardController;
 use App\Http\Controllers\Api\V1\Admin\CurrencyController as AdminCurrencyController;
 use App\Http\Controllers\Api\V1\Admin\ThemeManageController;
@@ -217,8 +217,8 @@ Route::group(['prefix' => 'v1/'], function () {
 
 // Admin Currency Management Routes
 Route::group(['prefix' => 'v1/admin', 'middleware' => ['auth:sanctum', ApiAuthMiddleware::class, 'detect.platform']], function () {
-    // 2026-06-05: iyzico PreAuth -> Capture tahsilati (admin)
-    Route::post('/orders/{id}/capture-payment', [AdminPaymentCaptureController::class, 'capture']);
+    // 2026-06-05: iyzico "Onay bazli tahsilat" — admin Approval endpoint'i
+    Route::post('/orders/{id}/approve-payment', [AdminPaymentApprovalController::class, 'approve']);
 
     // 2026-06-04: Scraper Health Dashboard — admin paneldeki anlik durum sayfasi.
     Route::group(['prefix' => 'scrapers'], function () {

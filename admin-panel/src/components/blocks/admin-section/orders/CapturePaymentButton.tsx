@@ -3,16 +3,19 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
-import { CreditCard, Loader2 } from "lucide-react";
+import { CheckCircle2, Loader2 } from "lucide-react";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { AUTH_TOKEN_KEY } from "@/lib/constants";
 
 /**
- * iyzico PreAuth ile yetkilendirilmiş (authorized) bir sipariş ödemesini
- * tahsil eder (postauth/capture).
+ * iyzico "Onay bazli tahsilat" akISI — admin'in panelden Approval gönderme
+ * butonu.
  *
- * POST /api/v1/admin/orders/{id}/capture-payment
+ * POST /api/v1/admin/orders/{id}/approve-payment
+ *
+ * Görünürlük: payment_gateway==='iyzico' && payment_status==='paid'
+ *             && iyzico_approved_at === null
  */
 export default function CapturePaymentButton({
   orderMasterId,
@@ -27,7 +30,7 @@ export default function CapturePaymentButton({
   const handleClick = async () => {
     if (
       !confirm(
-        "Bu siparişin iyzico'da bloke tutulan tutarı şimdi tahsil edilecek. Onaylıyor musun?"
+        "Bu siparis icin iyzico onay gonderilecek. Onay sonrasi para iyzico cekilebilir bakiyeye gecer. Devam edilsin mi?"
       )
     )
       return;
@@ -39,7 +42,7 @@ export default function CapturePaymentButton({
         process.env.NEXT_PUBLIC_REST_API_ENDPOINT ||
         "https://sportoonline.com/api";
       const res = await axios.post(
-        `${base}/v1/admin/orders/${orderMasterId}/capture-payment`,
+        `${base}/v1/admin/orders/${orderMasterId}/approve-payment`,
         {},
         {
           headers: {
@@ -48,11 +51,10 @@ export default function CapturePaymentButton({
           },
         }
       );
-      toast.success(res.data?.message ?? "Ödeme tahsil edildi");
+      toast.success(res.data?.message ?? "iyzico onayi gonderildi");
       qc.invalidateQueries({ predicate: () => true });
     } catch (err: any) {
-      const msg =
-        err?.response?.data?.message ?? "Tahsilat başarısız";
+      const msg = err?.response?.data?.message ?? "iyzico onayi gonderilemedi";
       toast.error(msg);
     } finally {
       setPending(false);
@@ -63,15 +65,15 @@ export default function CapturePaymentButton({
     <button
       onClick={handleClick}
       disabled={pending}
-      title="iyzico PreAuth tutarını tahsil et"
+      title="iyzico'da bu siparis icin Approval gonder — para cekilebilir bakiyeye gecer"
       className="inline-flex items-center gap-1.5 rounded-md bg-green-600 px-3 py-1 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
     >
       {pending ? (
         <Loader2 className="h-3.5 w-3.5 animate-spin" />
       ) : (
-        <CreditCard className="h-3.5 w-3.5" />
+        <CheckCircle2 className="h-3.5 w-3.5" />
       )}
-      Ödemeyi Tahsil Et
+      iyzico Onayı Gönder
     </button>
   );
 }

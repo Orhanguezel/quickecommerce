@@ -196,17 +196,7 @@ class IyzicoService
         return $result->getSubMerchantKey();
     }
 
-    /**
-     * Checkout form olusturur.
-     *
-     * 2026-06-05: mode='preauth' ile PreAuth (yetki + bloke, tahsil ETMEZ)
-     * akIşi etkinlestirilir. Default 'sale' ile mevcut direkt tahsilat
-     * akisi calisir.
-     *
-     * @param array $data
-     * @param string $mode 'sale' (default, direct tahsilat) veya 'preauth'
-     */
-    public function createCheckoutForm(array $data, string $mode = 'sale'): CheckoutFormInitialize
+    public function createCheckoutForm(array $data): CheckoutFormInitialize
     {
         $request = new CreateCheckoutFormInitializeRequest();
         $request->setLocale($data['locale'] ?? Locale::TR);
@@ -222,9 +212,6 @@ class IyzicoService
         $request->setBillingAddress($this->makeAddress($data['billing_address']));
         $request->setBasketItems($this->makeBasketItems($data['basket_items'] ?? []));
 
-        if ($mode === 'preauth') {
-            return \Iyzipay\Model\CheckoutFormInitializePreAuth::create($request, $this->options());
-        }
         return CheckoutFormInitialize::create($request, $this->options());
     }
 
@@ -239,22 +226,52 @@ class IyzicoService
     }
 
     /**
-     * PreAuth ile bloke tutulan bir ödemeyi tahsil eder (postauth/capture).
+     * iyzico'da basarili bir ödemenin "Onay" akISI.
      *
-     * @param string $paymentId PreAuth callback'inden gelen iyzico paymentId
-     * @param float|string $amount  Tahsil edilecek tutar (genelde tum tutar)
-     * @param string $conversationId  Iste ile callback eslesmesi icin
+     * 2026-06-05: iyzico merchant hesabi "Onay bazli tahsilat" mode'unda
+     * oldugunda, basarili her odeme bekleyen bakiyede kalir. Admin'in her
+     * paymentTransactionId icin Approval gondermesi gerekir; ardindan
+     * cekilebilir bakiyeye geçer.
+     *
+     * @param string $paymentTransactionId  iyzico paymentItems[].paymentTransactionId
+     * @param string $conversationId  Log eslesmesi icin
      */
-    public function capturePayment(string $paymentId, $amount, string $conversationId): \Iyzipay\Model\PaymentPostAuth
+    public function approvePayment(string $paymentTransactionId, string $conversationId): \Iyzipay\Model\Approval
     {
-        $request = new \Iyzipay\Request\CreatePaymentPostAuthRequest();
+        $request = new \Iyzipay\Request\CreateApprovalRequest();
+        $request->setLocale(Locale::TR);
+        $request->setConversationId($conversationId);
+        $request->setPaymentTransactionId($paymentTransactionId);
+
+        return \Iyzipay\Model\Approval::create($request, $this->options());
+    }
+
+    /**
+     * iyzico'dan payment detayini cekip paymentItems[].paymentTransactionId
+     * listesini doner. Eski siparişlerde DB'de saklamadigimiz id'leri
+     * sonradan elde etmek için.
+     *
+     * @return array<int,string>
+     */
+    public function retrievePaymentTransactionIds(string $paymentId, string $conversationId): array
+    {
+        $request = new \Iyzipay\Request\RetrievePaymentRequest();
         $request->setLocale(Locale::TR);
         $request->setConversationId($conversationId);
         $request->setPaymentId($paymentId);
-        $request->setPaidPrice((string)$amount);
-        $request->setCurrency(Currency::TL);
 
-        return \Iyzipay\Model\PaymentPostAuth::create($request, $this->options());
+        $payment = \Iyzipay\Model\Payment::retrieve($request, $this->options());
+        if ($payment->getStatus() !== 'success') {
+            return [];
+        }
+        $ids = [];
+        foreach ((array) $payment->getPaymentItems() as $item) {
+            $tid = method_exists($item, 'getPaymentTransactionId') ? $item->getPaymentTransactionId() : null;
+            if ($tid) {
+                $ids[] = (string) $tid;
+            }
+        }
+        return $ids;
     }
 
     private function makeBuyer(array $payload): Buyer
