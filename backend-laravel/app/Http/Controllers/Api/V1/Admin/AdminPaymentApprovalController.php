@@ -47,9 +47,12 @@ class AdminPaymentApprovalController extends Controller
         }
 
         if ($orderMaster->iyzico_approved_at) {
+            $approvedAt = $orderMaster->iyzico_approved_at instanceof \Carbon\Carbon
+                ? $orderMaster->iyzico_approved_at
+                : \Carbon\Carbon::parse((string) $orderMaster->iyzico_approved_at);
             return response()->json([
                 'success' => false,
-                'message' => "Bu sipariş zaten onaylandi ({$orderMaster->iyzico_approved_at->format('d.m.Y H:i')})",
+                'message' => "Bu sipariş zaten onaylandi ({$approvedAt->format('d.m.Y H:i')})",
             ], 400);
         }
 

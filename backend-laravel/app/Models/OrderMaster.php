@@ -32,6 +32,13 @@ class OrderMaster extends Model
         'default_currency_code',
         'currency_code',
         'exchange_rate',
+        'iyzico_payment_id',
+        'iyzico_payment_items_json',
+        'iyzico_approved_at',
+    ];
+
+    protected $casts = [
+        'iyzico_approved_at' => 'datetime',
     ];
 
     public function orderAddress()
