@@ -30,6 +30,26 @@ HEADERS = {
 }
 
 
+def _fetch_detail_description(html):
+    """Detail page JSON-LD Product schema'sindan description doner."""
+    import json as _json
+    for m in re.finditer(r'<script[^>]*type=["\']application/ld\+json["\'][^>]*>(.*?)</script>', html, re.S | re.I):
+        try:
+            data = _json.loads(m.group(1).strip())
+        except Exception:
+            continue
+        candidates = data if isinstance(data, list) else [data]
+        for d in candidates:
+            if not isinstance(d, dict):
+                continue
+            t = d.get("@type", "")
+            if "Product" in str(t):
+                desc = unescape(str(d.get("description") or "")).strip()
+                if desc:
+                    return desc
+    return ""
+
+
 def slug_from_url(url):
     return url.rstrip("/").rsplit("/", 1)[-1]
 
@@ -129,7 +149,21 @@ def main():
         for item in items:
             product = process_product(item, category)
             if product["slug"] and product["original_price"]:
+                # 2026-06-05: ItemList JSON-LD'sinde description bos geliyor;
+                # detail page JSON-LD Product'inda dolu (xpro/optimum vakasi).
+                # Her urun icin detay sayfasi fetch + JSON-LD description al.
+                if product.get("url"):
+                    try:
+                        detail = session.get(product["url"], timeout=15)
+                        if detail.ok:
+                            detail_desc = _fetch_detail_description(detail.text)
+                            if detail_desc:
+                                product["description_text"] = detail_desc
+                                product["description_html"] = detail_desc
+                    except Exception:
+                        pass
                 products[product["slug"]] = product
+                time.sleep(0.3)
         time.sleep(0.5)
 
     result = list(products.values())
