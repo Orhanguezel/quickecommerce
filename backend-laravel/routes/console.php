@@ -40,6 +40,15 @@ Schedule::command('monitor:5xx-alarm --threshold=' . env('ALARM_5XX_THRESHOLD', 
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/monitor-5xx.log'));
 
+// 2026-06-05: iyzico PreAuth tahsilat hatirlatmasi — her gun 09:00 TR'de,
+// 7 gunluk PreAuth suresi dolmadan 2 gun once admin'i uyarir (Telegram +
+// admin in-app + email).
+Schedule::command('iyzico:preauth-reminder --days-before=2')
+    ->dailyAt('09:30')
+    ->timezone('Europe/Istanbul')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/iyzico-preauth-reminder.log'));
+
 // Scraper saglik kontrolu: gunluk scrape cron'u 02:00 UTC'de basladigi icin
 // ~7 saat sonra (TR 09:00) sonuclari rapor et. Sorun varsa Telegram'a digest.
 // 2026-06-04: provitanya 10 gun sessizce 404 alip yok satisa sebep oldu;

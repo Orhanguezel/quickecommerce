@@ -196,7 +196,17 @@ class IyzicoService
         return $result->getSubMerchantKey();
     }
 
-    public function createCheckoutForm(array $data): CheckoutFormInitialize
+    /**
+     * Checkout form olusturur.
+     *
+     * 2026-06-05: mode='preauth' ile PreAuth (yetki + bloke, tahsil ETMEZ)
+     * akIşi etkinlestirilir. Default 'sale' ile mevcut direkt tahsilat
+     * akisi calisir.
+     *
+     * @param array $data
+     * @param string $mode 'sale' (default, direct tahsilat) veya 'preauth'
+     */
+    public function createCheckoutForm(array $data, string $mode = 'sale'): CheckoutFormInitialize
     {
         $request = new CreateCheckoutFormInitializeRequest();
         $request->setLocale($data['locale'] ?? Locale::TR);
@@ -212,6 +222,9 @@ class IyzicoService
         $request->setBillingAddress($this->makeAddress($data['billing_address']));
         $request->setBasketItems($this->makeBasketItems($data['basket_items'] ?? []));
 
+        if ($mode === 'preauth') {
+            return \Iyzipay\Model\CheckoutFormInitializePreAuth::create($request, $this->options());
+        }
         return CheckoutFormInitialize::create($request, $this->options());
     }
 
@@ -223,6 +236,25 @@ class IyzicoService
         $request->setToken($token);
 
         return CheckoutForm::retrieve($request, $this->options());
+    }
+
+    /**
+     * PreAuth ile bloke tutulan bir ödemeyi tahsil eder (postauth/capture).
+     *
+     * @param string $paymentId PreAuth callback'inden gelen iyzico paymentId
+     * @param float|string $amount  Tahsil edilecek tutar (genelde tum tutar)
+     * @param string $conversationId  Iste ile callback eslesmesi icin
+     */
+    public function capturePayment(string $paymentId, $amount, string $conversationId): \Iyzipay\Model\PaymentPostAuth
+    {
+        $request = new \Iyzipay\Request\CreatePaymentPostAuthRequest();
+        $request->setLocale(Locale::TR);
+        $request->setConversationId($conversationId);
+        $request->setPaymentId($paymentId);
+        $request->setPaidPrice((string)$amount);
+        $request->setCurrency(Currency::TL);
+
+        return \Iyzipay\Model\PaymentPostAuth::create($request, $this->options());
     }
 
     private function makeBuyer(array $payload): Buyer

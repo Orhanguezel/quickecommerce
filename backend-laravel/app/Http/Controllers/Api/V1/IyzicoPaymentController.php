@@ -96,6 +96,12 @@ class IyzicoPaymentController extends Controller
             $marketplaceMode = $this->isMarketplaceEnabled($credentials);
             $basketItems = $this->buildBasketItems($orderMaster, $credentials, $marketplaceMode);
 
+            // 2026-06-05: PreAuth mode (.env IYZICO_PAYMENT_MODE=preauth).
+            // PreAuth ile siparis ödemesi yetkilendirilir (kart bloke) ama
+            // tahsil edilmez; admin sonradan "Ödemeyi Tahsil Et" butonuyla
+            // postauth çağrılır. Bos veya 'sale' ise eski direct akış.
+            $paymentMode = strtolower((string) env('IYZICO_PAYMENT_MODE', 'sale')) === 'preauth' ? 'preauth' : 'sale';
+
             $session = $this->iyzicoService->createCheckoutForm([
                 'locale' => app()->getLocale() === 'tr' ? 'tr' : 'en',
                 'conversation_id' => $conversationId,
@@ -134,7 +140,7 @@ class IyzicoPaymentController extends Controller
                     'zip_code' => $zipCode,
                 ],
                 'basket_items' => $basketItems,
-            ]);
+            ], $paymentMode);
 
             if ($session->getStatus() !== 'success' || !$session->getPaymentPageUrl()) {
                 Log::error('Iyzico checkout init failed', [
@@ -517,18 +523,37 @@ class IyzicoPaymentController extends Controller
             $result = $this->iyzicoService->retrieveCheckoutForm($token, $conversationId);
 
             if ($result->getStatus() === 'success' && strtoupper((string)$result->getPaymentStatus()) === 'SUCCESS') {
+                // 2026-06-05: PreAuth mode tespiti — iyzico SDK CheckoutForm
+                // result objesinde paymentStatus="SUCCESS" hem sale hem preauth
+                // icin ayni. Ayirici: PreAuth modunda yetki var ama tahsil
+                // edilmedi. SDK 'paymentItems[].itemStatus' KO ile "preauth"
+                // gosterebilir; ama daha temizi: bizim createCheckoutSession
+                // sirasinda hangi mode kullaildigini bilmemiz gerek. .env'den
+                // okuyabiliriz cunku ayni request scope.
+                $isPreAuth = strtolower((string) env('IYZICO_PAYMENT_MODE', 'sale')) === 'preauth';
+
                 $orderMaster->payment_gateway = 'iyzico';
-                $orderMaster->payment_status = 'paid';
                 $orderMaster->transaction_ref = (string)($result->getPaymentId() ?: $token);
                 $orderMaster->paid_amount = (float)($result->getPaidPrice() ?: $orderMaster->order_amount);
-                $orderMaster->save();
+                $orderMaster->iyzico_payment_id = (string)$result->getPaymentId();
 
-                $orderMaster->orders()->update(['payment_status' => 'paid']);
+                if ($isPreAuth) {
+                    $orderMaster->payment_status = 'authorized';
+                    // iyzico PreAuth standardi: 7 gun gecerli
+                    $orderMaster->preauth_expires_at = now()->addDays(7);
+                    $orderMaster->save();
+                    $orderMaster->orders()->update(['payment_status' => 'authorized']);
+                } else {
+                    $orderMaster->payment_status = 'paid';
+                    $orderMaster->save();
+                    $orderMaster->orders()->update(['payment_status' => 'paid']);
+                }
 
                 Log::info('Iyzico payment verified', [
                     'order_master_id' => $orderMaster->id,
                     'payment_id' => $result->getPaymentId(),
                     'token' => $token,
+                    'mode' => $isPreAuth ? 'preauth' : 'sale',
                 ]);
 
                 return $request->expectsJson()

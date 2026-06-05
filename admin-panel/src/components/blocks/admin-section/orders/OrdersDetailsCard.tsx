@@ -1,4 +1,5 @@
 "use client";
+import CapturePaymentButton from "@/components/blocks/admin-section/orders/CapturePaymentButton";
 import FileIcon from "@/assets/icons/FileIcon";
 import RequestCancelIcon from "@/assets/icons/RequestCancelIcon";
 import ReviewIcon from "@/assets/icons/ReviewIcon";
@@ -342,7 +343,7 @@ const OrdersDetailsCard = ({ data, refetch, ID }: any) => {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-base font-semibold">
                     {t("orders.payment_status")} :
                   </span>
@@ -350,6 +351,8 @@ const OrdersDetailsCard = ({ data, refetch, ID }: any) => {
                     className={` ${
                       OrderDetails?.payment_status === "paid"
                         ? "border border-green-500 bg-green-50 text-green-500"
+                        : OrderDetails?.payment_status === "authorized"
+                        ? "border border-amber-500 bg-amber-50 text-amber-600"
                         : OrderDetails?.payment_status === "partially_paid"
                         ? "border border-blue-500 bg-blue-50 text-blue-500"
                         : OrderDetails?.payment_status === "refunded"
@@ -361,8 +364,14 @@ const OrdersDetailsCard = ({ data, refetch, ID }: any) => {
                         : "border border-gray-500 bg-gray-50 text-gray-500"
                     } capitalize py-1 px-2 rounded`}
                   >
-                    {getLocalizedCommonValue(OrderDetails?.payment_status)}
+                    {OrderDetails?.payment_status === "authorized"
+                      ? "Onay Bekliyor"
+                      : getLocalizedCommonValue(OrderDetails?.payment_status)}
                   </span>
+                  {/* 2026-06-05: PreAuth ile tutulan iyzico odemeleri tahsil et */}
+                  {OrderDetails?.payment_status === "authorized" && (
+                    <CapturePaymentButton orderMasterId={order_master?.id} />
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-base font-semibold">
