@@ -28,6 +28,55 @@ session = requests.Session()
 session.headers.update(HEADERS)
 
 
+# 2026-06-06: musclepump.com.tr VPS-sportoonline IP'sini 443'te bloklamis (TCP timeout).
+# SCRAPER_URL env'i set ise ilk request denemesi yerel scraper service uzerinden
+# (Scrapling stealth), yoksa direct requests fallback'i (eski davranis).
+def _get_via_scraper_service(url: str, timeout: int = 30):
+    """
+    Yerel scraper service (FastAPI + Scrapling) uzerinden tek-URL fetch.
+    Direct request fail edince fallback olarak kullanilir.
+    Donus: requests.Response benzeri object (text/.status_code).
+    """
+    scraper_url = os.environ.get("SCRAPER_URL")
+    scraper_key = os.environ.get("SCRAPER_API_KEY")
+    if not scraper_url:
+        return None
+    try:
+        r = requests.post(
+            f"{scraper_url.rstrip('/')}/api/v1/scrape",
+            json={"url": url, "mode": "fast", "return_html": True, "return_text": False},
+            headers={"Authorization": f"Bearer {scraper_key}"} if scraper_key else {},
+            timeout=timeout + 30,
+        )
+        if r.status_code != 200:
+            return None
+        data = r.json()
+        if not data.get("success"):
+            return None
+        # requests.Response benzeri shim
+        class _Shim:
+            status_code = data.get("status_code") or 200
+            text = data.get("html") or ""
+            content = (data.get("html") or "").encode("utf-8")
+            def raise_for_status(self): pass
+        return _Shim()
+    except Exception:
+        return None
+
+
+def http_get(url: str, timeout: int = 30):
+    """Once direct request, fail/timeout olursa yerel scraper service fallback."""
+    try:
+        r = session.get(url, timeout=timeout)
+        r.raise_for_status()
+        return r
+    except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.exceptions.HTTPError):
+        alt = _get_via_scraper_service(url, timeout)
+        if alt is not None:
+            return alt
+        raise
+
+
 def make_slug(name: str, max_len: int = 80) -> str:
     s = (name or "").lower()
     tr_map = str.maketrans("şçğüöıİŞÇĞÜÖ", "scguoiISCGUO")
@@ -140,7 +189,7 @@ def download_image(url: str, subfolder: str) -> str | None:
         path = os.path.join(save_dir, fname)
         if os.path.exists(path):
             return path
-        r = session.get(url, timeout=20)
+        r = http_get(url, timeout=20)
         if r.status_code != 200 or len(r.content) < 200:
             return None
         with open(path, "wb") as f:
@@ -152,7 +201,7 @@ def download_image(url: str, subfolder: str) -> str | None:
 
 def fetch_url_list() -> list[str]:
     print("Sitemap çekiliyor...", flush=True)
-    r = session.get(SITEMAP, timeout=30)
+    r = http_get(SITEMAP, timeout=30)
     r.raise_for_status()
     urls = re.findall(r"<loc>(https://[^<]+)</loc>", r.text)
     urls = [u for u in urls if "/prd-" in u]
@@ -167,7 +216,7 @@ def main():
     failed = []
     for i, url in enumerate(urls, 1):
         try:
-            r = session.get(url, timeout=20)
+            r = http_get(url, timeout=20)
             if r.status_code != 200:
                 print(f"  [{i}/{len(urls)}] HTTP {r.status_code}: {url[-60:]}", flush=True)
                 failed.append(url)
