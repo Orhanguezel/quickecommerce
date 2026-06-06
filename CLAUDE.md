@@ -4,73 +4,38 @@
 
 ## 🔔 Aktif Hatirlatmalar (TARIH ILE KONTROL ET)
 
-### 🔔 2026-06-05 sabah (KOKLU STOK SISTEMI — ILK GERCEK CRON SONRASI)
-**Why:** 2026-06-04'te scraper stok sistemi koklu refactor edildi: provitanya 10 gunluk sessiz fail duzeltildi, proteinmax "GELINCE HABER VER" detection eklendi, SyncSourcePrices bool→100 yerine bool→1 yapildi, Telegram alarm sistemi kuruldu (`@haldefiyat_fiyat_bot`). Yarin 05:00 TR'de ilk gercek cron tum sistemle calisacak.
+### 🔔 2026-06-07 sabah (4-SCRAPER FIX ILK GERCEK CRON SONRASI)
+**Why:** 2026-06-06'da musclepump_import (TCP timeout) + compexturkiye/eprotein/proteinavm (HTTP 301) FAIL etti. ScrapersRunOne.php source bazli `SCRAPER_URL=http://127.0.0.1:8200` override eklendi (yerel scraper service) + musclepump_scraper.py'a fallback eklendi. 07'de 02:00 UTC (05:00 TR) cron ilk kez bu fix'lerle calisacak.
 **Yapilacak (sabah ilk is):**
 ```bash
-# 1) Telegram'a saglik raporu geldi mi kontrol et (sportoonlinecom hesabi)
-# Bos = tum sistem temiz. Sorun varsa digest gelir.
+# Yerel scraper service ayakta mi
+ssh vps-sportoonline 'curl -s http://127.0.0.1:8200/health'
+# Beklenen: {"status":"ok","redis":"ok","browsers":"configured"}
 
-# 2) DB tarafinda stok=100 oraninin dustugunu dogrula (bool→1 etkisi)
-ssh vps-sportoonline 'cd /var/www/quikecommerce/backend-laravel && php artisan scrapers:health-check --quiet-when-ok'
-# Beklenen: 0 sorun (stok=100 oranlari %1'in altina dusmus olmali)
+# 4 fail eden scraper bugun nasil calismis
+ssh vps-sportoonline 'cd /var/www/quikecommerce/backend-laravel && php artisan scrapers:health-check'
+# Beklenen: compexturkiye/eprotein/proteinavm/musclepump_import "JSON eski" alarmlari KAYBOLMUS olmali (24h altinda).
 
-# 3) Spot check: yok satan urunler artik tukendi mi
-ssh vps-sportoonline 'cd /var/www/quikecommerce/backend-laravel && php artisan tinker --execute="
-echo \"stok=0 / source: \"; echo App\\Models\\ProductVariant::whereHas(\"sourceMapping\")->where(\"stock_quantity\", 0)->count();
-echo \" / stok=1 / source: \"; echo App\\Models\\ProductVariant::whereHas(\"sourceMapping\")->where(\"stock_quantity\", 1)->count();
-"'
+# Telegram'a FAIL geldi mi
+# @haldefiyat_fiyat_bot kanalindan kontrol et
 ```
-- **Eger sorun yoksa**: Sistem koklu calisiyor, manuel kontrol bitti.
-- **Telegram'a sorun digest geldi**: log oku → `tail -100 /var/www/quikecommerce/logs/scrapers-20260605.log`
-- **stok=1 sayisi ~13.000 civari**: bool→1 etkisi dogru, frontend "Stokta" gosteriyor (sayi gizli).
-- **scrapers-health.log da incele**: `tail /var/www/quikecommerce/backend-laravel/storage/logs/scrapers-health.log`
+- **Eger 4'unun de JSON tazelik 24h altinda**: fix calisiyor. Sistem temiz.
+- **Hala FAIL veriyor**: log oku → `tail -80 /var/www/quikecommerce/logs/scrapers-20260607.log`. Yerel scraper 1010/timeout mu yakalandi?
+- **eprotein 266 missing mapping silindi (2026-06-06)** — yeni cron'da fresh sitemap'tan yeni mapping yaratir.
 
 ### 🔔 2026-06-08 civari (1 HAFTA STOK SISTEMI GOZLEM)
 **Yapilacak:** 4 gun stok sistemi calistiktan sonra:
 - Telegram'da kac alarm geldi? (cron fail'leri yakalandi mi?)
+- Post-order auto-refund (30dk delay) tetiklendi mi? Kac otomatik iade?
 - Yok satan urunler oldu mu? (musteri sikayeti / siparis kontrol)
-- Hangi scraper'lar hala "bool only" donduruyorsa onlara da CSS class detection eklenmesi gerekebilir (linktech/eprotein/herbinatura — %100 true donduruyorlar)
+- Hangi scraper'lar hala "bool only" donduruyorsa onlara da CSS class detection eklenmesi gerekebilir (linktech/herbinatura — %100 true donduruyorlar)
 
-### 🔔 2026-05-22 civari (SIPARIS MAIL LOGLARI — OKU)
-**Why:** 2026-05-15'te Gmail SMTP canliya alindi (`sportoonlinecom@gmail.com`) ve daha once sessizce yutulan sipariş mail/push hatalari artik loglaniyor. Bir hafta gercek siparis trafigi sonrasi loglar okunup teslimat saglikli mi dogrulanmali.
-**Yapilacak:** Kullaniciya proaktif hatirlat ve calistir:
-```bash
-ssh vps-sportoonline "grep -E '\[order-email\]|\[order-push\]' /var/www/quikecommerce/backend-laravel/storage/logs/laravel*.log | tail -50"
-```
-- **Cikti bos** → mail/push akisi temiz, sorun yok (ideal).
-- **`[order-email]` satirlari var** → siparis maili gitmiyor olabilir. Hata mesajina bak:
-  - Gmail auth/limit (5xx, "Daily user sending limit exceeded") → ~500/gun limiti asildi, transactional servise gecis konus
-  - Connection/timeout → VPS'ten smtp.gmail.com:587 erisimi/firewall
-  - Template/data hatasi → `order-created*` sablonlari veya order verisi
-- **`[order-push]` satirlari** → Firebase push; mail kritik degil, ikincil.
-- Not: Musteriye hicbir sey yansimiyor (catch'ler hala yutuyor, sadece logluyor) — sessiz hata riski bu yuzden manuel kontrol gerektiriyor.
-
-### 🔔 2026-05-03 sabahi (ILK CRON RUN — KRITIK)
-**Yapilacak:** Cron yarın sabah 05:00 TR'de ilk kez çalısacak. Sabah kullaniciya sor:
-```bash
-ssh vps-sportoonline '/var/www/quikecommerce/scrapers/health.sh'
-```
-- Beklenen: 6 scraper "OK" (0 saat once), `Bu Gunkun Cron` → 6 basarili, sync exit code 0
-- **Eger fail varsa**: log oku → `tail -100 /var/www/quikecommerce/logs/scrapers-20260503.log`
-  - Maraton timeout → scraper-service down olabilir, `curl https://scraper.guezelwebdesign.com/health` kontrol
-  - Diger scraperlar hata → site yapisi degismis olabilir, manuel test et
-  - sync exit !=0 → JSON formatinda alan eksik veya laravel parameter degisimi gerek
-
-### 🔔 2026-05-09 civari (1 HAFTA GOZLEM)
-**Yapilacak:** Hafta boyunca cron gunluk basarili calisti mi?
-```bash
-ssh vps-sportoonline 'ls -la /var/www/quikecommerce/logs/scrapers-*.log | tail -10'
-```
-- 7 log dosyasi olmasi gerek (her gun 1)
-- Eksik gun varsa: cron tetiklenmedi mi, fail oldu mu? → `tail /var/log/cron-scrapers.log`
-
-### 🔔 2026-05-15 civari (LOG RETENTION)
-**Yapilacak:** Log dosyalari birikiyor (gunluk ~5MB). 30+ gun olanlari sil:
-```bash
-ssh vps-sportoonline 'find /var/www/quikecommerce/logs -name "scrapers-*.log" -mtime +30 -delete'
-```
-- Bunu **otomatik cron** yap: `crontab -e` -> `0 4 * * 0 find /var/www/quikecommerce/logs -name "scrapers-*.log" -mtime +30 -delete`
+### 🔔 BEKLEYEN: Maraton magazasi karari
+**Durum (2026-06-06 tespit):** maraton.com.tr **memlekethosting.com'a redirect** — tedarikci siteyi kapatmis. Sportoonline DB'de Maraton Sportswear (store_id=47) status=1 (aktif), 317 urun, tum stok=0. Sipariş alinmiyor zaten ama frontend'de magaza linki goruluyor.
+**Yapilacak (kullanici karari):**
+- A) Magazayi pasif yap: `\$store = Store::find(47); \$store->status = 0; \$store->save();` → frontend'de magaza linki kaybolur.
+- B) Urunleri soft-delete: 317 product soft-delete, kategorilerde gozukmesin.
+- C) Birakma (mevcut), stok=0 olarak gozukmesi yeterli.
 
 ### 🔔 BEKLEYEN: dropick + norfolk scraper yazimi
 **Why:** `data/source-products/dropick_products.json` (74 urun) ve `data/source-products/norfolk_products.json` (309 urun) JSON'lari **manuel** yukleniyor. Scraper script yok.
@@ -79,12 +44,20 @@ ssh vps-sportoonline 'find /var/www/quikecommerce/logs -name "scrapers-*.log" -m
 - URL pattern net ise her ikisi icin scraper yaz (dropick.com, norfolk.com.tr — anti-bot kontrol et)
 - run-all.sh'a ekle, gunluk cron'a katil
 
-### 🔔 BEKLEYEN: Maraton sitemap full scrape (yeni urun discovery)
-**Why:** Mevcut cron `--urls-from data/source-products/maraton_products.json` kullaniyor — sadece 401 mevcut urun guncel. Maraton katalogunda 2737 urun var. Yeni eklenenleri yakalamak icin haftada 1 full sitemap scrape lazim.
-**Yapilacak:**
-- Ayri cron: `0 22 * * 0` (her Pazar gece 22:00 UTC = 01:00 Pazartesi TR) → sitemap full ~16 saat
-- `--urls-from` flag'i kaldir, scraper sitemap discover yapar
-- Yeni urunler import:products ile DB'ye eklenmeli (manuel onay)
+### 🔔 BEKLEYEN: yesilmarka sporcu besinleri scraper
+**Why:** https://yesilmarka.com/sporcu-besinleri — sadece sporcu besinleri kategorisi kazinacak.
+- `scrapers/musclepump_scraper.py` patternini takip et.
+- `yesilmarka_products.json` -> import:products veya sync:source-prices.
+- run-all.sh + gunluk cron.
+
+### 🔔 BEKLEYEN: e-Fatura GIB entegrasyonu
+- Mevcut: admin PDF fatura (html2canvas+jsPDF).
+- Hedef: Turkiye e-Fatura/e-Arsiv. Saglayici karari gerek (Foriba/Logo/Parasut/Nilvera).
+- VKN/TCKN, vergi no, fatura senaryosu InvoiceResource'e eklenecek.
+
+### 🔔 BEKLEYEN: Geliver gonderici = satici adresi
+**Why:** Mevcut akis `store?->geliver_sender_address_id ?? com_option(...) ?: config(...)` zaten destekliyor. Eksik: her saticinin Geliver'da `sender_address_id` olusturma akisi.
+- Admin/seller panelinde: "Magaza adresimi Geliver'da kaydet" butonu → API call + dönen ID'yi store.geliver_sender_address_id'e yaz.
 
 ---
 
@@ -112,26 +85,34 @@ ssh vps-sportoonline '/var/www/quikecommerce/scrapers/health.sh'
 
 ## Otomatik Scraping Sistemi (2026-05-02 LIVE)
 
-**6 scraper gunluk cron** ile calisir (her gun **05:00 TR**, 02:00 UTC):
+**~22 aktif scraper gunluk cron** ile calisir (her gun **05:00 TR**, 02:00 UTC) — kayit ve listeleme `ScraperSourceRegistry.php`.
 
-| Scraper | Anti-bot | Yontem | Sure (yaklasik) |
-|---|---|---|---|
-| **maraton** | Cloudflare | Scrapling Stealthy (`scrapers/maraton_scraper_v2.py`) | ~2.4 saat (401 urun) |
-| musclepump | Yok | Direct requests | 5 dk |
-| everlast | Yok (Shopify API) | Direct | 5 dk |
-| swan | Yok | Direct | 10 dk |
-| grandgiftstore | Yok | Direct | 5 dk |
-| ayakkabi | Yok (OpenCart) | Direct | 5 dk |
+**Anti-bot katmani:**
+- Cogu kaynak (compexturkiye, eprotein, proteinavm, herbinatura, vs.) **Scrapling stealth** uzerinden ceker (`SCRAPER_URL` env'i).
+- Iki ayri Scrapling servisi:
+  - **Dis servis**: `https://scraper.guezelwebdesign.com` (vps-guezelwebdesign Docker, mevcut 22 scraper bunu kullanir)
+  - **Yerel servis** (2026-06-06 EKLENDI): `http://127.0.0.1:8200` (/opt/scraper-service, vps-sportoonline Docker). Kullanim: **source bazli override** ile 4 fail eden scraper (compexturkiye, eprotein, proteinavm, musclepump_import) yerel'i kullanir. Diger 18 scraper'a dokunulmadi. `.env`: `LOCAL_SCRAPER_URL=http://127.0.0.1:8200` + `LOCAL_SCRAPER_API_KEY=scraper-sportoonline-internal-...`.
+
+**Pasif kaynaklar** (registry `STATUS_PASSIVE`): maraton (site kapali), powertec (CF 1010), raketspor (CF 1010). Saglik kontrolu bunlari es geciyor.
 
 **Akis:** her scraper -> `*_products.json` -> `php artisan sync:source-prices <name> ./..._products.json --apply`
 - `sync:source-prices` SADECE fiyat/stok guncel — yeni urun eklemez (guvenli)
 - `--max-change-percent=30` — %30+ degisiklikleri atlar (yanlis veri korumasi)
+- **Bool stok kaynaklari** (provitanya, proteinmax, dekomum, vb.): stock_quantity=1 (true) veya 0 (false). Frontend sayi gizler "Stokta" gosterir.
 - Wrapper: `/var/www/quikecommerce/scrapers/run-all.sh`
 - Log: `/var/www/quikecommerce/logs/scrapers-YYYYMMDD.log`
 - Cron entry: `0 2 * * * ...`
 
-**Scrapling servisi:** `https://scraper.guezelwebdesign.com` (FastAPI + Scrapling, vps-guezelwebdesign Docker'da)
-**API key (sportoonline):** `scraper-sportoonline-Eq4lGI4KV4CLCMluihY9t9pn0jrZMmf-`
+## Post-Order Otomatik Stok Teyit + iyzico Iade (2026-06-06 LIVE)
+
+Bool-only stok kaynaklari gun icinde stok bitirebilir (sabah cron 05:00, musteri 21:00'de siparis verir, tedarikci tukenmis olur). Mevcut akis:
+
+1. `IyzicoPaymentController::callback()` paid sonrasi `PostOrderStockCheckJob::dispatch($master->id)->delay(30 dk)`.
+2. Queue worker 30 dk sonra her siparis satirinin `source_product_url`'i icin `SourceStockProbe` (yerel scraper) — JSON-LD availability + HTML attribute + gorsel text icinde out-of-stock kelime arar.
+3. Kesin out-of-stock -> `IyzicoRefundService::refundOrderForStockOut()` -> iyzico Cancel API (henuz Approve edilmemis, paymentId ile cancel) -> DB.transaction: `payment_status='refunded'`, `orders.status='cancelled'`, `refund_status='refunded'`, `order_refunds` kayit (admin "iade edilenler" sayfasinda gozukur).
+4. Belirsiz sinyal -> ScraperAlerter Telegram digest, admin manuel kontrol eder.
+
+**Manuel test**: `php artisan order:check-stock {id} [--dry-run]`.
 
 ## ⚠️ Manuel Olarak Yonetilen (cron disinda)
 
