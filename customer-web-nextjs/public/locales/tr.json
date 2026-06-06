@@ -218,7 +218,8 @@
     "no_products": "Bu mağazada henüz ürün bulunmuyor.",
     "details": "Detay",
     "started_from": "Başlangıç Tarihi",
-    "reviews": "değerlendirme"
+    "reviews": "değerlendirme",
+    "search_in_store": "Bu mağazada ara..."
   },
   "pages": {
     "about": "Hakkımızda",

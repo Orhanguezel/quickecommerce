@@ -218,7 +218,8 @@
     "no_products": "No products available in this store yet.",
     "details": "Details",
     "started_from": "Started from",
-    "reviews": "reviews"
+    "reviews": "reviews",
+    "search_in_store": "Search in this store..."
   },
   "pages": {
     "about": "About Us",
