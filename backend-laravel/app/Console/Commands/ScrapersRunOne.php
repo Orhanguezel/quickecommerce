@@ -65,21 +65,24 @@ class ScrapersRunOne extends Command
         $proc->setWorkingDirectory(self::VPS_BASE);
         $proc->setTimeout(3600); // 1 saat max
         // 2026-06-06: Source bazli SCRAPER_URL override. compexturkiye, eprotein,
-        // proteinavm, musclepump_import dis scraper.guezelwebdesign.com'da 301
-        // veya TCP timeout aliyordu — lokal scraper service (127.0.0.1:8200)
-        // bunlari sorunsuz cekti. Diger 22 scraper'i riske atmamak icin
-        // sadece bu 4'unu lokal'e yonlendir.
+        // proteinavm, musclepump dis scraper.guezelwebdesign.com'da 301 veya TCP
+        // timeout aliyordu — lokal scraper service (127.0.0.1:8200) bunlari
+        // sorunsuz cekti. Diger 22 scraper'i riske atmamak icin sadece bu 4'unu
+        // lokal'e yonlendir.
+        // NOT: Anahtar registry 'name' alani (cron --source ile gelen deger);
+        // 'musclepump' name'i 'musclepump_import' db_source_name'e map'leniyor
+        // registry'de — burada cron source name'i ('musclepump') kullanilir.
         $sourceUrlMap = [
-            'compexturkiye'      => env('LOCAL_SCRAPER_URL', 'http://127.0.0.1:8200'),
-            'eprotein'           => env('LOCAL_SCRAPER_URL', 'http://127.0.0.1:8200'),
-            'proteinavm'         => env('LOCAL_SCRAPER_URL', 'http://127.0.0.1:8200'),
-            'musclepump_import'  => env('LOCAL_SCRAPER_URL', 'http://127.0.0.1:8200'),
+            'compexturkiye' => env('LOCAL_SCRAPER_URL', 'http://127.0.0.1:8200'),
+            'eprotein'      => env('LOCAL_SCRAPER_URL', 'http://127.0.0.1:8200'),
+            'proteinavm'    => env('LOCAL_SCRAPER_URL', 'http://127.0.0.1:8200'),
+            'musclepump'    => env('LOCAL_SCRAPER_URL', 'http://127.0.0.1:8200'),
         ];
         $sourceKeyMap = [
-            'compexturkiye'      => env('LOCAL_SCRAPER_API_KEY', ''),
-            'eprotein'           => env('LOCAL_SCRAPER_API_KEY', ''),
-            'proteinavm'         => env('LOCAL_SCRAPER_API_KEY', ''),
-            'musclepump_import'  => env('LOCAL_SCRAPER_API_KEY', ''),
+            'compexturkiye' => env('LOCAL_SCRAPER_API_KEY', ''),
+            'eprotein'      => env('LOCAL_SCRAPER_API_KEY', ''),
+            'proteinavm'    => env('LOCAL_SCRAPER_API_KEY', ''),
+            'musclepump'    => env('LOCAL_SCRAPER_API_KEY', ''),
         ];
         $scraperUrl = $sourceUrlMap[$source] ?? env('SCRAPER_URL', 'https://scraper.guezelwebdesign.com');
         $scraperKey = $sourceKeyMap[$source] ?? env('SCRAPER_API_KEY', '');
