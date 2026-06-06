@@ -39,6 +39,21 @@ class ScrapersHealthCheck extends Command
         $issues = [];
         $info = [];
 
+        // 2026-06-06: STATUS_PASSIVE kaynaklari (powertec/raketspor CF 1010
+        // bani vs) sagliktan haric — JSON tabii ki eski, ama kullanilmiyor.
+        // STATUS_PASSIVE kaynaklari hem 'name' (JSON dosya adi) hem
+        // 'db_source_name' (DB'de mapping.source_name) ile isaretle —
+        // ikisi farkli olabilir (orn. name='maraton', db='maraton_import').
+        $passiveSources = [];
+        foreach (\App\Services\ScraperSourceRegistry::all() as $src) {
+            if (($src['status'] ?? null) === \App\Services\ScraperSourceRegistry::STATUS_PASSIVE) {
+                $passiveSources[$src['name']] = true;
+                if (!empty($src['db_source_name'])) {
+                    $passiveSources[$src['db_source_name']] = true;
+                }
+            }
+        }
+
         // 1) JSON tazeligi
         $jsonFiles = is_dir($dataDir) ? glob($dataDir . '/*_products.json') : [];
         if (empty($jsonFiles)) {
@@ -48,6 +63,9 @@ class ScrapersHealthCheck extends Command
         $jsonAges = [];
         foreach ($jsonFiles as $jf) {
             $source = preg_replace('/_products\.json$/', '', basename($jf));
+            if (isset($passiveSources[$source])) {
+                continue;
+            }
             $size = filesize($jf);
             $ageH = (time() - filemtime($jf)) / 3600;
             $jsonAges[$source] = ['age_h' => $ageH, 'size' => $size, 'path' => $jf];
@@ -89,7 +107,7 @@ class ScrapersHealthCheck extends Command
             ->get();
 
         foreach ($rows as $r) {
-            if ($r->total <= 0) {
+            if ($r->total <= 0 || isset($passiveSources[$r->source_name])) {
                 continue;
             }
             $missingRate = $r->missing / $r->total;
@@ -118,8 +136,8 @@ class ScrapersHealthCheck extends Command
             ->get();
 
         foreach ($stockRows as $r) {
-            if ($r->total < 30) {
-                continue;   // kucuk source, anlamli oran degil
+            if ($r->total < 30 || isset($passiveSources[$r->source_name])) {
+                continue;   // kucuk source veya passive (CF banli vs)
             }
             $rate = $r->s_100 / $r->total;
             if ($rate >= self::STOCK100_RATE_WARN) {

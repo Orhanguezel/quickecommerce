@@ -191,7 +191,7 @@ def convert_product(raw: dict[str, Any]) -> dict[str, Any]:
             "price": discounted_price or original_price,
             "compare_at_price": original_price if discounted_price else None,
             "available": bool(raw.get("is_in_stock", True)),
-            "stock_quantity": 100 if raw.get("is_in_stock", True) else 0,
+            "stock_quantity": 1 if raw.get("is_in_stock", True) else 0,
         })
 
     if not variants:
@@ -203,7 +203,7 @@ def convert_product(raw: dict[str, Any]) -> dict[str, Any]:
             "price": discounted_price or original_price,
             "compare_at_price": original_price if discounted_price else None,
             "available": bool(raw.get("is_in_stock", True)),
-            "stock_quantity": 100 if raw.get("is_in_stock", True) else 0,
+            "stock_quantity": 1 if raw.get("is_in_stock", True) else 0,
         })
 
     permalink = raw.get("permalink") or f"{SITE_URL}/urun/{raw.get('slug', '')}/"
@@ -226,7 +226,7 @@ def convert_product(raw: dict[str, Any]) -> dict[str, Any]:
         "discounted_price": discounted_price,
         "currency": prices.get("currency_code", "TRY"),
         "available": bool(raw.get("is_in_stock", True)),
-        "stock_quantity": 100 if raw.get("is_in_stock", True) else 0,
+        "stock_quantity": 1 if raw.get("is_in_stock", True) else 0,
         "all_image_urls": image_urls,
         "thumbnail_url": image_urls[0] if image_urls else "",
         "variants": variants,
