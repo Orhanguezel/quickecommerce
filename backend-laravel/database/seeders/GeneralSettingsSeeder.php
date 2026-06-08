@@ -31,7 +31,7 @@ class GeneralSettingsSeeder extends Seeder
 
             // Global (non-translatable)
             'com_site_website_url'      => 'https://sportoonline.com',
-            'com_site_email'            => 'info@sportoonline.com',
+            'com_site_email'            => 'sportoonlinecom@gmail.com',
             'com_site_time_zone'        => 'Europe/Istanbul',
 
             // Toggles

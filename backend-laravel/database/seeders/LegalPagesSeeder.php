@@ -75,7 +75,7 @@ class LegalPagesSeeder extends Seeder
 <ul>
   <li><strong>Ünvan:</strong> Sportoonline Lifestyle Hub</li>
   <li><strong>İnternet Adresi:</strong> https://sportoonline.com</li>
-  <li><strong>İletişim:</strong> info@sportoonline.com</li>
+  <li><strong>İletişim:</strong> sportoonlinecom@gmail.com</li>
 </ul>
 
 <h2>İşlenen Kişisel Veriler</h2>
@@ -233,7 +233,7 @@ HTML;
 <p>İşbu Sözleşme'den doğan uyuşmazlıklarda Türk hukuku uygulanır ve İstanbul Mahkemeleri ile İcra Daireleri yetkilidir.</p>
 
 <h2>12. İletişim</h2>
-<p>Sözleşme'ye ilişkin sorularınız için: <a href="mailto:info@sportoonline.com">info@sportoonline.com</a></p>
+<p>Sözleşme'ye ilişkin sorularınız için: <a href="mailto:sportoonlinecom@gmail.com">sportoonlinecom@gmail.com</a></p>
 
 <p><em>Bu sözleşme <strong>2026-05-01</strong> tarihinde güncellenmiştir.</em></p>
 HTML;

@@ -417,7 +417,7 @@ class PageSeeder extends Seeder
                             'contact_details_section' => [
                                 'address' => 'İstanbul, Türkiye',
                                 'phone' => '+90 850 000 00 00',
-                                'email' => 'info@sportoonline.com',
+                                'email' => 'sportoonlinecom@gmail.com',
                                 'website' => 'https://sportoonline.com',
                                 'image' => 1302,
                                 'image_url' => null,
@@ -445,7 +445,7 @@ class PageSeeder extends Seeder
                             'contact_details_section' => [
                                 'address' => 'Istanbul, Turkey',
                                 'phone' => '+90 850 000 00 00',
-                                'email' => 'info@sportoonline.com',
+                                'email' => 'sportoonlinecom@gmail.com',
                                 'website' => 'https://sportoonline.com',
                                 'image' => 1302,
                                 'image_url' => null,

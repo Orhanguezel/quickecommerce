@@ -23,7 +23,7 @@ export const DEFAULT_ORGANIZATION = {
   legalName: "Sportoonline",
   url: SITE_URL,
   logo: `${SITE_URL}/favicon/favicon-96x96.png`,
-  email: "info@sportoonline.com",
+  email: "sportoonlinecom@gmail.com",
   address: {
     streetAddress: "1671 sokak no 151c aksoy",
     addressLocality: "Karşıyaka",

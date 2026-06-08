@@ -346,7 +346,7 @@ P3: Uzun vadeli otorite ve rekabet avantaji.
 - [x] Public store API, Store type ve `Store` JSON-LD icin latitude/longitude destekleri eklendi.
 - [x] Canli deploy sonrasi sitemap eski pazaryeri kategori hitleri `0` olarak dogrulandi; store sayfasinda `GeoCoordinates` JSON-LD goruldu.
 - [x] Sitemap, magazalar, store detail ve kategoriler URL'leri IndexNow'a tekrar bildirildi. API yaniti: `200 OK`.
-- [x] Hakkimizda/Iletisim NAP adres kaynagi admin veritabanindaki Engin Eser magazasi olarak duzeltildi: `1671 sokak no 151c aksoy karşıyaka izmir`, `info@sportoonline.com`.
+- [x] Hakkimizda/Iletisim NAP adres kaynagi admin veritabanindaki Engin Eser magazasi olarak duzeltildi: `1671 sokak no 151c aksoy karşıyaka izmir`, `sportoonlinecom@gmail.com`.
 - [x] Global Organization JSON-LD, CMS contact/about icerigi ve site ayarlari ayni admin adres kaynagiyla guncellendi; hatali Levent/Sisli ve placeholder telefon sinyalleri temizlendi.
 - [x] Google Search Console HTML dosyasi eklendi. `https://sportoonline.com/googlec78a9bfe93e092fc.html` ve `https://sportoonline.com/tr/googlec78a9bfe93e092fc.html` canli `200`.
 - [x] Bing Webmaster XML dosyasi eklendi. `https://sportoonline.com/BingSiteAuth.xml` ve `https://sportoonline.com/tr/BingSiteAuth.xml` canli `200`.
