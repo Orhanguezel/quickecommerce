@@ -131,9 +131,10 @@ class IyzicoRefundService
             foreach ($orderIds as $oid) {
                 DB::table('order_activities')->insert([
                     'order_id' => $oid,
+                    'activity_from' => 'system',
                     'activity_type' => 'order_status',
                     'activity_value' => 'cancelled',
-                    'note' => "Otomatik: tedarikci stogu tukenmis. {$note}",
+                    'reference' => "Otomatik: tedarikci stogu tukenmis. {$note}",
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
