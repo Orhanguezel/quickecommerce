@@ -946,61 +946,61 @@ if (!function_exists('getOrderStatusMessage')) {
     function getOrderStatusMessage($order, $isNewOrder = false)
     {
         $messages = [
-            'admin' => "Order #{$order->id} has been updated.",
-            'store' => "Order #{$order->id} status has changed.",
-            'customer' => "Your order #{$order->id} has been updated.",
-            'deliveryman' => "New update for Order #{$order->id}.",
-            'title' => "Order #{$order->id}."
+            'admin' => "Sipariş #{$order->id} güncellendi.",
+            'store' => "Sipariş #{$order->id} durumu değişti.",
+            'customer' => "Siparişiniz #{$order->id} güncellendi.",
+            'deliveryman' => "Sipariş #{$order->id} için yeni güncelleme.",
+            'title' => "Sipariş #{$order->id}."
         ];
 
-        // If the order is newly placed
+        // Yeni oluşturulan sipariş
         if ($isNewOrder) {
-            $messages['admin'] = "A new order #{$order->id} has been placed.";
-            $messages['store'] = "You have received a new order #{$order->id}. Please review it.";
-            $messages['customer'] = "Your order #{$order->id} has been placed successfully.";
-            $messages['deliveryman'] = "A new order #{$order->id} will be assigned soon.";
-            $messages['title'] = "Order Placed Successfully.";
+            $messages['admin'] = "Yeni bir sipariş alındı: #{$order->id}.";
+            $messages['store'] = "Yeni bir sipariş aldınız: #{$order->id}. Lütfen inceleyin.";
+            $messages['customer'] = "Siparişiniz #{$order->id} başarıyla oluşturuldu.";
+            $messages['deliveryman'] = "Yeni sipariş #{$order->id} yakında atanacak.";
+            $messages['title'] = "Sipariş Başarıyla Oluşturuldu.";
 
             return $messages;
         }
 
-        // message
+        // Duruma göre mesaj
         if ($order->status === 'pending') {
-            $messages['admin'] = "A new order #{$order->id} is pending confirmation.";
-            $messages['store'] = "New order #{$order->id} is waiting for approval.";
-            $messages['customer'] = "Your order #{$order->id} is pending confirmation.";
-            $messages['deliveryman'] = "Order #{$order->id} is pending, not yet assigned.";
-            $messages['title'] = "Order #{$order->id} is pending";
+            $messages['admin'] = "Sipariş #{$order->id} onay bekliyor.";
+            $messages['store'] = "Yeni sipariş #{$order->id} onay bekliyor.";
+            $messages['customer'] = "Siparişiniz #{$order->id} onay bekliyor.";
+            $messages['deliveryman'] = "Sipariş #{$order->id} beklemede, henüz atanmadı.";
+            $messages['title'] = "Sipariş #{$order->id} beklemede";
         } elseif ($order->status === 'confirmed') {
-            $messages['admin'] = "Order #{$order->id} has been confirmed by the store.";
-            $messages['store'] = "You have confirmed order #{$order->id}.";
-            $messages['customer'] = "Your order #{$order->id} has been confirmed and is being prepared.";
-            $messages['deliveryman'] = "Order #{$order->id} is confirmed and will be assigned soon.";
-            $messages['title'] = "Order #{$order->id} is confirmed";
+            $messages['admin'] = "Sipariş #{$order->id} mağaza tarafından onaylandı.";
+            $messages['store'] = "Sipariş #{$order->id} siparişini onayladınız.";
+            $messages['customer'] = "Siparişiniz #{$order->id} onaylandı ve hazırlanıyor.";
+            $messages['deliveryman'] = "Sipariş #{$order->id} onaylandı, yakında atanacak.";
+            $messages['title'] = "Sipariş #{$order->id} onaylandı";
         } elseif ($order->status === 'processing') {
-            $messages['admin'] = "Order #{$order->id} is being processed.";
-            $messages['store'] = "Order #{$order->id} is being processed.";
-            $messages['customer'] = "Your order #{$order->id} is now in processing.";
-            $messages['deliveryman'] = "Order #{$order->id} is still in processing state.";
-            $messages['title'] = "Order #{$order->id} is processing";
+            $messages['admin'] = "Sipariş #{$order->id} hazırlanıyor.";
+            $messages['store'] = "Sipariş #{$order->id} hazırlanıyor.";
+            $messages['customer'] = "Siparişiniz #{$order->id} hazırlanıyor.";
+            $messages['deliveryman'] = "Sipariş #{$order->id} hâlâ hazırlanıyor.";
+            $messages['title'] = "Sipariş #{$order->id} hazırlanıyor";
         } elseif ($order->status === 'shipped') {
-            $messages['admin'] = "Order #{$order->id} has been shipped.";
-            $messages['store'] = "Order #{$order->id} has been shipped to the customer.";
-            $messages['customer'] = "Your order #{$order->id} has been shipped.";
-            $messages['deliveryman'] = "Order #{$order->id} is now out for delivery.";
-            $messages['title'] = "Order #{$order->id} is shipped";
+            $messages['admin'] = "Sipariş #{$order->id} kargoya verildi.";
+            $messages['store'] = "Sipariş #{$order->id} müşteriye kargolandı.";
+            $messages['customer'] = "Siparişiniz #{$order->id} kargoya verildi.";
+            $messages['deliveryman'] = "Sipariş #{$order->id} dağıtıma çıktı.";
+            $messages['title'] = "Sipariş #{$order->id} kargoda";
         } elseif ($order->status === 'delivered') {
-            $messages['admin'] = "Order #{$order->id} has been successfully delivered.";
-            $messages['store'] = "Order #{$order->id} has been delivered to the customer.";
-            $messages['customer'] = "Your order #{$order->id} has been delivered. Thank you for shopping with us!";
-            $messages['deliveryman'] = "Order #{$order->id} delivery is completed.";
-            $messages['title'] = "Order #{$order->id} is delivered";
+            $messages['admin'] = "Sipariş #{$order->id} başarıyla teslim edildi.";
+            $messages['store'] = "Sipariş #{$order->id} müşteriye teslim edildi.";
+            $messages['customer'] = "Siparişiniz #{$order->id} teslim edildi. Bizi tercih ettiğiniz için teşekkürler!";
+            $messages['deliveryman'] = "Sipariş #{$order->id} teslimatı tamamlandı.";
+            $messages['title'] = "Sipariş #{$order->id} teslim edildi";
         } elseif ($order->status === 'cancelled') {
-            $messages['admin'] = "Order #{$order->id} has been cancelled.";
-            $messages['store'] = "Order #{$order->id} has been cancelled by the customer or admin.";
-            $messages['customer'] = "Your order #{$order->id} has been cancelled.";
-            $messages['deliveryman'] = "Order #{$order->id} has been cancelled. No delivery required.";
-            $messages['title'] = "Order #{$order->id} is cancelled";
+            $messages['admin'] = "Sipariş #{$order->id} iptal edildi.";
+            $messages['store'] = "Sipariş #{$order->id} müşteri veya yönetici tarafından iptal edildi.";
+            $messages['customer'] = "Siparişiniz #{$order->id} iptal edildi.";
+            $messages['deliveryman'] = "Sipariş #{$order->id} iptal edildi. Teslimat gerekmiyor.";
+            $messages['title'] = "Sipariş #{$order->id} iptal edildi";
         }
 
         return $messages;

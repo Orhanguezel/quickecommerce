@@ -126,8 +126,8 @@ class OrderManageNotificationService
                         'deliveryman_id',
                         $order_details->deliveryman?->id ?? 0,
                         $last_order_id,
-                        $messages['title'] = "New Order Assigned: #{$last_order_id}",
-                        $messages['deliveryman'] = "You have been assigned to deliver Order #{$last_order_id}. Please check the details and proceed with the delivery."
+                        $messages['title'] = "Yeni Sipariş Atandı: #{$last_order_id}",
+                        $messages['deliveryman'] = "Sipariş #{$last_order_id} teslimatı size atandı. Lütfen detayları kontrol edip teslimata başlayın."
                     );
 
                     // Seller notification
@@ -136,8 +136,8 @@ class OrderManageNotificationService
                         'seller_id',
                         $order_details->store?->store_seller_id ?? 0,
                         $last_order_id,
-                        $messages['title'] = "Deliveryman Assigned for Order: #{$last_order_id}",
-                        $messages['store'] = "A deliveryman has been assigned to Order #{$last_order_id}. You can now track the order progress."
+                        $messages['title'] = "Sipariş İçin Kurye Atandı: #{$last_order_id}",
+                        $messages['store'] = "Sipariş #{$last_order_id} için bir kurye atandı. Sipariş ilerlemesini artık takip edebilirsiniz."
                     );
                 }elseif($otherCheckData === 'seller_order_status_pcpps' || $otherCheckData === 'seller_order_cancelled'){
                     // Customer notification
