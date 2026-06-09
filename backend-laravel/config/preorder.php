@@ -17,6 +17,10 @@ return [
     | calistirinca o kaynagin urunleri normal "Stokta"ya doner.
     |
     */
+    // DAR LISTE (2026-06-09): Sadece analizde gercekten stok-out + otomatik iade
+    // ureten hizli-donen takviye kaynaklari. Tum bool-only kaynaklari koymak
+    // katalogun ~%95'ini "On Siparis" yapip donusumu bozuyordu — bilerek dar
+    // tutuldu. Yeni sorunlu kaynak cikarsa buraya eklenir.
     'bool_sources' => [
         'provitanya',
         'proteinmax',
@@ -24,26 +28,6 @@ return [
         'proteinavm',
         'protein7',
         'musclepump_import',
-        'bodyfitshop',
-        'herbinatura',
-        'linktech',
-        'compexturkiye',
-        'crestaofficial',
-        'ceysport',
-        'everlast',
-        'eyb',
-        'superstacy',
-        'norfolk',
-        'rovabatarya',
-        'speedwa',
-        'musullu',
-        'dropick',
-        'dekomum',
-        'maskotmeyvepresleri',
-        'grandgiftstore',
-        'yesilmarka',
-        'powertec',
-        'maraton_import',
     ],
 
     // Musteriye gosterilecek tahmini tedarik suresi notu (gun).
