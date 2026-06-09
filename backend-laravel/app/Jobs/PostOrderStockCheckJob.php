@@ -59,6 +59,7 @@ class PostOrderStockCheckJob implements ShouldQueue
 
         $outOfStockLines = [];
         $uncertainLines = [];
+        $preorderOutLines = [];
 
         foreach ($master->orders as $sub) {
             foreach ($sub->orderDetail as $line) {
@@ -82,6 +83,25 @@ class PostOrderStockCheckJob implements ShouldQueue
                 ]);
 
                 if ($result->isDefinitelyOutOfStock()) {
+                    // ON SIPARIS ISTISNASI: "Ön Sipariş / Tedarik Süreli" etiketli
+                    // (is_preorder=1) urunler stok-out olunca OTOMATIK IADE EDILMEZ.
+                    // Musteri zaten tedarik suresini kabul ederek siparis verdi;
+                    // saticinin tedarik etmesi beklenir. Sadece admin'e bildirilir.
+                    if ($this->isPreorderProduct($productId)) {
+                        $preorderOutLines[] = [
+                            'order_id' => $sub->id,
+                            'product_id' => $productId,
+                            'variant_id' => $variantId,
+                            'url' => $sourceUrl,
+                            'signal' => $result->signal,
+                        ];
+                        Log::info('PostOrderStockCheck: preorder urun stok-out — iade YOK, tedarik bekleniyor', [
+                            'order_master_id' => $master->id,
+                            'order_id' => $sub->id,
+                            'product_id' => $productId,
+                        ]);
+                        continue;
+                    }
                     $outOfStockLines[] = [
                         'order_id' => $sub->id,
                         'product_id' => $productId,
@@ -106,6 +126,17 @@ class PostOrderStockCheckJob implements ShouldQueue
             return;
         }
 
+        if (!empty($preorderOutLines)) {
+            $alerter->alert(
+                title: "Ön sipariş ürünü stok-out — Siparis #{$master->id} (IADE YOK, tedarik gerek)",
+                body: count($preorderOutLines) . " adet 'Ön Sipariş / Tedarik Süreli' ürün tedarikcide tukenmis. "
+                    . "Otomatik iade YAPILMADI — saticinin tedarik etmesi bekleniyor. Manuel takip et.\n\n"
+                    . collect($preorderOutLines)->map(fn($l) => "- {$l['url']} (signal: {$l['signal']})")->implode("\n"),
+                level: 'warning',
+                context: ['order_master_id' => $master->id, 'preorder_out_count' => count($preorderOutLines)]
+            );
+        }
+
         if (!empty($uncertainLines)) {
             $alerter->alert(
                 title: "Stok teyidi belirsiz — Siparis #{$master->id}",
@@ -120,6 +151,18 @@ class PostOrderStockCheckJob implements ShouldQueue
             'order_master_id' => $master->id,
             'uncertain_count' => count($uncertainLines),
         ]);
+    }
+
+    /**
+     * Urun "Ön Sipariş / Tedarik Süreli" (is_preorder=1) mi?
+     * Bu urunler stok-out olunca otomatik iade edilmez; tedarik beklenir.
+     */
+    private function isPreorderProduct(?int $productId): bool
+    {
+        if (!$productId) {
+            return false;
+        }
+        return (bool) \DB::table('products')->where('id', $productId)->value('is_preorder');
     }
 
     private function resolveSourceUrl(?int $variantId, ?int $productId): ?string

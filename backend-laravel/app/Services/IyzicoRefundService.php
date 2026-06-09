@@ -15,8 +15,9 @@ use Illuminate\Support\Facades\Log;
  *    edilir (iyzico Refund, paymentTransactionId bazli). Diger (stoktaki)
  *    saticilarin siparisi bozulmaz, devam eder.
  *  - Tum siparis stok-out ise: tum odemeyi tek seferde iptal (Cancel) — basit + tam iade.
- *  - Kismi iade herhangi bir sebeple basarisiz/belirsizse: GUVENLI FALLBACK olarak
- *    tum odeme iptal edilir (musteri her durumda parasini geri alir).
+ *  - Kismi iade basarisiz/belirsizse: STOKTAKI sub-order ASLA collateral iptal edilmez.
+ *    Iade edilemeyen stok-out sub-order'lar manuel iade icin admin'e KRITIK alarm ile
+ *    escalate edilir (escalateManualRefund); stoktaki satici siparisi kargolanmaya devam eder.
  */
 class IyzicoRefundService
 {
@@ -55,15 +56,22 @@ class IyzicoRefundService
             $items = $this->iyzicoService->retrievePaymentItemsDetailed($paymentId, $convId);
 
             if (empty($items)) {
-                Log::warning('IyzicoRefund: partial icin payment items bos, full cancel fallback', [
-                    'order_master_id' => $master->id,
+                // STOKTAKI SIPARISI ASLA IPTAL ETME: payment items alinamadigi icin
+                // hedefli iade yapilamiyor. Tum odemeyi iptal etmek stoktaki saticinin
+                // siparisini de oldururdu (collateral). Bunun yerine manuel iade escalate.
+                Log::error('IyzicoRefund: partial icin payment items bos -> manuel iade escalate (stoktaki korunur)', [
+                    'order_master_id' => $master->id, 'out_order_ids' => $outOrderIds,
                 ]);
-                $this->cancelWholePayment($master, $paymentId, $outOfStockLines, $allOrderIds, $outOrderIds);
+                $this->escalateManualRefund($master, $outOrderIds, $outOfStockLines, 'iyzico payment items alinamadi');
                 return;
             }
 
-            $refunded = [];
-            $failed = [];
+            // Her stok-out sub-order'i BAGIMSIZ iade et. Stoktaki sub-order'lara ASLA
+            // dokunma. Iade edilemeyen out-order'lar full-cancel YERINE manuel iade icin
+            // escalate edilir — yani stoktaki satici collateral olarak iptal OLMAZ.
+            $refundedOutIds = [];
+            $failedOutIds = [];
+            $failedDetail = [];
             foreach ($items as $it) {
                 $oid = $this->orderIdFromItemId($it['item_id'] ?? null);
                 if ($oid === null || !in_array($oid, $outOrderIds, true)) {
@@ -82,64 +90,94 @@ class IyzicoRefundService
                     $code = (string) ($res->getErrorCode() ?? '-');
                     // 5249/5088 -> zaten iade (idempotent ok)
                     if ($status === 'success' || in_array($code, ['5249', '5088'], true)) {
-                        $refunded[] = $it['transaction_id'];
+                        $refundedOutIds[$oid] = true;
                     } else {
-                        $failed[] = "{$it['transaction_id']}:{$code}:" . (string) $res->getErrorMessage();
+                        $failedOutIds[$oid] = true;
+                        $failedDetail[] = "order#{$oid} txn{$it['transaction_id']}:{$code}:" . (string) $res->getErrorMessage();
                     }
                 } catch (\Throwable $e) {
-                    $failed[] = "{$it['transaction_id']}:exception:" . $e->getMessage();
+                    $failedOutIds[$oid] = true;
+                    $failedDetail[] = "order#{$oid} txn{$it['transaction_id']}:exception:" . $e->getMessage();
                 }
             }
 
-            if (!empty($failed)) {
-                // Kismi iade kismen basarisiz -> guvenli fallback: tum odeme iptal.
-                // Zaten basarili refund'lar idempotent; cancel kalanlari da iade eder.
-                Log::error('IyzicoRefund: partial refund basarisiz kalemler -> full cancel fallback', [
-                    'order_master_id' => $master->id, 'failed' => $failed, 'refunded' => $refunded,
+            // Hicbir kalemi patlamayan, basariyla iade edilen out-order'lari isaretle.
+            $okOutIds = array_values(array_diff(array_keys($refundedOutIds), array_keys($failedOutIds)));
+            if (!empty($okOutIds)) {
+                $this->markOrdersRefunded(
+                    master: $master,
+                    orderIds: $okOutIds,
+                    outOrderIds: $okOutIds,
+                    setMasterRefunded: false,
+                    note: 'urun-bazli kismi iade'
+                );
+            }
+
+            // Iade edilemeyen out-order'lar: STOKTAKINI IPTAL ETME, manuel iade escalate.
+            $failedIds = array_keys($failedOutIds);
+            if (!empty($failedIds)) {
+                Log::error('IyzicoRefund: bazi out-order iade edilemedi -> manuel escalate (stoktaki korunur)', [
+                    'order_master_id' => $master->id, 'failed' => $failedDetail, 'refunded_ok' => $okOutIds,
                 ]);
-                $this->cancelWholePayment($master, $paymentId, $outOfStockLines, $allOrderIds, $outOrderIds);
+                $this->escalateManualRefund($master, $failedIds, $outOfStockLines, 'kismi iade basarisiz: ' . implode(' | ', $failedDetail));
                 return;
             }
 
-            // Basarili: SADECE stok-out order'lari cancelled/refunded; master 'paid' kalir.
-            $this->markOrdersRefunded(
-                master: $master,
-                orderIds: $outOrderIds,
-                outOrderIds: $outOrderIds,
-                setMasterRefunded: false,
-                note: 'urun-bazli kismi iade (' . count($refunded) . ' transaction)'
-            );
-
             Log::info('IyzicoRefund: partial refund success', [
                 'order_master_id' => $master->id,
-                'refunded_transactions' => count($refunded),
-                'out_order_ids' => $outOrderIds,
+                'refunded_out_order_ids' => $okOutIds,
                 'in_stock_order_ids' => $inStockOrderIds,
             ]);
 
             $this->alerter->alert(
                 title: "Otomatik KISMI iade: Siparis #{$master->id} (tedarikci stogu tukenmis)",
-                body: count($outOrderIds) . " sub-order (stogu tukenmis satici) iade edildi; " . count($inStockOrderIds) . " sub-order (stokta) devam ediyor.\n\n"
+                body: count($okOutIds) . " sub-order (stogu tukenmis satici) iade edildi; " . count($inStockOrderIds) . " sub-order (stokta) devam ediyor.\n\n"
                     . "iade edilen URL'ler:\n"
                     . collect($outOfStockLines)->map(fn ($l) => "- {$l['url']} (signal: {$l['signal']})")->implode("\n"),
                 level: 'info',
-                context: ['order_master_id' => $master->id, 'out_order_ids' => $outOrderIds]
+                context: ['order_master_id' => $master->id, 'out_order_ids' => $okOutIds]
             );
         } catch (\Throwable $e) {
-            Log::error('IyzicoRefund: partial exception -> full cancel fallback', [
+            // STOKTAKI SIPARISI ASLA IPTAL ETME: partial akisi tamamen patladiysa bile
+            // full-cancel yapmiyoruz (stoktaki satici collateral iptal olurdu). Manuel
+            // iade escalate — admin sadece stogu tukenmis sub-order'i elle iade eder.
+            Log::error('IyzicoRefund: partial exception -> manuel iade escalate (stoktaki korunur)', [
                 'order_master_id' => $master->id, 'error' => $e->getMessage(),
             ]);
-            try {
-                $this->cancelWholePayment($master, $paymentId, $outOfStockLines, $allOrderIds, $outOrderIds);
-            } catch (\Throwable $e2) {
-                $this->alerter->alert(
-                    title: "Otomatik iade EXCEPTION: Siparis #{$master->id}",
-                    body: "Kismi iade + full cancel fallback ikisi de patladi: {$e2->getMessage()}\nManuel iade gerek.",
-                    level: 'critical',
-                    context: ['order_master_id' => $master->id, 'exception' => $e2->getMessage()]
-                );
-            }
+            $this->escalateManualRefund($master, $outOrderIds, $outOfStockLines, 'partial akis exception: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Stok-out sub-order(lar) otomatik iade edilemedi. STOKTAKI sub-order'lari
+     * KORUMAK icin tum odemeyi iptal ETMEYIZ (collateral iptal yok). Bunun yerine
+     * admin'e kritik alarm gonderip manuel iade istenir. Hicbir siparis durumu
+     * degistirilmez — yarim-state riski olmaz, stoktaki siparis kargolanmaya devam eder.
+     */
+    private function escalateManualRefund(OrderMaster $master, array $manualOrderIds, array $outOfStockLines, string $reason): void
+    {
+        $manualOrderIds = array_values(array_unique(array_map('intval', $manualOrderIds)));
+        $lines = collect($outOfStockLines)
+            ->filter(fn ($l) => in_array((int) ($l['order_id'] ?? 0), $manualOrderIds, true))
+            ->map(fn ($l) => "- order#{$l['order_id']}: {$l['url']} (signal: {$l['signal']})")
+            ->implode("\n");
+
+        $this->alerter->alert(
+            title: "MANUEL IADE GEREK: Siparis #{$master->id} (otomatik kismi iade basarisiz)",
+            body: "Asagidaki stogu tukenmis sub-order(lar) otomatik iade EDILEMEDI. "
+                . "Stoktaki diger sub-order(lar) KORUNDU (iptal edilmedi) — kargolanmaya devam eder.\n"
+                . "Bu sub-order(lar)i admin panelden MANUEL iade et:\n\n"
+                . ($lines !== '' ? $lines : '- (URL bilgisi yok)') . "\n\n"
+                . "Sebep: {$reason}",
+            level: 'critical',
+            context: ['order_master_id' => $master->id, 'manual_refund_order_ids' => $manualOrderIds, 'reason' => $reason]
+        );
+
+        Log::error('IyzicoRefund: MANUEL IADE escalate', [
+            'order_master_id' => $master->id,
+            'manual_refund_order_ids' => $manualOrderIds,
+            'reason' => $reason,
+        ]);
     }
 
     /**
