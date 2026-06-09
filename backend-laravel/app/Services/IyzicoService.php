@@ -380,6 +380,57 @@ class IyzicoService
     }
 
     /**
+     * Tek bir paymentTransactionId'yi (basket item / sub-order) kismi iade eder.
+     * Cok-saticili tek odemede SADECE stogu tukenmis saticinin kalemini iade
+     * etmek icin — diger saticilarin odemesi bozulmaz. Cancel'in aksine urun
+     * bazli calisir.
+     */
+    public function refundTransaction(string $paymentTransactionId, string $price, string $conversationId, ?string $ip = null): \Iyzipay\Model\Refund
+    {
+        $request = new \Iyzipay\Request\CreateRefundRequest();
+        $request->setLocale(Locale::TR);
+        $request->setConversationId($conversationId);
+        $request->setPaymentTransactionId($paymentTransactionId);
+        $request->setPrice($price);
+        $request->setCurrency(Currency::TL);
+        $request->setIp($ip ?: '127.0.0.1');
+        $request->setReason('other');
+        $request->setDescription('Otomatik kismi iade: tedarikci stogu tukenmis (post-order check)');
+
+        return \Iyzipay\Model\Refund::create($request, $this->options());
+    }
+
+    /**
+     * iyzico'dan payment detayini cekip her paymentItem icin
+     * [item_id (ORD{orderId}...), transaction_id, paid_price] doner.
+     * Urun-bazli kismi iadede transaction'i hangi siparise ait eslemek icin.
+     *
+     * @return array<int,array{item_id:?string,transaction_id:?string,paid_price:?string}>
+     */
+    public function retrievePaymentItemsDetailed(string $paymentId, string $conversationId): array
+    {
+        $request = new \Iyzipay\Request\RetrievePaymentRequest();
+        $request->setLocale(Locale::TR);
+        $request->setConversationId($conversationId);
+        $request->setPaymentId($paymentId);
+
+        $payment = \Iyzipay\Model\Payment::retrieve($request, $this->options());
+        if ($payment->getStatus() !== 'success') {
+            return [];
+        }
+        $items = [];
+        foreach ((array) $payment->getPaymentItems() as $item) {
+            $items[] = [
+                'item_id'        => method_exists($item, 'getItemId') ? (string) $item->getItemId() : null,
+                'transaction_id' => method_exists($item, 'getPaymentTransactionId') ? (string) $item->getPaymentTransactionId() : null,
+                'paid_price'     => method_exists($item, 'getPaidPrice') ? (string) $item->getPaidPrice()
+                    : (method_exists($item, 'getPrice') ? (string) $item->getPrice() : null),
+            ];
+        }
+        return $items;
+    }
+
+    /**
      * iyzico'dan payment detayini cekip paymentItems[].paymentTransactionId
      * listesini doner. Eski siparişlerde DB'de saklamadigimiz id'leri
      * sonradan elde etmek için.
