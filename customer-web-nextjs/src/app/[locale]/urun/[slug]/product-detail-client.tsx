@@ -71,6 +71,9 @@ interface ProductDetailTranslations {
   remove_from_wishlist: string;
   in_stock: string;
   out_of_stock: string;
+  preorder: string;
+  preorder_note: string;
+  preorder_button: string;
   quantity: string;
   description: string;
   reviews: string;
@@ -507,6 +510,8 @@ export function ProductDetailClient({
     ? selectedVariant.stock_quantity
     : product.stock ?? 0;
   const inStock = stock > 0;
+  // Bool-only tedarikci kaynagi: "Stokta" yerine "On Siparis / Tedarik Sureli"
+  const isPreorder = !!product.is_preorder && inStock;
   const maxPurchasableQuantity = inStock
     ? Math.max(1, Math.min(product.max_cart_qty || 99, stock))
     : 0;
@@ -1068,7 +1073,9 @@ export function ProductDetailClient({
             )}
             <div
               className={`mt-3 inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-semibold ${
-                inStock
+                isPreorder
+                  ? "border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900 dark:bg-sky-950 dark:text-sky-300"
+                  : inStock
                   ? "border-green-200 bg-green-50 text-green-700 dark:border-green-900 dark:bg-green-950 dark:text-green-300"
                   : "border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300"
               }`}
@@ -1080,9 +1087,15 @@ export function ProductDetailClient({
               )}
               {/* 2026-06-04: stok sayisi gizlendi. Kaynak tedarikciler genelde
                  gercek miktari vermez; bool sinyalleri 1 (var) / 0 (yok) DB'ye
-                 yaziliyor. Musteriye "Stokta (1)" gostermek yanil­ticidir. */}
-              {inStock ? t.in_stock : t.out_of_stock}
+                 yaziliyor. Musteriye "Stokta (1)" gostermek yanil­ticidir.
+                 2026-06-09: bool-only kaynaklar "On Siparis / Tedarik Sureli". */}
+              {isPreorder ? t.preorder : inStock ? t.in_stock : t.out_of_stock}
             </div>
+            {isPreorder && (
+              <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                {t.preorder_note}
+              </p>
+            )}
           </div>
 
           <div className="mt-4 space-y-3 border-y py-4">
@@ -1318,7 +1331,7 @@ export function ProductDetailClient({
               className="flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <ShoppingCart className="h-4 w-4" />
-              {inStock ? t.add_to_cart : t.out_of_stock}
+              {isPreorder ? t.preorder_button : inStock ? t.add_to_cart : t.out_of_stock}
             </button>
             <button
               onClick={handleBuyNow}

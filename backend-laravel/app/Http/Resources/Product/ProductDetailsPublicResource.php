@@ -62,6 +62,7 @@ class ProductDetailsPublicResource extends JsonResource
             'delivery_time_text' => $this->delivery_time_text,
             'max_cart_qty' => $this->max_cart_qty,
             'stock' => $this->totalStock(),
+            'is_preorder' => (bool)$this->is_preorder,
             // ProductPublicResource (liste) ile tutarlı yuvarlama: site ayarında
             // "ondalıkları gösterme" aktifse 0 ondalık, değilse 2.
             'price' => shouldRound()

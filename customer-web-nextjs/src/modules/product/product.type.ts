@@ -15,6 +15,7 @@ export interface Product {
   review_count: number;
   flash_sale: FlashSaleInfo | null;
   is_featured?: boolean;
+  is_preorder?: boolean;
   order_count?: number;
   max_cart_qty?: number;
   singleVariant?: ProductVariant[];
@@ -56,6 +57,7 @@ export interface ProductDetail {
   rating: string;
   review_count: number;
   is_featured: boolean;
+  is_preorder?: boolean;
   created_at?: string | null;
   status: string;
   warranty: string | null;

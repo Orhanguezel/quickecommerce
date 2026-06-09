@@ -42,6 +42,7 @@ class RelatedProductPublicResource extends JsonResource
             'singleVariant' => $this->variants->count() === 1 ? [$this->variants->first()] : [],
             'default_variant_id' => optional($displayVariant)->id,
             'stock' => $this->totalStock(),
+            'is_preorder' => (bool)$this->is_preorder,
             'price' => optional($displayVariant)->price,
             'special_price' => optional($displayVariant)->special_price,
             'discount_percentage' => $price > 0 && $specialPrice > 0 && $specialPrice < $price

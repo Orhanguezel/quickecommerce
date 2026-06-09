@@ -73,6 +73,8 @@ export function ProductCard({
   const [imageError, setImageError] = useState(false);
   const imageRef = useRef<HTMLDivElement>(null);
   const isInStock = product.stock === null || product.stock > 0;
+  // Bool-only tedarikci kaynagi: "Stokta" yerine "On Siparis / Tedarik Sureli"
+  const isPreorder = !!product.is_preorder && isInStock;
 
   useEffect(() => {
     setMounted(true);
@@ -253,7 +255,11 @@ export function ProductCard({
   );
 
   /* ── Stock label ── */
-  const stockLabel = isInStock ? (
+  const stockLabel = isPreorder ? (
+    <span className="text-xs font-medium text-sky-600 dark:text-sky-400">
+      {t("preorder")}
+    </span>
+  ) : isInStock ? (
     <span className="text-xs font-medium text-green-600 dark:text-green-400">
       {t("in_stock")}
     </span>
@@ -262,6 +268,13 @@ export function ProductCard({
       {t("out_of_stock")}
     </span>
   );
+
+  /* ── Pre-order (tedarik sureli) badge ── */
+  const preorderBadge = isPreorder ? (
+    <span className="absolute bottom-2 left-2 z-10 rounded bg-gradient-to-r from-sky-600 to-blue-500 px-1.5 py-0.5 text-[11px] font-bold text-white shadow-sm">
+      {t("preorder")}
+    </span>
+  ) : null;
 
   const outOfStockOverlay = !isInStock ? (
     <div className="absolute inset-0 z-30 flex items-center justify-center bg-background/70 backdrop-blur-[1px]">
@@ -348,6 +361,7 @@ export function ProductCard({
           {bestSellerBadge}
           {discountBadge}
           {flashSaleListBadge}
+          {preorderBadge}
           {outOfStockOverlay}
         </div>
 
@@ -394,6 +408,7 @@ export function ProductCard({
         {bestSellerBadge}
         {discountBadge}
         {flashSaleStrip}
+        {preorderBadge}
         {outOfStockOverlay}
 
         {/* Hover action buttons */}

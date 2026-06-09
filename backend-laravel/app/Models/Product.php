@@ -52,6 +52,7 @@ class Product extends Model
         "manufacture_date",
         "expiry_date",
         "is_featured",
+        "is_preorder",
     ];
     public $translationKeys = [
         'name',

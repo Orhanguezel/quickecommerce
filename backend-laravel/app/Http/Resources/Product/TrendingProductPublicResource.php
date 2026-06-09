@@ -38,6 +38,7 @@ class TrendingProductPublicResource extends JsonResource
             'image' => $this->image,
             'image_url' => ImageModifier::generateImageUrl($this->image),
             'stock' => $this->totalStock(),
+            'is_preorder' => (bool)$this->is_preorder,
             'price' => optional($displayVariant)->price,
             'special_price' => optional($displayVariant)->special_price,
             'singleVariant' => $this->variants->count() === 1 ? [$this->variants->first()] : [],

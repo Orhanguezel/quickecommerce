@@ -42,6 +42,7 @@ class FlashSaleAllProductPublicResource extends JsonResource
             'image' => $this->product?->image,
             'image_url' => ImageModifier::generateImageUrl($this->product?->image),
             'stock' => $this->product?->totalStock(),
+            'is_preorder' => (bool)($this->product?->is_preorder ?? false),
             'wishlist' => auth('api_customer')->check() ? $this->product?->wishlist : false, // Check if the customer is logged in,
             'rating' => number_format((float)$this->product?->rating, 2, '.', ''),
             'review_count' => $this->product?->review_count,
