@@ -306,7 +306,7 @@ class AiChatService
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->with(['orders' => function ($q) {
-                $q->select('id', 'order_master_id', 'invoice_number', 'status', 'payment_status');
+                $q->select('id', 'order_master_id', 'invoice_number', 'status', 'payment_status', 'refund_status');
             }])
             ->get(['id', 'order_amount', 'payment_status', 'payment_gateway', 'created_at']);
 
@@ -324,6 +324,21 @@ class AiChatService
             'returned' => 'İade Edildi',
         ];
 
+        // İptal/iade sebeplerini topla (order_refunds + order_refund_reasons).
+        // Boylece bot "neden iptal edildi" sorusuna gercek sebebi (orn. tedarikci
+        // stogu tukenmis) ve iade durumunu soyleyebilir, "destek'e sor" demez.
+        $orderIds = $orderMasters->flatMap(fn ($m) => $m->orders->pluck('id'))->all();
+        $refundInfo = [];
+        if (!empty($orderIds)) {
+            $rows = \DB::table('order_refunds')
+                ->leftJoin('order_refund_reasons', 'order_refunds.order_refund_reason_id', '=', 'order_refund_reasons.id')
+                ->whereIn('order_refunds.order_id', $orderIds)
+                ->get(['order_refunds.order_id', 'order_refunds.status as refund_status', 'order_refund_reasons.reason as reason_name']);
+            foreach ($rows as $r) {
+                $refundInfo[$r->order_id] = $r;
+            }
+        }
+
         $lines = [];
         foreach ($orderMasters as $master) {
             $date = $master->created_at->format('d.m.Y');
@@ -331,11 +346,56 @@ class AiChatService
 
             foreach ($master->orders as $order) {
                 $status = $statusMap[$order->status] ?? $order->status;
-                $lines[] = "- Sipariş #{$order->invoice_number} ({$date}): ₺{$amount} - {$status}";
+                $line = "- Sipariş #{$order->invoice_number} ({$date}): ₺{$amount} - {$status}";
+
+                $extra = [];
+                $ri = $refundInfo[$order->id] ?? null;
+                if ($ri) {
+                    $reason = $this->humanizeRefundReason($ri->reason_name);
+                    if ($reason) {
+                        $extra[] = "İptal/iade sebebi: {$reason}";
+                    }
+                    if (($ri->refund_status ?? '') === 'refunded' || ($order->refund_status ?? '') === 'refunded') {
+                        $extra[] = "ödeme müşteriye iade edildi";
+                    }
+                } elseif ($order->status === 'cancelled') {
+                    if (($order->refund_status ?? '') === 'refunded') {
+                        $extra[] = "ödeme iade edildi";
+                    } elseif (!in_array($order->payment_status, ['paid', 'refunded'], true)) {
+                        // Odenmemis/suresi dolmus sepet otomatik iptal edildi
+                        $extra[] = "ödeme tamamlanmadığı için otomatik iptal edildi";
+                    }
+                }
+
+                if (!empty($extra)) {
+                    $line .= ' (' . implode('; ', $extra) . ')';
+                }
+                $lines[] = $line;
             }
         }
 
-        return implode("\n", $lines);
+        return implode("\n", $lines)
+            . "\n\nNOT: Yukarıda bir siparişin iptal/iade sebebi belirtilmişse, müşteri sorduğunda bu sebebi açıkça ve nazikçe söyle (örn. tedarikçide stok kalmadığı için iptal edildiyse bunu belirt). Sebep belirtilmemişse uydurma.";
+    }
+
+    /**
+     * order_refund_reasons.reason degerini musteriye uygun, net bir cumleye cevirir.
+     */
+    private function humanizeRefundReason(?string $reason): ?string
+    {
+        if (!$reason) {
+            return null;
+        }
+        $r = mb_strtolower($reason, 'UTF-8');
+        if (str_contains($r, 'stog') || str_contains($r, 'stok') || str_contains($r, 'tüken') || str_contains($r, 'tuken')) {
+            return 'Tedarikçide ürün stoğu kalmadığı için sipariş iptal edildi';
+        }
+        // "Diğer" / "Other" gibi jenerik sebepler musteriye anlamsiz -> gosterme
+        if (in_array($r, ['diğer', 'diger', 'other', '-', ''], true)) {
+            return null;
+        }
+        // "(otomatik)" gibi teknik ekleri temizle
+        return trim(preg_replace('/\s*\(otomatik\)\s*/iu', '', $reason)) ?: null;
     }
 
     /**
