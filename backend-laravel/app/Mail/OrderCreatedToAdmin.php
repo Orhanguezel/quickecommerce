@@ -21,8 +21,8 @@ class OrderCreatedToAdmin extends Mailable
         $this->order = $order->loadMissing([
             'orderMaster.customer',
             'orderMaster.orderAddress',
-            'orderProduct.product',
-            'orderProduct.productVariant',
+            'orderDetail.product',
+            'orderDetail.productVariant',
             'store',
         ]);
     }

@@ -67,7 +67,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($order->orderProduct ?? [] as $item)
+                        @foreach ($order->orderDetail ?? [] as $item)
                             <tr>
                                 <td>{{ $item->product?->name ?? '—' }}</td>
                                 <td style="color:#6b7280;">{{ $item->productVariant?->variant_slug ?? '—' }}</td>

@@ -41,7 +41,7 @@
 
             <h3 style="margin:18px 0 8px; font-size:15px;">Sipariş Özeti</h3>
             <div class="summary">
-                @foreach ($order->orderProduct ?? [] as $item)
+                @foreach ($order->orderDetail ?? [] as $item)
                     <div class="item">
                         <div class="name">{{ $item->product?->name ?? '—' }}</div>
                         <div class="meta">
