@@ -57,6 +57,16 @@ const STAGE_COLORS: Record<Stage, string> = {
   unsubscribed: "bg-red-100 text-red-700",
 };
 
+const STAGE_LABELS: Record<Stage, string> = {
+  active:       "Aktif",
+  abandoned:    "Terk Edildi",
+  reminded_1:   "Hatırlatma 1",
+  reminded_2:   "Hatırlatma 2",
+  reminded_3:   "Hatırlatma 3",
+  recovered:    "Geri Kazanıldı",
+  unsubscribed: "Abonelikten Çıktı",
+};
+
 export default function AbandonedCarts() {
   const [stage, setStage] = useState<string>("");
   const [search, setSearch] = useState("");
@@ -190,7 +200,7 @@ export default function AbandonedCarts() {
                     </td>
                     <td className="px-4 py-3">
                       <span className={`rounded-full px-2 py-1 text-xs font-medium ${STAGE_COLORS[r.stage]}`}>
-                        {r.stage}
+                        {STAGE_LABELS[r.stage] ?? r.stage}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-xs text-muted-foreground">
