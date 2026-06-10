@@ -21,6 +21,7 @@ interface AbandonedCartRow {
   customer_name: string | null;
   email: string | null;
   item_count: number;
+  items?: { name: string; quantity: number; price: number; image: string | null }[];
   cart_total: number | string;
   currency_code: string;
   stage: Stage;
@@ -150,7 +151,8 @@ export default function AbandonedCarts() {
                   <th className="px-4 py-3">ID</th>
                   <th className="px-4 py-3">Müşteri</th>
                   <th className="px-4 py-3">E-posta</th>
-                  <th className="px-4 py-3 text-right">Ürün</th>
+                  <th className="px-4 py-3 text-right">Adet</th>
+                  <th className="px-4 py-3">Ürünler</th>
                   <th className="px-4 py-3 text-right">Tutar</th>
                   <th className="px-4 py-3">Durum</th>
                   <th className="px-4 py-3">Terk Zamanı</th>
@@ -159,7 +161,7 @@ export default function AbandonedCarts() {
               <tbody>
                 {rows.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-10 text-center text-muted-foreground">
+                    <td colSpan={8} className="py-10 text-center text-muted-foreground">
                       Kayıt bulunamadı.
                     </td>
                   </tr>
@@ -169,6 +171,20 @@ export default function AbandonedCarts() {
                     <td className="px-4 py-3">{r.customer_name ?? "—"}</td>
                     <td className="px-4 py-3">{r.email ?? "—"}</td>
                     <td className="px-4 py-3 text-right">{r.item_count}</td>
+                    <td className="px-4 py-3">
+                      {r.items && r.items.length > 0 ? (
+                        <div className="flex flex-col gap-0.5 max-w-[280px]">
+                          {r.items.map((it, i) => (
+                            <span key={i} className="truncate text-xs" title={it.name}>
+                              {it.name}{" "}
+                              <span className="text-muted-foreground">×{it.quantity}</span>
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-right font-medium">
                       {Number(r.cart_total).toLocaleString("tr-TR")} {r.currency_code}
                     </td>
@@ -178,7 +194,7 @@ export default function AbandonedCarts() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-xs text-muted-foreground">
-                      {r.abandoned_at ? new Date(r.abandoned_at).toLocaleString("tr-TR") : "—"}
+                      {r.abandoned_at ? new Date(r.abandoned_at.replace(" ", "T")).toLocaleString("tr-TR") : "—"}
                     </td>
                   </tr>
                 ))}

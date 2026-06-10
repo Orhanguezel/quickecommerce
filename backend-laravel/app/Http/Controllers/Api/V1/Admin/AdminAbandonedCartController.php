@@ -59,6 +59,13 @@ class AdminAbandonedCartController extends Controller
                 : null,
             'email'              => $c->email,
             'item_count'         => $c->item_count,
+            'items'              => collect(is_array($c->items_snapshot) ? $c->items_snapshot : (json_decode((string) $c->items_snapshot, true) ?: []))
+                ->map(fn ($i) => [
+                    'name'     => $i['name'] ?? '—',
+                    'quantity' => $i['quantity'] ?? 1,
+                    'price'    => $i['price'] ?? 0,
+                    'image'    => $i['image'] ?? null,
+                ])->values(),
             'cart_total'         => $c->cart_total,
             'currency_code'      => $c->currency_code,
             'stage'              => $c->stage(),

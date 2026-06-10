@@ -150,6 +150,12 @@ export const Sidebar = memo(({ setIsLoading }: any) => {
                   icon: "Database",
                   children: [],
                 },
+                {
+                  perm_title: "Terk Edilen Sepetler",
+                  perm_name: "/admin/abandoned-carts",
+                  icon: "ShoppingCart",
+                  children: [],
+                },
               ],
             },
           ]
