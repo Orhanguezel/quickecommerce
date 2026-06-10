@@ -81,6 +81,7 @@ export function CheckoutClient({ translations: t }: Props) {
   const searchParams = useSearchParams();
   const paymentStatus = searchParams.get("payment");
   const failedOrderId = searchParams.get("order");
+  const failReason = searchParams.get("reason");
   const items = useCartStore((s) => s.items);
   const totalPrice = useCartStore((s) => s.totalPrice);
   const clearCart = useCartStore((s) => s.clearCart);
@@ -243,6 +244,11 @@ export function CheckoutClient({ translations: t }: Props) {
         <p className="mb-2 text-muted-foreground">
           Ödeme işlemi tamamlanamadı. Lütfen kart bilgilerinizi kontrol edip tekrar deneyin.
         </p>
+        {failReason && (
+          <p className="mx-auto mb-2 max-w-md rounded-md bg-destructive/10 px-4 py-2 text-sm font-medium text-destructive">
+            {failReason}
+          </p>
+        )}
         {failedOrderId && (
           <p className="mb-6 text-sm text-muted-foreground">
             Sipariş No: #{failedOrderId}
