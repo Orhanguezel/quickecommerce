@@ -20,7 +20,7 @@ import {
 import { useCurrencyQuery } from "@/modules/common/com/com.action";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { setRefetch } from "@/redux/slices/refetchSlice";
-import { format } from "date-fns";
+import { safeFormat } from "@/lib/safe-date";
 import { ChevronsLeftIcon, ChevronsRightIcon } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
@@ -282,7 +282,7 @@ const FlashDealsTable = ({ searchValue }: any) => {
           ...col,
           render: (start_time: any, row: RecordType) => (
             <span className="text-right">
-              {format(start_time, "dd MMMM yyyy hh:mm a")}
+              {safeFormat(start_time, "dd MMMM yyyy hh:mm a")}
             </span>
           ),
         };
@@ -292,7 +292,7 @@ const FlashDealsTable = ({ searchValue }: any) => {
           ...col,
           render: (end_time: any, row: RecordType) => (
             <span className="text-right">
-              {format(end_time, "dd MMMM yyyy hh:mm a")}
+              {safeFormat(end_time, "dd MMMM yyyy hh:mm a")}
             </span>
           ),
         };

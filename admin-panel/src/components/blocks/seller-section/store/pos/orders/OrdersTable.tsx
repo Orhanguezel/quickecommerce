@@ -17,7 +17,7 @@ import { SellerRoutes } from "@/config/sellerRoutes";
 import { useCurrencyQuery } from "@/modules/common/com/com.action";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { setRefetch } from "@/redux/slices/refetchSlice";
-import { format } from "date-fns";
+import { safeFormat } from "@/lib/safe-date";
 import {
   ChevronsLeftIcon,
   ChevronsRightIcon,
@@ -492,7 +492,7 @@ const OrdersTable = ({
           ...col,
           render: (order_date: any, row: RecordType) => (
             <span>
-              {order_date && format(order_date, "dd MMMM yyyy hh:mm a")}
+              {order_date && safeFormat(order_date, "dd MMMM yyyy hh:mm a")}
             </span>
           ),
         };

@@ -25,6 +25,7 @@ import {
 } from "@/modules/seller-section/seller-dashboard/seller-dashboard.action";
 import { useAppSelector } from "@/redux/hooks";
 import { format, formatDate } from "date-fns";
+import { safeFormat } from "@/lib/safe-date";
 import { useAtom } from "jotai";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
@@ -696,7 +697,7 @@ const OwnerDashboard = () => {
                                       </p>
                                       <p className="col-span-3">
                                         {order_date &&
-                                          format(
+                                          safeFormat(
                                             order_date,
                                             "dd MMMM yyyy, hh:mm a"
                                           )}

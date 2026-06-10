@@ -1,7 +1,7 @@
 "use client";
 import { Card, CardContent } from "@/components/ui";
 import { useCurrencyQuery } from "@/modules/common/com/com.action";
-import { format } from "date-fns";
+import { safeFormat } from "@/lib/safe-date";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import CustomAreaChart from "../../charts/AreaChart";
@@ -904,7 +904,7 @@ const OwnerDashboard = () => {
                                       </p>
                                       <p className="col-span-3">
                                         {order_date &&
-                                          format(
+                                          safeFormat(
                                             order_date,
                                             "dd MMMM yyyy, hh:mm a"
                                           )}

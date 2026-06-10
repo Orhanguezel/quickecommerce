@@ -7,7 +7,7 @@ import CustomStatusUpdateIcon from "@/components/blocks/custom-icons/CustomStatu
 import { Badge } from "@/components/ui";
 import { CountItems } from "@/config/helperJson";
 import { useTransactionsQuery } from "@/modules/admin-section/wallet/wallet.action";
-import { formatDate } from "date-fns";
+import { safeFormat } from "@/lib/safe-date";
 import { ChevronsLeftIcon, ChevronsRightIcon } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
@@ -186,7 +186,7 @@ const TransactionHistoryList = ({ startDate, endDate }: any) => {
           ...col,
           render: (created_at: any, row: RecordType) => (
             <div>
-              {created_at && formatDate(created_at, "dd MMMM yyyy hh:mm a")}
+              {created_at && safeFormat(created_at, "dd MMMM yyyy hh:mm a")}
             </div>
           ),
         };

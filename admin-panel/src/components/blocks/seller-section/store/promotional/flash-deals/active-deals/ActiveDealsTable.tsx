@@ -16,7 +16,7 @@ import { formatPrice } from "@/components/molecules/formatPrice";
 import TableAddIcon from "@/components/blocks/custom-icons/TableAddIcon";
 import { useCurrencyQuery } from "@/modules/common/com/com.action";
 import { useActiveFlashDealsQuery } from "@/modules/seller-section/promotional/flash-deals/flash-deals.action";
-import { format } from "date-fns";
+import { safeFormat } from "@/lib/safe-date";
 import TableSkeletonLoader from "@/components/molecules/TableSkeletonLoader";
 
 interface RecordType {
@@ -186,7 +186,7 @@ const ActiveDealsTable = ({ searchValue }: any) => {
           ...col,
           render: (start_time: any, row: RecordType) => (
             <span className="text-right">
-              {format(start_time, "dd MMMM yyyy hh:mm a")}
+              {safeFormat(start_time, "dd MMMM yyyy hh:mm a")}
             </span>
           ),
         };
@@ -196,7 +196,7 @@ const ActiveDealsTable = ({ searchValue }: any) => {
           ...col,
           render: (end_time: any, row: RecordType) => (
             <span className="text-right">
-              {format(end_time, "dd MMMM yyyy hh:mm a")}
+              {safeFormat(end_time, "dd MMMM yyyy hh:mm a")}
             </span>
           ),
         };

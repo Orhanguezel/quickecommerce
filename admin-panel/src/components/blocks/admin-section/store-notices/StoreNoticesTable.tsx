@@ -26,7 +26,7 @@ import {
 } from "@/modules/admin-section/store-notices/store-notices.action";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { setRefetch } from "@/redux/slices/refetchSlice";
-import { format } from "date-fns";
+import { safeFormat } from "@/lib/safe-date";
 import {
   ChevronsLeftIcon,
   ChevronsRightIcon,
@@ -350,7 +350,7 @@ const StoreNoticesTable = ({ searchValue }: any) => {
           ...col,
           render: (active_date: any, row: RecordType) => (
             <span>
-              {active_date && format(active_date, "dd MMMM yyyy hh:mm a")}
+              {active_date && safeFormat(active_date, "dd MMMM yyyy hh:mm a")}
             </span>
           ),
         };
@@ -360,7 +360,7 @@ const StoreNoticesTable = ({ searchValue }: any) => {
           ...col,
           render: (expire_date: any, row: RecordType) => (
             <span>
-              {expire_date && format(expire_date, "dd MMMM yyyy hh:mm a")}
+              {expire_date && safeFormat(expire_date, "dd MMMM yyyy hh:mm a")}
             </span>
           ),
         };

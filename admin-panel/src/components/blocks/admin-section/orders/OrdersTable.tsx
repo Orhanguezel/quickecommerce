@@ -21,7 +21,7 @@ import {
   useOrdersQuery,
 } from "@/modules/admin-section/orders/orders.action";
 import { useCurrencyQuery } from "@/modules/common/com/com.action";
-import { format } from "date-fns";
+import { safeFormat } from "@/lib/safe-date";
 import { ChevronsLeftIcon, ChevronsRightIcon } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
@@ -306,7 +306,7 @@ const OrdersTable = ({
           ...col,
           render: (order_date: any, row: RecordType) => (
             <span>
-              {order_date && format(order_date, "dd MMMM yyyy hh:mm a")}
+              {order_date && safeFormat(order_date, "dd MMMM yyyy hh:mm a")}
             </span>
           ),
         };

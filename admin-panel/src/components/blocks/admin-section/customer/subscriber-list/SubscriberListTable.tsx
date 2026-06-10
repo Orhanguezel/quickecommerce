@@ -6,8 +6,7 @@ import Pagination from "@/components/molecules/Pagination";
 import RCTable from "@/components/molecules/RCTable";
 import { Badge } from "@/components/ui";
 import { CountItems } from "@/config/helperJson";
-import { format } from "date-fns";
-
+import { safeFormat } from "@/lib/safe-date";
 import CustomSubscribeIcon from "@/components/blocks/custom-icons/CustomSubscribeIcon";
 import { BulkActionBar } from "@/components/blocks/shared";
 import TableSkeletonLoader from "@/components/molecules/TableSkeletonLoader";
@@ -307,7 +306,7 @@ const SubscriberListTable = () => {
           ...col,
           render: (replied_at: any, row: RecordType) => (
             <span>
-              {replied_at && format(replied_at, "dd MMMM yyyy hh:mm a")}
+              {replied_at && safeFormat(replied_at, "dd MMMM yyyy hh:mm a")}
             </span>
           ),
         };

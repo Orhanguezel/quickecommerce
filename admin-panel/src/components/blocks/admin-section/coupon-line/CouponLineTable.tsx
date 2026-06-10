@@ -18,7 +18,7 @@ import { useAppDispatch } from "@/redux/hooks";
 import { setRefetch } from "@/redux/slices/refetchSlice";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { format } from "date-fns";
+import { safeFormat } from "@/lib/safe-date";
 import TableSkeletonLoader from "@/components/molecules/TableSkeletonLoader";
 
 interface RecordType {
@@ -241,7 +241,7 @@ const CouponLineTable = ({ searchValue }: any) => {
           ...col,
           render: (start_date: any, row: RecordType) => (
             <span>
-              {start_date && format(start_date, "dd MMMM yyyy hh:mm a")}
+              {start_date && safeFormat(start_date, "dd MMMM yyyy hh:mm a")}
             </span>
           ),
         };
@@ -250,7 +250,7 @@ const CouponLineTable = ({ searchValue }: any) => {
         return {
           ...col,
           render: (end_date: any, row: RecordType) => (
-            <span>{end_date && format(end_date, "dd MMMM yyyy hh:mm a")}</span>
+            <span>{end_date && safeFormat(end_date, "dd MMMM yyyy hh:mm a")}</span>
           ),
         };
       }

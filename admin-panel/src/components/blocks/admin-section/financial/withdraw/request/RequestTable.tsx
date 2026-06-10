@@ -15,7 +15,7 @@ import {
   useRequestRejectMutation,
 } from "@/modules/admin-section/financial/withdraw/request/request.action";
 import { useCurrencyQuery } from "@/modules/common/com/com.action";
-import { formatDate } from "date-fns";
+import { safeFormat } from "@/lib/safe-date";
 import { ChevronsLeftIcon, ChevronsRightIcon } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
@@ -292,7 +292,7 @@ const RequestTable = ({ searchValue, startDate, endDate }: any) => {
           ...col,
           render: (created_at: any, row: RecordType) => (
             <span>
-              {created_at && formatDate(created_at, "dd MMMM yyyy hh:mm a")}
+              {created_at && safeFormat(created_at, "dd MMMM yyyy hh:mm a")}
             </span>
           ),
         };

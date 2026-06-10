@@ -11,8 +11,7 @@ import {
   useQuestionsQuery,
   useQuestionsStatusUpdate,
 } from "@/modules/admin-section/feedback-control/questions/questions.action";
-import { format } from "date-fns";
-
+import { safeFormat } from "@/lib/safe-date";
 import CustomReplyIcon from "@/components/blocks/custom-icons/CustomReplyIcon";
 import { BulkActionBar } from "@/components/blocks/shared";
 import TableSkeletonLoader from "@/components/molecules/TableSkeletonLoader";
@@ -352,7 +351,7 @@ const QuestionsTable = ({ searchValue, selectStatus, selectReplied }: any) => {
           ...col,
           render: (replied_at: any, row: RecordType) => (
             <span>
-              {replied_at && format(replied_at, "dd MMMM yyyy hh:mm a")}
+              {replied_at && safeFormat(replied_at, "dd MMMM yyyy hh:mm a")}
             </span>
           ),
         };

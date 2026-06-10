@@ -5,8 +5,7 @@ import RCTable from "@/components/molecules/RCTable";
 import { AppSelect } from "@/components/blocks/common";
 import { Badge } from "@/components/ui";
 import { CountItems } from "@/config/helperJson";
-import { format } from "date-fns";
-
+import { safeFormat } from "@/lib/safe-date";
 import CustomReplyIcon from "@/components/blocks/custom-icons/CustomReplyIcon";
 import GlobalImageLoader from "@/lib/imageLoader";
 import { useQuestionsQuery } from "@/modules/seller-section/feedback-control/questions/questions.action";
@@ -225,7 +224,7 @@ const QuestionsTable = ({ selectReplied, selectDateFilter }: any) => {
           ...col,
           render: (replied_at: any, row: RecordType) => (
             <span>
-              {replied_at && format(replied_at, "dd MMMM yyyy hh:mm a")}
+              {replied_at && safeFormat(replied_at, "dd MMMM yyyy hh:mm a")}
             </span>
           ),
         };

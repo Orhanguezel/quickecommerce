@@ -16,8 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui";
 import { CountItems } from "@/config/helperJson";
-import { format } from "date-fns";
-
+import { safeFormat } from "@/lib/safe-date";
 import CustomResolveIcon from "@/components/blocks/custom-icons/CustomResolveIcon";
 import CustomReviewIcon from "@/components/blocks/custom-icons/CustomReviewIcon";
 import {
@@ -372,7 +371,7 @@ const ContractMessagesTable = ({ searchValue }: any) => {
           ...col,
           render: (replied_at: any, row: RecordType) => (
             <span>
-              {replied_at && format(replied_at, "dd MMMM yyyy hh:mm a")}
+              {replied_at && safeFormat(replied_at, "dd MMMM yyyy hh:mm a")}
             </span>
           ),
         };
