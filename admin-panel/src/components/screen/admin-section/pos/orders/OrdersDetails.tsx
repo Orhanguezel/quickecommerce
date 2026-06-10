@@ -80,8 +80,17 @@ const OrdersDetails = ({ ID }: any) => {
           </div>
         </CardContent>
       </Card>
-      {isPending || !SellerOrderDetails ? (
+      {isPending ? (
         <CardSkletonLoader />
+      ) : !(SellerOrderDetails as any)?.order_data?.order_master ? (
+        <Card className="mb-4">
+          <CardContent className="py-12 text-center">
+            <h1 className="text-lg font-semibold text-red-500">Sipariş Bulunamadı</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Bu sipariş bulunamadı (silinmiş veya hiç ödenmemiş bir sipariş olabilir).
+            </p>
+          </CardContent>
+        </Card>
       ) : (
         <OrdersDetailsCard
           data={SellerOrderDetails}

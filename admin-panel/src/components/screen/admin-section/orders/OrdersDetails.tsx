@@ -81,8 +81,25 @@ const OrdersDetails = ({ ID }: any) => {
           </div>
         </CardContent>
       </Card>
-      {isPending || !OrderDetails ? (
+      {isPending ? (
         <CardSkletonLoader />
+      ) : !(OrderDetails as any)?.order_data?.order_master ? (
+        <Card className="mb-4">
+          <CardContent className="py-12 text-center">
+            <h1 className="text-lg font-semibold text-red-500">
+              Sipariş Bulunamadı
+            </h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Bu sipariş bulunamadı (silinmiş veya hiç ödenmemiş bir sipariş olabilir).
+            </p>
+            <Link
+              href={Routes.ordersList}
+              className="mt-4 inline-block rounded bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-500 hover:text-white"
+            >
+              {t("orders.all_orders")}
+            </Link>
+          </CardContent>
+        </Card>
       ) : (
         <OrdersDetailsCard data={OrderDetails} refetch={refetch} ID={ID} />
       )}
