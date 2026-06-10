@@ -104,6 +104,7 @@ return [
     'coupon_inactive' => 'Kupon henüz aktif değil.',
     'coupon_expired' => 'Kuponun süresi dolmuş.',
     'coupon_limit_reached' => 'Kupon kullanım limiti doldu.',
+    'coupon_already_used' => 'Bu kuponu daha önce kullandınız. Müşteri başına yalnızca bir kez kullanılabilir.',
     'coupon_applied' => 'Kupon başarıyla uygulandı.',
     'coupon_min_order_amount' => 'Minimum sipariş tutarı :amount.',
 

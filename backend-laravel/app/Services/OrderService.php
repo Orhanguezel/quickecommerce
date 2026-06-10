@@ -151,7 +151,7 @@ class OrderService
             ];
             $total_discount_amount = 0;
             if (!empty($data['coupon_code']) && isset($data['coupon_code'])) {
-                $applied = applyCoupon($data['coupon_code'], $totalBasePrice);
+                $applied = applyCoupon($data['coupon_code'], $totalBasePrice, $customer_id);
                 if ($applied['success']) {
                     $total_order_amount = $applied['final_order_amount'];
                     $total_discount_amount = $applied['discount_amount'];

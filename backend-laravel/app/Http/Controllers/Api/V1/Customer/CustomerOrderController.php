@@ -226,6 +226,12 @@ class CustomerOrderController extends Controller
                 'message' => __('messages.coupon_limit_reached'),
             ], 422);
         }
+        // Müşteri başına tek kullanım (config'deki kodlar için — örn. AYRILMA5)
+        if (couponUsedByCustomer($coupon->coupon_code, auth('api_customer')->id())) {
+            return response()->json([
+                'message' => __('messages.coupon_already_used'),
+            ], 422);
+        }
         if ($coupon->coupon->status != 1 && $coupon->status != 1) {
             return response()->json([
                 'message' => __('messages.coupon_inactive'),

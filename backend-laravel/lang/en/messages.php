@@ -105,6 +105,7 @@ return [
     'coupon_inactive' => 'Coupon is not yet active.',
     'coupon_expired' => 'Coupon has expired.',
     'coupon_limit_reached' => 'Coupon usage limit reached.',
+    'coupon_already_used' => 'You have already used this coupon. It can be used only once per customer.',
     'coupon_applied' => 'Coupon applied successfully!.',
     'coupon_min_order_amount' => 'Minimum order amount is :amount.',
 

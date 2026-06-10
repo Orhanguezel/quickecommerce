@@ -798,7 +798,30 @@ function moduleExistsAndStatus($name)
 
 
 // coupon manage
-function applyCoupon(string $couponCode, float $orderAmount): array
+
+/**
+ * Kupon kodu config('coupon.once_per_customer_codes') listesindeyse ve bu müşteri
+ * daha önce ÖDENMİŞ (paid) bir siparişte bu kodu kullanmışsa true döner.
+ * Genel kuponları "müşteri başına bir kez"e sınırlamak için kullanılır.
+ */
+if (!function_exists('couponUsedByCustomer')) {
+    function couponUsedByCustomer(?string $couponCode, ?int $customerId): bool
+    {
+        if (!$couponCode || !$customerId) {
+            return false;
+        }
+        if (!in_array($couponCode, (array) config('coupon.once_per_customer_codes', []), true)) {
+            return false;
+        }
+        return \Illuminate\Support\Facades\DB::table('order_masters')
+            ->where('customer_id', $customerId)
+            ->where('coupon_code', $couponCode)
+            ->where('payment_status', 'paid')
+            ->exists();
+    }
+}
+
+function applyCoupon(string $couponCode, float $orderAmount, ?int $customerId = null): array
 {
     $coupon = CouponLine::with('coupon')->where('coupon_code', $couponCode)->first();
 
@@ -820,6 +843,14 @@ function applyCoupon(string $couponCode, float $orderAmount): array
         return [
             'success' => false,
             'message' => 'Coupon usage limit reached.',
+        ];
+    }
+
+    // Müşteri başına tek kullanım (config'deki kodlar için — örn. AYRILMA5)
+    if (couponUsedByCustomer($couponCode, $customerId)) {
+        return [
+            'success' => false,
+            'message' => __('messages.coupon_already_used'),
         ];
     }
 
