@@ -253,4 +253,5 @@ return [
     'theme_activation_failed' => 'Tema etkinleştirilemedi. Lütfen tekrar deneyin.',
     'theme_fetch_failed' => 'Tema bilgileri alınamadı.',
     'no_active_theme' => 'Aktif tema bulunamadı.',
+    'read_only_account' => 'Bu hesap salt-okunur (inceleme) yetkisine sahiptir. Değişiklik, ekleme ve silme işlemleri yapılamaz.',
 ];

@@ -28,6 +28,7 @@ class RoleRequest extends FormRequest
             'permissions.*.delete' => 'nullable|boolean',
             'permissions.*.others' => 'nullable',
             'available_for' => 'nullable|string|max:255|in:system_level,store_level,delivery_level',
+            'read_only' => 'nullable|boolean',
             'permissions.*' => 'nullable',
         ];
     }

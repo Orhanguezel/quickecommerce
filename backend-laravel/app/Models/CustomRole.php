@@ -6,6 +6,11 @@ use Spatie\Permission\Models\Role;
 
 class CustomRole extends Role
 {
+    protected $casts = [
+        'read_only' => 'boolean',
+        'locked' => 'boolean',
+        'status' => 'boolean',
+    ];
 
     public function permissions(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {

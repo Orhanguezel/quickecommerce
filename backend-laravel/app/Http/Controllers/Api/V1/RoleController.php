@@ -53,11 +53,16 @@ class RoleController extends Controller
         if ($roleId) {
             $role = Role::findOrFail($roleId);
             $role->update(['name' => $request->role_name, 'guard_name' => 'api']);
+            if ($request->has('read_only')) {
+                $role->read_only = (bool) $request->boolean('read_only');
+                $role->save();
+            }
         } else {
             $role = Role::create([
                 'name' => $request->role_name,
                 'available_for' => $request->available_for,
                 'guard_name' => 'api',
+                'read_only' => (bool) $request->boolean('read_only'),
             ]);
         }
 
@@ -99,6 +104,7 @@ class RoleController extends Controller
             "available_for" => $role->available_for,
             "name"          => $role->name,
             "guard_name"    => $role->guard_name,
+            "read_only"     => (bool) $role->read_only,
             "permissions"   => $permissionsTree
         ];
 
@@ -143,6 +149,9 @@ class RoleController extends Controller
         if ($role) {
             $role->name = $request->role_name;
             $role->available_for = $request->available_for;
+            if ($request->has('read_only')) {
+                $role->read_only = (bool) $request->boolean('read_only');
+            }
             $role->save();
             if ($request->permissions) {
                 $syncData = [];

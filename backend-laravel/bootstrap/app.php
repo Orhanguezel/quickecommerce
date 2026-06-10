@@ -34,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\ApiAuthMiddleware::class,
             \App\Http\Middleware\LocaleMiddleware::class,
             \App\Http\Middleware\DemoModeMiddleware::class, // for demo mode
+            \App\Http\Middleware\RestrictReadOnlyAdmin::class, // salt-okunur yonetici korumasi
             \App\Http\Middleware\SetUserLocation::class,
             \App\Http\Middleware\CheckIfInstalled::class,
         ]);

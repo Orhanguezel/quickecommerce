@@ -256,6 +256,7 @@ return [
     'theme_activation_failed' => 'Failed to activate theme. Please try again.',
     'theme_fetch_failed' => 'Failed to retrieve theme information.',
     'no_active_theme' => 'No active theme found.',
+    'read_only_account' => 'This account is read-only (inspection). Create, update and delete actions are not allowed.',
 ];
 
 
