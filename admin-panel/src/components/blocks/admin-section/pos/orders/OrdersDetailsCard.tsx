@@ -7,7 +7,7 @@ import GlobalImageLoader from "@/lib/imageLoader";
 import { formatOrderAddress } from "@/lib/order-address";
 import { formatLabel } from "@/lib/utils";
 import { useCurrencyQuery } from "@/modules/common/com/com.action";
-import { format } from "date-fns";
+import { safeFormat } from "@/lib/safe-date";
 import {
   FileIcon,
   Info,
@@ -221,7 +221,7 @@ const OrdersDetailsCard = ({ data, refetch, ID }: any) => {
                   </span>
                   <span className="text-sm font-semibold text-gray-500 dark:text-white mt-1">
                     {OrderDetails?.order_date &&
-                      format(OrderDetails?.order_date, "dd MMMM yyyy")}
+                      safeFormat(OrderDetails?.order_date, "dd MMMM yyyy")}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">

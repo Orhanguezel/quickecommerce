@@ -3,7 +3,7 @@ import { formatPrice } from "@/components/molecules/formatPrice";
 import { Card, CardContent } from "@/components/ui";
 import { useCurrencyQuery } from "@/modules/common/com/com.action";
 import { useAppDispatch } from "@/redux/hooks";
-import { format } from "date-fns";
+import { safeFormat } from "@/lib/safe-date";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -119,11 +119,11 @@ const WithdrawDetailsForm = ({ data, ID }: any) => {
                   </p>
                   <p className="text-sm font-semibold text-gray-500 dark:text-white">
                     {editData?.created_at &&
-                      format(editData?.created_at, "dd MMMM yyyy hh:mm a")}
+                      safeFormat(editData?.created_at, "dd MMMM yyyy hh:mm a")}
                   </p>
                   <p className="text-sm font-semibold text-gray-500 dark:text-white">
                     {editData?.updated_at &&
-                      format(editData?.updated_at, "dd MMMM yyyy hh:mm a")}
+                      safeFormat(editData?.updated_at, "dd MMMM yyyy hh:mm a")}
                   </p>
 
                   <div className="col-span-2 text-sm font-semibold text-gray-500 dark:text-white flex items-center gap-2">

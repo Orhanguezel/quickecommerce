@@ -8,7 +8,7 @@ import GlobalImageLoader from "@/lib/imageLoader";
 import { useRequestRejectMutation } from "@/modules/admin-section/financial/withdraw/request/request.action";
 import { useCurrencyQuery } from "@/modules/common/com/com.action";
 import { useAppDispatch } from "@/redux/hooks";
-import { format } from "date-fns";
+import { safeFormat } from "@/lib/safe-date";
 import { Mail, Phone, User } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
@@ -233,7 +233,7 @@ const WithdrawDetailsForm = ({ data, ID, refetch }: any) => {
                 </p>
                 <p className="text-sm font-semibold text-gray-500 dark:text-white">
                   {activityData?.date &&
-                    format(activityData?.date, "dd MMMM yyyy hh:mm a")}
+                    safeFormat(activityData?.date, "dd MMMM yyyy hh:mm a")}
                 </p>
                 <p className="text-sm font-semibold text-gray-500 dark:text-white">
                   <span
