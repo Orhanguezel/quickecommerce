@@ -563,20 +563,31 @@ class IyzicoPaymentController extends Controller
             $orderMaster->payment_status = 'failed';
             $orderMaster->save();
 
+            $iyzicoError = trim((string) $result->getErrorMessage());
+
             Log::warning('Iyzico payment not completed', [
                 'order_master_id' => $orderMaster->id,
                 'status' => $result->getStatus(),
                 'payment_status' => $result->getPaymentStatus(),
                 'error_code' => $result->getErrorCode(),
-                'error_message' => $result->getErrorMessage(),
+                'error_message' => $iyzicoError,
             ]);
+
+            // iyzico'nun Turkce hata mesajini musteriye ilet (orn. "Kart sahibinin
+            // bu islemi yapmaya izni yok", "Yetersiz bakiye") — generic "odeme
+            // alinamadi" yerine net sebep, musteri farkli kart deneyebilsin.
+            $cancelWithReason = $iyzicoError !== ''
+                ? $cancelUrl . (str_contains($cancelUrl, '?') ? '&' : '?') . 'reason=' . rawurlencode($iyzicoError)
+                : $cancelUrl;
 
             return $request->expectsJson()
                 ? response()->json([
                     'success' => false,
                     'message' => __('messages.iyzico_payment_not_completed'),
+                    'reason' => $iyzicoError ?: null,
+                    'error_code' => (string) $result->getErrorCode(),
                 ], 422)
-                : redirect()->to($cancelUrl);
+                : redirect()->to($cancelWithReason);
         } catch (\Throwable $e) {
             Log::error('Iyzico callback exception', [
                 'order_master_id' => $orderMasterId,
