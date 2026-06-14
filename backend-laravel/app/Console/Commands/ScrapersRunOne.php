@@ -87,10 +87,16 @@ class ScrapersRunOne extends Command
         $scraperUrl = $sourceUrlMap[$source] ?? env('SCRAPER_URL', 'https://scraper.guezelwebdesign.com');
         $scraperKey = $sourceKeyMap[$source] ?? env('SCRAPER_API_KEY', '');
 
+        // CF-agir yerel kaynaklarda cold Cloudflare-solve ~116s surer; urlopen
+        // timeout'u (SCRAPER_TIMEOUT+30) bunu rahat kapsamali. Yerel stealth'e
+        // yonlenen kaynaklara 150s (urlopen 180s), digerlerine 90s ver.
+        $cfHeavySources = ['compexturkiye', 'eprotein', 'proteinavm', 'musclepump'];
+        $scraperTimeout = in_array($source, $cfHeavySources, true) ? '150' : '90';
+
         $proc->setEnv([
             'SCRAPER_URL' => $scraperUrl,
             'SCRAPER_API_KEY' => $scraperKey,
-            'SCRAPER_TIMEOUT' => '90',
+            'SCRAPER_TIMEOUT' => $scraperTimeout,
         ]);
         $proc->run();
         $scraperExit = $proc->getExitCode() ?? 99;
