@@ -52,14 +52,42 @@ NON_PRODUCT_RE = re.compile(r"(\.xhtml|\.htm|\.php)(\?|$)|eyb\.com\.tr/?$", re.I
 
 
 def _discover_urls(session):
-    """sitemap.xml'den urun ADAY URL'lerini toplar (tekil, sirali)."""
+    """sitemap.xml'den urun URL'lerini toplar (tekil, sirali).
+
+    T-Soft yeni yapida sitemap.xml bir INDEX'tir: alt-sitemap'ler
+    (xml/sitemap/product.xml, category.xml ...) icerir. Urun URL'leri
+    product alt-sitemap'indedir (artik `.htm` uzantili). Index ise onu
+    izle; degilse eski duz yapiya (NON_PRODUCT_RE filtresi) dus.
+    """
     try:
         resp = session.get(SITEMAP_URL, timeout=120)
         resp.raise_for_status()
     except Exception as exc:  # noqa: BLE001
         print(f"  Sitemap HATASI: {exc}")
         return []
-    locs = re.findall(r"<loc>\s*([^<\s]+)\s*</loc>", resp.text)
+    text = resp.text
+    locs = re.findall(r"<loc>\s*([^<\s]+)\s*</loc>", text)
+
+    # Sitemap INDEX: product alt-sitemap'ini izle, urun URL'lerini dogrudan al.
+    # (Alt-sitemap zaten yalniz urun icerir; NON_PRODUCT_RE uygulanmaz,
+    #  gecersizler _parse_product'ta JSON-LD Product yoklugundan elenir.)
+    product_sitemaps = [u.strip() for u in locs if "/sitemap/product" in u]
+    if product_sitemaps:
+        urls: list[str] = []
+        for sm in product_sitemaps:
+            try:
+                r = session.get(sm, timeout=120)
+                r.raise_for_status()
+            except Exception as exc:  # noqa: BLE001
+                print(f"  alt sitemap atlandi: {sm} ({exc})")
+                continue
+            sm_urls = re.findall(r"<loc>\s*([^<\s]+)\s*</loc>", r.text)
+            urls.extend(u.strip() for u in sm_urls)
+            print(f"  {sm.rsplit('/', 1)[-1]}: +{len(sm_urls)} URL")
+        if urls:
+            return list(dict.fromkeys(urls))
+
+    # Eski/duz yapi: tek sitemap, sistem sayfalarini regex ile ele.
     urls = [u.strip() for u in locs if not NON_PRODUCT_RE.search(u.strip())]
     return list(dict.fromkeys(urls))
 
