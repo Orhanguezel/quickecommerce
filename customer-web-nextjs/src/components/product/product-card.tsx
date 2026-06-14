@@ -73,8 +73,16 @@ export function ProductCard({
   const [imageError, setImageError] = useState(false);
   const imageRef = useRef<HTMLDivElement>(null);
   const isInStock = product.stock === null || product.stock > 0;
-  // Bool-only tedarikci kaynagi: "Stokta" yerine "On Siparis / Tedarik Sureli"
-  const isPreorder = !!product.is_preorder && isInStock;
+  // Gercek (int) miktar veren kaynaklarda (provitanya/swan) dusuk stokta sayiyi
+  // goster ("Stokta (3)" -> kitlik). Bool kaynaklarda stok sembolik (1) oldugu
+  // icin sayi gizlenir. Yuksek stokta sayi sizdirmamak icin esik.
+  const STOCK_COUNT_MAX = 20;
+  const stockCount = typeof product.stock === "number" ? product.stock : null;
+  const showStockCount =
+    !!product.stock_is_exact &&
+    stockCount !== null &&
+    stockCount > 0 &&
+    stockCount <= STOCK_COUNT_MAX;
 
   useEffect(() => {
     setMounted(true);
@@ -255,26 +263,15 @@ export function ProductCard({
   );
 
   /* ── Stock label ── */
-  const stockLabel = isPreorder ? (
-    <span className="text-xs font-medium text-sky-600 dark:text-sky-400">
-      {t("preorder")}
-    </span>
-  ) : isInStock ? (
+  const stockLabel = isInStock ? (
     <span className="text-xs font-medium text-green-600 dark:text-green-400">
-      {t("in_stock")}
+      {showStockCount ? `${t("in_stock")} (${stockCount})` : t("in_stock")}
     </span>
   ) : (
     <span className="text-xs font-medium text-red-500 dark:text-red-400">
       {t("out_of_stock")}
     </span>
   );
-
-  /* ── Pre-order (tedarik sureli) badge ── */
-  const preorderBadge = isPreorder ? (
-    <span className="absolute bottom-2 left-2 z-10 rounded bg-gradient-to-r from-sky-600 to-blue-500 px-1.5 py-0.5 text-[11px] font-bold text-white shadow-sm">
-      {t("preorder")}
-    </span>
-  ) : null;
 
   const outOfStockOverlay = !isInStock ? (
     <div className="absolute inset-0 z-30 flex items-center justify-center bg-background/70 backdrop-blur-[1px]">
@@ -361,7 +358,6 @@ export function ProductCard({
           {bestSellerBadge}
           {discountBadge}
           {flashSaleListBadge}
-          {preorderBadge}
           {outOfStockOverlay}
         </div>
 
@@ -408,7 +404,6 @@ export function ProductCard({
         {bestSellerBadge}
         {discountBadge}
         {flashSaleStrip}
-        {preorderBadge}
         {outOfStockOverlay}
 
         {/* Hover action buttons */}

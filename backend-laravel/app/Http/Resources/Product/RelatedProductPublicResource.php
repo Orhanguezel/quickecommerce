@@ -43,6 +43,7 @@ class RelatedProductPublicResource extends JsonResource
             'default_variant_id' => optional($displayVariant)->id,
             'stock' => $this->totalStock(),
             'is_preorder' => (bool)$this->is_preorder,
+            'stock_is_exact' => (bool)$this->stock_is_exact,
             'price' => optional($displayVariant)->price,
             'special_price' => optional($displayVariant)->special_price,
             'discount_percentage' => $price > 0 && $specialPrice > 0 && $specialPrice < $price

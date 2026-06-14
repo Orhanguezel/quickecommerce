@@ -36,6 +36,7 @@ class ProductSuggestionPublicResource extends JsonResource
             'image_url' => ImageModifier::generateImageUrl($this->image),
             'stock' => $this->variants->isNotEmpty() ? $this->variants->sum('stock_quantity') : null,
             'is_preorder' => (bool)($this->is_preorder ?? false),
+            'stock_is_exact' => (bool)($this->stock_is_exact ?? false),
             'price' => optional($this->variants->first())->price,
             'special_price' => optional($this->variants->first())->special_price,
             'singleVariant' => $this->variants->count() === 1 ? [$this->variants->first()] : [],
