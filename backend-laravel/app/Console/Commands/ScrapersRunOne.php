@@ -88,10 +88,11 @@ class ScrapersRunOne extends Command
         $scraperKey = $sourceKeyMap[$source] ?? env('SCRAPER_API_KEY', '');
 
         // CF-agir yerel kaynaklarda cold Cloudflare-solve ~116s surer; urlopen
-        // timeout'u (SCRAPER_TIMEOUT+30) bunu rahat kapsamali. Yerel stealth'e
-        // yonlenen kaynaklara 150s (urlopen 180s), digerlerine 90s ver.
+        // timeout'u (SCRAPER_TIMEOUT+30) bunu kapsamali. Scraper-service
+        // options.timeout'u >120 ise HTTP 422 (validation) doner -> tavan 120.
+        // 120 => service page-budget 120s + urlopen 150s margin.
         $cfHeavySources = ['compexturkiye', 'eprotein', 'proteinavm', 'musclepump'];
-        $scraperTimeout = in_array($source, $cfHeavySources, true) ? '150' : '90';
+        $scraperTimeout = in_array($source, $cfHeavySources, true) ? '120' : '90';
 
         $proc->setEnv([
             'SCRAPER_URL' => $scraperUrl,
