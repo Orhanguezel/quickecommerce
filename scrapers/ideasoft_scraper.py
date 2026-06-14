@@ -47,7 +47,7 @@ SCRAPER_URL = os.environ.get("SCRAPER_URL", "https://scraper.guezelwebdesign.com
 SCRAPER_API_KEY = os.environ.get(
     "SCRAPER_API_KEY", "scraper-sportoonline-Eq4lGI4KV4CLCMluihY9t9pn0jrZMmf-"
 )
-SCRAPER_TIMEOUT = int(os.environ.get("SCRAPER_TIMEOUT", "60"))
+SCRAPER_TIMEOUT = int(os.environ.get("SCRAPER_TIMEOUT", "90"))
 
 
 @dataclass
@@ -101,6 +101,42 @@ def scrape(url: str, mode: str = "stealthy", solve_cf: bool = True) -> ScrapeRes
     )
 
 
+def fetch_plain(url: str, timeout: int = 25) -> str | None:
+    """Duz HTTP GET (CF korumasiz sitemap/XML icin). Basarisizsa None.
+
+    Ticimax/IdeaSoft sitemap path'leri (/sitemap.xml, /sitemap/products/N.xml)
+    Cloudflare challenge'i ile korunMUYOR; bunlari pahali stealth tarayici yerine
+    dogrudan cekmek hem hizli (0.2s) hem guvenilir. Yalnizca urun detay sayfalari
+    CF arkasindadir, onlar scrape() ile cekilmeye devam eder.
+    """
+    req = urlrequest.Request(
+        url,
+        headers={
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            ),
+            "Accept": "application/xml,text/xml,text/html,*/*",
+        },
+    )
+    try:
+        with urlrequest.urlopen(req, timeout=timeout) as resp:
+            if getattr(resp, "status", 200) != 200:
+                return None
+            return resp.read().decode("utf-8", "replace")
+    except (HTTPError, URLError, TimeoutError, OSError):
+        return None
+
+
+def fetch_sitemap(url: str) -> str | None:
+    """Sitemap/XML cek: once duz HTTP (hizli), <loc> yoksa stealth fallback."""
+    html = fetch_plain(url)
+    if html and "<loc>" in html:
+        return html
+    res = scrape(url)
+    return res.html if res.ok else None
+
+
 def _clean_price(text) -> float | None:
     """'6.900,00 TL' / '6900.00' -> 6900.0. Gecersizse None."""
     if text is None:
@@ -123,12 +159,12 @@ def discover_product_urls(site_base: str) -> list[str]:
     """sitemap.xml -> products alt sitemap'leri -> tum urun URL'leri."""
     sitemap_index = f"{site_base}/sitemap.xml"
     print(f"[1/3] Sitemap index cekiliyor: {sitemap_index}", flush=True)
-    root = scrape(sitemap_index)
-    if not root.ok or not root.html:
-        print(f"  HATA: sitemap index alinamadi: {root.error}", file=sys.stderr)
+    root_html = fetch_sitemap(sitemap_index)
+    if not root_html:
+        print("  HATA: sitemap index alinamadi (duz HTTP + stealth basarisiz)", file=sys.stderr)
         return []
 
-    locs = re.findall(r"<loc>\s*([^<\s]+)\s*</loc>", root.html)
+    locs = re.findall(r"<loc>\s*([^<\s]+)\s*</loc>", root_html)
     product_sitemaps = [u for u in locs if "/products/" in u or "sitemap/products" in u]
 
     # Sitemap index degil de dogrudan urun sitemap'i gelmis olabilir.
@@ -139,11 +175,11 @@ def discover_product_urls(site_base: str) -> list[str]:
     print(f"  {len(product_sitemaps)} urun alt sitemap'i bulundu", flush=True)
     urls: list[str] = []
     for sm in product_sitemaps:
-        sm_res = scrape(sm)
-        if not sm_res.ok or not sm_res.html:
-            print(f"  alt sitemap atlandi: {sm} ({sm_res.error})", flush=True)
+        sm_html = fetch_sitemap(sm)
+        if not sm_html:
+            print(f"  alt sitemap atlandi: {sm}", flush=True)
             continue
-        sm_urls = re.findall(r"<loc>\s*([^<\s]+)\s*</loc>", sm_res.html)
+        sm_urls = re.findall(r"<loc>\s*([^<\s]+)\s*</loc>", sm_html)
         urls.extend(sm_urls)
         print(f"  {sm.rsplit('/', 1)[-1]}: +{len(sm_urls)} URL", flush=True)
     return list(dict.fromkeys(urls))
