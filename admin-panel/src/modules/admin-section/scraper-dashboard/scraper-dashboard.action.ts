@@ -46,7 +46,9 @@ export const useScraperSourceDetailQuery = (name: string | null) => {
   });
 };
 
-export const useScraperAlertsQuery = (params: { limit?: number; level?: string; source?: string } = {}) => {
+export const useScraperAlertsQuery = (
+  params: { limit?: number; level?: string; source?: string; status?: string } = {}
+) => {
   const { findAll } = useScraperAlertsService();
   return useQuery({
     queryKey: [API_ENDPOINTS.ADMIN_SCRAPER_ALERTS, params],
@@ -54,6 +56,33 @@ export const useScraperAlertsQuery = (params: { limit?: number; level?: string; 
     refetchInterval: POLLING_INTERVAL_MS,
     refetchOnWindowFocus: false,
     retry: false,
+  });
+};
+
+/** Tek alarmi 'cozuldu' isaretle. POST .../alerts/{id}/resolve */
+export const useScraperResolveAlertMutation = () => {
+  const { postItem } = useScraperAlertsService();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => postItem(`${id}/resolve`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [API_ENDPOINTS.ADMIN_SCRAPER_ALERTS] });
+      qc.invalidateQueries({ queryKey: [API_ENDPOINTS.ADMIN_SCRAPER_OVERVIEW] });
+    },
+  });
+};
+
+/** Bir kaynagin TUM acik alarmlarini coz. POST .../sources/{name}/resolve-alerts */
+export const useScraperResolveSourceAlertsMutation = () => {
+  const { postItem } = useScraperSourceDetailService();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (name: string) => postItem(`${name}/resolve-alerts`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [API_ENDPOINTS.ADMIN_SCRAPER_ALERTS] });
+      qc.invalidateQueries({ queryKey: [API_ENDPOINTS.ADMIN_SCRAPER_OVERVIEW] });
+      qc.invalidateQueries({ queryKey: [API_ENDPOINTS.ADMIN_SCRAPER_SOURCE_DETAIL] });
+    },
   });
 };
 

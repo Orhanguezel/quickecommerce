@@ -22,6 +22,7 @@ export interface ScraperOverview {
     total_in_stock: number;
   };
   alerts_last_24h: number;
+  open_alerts?: number;
   computed_at: string;
 }
 
@@ -92,5 +93,7 @@ export interface ScraperAlert {
   source_name: string | null;
   scraper_run_id: number | null;
   telegram_sent: boolean;
+  resolved_at?: string | null;
+  resolved_by?: string | null;
   created_at: string;
 }

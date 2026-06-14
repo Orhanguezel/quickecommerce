@@ -226,7 +226,9 @@ Route::group(['prefix' => 'v1/admin', 'middleware' => ['auth:sanctum', ApiAuthMi
         Route::get('/sources', [AdminScraperDashboardController::class, 'sources']);
         Route::get('/sources/{name}', [AdminScraperDashboardController::class, 'source']);
         Route::post('/sources/{name}/trigger', [AdminScraperDashboardController::class, 'trigger']);
+        Route::post('/sources/{name}/resolve-alerts', [AdminScraperDashboardController::class, 'resolveSourceAlerts']);
         Route::get('/alerts', [AdminScraperDashboardController::class, 'alerts']);
+        Route::post('/alerts/{id}/resolve', [AdminScraperDashboardController::class, 'resolveAlert']);
     });
 
     Route::group(['prefix' => 'currencies'], function () {

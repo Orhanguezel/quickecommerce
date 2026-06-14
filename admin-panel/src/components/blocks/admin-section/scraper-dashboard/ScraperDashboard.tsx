@@ -8,6 +8,7 @@ import {
   useScraperAlertsQuery,
   useScraperSourceDetailQuery,
   useScraperTriggerMutation,
+  useScraperResolveAlertMutation,
 } from "@/modules/admin-section/scraper-dashboard/scraper-dashboard.action";
 import { toast } from "react-toastify";
 import {
@@ -92,7 +93,8 @@ const STATUS_ORDER: Record<ScraperStatus, number> = {
 const ScraperDashboard = () => {
   const { data: overviewResp, isFetching: isOvFetching, isLoading: isOvLoading } = useScraperOverviewQuery();
   const { data: sourcesResp, isFetching: isSrcFetching, isLoading: isSrcLoading } = useScraperSourcesQuery();
-  const { data: alertsResp, isLoading: isAlLoading } = useScraperAlertsQuery({ limit: 10 });
+  // Varsayilan: sadece ACIK alarmlar (cozulen feed'den dusup bayat gurultu yapmaz)
+  const { data: alertsResp, isLoading: isAlLoading } = useScraperAlertsQuery({ limit: 20, status: "open" });
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
   const { data: detailResp } = useScraperSourceDetailQuery(selectedSource);
 
@@ -105,7 +107,16 @@ const ScraperDashboard = () => {
   const overview = (overviewResp as any)?.data?.data;
   const allSources: ScraperSourceRow[] = (sourcesResp as any)?.data?.data ?? [];
   const alerts = (alertsResp as any)?.data?.data ?? [];
+  const openAlertCount = (alertsResp as any)?.data?.open_count ?? alerts.length;
   const detail = (detailResp as any)?.data?.data;
+
+  const resolveMut = useScraperResolveAlertMutation();
+  const handleResolve = (id: number) => {
+    resolveMut.mutate(id, {
+      onSuccess: () => toast.success("Alarm çözüldü olarak işaretlendi"),
+      onError: () => toast.error("Alarm çözülemedi"),
+    });
+  };
 
   const triggerMut = useScraperTriggerMutation();
   const handleTrigger = (name: string) => {
@@ -368,11 +379,16 @@ const ScraperDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Alerts Feed */}
+        {/* Alerts Feed — sadece ACIK alarmlar */}
         <Card>
           <CardContent className="p-0">
-            <div className="border-b px-4 py-3">
-              <h2 className="font-semibold">Son Alarmlar</h2>
+            <div className="flex items-center justify-between border-b px-4 py-3">
+              <h2 className="font-semibold">Açık Alarmlar</h2>
+              {openAlertCount > 0 && (
+                <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700 dark:bg-red-950 dark:text-red-300">
+                  {openAlertCount} açık
+                </span>
+              )}
             </div>
             <div className="max-h-[500px] overflow-y-auto divide-y">
               {isAlLoading && (
@@ -381,8 +397,9 @@ const ScraperDashboard = () => {
                 </div>
               )}
               {!isAlLoading && alerts.length === 0 && (
-                <div className="px-4 py-6 text-center text-sm text-muted-foreground">
-                  Henüz alarm yok
+                <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+                  <CheckCircle2 className="mx-auto mb-2 h-6 w-6 text-green-500 opacity-70" />
+                  Açık alarm yok 🎉
                 </div>
               )}
               {alerts.map((a: any) => (
@@ -401,6 +418,26 @@ const ScraperDashboard = () => {
                         {new Date(a.created_at).toLocaleString("tr-TR")}
                         {a.source_name && ` · ${a.source_name}`}
                       </p>
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <button
+                          onClick={() => handleResolve(a.id)}
+                          disabled={resolveMut.isPending}
+                          className="inline-flex items-center gap-1 rounded-md border border-green-200 bg-green-50 px-2 py-1 text-xs font-medium text-green-700 hover:bg-green-100 disabled:opacity-50 dark:border-green-900 dark:bg-green-950 dark:text-green-300"
+                        >
+                          <CheckCircle2 className="h-3 w-3" />
+                          Çözüldü
+                        </button>
+                        {a.source_name && (
+                          <button
+                            onClick={() => handleTrigger(a.source_name)}
+                            disabled={triggerMut.isPending}
+                            className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium hover:bg-muted disabled:opacity-50"
+                          >
+                            <Play className="h-3 w-3" />
+                            Yeniden çalıştır
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

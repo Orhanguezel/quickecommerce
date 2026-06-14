@@ -135,17 +135,26 @@ class AdminScraperDashboardController extends Controller
         ], 202);
     }
 
-    /** Son alarmlar (alert feed). */
+    /**
+     * Alarm feed. Varsayilan SADECE ACIK alarmlar (status=open) -> bayat
+     * gurultu yok. status=resolved | all ile degistirilebilir. level/source filtre.
+     */
     public function alerts(Request $request): JsonResponse
     {
         $limit = min((int) $request->query('limit', 50), 200);
         $level = $request->query('level');
         $source = $request->query('source');
+        $status = $request->query('status', 'open'); // open | resolved | all
 
         $query = ScraperAlert::query()
             ->orderByDesc('created_at')
             ->limit($limit);
 
+        if ($status === 'open') {
+            $query->whereNull('resolved_at');
+        } elseif ($status === 'resolved') {
+            $query->whereNotNull('resolved_at');
+        }
         if ($level) {
             $query->where('level', $level);
         }
@@ -153,8 +162,11 @@ class AdminScraperDashboardController extends Controller
             $query->where('source_name', $source);
         }
 
+        $openCount = ScraperAlert::query()->whereNull('resolved_at')->count();
+
         return response()->json([
             'status' => true,
+            'open_count' => $openCount,
             'data' => $query->get()->map(fn ($a) => [
                 'id' => $a->id,
                 'level' => $a->level,
@@ -163,8 +175,48 @@ class AdminScraperDashboardController extends Controller
                 'source_name' => $a->source_name,
                 'scraper_run_id' => $a->scraper_run_id,
                 'telegram_sent' => $a->telegram_sent,
+                'resolved_at' => $a->resolved_at?->toIso8601String(),
+                'resolved_by' => $a->resolved_by,
                 'created_at' => $a->created_at?->toIso8601String(),
             ]),
         ]);
+    }
+
+    /** Tek bir alarmi 'cozuldu' isaretle. POST alerts/{id}/resolve */
+    public function resolveAlert(Request $request, int $id): JsonResponse
+    {
+        $alert = ScraperAlert::find($id);
+        if (!$alert) {
+            return response()->json(['status' => false, 'message' => 'Alarm bulunamadi'], 404);
+        }
+        $by = $this->actorName($request);
+        $changed = $alert->markResolved($by);
+
+        return response()->json([
+            'status' => true,
+            'message' => $changed ? 'Alarm cozuldu olarak isaretlendi' : 'Alarm zaten cozulmustu',
+            'open_count' => ScraperAlert::query()->whereNull('resolved_at')->count(),
+        ]);
+    }
+
+    /** Bir kaynagin TUM acik alarmlarini coz. POST sources/{name}/resolve-alerts */
+    public function resolveSourceAlerts(Request $request, string $name): JsonResponse
+    {
+        $by = $this->actorName($request);
+        $count = ScraperAlert::resolveOpenForSource($name, $by);
+
+        return response()->json([
+            'status' => true,
+            'message' => "{$count} alarm cozuldu ({$name})",
+            'resolved' => $count,
+            'open_count' => ScraperAlert::query()->whereNull('resolved_at')->count(),
+        ]);
+    }
+
+    /** Cozen kisi: admin kullanici adi/email, yoksa 'admin'. */
+    private function actorName(Request $request): string
+    {
+        $user = $request->user();
+        return (string) ($user?->name ?? $user?->email ?? 'admin');
     }
 }
