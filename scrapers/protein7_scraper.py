@@ -181,9 +181,13 @@ def main():
                             if detail_desc:
                                 product["description_text"] = detail_desc
                                 product["description_html"] = detail_desc
-                            # 2026-06-05: tedarikci yazili desc vermiyorsa
-                            # description bos birakilir; admin tarafi AI ile
-                            # uretir veya manuel girer (resim aciklama YOK).
+                            else:
+                                # 2026-06-05: bazi protein7 urunlerinde yazili
+                                # desc yerine "aciklama-*.png" resimleri var
+                                img_html = _fetch_aciklama_images(detail.text)
+                                if img_html:
+                                    product["description_html"] = img_html
+                                    product["description_text"] = "Ürün açıklaması görseli sağlanmıştır"
                     except Exception:
                         pass
                 products[product["slug"]] = product
