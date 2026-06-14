@@ -58,6 +58,7 @@ class ProductListResource extends JsonResource
             'max_cart_qty' => $this->max_cart_qty,
             'stock' => $this->totalStock(),
             'is_preorder' => (bool)$this->is_preorder,
+            'stock_is_exact' => (bool)$this->stock_is_exact,
             'price' => optional($displayVariant)->price,
             'special_price' => optional($displayVariant)->special_price,
             'default_variant_id' => optional($displayVariant)->id,

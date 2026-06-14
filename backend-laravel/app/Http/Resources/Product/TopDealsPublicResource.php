@@ -40,6 +40,7 @@ class TopDealsPublicResource extends JsonResource
             'image_url' => ImageModifier::generateImageUrl($this->image),
             'stock' => $this->totalStock(),
             'is_preorder' => (bool)$this->is_preorder,
+            'stock_is_exact' => (bool)$this->stock_is_exact,
             'price' => optional($displayVariant)->price,
             'special_price' => optional($displayVariant)->special_price,
             'singleVariant' => $this->variants->count() === 1 ? [$this->variants->first()] : [],

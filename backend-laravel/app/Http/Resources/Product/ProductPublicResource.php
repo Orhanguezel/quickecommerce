@@ -44,6 +44,7 @@ class ProductPublicResource extends JsonResource
             'max_cart_qty' => $this->max_cart_qty,
             'stock' => $this->totalStock(),
             'is_preorder' => (bool)$this->is_preorder,
+            'stock_is_exact' => (bool)$this->stock_is_exact,
             'attributes' => $this->variants->pluck('attributes')->map(function ($attribute) {
                 return json_decode($attribute, true);
             })->toArray(),
