@@ -133,8 +133,9 @@ class ScraperHealthSnapshot
             $sumStockOther += $snap['db']['stock_other'];
         }
 
-        // Son 24 saatte alarm sayisi
+        // Son 24 saatte alarm sayisi + simdi ACIK (cozulmemis) alarm sayisi
         $alertsLast24h = ScraperAlert::where('created_at', '>=', now()->subDay())->count();
+        $openAlerts = ScraperAlert::whereNull('resolved_at')->count();
 
         return [
             'total_sources' => count($allSources),
@@ -148,6 +149,7 @@ class ScraperHealthSnapshot
                 'total_in_stock' => $sumStock1 + $sumStock100 + $sumStockOther,
             ],
             'alerts_last_24h' => $alertsLast24h,
+            'open_alerts' => $openAlerts,
             'computed_at' => now()->toIso8601String(),
         ];
     }

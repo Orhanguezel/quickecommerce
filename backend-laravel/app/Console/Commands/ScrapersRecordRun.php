@@ -78,6 +78,17 @@ class ScrapersRecordRun extends Command
             $this->warn("Alert sent for fail");
         }
 
+        // OTOMATIK COZUM: scrape basariliysa (exit 0 + dolu JSON), bu kaynagin
+        // tum ACIK alarmlarini cozulduye cek. Boylece duzelen kaynagin eski FAIL
+        // alarmlari panelde/feed'de birikip bayat gurultu yapmaz.
+        $jsonOk = $jsonSize === null || (int) $jsonSize > 50;
+        if ($exit === 0 && $jsonOk) {
+            $resolved = \App\Models\ScraperAlert::resolveOpenForSource($source, 'auto');
+            if ($resolved > 0) {
+                $this->info("Auto-resolved {$resolved} open alert(s) for {$source}");
+            }
+        }
+
         return self::SUCCESS;
     }
 }
