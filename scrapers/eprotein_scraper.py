@@ -32,4 +32,7 @@ if __name__ == "__main__":
         vendor="eProtein",
         default_category="Sporcu Besinleri",
         limit=args.limit,
+        # eprotein Cloudflare'i agresif rate-limit eder (429). Istekler arasi
+        # daha buyuk gecikme + ideasoft_scraper'daki 429 backoff retry birlikte.
+        delay=1.5,
     )

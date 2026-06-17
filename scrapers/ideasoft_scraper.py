@@ -390,6 +390,17 @@ def run(site_base: str, output_file: str, vendor: str, default_category: str,
     started = time.time()
     for i, url in enumerate(urls, 1):
         res = scrape(url, mode="stealthy")
+        # 429 (Too Many Requests) — Cloudflare/site rate-limit'i: artan bekleme
+        # ile tekrar dene (eprotein gibi sert siteler tek seferde 429 doner).
+        _retry = 0
+        while (not res.ok) and _retry < 3 and (
+            (res.status == 429) or ("429" in str(res.error or ""))
+        ):
+            _retry += 1
+            _wait = 15 * (2 ** (_retry - 1))  # 15s, 30s, 60s
+            print(f"  [{i}/{len(urls)}] 429 rate-limit -> {_wait}s bekle, retry {_retry}/3", flush=True)
+            time.sleep(_wait)
+            res = scrape(url, mode="stealthy")
         if not res.ok or not res.html:
             failed.append(url)
             print(f"  [{i}/{len(urls)}] FAIL: {url[-50:]} ({res.error})", flush=True)

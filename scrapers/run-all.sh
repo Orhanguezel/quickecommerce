@@ -10,6 +10,12 @@ VENV="/var/www/quikecommerce/venv/bin/python3"
 # Maraton icin Scrapling env (anti-bot)
 export SCRAPER_URL=https://scraper.guezelwebdesign.com
 export SCRAPER_API_KEY=scraper-sportoonline-Eq4lGI4KV4CLCMluihY9t9pn0jrZMmf-
+
+# Cloudflare'i SERT siteler dis stealth serviste 429/500 aliyor; yerel stealth
+# servis (farkli IP itibari) gecebiliyor. Bu kaynaklar yerel servise yonlenir.
+export LOCAL_SCRAPER_URL=http://127.0.0.1:8200
+export LOCAL_SCRAPER_API_KEY=scraper-sportoonline-internal-kJKbcJ7Gme7bjxB83s9yCM7u99A7Yg
+LOCAL_SCRAPER_SOURCES=" eprotein "
 export SCRAPER_TIMEOUT=90
 
 # 2026-06-04: Telegram fail bildirim (provitanya 10 gun sessiz fail sonrasi).
@@ -54,10 +60,16 @@ run_scraper() {
   fi
 
   local start_ts=$(date +%s)
+  # Cloudflare-sert kaynaklar yerel stealth servisini kullanir (IP itibari farkli)
+  local _surl="$SCRAPER_URL" _skey="$SCRAPER_API_KEY"
+  if [[ "$LOCAL_SCRAPER_SOURCES" == *" $name "* ]]; then
+    _surl="$LOCAL_SCRAPER_URL"; _skey="$LOCAL_SCRAPER_API_KEY"
+    echo "  (yerel stealth servis kullaniliyor: $name)"
+  fi
   if [ -n "$extra_args" ]; then
-    $VENV "$script_path" $extra_args
+    SCRAPER_URL="$_surl" SCRAPER_API_KEY="$_skey" $VENV "$script_path" $extra_args
   else
-    $VENV "$script_path"
+    SCRAPER_URL="$_surl" SCRAPER_API_KEY="$_skey" $VENV "$script_path"
   fi
   local exit=$?
   local end_ts=$(date +%s)
