@@ -1530,6 +1530,19 @@ class FrontendController extends Controller
                       ->orderBy('products.created_at', 'desc'); // tiebreaker
                     break;
 
+                case 'random':
+                    // Seed'li random: ayni seed -> ayni siralama. Sonsuz scroll'da
+                    // sayfalar tutarli olur (tekrar/eksik urun olmaz). Seed frontend'de
+                    // oturum basina uretilip her sayfada ayni gonderilir. Kategoriler
+                    // karisik gelir (store/kategori gruplamasi bozulur).
+                    $seed = (int) $request->input('seed', 0);
+                    if ($seed > 0) {
+                        $query->orderByRaw('RAND(?)', [$seed]);
+                    } else {
+                        $query->inRandomOrder();
+                    }
+                    break;
+
                 default:
                     $query->latest('products.created_at');
             }

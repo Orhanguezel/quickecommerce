@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
@@ -52,6 +52,24 @@ export function InfiniteProductsSection({
   const { findAll } = useBaseService<ProductListPage>(API_ENDPOINTS.PRODUCTS);
   const title = titleProp || t("all_products_title");
   const sentinelRef = useRef<HTMLDivElement>(null);
+  // Oturum basina stabil random seed: ayni seed tum sayfalarda gonderilir ->
+  // backend RAND(seed) ile tutarli siralar -> sonsuz scroll'da tekrar/eksik olmaz.
+  // Kategoriler karisik gelir. sessionStorage ile cift-mount ayni seed kullanir
+  // (react-query tek fetch'e indirir); yeni sekme/oturum = yeni siralama.
+  const [seed] = useState(() => {
+    if (typeof window === "undefined") return 1;
+    try {
+      const key = "home_all_products_seed";
+      let s = window.sessionStorage.getItem(key);
+      if (!s) {
+        s = String(Math.floor(Math.random() * 1_000_000) + 1);
+        window.sessionStorage.setItem(key, s);
+      }
+      return Number(s);
+    } catch {
+      return Math.floor(Math.random() * 1_000_000) + 1;
+    }
+  });
 
   // Store mutable refs to avoid recreating the IntersectionObserver on every render
   const hasNextPageRef = useRef(false);
@@ -66,11 +84,13 @@ export function InfiniteProductsSection({
     isLoading,
     isError,
   } = useInfiniteQuery({
-    queryKey: ["home-all-products"],
+    queryKey: ["home-all-products", seed],
     queryFn: async ({ pageParam }) => {
       const res = await findAll({
         page: pageParam as number,
         per_page: PER_PAGE,
+        sort: "random",
+        seed,
       });
       return res.data as unknown as ProductListPage;
     },
