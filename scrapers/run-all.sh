@@ -140,6 +140,7 @@ run_scraper() {
   run_scraper ayakkabi       ayakkabi_scraper.py       ayakkabi_products.json
   run_scraper norfolk        norfolk_scraper.py        norfolk_products.json
   run_scraper superstacy     superstacy_scraper.py     superstacy_products.json
+  run_scraper floky          floky_scraper.py          floky_products.json
   run_scraper dropick        dropick_scraper.py        dropick_products.json
   run_scraper dekomum        scrapers/dekomum_scraper.py dekomum_products.json     "--out data/source-products/dekomum_products.json"
   run_scraper protein7       protein7_scraper.py       protein7_products.json
