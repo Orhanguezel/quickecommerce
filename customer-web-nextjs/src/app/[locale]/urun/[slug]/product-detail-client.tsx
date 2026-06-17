@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import Image from "next/image";
 import { Link, useRouter } from "@/i18n/routing";
+import { useSearchParams } from "next/navigation";
+import { ReviewDialog } from "@/components/product/review-dialog";
 import {
   Star,
   Heart,
@@ -338,6 +340,13 @@ export function ProductDetailClient({
   translations: t,
 }: ProductDetailClientProps) {
   const [selectedImage, setSelectedImage] = useState(0);
+  // Teslimat sonrasi e-postadan gelen ?review=<orderId> -> degerlendirme dialogu
+  const searchParams = useSearchParams();
+  const reviewOrderId = searchParams.get("review");
+  const [showReviewDialog, setShowReviewDialog] = useState(false);
+  useEffect(() => {
+    if (reviewOrderId && /^\d+$/.test(reviewOrderId)) setShowReviewDialog(true);
+  }, [reviewOrderId]);
   // 3rd party CORP/hotlink korumali (Compex CF gibi) gorseller — placeholder fallback
   const PRODUCT_IMAGE_PLACEHOLDER = "/images/product-placeholder.svg";
   const BLOCKED_IMAGE_DOMAINS = ["compexturkiye.com"];
@@ -723,6 +732,24 @@ export function ProductDetailClient({
 
   return (
     <div className="container overflow-x-hidden py-6 pb-24 lg:py-8 xl:pb-8">
+      {/* Teslimat sonrasi degerlendirme dialogu (e-postadaki ?review=orderId ile acilir) */}
+      {showReviewDialog && reviewOrderId && (
+        <ReviewDialog
+          orderId={Number(reviewOrderId)}
+          storeId={product.store?.id ?? 0}
+          productId={product.id}
+          productName={product.name}
+          onClose={() => setShowReviewDialog(false)}
+          translations={{
+            write_review: "Ürünü Değerlendir",
+            review_placeholder: "Bu ürünle ilgili deneyiminizi paylaşın...",
+            submit_review: "Yorumu Gönder",
+            submitting: "Gönderiliyor...",
+            review_success: "Yorumunuz için teşekkürler! 🌟",
+            close: "Kapat",
+          }}
+        />
+      )}
       {/* Image Lightbox Modal */}
       {lightboxOpen && allImages.length > 0 && (
         <div
