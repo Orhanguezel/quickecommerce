@@ -1649,60 +1649,86 @@ class FrontendController extends Controller
 
     protected function getUniqueAttributesFromVariants($products, ?string $languageCode = 'en')
     {
-        $attributes = [];
-
+        // 1) Variant'lardan ham attribute haritasini (key => benzersiz degerler) topla.
+        //    Bu adimda DB'ye DOKUNULMAZ — eski hal her attribute key icin 1-3 ayri
+        //    Translation sorgusu calistiriyordu (apparel kategorilerinde 300+ sorgu /
+        //    ~10sn; bkz. /kategori/erkek vakasi). Ceviri tek batch ile asagida cozulur.
+        $rawAttributes = [];
         foreach ($products as $product) {
             foreach ($product->variants as $variant) {
-                if (!empty($variant->attributes)) {
-                    $variantAttributes = json_decode($variant->attributes, true);
-
-                    if (is_array($variantAttributes)) {
-                        foreach ($variantAttributes as $key => $value) {
-                            $translations = Translation::where('translatable_type', ProductAttribute::class)
-                                ->where('value', $key)
-                                ->get();
-
-                            // fallback to lowercase match if not found
-                            if ($translations->isEmpty()) {
-                                $translations = Translation::where('translatable_type', ProductAttribute::class)
-                                    ->whereRaw('LOWER(value) = ?', [strtolower($key)])
-                                    ->get();
-                            }
-
-                            $translatedKey = null;
-
-                            if ($translations->isNotEmpty()) {
-                                // get the first match for the requested language
-                                $matched = $translations->firstWhere('language', $languageCode);
-
-                                // if not found, fallback to default language (assume 'en')
-                                if (!$matched) {
-                                    $matched = $translations->firstWhere('language', 'en');
-                                }
-
-                                // now find translation of that key in requested language
-                                if ($matched) {
-                                    $translatedKey = Translation::where('translatable_type', ProductAttribute::class)
-                                        ->where('translatable_id', $matched->translatable_id)
-                                        ->where('key', $matched->key)
-                                        ->where('language', $languageCode)
-                                        ->value('value');
-                                }
-                            }
-
-                            $finalKey = $translatedKey ?? $key;
-
-                            // Initialize if not set
-                            if (!isset($attributes[$finalKey])) {
-                                $attributes[$finalKey] = [];
-                            }
-
-                            // Prevent duplicate values
-                            if (!in_array($value, $attributes[$finalKey])) {
-                                $attributes[$finalKey][] = $value;
-                            }
-                        }
+                if (empty($variant->attributes)) {
+                    continue;
+                }
+                $variantAttributes = json_decode($variant->attributes, true);
+                if (!is_array($variantAttributes)) {
+                    continue;
+                }
+                foreach ($variantAttributes as $key => $value) {
+                    if (!isset($rawAttributes[$key])) {
+                        $rawAttributes[$key] = [];
                     }
+                    if (!in_array($value, $rawAttributes[$key], true)) {
+                        $rawAttributes[$key][] = $value;
+                    }
+                }
+            }
+        }
+
+        if (empty($rawAttributes)) {
+            return [];
+        }
+
+        // 2) TUM ProductAttribute ceviri satirlarini TEK sorguda al (tablo kucuk,
+        //    ~250 satir) ve bellekte cozumle.
+        $allRows = Translation::where('translatable_type', ProductAttribute::class)
+            ->get(['translatable_id', 'key', 'language', 'value']);
+
+        // value / lower(value) -> eslesen satir listesi (eski "where value" +
+        //    "LOWER(value)" fallback davranisini birebir korur).
+        $rowsByValue = [];
+        $rowsByLowerValue = [];
+        // (translatable_id|key|language) -> value : hedef dildeki key cevirisini cozmek icin.
+        $valueByIdKeyLang = [];
+        foreach ($allRows as $row) {
+            $rowsByValue[$row->value][] = $row;
+            $rowsByLowerValue[strtolower($row->value)][] = $row;
+            $valueByIdKeyLang[$row->translatable_id . '|' . $row->key . '|' . $row->language] = $row->value;
+        }
+
+        // Eslesen adaylar arasindan once istenen dil, sonra 'en', sonra ilk satir.
+        $pickMatched = function (array $candidates) use ($languageCode) {
+            foreach ($candidates as $c) {
+                if ($c->language === $languageCode) {
+                    return $c;
+                }
+            }
+            foreach ($candidates as $c) {
+                if ($c->language === 'en') {
+                    return $c;
+                }
+            }
+            return $candidates[0] ?? null;
+        };
+
+        // 3) Final haritayi kur (cikti eski hal ile birebir ayni).
+        $attributes = [];
+        foreach ($rawAttributes as $key => $values) {
+            $candidates = $rowsByValue[$key] ?? $rowsByLowerValue[strtolower($key)] ?? [];
+            $matched = $pickMatched($candidates);
+
+            $translatedKey = null;
+            if ($matched) {
+                $translatedKey = $valueByIdKeyLang[$matched->translatable_id . '|' . $matched->key . '|' . $languageCode] ?? null;
+            }
+
+            $finalKey = $translatedKey ?? $key;
+
+            if (!isset($attributes[$finalKey])) {
+                $attributes[$finalKey] = [];
+            }
+            foreach ($values as $value) {
+                if (!in_array($value, $attributes[$finalKey], true)) {
+                    $attributes[$finalKey][] = $value;
                 }
             }
         }
