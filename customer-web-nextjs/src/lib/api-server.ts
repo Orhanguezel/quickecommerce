@@ -24,7 +24,11 @@ export async function fetchAPI<T>(
   }
   search.set("language", locale);
 
-  const url = `${BASE_URL}${endpoint}?${search.toString()}`;
+  // endpoint path'inde ASCII-disi karakter olabilir (orn. Turkce slug "/urun/ürün-ışıl").
+  // Ham birakirsak undici fetch "Cannot convert argument to a ByteString" firlatir ve
+  // SSR coker. encodeURI path'teki ı/ş/ç... karakterlerini %-encode eder, URL yapisini
+  // (/, ?, &, =) bozmaz. Query zaten URLSearchParams ile encode'lu, ona dokunmuyoruz.
+  const url = `${BASE_URL}${encodeURI(endpoint)}?${search.toString()}`;
 
   const res = await fetch(url, {
     headers: {
