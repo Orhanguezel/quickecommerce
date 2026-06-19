@@ -9,6 +9,27 @@ const BASE_URL = process.env.NEXT_PUBLIC_REST_API_ENDPOINT || "https://sportoonl
  * 10 backend call → TTFB 2-3s. Bu refactor anasayfayı ~200ms TTFB'ye indirir
  * (cold cache 2-3s yine olabilir, hot cache 200ms).
  */
+
+// Path segmentlerini TEK seferde encode'a normalize eder.
+// Next.js 16 dinamik route param'i (urun/[slug]) bazen ZATEN encode'lu verir
+// (orn. "kaps%C3%BCl"); duz encodeURI(path) bunu "%"->"%25" ile CIFT-encode edip
+// (kaps%25C3%25BCl) backend'de slug eslesmesini bozar -> Turkce karakterli slug'lar
+// 404 doner (ksm-66-...-kapsül, ligone-...-kapsül vakasi 2026-06-18).
+// decodeURIComponent + encodeURIComponent: girdi ister encode'lu ister raw (ü/ş/ç)
+// olsun tek-encode'a indirger. Bozuk %-dizilimi varsa segment'i oldugu gibi birakir.
+function encodePath(path: string): string {
+  return path
+    .split("/")
+    .map((segment) => {
+      try {
+        return encodeURIComponent(decodeURIComponent(segment));
+      } catch {
+        return segment;
+      }
+    })
+    .join("/");
+}
+
 export async function fetchAPI<T>(
   endpoint: string,
   params?: Record<string, string | number | boolean>,
@@ -25,15 +46,14 @@ export async function fetchAPI<T>(
   search.set("language", locale);
 
   // endpoint "/path" ya da "/path?zaten=encode'lu&query" olabilir.
-  // encodeURI SADECE path'e uygulanir: Turkce slug'daki ı/ş/ç... %-encode edilip
-  // undici "ByteString" hatasi onlenir. Query string'e DOKUNULMAZ — cunku
-  // URLSearchParams ile zaten encode'lu; encodeURI %'i de encode edip cift-encode
-  // (%5B -> %255B) yapar ve category_id[]/brand_id[] gibi array filtrelerini bozar.
+  // Path encodePath ile TEK-encode'a normalize edilir (Turkce slug ByteString +
+  // Next param cift-encode korumasi). Query string'e DOKUNULMAZ — URLSearchParams
+  // ile zaten encode'lu; ona encode uygularsak category_id[]/brand_id[] bozulur.
   const qIndex = endpoint.indexOf("?");
   const path = qIndex >= 0 ? endpoint.slice(0, qIndex) : endpoint;
   const existingQuery = qIndex >= 0 ? endpoint.slice(qIndex + 1) : "";
   const sep = existingQuery ? "&" : "";
-  const url = `${BASE_URL}${encodeURI(path)}?${existingQuery}${sep}${search.toString()}`;
+  const url = `${BASE_URL}${encodePath(path)}?${existingQuery}${sep}${search.toString()}`;
 
   const res = await fetch(url, {
     headers: {
