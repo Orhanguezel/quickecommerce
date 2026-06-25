@@ -16,6 +16,7 @@ import {
   useCreatePaytrSessionMutation,
   usePlaceOrderMutation,
   usePaymentGatewaysQuery,
+  useVerifyStockMutation,
 } from "@/modules/checkout/checkout.service";
 import { useWalletInfoQuery } from "@/modules/wallet/wallet.service";
 import { useProfileQuery } from "@/modules/profile/profile.service";
@@ -131,6 +132,7 @@ export function CheckoutClient({ translations: t }: Props) {
   const couponMutation = useCheckCouponMutation();
   const placeOrderMutation = usePlaceOrderMutation();
   const createIyzicoSessionMutation = useCreateIyzicoSessionMutation();
+  const verifyStockMutation = useVerifyStockMutation();
   const createPaytrSessionMutation = useCreatePaytrSessionMutation();
   const { data: paymentGateways, isLoading: gatewaysLoading } =
     usePaymentGatewaysQuery();
@@ -411,6 +413,31 @@ export function CheckoutClient({ translations: t }: Props) {
         `Sepetinizdeki bazı ürünler güncellenemedi: ${stillMissing.map((i) => i.name).join(", ")}\n\nLütfen bu ürünleri sepetten kaldırıp tekrar ekleyin.`
       );
       return;
+    }
+
+    // Checkout-oncesi canli stok kontrolu: kesin tukenmis urun varsa siparis
+    // OLUSTURMA. Belirsiz/probe-hatasi durumunda satisi engelleme (fail-open) —
+    // 30 dk'lik post-order stok teyit sistemi yine devrede.
+    try {
+      const stockCheck = await verifyStockMutation.mutateAsync(
+        resolvedItems.map((i) => ({
+          product_id: i.product_id,
+          variant_id: i.variant_id ?? null,
+          name: i.name,
+        }))
+      );
+      if (stockCheck && !stockCheck.ok && stockCheck.out_of_stock.length > 0) {
+        const names = stockCheck.out_of_stock
+          .map((o) => o.name)
+          .filter(Boolean)
+          .join(", ");
+        alert(
+          `Şu ürün(ler) az önce tükendi: ${names}\n\nLütfen bu ürünleri sepetinizden çıkarıp tekrar deneyin.`
+        );
+        return;
+      }
+    } catch {
+      // Probe altyapisi cokerse satisi engelleme (fail-open) — odemeye devam.
     }
 
     // Group items by store

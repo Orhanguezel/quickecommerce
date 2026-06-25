@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Models\OrderMaster;
+use App\Services\CheckoutStockVerifier;
 use App\Services\IyzicoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -12,8 +13,10 @@ use Modules\PaymentGateways\app\Models\PaymentGateway;
 
 class IyzicoPaymentController extends Controller
 {
-    public function __construct(private readonly IyzicoService $iyzicoService)
-    {
+    public function __construct(
+        private readonly IyzicoService $iyzicoService,
+        private readonly CheckoutStockVerifier $stockVerifier,
+    ) {
     }
 
     public function createCheckoutSession(Request $request): JsonResponse
@@ -42,6 +45,37 @@ class IyzicoPaymentController extends Controller
 
         if ($orderMaster->payment_status === 'paid') {
             return response()->json(['success' => false, 'message' => __('messages.order_already_paid')], 400);
+        }
+
+        // Checkout-oncesi canli stok HARD GUARD: para cekilmeden once, siparis
+        // satirlarini tedarikci kaynaginda kontrol et. KESIN tukenmis varsa odeme
+        // URL'i URETME (frontend pre-check atlansa/bypass edilse bile). Belirsiz
+        // probe engellemez (fail-open) — 30 dk'lik PostOrderStockCheckJob yakalar.
+        $stockLines = [];
+        foreach ($orderMaster->orders as $order) {
+            foreach ($order->orderDetail as $detail) {
+                $stockLines[] = [
+                    'product_id' => (int) $detail->product_id,
+                    'variant_id' => null,
+                    'name' => optional($detail->product)->name,
+                ];
+            }
+        }
+        if (!empty($stockLines)) {
+            try {
+                $stockResult = $this->stockVerifier->verify($stockLines);
+                if (!($stockResult['ok'] ?? true)) {
+                    return response()->json([
+                        'success' => false,
+                        'code' => 'stock_out',
+                        'message' => __('messages.checkout_stock_out'),
+                        'out_of_stock' => $stockResult['out_of_stock'],
+                    ], 409);
+                }
+            } catch (\Throwable $e) {
+                // Probe altyapisi cokerse satisi engelleme (fail-open).
+                Log::warning('Checkout stock guard failed-open', ['order_master_id' => $orderMaster->id, 'error' => $e->getMessage()]);
+            }
         }
 
         $gateway = PaymentGateway::where('slug', 'iyzico')->first();

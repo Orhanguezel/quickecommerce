@@ -142,6 +142,40 @@ export function usePlaceOrderMutation() {
   });
 }
 
+export interface VerifyStockItem {
+  product_id: number;
+  variant_id?: number | null;
+  name?: string | null;
+}
+
+export interface VerifyStockResult {
+  ok: boolean;
+  out_of_stock: Array<{
+    product_id: number | null;
+    variant_id: number | null;
+    name: string | null;
+    signal: string;
+  }>;
+  checked: number;
+  uncertain: number;
+}
+
+// Checkout-oncesi canli stok dogrulama. Odeme oncesi cagrilir; kesin tukenmis
+// urun varsa frontend ode-akisini durdurur. Fail-open (belirsizler engellenmez).
+export function useVerifyStockMutation() {
+  const { getAxiosInstance } = useBaseService(API_ENDPOINTS.VERIFY_STOCK);
+
+  return useMutation({
+    mutationFn: async (items: VerifyStockItem[]) => {
+      const res = await getAxiosInstance().post<{ success: boolean; data: VerifyStockResult }>(
+        API_ENDPOINTS.VERIFY_STOCK,
+        { items }
+      );
+      return res.data.data;
+    },
+  });
+}
+
 export function useCheckoutExtraInfoQuery(productIds: number[]) {
   const { getAxiosInstance } = useBaseService<CheckoutExtraInfoResponse>(
     API_ENDPOINTS.CHECKOUT_EXTRA_INFO

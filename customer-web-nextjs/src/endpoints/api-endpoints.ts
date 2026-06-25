@@ -30,8 +30,9 @@ export const API_ENDPOINTS = {
   PRODUCT_QA: "/product-query/search-question",
   PRODUCT_QA_ASK: "/customer/product-query/ask-question",
   PRODUCT_SUGGESTION: "/product-suggestion",
-  REVIEW_ADD: "/product-review/store",
-  REVIEW_REACTION: "/product-review/reaction",
+  REVIEW_ADD: "/customer/review/add",
+  REVIEW_REACTION: "/customer/review/reaction",
+  REVIEW_MY: "/customer/review",
 
   // Homepage Product Sections
   NEW_ARRIVALS: "/new-arrivals",
@@ -74,6 +75,7 @@ export const API_ENDPOINTS = {
 
   // Checkout & Orders
   ORDER_CHECKOUT: "/orders/checkout",
+  VERIFY_STOCK: "/orders/verify-stock",
   CHECK_COUPON: "/check-coupon",
   DELIVERY_CHARGE: "/calculate-delivery-charge",
   CHECKOUT_INFO: "/checkout-info",

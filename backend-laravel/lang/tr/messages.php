@@ -153,6 +153,7 @@ return [
     'order_payment_gateway_not_supported' => 'Seçilen ödeme yöntemi şu anda desteklenmiyor.',
     'order_cash_on_delivery_only_for_food' => 'Kapıda ödeme sadece food mağaza ürünlerinde kullanılabilir.',
     'order_already_paid' => 'Bu sipariş zaten ödenmiş.',
+    'checkout_stock_out' => 'Sepetinizdeki bazı ürünler az önce tükendi. Lütfen bu ürünleri sepetinizden çıkarıp tekrar deneyin.',
     'iyzico_configuration_missing' => 'İyzico ayarları eksik veya hatalı.',
     'iyzico_session_created' => 'İyzico ödeme oturumu başarıyla oluşturuldu.',
     'iyzico_session_create_failed' => 'İyzico ödemesi başlatılamadı. Lütfen tekrar deneyin.',

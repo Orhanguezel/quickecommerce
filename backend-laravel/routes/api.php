@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\V1\Customer\CustomerProductQueryController;
 use App\Http\Controllers\Api\V1\Customer\PlaceOrderController;
 use App\Http\Controllers\Api\V1\DeliveryChargeCalculateController;
 use App\Http\Controllers\Api\V1\FrontendController;
+use App\Http\Controllers\Api\V1\CheckoutStockController;
 use App\Http\Controllers\Api\V1\IyzicoPaymentController;
 use App\Http\Controllers\Api\V1\PayTRPaymentController;
 use App\Http\Controllers\Api\V1\MenuManageController;
@@ -184,6 +185,8 @@ Route::group(['prefix' => 'v1/'], function () {
         // customer place order
         Route::group(['namespace' => 'Api\V1', 'middleware' => ['auth:api_customer', 'check.customer.account.status']], function () {
             Route::post('orders/checkout', [PlaceOrderController::class, 'placeOrder']);
+            // checkout-oncesi canli stok dogrulama (odeme oncesi pre-check)
+            Route::post('orders/verify-stock', [CheckoutStockController::class, 'verify']);
             // Kargo takip (müşteri)
             Route::get('orders/{orderId}/cargo', [CustomerCargoController::class, 'show']);
             // İade kargo bilgisi (müşteri)

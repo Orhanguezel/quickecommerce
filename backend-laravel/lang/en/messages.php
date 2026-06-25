@@ -155,6 +155,7 @@ return [
     'order_payment_gateway_not_supported' => 'Selected payment gateway is not supported at checkout.',
     'order_cash_on_delivery_only_for_food' => 'Cash on delivery is only available for food store products.',
     'order_already_paid' => 'Order is already paid.',
+    'checkout_stock_out' => 'Some items in your cart just went out of stock. Please remove them and try again.',
     'iyzico_configuration_missing' => 'Iyzico configuration is missing or invalid.',
     'iyzico_session_created' => 'Iyzico payment session created successfully.',
     'iyzico_session_create_failed' => 'Iyzico payment could not be started. Please try again.',
