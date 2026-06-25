@@ -159,8 +159,13 @@ run_scraper() {
   run_scraper musullu             musullu_scraper.py             musullu_products.json
   run_scraper bodyfitshop         bodyfitshop_scraper.py         bodyfitshop_products.json
   run_scraper crestaofficial      crestaofficial_scraper.py      crestaofficial_products.json
-  run_scraper compexturkiye       compexturkiye_scraper.py       compexturkiye_products.json
-  run_scraper proteinavm          proteinavm_scraper.py          proteinavm_products.json
+  # 2026-06-25 PASIF (kullanici karari): compexturkiye + proteinavm Cloudflare
+  # SERT DUVAR — yerel scraper fast mode 403 "Just a moment", dynamic+solve_cloudflare
+  # 102s deneyip yine gecemiyor. 1 haftadir FAIL. Gercek cozum residential proxy.
+  # Registry STATUS_PASSIVE; veri son-iyi halde donar (Faz1 probe + 30dk net +
+  # escrow guard oversell'i koruyor). Proxy gelince geri ACTIVE.
+  # run_scraper compexturkiye       compexturkiye_scraper.py       compexturkiye_products.json
+  # run_scraper proteinavm          proteinavm_scraper.py          proteinavm_products.json
   # 2026-06-25 PASIF (kullanici karari): eprotein scraper pratikte olu — CF/IdeaSoft
   # yerel stealth'ten surekli HTTP 500, "basarili" gunlerde bile 570/570 varyant
   # fiyati 14+ gun donmus. Magaza#69 status=0 + tum varyant stok=0 yapildi. Zararina
