@@ -255,6 +255,17 @@ def _html_stock_status(soup, raw_html=None):
 
     Returns: True/False/None.
     """
+    # 0) POZITIF, KAPSAMLI sinyal: ana urunun "Sepete Ekle" butonu (#button-cart).
+    #    Bu id sayfada TEKILDIR ve yalniz ana urune aittir — related/sidebar/
+    #    "son gezilen" urunler bu id'yi kullanmaz. Bu yuzden out-of-stock CSS/
+    #    regex taramasindan ONCE kontrol edilir: aksi halde sayfadaki ilgili
+    #    urunlerden biri tukenmisse (".ekle_button_stokta_yok" / "gelince haber
+    #    ver" sidebar'da gecince) ana urun yanlislikla tukenmis isaretleniyordu
+    #    (proteinmax 2026-06-25: 2046/2046 urun yanlis "available=False").
+    cart_btn = soup.select_one('#button-cart, input#button-cart, button#button-cart')
+    if cart_btn is not None and not cart_btn.has_attr('disabled'):
+        return True
+
     # 1) CSS class detection
     for sel in _OUT_OF_STOCK_SELECTORS:
         if soup.select_one(sel):

@@ -161,7 +161,11 @@ run_scraper() {
   run_scraper crestaofficial      crestaofficial_scraper.py      crestaofficial_products.json
   run_scraper compexturkiye       compexturkiye_scraper.py       compexturkiye_products.json
   run_scraper proteinavm          proteinavm_scraper.py          proteinavm_products.json
-  run_scraper eprotein            eprotein_scraper.py            eprotein_products.json
+  # 2026-06-25 PASIF (kullanici karari): eprotein scraper pratikte olu — CF/IdeaSoft
+  # yerel stealth'ten surekli HTTP 500, "basarili" gunlerde bile 570/570 varyant
+  # fiyati 14+ gun donmus. Magaza#69 status=0 + tum varyant stok=0 yapildi. Zararina
+  # satis riski. Calisir scraper yazilinca geri acilir.
+  # run_scraper eprotein            eprotein_scraper.py            eprotein_products.json
   # 2026-06-02 PASIF (Cloudflare 1010 IP bani, proxy yapilmadi) — bkz. yukaridaki not.
   # run_scraper powertec            powertec_scraper.py            powertec_products.json
   # run_scraper raketspor           raketspor_scraper.py           raketspor_products.json

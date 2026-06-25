@@ -146,6 +146,57 @@ class ScrapersHealthCheck extends Command
             }
         }
 
+        // 5) Sessiz bozukluk: exit=0 + JSON tazel AMA veri dejenere.
+        //    proteinmax 2026-06-25: scraper "basarili" (exit=0, JSON tazel) ama
+        //    ".ekle_button_stokta_yok" her sayfanin related-urun bolumunde
+        //    eslesip 2046/2046 urun available=False oldu. ~20 gun kimse fark
+        //    etmedi cunku yukaridaki kontrollerin HICBIRI tetiklenmiyordu.
+        $activeNames = [];
+        foreach (\App\Services\ScraperSourceRegistry::all() as $src) {
+            if (($src['status'] ?? null) === \App\Services\ScraperSourceRegistry::STATUS_ACTIVE) {
+                $activeNames[$src['name']] = true;
+            }
+        }
+        foreach ($jsonAges as $source => $meta) {
+            if (!isset($activeNames[$source])) {
+                continue;
+            }
+            $data = json_decode((string) @file_get_contents($meta['path']), true);
+            if (!is_array($data) || count($data) < 30) {
+                continue;
+            }
+            $total = 0;
+            $defIn = 0;
+            $defOut = 0;
+            $priced = 0;
+            foreach ($data as $p) {
+                if (!is_array($p)) {
+                    continue;
+                }
+                $total++;
+                $s = $this->productInStock($p);
+                if ($s === true) {
+                    $defIn++;
+                } elseif ($s === false) {
+                    $defOut++;
+                }
+                if ($this->productPriced($p)) {
+                    $priced++;
+                }
+            }
+            if ($total < 30) {
+                continue;
+            }
+            // TUM urunler kesin "tukendi" (null/unknown degil) -> stok tespiti kirilmis
+            if ($defOut === $total) {
+                $issues[] = "{$source}: SESSIZ BOZUK? {$total} urunun TAMAMI 'tukendi' isaretli — stok tespiti kirilmis olabilir (exit=0 + JSON tazel)";
+            }
+            // Hicbir urunde fiyat yok -> fiyat tespiti kirilmis
+            if ($priced === 0) {
+                $issues[] = "{$source}: SESSIZ BOZUK? {$total} urunun hicbirinde fiyat yok — fiyat tespiti kirilmis olabilir";
+            }
+        }
+
         $issueCount = count($issues);
         $sourceCount = count($jsonAges);
 
@@ -177,5 +228,59 @@ class ScrapersHealthCheck extends Command
         );
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Bir scraper urununun kesin stok durumu. Scraper ciktilarinda alan adlari
+     * degisir: top-level stock_quantity/available/in_stock veya variants[].
+     *
+     * @return bool|null true=kesin stokta, false=kesin tukendi, null=bilinmiyor
+     */
+    private function productInStock(array $p): ?bool
+    {
+        foreach (['stock_quantity', 'stock'] as $k) {
+            if (isset($p[$k]) && is_numeric($p[$k])) {
+                return ((int) $p[$k]) > 0;
+            }
+        }
+        foreach (['available', 'in_stock'] as $b) {
+            if (array_key_exists($b, $p) && $p[$b] !== null) {
+                return (bool) $p[$b];
+            }
+        }
+        if (!empty($p['variants']) && is_array($p['variants'])) {
+            foreach ($p['variants'] as $v) {
+                if (!is_array($v)) {
+                    continue;
+                }
+                foreach (['available', 'in_stock'] as $b) {
+                    if (array_key_exists($b, $v) && $v[$b] !== null && $v[$b]) {
+                        return true;
+                    }
+                }
+                if (isset($v['stock_quantity']) && is_numeric($v['stock_quantity']) && (int) $v['stock_quantity'] > 0) {
+                    return true;
+                }
+            }
+        }
+        return null;
+    }
+
+    /** Urunde gecerli (>0) bir fiyat var mi? (top-level veya variant). */
+    private function productPriced(array $p): bool
+    {
+        foreach (['original_price', 'discounted_price', 'price'] as $k) {
+            if (isset($p[$k]) && is_numeric($p[$k]) && (float) $p[$k] > 0) {
+                return true;
+            }
+        }
+        if (!empty($p['variants']) && is_array($p['variants'])) {
+            foreach ($p['variants'] as $v) {
+                if (is_array($v) && isset($v['price']) && is_numeric($v['price']) && (float) $v['price'] > 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
