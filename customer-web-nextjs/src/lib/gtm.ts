@@ -148,6 +148,20 @@ export function trackBeginCheckout(items: GtagItem[], value: number, currency = 
   });
 }
 
+export function trackAddPaymentInfo(
+  items: GtagItem[],
+  value: number,
+  currency = 'TRY',
+  paymentType?: string,
+) {
+  pushDataLayer('add_payment_info', {
+    currency,
+    value,
+    ...(paymentType ? { payment_type: paymentType } : {}),
+    items,
+  });
+}
+
 export function trackPurchase(
   transactionId: string,
   items: GtagItem[],
