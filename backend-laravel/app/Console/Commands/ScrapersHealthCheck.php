@@ -82,9 +82,14 @@ class ScrapersHealthCheck extends Command
         $logFile = "{$logsDir}/scrapers-{$today}.log";
         if (file_exists($logFile)) {
             $log = file_get_contents($logFile);
-            // "FAIL: <name> scraper, sync atlaniyor" satirlari
+            // "FAIL: <name> scraper, sync atlaniyor" satirlari.
+            // PASSIVE kaynaklari atla — pause edilmeden ONCE bugun calisip FAIL
+            // etmis olabilirler (bayat log kaydi); artik cron'da degiller.
             if (preg_match_all('/FAIL:\s*(\S+)\s+scraper/i', $log, $matches)) {
                 foreach (array_unique($matches[1]) as $failed) {
+                    if (isset($passiveSources[$failed])) {
+                        continue;
+                    }
                     $issues[] = "{$failed}: bugun scrape FAIL etti (cron log)";
                 }
             }
