@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Api\V1\Controller;
 use App\Models\OrderMaster;
+use App\Services\CheckoutStockVerifier;
 use App\Services\IyzicoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
@@ -20,8 +21,10 @@ use Illuminate\Support\Facades\Log;
  */
 class AdminPaymentApprovalController extends Controller
 {
-    public function __construct(private readonly IyzicoService $iyzicoService)
-    {
+    public function __construct(
+        private readonly IyzicoService $iyzicoService,
+        private readonly CheckoutStockVerifier $stockVerifier,
+    ) {
     }
 
     /** POST /api/v1/admin/orders/{id}/approve-payment */
@@ -54,6 +57,44 @@ class AdminPaymentApprovalController extends Controller
                 'success' => false,
                 'message' => "Bu sipariş icin iyzico para onayi zaten gonderilmis ({$approvedAt->format('d.m.Y H:i')}). Para iyzico'nun haftalik gonderim doneminde hesabiniza yatar.",
             ], 400);
+        }
+
+        // ESCROW GUARD: Approval = para serbest birakma (geri donulmez — sonrasinda
+        // sadece yavas Refund kalir, hizli Cancel/void DEGIL). Bu yuzden serbest
+        // birakmadan ONCE canli stok teyidi yap. Kesin tukenmis varsa BLOKLA —
+        // admin once iade etsin. Erken approve, post-order otomatik iade netini
+        // devre disi birakiyordu (job 'zaten Approval gonderildi' deyip skip).
+        // ?force=1 ile bilincli gecilebilir. Belirsiz probe engellemez (fail-open).
+        if (!request()->boolean('force')) {
+            $lines = [];
+            $orderMaster->loadMissing(['orders.orderDetail.product']);
+            foreach ($orderMaster->orders as $order) {
+                foreach ($order->orderDetail as $detail) {
+                    $lines[] = [
+                        'product_id' => (int) $detail->product_id,
+                        'variant_id' => null,
+                        'name' => optional($detail->product)->name,
+                    ];
+                }
+            }
+            if (!empty($lines)) {
+                try {
+                    $stock = $this->stockVerifier->verify($lines);
+                    if (!($stock['ok'] ?? true)) {
+                        return response()->json([
+                            'success' => false,
+                            'code' => 'stock_out',
+                            'message' => 'Stok teyidi: bu siparişte tükenmiş ürün(ler) var. Para serbest bırakmadan (onay) önce iade edin veya kontrol edin. Yine de onaylamak için force=1 kullanın.',
+                            'out_of_stock' => $stock['out_of_stock'],
+                        ], 409);
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Approval stock guard failed-open', [
+                        'order_master_id' => $orderMaster->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
         }
 
         // paymentTransactionId listesini al — callback'te saklanan JSON'dan
