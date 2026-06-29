@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { fetchAPI } from "@/lib/api-server";
+import { encodeImageUrl } from "@/lib/image-url";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { ProductDetailResponse } from "@/modules/product/product.type";
 import type { ShippingCampaign } from "@/modules/shipping-campaign/shipping-campaign.type";
@@ -160,7 +161,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       locale: locale === "tr" ? "tr_TR" : "en_US",
       siteName: "Sporto Online",
       images: product.meta_image_url || product.image_url
-        ? [{ url: product.meta_image_url || product.image_url, width: 800, height: 800, alt: product.name }]
+        ? [{ url: encodeImageUrl(product.meta_image_url || product.image_url), width: 800, height: 800, alt: product.name }]
         : undefined,
     },
     alternates: {

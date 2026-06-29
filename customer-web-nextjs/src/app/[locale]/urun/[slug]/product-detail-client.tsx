@@ -58,6 +58,7 @@ import { useRecentlyViewedStore } from "@/stores/recently-viewed-store";
 import { trackViewItem, trackAddToCart } from "@/lib/gtm";
 import { trackFunnelEvent } from "@/lib/funnel-tracker";
 import { resolveProductPricing } from "@/lib/product-pricing";
+import { encodeImageUrl } from "@/lib/image-url";
 import {
   useProductQuestionsQuery,
   useAskQuestionMutation,
@@ -362,7 +363,9 @@ export function ProductDetailClient({
     if (!src) return PRODUCT_IMAGE_PLACEHOLDER;
     if (imageErrors.has(src)) return PRODUCT_IMAGE_PLACEHOLDER;
     if (BLOCKED_IMAGE_DOMAINS.some((d) => src.includes(d))) return PRODUCT_IMAGE_PLACEHOLDER;
-    return src;
+    // ASCII-dışı (Türkçe/boşluk) görsel URL'lerini encode et: unoptimized
+    // <Image priority> preload Link header'ında ByteString patlamasını önler.
+    return encodeImageUrl(src);
   };
   const sanitizedDescription = (product.description ?? "")
     .replace(
@@ -1701,6 +1704,27 @@ export function ProductDetailClient({
                     <p className="mt-1.5 text-sm text-muted-foreground">
                       {review.review}
                     </p>
+                    {review.images?.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {review.images.map((img, i) => (
+                          <a
+                            key={i}
+                            href={img}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block h-16 w-16 overflow-hidden rounded-md border"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={img}
+                              alt={`${review.reviewed_by?.name || t.anonymous} - ${i + 1}`}
+                              loading="lazy"
+                              className="h-full w-full object-cover transition hover:scale-105"
+                            />
+                          </a>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))
               ) : (
