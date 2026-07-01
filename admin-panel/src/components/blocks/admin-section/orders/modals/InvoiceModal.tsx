@@ -288,7 +288,7 @@ const InvoiceModal: React.FC<ConfirmationModalProps> = ({
                                 <div className="col-span-2">
                                   <p className="font-semibold">{name}</p>{" "}
                                   <div className="grid grid-cols-2 gap-1">
-                                    {Object.entries(variant).map(
+                                    {Object.entries(variant || {}).map(
                                       ([key, value]) => (
                                         <p
                                           key={key}
