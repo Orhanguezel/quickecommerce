@@ -173,8 +173,24 @@ class SyncSourcePrices extends Command
                 $this->markMapping($mapping, 'missing_zeroed', 'Source product not found; stock zeroed.');
                 return 'missing_zeroed';
             }
-            $this->markMapping($mapping, 'missing', 'Source product not found.');
-            return 'missing';
+            // 2026-07-17: Tek scrape'te kaybolma cogu zaman GECICI (urun sayfasinin
+            // fetch/parse'i o an basarisiz oldu / run-all timing) — gercekten
+            // kaldirilmis degil. Daha once basariyla sync olmus (last_synced_price
+            // dolu) bir urun ILK kez kayboluyorsa 'missing_transient' (health-check
+            // ALARMI YOK). Arka arkaya 2. turda da yoksa 'missing' (gercek kalkma).
+            // musclepump'in her gun bosuna flaglenmesini onler; stok davranisi
+            // degismez (yukaridaki safeToZeroMissing zaten koruyor).
+            $neverSynced = $mapping->last_synced_price === null;
+            $wasTransient = $mapping->last_sync_status === 'missing_transient';
+            $missStatus = ($neverSynced || $wasTransient) ? 'missing' : 'missing_transient';
+            $this->markMapping(
+                $mapping,
+                $missStatus,
+                $missStatus === 'missing'
+                    ? 'Source product not found.'
+                    : 'Not in this scrape — transient (1st miss, no alarm).'
+            );
+            return $missStatus;
         }
 
         $sourceVariant = $this->findSourceVariant($mapping, $sourceProduct);
@@ -213,6 +229,17 @@ class SyncSourcePrices extends Command
                 if ($incomingValue !== null && round((float) $currentValue, 2) !== round((float) $incomingValue, 2)) {
                     $changes[$field] = $incomingValue;
                 }
+            }
+
+            // BAYAT INDIRIM TEMIZLIGI (2026-07-17): Kaynak artik indirim yapmiyorsa
+            // (incoming special_price null) ama bizde eski bir special takiliysa TEMIZLE.
+            // Aksi halde kaynagin indirimi bitince/degisince bizim special bayat kalip
+            // tedarikci maliyetinin ALTINDA satisa (zarar) yol aciyordu — ceysport CPBP-10
+            // vakasi: 3450 special, tedarikci 4450. Yalniz bu dal (fiyat guvenilir) icinde.
+            if ($incoming['special_price'] === null
+                && $variant->special_price !== null
+                && (float) $variant->special_price > 0) {
+                $changes['special_price'] = null;
             }
         }
 
