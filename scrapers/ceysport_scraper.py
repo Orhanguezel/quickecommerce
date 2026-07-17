@@ -163,6 +163,19 @@ def _parse_prices(soup):
     return (_clean_price(plain.get_text()) if plain else None), None
 
 
+def _jsonld_offer_price(jsonld):
+    """JSON-LD offers.price -> float. Sayfa basina TEK Product semasi oldugu icin
+    bu fiyat ana urune aittir (guvenilir). ceysport 2026-07'de JSON-LD'ye offers
+    ekledi; HTML .price ise WoodMart'ta ilgili/upsell urunlerin fiyatini kapabiliyor
+    (CPBP-10: 4450 yerine 3450 -> zararina satis). Yoksa None."""
+    offers = (jsonld or {}).get("offers")
+    if isinstance(offers, list):
+        offers = offers[0] if offers else {}
+    if isinstance(offers, dict):
+        return _clean_price(offers.get("price") or offers.get("lowPrice"))
+    return None
+
+
 def _parse_stock(soup):
     """p.stock class'indan stok durumu (out-of-stock -> False)."""
     st = soup.select_one("p.stock, .summary .stock")
@@ -197,7 +210,13 @@ def _parse_product(session, url):
     if not name:
         return None
 
-    original_price, discounted_price = _parse_prices(soup)
+    # FIYAT: JSON-LD offers.price birincil (guvenilir, ana urun) — HTML .price
+    # WoodMart'ta yanlis (ilgili urun) fiyat kapabiliyordu. offers yoksa HTML fallback.
+    jl_price = _jsonld_offer_price(jsonld)
+    if jl_price is not None:
+        original_price, discounted_price = jl_price, None
+    else:
+        original_price, discounted_price = _parse_prices(soup)
     in_stock = _parse_stock(soup)
 
     sku = str(jsonld.get("sku") or "").strip()
