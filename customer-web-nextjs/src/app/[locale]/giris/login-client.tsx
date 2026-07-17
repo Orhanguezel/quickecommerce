@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link } from "@/i18n/routing";
 import { ROUTES } from "@/config/routes";
-import { useLoginMutation } from "@/modules/auth/auth.service";
+import { useLoginMutation, useGuestCheckoutMutation } from "@/modules/auth/auth.service";
 import {
   useOtpLoginResendMutation,
   useOtpLoginSendMutation,
@@ -65,6 +65,33 @@ export function LoginClient({ translations: t }: Props) {
   const [otpEmail, setOtpEmail] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const loginMutation = useLoginMutation();
+  const guestMutation = useGuestCheckoutMutation();
+  const [showGuest, setShowGuest] = useState(false);
+  const [guest, setGuest] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
+  });
+  const [guestError, setGuestError] = useState<string | null>(null);
+  const handleGuestSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setGuestError(null);
+    if (!guest.first_name.trim() || !guest.email.trim() || !guest.phone.trim()) {
+      setGuestError("Ad, e-posta ve telefon zorunludur.");
+      return;
+    }
+    guestMutation.mutate(guest, {
+      onError: (err: unknown) => {
+        const res = (err as { response?: { data?: { code?: string; message?: string } } })?.response?.data;
+        setGuestError(
+          res?.code === "email_registered"
+            ? "Bu e-posta veya telefon kayıtlı. Lütfen giriş yapın."
+            : res?.message || "Bir hata oluştu, lütfen tekrar deneyin."
+        );
+      },
+    });
+  };
   const otpSendMutation = useOtpLoginSendMutation();
   const otpResendMutation = useOtpLoginResendMutation();
   const otpVerifyMutation = useOtpLoginVerifyMutation();
@@ -284,6 +311,65 @@ export function LoginClient({ translations: t }: Props) {
                 </Button>
               </>
             )}
+
+            {/* Misafir (guest) checkout — üyeliksiz sipariş */}
+            <div className="mt-4">
+              {!showGuest ? (
+                <>
+                  <div className="my-3 text-center text-sm text-muted-foreground">{t.or}</div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => setShowGuest(true)}
+                  >
+                    Üye olmadan devam et
+                  </Button>
+                </>
+              ) : (
+                <form onSubmit={handleGuestSubmit} className="space-y-3 rounded-lg border p-4">
+                  <p className="text-sm font-medium">Misafir olarak devam et</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input
+                      placeholder="Ad *"
+                      value={guest.first_name}
+                      onChange={(e) => setGuest({ ...guest, first_name: e.target.value })}
+                      autoComplete="given-name"
+                    />
+                    <Input
+                      placeholder="Soyad"
+                      value={guest.last_name}
+                      onChange={(e) => setGuest({ ...guest, last_name: e.target.value })}
+                      autoComplete="family-name"
+                    />
+                  </div>
+                  <Input
+                    type="email"
+                    placeholder="E-posta *"
+                    value={guest.email}
+                    onChange={(e) => setGuest({ ...guest, email: e.target.value })}
+                    autoComplete="email"
+                  />
+                  <Input
+                    type="tel"
+                    placeholder="Telefon *"
+                    value={guest.phone}
+                    onChange={(e) => setGuest({ ...guest, phone: e.target.value })}
+                    autoComplete="tel"
+                  />
+                  {guestError && (
+                    <p className="text-sm text-destructive">{guestError}</p>
+                  )}
+                  <Button type="submit" className="w-full" disabled={guestMutation.isPending}>
+                    {guestMutation.isPending ? "Devam ediliyor…" : "Misafir olarak devam et"}
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    Siparişinizi üyelik olmadan tamamlayabilirsiniz. Bilgileriniz yalnızca
+                    bu sipariş için kullanılır; dilerseniz sonra şifre belirleyip hesap oluşturabilirsiniz.
+                  </p>
+                </form>
+              )}
+            </div>
 
             <p className="mt-6 text-center text-sm text-muted-foreground">
               {t.dont_have_account}{" "}

@@ -61,6 +61,56 @@ export function useLoginMutation() {
   });
 }
 
+export interface GuestCheckoutInput {
+  email: string;
+  first_name: string;
+  last_name?: string;
+  phone: string;
+}
+
+interface GuestCheckoutResponse {
+  status: boolean;
+  token: string;
+  email: string;
+  is_guest: boolean;
+  message?: string;
+  code?: string;
+}
+
+// Misafir (guest) checkout: üyeliksiz sipariş. Hafif hesap + token alır,
+// login gibi oturum açar ve ödeme sayfasına yönlendirir.
+export function useGuestCheckoutMutation() {
+  const locale = useLocale();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const setUser = useAuthStore((s) => s.setUser);
+
+  return useMutation({
+    mutationFn: async (data: GuestCheckoutInput) => {
+      const res = await api.post<GuestCheckoutResponse>(
+        API_ENDPOINTS.GUEST_CHECKOUT,
+        data,
+        { headers: { "X-localization": locale } }
+      );
+      return res.data;
+    },
+    onSuccess: (data, variables) => {
+      Cookies.set(AUTH_TOKEN_KEY, data.token, { expires: 7 });
+      const guestUser = {
+        email: data.email,
+        first_name: variables.first_name,
+        last_name: variables.last_name ?? "",
+        phone: variables.phone,
+        is_guest: true,
+      } as unknown as User;
+      Cookies.set(AUTH_USER, JSON.stringify(guestUser), { expires: 7 });
+      setUser(guestUser);
+      const redirectTo = searchParams.get("redirect");
+      router.push(redirectTo || `/${locale}/odeme`);
+    },
+  });
+}
+
 export function useRegisterMutation() {
   const locale = useLocale();
   const router = useRouter();

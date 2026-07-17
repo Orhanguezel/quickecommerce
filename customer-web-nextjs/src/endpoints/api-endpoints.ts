@@ -1,6 +1,7 @@
 export const API_ENDPOINTS = {
   // Auth (customer)
   LOGIN: "/customer/login",
+  GUEST_CHECKOUT: "/customer/guest-checkout",
   REGISTER: "/customer/registration",
   LOGOUT: "/customer/logout",
   REFRESH_TOKEN: "/customer/refresh-token",
