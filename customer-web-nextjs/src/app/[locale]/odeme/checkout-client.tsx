@@ -371,6 +371,16 @@ export function CheckoutClient({ translations: t }: Props) {
   const handlePlaceOrder = async () => {
     // Auto-resolve items missing variant_id or store_id (stale localStorage data)
     if (!selectedAddressId) {
+      // Onceden sessizce return ediyordu -> kullanici "Odemeye Gec"e basip hicbir
+      // sey olmayinca terk ediyordu. Artik net uyari + adres bolumune kaydir.
+      setAddressSearchError(
+        "Devam etmek için lütfen bir teslimat adresi seçin veya yeni adres ekleyin."
+      );
+      if (typeof window !== "undefined") {
+        requestAnimationFrame(() =>
+          window.scrollTo({ top: 0, behavior: "smooth" })
+        );
+      }
       return;
     }
 
