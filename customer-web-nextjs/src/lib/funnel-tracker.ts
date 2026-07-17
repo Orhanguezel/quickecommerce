@@ -182,17 +182,56 @@ function pageContext(): Partial<FunnelEventInput> {
   if (typeof window === "undefined") return {};
   const url = new URL(window.location.href);
   const parts = url.pathname.split("/").filter(Boolean);
+  const attr = resolveAttribution(url);
   return {
     url: url.href,
     path: url.pathname,
     locale: parts[0] || undefined,
     referer: document.referrer || undefined,
-    utm_source: url.searchParams.get("utm_source") || undefined,
-    utm_medium: url.searchParams.get("utm_medium") || undefined,
-    utm_campaign: url.searchParams.get("utm_campaign") || undefined,
+    utm_source: attr.utm_source,
+    utm_medium: attr.utm_medium,
+    utm_campaign: attr.utm_campaign,
+    utm_term: attr.utm_term,
+    utm_content: attr.utm_content,
+  };
+}
+
+/**
+ * Kanal atıfını çözer ve ilk-dokunuşta sessionStorage'a saklar (tüm oturuma
+ * uygulanır — reklamdan gelen ziyaretçinin sonraki sayfalarında URL'de utm/gclid
+ * olmasa da kanal korunur).
+ *
+ * Google Ads oto-etiketleme UTM değil `gclid`/`gbraid`/`wbraid` ekler; bunları
+ * yakalayıp utm_source=google, utm_medium=cpc'ye eşleriz — böylece reklam trafiği
+ * ilk-taraf funnel'da "direkt" yerine "google/cpc" görünür.
+ */
+function resolveAttribution(url: URL): {
+  utm_source?: string; utm_medium?: string; utm_campaign?: string; utm_term?: string; utm_content?: string;
+} {
+  const KEY = "ft_attr";
+  const gclid =
+    url.searchParams.get("gclid") ||
+    url.searchParams.get("gbraid") ||
+    url.searchParams.get("wbraid");
+  const current = {
+    utm_source: url.searchParams.get("utm_source") || (gclid ? "google" : undefined),
+    utm_medium: url.searchParams.get("utm_medium") || (gclid ? "cpc" : undefined),
+    utm_campaign: url.searchParams.get("utm_campaign") || (gclid ? "google-ads" : undefined),
     utm_term: url.searchParams.get("utm_term") || undefined,
     utm_content: url.searchParams.get("utm_content") || undefined,
   };
+  const hasAny = Object.values(current).some(Boolean);
+  try {
+    if (hasAny) {
+      sessionStorage.setItem(KEY, JSON.stringify(current));
+      return current;
+    }
+    const saved = sessionStorage.getItem(KEY);
+    if (saved) return JSON.parse(saved);
+  } catch {
+    /* sessionStorage yoksa yoksay */
+  }
+  return current;
 }
 
 /** Enqueue a single funnel event with first-party visitor and session context. */
