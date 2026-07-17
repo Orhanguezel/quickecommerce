@@ -22,6 +22,8 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'customer/'], function () {
     // For customer register and login
     Route::post('registration', [CustomerManageController::class, 'registerCustomer']);
     Route::post('login', [CustomerManageController::class, 'loginCustomer']);
+    // Misafir (guest) checkout: uyeliksiz siparis icin hafif hesap + token
+    Route::post('guest-checkout', [CustomerManageController::class, 'guestCheckout']);
     Route::post('forget-password', [CustomerManageController::class, 'sendPasswordResetToken']);
     Route::post('verify-token', [CustomerManageController::class, 'verifyPasswordResetToken']);
     Route::patch('reset-password', [CustomerManageController::class, 'resetPassword']);

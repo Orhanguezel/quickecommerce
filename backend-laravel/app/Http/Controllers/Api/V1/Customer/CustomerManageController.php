@@ -67,6 +67,90 @@ class CustomerManageController extends Controller
         }
     }
 
+    /**
+     * Misafir (guest) checkout: uyeliksiz siparis. E-posta/ad/telefon alir,
+     * hafif bir musteri hesabi (is_guest=1, rastgele sifre) olusturur ve token
+     * doner — boylece mevcut checkout/odeme akisi hic degismeden calisir.
+     *
+     * Guvenlik: kayitli (is_guest=0) bir hesabin e-postasiyla guest girisi
+     * VERILMEZ (sifresiz baskasinin hesabina girilemesin) -> giris yonlendirilir.
+     * Ayni e-postayla onceki guest hesap tekrar kullanilir (iletisim guncellenir).
+     */
+    public function guestCheckout(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|max:191',
+            'first_name' => 'required|string|max:100',
+            'last_name' => 'nullable|string|max:100',
+            'phone' => 'required|string|max:32',
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'status_code' => 422,
+                'message' => $validator->errors()->first(),
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            $email = strtolower(trim((string) $request->email));
+            $phone = trim((string) $request->phone);
+            // email/phone ikisi de UNIQUE -> ikisinden biri eslesirse mevcut
+            // musteriyi bul (donen misafir ayni telefonu/e-postayi kullanabilir).
+            $existing = Customer::where('email', $email)->orWhere('phone', $phone)->first();
+
+            if ($existing && !$existing->is_guest) {
+                return response()->json([
+                    'status' => false,
+                    'status_code' => 409,
+                    'code' => 'email_registered',
+                    'message' => 'Bu e-posta veya telefon ile kayıtlı bir hesap var. Lütfen giriş yapın.',
+                ], 409);
+            }
+
+            if ($existing) {
+                // Mevcut misafir hesabi -> tekrar kullan. email/phone UNIQUE
+                // oldugu icin onlara dokunma; yalniz isim (unique degil) guncelle.
+                $existing->update([
+                    'first_name' => $request->first_name,
+                    'last_name' => $request->last_name ?? $existing->last_name,
+                ]);
+                $customer = $existing;
+            } else {
+                $customer = Customer::create([
+                    'first_name' => $request->first_name,
+                    'last_name' => $request->last_name ?? '',
+                    'email' => $email,
+                    'phone' => $phone,
+                    'password' => Hash::make(Str::random(40)),
+                    'is_guest' => true,
+                    'verified' => 0,
+                    'status' => 1,
+                ]);
+            }
+
+            $token = $customer->createToken('customer_guest_token')->plainTextToken;
+
+            return response()->json([
+                'status' => true,
+                'status_code' => 200,
+                'message' => 'Misafir olarak devam ediliyor.',
+                'token' => $token,
+                'email' => $customer->email,
+                'email_verified' => false,
+                'email_verification_settings' => 'off',
+                'is_guest' => true,
+            ], 200);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => false,
+                'status_code' => 500,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function loginCustomer(Request $request)
     {
         if ($request->boolean('social_login')) {
