@@ -145,7 +145,10 @@ run_scraper() {
   run_scraper norfolk        norfolk_scraper.py        norfolk_products.json
   run_scraper superstacy     superstacy_scraper.py     superstacy_products.json
   # floky (Floky Socks) 2026-06-25 SILINDI (store soft-delete + scraper kaldirildi).
-  run_scraper dropick        dropick_scraper.py        dropick_products.json
+  # 2026-07-27 PASIF (kullanici kurali): dropick urun sayfalarinin 11/14'unde
+  # JSON-LD availability alani YOK, parser alan bosken "stokta" sayiyor.
+  # 57 mapping kaydinin tamami stok>0 — hic 0 uretilmemis.
+  # run_scraper dropick        dropick_scraper.py        dropick_products.json
   run_scraper dekomum        scrapers/dekomum_scraper.py dekomum_products.json     "--out data/source-products/dekomum_products.json"
   run_scraper protein7       protein7_scraper.py       protein7_products.json
   run_scraper yesilmarka     yesilmarka_scraper.py     yesilmarka_products.json
@@ -155,7 +158,10 @@ run_scraper() {
   run_scraper provitanya          provitanya_scraper.py          provitanya_products.json
   run_scraper proteinmax          proteinmax_scraper.py          proteinmax_products.json
   run_scraper ceysport            ceysport_scraper.py            ceysport_products.json
-  run_scraper speedwa             speedwa_scraper.py             speedwa_products.json
+  # 2026-07-27 PASIF (kullanici kurali): speedwa urun sayfalarinda hicbir stok
+  # sinyali yok (ne availability ne "tukendi" metni); parser 272 urunu daima
+  # stokta yaziyor. Gercek stok gostergesi bulunana kadar kapali.
+  # run_scraper speedwa             speedwa_scraper.py             speedwa_products.json
   # 2026-07-27 PASIF (kullanici karari: stok sorunu olacak kaynagi calistirma):
   # herbinatura urun sayfalarinda availability alani YOK (8/8 test), parser
   # alan bosken "stokta" varsayiyor -> 45/45 urun daima stokta, yok satma riski.
