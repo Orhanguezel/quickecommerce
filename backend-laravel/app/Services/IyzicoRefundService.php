@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\Mail\OrderRefundedStockOut;
 use App\Models\OrderMaster;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 /**
  * PostOrderStockCheckJob bir veya birden fazla satirin kesin "out-of-stock"
@@ -248,7 +250,8 @@ class IyzicoRefundService
      */
     private function markOrdersRefunded(OrderMaster $master, array $orderIds, array $outOrderIds, bool $setMasterRefunded, string $note): void
     {
-        DB::transaction(function () use ($master, $orderIds, $outOrderIds, $setMasterRefunded, $note) {
+        $newlyRefunded = [];
+        DB::transaction(function () use ($master, $orderIds, $outOrderIds, $setMasterRefunded, $note, &$newlyRefunded) {
             if ($setMasterRefunded) {
                 $master->payment_status = 'refunded';
                 $master->save();
@@ -293,6 +296,7 @@ class IyzicoRefundService
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
+                $newlyRefunded[] = (int) $sub->id;
             }
 
             foreach ($orderIds as $oid) {
@@ -307,6 +311,41 @@ class IyzicoRefundService
                 ]);
             }
         });
+
+        // Iade DB'ye yazildi -> musteriye bilgilendirme e-postasi. Yalnizca bu calismada
+        // YENI iade edilen sub-order'lar icin gonderilir; job retry'inde order_refunds
+        // zaten var oldugu icin $newlyRefunded bos kalir ve mukerrer mail gitmez.
+        if (!empty($newlyRefunded)) {
+            $this->sendCustomerRefundEmail($master, $newlyRefunded, !$setMasterRefunded);
+        }
+    }
+
+    /**
+     * Otomatik stok-out iadesinde musteriye bilgilendirme e-postasi (queue).
+     * Mail altyapisi hata verirse iade akisini bozmaz (best-effort).
+     */
+    private function sendCustomerRefundEmail(OrderMaster $master, array $refundedOrderIds, bool $isPartial): void
+    {
+        try {
+            $email = optional($master->customer)->email;
+            if (!$email) {
+                Log::info('IyzicoRefund: musteri email yok, iade maili atlandi', ['order_master_id' => $master->id]);
+                return;
+            }
+
+            Mail::to($email)->queue(new OrderRefundedStockOut($master, $refundedOrderIds, $isPartial));
+
+            Log::info('IyzicoRefund: musteri iade bilgilendirme maili kuyruga alindi', [
+                'order_master_id' => $master->id,
+                'order_ids' => $refundedOrderIds,
+                'email' => $email,
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('IyzicoRefund: iade maili gonderilemedi', [
+                'order_master_id' => $master->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /** "ORD139-DET34" / "ORD139" / "ORD139-ADJ" -> 139 */

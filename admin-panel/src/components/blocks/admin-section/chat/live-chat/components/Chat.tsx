@@ -107,6 +107,16 @@ const Chat: React.FC<any> = ({
         });
         setActiveChannel(String(match.user_id));
         setSelectedChatUser(String(match.chat_id));
+      } else if (target?.receiver_id && target?.receiver_type) {
+        // Konusma listede yoksa (orn. henuz mesaji olmayan musteri) hedeften sec.
+        // Aksi halde selectedUser bos kalir ve mesaj gonderimi bos receiver_id ile 422 doner.
+        setSelectedUser({
+          sender_id: "",
+          receiver_id: String(target.receiver_id),
+          receiver_type: String(target.receiver_type),
+          search: "",
+        });
+        setActiveChannel(String(target.receiver_id));
       }
 
       localStorage.removeItem("chat_target");
@@ -320,6 +330,11 @@ const Chat: React.FC<any> = ({
 
   const sendMessage = async () => {
     if (!newMessage.trim() && !selectedFile) {
+      return "";
+    }
+    // Alici secili degilse bos receiver_id ile istek atma (backend 422 "receiver_id required").
+    if (!selectedUser?.receiver_id || !selectedUser?.receiver_type) {
+      toast.error("Alici secili degil. Lutfen konusmayi listeden tekrar acin.");
       return "";
     }
     const outgoingTimestamp = new Date().toISOString();

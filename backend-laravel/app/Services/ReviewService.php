@@ -2,13 +2,19 @@
 
 namespace App\Services;
 
+use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Store;
 use App\Models\Review;
 use App\Models\ReviewReaction;
+use Illuminate\Http\UploadedFile;
 
 class ReviewService
 {
+    public function __construct(protected MediaService $mediaService)
+    {
+    }
+
     public function getAllReviews($filters)
     {
         $query = Review::with(['customer', 'reviewable', 'store.related_translations']);
@@ -71,13 +77,39 @@ class ReviewService
         }
         // create review
         if (!empty($data)) {
+            $customerId = auth('api_customer')->user()->id;
+
+            // Yuklenen yorum gorsellerini media'ya kaydet, ID'leri virgulle birlestir
+            $imageIds = [];
+            $files = $data['images'] ?? null;
+            if (is_array($files)) {
+                foreach ($files as $file) {
+                    if ($file instanceof UploadedFile) {
+                        // NOT: medya URL helper'i (com_get_attachment_by_id) tum gorselleri
+                        // 'default' klasorunde varsayar; bu yuzden review gorselleri de
+                        // 'default' altina kaydedilir (usage_type='review' ile etiketlenir).
+                        $media = $this->mediaService->store_uploaded_image(
+                            $file,
+                            $customerId,
+                            Customer::class,
+                            'default',
+                            'review'
+                        );
+                        if ($media) {
+                            $imageIds[] = $media->id;
+                        }
+                    }
+                }
+            }
+
             $review = Review::create([
                 "order_id" => $data['order_id'],
                 "store_id" => $data['store_id'],
                 "reviewable_id" => $data['reviewable_id'],
                 "reviewable_type" => $reviewable_type,
-                "customer_id" => auth('api_customer')->user()->id,
+                "customer_id" => $customerId,
                 "review" => $data['review'],
+                "images" => !empty($imageIds) ? implode(',', $imageIds) : null,
                 "rating" => $data['rating'],
             ]);
             if ($review) {

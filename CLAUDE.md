@@ -79,7 +79,7 @@ ssh vps-sportoonline '/var/www/quikecommerce/scrapers/health.sh'
 | Sorun | Cozum |
 |---|---|
 | `OLDU` (>168 saat) | Scraper kirilmis veya kaynak sit anti-bot ekledi. `/var/www/quikecommerce/logs/scrapers-YYYYMMDD.log` kontrol et |
-| Maraton fail | Scrapling servisi (`scraper.guezelwebdesign.com`) ayakta mi? `curl https://scraper.guezelwebdesign.com/health` |
+| stealth scraper 500/fail | Yerel servis ayakta mi? `ssh vps-sportoonline 'curl -s http://127.0.0.1:8200/health'` → `{"status":"ok",...}`. Degilse `cd /opt/scraper-service && docker compose restart`. (Dis servis guezelwebdesign 2026-06-21 KALDIRILDI.) |
 | Cron entry yok | `crontab -e` ile geri ekle: `0 2 * * * /var/www/quikecommerce/scrapers/run-all.sh >> /var/log/cron-scrapers.log 2>&1` |
 | sync exit code != 0 | Laravel `sync:source-prices` parametre/JSON format hatasi. Manuel `--dry-run` ile test et |
 
@@ -89,9 +89,8 @@ ssh vps-sportoonline '/var/www/quikecommerce/scrapers/health.sh'
 
 **Anti-bot katmani:**
 - Cogu kaynak (compexturkiye, eprotein, proteinavm, herbinatura, vs.) **Scrapling stealth** uzerinden ceker (`SCRAPER_URL` env'i).
-- Iki ayri Scrapling servisi:
-  - **Dis servis**: `https://scraper.guezelwebdesign.com` (vps-guezelwebdesign Docker, mevcut 22 scraper bunu kullanir)
-  - **Yerel servis** (2026-06-06 EKLENDI): `http://127.0.0.1:8200` (/opt/scraper-service, vps-sportoonline Docker). Kullanim: **source bazli override** ile 4 fail eden scraper (compexturkiye, eprotein, proteinavm, musclepump_import) yerel'i kullanir. Diger 18 scraper'a dokunulmadi. `.env`: `LOCAL_SCRAPER_URL=http://127.0.0.1:8200` + `LOCAL_SCRAPER_API_KEY=scraper-sportoonline-internal-...`.
+- **TEK servis — YEREL** (2026-06-21): `http://127.0.0.1:8200` (/opt/scraper-service, vps-sportoonline Docker). Tum stealth scraper'lar bunu kullanir. `.env`/run-all.sh: `SCRAPER_URL=http://127.0.0.1:8200` + `SCRAPER_API_KEY=scraper-sportoonline-internal-...` (default artik yerel).
+- **Dis servis `https://scraper.guezelwebdesign.com` KALDIRILDI (2026-06-21).** Health "ok" donse de `/api/v1/scrape` CF-agir IdeaSoft/compex siteleri icin ~1s'de HTTP 500 doruyordu; compex+proteinavm 5 gun (06-16→06-21) FAIL etti. Tum shell driver (run-all/run-intraday/run-evening/run-maraton), python (ideasoft_scraper fallback) ve `ScrapersRunOne.php` default'u yerele cevrildi; `scraper.guezelwebdesign.com` referansi kalmadi (sadece yorum). Health raporundaki "Maraton fail → guezelwebdesign health" satiri artik gecersiz.
 
 **Pasif kaynaklar** (registry `STATUS_PASSIVE`): maraton (site kapali), powertec (CF 1010), raketspor (CF 1010). Saglik kontrolu bunlari es geciyor.
 

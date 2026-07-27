@@ -18,6 +18,12 @@ class ProductReviewPublicResource extends JsonResource
             "review_id" => $this->id,
             "reviewed_by" => new ReviewerPublicResource($this->customer),
             "review" => $this->review,
+            "images" => $this->images
+                ? array_values(array_filter(array_map(
+                    fn ($id) => com_option_get_id_wise_url(trim($id)),
+                    explode(',', $this->images)
+                )))
+                : [],
             "rating" => $this->rating,
             "like_count" => $this->like_count,
             "dislike_count" => $this->dislike_count,

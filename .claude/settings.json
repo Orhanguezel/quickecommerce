@@ -21,7 +21,23 @@
       "Bash(scp -q /tmp/traffic_analyze.py vps-sportoonline:/tmp/traffic_analyze.py)",
       "Bash(weasyprint sportoonline-trafik-15-22-mayis-2026.html sportoonline-trafik-15-22-mayis-2026.pdf)",
       "Bash(php -l app/Http/Controllers/Api/V1/ProductFeedController.php)",
-      "Bash(scp -q app/Http/Controllers/Api/V1/ProductFeedController.php vps-sportoonline:/var/www/quikecommerce/backend-laravel/app/Http/Controllers/Api/V1/ProductFeedController.php)"
+      "Bash(scp -q app/Http/Controllers/Api/V1/ProductFeedController.php vps-sportoonline:/var/www/quikecommerce/backend-laravel/app/Http/Controllers/Api/V1/ProductFeedController.php)",
+      "Bash(gh pr create --base main --head fix-proteinavm-sitemap --title 'fix\\(scraper\\): proteinavm CF — sitemap'\\\\''leri duz HTTP ile cek' --body 'proteinavm.com Cloudflare challenge ekledi + Ticimax'\\\\''e gecti. Sitemap stealth tarayicidan cekilince CF cold-solve 90s timeout'\\\\''u asiyordu, run FAIL veriyordu. Sitemap path'\\\\''leri CF korumasiz oldugu icin artik duz HTTP ile cekiliyor \\(stealth fallback'\\\\''li\\). SCRAPER_TIMEOUT 60->90. *)",
+      "Bash(gh pr *)",
+      "Bash(scp scrapers/eyb_scraper.py vps-sportoonline:/var/www/quikecommerce/scrapers/eyb_scraper.py)",
+      "Bash(php -l backend-laravel/app/Console/Commands/ScrapersRunOne.php)",
+      "Bash(git restore *)",
+      "Bash(ssh vss=dummy)",
+      "Bash(scp /tmp/provitanya_poc.py vps-sportoonline:/tmp/provitanya_poc.py)",
+      "Bash(scp /tmp/prov_debug.py vps-sportoonline:/tmp/prov_debug.py)",
+      "Bash(scp /tmp/prov_api_test.py vps-sportoonline:/tmp/prov_api_test.py)",
+      "Bash(scp /tmp/prov_schema_cov.py vps-sportoonline:/tmp/prov_schema_cov.py)",
+      "Bash(scp /tmp/provitanya_scraper_new.py vps-sportoonline:/var/www/quikecommerce/scrapers/provitanya_scraper_new.py)",
+      "Bash(scp /tmp/linktech_probe.py vps-sportoonline:/tmp/linktech_probe.py)",
+      "Bash(scp /tmp/linktech_card.py vps-sportoonline:/tmp/linktech_card.py)",
+      "Bash(scp /tmp/linktech_scraper_new.py vps-sportoonline:/var/www/quikecommerce/scrapers/linktech_scraper_new.py)",
+      "Bash(echo \"ahead/behind origin/main \\(behind ahead\\): $\\(git rev-list --left-right --count origin/main...HEAD\\)\")",
+      "Bash(scp /tmp/trace_stock.php vps-sportoonline:/tmp/trace_stock.php)"
     ],
     "defaultMode": "bypassPermissions"
   }
