@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Enums\StoreType as StoreTypeEnum;
+use Illuminate\Http\JsonResponse;
 use App\Enums\Behaviour;
 use App\Http\Resources\Banner\BannerPublicResource;
 use App\Http\Resources\Com\AboutUsPublicResource;
@@ -108,6 +109,33 @@ class FrontendController extends Controller
      * first 100 of 10k+ sellable products and made pagination prohibitively
      * expensive. Keep this endpoint deliberately small and cacheable.
      */
+    /**
+     * GET /api/v1/sitemap/gone-products
+     *
+     * Katalogdan KALICI olarak kaldirilmis (soft-delete) urunlerin slug'lari.
+     * Frontend middleware bunlari 404 yerine **410 Gone** ile yanitlar; 410
+     * "bu kaynak kalici olarak yok" demektir ve Google indeksten 404'e gore
+     * daha hizli duserur.
+     *
+     * Sadece slug listesi doner (2026-07: ~513 kayit, birkac on KB) ve 1 saat
+     * cache'lenir; middleware her istekte DB'ye gitmez.
+     */
+    public function sitemapGoneProducts(): JsonResponse
+    {
+        $slugs = Cache::remember('seo:sitemap:gone-products:v1', now()->addHour(), function () {
+            return Product::onlyTrashed()
+                ->whereNotNull('slug')
+                ->where('slug', '!=', '')
+                ->orderBy('id')
+                ->pluck('slug')
+                ->unique()
+                ->values()
+                ->all();
+        });
+
+        return response()->json(['data' => $slugs, 'count' => count($slugs)]);
+    }
+
     public function sitemapProducts()
     {
         $items = Cache::remember('seo:sitemap:products:v1', now()->addHour(), function () {

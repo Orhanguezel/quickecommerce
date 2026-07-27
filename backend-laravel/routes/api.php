@@ -88,6 +88,7 @@ Route::group(['prefix' => 'v1/'], function () {
     Route::middleware('detect.platform')->group(function () {
         Route::get('/slider-list', [FrontendController::class, 'sliders']);
         Route::get('/sitemap/products', [FrontendController::class, 'sitemapProducts']);
+        Route::get('/sitemap/gone-products', [FrontendController::class, 'sitemapGoneProducts']);
         Route::match(['GET', 'POST'], '/product-list', [FrontendController::class, 'products']);
         Route::get('/product/attribute-list', [FrontendController::class, 'productAttributes']);
         Route::get('/product/{product_slug}', [FrontendController::class, 'productDetails']);
