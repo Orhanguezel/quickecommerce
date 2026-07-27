@@ -85,8 +85,11 @@ const nextConfig: NextConfig = {
               "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'",
           },
           {
+            // microphone=(self): sesli arama (Web Speech API) icin ZORUNLU.
+            // "microphone=()" mikrofonu kendi origin'ine bile kapatiyor ve
+            // Chrome SpeechRecognition'i sessizce "not-allowed" ile dusuruyordu.
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
+            value: "camera=(), microphone=(self), geolocation=()",
           },
         ],
       },

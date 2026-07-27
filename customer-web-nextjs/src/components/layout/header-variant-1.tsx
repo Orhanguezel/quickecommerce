@@ -1,6 +1,6 @@
 'use client';
 
-import { Link, useRouter, usePathname } from '@/i18n/routing';
+import { Link, usePathname } from '@/i18n/routing';
 import { ROUTES } from '@/config/routes';
 import { useSiteInfoQuery, useMenuQuery, useCategoryQuery } from '@/modules/site/site.action';
 import {
@@ -17,7 +17,6 @@ import { SearchBar } from './search-bar';
 import { LanguageSwitcher } from './language-switcher';
 import { CurrencySwitcher } from '@/components/common/currency-switcher';
 import {
-  Search,
   ShoppingCart,
   Heart,
   User,
@@ -45,7 +44,6 @@ function chunkArray<T>(items: T[], size: number): T[][] {
 
 export function HeaderVariant1() {
   const t = useTranslations();
-  const router = useRouter();
   const { theme, setTheme } = useTheme();
   const { siteInfo } = useSiteInfoQuery();
   const { menus } = useMenuQuery();
@@ -58,7 +56,6 @@ export function HeaderVariant1() {
 
   const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const [catOpen, setCatOpen] = useState(false);
   const [activeCatId, setActiveCatId] = useState<number | null>(null);
   const [logoError, setLogoError] = useState(false);
@@ -165,13 +162,6 @@ export function HeaderVariant1() {
     .filter((m: MenuItem) => m.is_visible && m.parent_id === null)
     .sort((a: MenuItem, b: MenuItem) => a.position - b.position)
     .slice(0, 5);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`${ROUTES.SEARCH}?q=${encodeURIComponent(searchQuery.trim())}`);
-    }
-  };
 
   const openMegaMenu = () => {
     const nextOpen = !catOpen;
@@ -567,24 +557,10 @@ export function HeaderVariant1() {
           )}
         </nav>
 
+        {/* Mobil arama — masaustu ile ayni oneri/sesli arama davranisi */}
         <div className="border-b bg-background md:hidden">
           <div className="container py-2">
-            <form onSubmit={handleSearch} className="flex overflow-hidden rounded-lg border border-border">
-              <input
-                type="search"
-                placeholder={t('common.search_placeholder')}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-11 flex-1 border-none bg-transparent px-4 text-sm text-foreground outline-none placeholder:text-muted-foreground"
-              />
-              <button
-                type="submit"
-                aria-label={t('common.search')}
-                className="flex shrink-0 items-center justify-center bg-primary px-4 text-primary-foreground"
-              >
-                <Search className="h-4 w-4" />
-              </button>
-            </form>
+            <SearchBar mobile />
           </div>
         </div>
       </div>

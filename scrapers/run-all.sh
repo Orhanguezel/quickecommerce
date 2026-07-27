@@ -7,15 +7,18 @@ DATE=$(date +%Y%m%d)
 LOG="/var/www/quikecommerce/logs/scrapers-$DATE.log"
 VENV="/var/www/quikecommerce/venv/bin/python3"
 
-# Maraton icin Scrapling env (anti-bot)
-export SCRAPER_URL=https://scraper.guezelwebdesign.com
-export SCRAPER_API_KEY=scraper-sportoonline-Eq4lGI4KV4CLCMluihY9t9pn0jrZMmf-
+# Scrapling stealth env (anti-bot). 2026-06-21'de dis servis
+# (scraper.guezelwebdesign.com) KALDIRILDI — CF-agir sitelerde ~1s'de HTTP 500
+# doruyordu. Varsayilan artik yerel servis; asagidaki LOCAL_* ile ayni.
+export SCRAPER_URL=http://127.0.0.1:8200
+export SCRAPER_API_KEY=scraper-sportoonline-internal-kJKbcJ7Gme7bjxB83s9yCM7u99A7Yg
 
 # Cloudflare'i SERT siteler dis stealth serviste 429/500 aliyor; yerel stealth
 # servis (farkli IP itibari) gecebiliyor. Bu kaynaklar yerel servise yonlenir.
 export LOCAL_SCRAPER_URL=http://127.0.0.1:8200
 export LOCAL_SCRAPER_API_KEY=scraper-sportoonline-internal-kJKbcJ7Gme7bjxB83s9yCM7u99A7Yg
-LOCAL_SCRAPER_SOURCES=" eprotein "
+# CF arkasindaki kaynaklar (solve_cloudflare + yerel stealth sart)
+LOCAL_SCRAPER_SOURCES=" eprotein compexturkiye proteinavm "
 export SCRAPER_TIMEOUT=90
 
 # 2026-06-04: Telegram fail bildirim (provitanya 10 gun sessiz fail sonrasi).
@@ -134,6 +137,7 @@ run_scraper() {
   # asagidaki 3 satir geri acilabilir.
   # run_scraper maraton_import    maraton_scraper_v2.py     maraton_products.json       "--urls-from maraton_urls.json"
   run_scraper musclepump_import musclepump_scraper.py     musclepump_products.json
+  run_scraper animaljoy           animaljoy_scraper.py           animaljoy_products.json
   run_scraper everlast       everlast_scraper.py       everlast_products.json
   run_scraper swan           swan_scraper.py           swan_products.json
   run_scraper grandgiftstore grandgiftstore_scraper.py grandgiftstore_products.json
@@ -152,25 +156,30 @@ run_scraper() {
   run_scraper proteinmax          proteinmax_scraper.py          proteinmax_products.json
   run_scraper ceysport            ceysport_scraper.py            ceysport_products.json
   run_scraper speedwa             speedwa_scraper.py             speedwa_products.json
-  run_scraper herbinatura         herbinatura_scraper.py         herbinatura_products.json
+  # 2026-07-27 PASIF (kullanici karari: stok sorunu olacak kaynagi calistirma):
+  # herbinatura urun sayfalarinda availability alani YOK (8/8 test), parser
+  # alan bosken "stokta" varsayiyor -> 45/45 urun daima stokta, yok satma riski.
+  # run_scraper herbinatura         herbinatura_scraper.py         herbinatura_products.json
   run_scraper rovabatarya         rovabatarya_scraper.py         rovabatarya_products.json
   run_scraper eyb                 eyb_scraper.py                 eyb_products.json
   run_scraper linktech            linktech_scraper.py            linktech_products.json
   run_scraper musullu             musullu_scraper.py             musullu_products.json
   run_scraper bodyfitshop         bodyfitshop_scraper.py         bodyfitshop_products.json
   run_scraper crestaofficial      crestaofficial_scraper.py      crestaofficial_products.json
-  # 2026-06-25 PASIF (kullanici karari): compexturkiye + proteinavm Cloudflare
-  # SERT DUVAR — yerel scraper fast mode 403 "Just a moment", dynamic+solve_cloudflare
-  # 102s deneyip yine gecemiyor. 1 haftadir FAIL. Gercek cozum residential proxy.
-  # Registry STATUS_PASSIVE; veri son-iyi halde donar (Faz1 probe + 30dk net +
-  # escrow guard oversell'i koruyor). Proxy gelince geri ACTIVE.
-  # run_scraper compexturkiye       compexturkiye_scraper.py       compexturkiye_products.json
-  # run_scraper proteinavm          proteinavm_scraper.py          proteinavm_products.json
-  # 2026-06-25 PASIF (kullanici karari): eprotein scraper pratikte olu — CF/IdeaSoft
-  # yerel stealth'ten surekli HTTP 500, "basarili" gunlerde bile 570/570 varyant
-  # fiyati 14+ gun donmus. Magaza#69 status=0 + tum varyant stok=0 yapildi. Zararina
-  # satis riski. Calisir scraper yazilinca geri acilir.
-  # run_scraper eprotein            eprotein_scraper.py            eprotein_products.json
+  # 2026-07-27 GERI ACILDI: "CF sert duvar" teshisi yanlisti — istekler
+  # solve_cloudflare bayragi olmadan gidiyordu, bayrakla ikisi de HTTP 200.
+  # STOK TESPITI DOGRULANDI (kullanici kurali: stok sorunu olacak kaynagi acma):
+  #   compexturkiye -> WooCommerce Store API native is_in_stock
+  #   proteinavm    -> 10 urun testinde 9 OutOfStock / 1 InStock dogru okundu
+  run_scraper compexturkiye       compexturkiye_scraper.py       compexturkiye_products.json
+  run_scraper proteinavm          proteinavm_scraper.py          proteinavm_products.json
+  # 2026-07-27 GERI ACILDI + KAPSAM DARALTILDI (kullanici karari):
+  # CF duvari asilamiyor sanilan sorun aslinda eksik bayrakti — istek
+  # solve_cloudflare=true ile gidince site HTTP 200 doruyor (dogrulandi).
+  # Artik SADECE /spor-outdoor kategorisi cekiliyor (176 urun: ekipman, direnc
+  # lastigi, mat, aksesuar); supplementler cekilmiyor. Cikti multiprice
+  # (store#41) altina import edildi, eProtein magazasi#69 pasif kaliyor.
+  run_scraper eprotein            eprotein_scraper.py            eprotein_products.json
   # 2026-06-02 PASIF (Cloudflare 1010 IP bani, proxy yapilmadi) — bkz. yukaridaki not.
   # run_scraper powertec            powertec_scraper.py            powertec_products.json
   # run_scraper raketspor           raketspor_scraper.py           raketspor_products.json
