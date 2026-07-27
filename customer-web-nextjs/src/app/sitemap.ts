@@ -14,6 +14,7 @@ const BASE_URL =
 interface SitemapItem {
   slug: string;
   updatedAt?: string;
+  locales?: string[];
 }
 
 type SitemapRawItem = Record<string, unknown>;
@@ -35,11 +36,15 @@ function normalizeSitemapItem(item: SitemapRawItem): SitemapItem | null {
         ? item.created_at
         : undefined;
 
-  return { slug, updatedAt };
+  const locales = Array.isArray(item.locales)
+    ? item.locales.filter((locale): locale is string => typeof locale === "string")
+    : undefined;
+
+  return { slug, updatedAt, locales };
 }
 
-function normalizeLastModified(value: string | undefined, fallback: string): string {
-  return (toIsoDate(value) || fallback).slice(0, 10);
+function normalizeLastModified(value: string | undefined): string | undefined {
+  return toIsoDate(value)?.slice(0, 10);
 }
 
 function encodeSlug(slug: string): string {
@@ -82,9 +87,23 @@ async function fetchCategorySlugs(): Promise<SitemapItem[]> {
   }
 }
 
+async function fetchProductSlugs(): Promise<SitemapItem[]> {
+  try {
+    const res = await axios.get(`${BASE_URL}/sitemap/products`, {
+      timeout: 60000,
+    });
+    const items = (res.data?.data ?? []) as SitemapRawItem[];
+
+    return items
+      .map((item) => normalizeSitemapItem(item))
+      .filter(Boolean) as SitemapItem[];
+  } catch {
+    return [];
+  }
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const locales = ["tr", "en"];
-  const now = new Date().toISOString().slice(0, 10);
 
   // Static pages
   const staticPages = [
@@ -141,7 +160,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticEntries: MetadataRoute.Sitemap = staticPages.flatMap((page) =>
     locales.map((locale) => ({
       url: `${SITE_URL}/${locale}${page.path}`,
-      lastModified: now,
       changeFrequency: page.changeFrequency,
       priority: page.priority,
       alternates: {
@@ -155,7 +173,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Dynamic pages — fetch slugs in parallel
   const [productSlugs, categorySlugs, brandSlugs, blogSlugs, storeSlugs] =
     await Promise.all([
-      fetchSlugs("/product-list"),
+      fetchProductSlugs(),
       fetchCategorySlugs(),
       fetchSlugs("/brand-list"),
       fetchSlugs("/blogs"),
@@ -167,15 +185,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Products
   for (const item of productSlugs) {
     const slug = encodeSlug(item.slug);
-    for (const locale of locales) {
+    const productLocales = item.locales?.length ? item.locales : ["tr"];
+    for (const locale of productLocales) {
       dynamicEntries.push({
         url: `${SITE_URL}/${locale}/urun/${slug}`,
-        lastModified: normalizeLastModified(item.updatedAt, now),
+        lastModified: normalizeLastModified(item.updatedAt),
         changeFrequency: "daily",
         priority: 0.8,
         alternates: {
           languages: Object.fromEntries(
-            locales.map((l) => [l, `${SITE_URL}/${l}/urun/${slug}`])
+            productLocales.map((l) => [l, `${SITE_URL}/${l}/urun/${slug}`])
           ),
         },
       });
@@ -188,7 +207,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     for (const locale of locales) {
       dynamicEntries.push({
         url: `${SITE_URL}/${locale}/kategori/${slug}`,
-        lastModified: normalizeLastModified(item.updatedAt, now),
+        lastModified: normalizeLastModified(item.updatedAt),
         changeFrequency: "weekly",
         priority: 0.7,
         alternates: {
@@ -206,7 +225,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     for (const locale of locales) {
       dynamicEntries.push({
         url: `${SITE_URL}/${locale}/marka/${slug}`,
-        lastModified: normalizeLastModified(item.updatedAt, now),
+        lastModified: normalizeLastModified(item.updatedAt),
         changeFrequency: "weekly",
         priority: 0.6,
         alternates: {
@@ -224,7 +243,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     for (const locale of locales) {
       dynamicEntries.push({
         url: `${SITE_URL}/${locale}/blog/${slug}`,
-        lastModified: normalizeLastModified(item.updatedAt, now),
+        lastModified: normalizeLastModified(item.updatedAt),
         changeFrequency: "weekly",
         priority: 0.7,
         alternates: {
@@ -242,7 +261,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     for (const locale of locales) {
       dynamicEntries.push({
         url: `${SITE_URL}/${locale}/magaza/${slug}`,
-        lastModified: normalizeLastModified(item.updatedAt, now),
+        lastModified: normalizeLastModified(item.updatedAt),
         changeFrequency: "weekly",
         priority: 0.6,
         alternates: {

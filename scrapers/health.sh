@@ -10,16 +10,32 @@ echo "════════════════════════�
 echo
 
 echo "── JSON Output Dosyalari (mtime + boyut + urun sayisi) ──"
-for f in *_products.json; do
+shopt -s nullglob
+declare -A newest_json=()
+
+# Eski kurulumlar kok dizine, guncel scraper'lar data/source-products altina
+# yazar. Ayni dosya iki yerdeyse en yenisini raporla; aksi halde kokte kalmis
+# Mayis kopyalari "OLDU" gorunurken gercek gunluk cikti sessizce atlanir.
+for f in *_products.json data/source-products/*_products.json; do
   [ -f "$f" ] || continue
+  base=$(basename "$f")
+  current="${newest_json[$base]:-}"
+  if [ -z "$current" ] || [ "$f" -nt "$current" ]; then
+    newest_json[$base]="$f"
+  fi
+done
+
+while IFS= read -r base; do
+  [ -n "$base" ] || continue
+  f="${newest_json[$base]}"
   size=$(stat --printf="%s" "$f")
   count=$(python3 -c "import json,sys; d=json.load(open('$f')); print(len(d) if isinstance(d,list) else len(d.get('products',[])))" 2>/dev/null || echo "?")
   age_h=$(( ($(date +%s) - $(stat --printf="%Y" "$f")) / 3600 ))
   status="OK   "
   if [ $age_h -gt 48 ]; then status="ESKI "; fi
   if [ $age_h -gt 168 ]; then status="OLDU "; fi
-  printf "  [%s] %-32s | %5s urun | %4d saat once | %10s bytes\n" "$status" "$f" "$count" "$age_h" "$size"
-done
+  printf "  [%s] %-32s | %5s urun | %4d saat once | %10s bytes | %s\n" "$status" "$base" "$count" "$age_h" "$size" "$f"
+done < <(printf '%s\n' "${!newest_json[@]}" | sort)
 
 echo
 echo "── En Son Cron Run (logs/scrapers-*.log) ──"

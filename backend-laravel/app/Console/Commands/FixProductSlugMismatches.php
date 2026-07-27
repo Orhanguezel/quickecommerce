@@ -3,7 +3,9 @@
 namespace App\Console\Commands;
 
 use App\Models\Product;
+use App\Models\ProductSlugRedirect;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
@@ -15,7 +17,8 @@ use Illuminate\Support\Str;
  * slug tokens = mismatch.
  *
  * Fix: regenerate slug from name with Str::slug, append -2/-3/... if a
- * collision exists. Safe because `name` is what customers see and search.
+ * collision exists. The old slug is preserved in product_slug_redirects so
+ * existing links and Googlebot receive a permanent canonical redirect.
  *
  * Always run with --dry-run first.
  */
@@ -54,6 +57,12 @@ class FixProductSlugMismatches extends Command
         $this->newLine();
 
         $taken = Product::withTrashed()->pluck('slug')->all();
+        try {
+            $taken = array_merge($taken, ProductSlugRedirect::pluck('old_slug')->all());
+        } catch (\Illuminate\Database\QueryException) {
+            $this->error('product_slug_redirects tablosu bulunamadı. Önce migration çalıştırılmalı; slug değişikliği yapılmadı.');
+            return self::FAILURE;
+        }
         $takenSet = array_flip(array_filter($taken));
 
         $rows = [];
@@ -95,7 +104,13 @@ class FixProductSlugMismatches extends Command
         $bar->start();
 
         foreach ($planned as $p) {
-            Product::withTrashed()->where('id', $p['id'])->update(['slug' => $p['new']]);
+            DB::transaction(function () use ($p) {
+                ProductSlugRedirect::updateOrCreate(
+                    ['old_slug' => $p['old']],
+                    ['product_id' => $p['id']]
+                );
+                Product::withTrashed()->where('id', $p['id'])->update(['slug' => $p['new']]);
+            });
             $bar->advance();
         }
 

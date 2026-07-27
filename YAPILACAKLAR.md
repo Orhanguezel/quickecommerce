@@ -4,6 +4,34 @@
 > 5 günlük trafik raporu + ayrı nginx log, Geliver Türkçe il/ilçe fix + #113,
 > Google Places API, admin sipariş detayı/fatura adres + isim + temiz format.
 
+## 🆕 Search Console Coverage + ürün SEO kalite kapısı — KOD TAMAM / CANLI BEKLİYOR (2026-07-27)
+
+- [X] Coverage ZIP analiz edildi: 3.157 indekslenmeyen URL; 2.058 crawl-not-indexed,
+  664 adet 404, 363 canonical alternatif.
+- [X] Kritik sitemap hatası bulundu: 10.458 public üründen yalnız ilk 100’ü
+  sitemap’e giriyordu (`per_page` backend’de 100 cap).
+- [X] Hafif `/api/v1/sitemap/products` endpoint’i + tam ürün sitemap kaynağı eklendi.
+- [X] Çevirisiz `/en/urun/...` kopyaları sitemap’ten çıkarıldı ve Türkçe
+  canonical’a kalıcı redirect eklendi.
+- [X] Sahte günlük `lastmod` kaldırıldı; gerçek `updated_at` kullanılıyor.
+- [X] 79 canlı slug/ad uyuşmazlığı dry-run ile bulundu.
+- [X] `product_slug_redirects` migration’ı + redirect korumalı slug düzeltmesi eklendi.
+- [X] `scrapers:validate-products` ve import kalite kapısı eklendi.
+- [X] `products:seo-audit` CSV rapor komutu eklendi.
+- [X] `scrapers/health.sh` eski kök JSON yerine kök + `data/source-products`
+  içindeki en yeni çıktıyı raporlayacak şekilde düzeltildi.
+- [X] Scraper SEO checklist:
+  [`docs/SCRAPER_PRODUCT_SEO_CHECKLIST.md`](docs/SCRAPER_PRODUCT_SEO_CHECKLIST.md)
+- [X] Denetim raporu:
+  [`docs/reports/SEO_COVERAGE_AUDIT_2026-07-27.md`](docs/reports/SEO_COVERAGE_AUDIT_2026-07-27.md)
+- [ ] Migration + backend/frontend deploy.
+- [ ] Canlı `products:seo-audit` tam CSV üretimi.
+- [ ] Redirect korumalı 79 slug düzeltmesini uygula.
+- [ ] Search Console’dan 664 adet 404 için URL örnek CSV’sini ayrıca indir ve
+  geçmiş alias’ları redirect tablosuna ekle.
+- [ ] EYB/Ceysport/Speedwa/Provitanya açıklama + görsel backfill.
+- [ ] Sitemap’i Search Console’a yeniden gönder; 7/28 gün doğrulama.
+
 ## 🆕 Search backend dinamik + yeni taxonomy attributes — ÇEKLİST (2026-05-25)
 
 > 2026-05-25/26 oturumunda yapılanlar + bekleyenler.

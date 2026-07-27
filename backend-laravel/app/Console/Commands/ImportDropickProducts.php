@@ -7,9 +7,11 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\ProductSpecification;
 use App\Models\ProductSourceMapping;
+use App\Models\ProductSlugRedirect;
 use App\Models\ProductVariant;
 use App\Models\Store;
 use App\Models\Translation;
+use App\Services\ProductSeoQuality;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -29,6 +31,7 @@ class ImportDropickProducts extends Command
                             {--lang=tr : Varsayilan dil}
                             {--sku-prefix=PRD : SKU on eki (DPK, NFK vs.)}
                             {--source-name= : Fiyat/stok sync icin kaynak adi (swan, everlast vs.)}
+                            {--skip-quality-check : Scraper SEO/veri kalite kapısını atla (yalnız acil durum)}
                             {--no-source-mapping : Kaynak mapping kaydi olusturma}';
 
     protected $description = 'Scraper JSON ciktisini QuickEcommerce sistemine import eder (Dropick, Norfolk, Swan vs.)';
@@ -45,7 +48,7 @@ class ImportDropickProducts extends Command
     private array $categoryCache = [];
     private string $imageBasePath;
 
-    public function handle(): int
+    public function handle(ProductSeoQuality $quality): int
     {
         $jsonFile = $this->argument('json_file');
         $this->storeId = (int) $this->argument('store_id');
@@ -85,6 +88,11 @@ class ImportDropickProducts extends Command
             return 1;
         }
 
+        if (!$this->option('skip-quality-check') && !$this->passesQualityGate($products, $quality)) {
+            $this->error('Import durduruldu. Önce scraper verisini düzeltin veya ayrıntı için scrapers:validate-products çalıştırın.');
+            return self::FAILURE;
+        }
+
         $this->info("Toplam {$this->countUniqueProducts($products)} urun import edilecek.");
 
         if ($this->dryRun) {
@@ -122,7 +130,8 @@ class ImportDropickProducts extends Command
             $seenSlugs[$slug] = true;
 
             // Zaten varsa atla
-            if (Product::where('slug', $slug)->exists()) {
+            if (Product::where('slug', $slug)->exists()
+                || ProductSlugRedirect::where('old_slug', $slug)->exists()) {
                 $bar->advance();
                 $skipped++;
                 continue;
@@ -156,6 +165,47 @@ class ImportDropickProducts extends Command
         );
 
         return 0;
+    }
+
+    private function passesQualityGate(array $products, ProductSeoQuality $quality): bool
+    {
+        $errors = [];
+        $seenSlugs = [];
+
+        foreach ($products as $index => $product) {
+            if (!is_array($product)) {
+                $errors[] = sprintf('satır %d: ürün nesne değil', $index + 1);
+                continue;
+            }
+
+            $slug = trim((string) ($product['slug'] ?? ''));
+            if ($slug !== '' && isset($seenSlugs[$slug])) {
+                $errors[] = sprintf('satır %d: duplicate slug "%s"', $index + 1, $slug);
+            }
+            if ($slug !== '') {
+                $seenSlugs[$slug] = true;
+            }
+
+            foreach ($quality->validateScrapedProduct($product) as $issue) {
+                if ($issue['severity'] === 'error') {
+                    $errors[] = sprintf(
+                        'satır %d (%s): %s',
+                        $index + 1,
+                        $product['name'] ?? 'adsız',
+                        $issue['message']
+                    );
+                }
+            }
+        }
+
+        foreach (array_slice($errors, 0, 30) as $error) {
+            $this->warn($error);
+        }
+        if (count($errors) > 30) {
+            $this->warn('... ve ' . (count($errors) - 30) . ' ek hata.');
+        }
+
+        return $errors === [];
     }
 
     private function countUniqueProducts(array $products): int

@@ -54,6 +54,7 @@ use App\Models\Product;
 use App\Models\ProductAttribute;
 use App\Models\ProductBrand;
 use App\Models\ProductCategory;
+use App\Models\ProductSlugRedirect;
 use App\Models\ProductView;
 use App\Models\Review;
 use App\Models\Slider;
@@ -97,6 +98,57 @@ class FrontendController extends Controller
     private function applySellableVariantScope($query)
     {
         return $query->publiclySellable();
+    }
+
+    /**
+     * Lightweight, unpaginated product source for the XML sitemap.
+     *
+     * The regular product-list endpoint caps per_page at 100 and serializes the
+     * full product resource. Using it for the sitemap silently exposed only the
+     * first 100 of 10k+ sellable products and made pagination prohibitively
+     * expensive. Keep this endpoint deliberately small and cacheable.
+     */
+    public function sitemapProducts()
+    {
+        $items = Cache::remember('seo:sitemap:products:v1', now()->addHour(), function () {
+            return Product::query()
+                ->publiclySellable()
+                ->select(['products.id', 'products.slug', 'products.updated_at'])
+                ->with(['translations' => function ($query) {
+                    $query->select([
+                        'id',
+                        'translatable_type',
+                        'translatable_id',
+                        'language',
+                        'key',
+                        'value',
+                    ])
+                        ->where('language', 'en')
+                        ->where('key', 'name')
+                        ->whereNotNull('value')
+                        ->where('value', '!=', '');
+                }])
+                ->orderBy('products.id')
+                ->get()
+                ->map(static function (Product $product) {
+                    $hasEnglishTranslation = $product->translations->isNotEmpty();
+
+                    return [
+                        'slug' => $product->slug,
+                        'updated_at' => optional($product->updated_at)->toIso8601String(),
+                        // Scraper imports are Turkish by default. Publishing an
+                        // identical /en duplicate without a real translation
+                        // wastes crawl budget and creates duplicate canonicals.
+                        'locales' => $hasEnglishTranslation ? ['tr', 'en'] : ['tr'],
+                    ];
+                })
+                ->values();
+        });
+
+        return response()->json([
+            'data' => $items,
+            'meta' => ['total' => $items->count()],
+        ]);
     }
 
     public function departments()
@@ -293,6 +345,50 @@ class FrontendController extends Controller
         ], 200);
     }
 
+    /**
+     * Urun listesi sorgusuna arama filtresi + alaka sirasi uygular.
+     *
+     * Eski davranis tek LIKE '%tum sorgu%' idi: "koşu bandı 3 hp" gibi aramalar,
+     * kelimeler urun adinda birebir ayni sirada bitisik gecmedigi icin 0 sonuc
+     * doruyordu. Ayrica hic alaka sirasi yoktu — "protein" aramasinda adinda
+     * protein gecmeyen, sadece aciklamasinda gecen urunler basa gelebiliyordu.
+     *
+     * Yeni davranis: her kelime AND'lenir (kelime basina ad VEYA aciklama),
+     * sonuclar "adi sorguyla basliyor > adinda kelime basinda geciyor >
+     * adinda geciyor > sadece aciklamada geciyor" sirasina gore siralanir.
+     * Kullanici acik bir sort sectiyse (fiyat/yeni) o birincil kalir.
+     */
+    private function applyRelevanceSearch($query, $rawTerm): void
+    {
+        $term = trim((string) $rawTerm);
+        if ($term === '') {
+            return;
+        }
+
+        $tokens = collect(preg_split('/\s+/u', $term, -1, PREG_SPLIT_NO_EMPTY))
+            ->filter(fn ($token) => mb_strlen($token) >= 2)
+            ->take(6)
+            ->values()
+            ->all();
+        if (empty($tokens)) {
+            $tokens = [$term];
+        }
+
+        $query->where(function ($outer) use ($tokens) {
+            foreach ($tokens as $token) {
+                $outer->where(function ($q) use ($token) {
+                    $q->where('products.name', 'like', '%' . $token . '%')
+                        ->orWhere('products.description', 'like', '%' . $token . '%');
+                });
+            }
+        });
+
+        $query->orderByRaw(
+            'CASE WHEN products.name LIKE ? THEN 0 WHEN products.name LIKE ? THEN 1 WHEN products.name LIKE ? THEN 2 ELSE 3 END',
+            [$term . '%', '% ' . $term . '%', '%' . $term . '%']
+        );
+    }
+
     public function popularProducts(Request $request)
     {
         if (isset($request->id)) {
@@ -433,13 +529,8 @@ class FrontendController extends Controller
             }
         }
 
-        // Search filter
-        if (!empty($request->search)) {
-            $query->where(function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->search . '%')
-                    ->orWhere('description', 'like', '%' . $request->search . '%');
-            });
-        }
+        // Arama: cok kelimeli AND + alaka sirasi (detay: applyRelevanceSearch)
+        $this->applyRelevanceSearch($query, $request->search);
 
         // Featured products
         if (isset($request->is_featured) && $request->is_featured) {
@@ -1566,12 +1657,8 @@ class FrontendController extends Controller
                 $query->where('products.extracted_weight_gr', '<=', (int) $request->weight_max);
             }
         }
-        if (!empty($request->search)) {
-            $query->where(function ($q) use ($request) {
-                $q->where('products.name', 'like', '%' . $request->search . '%')
-                    ->orWhere('products.description', 'like', '%' . $request->search . '%');
-            });
-        }
+        // Arama: cok kelimeli AND + alaka sirasi (detay: applyRelevanceSearch)
+        $this->applyRelevanceSearch($query, $request->search);
         // Pagination
         $perPage = max(1, min(100, (int) ($request->per_page ?? 10)));
         $products = $query->with(['category', 'unit', 'tags', 'store', 'brand',
@@ -1745,6 +1832,17 @@ class FrontendController extends Controller
         // check kaldi. Variant'lar applySellableVariantScope ile zaten filtre
         // ediliyor (tukenmis variant gizli; tek variant ise frontend "Tukendi"
         // gosterir). Listing/search hala applyPublicCatalogScope kullanir.
+        // Migration ile uygulama deploy'u kısa süre farklı sürümlerde kalırsa
+        // ürün detaylarının tamamı 500 olmasın; tablo hazır değilse alias
+        // çözümünü o istek için atla.
+        try {
+            $canonicalProductId = ProductSlugRedirect::query()
+                ->where('old_slug', $product_slug)
+                ->value('product_id');
+        } catch (\Illuminate\Database\QueryException) {
+            $canonicalProductId = null;
+        }
+
         $product = Product::with([
             'store' => function ($query) {
                 $query->withCount(['products' => function ($q) {
@@ -1764,7 +1862,12 @@ class FrontendController extends Controller
         ])
             ->where('status', 'approved')
             ->whereNull('deleted_at')
-            ->where('slug', $product_slug)
+            ->where(function ($query) use ($product_slug, $canonicalProductId) {
+                $query->where('slug', $product_slug);
+                if ($canonicalProductId) {
+                    $query->orWhere('id', $canonicalProductId);
+                }
+            })
             ->first();
 
         if (!$product) {
@@ -1813,9 +1916,21 @@ class FrontendController extends Controller
                 }
             }
         }
+        $availableLocales = $product->translations()
+            ->where('key', 'name')
+            ->whereIn('language', ['tr', 'en'])
+            ->whereNotNull('value')
+            ->where('value', '!=', '')
+            ->pluck('language')
+            ->push('tr')
+            ->unique()
+            ->values();
+
         return response()->json([
             'messages' => __('messages.data_found'),
             'data' => new ProductDetailsPublicResource($product),
+            'canonical_slug' => $product->slug !== $product_slug ? $product->slug : null,
+            'locales' => $availableLocales,
             'related_products' => RelatedProductPublicResource::collection($product->relatedProductsWithCategoryFallback())
         ], 200);
     }
