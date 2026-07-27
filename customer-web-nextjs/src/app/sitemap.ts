@@ -87,21 +87,6 @@ async function fetchCategorySlugs(): Promise<SitemapItem[]> {
   }
 }
 
-async function fetchProductSlugs(): Promise<SitemapItem[]> {
-  try {
-    const res = await axios.get(`${BASE_URL}/sitemap/products`, {
-      timeout: 60000,
-    });
-    const items = (res.data?.data ?? []) as SitemapRawItem[];
-
-    return items
-      .map((item) => normalizeSitemapItem(item))
-      .filter(Boolean) as SitemapItem[];
-  } catch {
-    return [];
-  }
-}
-
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const locales = ["tr", "en"];
 
@@ -171,9 +156,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   );
 
   // Dynamic pages — fetch slugs in parallel
-  const [productSlugs, categorySlugs, brandSlugs, blogSlugs, storeSlugs] =
+  // Urunler bilerek burada DEGIL: 10.6k URL tek dosyayi ~13 saniyeye cikariyordu.
+  // /sitemap-products/N.xml parcalarina bolundu, sitemap_index.xml hepsini listeler.
+  const [categorySlugs, brandSlugs, blogSlugs, storeSlugs] =
     await Promise.all([
-      fetchProductSlugs(),
       fetchCategorySlugs(),
       fetchSlugs("/brand-list"),
       fetchSlugs("/blogs"),
@@ -181,25 +167,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ]);
 
   const dynamicEntries: MetadataRoute.Sitemap = [];
-
-  // Products
-  for (const item of productSlugs) {
-    const slug = encodeSlug(item.slug);
-    const productLocales = item.locales?.length ? item.locales : ["tr"];
-    for (const locale of productLocales) {
-      dynamicEntries.push({
-        url: `${SITE_URL}/${locale}/urun/${slug}`,
-        lastModified: normalizeLastModified(item.updatedAt),
-        changeFrequency: "daily",
-        priority: 0.8,
-        alternates: {
-          languages: Object.fromEntries(
-            productLocales.map((l) => [l, `${SITE_URL}/${l}/urun/${slug}`])
-          ),
-        },
-      });
-    }
-  }
 
   // Categories
   for (const item of categorySlugs) {

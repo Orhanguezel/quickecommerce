@@ -45,6 +45,8 @@ export default function robots(): MetadataRoute.Robots {
         disallow: privatePaths,
       })),
     ],
-    sitemap: `${SITE_URL}/sitemap.xml`,
+    // Index once gelsin: urunler /sitemap-products/N.xml parcalarinda,
+    // sadece sitemap.xml verilirse Google urunleri hic gormez.
+    sitemap: [`${SITE_URL}/sitemap_index.xml`, `${SITE_URL}/sitemap.xml`],
   };
 }
