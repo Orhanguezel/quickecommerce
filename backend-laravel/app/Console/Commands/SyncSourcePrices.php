@@ -146,7 +146,19 @@ class SyncSourcePrices extends Command
                 ['Missing -> stok 0', $stats['missing_zeroed']],
                 ['Gecersiz/0 fiyat (stok yine guncellendi)', $stats['invalid_price']],
                 ['Fiyat limiti (stok yine guncellendi)', $stats['price_guard']],
+                // 2026-07-28: Bu iki satir eksikti. syncMapping stok=0 urunlerde
+                // 'stock_zero_skip_price', ilk kez kaybolanlarda 'missing_transient'
+                // dondurur; ikisi de hicbir satirda gorunmuyordu ve "Kontrol edilen"
+                // ile digerlerinin toplami tutmuyordu (or. 1853 kontrol / 999 raporlu).
+                // Sessiz kategori = fark edilmeyen sapma; artik gorunur.
+                ['Stok 0 (fiyat sync atlandi)', $stats['stock_zero_skip_price'] ?? 0],
+                ['Kaynakta yok - ilk tur (transient)', $stats['missing_transient'] ?? 0],
                 ['Hata', $stats['errors']],
+                ['-- raporlanmayan (olmamali)', max(0, $stats['checked']
+                    - ($this->apply ? $stats['updated'] : $stats['would_update'])
+                    - $stats['unchanged'] - $stats['missing'] - $stats['missing_zeroed']
+                    - $stats['invalid_price'] - $stats['price_guard'] - $stats['errors']
+                    - ($stats['stock_zero_skip_price'] ?? 0) - ($stats['missing_transient'] ?? 0))],
             ]
         );
 
