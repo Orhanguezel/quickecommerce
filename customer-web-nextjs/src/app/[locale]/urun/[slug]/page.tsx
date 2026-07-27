@@ -133,7 +133,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const product = res.data;
   const canonicalSlug = res.canonical_slug || product.slug || slug;
-  const availableLocales = res.locales?.length ? res.locales : ["tr"];
+  // "en" locale kaldirildi (2026-07-27): backend hala locales dondurse de
+  // (bazi urunlerin EN cevirisi var) yayinlanan tek dil tr. Aksi halde
+  // hreflang="en" 308 redirect'e isaret eder — Google'a kirik sinyal.
+  const availableLocales = ["tr"];
   const isLocalized = availableLocales.includes(locale);
   const canonicalLocale = isLocalized ? locale : "tr";
   const rawPrice = product.special_price

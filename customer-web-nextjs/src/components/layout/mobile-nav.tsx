@@ -7,7 +7,6 @@ import { useAuthStore } from '@/stores/auth-store';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { CurrencySwitcher } from '@/components/common/currency-switcher';
-import { LanguageSwitcher } from '@/components/layout/language-switcher';
 import {
   X,
   Home,
@@ -98,7 +97,6 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
 
           {/* Locale + Currency controls */}
           <div className="flex items-center gap-2 border-b px-4 py-3">
-            <LanguageSwitcher />
             <CurrencySwitcher />
           </div>
 

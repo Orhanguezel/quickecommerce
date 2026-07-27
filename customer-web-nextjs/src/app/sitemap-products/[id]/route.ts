@@ -27,9 +27,10 @@ export async function GET(
   const urls = slice
     .map((product) => {
       const slug = encodeSlug(product.slug);
-      // Cevirisi olmayan urun icin /en/ uretilmez — o sayfa zaten /tr/'ye
-      // 308 ile yonleniyor (bkz. urun/[slug]/page.tsx).
-      const alternates = product.locales
+      // "en" locale kaldirildi (2026-07-27): backend hala locales dondurse de
+      // sitemap yalnizca /tr/ uretir; /en/* proxy.ts'te 308 ile yonleniyor.
+      const locales = ["tr"];
+      const alternates = locales
         .map(
           (locale) =>
             `    <xhtml:link rel="alternate" hreflang="${locale}" href="${escapeXml(
@@ -38,7 +39,7 @@ export async function GET(
         )
         .join("\n");
 
-      return product.locales
+      return locales
         .map((locale) =>
           [
             "  <url>",

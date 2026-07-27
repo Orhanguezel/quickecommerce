@@ -88,7 +88,8 @@ async function fetchCategorySlugs(): Promise<SitemapItem[]> {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const locales = ["tr", "en"];
+  // "en" locale kaldirildi (2026-07-27)
+  const locales = ["tr"];
 
   // Static pages
   const staticPages = [

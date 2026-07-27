@@ -14,7 +14,6 @@ import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
 import { MobileNav } from './mobile-nav';
 import { SearchBar } from './search-bar';
-import { LanguageSwitcher } from './language-switcher';
 import { CurrencySwitcher } from '@/components/common/currency-switcher';
 import {
   ShoppingCart,
@@ -213,7 +212,6 @@ export function HeaderVariant1() {
                 {t('nav.about')}
               </Link>
             <div className="flex items-center gap-3">
-              <LanguageSwitcher />
               <CurrencySwitcher />
               <button
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
@@ -312,7 +310,6 @@ export function HeaderVariant1() {
               </button>
 
               <div className="lg:hidden">
-                <LanguageSwitcher iconOnly />
               </div>
             </div>
           </div>
