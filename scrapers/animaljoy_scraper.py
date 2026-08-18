@@ -65,6 +65,27 @@ def _jsonld_blocks(html: str) -> list[dict]:
     return out
 
 
+_TR_MAP = str.maketrans({
+    "ç": "c", "Ç": "c", "ğ": "g", "Ğ": "g", "ı": "i", "İ": "i",
+    "ö": "o", "Ö": "o", "ş": "s", "Ş": "s", "ü": "u", "Ü": "u",
+})
+
+
+def slugify(value: str) -> str:
+    """
+    Urun adindan SEO slug'i uretir.
+
+    Neden URL'deki slug kullanilmiyor: site Turkce adli urunlere Ingilizce slug
+    veriyor (FISTIK EZMESI -> peanut-butter). import:products'in kalite kapisi
+    bunu "slug urun adiyla uyusmuyor" diye hataya cevirip importu durduruyor,
+    ve dogru davranis bu — musteri /urun/peanut-butter degil /urun/fistik-ezmesi
+    gormeli. Kaynak eslesmesi zaten `url` alani uzerinden yapiliyor.
+    """
+    text = (value or "").translate(_TR_MAP).lower()
+    text = re.sub(r"[^a-z0-9]+", "-", text)
+    return text.strip("-")
+
+
 def _clean_html(value: str) -> str:
     return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", value or "")).strip()
 
@@ -97,7 +118,7 @@ def parse_product(html: str, url: str) -> dict | None:
 
     return {
         "name": (product.get("name") or "").strip(),
-        "slug": url.rstrip("/").rsplit("/", 1)[-1],
+        "slug": slugify(product.get("name") or "") or url.rstrip("/").rsplit("/", 1)[-1],
         "url": url,
         "category": "Sporcu Besinleri",
         "parent_category": None,
@@ -159,6 +180,18 @@ def main() -> int:
 
     products = [p for p in results if p]
     failed = len(results) - len(products)
+
+    # Ayni adi tasiyan farkli urunler ayni slug'a dusuyor (ornek: iki ayri
+    # "WHEY PROTEIN LANSMAN" sayfasi, biri cikolata-hindistan cevizi). Import
+    # mukerrer slug'da duruyor. Cakisanlar URL'deki benzersiz slug'a dusurulur;
+    # kalite kapisi ad ile slug arasinda ortak kelime aradigi icin bu da gecer.
+    used: set[str] = set()
+    for product in products:
+        slug = product["slug"]
+        if slug in used:
+            slug = product["url"].rstrip("/").rsplit("/", 1)[-1]
+        product["slug"] = slug
+        used.add(slug)
 
     output_file = resolve_output("animaljoy_products.json")
     with open(output_file, "w", encoding="utf-8") as handle:

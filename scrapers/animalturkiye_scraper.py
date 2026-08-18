@@ -1,156 +1,236 @@
 """
-animalturkiye.com Urun Scraper (ozel platform, Cloudflare)
-----------------------------------------------------------
-Animal Turkiye = Universal Nutrition / Animal markasi resmi distributoru.
-Ozel e-ticaret altyapisi; urunler `/urunler/<id>/<slug>/` deseninde, hepsi tek
-`sitemap.xml` icinde listelenir (urun + kategori URL'leri karisik). Cloudflare
-arkasinda olsa da GET istekleri 200 doner -> duz HTTP yeterli (stealth fallback).
+animalturkiye.com Urun Scraper (WooCommerce, JSON-LD)
+------------------------------------------------------
+Animal Turkiye — store#75. Site vitafy.com.tr ile ayni altyapiyi paylasiyor
+(sitemap vitafy URL'leri listeler); urun slug'lari iki sitede ortak.
 
-Her urun sayfasinda JSON-LD `Product` vardir ANCAK sitenin bir bug'i nedeniyle
-bazi alanlar tirnaksiz URL degeri icerir (orn. `"@id": https://...`/breadcrumb)
--> ham JSON-LD gecersiz. Parse oncesi bu onarilir, sonra ideasoft_scraper'in
-JSON-LD -> standart sema cevirici `parse_product()`'i yeniden kullanilir.
+NEDEN YENIDEN YAZILDI (2026-08-18): Eski scraper `/urunler/{id}/{slug}/`
+adreslerini cekiyordu. Site URL yapisini `/urun/{slug}/` olarak degistirdi ve
+eski adresler 302 ile /tum-urunler/'e dusuyor; scraper 1 Temmuz'da exit=1 verip
+oldu, magazanin fiyatlari 28 Haziran'da dondu. 51 gun sonra tespit edildiginde
+Animal 100% Whey bizde 5.990 TL, kaynakta 6.990 TL idi.
+
+Cekim: her slug once animalturkiye.com'da, bulunamazsa vitafy.com.tr'de
+denenir (kataloglar tam ortusmuyor).
+
+Kesif: /sitemap.xml ile /tum-urunler/ birlesimi. Sitemap vitafy slug'larini
+verir ama animalturkiye'ye ozel olanlari (or. animal-100-whey-protein-181kg)
+kacirir; listeleme sayfasi JS ile yuklendigi icin tek basina o da 10 urunde
+kalir. Ikisinin birlesimi mapping'lerimizin tamamini kapsiyor.
+
+STOK: JSON-LD offers.availability. Parser fail-CLOSED — alan okunamazsa urun
+stokta SAYILMAZ (yok satmaktansa satmamak yeglenir).
+
+MAPPING NOTU: DB'deki 24 mapping `source_name = animalturkiye` ve eski
+`/urunler/...` URL'leriyle kayitli. sync:source-prices URL -> id -> slug
+sirasiyla eslestirdigi icin slug uzerinden tutuyor; URL'leri guncellemeye
+gerek yok. Bu yuzden cikti `slug` alani sitedeki slug ile birebir ayni olmali.
 
 Kullanim:
   python3 scrapers/animalturkiye_scraper.py [--limit 5]
+
 Cikti: data/source-products/animalturkiye_products.json
 """
 
 import argparse
 import json
-import os
 import re
 import sys
 import time
+import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 
-import ideasoft_scraper as base
 from shopify_scraper import resolve_output
 
-SITE_BASE = "https://www.animalturkiye.com"
+SITE = "https://www.animalturkiye.com"
+# Ayni katalogu paylasan klon site. Iki sitenin urun listesi TAM ortusmuyor:
+# 14 slug yalnizca vitafy'de, animal-100-whey-protein-181kg yalnizca
+# animalturkiye'de yayinda. Ikisi de denenmezse magazanin 24 urununun ancak
+# 10'u fiyat alabiliyor — bu da sync'in guvenlik kilidini tetikleyip stok
+# sifirlamayi tamamen devre disi birakiyor.
+MIRROR = "https://vitafy.com.tr"
+SITEMAP = f"{SITE}/sitemap.xml"
+UA = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+    )
+}
 VENDOR = "Animal Türkiye"
-DEFAULT_CATEGORY = "Sporcu Besinleri"
-
-_JSONLD_RE = re.compile(
-    r'(<script[^>]*type=["\']application/ld\+json["\'][^>]*>)(.*?)(</script>)',
-    re.S | re.I,
-)
-# `: https://...."` gibi acilis tirnagi eksik URL degerlerini onar.
-_UNQUOTED_URL_RE = re.compile(r'(:\s*)(https?://[^"\s,}\]]+)"')
-
-# Aciklama icindeki base64 gomulu gorseller (data: URI) DB'de translations.value'yu
-# tasirir (1406 Data too long). <img src="data:...base64,..."> ve ham data: URI'leri sil.
-_DATA_IMG_RE = re.compile(r'<img[^>]*src=["\']data:[^"\']*["\'][^>]*>', re.I)
-_DATA_URI_RE = re.compile(r'data:[a-zA-Z0-9.+/-]+;base64,[A-Za-z0-9+/=\s]+', re.I)
-# Kalan tum <img> (bos src dahil) — encoded (&lt;img...&gt;) ve duz formlar.
-_IMG_RE = re.compile(r'<img\b[^>]*>|&lt;img\b.*?&gt;', re.I | re.S)
-# Bos <p><br></p> gurultusu — encoded ve duz.
-_EMPTY_P_RE = re.compile(
-    r'<p>\s*(?:<br\s*/?>)?\s*</p>|&lt;p&gt;\s*(?:&lt;br\s*/?&gt;)?\s*&lt;/p&gt;', re.I
-)
-_DESC_MAX = 12000
 
 
-def _clean_desc(text: str) -> str:
-    """Aciklamadan base64 + kalan/bos <img> + bos <p> kalintilarini temizle, uzunluk sinirla.
+def fetch(url: str, timeout: int = 30) -> str | None:
+    try:
+        req = urllib.request.Request(url, headers=UA)
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            if resp.status != 200:
+                return None
+            return resp.read().decode("utf-8", "replace")
+    except Exception as exc:  # ag/DNS/HTTP — urun atlanir, tarama devam eder
+        print(f"  fetch FAIL {url[-45:]}: {exc}", file=sys.stderr, flush=True)
+        return None
 
-    animalturkiye urun aciklamalari genelde sadece 'TETT : <tarih>' + base64 gomulu
-    gorselden ibarettir; base64 silinince geriye bos <img> kalir -> bunlar da silinir.
+
+def discover_slugs() -> list[str]:
     """
-    if not text:
-        return text
-    text = _DATA_IMG_RE.sub("", text)
-    text = _DATA_URI_RE.sub("", text)
-    text = _IMG_RE.sub("", text)
-    text = _EMPTY_P_RE.sub("", text)
-    return text.strip()[:_DESC_MAX]
+    Iki kaynagin BIRLESIMI:
+      - /sitemap.xml : vitafy.com.tr adreslerini listeler, slug'lar ortak
+      - /tum-urunler/: yalnizca animalturkiye'de olan slug'lar burada cikar
+    Tek basina sitemap yetmiyor; ornegin animal-100-whey-protein-181kg
+    sitemap'te yok ama sitede var ve bizim mapping'imiz tam o slug'a bagli.
+    """
+    slugs: list[str] = []
+
+    xml = fetch(SITEMAP)
+    if xml:
+        for loc in re.findall(r"<loc>\s*([^<\s]+)\s*</loc>", xml):
+            match = re.search(r"/urun/([a-z0-9\-]+)/?$", loc)
+            if match:
+                slugs.append(match.group(1))
+
+    listing = fetch(f"{SITE}/tum-urunler/")
+    if listing:
+        slugs.extend(re.findall(r'href="(?:' + re.escape(SITE) + r')?/urun/([a-z0-9\-]+)/"', listing))
+
+    return list(dict.fromkeys(slugs))
 
 
-def _repair_jsonld(html: str) -> str:
-    """Sayfadaki ld+json bloklarini onar (tirnaksiz URL degerleri) -> gecerli JSON."""
-    def _fix(m: "re.Match") -> str:
-        return m.group(1) + _UNQUOTED_URL_RE.sub(r'\1"\2"', m.group(2)) + m.group(3)
-    return _JSONLD_RE.sub(_fix, html)
+def _jsonld_blocks(html: str) -> list[dict]:
+    out = []
+    for raw in re.findall(r"<script[^>]*ld\+json[^>]*>(.*?)</script>", html, re.S):
+        try:
+            data = json.loads(raw)
+        except Exception:
+            continue
+        out.extend(data if isinstance(data, list) else [data])
+    return out
 
 
-def discover_product_urls() -> list[str]:
-    sitemap = f"{SITE_BASE}/sitemap.xml"
-    print(f"[1/3] Sitemap cekiliyor: {sitemap}", flush=True)
-    xml = base.fetch_sitemap(sitemap)
-    if not xml:
-        print("  HATA: sitemap alinamadi.", file=sys.stderr)
-        return []
-    locs = re.findall(r"<loc>\s*([^<\s]+)\s*</loc>", xml)
-    # 2026-07-01: animalturkiye.com/sitemap.xml artik kaynak site vitafy.com.tr'nin
-    # urun URL'lerini listeliyor (path /urun/, ESKI /urunler/ degil) — bu yuzden
-    # eski "/urunler/" filtresi 0 URL donduruyordu. Her iki deseni de kabul et.
-    # (animalturkiye = vitafy klonu, store#75 — bkz. memory animalturkiye-vitafy-store75.)
-    urls = [u for u in dict.fromkeys(locs) if "/urun/" in u or "/urunler/" in u]
-    print(f"  {len(locs)} URL -> {len(urls)} urun URL'i", flush=True)
-    return urls
+def _clean_html(value: str) -> str:
+    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", value or "")).strip()
 
 
-def _fetch(url: str) -> str | None:
-    """Once duz HTTP (hizli), JSON-LD yoksa stealth servis fallback."""
-    html = base.fetch_plain(url)
-    if html and "application/ld+json" in html:
-        return html
-    res = base.scrape(url, mode="stealthy")
-    return res.html if res.ok else None
+def parse_product(html: str, url: str, slug: str) -> dict | None:
+    product = next((b for b in _jsonld_blocks(html) if b.get("@type") == "Product"), None)
+    if not product:
+        return None
+
+    offer = product.get("offers") or {}
+    if isinstance(offer, list):
+        offer = offer[0] if offer else {}
+
+    try:
+        price = float(str(offer.get("price") or 0).replace(",", "."))
+    except ValueError:
+        price = 0.0
+
+    availability = str(offer.get("availability") or "").lower()
+    # Fail-CLOSED: availability okunamazsa urun "stokta" SAYILMAZ.
+    available = "instock" in availability.replace("/", "").replace("_", "")
+
+    # Fiyati gizlenen urun (site tukenmislerde 0 basiyor) yine de ciktiya girer:
+    # boylece sync onu "kaynakta yok" saymaz, stogu 0'a ceker, fiyata dokunmaz.
+    # Atlanirsa kaynak urun sayisi mapping'in yarisinin altina duser ve sync'in
+    # guvenlik kilidi stok sifirlamayi tamamen devre disi birakir.
+    if price <= 0:
+        price = 0.0
+        available = False
+
+    images = product.get("image") or []
+    if isinstance(images, str):
+        images = [images]
+    images = [i for i in images if isinstance(i, str)]
+
+    brand = product.get("brand")
+    vendor = brand.get("name") if isinstance(brand, dict) else (brand if isinstance(brand, str) else VENDOR)
+
+    return {
+        "name": (product.get("name") or "").strip(),
+        "slug": slug,
+        "url": url,
+        "category": "Sporcu Besinleri",
+        "parent_category": None,
+        "vendor": vendor or VENDOR,
+        "product_type": "",
+        "description_html": product.get("description") or "",
+        "description_text": _clean_html(product.get("description") or ""),
+        "original_price": price if price > 0 else None,
+        "discounted_price": None,
+        "discount_rate": None,
+        "sku": product.get("sku") or "",
+        "barcode": product.get("gtin13") or product.get("gtin") or "",
+        "available": available,
+        "specifications": [],
+        "all_image_urls": images,
+        "thumbnail_url": images[0] if images else None,
+        "variants": [{
+            "title": "Default Title",
+            "sku": product.get("sku") or "",
+            "barcode": product.get("gtin13") or "",
+            "price": price if price > 0 else None,
+            "special_price": None,
+            "stock_quantity": 1 if available else 0,
+            "available": available,
+        }],
+        "options": [],
+        "downloaded_images": [],
+        "tags": [],
+    }
 
 
-def run(limit: int = 0, delay: float = 0.3) -> list[dict]:
-    print(f"animalturkiye (ozel/JSON-LD) scraper: {SITE_BASE}")
-    print("=" * 55)
-    urls = discover_product_urls()
-    if not urls:
-        print("HATA: urun URL'i bulunamadi.", file=sys.stderr)
-        raise SystemExit(1)
-    if limit > 0:
-        urls = urls[:limit]
-        print(f"  --limit aktif: ilk {limit} URL", flush=True)
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--limit", type=int, default=0, help="Sadece ilk N urun (test icin)")
+    parser.add_argument("--workers", type=int, default=4, help="Es zamanli istek sayisi")
+    args = parser.parse_args()
+
+    print(f"Animal Turkiye (WooCommerce/JSON-LD) scraper: {SITE}")
+    print("=" * 58)
+
+    slugs = discover_slugs()
+    if not slugs:
+        print("HATA: kesiften urun slug'i alinamadi.", file=sys.stderr)
+        return 1
+    print(f"[1/2] kesif (sitemap + listeleme): {len(slugs)} urun slug'i")
+    if args.limit > 0:
+        slugs = slugs[: args.limit]
+        print(f"  --limit aktif: ilk {args.limit}")
+
+    started = time.time()
+
+    def one(slug: str) -> dict | None:
+        for host in (SITE, MIRROR):
+            url = f"{host}/urun/{slug}/"
+            html = fetch(url)
+            if not html:
+                continue
+            product = parse_product(html, url, slug)
+            if product:
+                return product
+        return None
+
+    print(f"[2/2] {len(slugs)} urun sayfasi cekiliyor...")
+    with ThreadPoolExecutor(max_workers=args.workers) as pool:
+        results = list(pool.map(one, slugs))
+
+    products = [p for p in results if p]
+    failed = len(results) - len(products)
 
     output_file = resolve_output("animalturkiye_products.json")
-    print(f"\n[2/3] {len(urls)} urun detay sayfasi cekiliyor...", flush=True)
-    products: list[dict] = []
-    failed: list[str] = []
-    started = time.time()
-    for i, url in enumerate(urls, 1):
-        html = _fetch(url)
-        if not html:
-            failed.append(url)
-            print(f"  [{i}/{len(urls)}] FETCH FAIL: {url[-50:]}", flush=True)
-            continue
-        product = base.parse_product(_repair_jsonld(html), url, VENDOR, DEFAULT_CATEGORY)
-        if not product or not product.get("original_price"):
-            failed.append(url)
-            print(f"  [{i}/{len(urls)}] no-jsonld/no-price: {url[-50:]}", flush=True)
-            continue
-        # Aciklamadaki base64 gomulu gorselleri temizle (DB truncate korumasi)
-        product["description_html"] = _clean_desc(product.get("description_html", ""))
-        product["description_text"] = _clean_desc(product.get("description_text", ""))
-        products.append(product)
-        if i == 1 or i % 10 == 0 or i == len(urls):
-            elapsed = time.time() - started
-            print(
-                f"  [{i}/{len(urls)}] {product['name'][:40]} | "
-                f"{product['original_price']} TL | {'STOK' if product['available'] else 'YOK'}",
-                flush=True,
-            )
-        if delay:
-            time.sleep(delay)
+    with open(output_file, "w", encoding="utf-8") as handle:
+        json.dump(products, handle, ensure_ascii=False, indent=2)
 
-    print(f"\n[3/3] {len(products)} urun OK, {len(failed)} fail", flush=True)
-    with open(output_file, "w", encoding="utf-8") as f:
-        json.dump(products, f, ensure_ascii=False, indent=2)
-    in_stock = sum(1 for p in products if p.get("available"))
-    print(f"  -> {output_file} ({len(products)} kayit, {in_stock} stokta)", flush=True)
-    if not products:
-        raise SystemExit(1)
-    return products
+    in_stock = sum(1 for p in products if p["available"])
+    print(f"\nTamamlandi! {len(products)} urun ({in_stock} stokta, {failed} parse edilemedi) "
+          f"-> {output_file} [{time.time() - started:.1f}s]")
+
+    # Tum katalog "stokta" gorunuyorsa stok tespiti muhtemelen calismiyor;
+    # sessizce yok satmaya donusmesin diye acikca uyar.
+    if products and in_stock == len(products):
+        print("UYARI: hicbir urun tukenmis gorunmuyor — stok tespiti dogrulanmali.", file=sys.stderr)
+
+    return 0 if products else 1
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--limit", type=int, default=0, help="Sadece ilk N urun (test)")
-    args = parser.parse_args()
-    run(limit=args.limit)
+    raise SystemExit(main())

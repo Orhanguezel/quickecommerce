@@ -178,6 +178,12 @@ run_scraper() {
   # asagidaki 3 satir geri acilabilir.
   # run_scraper maraton_import    maraton_scraper_v2.py     maraton_products.json       "--urls-from maraton_urls.json"
   run_scraper musclepump_import musclepump_scraper.py     musclepump_products.json
+  # 2026-08-18: animalturkiye (store#75) geri eklendi. Site URL yapisini
+  # /urunler/{id}/{slug}/ -> /urun/{slug}/ olarak degistirince eski scraper
+  # 1 Temmuz'da olmus, magazanin fiyatlari 28 Haziran'da donmustu.
+  # animaljoy AYRI bir tedarikci (animaljoy.com.tr) ve mapping'i yok;
+  # store#75'in mapping'leri 'animalturkiye' adiyla kayitli.
+  run_scraper animalturkiye     animalturkiye_scraper.py       animalturkiye_products.json
   run_scraper animaljoy           animaljoy_scraper.py           animaljoy_products.json
   run_scraper everlast       everlast_scraper.py       everlast_products.json
   # swan store#46 pasif ve 2094 urunun tamami soft-delete; bosuna tarama.
