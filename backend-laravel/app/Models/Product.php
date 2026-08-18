@@ -45,6 +45,7 @@ class Product extends Model
         "meta_title",
         "meta_description",
         "meta_keywords",
+        "search_text",
         "meta_image",
         "status",
         "available_time_starts",
@@ -52,7 +53,26 @@ class Product extends Model
         "manufacture_date",
         "expiry_date",
         "is_featured",
+        "homepage_featured_rank",
+        "is_hero",
+        "catalog_quality_score",
+        "ads_eligible",
+        "ads_ineligibility_reason",
+        "market_min_price",
+        "price_index",
+        "market_price_checked_at",
+        "commercial_reviewed_at",
         "is_preorder",
+    ];
+
+    protected $casts = [
+        'homepage_featured_rank' => 'integer',
+        'is_hero' => 'boolean',
+        'ads_eligible' => 'boolean',
+        'market_min_price' => 'decimal:4',
+        'price_index' => 'decimal:4',
+        'market_price_checked_at' => 'datetime',
+        'commercial_reviewed_at' => 'datetime',
     ];
     public $translationKeys = [
         'name',
@@ -131,6 +151,11 @@ class Product extends Model
         return $this->hasMany(OrderDetail::class, 'product_id');
     }
 
+    public function sourceMappings()
+    {
+        return $this->hasMany(ProductSourceMapping::class, 'product_id');
+    }
+
     public function displayVariant()
     {
         $variants = $this->relationLoaded('variants')
@@ -186,6 +211,9 @@ class Product extends Model
             ->whereNull('deleted_at')
             ->whereNotNull('image')
             ->where('image', '!=', '')
+            ->whereHas('store', fn (Builder $storeQuery) => $storeQuery
+                ->where('status', 1)
+                ->whereNull('sales_suspended_at'))
             ->whereHas('variants', fn (Builder $variantQuery) => $variantQuery->publiclySellable());
     }
 

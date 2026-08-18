@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 
 use App\Models\FunnelEvent;
+use App\Models\OrderMaster;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -87,6 +88,15 @@ class FunnelEventController extends Controller
         $userAgent = (string) $request->userAgent();
         $device = $this->parseUserAgent($userAgent);
         $requestReferer = $request->headers->get('referer');
+        $paymentOrderIds = collect($validated['events'])
+            ->filter(fn ($event) => $this->normalizeEvent($event['event']) === 'payment_success')
+            ->pluck('order_id')->filter()->map(fn ($id) => (int) $id)->unique();
+        $paidOrders = OrderMaster::query()
+            ->whereIn('id', $paymentOrderIds)
+            ->where('payment_status', 'paid')
+            ->where('is_test', false)
+            ->get(['id', 'customer_id', 'session_id'])
+            ->keyBy('id');
 
         $rows = [];
         foreach ($validated['events'] as $e) {
@@ -99,6 +109,14 @@ class FunnelEventController extends Controller
                 ?? $visitorId
                 ?? $sessionId
                 ?? ('ip:' . substr(hash('sha256', $ipAddress . '|' . $userAgent), 0, 32));
+
+            if ($event === 'payment_success') {
+                $order = $paidOrders->get((int) ($e['order_id'] ?? 0));
+                $ownedByCustomer = $order && $customerId !== null && (int) $order->customer_id === $customerId;
+                $ownedByGuestSession = $order && $customerId === null && $order->customer_id === null
+                    && filled($order->session_id) && hash_equals((string) $order->session_id, (string) ($e['session_id'] ?? ''));
+                if (! $ownedByCustomer && ! $ownedByGuestSession) continue;
+            }
 
             $rows[] = [
                 'event'        => $event,
@@ -124,6 +142,9 @@ class FunnelEventController extends Controller
                 'product_id'   => $e['product_id'] ?? null,
                 'category_id'  => $e['category_id'] ?? null,
                 'order_id'     => $e['order_id'] ?? null,
+                'dedupe_key'   => in_array($event, ['order_created', 'payment_success'], true) && ! empty($e['order_id'])
+                    ? "{$event}:{$e['order_id']}"
+                    : null,
                 'block_type'   => $e['block_type'] ?? null,
                 'amount'       => $e['amount'] ?? null,
                 'meta'         => isset($e['meta']) ? json_encode($e['meta']) : null,
@@ -133,13 +154,11 @@ class FunnelEventController extends Controller
             ];
         }
 
-        if (!empty($rows)) {
-            FunnelEvent::insert($rows);
-        }
+        $accepted = ! empty($rows) ? FunnelEvent::insertOrIgnore($rows) : 0;
 
         return response()->json([
             'status'   => true,
-            'accepted' => count($rows),
+            'accepted' => $accepted,
         ]);
     }
 

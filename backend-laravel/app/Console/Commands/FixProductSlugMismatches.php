@@ -3,19 +3,23 @@
 namespace App\Console\Commands;
 
 use App\Models\Product;
+use App\Models\ProductSlugRedirect;
+use App\Services\ProductSeoQuality;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
  * Scans the products table for rows whose `slug` has no semantic overlap
  * with `name` — a leftover of earlier imports that cross-wired data.
  *
- * Detection: tokenize both name and slug, skip stop-word-length tokens,
- * normalize Turkish chars, compute set overlap. Zero overlap with ≥2
- * slug tokens = mismatch.
+ * Detection uses ProductSeoQuality, the same tokenizer/rule as import and SEO
+ * audit. This prevents short but unrelated source labels ("p", "category",
+ * "300") from escaping the repair command.
  *
  * Fix: regenerate slug from name with Str::slug, append -2/-3/... if a
- * collision exists. Safe because `name` is what customers see and search.
+ * collision exists. The old slug is preserved in product_slug_redirects so
+ * existing links and Googlebot receive a permanent canonical redirect.
  *
  * Always run with --dry-run first.
  */
@@ -27,7 +31,7 @@ class FixProductSlugMismatches extends Command
 
     protected $description = 'Detect products whose slug has no overlap with their name and regenerate the slug from the name';
 
-    public function handle(): int
+    public function handle(ProductSeoQuality $quality): int
     {
         $dryRun = (bool) $this->option('dry-run');
         $limit = (int) $this->option('limit');
@@ -35,11 +39,15 @@ class FixProductSlugMismatches extends Command
         $this->info('Scanning products table for slug/name mismatches...');
 
         $mismatches = [];
-        Product::withTrashed()
+        Product::withoutGlobalScopes()
+            ->whereNull('deleted_at')
+            ->where('status', 'approved')
             ->select('id', 'name', 'slug')
-            ->chunk(500, function ($chunk) use (&$mismatches) {
+            ->chunk(500, function ($chunk) use (&$mismatches, $quality) {
                 foreach ($chunk as $p) {
-                    if ($this->isMismatch((string) $p->name, (string) $p->slug)) {
+                    $name = trim((string) $p->name);
+                    $slug = trim((string) $p->slug);
+                    if ($name !== '' && $slug !== '' && ! $quality->slugMatchesName($name, $slug)) {
                         $mismatches[] = $p;
                     }
                 }
@@ -54,6 +62,12 @@ class FixProductSlugMismatches extends Command
         $this->newLine();
 
         $taken = Product::withTrashed()->pluck('slug')->all();
+        try {
+            $taken = array_merge($taken, ProductSlugRedirect::pluck('old_slug')->all());
+        } catch (\Illuminate\Database\QueryException) {
+            $this->error('product_slug_redirects tablosu bulunamadı. Önce migration çalıştırılmalı; slug değişikliği yapılmadı.');
+            return self::FAILURE;
+        }
         $takenSet = array_flip(array_filter($taken));
 
         $rows = [];
@@ -95,7 +109,13 @@ class FixProductSlugMismatches extends Command
         $bar->start();
 
         foreach ($planned as $p) {
-            Product::withTrashed()->where('id', $p['id'])->update(['slug' => $p['new']]);
+            DB::transaction(function () use ($p) {
+                ProductSlugRedirect::updateOrCreate(
+                    ['old_slug' => $p['old']],
+                    ['product_id' => $p['id']]
+                );
+                Product::withTrashed()->where('id', $p['id'])->update(['slug' => $p['new']]);
+            });
             $bar->advance();
         }
 
@@ -103,38 +123,6 @@ class FixProductSlugMismatches extends Command
         $this->newLine(2);
         $this->info('Done.');
         return self::SUCCESS;
-    }
-
-    /**
-     * Mismatch heuristic. Returns true when slug has zero semantic overlap
-     * with name (both reduced to normalized tokens, short tokens dropped).
-     */
-    private function isMismatch(string $name, string $slug): bool
-    {
-        if ($name === '' || $slug === '') return false;
-
-        $trMap = ['ç'=>'c','ş'=>'s','ğ'=>'g','ı'=>'i','ö'=>'o','ü'=>'u','Ç'=>'c','Ş'=>'s','Ğ'=>'g','İ'=>'i','Ö'=>'o','Ü'=>'u'];
-
-        $normalize = static function (string $s) use ($trMap): array {
-            $s = strtr($s, $trMap);
-            $s = mb_strtolower($s);
-            preg_match_all('/[a-z0-9]+/', $s, $m);
-            $tokens = $m[0] ?? [];
-            // Drop short tokens (articles, generic product words)
-            $drop = ['ve','ile','icin','bir','gr','ml','kg','lt','cm','mm','adet','set',
-                     'the','for','with','a','an'];
-            return array_values(array_filter($tokens, static fn ($t) => strlen($t) > 2 && !in_array($t, $drop, true)));
-        };
-
-        $nameTokens = $normalize($name);
-        $slugTokens = $normalize($slug);
-
-        if (empty($nameTokens) || empty($slugTokens)) return false;
-        // Only flag if slug has some substance; single-token slugs are too ambiguous
-        if (count($slugTokens) < 2) return false;
-
-        $overlap = array_intersect($nameTokens, $slugTokens);
-        return empty($overlap);
     }
 
     /**

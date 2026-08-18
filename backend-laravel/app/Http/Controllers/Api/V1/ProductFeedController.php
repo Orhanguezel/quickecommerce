@@ -84,6 +84,10 @@ class ProductFeedController extends Controller
         // lazy-load N+1 sorgu uretir (cimri ~3600 urunde 30 sn'i asar).
         $products = Product::where('status', 'approved')
             ->whereNull('deleted_at')
+            ->when(
+                $feedType === 'google' && config('commerce.google_feed_ads_eligible_only'),
+                fn ($query) => $query->where('ads_eligible', true)
+            )
             ->with([
                 'variants' => fn($q) => $q->where('status', 1)->whereNull('deleted_at'),
                 'category.parent.parent.parent.parent',

@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use App\Models\FunnelEvent;
 use Modules\PaymentGateways\app\Models\PaymentGateway;
 
 class IyzicoPaymentController extends Controller
@@ -48,9 +49,8 @@ class IyzicoPaymentController extends Controller
         }
 
         // Checkout-oncesi canli stok HARD GUARD: para cekilmeden once, siparis
-        // satirlarini tedarikci kaynaginda kontrol et. KESIN tukenmis varsa odeme
-        // URL'i URETME (frontend pre-check atlansa/bypass edilse bile). Belirsiz
-        // probe engellemez (fail-open) — 30 dk'lik PostOrderStockCheckJob yakalar.
+        // satirlarini tedarikci kaynaginda kontrol et. Tukenmis veya stok sinyali
+        // dogrulanamayan urun varsa odeme URL'i URETME.
         $stockLines = [];
         foreach ($orderMaster->orders as $order) {
             foreach ($order->orderDetail as $detail) {
@@ -65,6 +65,7 @@ class IyzicoPaymentController extends Controller
             try {
                 $stockResult = $this->stockVerifier->verify($stockLines);
                 if (!($stockResult['ok'] ?? true)) {
+                    $this->trackCheckoutFailure($orderMaster, 'stock_out', $request);
                     return response()->json([
                         'success' => false,
                         'code' => 'stock_out',
@@ -73,8 +74,13 @@ class IyzicoPaymentController extends Controller
                     ], 409);
                 }
             } catch (\Throwable $e) {
-                // Probe altyapisi cokerse satisi engelleme (fail-open).
-                Log::warning('Checkout stock guard failed-open', ['order_master_id' => $orderMaster->id, 'error' => $e->getMessage()]);
+                Log::error('Checkout stock guard failed-closed', ['order_master_id' => $orderMaster->id, 'error' => $e->getMessage()]);
+                $this->trackCheckoutFailure($orderMaster, 'stock_verification_unavailable', $request);
+                return response()->json([
+                    'success' => false,
+                    'code' => 'stock_verification_unavailable',
+                    'message' => 'Stok şu anda doğrulanamıyor. Lütfen kısa süre sonra tekrar deneyin.',
+                ], 503);
             }
         }
 
@@ -184,6 +190,9 @@ class IyzicoPaymentController extends Controller
                     'has_secret_key' => $hasSecretKey,
                     'has_sub_merchant_key' => $hasSubMerchantKey,
                 ]);
+                $this->trackCheckoutFailure($orderMaster, 'iyzico_session_rejected', $request, [
+                    'provider_error_code' => $session->getErrorCode(),
+                ]);
 
                 return response()->json([
                     'success' => false,
@@ -217,6 +226,7 @@ class IyzicoPaymentController extends Controller
                 'has_sub_merchant_key' => $hasSubMerchantKey,
                 'message' => $e->getMessage(),
             ]);
+            $this->trackCheckoutFailure($orderMaster, 'checkout_validation_failed', $request);
 
             return response()->json([
                 'success' => false,
@@ -233,11 +243,34 @@ class IyzicoPaymentController extends Controller
                 'has_sub_merchant_key' => $hasSubMerchantKey,
                 'message' => $e->getMessage(),
             ]);
+            $this->trackCheckoutFailure($orderMaster, 'checkout_exception', $request);
 
             return response()->json([
                 'success' => false,
                 'message' => __('messages.iyzico_session_create_failed'),
             ], 500);
+        }
+    }
+
+    private function trackCheckoutFailure(OrderMaster $orderMaster, string $code, Request $request, array $meta = []): void
+    {
+        try {
+            FunnelEvent::create([
+                'event' => 'payment_failed',
+                'subject' => $orderMaster->visitor_id ?: $orderMaster->session_id ?: 'order:' . $orderMaster->id,
+                'visitor_id' => $orderMaster->visitor_id,
+                'session_id' => $orderMaster->session_id,
+                'customer_id' => $orderMaster->customer_id,
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'referer' => $request->headers->get('referer'),
+                'order_id' => $orderMaster->id,
+                'amount' => $orderMaster->order_amount,
+                'meta' => ['failure_code' => $code] + $meta,
+                'occurred_at' => now(),
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('Checkout failure analytics could not be recorded', ['order_id' => $orderMaster->id, 'code' => $code]);
         }
     }
 

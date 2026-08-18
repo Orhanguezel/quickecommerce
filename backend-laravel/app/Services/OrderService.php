@@ -169,6 +169,16 @@ class OrderService
 
             $order_master = OrderMaster::create([
                 'customer_id' => $customer_id,
+                'visitor_id' => data_get($data, 'attribution.visitor_id'),
+                'session_id' => data_get($data, 'attribution.session_id'),
+                'cart_session_id' => data_get($data, 'attribution.cart_session_id'),
+                'utm_source' => data_get($data, 'attribution.utm_source'),
+                'utm_medium' => data_get($data, 'attribution.utm_medium'),
+                'utm_campaign' => data_get($data, 'attribution.utm_campaign'),
+                'utm_term' => data_get($data, 'attribution.utm_term'),
+                'utm_content' => data_get($data, 'attribution.utm_content'),
+                'landing_page' => data_get($data, 'attribution.landing_page'),
+                'referrer' => data_get($data, 'attribution.referrer'),
                 'area_id' => 0, // main zone id
                 'shipping_address_id' => 0,
                 'coupon_code' => $coupon_data['success'] === false ? null : $data['coupon_code'] ?? null,
@@ -379,6 +389,9 @@ class OrderService
                     'delivery_option' => $packageData['delivery_option'],
                     'delivery_type' => 'standard',
                     'delivery_time' => $delivery_time,
+                    'promised_ship_at' => now()->addHours(
+                        max(1, (int) ($store->shipping_sla_hours ?? 48))
+                    ),
                     'order_amount' => 0,
                     'product_discount_amount' => 0,
                     'flash_discount_amount_admin' => 0,

@@ -988,9 +988,9 @@ if (!function_exists('getOrderStatusMessage')) {
         if ($isNewOrder) {
             $messages['admin'] = "Yeni bir sipariş alındı: #{$order->id}.";
             $messages['store'] = "Yeni bir sipariş aldınız: #{$order->id}. Lütfen inceleyin.";
-            $messages['customer'] = "Siparişiniz #{$order->id} başarıyla oluşturuldu.";
+            $messages['customer'] = "Siparişiniz #{$order->id} alındı, ödeme bekleniyor.";
             $messages['deliveryman'] = "Yeni sipariş #{$order->id} yakında atanacak.";
-            $messages['title'] = "Sipariş Başarıyla Oluşturuldu.";
+            $messages['title'] = "Sipariş Alındı — Ödeme Bekleniyor.";
 
             return $messages;
         }

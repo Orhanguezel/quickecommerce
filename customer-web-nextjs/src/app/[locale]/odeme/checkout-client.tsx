@@ -22,6 +22,7 @@ import { useWalletInfoQuery } from "@/modules/wallet/wallet.service";
 import { useProfileQuery } from "@/modules/profile/profile.service";
 import { useBaseService } from "@/lib/base-service";
 import { useSiteInfoQuery } from "@/modules/site/site.action";
+import { getCartSessionId } from "@/hooks/use-cart-snapshot-sync";
 import type {
   CustomerAddress,
   PlaceOrderInput,
@@ -41,8 +42,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Image from "next/image";
-import { trackBeginCheckout, trackPurchase, trackAddPaymentInfo } from "@/lib/gtm";
-import { trackFunnelEvent } from "@/lib/funnel-tracker";
+import { trackBeginCheckout, trackAddPaymentInfo, trackAddShippingInfo } from "@/lib/gtm";
+import { getFunnelAttributionContext, trackFunnelEvent } from "@/lib/funnel-tracker";
 import {
   MapPin,
   Plus,
@@ -54,6 +55,9 @@ import {
   Check,
   Tag,
   XCircle,
+  ShieldCheck,
+  RotateCcw,
+  Truck,
 } from "lucide-react";
 
 const gatewayIconMap: Record<string, typeof CreditCard> = {
@@ -228,6 +232,28 @@ export function CheckoutClient({ translations: t }: Props) {
       },
     });
   }, [items.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const shippingInfoSentRef = useRef(false);
+  useEffect(() => {
+    const hasShippingAddress = selectedAddress
+      ? !selectedAddressMissingLocation
+      : showAddressForm && isAddressFormComplete;
+    if (!hasShippingAddress || shippingInfoSentRef.current || items.length === 0) return;
+    shippingInfoSentRef.current = true;
+    const analyticsItems = items.map((item) => ({
+      item_id: String(item.product_id),
+      item_name: item.name,
+      item_variant: item.variant_label,
+      price: item.price,
+      quantity: item.quantity,
+    }));
+    trackAddShippingInfo(analyticsItems, total, selectedCurrencyCode || 'TRY', 'home_delivery');
+    trackFunnelEvent({
+      event: "shipping_selected",
+      amount: shippingAmount,
+      meta: { shipping_tier: "home_delivery", city: selectedAddress?.city_name || addressForm.city_name },
+    });
+  }, [selectedAddressId, selectedAddressMissingLocation, showAddressForm, isAddressFormComplete]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const paymentInfoSentRef = useRef(false);
   useEffect(() => {
@@ -425,9 +451,8 @@ export function CheckoutClient({ translations: t }: Props) {
       return;
     }
 
-    // Checkout-oncesi canli stok kontrolu: kesin tukenmis urun varsa siparis
-    // OLUSTURMA. Belirsiz/probe-hatasi durumunda satisi engelleme (fail-open) —
-    // 30 dk'lik post-order stok teyit sistemi yine devrede.
+    // Checkout-oncesi canli stok kontrolu: tukenmis veya tedarikci kaynaginda
+    // dogrulanamayan urun varsa siparis OLUSTURMA.
     try {
       const stockCheck = await verifyStockMutation.mutateAsync(
         resolvedItems.map((i) => ({
@@ -441,13 +466,28 @@ export function CheckoutClient({ translations: t }: Props) {
           .map((o) => o.name)
           .filter(Boolean)
           .join(", ");
+        const verificationSignals = new Set([
+          "no_signal",
+          "pool_error",
+          "verification_unavailable",
+          "verification_uncertain",
+          "source_url_missing",
+          "scraper_failure",
+          "exception",
+        ]);
+        const onlyVerificationProblem = stockCheck.out_of_stock.every((item) =>
+          verificationSignals.has(item.signal) || item.signal.startsWith("http_")
+        );
         alert(
-          `Şu ürün(ler) az önce tükendi: ${names}\n\nLütfen bu ürünleri sepetinizden çıkarıp tekrar deneyin.`
+          onlyVerificationProblem
+            ? `Şu ürün(ler) için güncel stok şu anda doğrulanamadı: ${names}\n\nGüvenliğiniz için ödeme başlatılmadı. Lütfen kısa süre sonra tekrar deneyin.`
+            : `Şu ürün(ler) tedarikçide tükenmiş: ${names}\n\nKartınızdan ödeme alınmadı. Lütfen ürünü sepetinizden çıkarıp tekrar deneyin.`
         );
         return;
       }
     } catch {
-      // Probe altyapisi cokerse satisi engelleme (fail-open) — odemeye devam.
+      alert("Stok doğrulama servisine şu anda ulaşılamıyor. Güvenliğiniz için ödeme başlatılmadı; lütfen kısa süre sonra tekrar deneyin.");
+      return;
     }
 
     // Group items by store
@@ -481,6 +521,10 @@ export function CheckoutClient({ translations: t }: Props) {
       coupon_title: appliedCoupon?.title,
       coupon_discount_amount_admin: appliedCoupon?.discount,
       packages,
+      attribution: {
+        ...getFunnelAttributionContext(),
+        cart_session_id: getCartSessionId() ?? undefined,
+      },
     };
 
     placeOrderMutation.mutate(orderData, {
@@ -490,21 +534,6 @@ export function CheckoutClient({ translations: t }: Props) {
           return;
         }
 
-        // GA4: purchase (fires once before cart is cleared)
-        trackPurchase(
-          String(orderId),
-          items.map((i) => ({
-            item_id: String(i.product_id),
-            item_name: i.name,
-            item_variant: i.variant_label,
-            price: i.price,
-            quantity: i.quantity,
-          })),
-          total,
-          selectedCurrencyCode || 'TRY',
-          shippingAmount,
-          appliedCoupon?.code,
-        );
         trackFunnelEvent({
           event: "order_created",
           order_id: Number(orderId),
@@ -720,6 +749,8 @@ export function CheckoutClient({ translations: t }: Props) {
                     <Label>{t.address_email}</Label>
                     <Input
                       type="email"
+                      inputMode="email"
+                      autoComplete="email"
                       value={addressForm.email}
                       onChange={(e) =>
                         setAddressForm({ ...addressForm, email: e.target.value })
@@ -730,6 +761,8 @@ export function CheckoutClient({ translations: t }: Props) {
                     <Label>{t.address_phone}</Label>
                     <Input
                       type="tel"
+                      inputMode="tel"
+                      autoComplete="tel"
                       value={addressForm.contact_number}
                       onChange={(e) =>
                         setAddressForm({
@@ -837,6 +870,8 @@ export function CheckoutClient({ translations: t }: Props) {
                     <Label>{t.address_postal}</Label>
                     <Input
                       value={addressForm.postal_code}
+                      inputMode="numeric"
+                      autoComplete="postal-code"
                       onChange={(e) =>
                         setAddressForm({
                           ...addressForm,
@@ -1093,6 +1128,24 @@ export function CheckoutClient({ translations: t }: Props) {
                   t.place_order
                 )}
               </Button>
+
+              <div className="mt-4 grid gap-2 text-xs text-muted-foreground">
+                <p className="flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-600" />
+                  Ödeme bilgileriniz güvenli ödeme kuruluşu üzerinden işlenir.
+                </p>
+                <p className="flex items-center gap-2">
+                  <Truck className="h-4 w-4 shrink-0 text-primary" />
+                  Kargo ücreti ve sipariş toplamı ödeme öncesinde yukarıda gösterilir.
+                </p>
+                <p className="flex items-center gap-2">
+                  <RotateCcw className="h-4 w-4 shrink-0 text-primary" />
+                  İade ve değişim koşullarını inceleyebilirsiniz.
+                  <Link href="/iade-degisim" className="font-medium text-primary underline">
+                    Koşullar
+                  </Link>
+                </p>
+              </div>
             </div>
           </div>
         </div>

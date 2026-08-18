@@ -24,6 +24,19 @@ interface FunnelData {
     checkout_to_order: number;
     end_to_end: number;
   };
+  device_funnel: Array<{
+    device_type: string;
+    product_view: number;
+    add_to_cart: number;
+    checkout_start: number;
+  }>;
+  measurement: {
+    database_payments: number;
+    verified_payment_events: number;
+    first_party_event_coverage_pct: number;
+    attributed_paid_orders: number;
+    order_attribution_coverage_pct: number;
+  };
 }
 
 interface OverviewData {
@@ -84,6 +97,59 @@ interface CtrRow {
   atc_pct: number;
 }
 
+interface CommerceData {
+  window_days: number;
+  catalog: {
+    total: number;
+    hero: number;
+    homepage_featured: number;
+    ads_eligible: number;
+    missing_brand: number;
+    missing_category: number;
+    missing_meta_title: number;
+    quality_below_80: number;
+    overpriced: number;
+    stale_market_price: number;
+  };
+  stores: {
+    active: number;
+    profile_below_80: number;
+    missing_geliver_sender: number;
+    suspended: number;
+  };
+  sales: {
+    orders: number;
+    payments: number;
+    revenue: number;
+    platform_commission: number;
+    admin_funded_discount: number;
+    net_platform_contribution: number;
+    net_platform_margin_pct: number;
+    cancelled_or_refunded: number;
+    buyers: number;
+    repeat_buyers: number;
+    repeat_buyer_rate_pct: number;
+  };
+  shipping: { due: number; on_time: number; breached: number };
+  channels: Array<{ source: string; payments: number; revenue: number }>;
+  quality_queue: Array<{
+    id: number;
+    name: string;
+    is_hero: boolean;
+    catalog_quality_score: number;
+    ads_ineligibility_reason: string | null;
+    price_index: number | null;
+    store?: { name: string } | null;
+  }>;
+  store_queue: Array<{
+    id: number;
+    name: string;
+    profile_completion_score: number;
+    geliver_sender_address_id: string | null;
+  }>;
+  cohorts: Array<{ days: number; eligible_buyers: number; repeat_buyers: number; repeat_rate_pct: number }>;
+}
+
 interface ExperimentRow {
   key: string;
   name: string;
@@ -108,6 +174,7 @@ export default function Analytics() {
   const expSvc = useBaseService<{ window_days: number; experiments: ExperimentRow[] }>(
     API_ENDPOINTS.ADMIN_ANALYTICS_EXPERIMENTS
   );
+  const commerceSvc = useBaseService<CommerceData>(API_ENDPOINTS.ADMIN_ANALYTICS_COMMERCE);
 
   const { data: overviewRes } = useQuery({
     queryKey: [API_ENDPOINTS.ADMIN_ANALYTICS_OVERVIEW, days],
@@ -129,11 +196,17 @@ export default function Analytics() {
     queryFn: () => expSvc.findAll({ days }),
     retry: false,
   });
+  const { data: commerceRes } = useQuery({
+    queryKey: [API_ENDPOINTS.ADMIN_ANALYTICS_COMMERCE, days],
+    queryFn: () => commerceSvc.findAll({ days }),
+    retry: false,
+  });
 
   const overview = (overviewRes?.data as { data?: OverviewData } | undefined)?.data;
   const funnel = (funnelRes?.data as { data?: FunnelData } | undefined)?.data;
   const ctrData = (ctrRes?.data as { data?: { blocks: CtrRow[] } } | undefined)?.data;
   const experiments = (expRes?.data as { data?: { experiments: ExperimentRow[] } } | undefined)?.data?.experiments ?? [];
+  const commerce = (commerceRes?.data as { data?: CommerceData } | undefined)?.data;
 
   return (
     <div className="space-y-8 p-6">
@@ -166,8 +239,102 @@ export default function Analytics() {
             <MetricCard label="Bot event" value={overview.summary.bot_events} muted />
             <MetricCard label="Ürün görüntüleme" value={overview.summary.product_views} />
             <MetricCard label="Ürün tıklama" value={overview.summary.product_clicks} />
-            <MetricCard label="Sepete ekleme" value={overview.summary.add_to_carts} />
-            <MetricCard label="Ödeme başlangıcı" value={overview.summary.checkout_starts} />
+            <MetricCard label="Sepete ekleyen" value={overview.summary.add_to_carts} />
+            <MetricCard label="Ödemeye başlayan" value={overview.summary.checkout_starts} />
+          </div>
+        </section>
+      )}
+
+      {commerce && (
+        <section className="flex flex-col gap-3">
+          <div>
+            <h2 className="text-lg font-semibold">Ticari Hazırlık</h2>
+            <p className="text-sm text-muted-foreground">
+              Test siparişleri hariç satışlar, kahraman katalog, reklam ve satıcı kalite kapıları.
+            </p>
+          </div>
+          <div className="grid gap-3 md:grid-cols-4">
+            <MetricCard label="Kahraman ürün" value={commerce.catalog.hero} />
+            <MetricCard label="Ana sayfa vitrini" value={commerce.catalog.homepage_featured} />
+            <MetricCard label="Reklama uygun" value={commerce.catalog.ads_eligible} />
+            <MetricCard label="Başarılı ödeme" value={commerce.sales.payments} />
+            <MetricCard label="Gelir (TRY)" value={commerce.sales.revenue} />
+            <MetricCard label="Platform komisyonu" value={commerce.sales.platform_commission} />
+            <MetricCard label="Net platform katkısı" value={commerce.sales.net_platform_contribution} />
+            <MetricCard label="Net katkı oranı" value={commerce.sales.net_platform_margin_pct} suffix="%" />
+            <MetricCard label="Admin teşvik maliyeti" value={commerce.sales.admin_funded_discount} />
+            <MetricCard label="Gerçek alıcı" value={commerce.sales.buyers} />
+            <MetricCard label="Tekrar alıcı" value={commerce.sales.repeat_buyers} />
+            <MetricCard label="Tekrar alıcı oranı" value={commerce.sales.repeat_buyer_rate_pct} suffix="%" />
+          </div>
+          <div className="grid gap-6 xl:grid-cols-2">
+            <ReportTable
+              title="Katalog Kalite Alarmları"
+              empty="Katalog alarmı yok."
+              headers={["Kontrol", "Ürün"]}
+              rows={[
+                ["Markası eksik", commerce.catalog.missing_brand.toLocaleString("tr-TR")],
+                ["Kategorisi eksik", commerce.catalog.missing_category.toLocaleString("tr-TR")],
+                ["Meta başlığı eksik", commerce.catalog.missing_meta_title.toLocaleString("tr-TR")],
+                ["Kalite skoru 80 altı", commerce.catalog.quality_below_80.toLocaleString("tr-TR")],
+                ["Piyasanın %15 üzeri", commerce.catalog.overpriced.toLocaleString("tr-TR")],
+                ["Piyasa fiyatı bayat/eksik", commerce.catalog.stale_market_price.toLocaleString("tr-TR")],
+              ]}
+            />
+            <ReportTable
+              title="Satıcı ve Sevkiyat Alarmları"
+              empty="Operasyon alarmı yok."
+              headers={["Kontrol", "Adet"]}
+              rows={[
+                ["Profil skoru 80 altı", commerce.stores.profile_below_80.toLocaleString("tr-TR")],
+                ["Geliver adresi eksik", commerce.stores.missing_geliver_sender.toLocaleString("tr-TR")],
+                ["Satışı askıya alınmış", commerce.stores.suspended.toLocaleString("tr-TR")],
+                ["Kargo SLA ihlali", commerce.shipping.breached.toLocaleString("tr-TR")],
+                ["İptal/iade ödeme", commerce.sales.cancelled_or_refunded.toLocaleString("tr-TR")],
+              ]}
+            />
+            <ReportTable
+              title="Ödeme Üreten Kanallar"
+              empty="Sipariş atıf verisi henüz yok."
+              headers={["Kaynak", "Ödeme", "Gelir"]}
+              rows={commerce.channels.map((channel) => [
+                channel.source,
+                Number(channel.payments).toLocaleString("tr-TR"),
+                Number(channel.revenue).toLocaleString("tr-TR", { style: "currency", currency: "TRY" }),
+              ])}
+            />
+            <ReportTable
+              title="Öncelikli Ürün Düzeltme Kuyruğu"
+              empty="Düzeltme bekleyen ürün yok."
+              headers={["Ürün", "Mağaza", "Skor", "Reklam engeli"]}
+              rows={commerce.quality_queue.map((product) => [
+                `#${product.id} ${product.name}`,
+                product.store?.name || "-",
+                String(product.catalog_quality_score),
+                product.ads_ineligibility_reason || "-",
+              ])}
+            />
+            <ReportTable
+              title="Öncelikli Satıcı Düzeltme Kuyruğu"
+              empty="Düzeltme bekleyen satıcı yok."
+              headers={["Mağaza", "Profil skoru", "Geliver"]}
+              rows={commerce.store_queue.map((store) => [
+                `#${store.id} ${store.name}`,
+                String(store.profile_completion_score),
+                store.geliver_sender_address_id ? "Bağlı" : "Eksik",
+              ])}
+            />
+            <ReportTable
+              title="Tekrar Satın Alma Kohortları"
+              empty="Kohort verisi yok."
+              headers={["Pencere", "Uygun alıcı", "Tekrar alıcı", "Oran"]}
+              rows={commerce.cohorts.map((cohort) => [
+                `${cohort.days} gün`,
+                String(cohort.eligible_buyers),
+                String(cohort.repeat_buyers),
+                `%${cohort.repeat_rate_pct}`,
+              ])}
+            />
           </div>
         </section>
       )}
@@ -184,16 +351,41 @@ export default function Analytics() {
               <FunnelRow label="Sepete ekleme" count={funnel.funnel.add_to_cart} max={funnel.funnel.page_view} />
               <FunnelRow label="Sepet görüntüleme" count={funnel.funnel.cart_view} max={funnel.funnel.page_view} />
               <FunnelRow label="Ödemeye başlama" count={funnel.funnel.checkout_start} max={funnel.funnel.page_view} />
+              <FunnelRow label="Sipariş oluşturuldu" count={funnel.funnel.order_created} max={funnel.funnel.page_view} />
               <FunnelRow label="Ödeme başarılı" count={funnel.funnel.payment_success} max={funnel.funnel.page_view} accent="green" />
 
               <div className="mt-4 grid grid-cols-4 gap-3 border-t pt-4 text-center text-sm">
                 <RateTile label="Görüntüle → Sepet" value={funnel.rates.view_to_cart} />
                 <RateTile label="Sepet → Ödeme" value={funnel.rates.cart_to_checkout} />
-                <RateTile label="Ödeme → Sipariş" value={funnel.rates.checkout_to_order} />
+                <RateTile label="Checkout → Başarılı ödeme" value={funnel.rates.checkout_to_order} />
                 <RateTile label="Uçtan uca" value={funnel.rates.end_to_end} accent="green" />
               </div>
             </CardContent>
           </Card>
+          <div className="mt-4 grid gap-6 xl:grid-cols-2">
+            <ReportTable
+              title="Cihaza Göre Funnel"
+              empty="Cihaz kırılımı yok."
+              headers={["Cihaz", "Ürün", "Sepet", "Checkout"]}
+              rows={funnel.device_funnel.map((row) => [
+                row.device_type,
+                Number(row.product_view).toLocaleString("tr-TR"),
+                Number(row.add_to_cart).toLocaleString("tr-TR"),
+                Number(row.checkout_start).toLocaleString("tr-TR"),
+              ])}
+            />
+            <ReportTable
+              title="Ölçüm Sağlığı"
+              empty="Ölçüm verisi yok."
+              headers={["Kontrol", "Değer"]}
+              rows={[
+                ["Veritabanı başarılı ödeme", String(funnel.measurement.database_payments)],
+                ["Doğrulanmış first-party payment event", String(funnel.measurement.verified_payment_events)],
+                ["First-party event kapsaması", `%${funnel.measurement.first_party_event_coverage_pct}`],
+                ["Sipariş atıf kapsaması", `%${funnel.measurement.order_attribution_coverage_pct}`],
+              ]}
+            />
+          </div>
         </section>
       )}
 
@@ -417,17 +609,19 @@ function MetricCard({
   label,
   value,
   muted,
+  suffix,
 }: {
   label: string;
   value: number;
   muted?: boolean;
+  suffix?: string;
 }) {
   return (
     <Card>
       <CardContent className="p-4">
         <div className="text-xs font-medium uppercase text-muted-foreground">{label}</div>
         <div className={`mt-2 text-2xl font-bold ${muted ? "text-muted-foreground" : ""}`}>
-          {value.toLocaleString("tr-TR")}
+          {value.toLocaleString("tr-TR")}{suffix}
         </div>
       </CardContent>
     </Card>

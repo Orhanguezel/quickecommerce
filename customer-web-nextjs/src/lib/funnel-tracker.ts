@@ -196,6 +196,37 @@ function pageContext(): Partial<FunnelEventInput> {
   };
 }
 
+export interface FunnelAttributionContext {
+  visitor_id?: string;
+  session_id?: string;
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_term?: string;
+  utm_content?: string;
+  landing_page?: string;
+  referrer?: string;
+}
+
+/** Returns the same first-party identity and attribution used by funnel events. */
+export function getFunnelAttributionContext(): FunnelAttributionContext {
+  if (typeof window === "undefined") return {};
+  const url = new URL(window.location.href);
+  const context = resolveAttribution(url);
+
+  return {
+    visitor_id: getOrCreateVisitorId() ?? undefined,
+    session_id: getOrCreateSessionId() ?? undefined,
+    utm_source: context.utm_source,
+    utm_medium: context.utm_medium,
+    utm_campaign: context.utm_campaign,
+    utm_term: context.utm_term,
+    utm_content: context.utm_content,
+    landing_page: context.landing_page,
+    referrer: context.referrer,
+  };
+}
+
 /**
  * Kanal atıfını çözer ve ilk-dokunuşta sessionStorage'a saklar (tüm oturuma
  * uygulanır — reklamdan gelen ziyaretçinin sonraki sayfalarında URL'de utm/gclid
@@ -207,6 +238,7 @@ function pageContext(): Partial<FunnelEventInput> {
  */
 function resolveAttribution(url: URL): {
   utm_source?: string; utm_medium?: string; utm_campaign?: string; utm_term?: string; utm_content?: string;
+  landing_page?: string; referrer?: string;
 } {
   const KEY = "ft_attr";
   const gclid =
@@ -219,15 +251,29 @@ function resolveAttribution(url: URL): {
     utm_campaign: url.searchParams.get("utm_campaign") || (gclid ? "google-ads" : undefined),
     utm_term: url.searchParams.get("utm_term") || undefined,
     utm_content: url.searchParams.get("utm_content") || undefined,
+    landing_page: url.href,
+    referrer: document.referrer || undefined,
   };
-  const hasAny = Object.values(current).some(Boolean);
+  const hasCampaign = Boolean(
+    current.utm_source || current.utm_medium || current.utm_campaign ||
+      current.utm_term || current.utm_content,
+  );
   try {
-    if (hasAny) {
+    const saved = sessionStorage.getItem(KEY);
+    if (saved) {
+      const firstTouch = JSON.parse(saved);
+      // A new explicit campaign supersedes direct attribution, but never replaces
+      // its own original landing page during the rest of the checkout session.
+      if (hasCampaign && !firstTouch.utm_source) {
+        sessionStorage.setItem(KEY, JSON.stringify(current));
+        return current;
+      }
+      return firstTouch;
+    }
+    if (hasCampaign || current.landing_page) {
       sessionStorage.setItem(KEY, JSON.stringify(current));
       return current;
     }
-    const saved = sessionStorage.getItem(KEY);
-    if (saved) return JSON.parse(saved);
   } catch {
     /* sessionStorage yoksa yoksay */
   }

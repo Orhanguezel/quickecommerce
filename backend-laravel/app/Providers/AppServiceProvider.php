@@ -5,11 +5,22 @@ namespace App\Providers;
 use App\Interfaces\DynamicFieldOptionInterface;
 use App\Interfaces\InventoryManageInterface;
 use App\Models\Customer;
+use App\Models\Banner;
+use App\Models\FlashSale;
+use App\Models\FlashSaleProduct;
 use App\Models\Order;
+use App\Models\Product;
+use App\Models\ProductBrand;
+use App\Models\ProductCategory;
+use App\Models\ProductVariant;
+use App\Models\Slider;
 use App\Models\Store;
 use App\Models\User;
+use Modules\Blog\app\Models\Blog;
 use App\Observers\CustomerObserver;
 use App\Observers\OrderObserver;
+use App\Observers\PublicCatalogCacheObserver;
+use App\Observers\ProductSearchObserver;
 use App\Observers\SellerStoreWiseObserver;
 use App\Observers\StoreObserver;
 use App\Observers\UserObserver;
@@ -46,6 +57,17 @@ class AppServiceProvider extends ServiceProvider
         Store::observe(SellerStoreWiseObserver::class);
         Store::observe(StoreObserver::class);
         Order::observe(OrderObserver::class);
+        Product::observe(PublicCatalogCacheObserver::class);
+        Product::observe(ProductSearchObserver::class);
+        ProductBrand::observe(PublicCatalogCacheObserver::class);
+        ProductCategory::observe(PublicCatalogCacheObserver::class);
+        ProductVariant::observe(PublicCatalogCacheObserver::class);
+        Store::observe(PublicCatalogCacheObserver::class);
+        Slider::observe(PublicCatalogCacheObserver::class);
+        Banner::observe(PublicCatalogCacheObserver::class);
+        FlashSale::observe(PublicCatalogCacheObserver::class);
+        FlashSaleProduct::observe(PublicCatalogCacheObserver::class);
+        Blog::observe(PublicCatalogCacheObserver::class);
 
         // Morph map
         Relation::morphMap([

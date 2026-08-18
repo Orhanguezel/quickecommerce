@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Star, Loader2, X } from "lucide-react";
+import { Star, Loader2, X, ImagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSubmitReviewMutation } from "@/modules/product/product-review.service";
+
+const MAX_IMAGES = 5;
+const MAX_IMAGE_BYTES = 4 * 1024 * 1024; // 4MB (backend ile ayni)
 
 interface ReviewDialogProps {
   orderId: number;
@@ -18,6 +21,8 @@ interface ReviewDialogProps {
     submitting: string;
     review_success: string;
     close: string;
+    add_photos?: string;
+    photos_hint?: string;
   };
 }
 
@@ -32,8 +37,27 @@ export function ReviewDialog({
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
+  const [images, setImages] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const submitReview = useSubmitReviewMutation();
+
+  function handleAddImages(e: React.ChangeEvent<HTMLInputElement>) {
+    const picked = Array.from(e.target.files ?? []);
+    e.target.value = ""; // ayni dosya tekrar secilebilsin
+    const valid = picked.filter(
+      (f) => f.type.startsWith("image/") && f.size <= MAX_IMAGE_BYTES
+    );
+    const next = [...images, ...valid].slice(0, MAX_IMAGES);
+    setImages(next);
+    setPreviews(next.map((f) => URL.createObjectURL(f)));
+  }
+
+  function removeImage(index: number) {
+    const next = images.filter((_, i) => i !== index);
+    setImages(next);
+    setPreviews(next.map((f) => URL.createObjectURL(f)));
+  }
 
   function handleSubmit() {
     if (rating === 0 || !reviewText.trim()) return;
@@ -46,6 +70,7 @@ export function ReviewDialog({
         reviewable_type: "product",
         review: reviewText.trim(),
         rating,
+        images: images.length > 0 ? images : undefined,
       },
       {
         onSuccess: () => setSubmitted(true),
@@ -107,6 +132,47 @@ export function ReviewDialog({
               maxLength={1000}
               className="mb-4 w-full rounded-md border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
+
+            {/* Görsel Yükleme */}
+            <div className="mb-4">
+              <div className="flex flex-wrap gap-2">
+                {previews.map((src, i) => (
+                  <div
+                    key={i}
+                    className="relative h-16 w-16 overflow-hidden rounded-md border"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={src}
+                      alt={`review-${i}`}
+                      className="h-full w-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(i)}
+                      className="absolute right-0 top-0 flex h-4 w-4 items-center justify-center rounded-bl bg-black/60 text-white"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+                {images.length < MAX_IMAGES && (
+                  <label className="flex h-16 w-16 cursor-pointer flex-col items-center justify-center gap-1 rounded-md border border-dashed text-muted-foreground hover:border-primary hover:text-primary">
+                    <ImagePlus className="h-5 w-5" />
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      multiple
+                      onChange={handleAddImages}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+              </div>
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                {t.photos_hint ?? "İsteğe bağlı — en fazla 5 fotoğraf (her biri 4MB)"}
+              </p>
+            </div>
 
             <div className="flex justify-end gap-2">
               <Button variant="outline" size="sm" onClick={onClose}>

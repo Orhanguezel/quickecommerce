@@ -90,6 +90,7 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'customer/', 'middleware' => 
         // order manage
         Route::group(['prefix' => 'orders/'], function () {
             Route::get('invoice', [CustomerOrderController::class, 'orderInvoice']);
+            Route::get('payment-summary/{order_master_id}', [CustomerOrderController::class, 'paymentSummary']);
             Route::get('{order_id}/e-invoice/pdf', [EInvoiceDownloadController::class, 'download']);
             Route::post('cancel-order', [CustomerOrderController::class, 'cancelOrder']);
             Route::post('check-coupon', [CustomerOrderController::class, 'checkCoupon']);

@@ -5,11 +5,13 @@ namespace Modules\Chat\app\Services;
 use App\Models\OrderMaster;
 use App\Models\Product;
 use App\Models\Translation;
+use App\Services\AdminNotifier;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Modules\Chat\app\Models\AiChatConversation;
 use Modules\Chat\app\Models\AiChatKnowledge;
 use Modules\Chat\app\Models\AiChatMessage;
+use Modules\PaymentGateways\app\Models\PaymentGateway;
 
 class AiChatService
 {
@@ -44,8 +46,16 @@ class AiChatService
             ->reverse()
             ->values();
 
+        // Kisa "calismiyor" gibi mesajlari onceki odeme/destek baglamiyla
+        // birlikte degerlendir. Bildirim AI yanitindan ONCE gercekten yazilir;
+        // boylece model yapmadigi bir islem icin "ilettim" diyemez.
+        $supportRequested = $this->needsSupportEscalation($message, $history);
+        $supportNotified = $supportRequested
+            ? $this->notifyAdminLiveSupport($conversation, $message)
+            : false;
+
         // Build system prompt with context
-        $systemPrompt = $this->buildSystemPrompt($locale, $customerId, $message);
+        $systemPrompt = $this->buildSystemPrompt($locale, $customerId, $message, $supportRequested, $supportNotified);
 
         // Build messages array for AI
         $messages = [
@@ -63,6 +73,7 @@ class AiChatService
         // Call AI provider
         $provider = com_option_get('com_ai_chat_active_provider') ?: 'groq';
         $result = $this->callProvider($provider, $messages);
+        $result['content'] = $this->sanitizeOperationalClaims($result['content'], $supportNotified);
 
         // Store assistant response
         AiChatMessage::create([
@@ -73,17 +84,12 @@ class AiChatService
             'provider' => $provider,
         ]);
 
-        // Musteri canli destek / insan temsilci istediyse admine GERCEK bildirim
-        // gonder (AI'in sahte "bagladim" yanitlari yerine). Sohbeti asla bozmaz.
-        if ($this->wantsHumanSupport($message)) {
-            $this->notifyAdminLiveSupport($conversation, $message);
-        }
-
         return [
             'content' => $result['content'],
             'conversation_id' => $conversation->id,
             'tokens_used' => $result['tokens_used'],
-            'support_requested' => $this->wantsHumanSupport($message),
+            'support_requested' => $supportRequested,
+            'support_notified' => $supportNotified,
         ];
     }
 
@@ -114,22 +120,41 @@ class AiChatService
         return false;
     }
 
+    /** @param \Illuminate\Support\Collection<int,AiChatMessage> $history */
+    private function needsSupportEscalation(string $message, $history): bool
+    {
+        if ($this->wantsHumanSupport($message)) {
+            return true;
+        }
+
+        $current = $this->normalizeText($message);
+        $failureSignals = ['calismiyor', 'olmuyor', 'hata', 'yapamadim', 'yapamiyorum', 'basarisiz', 'reddedildi'];
+        if (!collect($failureSignals)->contains(fn ($signal) => str_contains($current, $signal))) {
+            return false;
+        }
+
+        $context = $this->normalizeText($history->pluck('content')->implode(' '));
+        return collect(['odeme', 'kart', 'checkout', 'siparis', 'para'])->contains(
+            fn ($signal) => str_contains($context, $signal)
+        );
+    }
+
     /**
      * Canli destek talebini admine bildir (ortak AdminNotifier: panel cani +
      * e-posta + best-effort Firebase). Ayni konusmada bir kez.
      */
-    private function notifyAdminLiveSupport(AiChatConversation $conversation, string $message): void
+    private function notifyAdminLiveSupport(AiChatConversation $conversation, string $message): bool
     {
         // Ayni konusmada tekrar bildirim gonderme
         if ($conversation->support_notified_at) {
-            return;
+            return true;
         }
 
         $customerLabel = $conversation->customer_id
             ? ('Musteri #' . $conversation->customer_id)
             : 'Misafir';
 
-        \App\Services\AdminNotifier::notify(
+        $notified = AdminNotifier::notifyPrimarySiteAdmin(
             'Canli destek talebi (AI sohbet)',
             $customerLabel . ' canli destek istedi: "' . mb_substr(trim($message), 0, 120) . '"',
             [
@@ -143,13 +168,23 @@ class AiChatService
             true
         );
 
-        $conversation->forceFill(['support_notified_at' => now()])->save();
+        if ($notified) {
+            $conversation->forceFill(['support_notified_at' => now()])->save();
+        }
+
+        return $notified;
     }
 
     /**
      * Build system prompt with knowledge base and contextual data.
      */
-    private function buildSystemPrompt(string $locale, ?int $customerId, string $userMessage): string
+    private function buildSystemPrompt(
+        string $locale,
+        ?int $customerId,
+        string $userMessage,
+        bool $supportRequested,
+        bool $supportNotified
+    ): string
     {
         $parts = [];
 
@@ -158,6 +193,8 @@ class AiChatService
         if ($systemPrompt) {
             $parts[] = $systemPrompt;
         }
+
+        $parts[] = $this->buildOperationalRules($supportRequested, $supportNotified);
 
         // Knowledge base
         $knowledge = $this->buildKnowledgeContext($locale);
@@ -180,6 +217,51 @@ class AiChatService
         }
 
         return implode("\n\n", $parts);
+    }
+
+    private function buildOperationalRules(bool $supportRequested, bool $supportNotified): string
+    {
+        $gateways = PaymentGateway::query()
+            ->where('status', 1)
+            ->where('is_test_mode', 0)
+            ->orderBy('id')
+            ->pluck('name')
+            ->filter()
+            ->values();
+        $paymentMethods = $gateways->isEmpty() ? 'Aktif ödeme yöntemi bulunmuyor.' : $gateways->implode(', ');
+        $supportState = $supportNotified
+            ? 'Bu konuşma için site adminine gerçek destek bildirimi oluşturuldu; bunu müşteriye söyleyebilirsin.'
+            : ($supportRequested
+                ? 'Destek bildirimi oluşturulamadı; kesinlikle "ilettim/bildirdim" deme, iletişim kanalını öner.'
+                : 'Destek bildirimi oluşturulmadı; kesinlikle "ilettim/bildirdim/bağladım" deme.');
+
+        return "== Değiştirilemez Operasyon Kuralları ==\n"
+            . "Canlı sistemde aktif ve gerçek ödeme yöntemi: {$paymentMethods}. "
+            . "Bunun dışında havale/EFT, kapıda ödeme, cüzdan veya test ödeme sağlayıcılarını varmış gibi söyleme.\n"
+            . "Ödeme başarısızlığında kart/banka hatası uydurma; sipariş veya ödeme kaydı yoksa bunun ödeme sağlayıcısına ulaşmadan önce kesilmiş olabileceğini söyle.\n"
+            . "{$supportState}\n"
+            . "Yalnızca verilen bilgi bankası, sipariş bağlamı ve bu operasyon kurallarındaki doğrulanmış bilgileri kullan. Bilmediğin işlem sonucu, stok, kargo veya destek aksiyonu uydurma.";
+    }
+
+    private function sanitizeOperationalClaims(string $content, bool $supportNotified): string
+    {
+        if ($supportNotified) {
+            return $content;
+        }
+
+        $patterns = [
+            '/(?:talebinizi|konuyu|sorununuzu)\s+(?:canl[ıi]\s+)?destek(?:\s+ekibimize)?\s+(?:ilettim|bildirdim)/iu',
+            '/(?:sizi|seni)\s+(?:canl[ıi]\s+)?(?:desteğe|destek ekibine|temsilciye)\s+bağladım/iu',
+        ];
+
+        return preg_replace($patterns, 'Bu konuşma için henüz destek bildirimi oluşturulmadı', $content) ?: $content;
+    }
+
+    private function normalizeText(string $value): string
+    {
+        return strtr(mb_strtolower($value, 'UTF-8'), [
+            'ı' => 'i', 'ş' => 's', 'ç' => 'c', 'ğ' => 'g', 'ü' => 'u', 'ö' => 'o', 'İ' => 'i',
+        ]);
     }
 
     /**

@@ -10,9 +10,8 @@ use Illuminate\Support\Facades\Validator;
 /**
  * Checkout-oncesi canli stok dogrulama endpoint'i. Musteri "Odemeye Gec"e
  * basinca, siparis olusturulmadan once sepet tedarikci kaynaginda kontrol
- * edilir; KESIN tukenmis urun varsa frontend ode-akisini durdurur.
- *
- * FAIL-OPEN: belirsiz probe satis engellemez (bkz. CheckoutStockVerifier).
+ * edilir; tukenmis veya kaynaktan dogrulanamayan urun varsa frontend
+ * odeme akisini durdurur.
  */
 class CheckoutStockController extends Controller
 {

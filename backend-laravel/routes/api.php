@@ -72,8 +72,8 @@ Route::group(['prefix' => 'v1/'], function () {
 
         // Product Category
         Route::group(['prefix' => 'product-category/'], function () {
-            Route::get('list', [FrontendController::class, 'productCategoryList']);
-            Route::get('product', [FrontendController::class, 'categoryWiseProducts']);
+            Route::get('list', [FrontendController::class, 'productCategoryList'])->middleware('public.cache:3600');
+            Route::get('product', [FrontendController::class, 'categoryWiseProducts'])->middleware('public.cache:300');
         });
     });
 
@@ -86,20 +86,22 @@ Route::group(['prefix' => 'v1/'], function () {
 
     // public routes for frontend
     Route::middleware('detect.platform')->group(function () {
-        Route::get('/slider-list', [FrontendController::class, 'sliders']);
-        Route::match(['GET', 'POST'], '/product-list', [FrontendController::class, 'products']);
+        Route::get('/slider-list', [FrontendController::class, 'sliders'])->middleware('public.cache:3600');
+        Route::get('/sitemap/products', [FrontendController::class, 'sitemapProducts']);
+        Route::get('/sitemap/gone-products', [FrontendController::class, 'sitemapGoneProducts']);
+        Route::match(['GET', 'POST'], '/product-list', [FrontendController::class, 'products'])->middleware('public.cache:300');
         Route::get('/product/attribute-list', [FrontendController::class, 'productAttributes']);
         Route::get('/product/{product_slug}', [FrontendController::class, 'productDetails']);
-        Route::get('/new-arrivals', [FrontendController::class, 'newArrivals']);
-        Route::get('/best-selling-products', [FrontendController::class, 'bestSellingProducts']);
-        Route::get('/featured-products', [FrontendController::class, 'featuredProducts']);
+        Route::get('/new-arrivals', [FrontendController::class, 'newArrivals'])->middleware('public.cache:3600');
+        Route::get('/best-selling-products', [FrontendController::class, 'bestSellingProducts'])->middleware('public.cache:3600');
+        Route::get('/featured-products', [FrontendController::class, 'featuredProducts'])->middleware('public.cache:3600');
         Route::get('/week-best-products', [FrontendController::class, 'weekBestProducts']);
-        Route::get('/trending-products', [FrontendController::class, 'trendingProducts']);
-        Route::get('/popular-products', [FrontendController::class, 'popularProducts']);
+        Route::get('/trending-products', [FrontendController::class, 'trendingProducts'])->middleware('public.cache:3600');
+        Route::get('/popular-products', [FrontendController::class, 'popularProducts'])->middleware('public.cache:3600');
         Route::get('/recently-viewed-products', [FrontendController::class, 'recentlyViewedProducts']);
         Route::get('/top-deal-products', [FrontendController::class, 'topDeals']);
         Route::get('/top-rated-products', [FrontendController::class, 'topRatedProducts']);
-        Route::get('/banner-list', [FrontendController::class, 'banners']);
+        Route::get('/banner-list', [FrontendController::class, 'banners'])->middleware('public.cache:3600');
         Route::post('/subscribe', [SubscriberManageController::class, 'subscribe']);
         Route::post('/unsubscribe', [SubscriberManageController::class, 'unsubscribe']);
         Route::get('/area-list', [FrontendController::class, 'areas']);
@@ -111,10 +113,11 @@ Route::group(['prefix' => 'v1/'], function () {
         Route::get('/customer-list', [FrontendController::class, 'customers']);
         Route::get('/store-list', [FrontendController::class, 'stores']);
         Route::get('/store-list-dropdown', [FrontendController::class, 'storesDropdown']);
-        Route::get('/store-details/{slug}', [FrontendController::class, 'storeDetails']);
+        Route::get('/store-details/{slug}', [FrontendController::class, 'storeDetails'])->middleware('public.cache:3600');
         Route::get('/department-list', [FrontendController::class, 'departments']);
-        Route::get('/flash-deals', [FrontendController::class, 'flashDeals']);
-        Route::get('/flash-deal-products', [FrontendController::class, 'flashDealProducts'])->middleware('throttle:public-api');
+        Route::get('/flash-deals', [FrontendController::class, 'flashDeals'])->middleware('public.cache:3600');
+        Route::get('/flash-deal-products', [FrontendController::class, 'flashDealProducts'])
+            ->middleware(['throttle:public-api', 'public.cache:3600']);
         Route::get('/shipping-campaigns/active', [FrontendController::class, 'getActiveShippingCampaigns']);
         Route::get('/product-suggestion', [FrontendController::class, 'searchSuggestions']);
         Route::get('/keyword-suggestion', [FrontendController::class, 'keywordSuggestions']);
@@ -253,7 +256,11 @@ Route::group(['prefix' => 'v1/admin', 'middleware' => ['auth:sanctum', ApiAuthMi
         Route::get('/recommendation-ctr', [\App\Http\Controllers\Api\V1\Admin\AdminFunnelAnalyticsController::class, 'recommendationCtr']);
         Route::get('/search', [\App\Http\Controllers\Api\V1\Admin\SearchAnalyticsController::class, 'index']);
         Route::get('/experiments', [\App\Http\Controllers\Api\V1\Admin\AdminFunnelAnalyticsController::class, 'experiments']);
+        Route::get('/commerce', [\App\Http\Controllers\Api\V1\Admin\AdminCommerceController::class, 'overview']);
     });
+
+    Route::patch('/commerce/products/{product}', [\App\Http\Controllers\Api\V1\Admin\AdminCommerceController::class, 'reviewProduct']);
+    Route::patch('/commerce/stores/{store}', [\App\Http\Controllers\Api\V1\Admin\AdminCommerceController::class, 'reviewStore']);
 
     Route::group(['prefix' => 'bundles'], function () {
         Route::get('/', [\App\Http\Controllers\Api\V1\Admin\AdminBundleController::class, 'index']);
@@ -269,4 +276,3 @@ Route::group(['prefix' => 'v1/admin', 'middleware' => ['auth:sanctum', ApiAuthMi
     });
 
 });
-

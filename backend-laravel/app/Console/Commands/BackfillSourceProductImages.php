@@ -13,6 +13,7 @@ class BackfillSourceProductImages extends Command
                             {source_name : Kaynak adi (proteinmax, compexturkiye vs.)}
                             {json_file : Scraper JSON dosyasi}
                             {--store_id= : Sadece belirli magazayi isle}
+                            {--missing-only : Yalniz ana gorseli bos urunleri isle}
                             {--apply : Degisiklikleri DB\'ye yaz}
                             {--limit=0 : Test icin en fazla N urun}';
 
@@ -49,6 +50,13 @@ class BackfillSourceProductImages extends Command
 
         if ($this->option('store_id')) {
             $query->where('store_id', (int) $this->option('store_id'));
+        }
+        if ($this->option('missing-only')) {
+            $query->whereHas('product', function ($product): void {
+                $product->withoutGlobalScopes()->where(function ($missing): void {
+                    $missing->whereNull('image')->orWhere('image', '');
+                });
+            });
         }
 
         $stats = [

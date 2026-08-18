@@ -7,6 +7,7 @@ use App\Models\ProductSourceMapping;
 use App\Models\ProductVariant;
 use Illuminate\Console\Command;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class SyncSourcePrices extends Command
@@ -20,6 +21,7 @@ class SyncSourcePrices extends Command
                             {--backfill-by-name : Mapping yoksa urun adiyla esleme (slug uyusmazsa; birebir ad, ayni ad birden fazlaysa atlar)}
                             {--backfill-only : Sadece mapping backfill yap, fiyat/stok sync calistirma}
                             {--max-change-percent=30 : Fiyat degisim yuzdesi bu siniri asarsa fiyati atla (stok yine guncellenir)}
+                            {--stock-only : Yalnizca stok uygula; fiyat alanlarina dokunma}
                             {--allow-zero-price : 0 fiyat gelirse de uygula (varsayilan: engelle)}
                             {--keep-missing-stock : Kaynakta bulunamayan urunlerde stogu sifirlama (varsayilan: sifirla)}';
 
@@ -31,8 +33,10 @@ class SyncSourcePrices extends Command
     private bool $backfillBySlug = false;
     private bool $backfillByName = false;
     private bool $allowZeroPrice = false;
+    private bool $stockOnly = false;
     private float $maxChangePercent = 30.0;
     private bool $zeroMissingStock = true;
+    private ?string $defaultCurrencyCode = null;
     private bool $safeToZeroMissing = true;
 
     public function handle(): int
@@ -43,6 +47,7 @@ class SyncSourcePrices extends Command
         $this->backfillBySlug = (bool) $this->option('backfill-by-slug');
         $this->backfillByName = (bool) $this->option('backfill-by-name');
         $this->allowZeroPrice = (bool) $this->option('allow-zero-price');
+        $this->stockOnly = (bool) $this->option('stock-only');
         $this->maxChangePercent = (float) $this->option('max-change-percent');
         $this->zeroMissingStock = !$this->option('keep-missing-stock');
 
@@ -146,7 +151,19 @@ class SyncSourcePrices extends Command
                 ['Missing -> stok 0', $stats['missing_zeroed']],
                 ['Gecersiz/0 fiyat (stok yine guncellendi)', $stats['invalid_price']],
                 ['Fiyat limiti (stok yine guncellendi)', $stats['price_guard']],
+                // 2026-07-28: Bu iki satir eksikti. syncMapping stok=0 urunlerde
+                // 'stock_zero_skip_price', ilk kez kaybolanlarda 'missing_transient'
+                // dondurur; ikisi de hicbir satirda gorunmuyordu ve "Kontrol edilen"
+                // ile digerlerinin toplami tutmuyordu (or. 1853 kontrol / 999 raporlu).
+                // Sessiz kategori = fark edilmeyen sapma; artik gorunur.
+                ['Stok 0 (fiyat sync atlandi)', $stats['stock_zero_skip_price'] ?? 0],
+                ['Kaynakta yok - ilk tur (transient)', $stats['missing_transient'] ?? 0],
                 ['Hata', $stats['errors']],
+                ['-- raporlanmayan (olmamali)', max(0, $stats['checked']
+                    - ($this->apply ? $stats['updated'] : $stats['would_update'])
+                    - $stats['unchanged'] - $stats['missing'] - $stats['missing_zeroed']
+                    - $stats['invalid_price'] - $stats['price_guard'] - $stats['errors']
+                    - ($stats['stock_zero_skip_price'] ?? 0) - ($stats['missing_transient'] ?? 0))],
             ]
         );
 
@@ -212,7 +229,9 @@ class SyncSourcePrices extends Command
               && $incoming['stock_quantity'] !== null
               && (int) $incoming['stock_quantity'] === 0;
 
-        if ($incomingStockZero) {
+        if ($this->stockOnly) {
+            $priceStatus = 'stock_only';
+        } elseif ($incomingStockZero) {
             // 2026-06-04: Tukenmis (stok=0) urunlerde tedarikciler fiyat alanini
             // genelde bozuk veriyor (eprotein Cellucor C4: 1500 TL gercek ->
             // tukendiginde JSON-LD'de 194 TL gosterildi). Bu yuzden stok=0 ise
@@ -241,15 +260,18 @@ class SyncSourcePrices extends Command
                 && (float) $variant->special_price > 0) {
                 $changes['special_price'] = null;
             }
+
+            $this->keepCurrencyInputInSync($variant, $changes);
         }
 
         if (empty($changes)) {
             // Yazilacak bir sey yok: fiyat donduysa onu, degilse 'unchanged' raporla.
-            $status = $priceStatus ?? 'unchanged';
+            $status = $priceStatus === 'stock_only' ? 'unchanged' : ($priceStatus ?? 'unchanged');
             $note = match ($priceStatus) {
                 'invalid_price' => 'Source returned empty or zero price.',
                 'price_guard' => 'Price change exceeded max-change-percent.',
                 'stock_zero_skip_price' => 'Stock is zero; price not synced (source price may be unreliable).',
+                'stock_only' => 'Stock checked; price sync disabled (--stock-only).',
                 default => 'No price or stock change.',
             };
             $this->markMapping($mapping, $status, $note);
@@ -266,11 +288,60 @@ class SyncSourcePrices extends Command
 
         $variant->update($changes);
         $note = $priceStatus
-            ? "Stock updated; price skipped ({$priceStatus})."
+            ? ($priceStatus === 'stock_only'
+                ? 'Stock updated; price sync disabled (--stock-only).'
+                : "Stock updated; price skipped ({$priceStatus}).")
             : 'Price/stock updated.';
+        if ($this->stockOnly) {
+            $incoming['price'] = $this->numberOrNull($variant->price);
+            $incoming['special_price'] = $this->numberOrNull($variant->special_price);
+        }
         $this->markMapping($mapping, 'updated', $note, $incoming);
 
         return 'updated';
+    }
+
+    /**
+     * Kur servisi, price_input_currency_code dolu olan her varyantin fiyatini
+     * saat basi price_input_amount'tan yeniden hesaplar. Sync yalnizca price
+     * yazdigi icin bir sonraki kur kosusu fiyati ESKI input degerine geri
+     * cekiyordu: ceysport masa tenisi masasi 31.000 TL'ye guncelleniyor,
+     * saat basinda 400 TL'ye donuyordu (61 urun, 206.755 TL fark). Admin
+     * paneli ayni tuzagi input alanlarini da yazarak cozuyor; sync de artik
+     * ayni sekilde davraniyor.
+     *
+     * Girdi para birimi bos olan varyantlara dokunulmaz — onlar kur
+     * yonetiminde degil, fiyatlari zaten oldugu gibi kalir.
+     */
+    private function keepCurrencyInputInSync(ProductVariant $variant, array &$changes): void
+    {
+        if (empty($variant->price_input_currency_code)) {
+            return;
+        }
+
+        $currencyCode = $this->defaultCurrencyCode();
+
+        if (array_key_exists('price', $changes)) {
+            $changes['price_input_amount'] = $changes['price'];
+            $changes['price_input_currency_code'] = $currencyCode;
+        }
+
+        if (array_key_exists('special_price', $changes)) {
+            $changes['special_price_input_amount'] = $changes['special_price'];
+            $changes['special_price_input_currency_code'] = $changes['special_price'] === null ? null : $currencyCode;
+        }
+    }
+
+    private function defaultCurrencyCode(): string
+    {
+        if ($this->defaultCurrencyCode === null) {
+            $this->defaultCurrencyCode = (string) (DB::table('currencies')
+                ->where('is_default', true)
+                ->where('status', true)
+                ->value('code') ?? 'TRY');
+        }
+
+        return $this->defaultCurrencyCode;
     }
 
     private function indexSourceProducts(array $products): array

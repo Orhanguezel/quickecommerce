@@ -3,7 +3,12 @@
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import { useQuery } from "@tanstack/react-query";
 import { useLocale } from "next-intl";
+import { useMemo } from "react";
 import { useSiteInfoService, useMenuService, useCategoryService, useFooterService, useCurrencyService } from "./site.service";
+import { withSubtreeProductCounts } from "./category-utils";
+import type { Category } from "./site.type";
+
+const EMPTY_CATEGORIES: Category[] = [];
 
 export const useSiteInfoQuery = () => {
   const { findAll } = useSiteInfoService();
@@ -62,12 +67,18 @@ export const useCategoryQuery = () => {
 
   const { data, isPending, error } = useQuery({
     queryKey: [API_ENDPOINTS.CATEGORIES, locale],
-    queryFn: () => findAll({ per_page: 500, all: true, language: locale }),
+    queryFn: () => findAll({ per_page: 1000, all: true, language: locale }),
     staleTime: 1000 * 60 * 30,
   });
 
+  const rawCategories = (((data?.data as any)?.data ?? EMPTY_CATEGORIES) as Category[]);
+  const categories = useMemo(
+    () => withSubtreeProductCounts(rawCategories),
+    [rawCategories]
+  );
+
   return {
-    categories: (data?.data as any)?.data ?? [],
+    categories,
     isPending,
     error,
   };

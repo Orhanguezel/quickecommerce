@@ -160,8 +160,8 @@ export interface VerifyStockResult {
   uncertain: number;
 }
 
-// Checkout-oncesi canli stok dogrulama. Odeme oncesi cagrilir; kesin tukenmis
-// urun varsa frontend ode-akisini durdurur. Fail-open (belirsizler engellenmez).
+// Checkout-oncesi canli stok dogrulama. Tukenmis veya kaynaktan dogrulanamayan
+// urun varsa frontend odeme akisini durdurur.
 export function useVerifyStockMutation() {
   const { getAxiosInstance } = useBaseService(API_ENDPOINTS.VERIFY_STOCK);
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Enums\StoreType as StoreTypeEnum;
+use Illuminate\Http\JsonResponse;
 use App\Enums\Behaviour;
 use App\Http\Resources\Banner\BannerPublicResource;
 use App\Http\Resources\Com\AboutUsPublicResource;
@@ -54,6 +55,7 @@ use App\Models\Product;
 use App\Models\ProductAttribute;
 use App\Models\ProductBrand;
 use App\Models\ProductCategory;
+use App\Models\ProductSlugRedirect;
 use App\Models\ProductView;
 use App\Models\Review;
 use App\Models\Slider;
@@ -97,6 +99,138 @@ class FrontendController extends Controller
     private function applySellableVariantScope($query)
     {
         return $query->publiclySellable();
+    }
+
+    /**
+     * Expand selected categories to every active descendant, regardless of
+     * depth. The old implementation only included one level of children and
+     * only when the selected category was a root. That silently dropped
+     * products from nested category pages and filters.
+     */
+    private function expandCategoryIds(array $categoryIds): array
+    {
+        $requestedIds = array_values(array_unique(array_filter(
+            array_map('intval', $categoryIds),
+            static fn (int $id): bool => $id > 0
+        )));
+
+        if ($requestedIds === []) {
+            return [];
+        }
+
+        $categories = ProductCategory::query()
+            ->where('status', 1)
+            ->get(['id', 'parent_id']);
+        $childrenByParent = [];
+
+        foreach ($categories as $category) {
+            if ($category->parent_id !== null) {
+                $childrenByParent[(int) $category->parent_id][] = (int) $category->id;
+            }
+        }
+
+        $expanded = [];
+        $stack = $requestedIds;
+        while ($stack !== []) {
+            $categoryId = array_pop($stack);
+            if (isset($expanded[$categoryId])) {
+                continue;
+            }
+
+            $expanded[$categoryId] = true;
+            foreach ($childrenByParent[$categoryId] ?? [] as $childId) {
+                $stack[] = $childId;
+            }
+        }
+
+        return array_keys($expanded);
+    }
+
+    /**
+     * Lightweight, unpaginated product source for the XML sitemap.
+     *
+     * The regular product-list endpoint caps per_page at 100 and serializes the
+     * full product resource. Using it for the sitemap silently exposed only the
+     * first 100 of 10k+ sellable products and made pagination prohibitively
+     * expensive. Keep this endpoint deliberately small and cacheable.
+     */
+    /**
+     * GET /api/v1/sitemap/gone-products
+     *
+     * Katalogdan KALICI olarak kaldirilmis (soft-delete) urunlerin slug'lari.
+     * Frontend middleware bunlari 404 yerine **410 Gone** ile yanitlar; 410
+     * "bu kaynak kalici olarak yok" demektir ve Google indeksten 404'e gore
+     * daha hizli duserur.
+     *
+     * Sadece slug listesi doner (2026-07: ~513 kayit, birkac on KB) ve 1 saat
+     * cache'lenir; middleware her istekte DB'ye gitmez.
+     */
+    public function sitemapGoneProducts(): JsonResponse
+    {
+        $slugs = Cache::remember('seo:sitemap:gone-products:v3', now()->addHour(), function () {
+            // Bu liste "bu slug kalici olarak yok" demek icin var; magazanin
+            // abonelik durumuyla ilgisi yok. Varsayilan global scope, magazasi
+            // da silinmis urunleri (Floky, Swan Uniform gibi) listeden
+            // dusuruyordu ve o sayfalar 410 yerine 404 doruyordu — 364 slug.
+            return Product::withoutGlobalScopes()
+                ->onlyTrashed()
+                ->whereNotNull('slug')
+                ->where('slug', '!=', '')
+                // A slug can belong to an old deleted row and later become a
+                // canonical redirect for a living product. Redirect must win;
+                // otherwise the Next middleware incorrectly returns 410.
+                ->whereNotIn('slug', ProductSlugRedirect::query()->select('old_slug'))
+                ->orderBy('id')
+                ->pluck('slug')
+                ->unique()
+                ->values()
+                ->all();
+        });
+
+        return response()->json(['data' => $slugs, 'count' => count($slugs)]);
+    }
+
+    public function sitemapProducts()
+    {
+        $items = Cache::remember('seo:sitemap:products:v1', now()->addHour(), function () {
+            return Product::query()
+                ->publiclySellable()
+                ->select(['products.id', 'products.slug', 'products.updated_at'])
+                ->with(['translations' => function ($query) {
+                    $query->select([
+                        'id',
+                        'translatable_type',
+                        'translatable_id',
+                        'language',
+                        'key',
+                        'value',
+                    ])
+                        ->where('language', 'en')
+                        ->where('key', 'name')
+                        ->whereNotNull('value')
+                        ->where('value', '!=', '');
+                }])
+                ->orderBy('products.id')
+                ->get()
+                ->map(static function (Product $product) {
+                    $hasEnglishTranslation = $product->translations->isNotEmpty();
+
+                    return [
+                        'slug' => $product->slug,
+                        'updated_at' => optional($product->updated_at)->toIso8601String(),
+                        // Scraper imports are Turkish by default. Publishing an
+                        // identical /en duplicate without a real translation
+                        // wastes crawl budget and creates duplicate canonicals.
+                        'locales' => $hasEnglishTranslation ? ['tr', 'en'] : ['tr'],
+                    ];
+                })
+                ->values();
+        });
+
+        return response()->json([
+            'data' => $items,
+            'meta' => ['total' => $items->count()],
+        ]);
     }
 
     public function departments()
@@ -217,7 +351,11 @@ class FrontendController extends Controller
             $query = Store::validForCustomerView();
         }
 
-        $store = $query->with(['area', 'seller', 'related_translations', 'products.variants'])
+        // StoreDetailsPublicResource loads only the small, explicitly limited
+        // product collections it needs. Eager-loading products.variants here
+        // fetched the complete catalogue before the resource applied take(20),
+        // making large seller pages slow and memory-heavy.
+        $store = $query->with(['area', 'seller', 'related_translations'])
             ->where('slug', $request->slug)->first();
         if (!$store && empty($store)) {
             return response()->json([
@@ -293,6 +431,48 @@ class FrontendController extends Controller
         ], 200);
     }
 
+    /**
+     * Urun listesi sorgusuna arama filtresi + alaka sirasi uygular.
+     *
+     * Eski davranis tek LIKE '%tum sorgu%' idi: "koşu bandı 3 hp" gibi aramalar,
+     * kelimeler urun adinda birebir ayni sirada bitisik gecmedigi icin 0 sonuc
+     * doruyordu. Ayrica hic alaka sirasi yoktu — "protein" aramasinda adinda
+     * protein gecmeyen, sadece aciklamasinda gecen urunler basa gelebiliyordu.
+     *
+     * Yeni davranis: her kelime AND'lenir (kelime basina ad VEYA aciklama),
+     * sonuclar "adi sorguyla basliyor > adinda kelime basinda geciyor >
+     * adinda geciyor > sadece aciklamada geciyor" sirasina gore siralanir.
+     * Kullanici acik bir sort sectiyse (fiyat/yeni) o birincil kalir.
+     */
+    private function applyRelevanceSearch($query, $rawTerm): void
+    {
+        $normalizer = app(\App\Services\SearchNormalizer::class);
+        $term = $normalizer->normalize((string) $rawTerm);
+        if ($term === '') {
+            return;
+        }
+
+        $tokens = $normalizer->expandedTokens($term);
+        if (empty($tokens)) {
+            $tokens = [[$term]];
+        }
+
+        $query->where(function ($outer) use ($tokens) {
+            foreach ($tokens as $alternatives) {
+                $outer->where(function ($q) use ($alternatives) {
+                    foreach ($alternatives as $alternative) {
+                        $q->orWhere('products.search_text', 'like', '%' . $alternative . '%');
+                    }
+                });
+            }
+        });
+
+        $query->orderByRaw(
+            'CASE WHEN products.search_text LIKE ? THEN 0 WHEN products.search_text LIKE ? THEN 1 WHEN products.search_text LIKE ? THEN 2 ELSE 3 END',
+            [$term . '%', '% ' . $term . '%', '%' . $term . '%']
+        );
+    }
+
     public function popularProducts(Request $request)
     {
         if (isset($request->id)) {
@@ -351,20 +531,9 @@ class FrontendController extends Controller
             }
         }
 
-        // Category filter (including child categories)
+        // Category filter (including descendants at every depth)
         if (!empty($request->category_id) && is_array($request->category_id)) {
-            $allCategoryIds = [];
-
-            foreach ($request->category_id as $categoryId) {
-                $category = ProductCategory::find($categoryId);
-                if ($category) {
-                    if ($category->parent_id === null) {
-                        $childIds = ProductCategory::where('parent_id', $category->id)->pluck('id')->toArray();
-                        $allCategoryIds = array_merge($allCategoryIds, $childIds);
-                    }
-                    $allCategoryIds[] = $category->id;
-                }
-            }
+            $allCategoryIds = $this->expandCategoryIds($request->category_id);
 
             if (!empty($allCategoryIds)) {
                 $query->whereIn('category_id', $allCategoryIds);
@@ -433,13 +602,8 @@ class FrontendController extends Controller
             }
         }
 
-        // Search filter
-        if (!empty($request->search)) {
-            $query->where(function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->search . '%')
-                    ->orWhere('description', 'like', '%' . $request->search . '%');
-            });
-        }
+        // Arama: cok kelimeli AND + alaka sirasi (detay: applyRelevanceSearch)
+        $this->applyRelevanceSearch($query, $request->search);
 
         // Featured products
         if (isset($request->is_featured) && $request->is_featured) {
@@ -448,7 +612,7 @@ class FrontendController extends Controller
 
         // Base filters
         // Order by most viewed
-        $query->orderByDesc('views');
+        $query->orderByDesc('products.is_hero')->orderByDesc('views');
 
         // Pagination
         $perPage = max(1, min(100, (int) ($request->per_page ?? 10)));
@@ -680,20 +844,9 @@ class FrontendController extends Controller
             }
         }
 
-        // Category filter (including child categories)
+        // Category filter (including descendants at every depth)
         if (!empty($request->category_id) && is_array($request->category_id)) {
-            $allCategoryIds = [];
-
-            foreach ($request->category_id as $categoryId) {
-                $category = ProductCategory::find($categoryId);
-                if ($category) {
-                    if ($category->parent_id === null) {
-                        $childIds = ProductCategory::where('parent_id', $category->id)->pluck('id')->toArray();
-                        $allCategoryIds = array_merge($allCategoryIds, $childIds);
-                    }
-                    $allCategoryIds[] = $category->id;
-                }
-            }
+            $allCategoryIds = $this->expandCategoryIds($request->category_id);
 
             if (!empty($allCategoryIds)) {
                 $query->whereIn('category_id', $allCategoryIds);
@@ -781,7 +934,7 @@ class FrontendController extends Controller
         }
 
         // Order by best-selling (order_count), then by views as secondary
-        $query->orderByDesc('order_count')->orderByDesc('views');
+        $query->orderByDesc('products.is_hero')->orderByDesc('order_count')->orderByDesc('views');
 
         // Pagination
         $perPage = max(1, min(100, (int) ($request->per_page ?? 10)));
@@ -878,20 +1031,9 @@ class FrontendController extends Controller
             }
         }
 
-        // Category filter (including child categories)
+        // Category filter (including descendants at every depth)
         if (!empty($request->category_id) && is_array($request->category_id)) {
-            $allCategoryIds = [];
-
-            foreach ($request->category_id as $categoryId) {
-                $category = ProductCategory::find($categoryId);
-                if ($category) {
-                    if ($category->parent_id === null) {
-                        $childIds = ProductCategory::where('parent_id', $category->id)->pluck('id')->toArray();
-                        $allCategoryIds = array_merge($allCategoryIds, $childIds);
-                    }
-                    $allCategoryIds[] = $category->id;
-                }
-            }
+            $allCategoryIds = $this->expandCategoryIds($request->category_id);
 
             if (!empty($allCategoryIds)) {
                 $query->whereIn('category_id', $allCategoryIds);
@@ -972,12 +1114,13 @@ class FrontendController extends Controller
             }
         }
 
-        $query->where('products.is_featured', true);
+        $query->where('products.is_featured', true)
+            ->whereNotNull('products.homepage_featured_rank');
 
         // Pagination
         $perPage = max(1, min(100, (int) ($request->per_page ?? 10)));
 
-        $products = $query->with([
+        $products = $query->reorder('products.homepage_featured_rank')->with([
             'category', 'unit', 'tags', 'store', 'brand', 'related_translations',
             'variants' => function ($query) use ($request) {
                 $this->applySellableVariantScope($query);
@@ -996,7 +1139,7 @@ class FrontendController extends Controller
                     $query->orderBy('effective_price', 'desc')->limit(1);
                 }
             }
-        ])->latest()->paginate($perPage);
+        ])->paginate($perPage);
 
         $uniqueAttributes = $this->getUniqueAttributesFromVariants($products);
 
@@ -1035,6 +1178,7 @@ class FrontendController extends Controller
                 'variants' => fn ($variantQuery) => $this->applySellableVariantScope($variantQuery),
                 'store',
             ])
+            ->orderByDesc('products.is_hero')
             ->orderByDesc('trending_score') // Sort by calculated trending score
             ->paginate(max(1, min(100, (int) ($request->per_page ?? 10))));
 
@@ -1135,7 +1279,11 @@ class FrontendController extends Controller
     {
         // If a specific flash deal product ID is requested
         if (isset($request->id)) {
-            $flashDealProduct = FlashSaleProduct::with(['product.variants', 'product.store', 'product.related_translations', 'flashSale.related_translations'])
+            $flashDealProduct = FlashSaleProduct::with([
+                'product.variants' => fn ($variantQuery) => $this->applySellableVariantScope($variantQuery),
+                'product.store', 'product.related_translations', 'flashSale.related_translations',
+            ])
+                ->whereHas('product', fn ($productQuery) => $this->applyPublicCatalogScope($productQuery))
                 ->where('product_id', $request->product_id)->first();
 
             return response()->json([
@@ -1153,9 +1301,10 @@ class FrontendController extends Controller
             'product.store',
             'product.brand',
             'product.related_translations',
-            'product.variants',
+            'product.variants' => fn ($variantQuery) => $this->applySellableVariantScope($variantQuery),
             'flashSale.related_translations'
-        ])->whereHas('flashSale', function ($query) {
+        ])->whereHas('product', fn ($productQuery) => $this->applyPublicCatalogScope($productQuery))
+        ->whereHas('flashSale', function ($query) {
             $query->where('status', 1);
         });
 
@@ -1199,24 +1348,7 @@ class FrontendController extends Controller
 
         // Apply category filter (multiple categories)
         if (!empty($request->category_id) && is_array($request->category_id)) {
-            // Fetch all child categories for the given category IDs
-            $allCategoryIds = [];
-
-            foreach ($request->category_id as $categoryId) {
-                // Check if the category is a parent category
-                $category = ProductCategory::where('id', $categoryId)->first();
-
-                if ($category) {
-                    if ($category->parent_id === null) {
-                        // Fetch all child category IDs of this parent category
-                        $childCategoryIds = ProductCategory::where('parent_id', $category->id)->pluck('id')->toArray();
-                        $allCategoryIds = array_merge($allCategoryIds, $childCategoryIds);
-                    }
-
-                    // Add the original category ID
-                    $allCategoryIds[] = $category->id;
-                }
-            }
+            $allCategoryIds = $this->expandCategoryIds($request->category_id);
 
             // Apply the category filter
             $query->whereHas('product', function ($q1) use ($allCategoryIds) {
@@ -1341,24 +1473,7 @@ class FrontendController extends Controller
 
         // Apply category filter (multiple categories)
         if (!empty($request->category_id) && is_array($request->category_id)) {
-            // Fetch all child categories for the given category IDs
-            $allCategoryIds = [];
-
-            foreach ($request->category_id as $categoryId) {
-                // Check if the category is a parent category
-                $category = ProductCategory::where('id', $categoryId)->first();
-
-                if ($category) {
-                    if ($category->parent_id === null) {
-                        // Fetch all child category IDs of this parent category
-                        $childCategoryIds = ProductCategory::where('parent_id', $category->id)->pluck('id')->toArray();
-                        $allCategoryIds = array_merge($allCategoryIds, $childCategoryIds);
-                    }
-
-                    // Add the original category ID
-                    $allCategoryIds[] = $category->id;
-                }
-            }
+            $allCategoryIds = $this->expandCategoryIds($request->category_id);
 
             // Apply the category filter
             if (!empty($allCategoryIds)) {
@@ -1566,12 +1681,8 @@ class FrontendController extends Controller
                 $query->where('products.extracted_weight_gr', '<=', (int) $request->weight_max);
             }
         }
-        if (!empty($request->search)) {
-            $query->where(function ($q) use ($request) {
-                $q->where('products.name', 'like', '%' . $request->search . '%')
-                    ->orWhere('products.description', 'like', '%' . $request->search . '%');
-            });
-        }
+        // Arama: cok kelimeli AND + alaka sirasi (detay: applyRelevanceSearch)
+        $this->applyRelevanceSearch($query, $request->search);
         // Pagination
         $perPage = max(1, min(100, (int) ($request->per_page ?? 10)));
         $products = $query->with(['category', 'unit', 'tags', 'store', 'brand',
@@ -1745,6 +1856,17 @@ class FrontendController extends Controller
         // check kaldi. Variant'lar applySellableVariantScope ile zaten filtre
         // ediliyor (tukenmis variant gizli; tek variant ise frontend "Tukendi"
         // gosterir). Listing/search hala applyPublicCatalogScope kullanir.
+        // Migration ile uygulama deploy'u kısa süre farklı sürümlerde kalırsa
+        // ürün detaylarının tamamı 500 olmasın; tablo hazır değilse alias
+        // çözümünü o istek için atla.
+        try {
+            $canonicalProductId = ProductSlugRedirect::query()
+                ->where('old_slug', $product_slug)
+                ->value('product_id');
+        } catch (\Illuminate\Database\QueryException) {
+            $canonicalProductId = null;
+        }
+
         $product = Product::with([
             'store' => function ($query) {
                 $query->withCount(['products' => function ($q) {
@@ -1762,9 +1884,21 @@ class FrontendController extends Controller
             'related_translations',
             'fullSpecifications'
         ])
-            ->where('status', 'approved')
+            // 2026-08-18: 'inactive' de servis ediliyor. Tedarikcisi gecici olarak
+            // cekilemeyen urunler bu statuye aliniyordu ve sayfalari 404 donuyordu;
+            // Googlebot 14 gunde 3.738 kez 404 alip URL'leri indeksten dusuruyordu.
+            // Kalici kaldirma hala soft-delete + 410 Gone ile yapilir. Listeleme,
+            // arama, kategori ve sitemap publiclySellable() kullandigi icin bu
+            // urunler vitrinde gorunmemeye devam eder — sadece dogrudan adresi
+            // acilabilir ve "Stokta Yok" olarak gosterilir.
+            ->whereIn('status', ['approved', 'inactive'])
             ->whereNull('deleted_at')
-            ->where('slug', $product_slug)
+            ->where(function ($query) use ($product_slug, $canonicalProductId) {
+                $query->where('slug', $product_slug);
+                if ($canonicalProductId) {
+                    $query->orWhere('id', $canonicalProductId);
+                }
+            })
             ->first();
 
         if (!$product) {
@@ -1773,6 +1907,15 @@ class FrontendController extends Controller
                 'data' => null,
                 'related_products' => [],
             ], 404);
+        }
+
+        // Satista olmayan bir urun hicbir yerinde satin alinabilir gorunmemeli.
+        // Stok sifirlanmasi yalnizca bu yanit icin gecerli, kaydedilmez: frontend
+        // "Stokta Yok" gosterir, sepete ekle kapanir, JSON-LD OutOfStock doner.
+        if ($product->status !== 'approved') {
+            $product->variants->each(function ($variant): void {
+                $variant->stock_quantity = 0;
+            });
         }
 
         if ($product) {
@@ -1813,9 +1956,21 @@ class FrontendController extends Controller
                 }
             }
         }
+        $availableLocales = $product->translations()
+            ->where('key', 'name')
+            ->whereIn('language', ['tr', 'en'])
+            ->whereNotNull('value')
+            ->where('value', '!=', '')
+            ->pluck('language')
+            ->push('tr')
+            ->unique()
+            ->values();
+
         return response()->json([
             'messages' => __('messages.data_found'),
             'data' => new ProductDetailsPublicResource($product),
+            'canonical_slug' => $product->slug !== $product_slug ? $product->slug : null,
+            'locales' => $availableLocales,
             'related_products' => RelatedProductPublicResource::collection($product->relatedProductsWithCategoryFallback())
         ], 200);
     }
@@ -1900,6 +2055,7 @@ class FrontendController extends Controller
 
 
         $products = $query
+            ->orderByDesc('products.is_hero')
             ->with([
                 'variants' => fn ($variantQuery) => $this->applySellableVariantScope($variantQuery),
                 'store',
@@ -1996,7 +2152,7 @@ class FrontendController extends Controller
         try {
             // Kategoriler bot saldirisi hedefi degil (DB'de bounded ~700 kayit,
             // tree query'leri agir degil). Cap 1000 — frontend useCategoryQuery
-            // per_page:500 ile cagiriyor; onceki min(200,...) cap'i kategori
+            // per_page:1000 ile cagiriyor; onceki min(200,...) cap'i kategori
             // listesini truncate ediyor, header'da cogu kategori "yok"
             // gibi gozukuyordu.
             $per_page = max(1, min(1000, (int) ($request->per_page ?? 100)));
@@ -2008,10 +2164,13 @@ class FrontendController extends Controller
             $all = $request->all ?? false;
             $parentId = $request->parent_id;
             $hasProducts = $request->boolean('has_products', false);
-            $cacheKey = 'public_product_category_list:' . md5(json_encode($request->query()));
+            $cacheVersion = Cache::get('public-catalog:version', '1');
+            $cacheKey = 'public_product_category_list:' . $cacheVersion . ':'
+                . md5(json_encode($request->query()));
 
             if ($request->isMethod('GET') && Cache::has($cacheKey)) {
-                return response()->json(Cache::get($cacheKey), 200);
+                return response()->json(Cache::get($cacheKey), 200)
+                    ->header('X-Category-Cache', 'HIT');
             }
 
             $categoryStats = DB::table('products')
@@ -2101,10 +2260,11 @@ class FrontendController extends Controller
                 ];
 
                 if ($request->isMethod('GET')) {
-                    Cache::put($cacheKey, $payload, now()->addMinutes(10));
+                    Cache::put($cacheKey, $payload, now()->addMinutes(30));
                 }
 
-                return response()->json($payload, 200);
+                return response()->json($payload, 200)
+                    ->header('X-Category-Cache', 'MISS');
             }
 
             // Non-all mode: filter by parent_id or root categories
@@ -2131,10 +2291,11 @@ class FrontendController extends Controller
             ];
 
             if ($request->isMethod('GET')) {
-                Cache::put($cacheKey, $payload, now()->addMinutes(10));
+                Cache::put($cacheKey, $payload, now()->addMinutes(30));
             }
 
-            return response()->json($payload, 200);
+            return response()->json($payload, 200)
+                ->header('X-Category-Cache', 'MISS');
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage(),
@@ -2149,7 +2310,7 @@ class FrontendController extends Controller
             $query = $this->applyPublicCatalogScope(Product::query());
             // Apply category filter
             if (isset($request->category_id)) {
-                $query->where('category_id', $request->category_id);
+                $query->whereIn('category_id', $this->expandCategoryIds([(int) $request->category_id]));
             }
             // Apply price range filter
             if (isset($request->min_price) && isset($request->max_price)) {

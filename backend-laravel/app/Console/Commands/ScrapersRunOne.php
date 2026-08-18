@@ -97,6 +97,12 @@ class ScrapersRunOne extends Command
         $proc->setEnv([
             'SCRAPER_URL' => $scraperUrl,
             'SCRAPER_API_KEY' => $scraperKey,
+            'SCRAPER_FALLBACK_URL' => in_array($source, $cfHeavySources, true)
+                ? env('FALLBACK_SCRAPER_URL', env('SCRAPER_URL', 'https://scraper.guezelwebdesign.com'))
+                : '',
+            'SCRAPER_FALLBACK_API_KEY' => in_array($source, $cfHeavySources, true)
+                ? env('FALLBACK_SCRAPER_API_KEY', env('SCRAPER_API_KEY', ''))
+                : '',
             'SCRAPER_TIMEOUT' => $scraperTimeout,
         ]);
         $proc->run();

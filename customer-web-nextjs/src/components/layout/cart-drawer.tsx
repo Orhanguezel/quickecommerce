@@ -102,6 +102,7 @@ export function CartDrawer() {
           </div>
           <button
             onClick={closeDrawer}
+            aria-label="Sepeti kapat"
             className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <X className="h-5 w-5" />
@@ -247,13 +248,13 @@ export function CartDrawer() {
             <div className="mb-3 flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2.5 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
               <LogIn className="h-4 w-4 shrink-0" />
               <span>
-                {t("login_to_checkout")}{" "}
+                Ödeme için giriş yapabilir veya{" "}
                 <Link
-                  href="/giris"
+                  href="/giris?redirect=/odeme"
                   onClick={closeDrawer}
                   className="font-semibold text-primary underline"
                 >
-                  {t("login")}
+                  üye olmadan devam edebilirsiniz
                 </Link>
               </span>
             </div>
@@ -269,13 +270,13 @@ export function CartDrawer() {
             </Link>
           ) : (
             <Link
-              href="/giris"
+              href="/giris?redirect=/odeme"
               onClick={closeDrawer}
-              title={t("login")}
+              title="Üye olmadan ödeme yap"
               className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary text-base font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
             >
               <LogIn className="h-5 w-5" />
-              {t("login_and_checkout")}
+              Üye olmadan ödeme yap
             </Link>
           )}
         </div>

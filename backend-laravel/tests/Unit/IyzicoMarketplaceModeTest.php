@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Http\Controllers\Api\V1\IyzicoPaymentController;
+use App\Services\CheckoutStockVerifier;
 use App\Services\IyzicoService;
 use Tests\TestCase;
 
@@ -11,7 +12,9 @@ class IyzicoMarketplaceModeTest extends TestCase
     private function controller(): IyzicoPaymentController
     {
         $service = $this->createMock(IyzicoService::class);
-        return new IyzicoPaymentController($service);
+        $stockVerifier = $this->createMock(CheckoutStockVerifier::class);
+
+        return new IyzicoPaymentController($service, $stockVerifier);
     }
 
     public function test_marketplace_disabled_when_only_api_and_secret_exist(): void

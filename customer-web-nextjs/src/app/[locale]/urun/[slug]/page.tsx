@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { cache } from "react";
 import { fetchAPI } from "@/lib/api-server";
 import { encodeImageUrl } from "@/lib/image-url";
@@ -10,7 +10,7 @@ import type { ShippingCampaign } from "@/modules/shipping-campaign/shipping-camp
 import type { BannerGroupedResponse } from "@/modules/banner/banner.type";
 import type { PublicCoupon } from "@/modules/coupon/coupon.type";
 import { ProductDetailClient } from "./product-detail-client";
-import { absoluteUrl, localizedAlternates, priceValidUntil, stripHtml, truncateText } from "@/lib/seo";
+import { absoluteUrl, priceValidUntil, stripHtml, truncateText } from "@/lib/seo";
 
 interface Props {
   params: Promise<{ locale: string; slug: string }>;
@@ -132,6 +132,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const product = res.data;
+  const canonicalSlug = res.canonical_slug || product.slug || slug;
+  // "en" locale kaldirildi (2026-07-27): backend hala locales dondurse de
+  // (bazi urunlerin EN cevirisi var) yayinlanan tek dil tr. Aksi halde
+  // hreflang="en" 308 redirect'e isaret eder — Google'a kirik sinyal.
+  const availableLocales = ["tr"];
+  const isLocalized = availableLocales.includes(locale);
+  const canonicalLocale = isLocalized ? locale : "tr";
   const rawPrice = product.special_price
     ? Number(product.special_price)
     : product.price
@@ -157,17 +164,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       type: "website",
-      url: absoluteUrl(`/${locale}/urun/${slug}`),
-      locale: locale === "tr" ? "tr_TR" : "en_US",
+      url: absoluteUrl(`/${canonicalLocale}/urun/${canonicalSlug}`),
+      locale: canonicalLocale === "tr" ? "tr_TR" : "en_US",
       siteName: "Sporto Online",
       images: product.meta_image_url || product.image_url
         ? [{ url: encodeImageUrl(product.meta_image_url || product.image_url), width: 800, height: 800, alt: product.name }]
         : undefined,
     },
     alternates: {
-      canonical: `/${locale}/urun/${slug}`,
-      languages: localizedAlternates(`/urun/${slug}`),
+      canonical: `/${canonicalLocale}/urun/${canonicalSlug}`,
+      languages: Object.fromEntries(
+        availableLocales.map((availableLocale) => [
+          availableLocale,
+          absoluteUrl(`/${availableLocale}/urun/${canonicalSlug}`),
+        ])
+      ),
     },
+    robots: isLocalized ? undefined : { index: false, follow: true },
     other: price
       ? {
           "product:price:amount": String(price),
@@ -188,6 +201,13 @@ export default async function ProductDetailPage({ params }: Props) {
 
   if (!res?.data) {
     notFound();
+  }
+
+  if (res.canonical_slug && res.canonical_slug !== slug) {
+    permanentRedirect(`/${locale}/urun/${encodeURIComponent(res.canonical_slug)}`);
+  }
+  if (res.locales?.length && !res.locales.includes(locale)) {
+    permanentRedirect(`/tr/urun/${encodeURIComponent(res.data.slug)}`);
   }
 
   const product = res.data;

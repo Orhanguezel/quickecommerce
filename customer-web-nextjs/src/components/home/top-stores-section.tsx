@@ -77,7 +77,6 @@ export function TopStoresSection({ title }: TopStoresSectionProps) {
                     width={64}
                     height={64}
                     className="h-full w-full object-cover"
-                    unoptimized
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center rounded-full bg-white/60">
@@ -93,8 +92,7 @@ export function TopStoresSection({ title }: TopStoresSectionProps) {
 
               {/* Visit Store Button */}
               <span
-                className="mt-auto rounded-md px-4 py-1.5 text-xs font-medium transition-opacity group-hover:opacity-90"
-                style={{ backgroundColor: color.btn, color: color.btnText }}
+                className="mt-auto rounded-md bg-slate-800 px-4 py-1.5 text-xs font-medium text-white transition-opacity group-hover:opacity-90"
               >
                 {t("view_store")}
               </span>

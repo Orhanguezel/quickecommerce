@@ -54,6 +54,8 @@ class GuestAiChatController extends Controller
                     'message' => $result['content'],
                     'conversation_id' => $result['conversation_id'],
                     'tokens_used' => $result['tokens_used'],
+                    'support_requested' => $result['support_requested'] ?? false,
+                    'support_notified' => $result['support_notified'] ?? false,
                 ],
             ]);
         } catch (\Exception $e) {

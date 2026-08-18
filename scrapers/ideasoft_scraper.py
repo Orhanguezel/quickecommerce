@@ -43,10 +43,12 @@ from bs4 import BeautifulSoup
 
 from shopify_scraper import clean_description_html, make_slug, resolve_relative_urls, strip_html  # noqa: F401
 
-SCRAPER_URL = os.environ.get("SCRAPER_URL", "https://scraper.guezelwebdesign.com").rstrip("/")
-SCRAPER_API_KEY = os.environ.get(
-    "SCRAPER_API_KEY", "scraper-sportoonline-Eq4lGI4KV4CLCMluihY9t9pn0jrZMmf-"
-)
+# Varsayilan YEREL servis (2026-06-21): dis scraper.guezelwebdesign.com kaldirildi,
+# CF-agir IdeaSoft/Ticimax sitelerinde ~1s'de HTTP 500 doruyordu.
+SCRAPER_URL = os.environ.get("SCRAPER_URL", "http://127.0.0.1:8200").rstrip("/")
+SCRAPER_API_KEY = os.environ.get("SCRAPER_API_KEY", "")
+SCRAPER_FALLBACK_URL = os.environ.get("SCRAPER_FALLBACK_URL", "").rstrip("/")
+SCRAPER_FALLBACK_API_KEY = os.environ.get("SCRAPER_FALLBACK_API_KEY", "")
 SCRAPER_TIMEOUT = int(os.environ.get("SCRAPER_TIMEOUT", "90"))
 
 
@@ -58,8 +60,39 @@ class ScrapeResult:
     error: str | None = None
 
 
+def _scrape_endpoint(base_url: str, api_key: str, payload: dict) -> tuple[dict | None, str | None]:
+    payload = {
+        **payload,
+    }
+    body = json.dumps(payload).encode("utf-8")
+    req = urlrequest.Request(
+        f"{base_url}/api/v1/scrape",
+        data=body,
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+            # Servis onundeki CF, varsayilan Python-urllib UA'sini 403'ler.
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        },
+        method="POST",
+    )
+    data = None
+    last_error = None
+    for attempt in range(3):
+        try:
+            with urlrequest.urlopen(req, timeout=SCRAPER_TIMEOUT + 30) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+            break
+        except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as exc:
+            last_error = str(exc)
+            if attempt < 2:
+                time.sleep(5 * (attempt + 1))
+    return data, last_error
+
+
 def scrape(url: str, mode: str = "stealthy", solve_cf: bool = True) -> ScrapeResult:
-    """scraper-service /api/v1/scrape cagrisi (maraton_scraper_v2.py paterni)."""
+    """Scrape with transient retries and an isolated-service fallback."""
     if not SCRAPER_URL or not SCRAPER_API_KEY:
         return ScrapeResult(False, None, None, "scraper_env_missing")
 
@@ -68,30 +101,35 @@ def scrape(url: str, mode: str = "stealthy", solve_cf: bool = True) -> ScrapeRes
         "mode": mode,
         "options": {
             "headless": True,
-            "network_idle": True,
+            # Ticimax/IdeaSoft pages keep analytics/socket requests alive.
+            "network_idle": False,
             "timeout": SCRAPER_TIMEOUT,
             "solve_cloudflare": solve_cf,
         },
         "return_html": True,
     }
-    body = json.dumps(payload).encode("utf-8")
-    req = urlrequest.Request(
-        f"{SCRAPER_URL}/api/v1/scrape",
-        data=body,
-        headers={
-            "Authorization": f"Bearer {SCRAPER_API_KEY}",
-            "Content-Type": "application/json",
-            "Cache-Control": "no-cache",
-            # Servis onundeki CF, varsayilan Python-urllib UA'sini 403'ler.
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        },
-        method="POST",
+    data, last_error = _scrape_endpoint(SCRAPER_URL, SCRAPER_API_KEY, payload)
+
+    primary_failed = data is None or not bool(data.get("success"))
+    fallback_ready = (
+        SCRAPER_FALLBACK_URL
+        and SCRAPER_FALLBACK_API_KEY
+        and SCRAPER_FALLBACK_URL != SCRAPER_URL
     )
-    try:
-        with urlrequest.urlopen(req, timeout=SCRAPER_TIMEOUT + 30) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-    except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as exc:
-        return ScrapeResult(False, None, None, str(exc))
+    if primary_failed and fallback_ready:
+        fallback_data, fallback_error = _scrape_endpoint(
+            SCRAPER_FALLBACK_URL,
+            SCRAPER_FALLBACK_API_KEY,
+            payload,
+        )
+        if fallback_data is not None:
+            data = fallback_data
+            last_error = fallback_error
+        elif fallback_error:
+            last_error = f"primary={last_error or data.get('error') if data else last_error}; fallback={fallback_error}"
+
+    if data is None:
+        return ScrapeResult(False, None, None, last_error)
 
     return ScrapeResult(
         ok=bool(data.get("success")),
@@ -183,6 +221,66 @@ def discover_product_urls(site_base: str) -> list[str]:
         urls.extend(sm_urls)
         print(f"  {sm.rsplit('/', 1)[-1]}: +{len(sm_urls)} URL", flush=True)
     return list(dict.fromkeys(urls))
+
+
+def discover_category_product_urls(
+    site_base: str,
+    category_paths: list[str],
+    max_pages: int = 15,
+    delay: float = 1.0,
+    page_param: str = "sayfa",
+) -> list[str]:
+    """Belirli kategori sayfalarindaki urun URL'lerini dondurur.
+
+    Neden sitemap yetmiyor: sitemap tum magazayi duz liste olarak verir, kategori
+    bilgisi tasimaz. "Sadece spor-outdoor urunlerini cek" gibi bir istek icin
+    kategori sayfasini gezmek gerekir.
+
+    Neden kategori sayfasindaki href'ler dogrudan kullanilamaz: Ticimax/IdeaSoft
+    kategori sayfasindaki linkler urun, marka ve alt kategori linkleriyle ayni
+    formatta (/slug). Ayirt etmek icin sitemap'teki urun slug kumesi ile
+    KESISIM alinir — sitemap'te olan slug kesin urundur.
+
+    Sayfalama: ?{page_param}=N. Yeni urun gelmeyen ilk sayfada durulur.
+    DIKKAT: Ticimax'ta parametre "sayfa"dir; "?page=2" SESSIZCE yok sayilip
+    sayfa 1 doner (yanlis parametreyle tarama 80 urunde biter, 176'yi gormez).
+    Yeni bir site eklerken parametreyi once dogrula.
+    """
+    all_products = discover_product_urls(site_base)
+    if not all_products:
+        return []
+    slug_to_url = {u.rstrip("/").rsplit("/", 1)[-1]: u for u in all_products}
+    print(f"  sitemap urun slug havuzu: {len(slug_to_url)}", flush=True)
+
+    found: dict[str, str] = {}
+    for path in category_paths:
+        path = "/" + path.strip("/")
+        print(f"\n[1b/3] Kategori taraniyor: {site_base}{path}", flush=True)
+        before_category = len(found)
+        for page in range(1, max_pages + 1):
+            url = f"{site_base}{path}" if page == 1 else f"{site_base}{path}?{page_param}={page}"
+            res = scrape(url, mode="stealthy")
+            if not res.ok or not res.html:
+                print(f"  sayfa {page}: FAIL ({res.error}) — kategori durduruldu", flush=True)
+                break
+
+            hrefs = {
+                h.strip("/").rsplit("/", 1)[-1]
+                for h in re.findall(r'href="(/[^"?#]{4,})"', res.html)
+            }
+            page_slugs = hrefs & slug_to_url.keys()
+            new = [s for s in page_slugs if s not in found]
+            for s in new:
+                found[s] = slug_to_url[s]
+            print(f"  sayfa {page}: {len(page_slugs)} urun ({len(new)} yeni) | toplam {len(found)}", flush=True)
+
+            if not new:
+                print(f"  sayfa {page} yeni urun getirmedi — kategori bitti", flush=True)
+                break
+            time.sleep(delay)
+        print(f"  {path}: +{len(found) - before_category} urun", flush=True)
+
+    return list(found.values())
 
 
 def _jsonld_product(html: str) -> dict | None:
@@ -364,8 +462,13 @@ def parse_product(html: str, url: str, vendor: str, default_category: str) -> di
 
 
 def run(site_base: str, output_file: str, vendor: str, default_category: str,
-        limit: int = 0, delay: float = 0.4) -> list[dict]:
-    """IdeaSoft magazasini stealth ile scrape eder, JSON ciktiyi yazar."""
+        limit: int = 0, delay: float = 0.4,
+        category_paths: list[str] | None = None, max_pages: int = 15) -> list[dict]:
+    """IdeaSoft magazasini stealth ile scrape eder, JSON ciktiyi yazar.
+
+    category_paths verilirse SADECE o kategorilerdeki urunler cekilir
+    (or. ["/spor-outdoor"]); verilmezse magazanin tamami taranir.
+    """
     site_base = site_base.rstrip("/")
     print(f"IdeaSoft (stealth) scraper: {site_base}")
     print("=" * 55)
@@ -374,7 +477,11 @@ def run(site_base: str, output_file: str, vendor: str, default_category: str,
         print("HATA: SCRAPER_URL ve SCRAPER_API_KEY env zorunlu.", file=sys.stderr)
         raise SystemExit(2)
 
-    urls = discover_product_urls(site_base)
+    if category_paths:
+        print(f"KATEGORI FILTRESI aktif: {', '.join(category_paths)}", flush=True)
+        urls = discover_category_product_urls(site_base, category_paths, max_pages=max_pages)
+    else:
+        urls = discover_product_urls(site_base)
     if not urls:
         print("HATA: urun URL'i bulunamadi.", file=sys.stderr)
         raise SystemExit(1)

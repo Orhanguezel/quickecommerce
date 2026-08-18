@@ -30,6 +30,7 @@ class AdminStoreRequest extends FormRequest
             'payment_gateway' => 'payment_gateway',
             'area_id' => 'nullable|exists:store_areas,id',
             'store_seller_id' => 'nullable|exists:store_sellers,user_id',
+            'fulfillment_model' => 'nullable|in:seller,dropship,digital',
             'store_types'   => 'required|array|min:1',
             'store_types.*' => 'in:' . $this->getEnumValues(StoreType::class),
             'name' => 'required|string|max:255',

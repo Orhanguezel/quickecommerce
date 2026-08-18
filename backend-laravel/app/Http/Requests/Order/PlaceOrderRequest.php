@@ -39,6 +39,20 @@ class PlaceOrderRequest extends FormRequest
             'customer_latitude' => 'nullable',
             'customer_longitude' => 'nullable',
 
+            // First-party attribution. These values are informational and
+            // never used to calculate prices or authorize the order.
+            'attribution' => 'nullable|array',
+            'attribution.visitor_id' => 'nullable|string|max:100',
+            'attribution.session_id' => 'nullable|string|max:100',
+            'attribution.cart_session_id' => 'nullable|string|max:100',
+            'attribution.utm_source' => 'nullable|string|max:100',
+            'attribution.utm_medium' => 'nullable|string|max:100',
+            'attribution.utm_campaign' => 'nullable|string|max:190',
+            'attribution.utm_term' => 'nullable|string|max:190',
+            'attribution.utm_content' => 'nullable|string|max:190',
+            'attribution.landing_page' => 'nullable|string|max:2000',
+            'attribution.referrer' => 'nullable|string|max:2000',
+
             // Shipping Address Validation (required only for logged-in users)
             'shipping_address_id' => 'nullable|exists:customer_addresses,id',
 

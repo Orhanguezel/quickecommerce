@@ -43,8 +43,21 @@ interface Stats {
   recovered: number;
   unsubscribed: number;
   recovery_rate_pct: number;
+  reminder_recovery_rate_pct: number;
   abandoned_value: number;
   recovered_value: number;
+  recovered_after_reminder: number;
+  recovered_after_reminder_value: number;
+  incentive_cost: number;
+  net_recovered_value: number;
+  variants: Array<{
+    variant: string;
+    assigned: number;
+    reminded: number;
+    recovered: number;
+    recovery_rate_pct: number;
+    recovered_value: number;
+  }>;
 }
 
 const STAGE_COLORS: Record<Stage, string> = {
@@ -107,15 +120,15 @@ export default function AbandonedCarts() {
       {stats && (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <StatCard label="Toplam Terk" value={stats.abandoned} />
-          <StatCard label="Geri Kazanılan" value={stats.recovered} accent="green" />
+          <StatCard label="Mesaj Sonrası Kazanılan" value={stats.recovered_after_reminder} accent="green" />
           <StatCard
             label="Geri Kazanım Oranı"
-            value={`%${stats.recovery_rate_pct}`}
-            accent={stats.recovery_rate_pct >= 10 ? "green" : "amber"}
+            value={`%${stats.reminder_recovery_rate_pct}`}
+            accent={stats.reminder_recovery_rate_pct >= 10 ? "green" : "amber"}
           />
           <StatCard
             label="Geri Kazanılan Tutar"
-            value={`${stats.recovered_value.toLocaleString("tr-TR")} TL`}
+            value={`${stats.net_recovered_value.toLocaleString("tr-TR")} TL`}
             accent="green"
           />
           <StatCard label="Hatırlatma 1 (1sa)" value={stats.reminded_1} />
@@ -123,6 +136,37 @@ export default function AbandonedCarts() {
           <StatCard label="Hatırlatma 3 (48sa)" value={stats.reminded_3} />
           <StatCard label="Abonelikten Çıkan" value={stats.unsubscribed} accent="red" />
         </div>
+      )}
+
+      {stats && stats.variants.length > 0 && (
+        <Card>
+          <CardContent className="p-0">
+            <table className="w-full text-sm">
+              <thead className="border-b bg-muted/40">
+                <tr className="text-left">
+                  <th className="px-4 py-3">Mesaj Varyantı</th>
+                  <th className="px-4 py-3 text-right">Hatırlatılan</th>
+                  <th className="px-4 py-3 text-right">Ödeme</th>
+                  <th className="px-4 py-3 text-right">Dönüşüm</th>
+                  <th className="px-4 py-3 text-right">Kazanılan Tutar</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.variants.map((variant) => (
+                  <tr key={variant.variant} className="border-b">
+                    <td className="px-4 py-3 font-mono">{variant.variant}</td>
+                    <td className="px-4 py-3 text-right">{variant.reminded}</td>
+                    <td className="px-4 py-3 text-right">{variant.recovered}</td>
+                    <td className="px-4 py-3 text-right">%{variant.recovery_rate_pct}</td>
+                    <td className="px-4 py-3 text-right">
+                      {variant.recovered_value.toLocaleString("tr-TR")} TL
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </CardContent>
+        </Card>
       )}
 
       {/* Filters */}

@@ -34,7 +34,7 @@ export function useCartSnapshotMutation() {
 export function useCartRecoverMutation() {
   const { getAxiosInstance } = useBaseService(API_ENDPOINTS.CART_RECOVER);
   return useMutation({
-    mutationFn: async (data: { session_id?: string }) => {
+    mutationFn: async (data: { session_id?: string; order_master_id: number }) => {
       const res = await getAxiosInstance().post(API_ENDPOINTS.CART_RECOVER, data);
       return res.data;
     },

@@ -1,11 +1,12 @@
 'use client';
 
-import { Link, useRouter, usePathname } from '@/i18n/routing';
+import { Link, usePathname } from '@/i18n/routing';
 import { ROUTES } from '@/config/routes';
 import { useSiteInfoQuery, useMenuQuery, useCategoryQuery } from '@/modules/site/site.action';
 import {
   isDisplayableProductCategory,
   isBuyPayCampaignCategory,
+  isPrimaryNavigationCategory,
   sortCategoriesForNavigation,
 } from '@/modules/site/category-utils';
 import { useCartStore } from '@/stores/cart-store';
@@ -14,10 +15,8 @@ import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
 import { MobileNav } from './mobile-nav';
 import { SearchBar } from './search-bar';
-import { LanguageSwitcher } from './language-switcher';
 import { CurrencySwitcher } from '@/components/common/currency-switcher';
 import {
-  Search,
   ShoppingCart,
   Heart,
   User,
@@ -29,7 +28,7 @@ import {
   Tags,
   Zap,
 } from 'lucide-react';
-import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import Image from 'next/image';
 import type { Category, MenuItem } from '@/modules/site/site.type';
 
@@ -45,7 +44,6 @@ function chunkArray<T>(items: T[], size: number): T[][] {
 
 export function HeaderVariant1() {
   const t = useTranslations();
-  const router = useRouter();
   const { theme, setTheme } = useTheme();
   const { siteInfo } = useSiteInfoQuery();
   const { menus } = useMenuQuery();
@@ -58,25 +56,28 @@ export function HeaderVariant1() {
 
   const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const [catOpen, setCatOpen] = useState(false);
   const [activeCatId, setActiveCatId] = useState<number | null>(null);
   const [logoError, setLogoError] = useState(false);
 
   const allCats = useMemo(() => categories as Category[], [categories]);
 
-  const getChildren = (parentId: number) =>
-    allCats.filter((c) => Number(c.parent_id) === Number(parentId));
+  const getChildren = useCallback((parentId: number) =>
+    allCats.filter((c) => Number(c.parent_id) === Number(parentId)), [allCats]);
 
-  const getDisplayableDescendants = (parentId: number): Category[] =>
-    getChildren(parentId)
-      .filter((child) => !isBuyPayCampaignCategory(child))
-      .sort(sortCategoriesForNavigation)
-      .flatMap((child) =>
-        isDisplayableProductCategory(child)
-          ? [child]
-          : getDisplayableDescendants(child.id)
-      );
+  const getDisplayableDescendants = useCallback((parentId: number): Category[] => {
+    const collect = (currentParentId: number): Category[] =>
+      getChildren(currentParentId)
+        .filter((child) => !isBuyPayCampaignCategory(child))
+        .sort(sortCategoriesForNavigation)
+        .flatMap((child) =>
+          isDisplayableProductCategory(child)
+            ? [child]
+            : collect(child.id)
+        );
+
+    return collect(parentId);
+  }, [getChildren]);
 
   const topCategories = useMemo(
     () => {
@@ -93,11 +94,12 @@ export function HeaderVariant1() {
 
       return allCats
         .filter((c) => c.parent_id === null)
+        .filter(isPrimaryNavigationCategory)
         .filter((parent) => !isBuyPayCampaignCategory(parent))
         .filter(hasDisplayableCategory)
         .sort(sortCategoriesForNavigation);
     },
-    [allCats]
+    [allCats, getDisplayableDescendants]
   );
 
   const getRenderableChildren = (parentId: number) =>
@@ -166,13 +168,6 @@ export function HeaderVariant1() {
     .sort((a: MenuItem, b: MenuItem) => a.position - b.position)
     .slice(0, 5);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`${ROUTES.SEARCH}?q=${encodeURIComponent(searchQuery.trim())}`);
-    }
-  };
-
   const openMegaMenu = () => {
     const nextOpen = !catOpen;
     setCatOpen(nextOpen);
@@ -223,7 +218,6 @@ export function HeaderVariant1() {
                 {t('nav.about')}
               </Link>
             <div className="flex items-center gap-3">
-              <LanguageSwitcher />
               <CurrencySwitcher />
               <button
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
@@ -266,10 +260,12 @@ export function HeaderVariant1() {
               className="flex flex-1 items-center justify-center md:flex-none md:justify-start"
             >
               {siteInfo?.com_site_logo && !logoError ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <Image
                   src={siteInfo.com_site_logo}
                   alt={siteInfo?.com_site_title || 'Logo'}
+                  width={220}
+                  height={56}
+                  sizes="(max-width: 1024px) 168px, 220px"
                   className="h-12 w-auto max-w-[168px] object-contain lg:h-14 lg:max-w-[220px]"
                   onError={() => setLogoError(true)}
                 />
@@ -311,18 +307,16 @@ export function HeaderVariant1() {
               <button
                 id="header-cart-icon"
                 onClick={openCartDrawer}
-                aria-label={t('common.cart')}
                 className="relative flex min-w-[74px] flex-col items-center justify-center rounded-[4px] px-2 py-2 text-[11px] font-bold text-foreground transition-colors hover:bg-primary/5"
               >
                 <ShoppingCart className="mb-1 h-5 w-5" strokeWidth={1.8} />
-                <span className="hidden whitespace-nowrap lg:inline">{t('common.cart')}</span>
+                <span className="whitespace-nowrap max-lg:sr-only">{t('common.cart')}</span>
                 <span className="absolute right-3 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold leading-none text-primary-foreground">
                   {cartCountLive}
                 </span>
               </button>
 
               <div className="lg:hidden">
-                <LanguageSwitcher iconOnly />
               </div>
             </div>
           </div>
@@ -335,7 +329,7 @@ export function HeaderVariant1() {
           <div className="container flex h-11 items-center gap-4 overflow-hidden">
             <button
               onClick={openMegaMenu}
-              className="flex h-full shrink-0 items-center gap-2 bg-primary/10 px-4 text-sm font-extrabold text-primary transition-colors hover:bg-primary/15"
+              className="flex h-full shrink-0 items-center gap-2 bg-green-50 px-4 text-sm font-extrabold text-green-800 transition-colors hover:bg-green-100 dark:bg-green-950 dark:text-green-200"
               aria-expanded={catOpen}
               aria-haspopup="menu"
             >
@@ -567,24 +561,10 @@ export function HeaderVariant1() {
           )}
         </nav>
 
+        {/* Mobil arama — masaustu ile ayni oneri/sesli arama davranisi */}
         <div className="border-b bg-background md:hidden">
           <div className="container py-2">
-            <form onSubmit={handleSearch} className="flex overflow-hidden rounded-lg border border-border">
-              <input
-                type="search"
-                placeholder={t('common.search_placeholder')}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-11 flex-1 border-none bg-transparent px-4 text-sm text-foreground outline-none placeholder:text-muted-foreground"
-              />
-              <button
-                type="submit"
-                aria-label={t('common.search')}
-                className="flex shrink-0 items-center justify-center bg-primary px-4 text-primary-foreground"
-              >
-                <Search className="h-4 w-4" />
-              </button>
-            </form>
+            <SearchBar mobile />
           </div>
         </div>
       </div>

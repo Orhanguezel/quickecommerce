@@ -8,11 +8,21 @@ LOG="/var/www/quikecommerce/logs/maraton-full-$DATE.log"
 VENV="/var/www/quikecommerce/venv/bin/python3"
 OUT_JSON="maraton_full_products.json"
 STORE_ID=47
+ROOT_ENV="/var/www/quikecommerce/.env"
+
+if [ -f "$ROOT_ENV" ]; then
+  SCRAPER_URL=$(grep -E '^SCRAPER_URL=' "$ROOT_ENV" | head -1 | cut -d'=' -f2- | tr -d '"' | tr -d "'")
+  SCRAPER_API_KEY=$(grep -E '^SCRAPER_API_KEY=' "$ROOT_ENV" | head -1 | cut -d'=' -f2- | tr -d '"' | tr -d "'")
+fi
+: "${SCRAPER_URL:=https://scraper.guezelwebdesign.com}"
+if [ -z "${SCRAPER_API_KEY:-}" ]; then
+  echo "FAIL: SCRAPER_API_KEY is not configured in $ROOT_ENV" >&2
+  exit 1
+fi
+export SCRAPER_URL SCRAPER_API_KEY
 
 {
   echo "==== maraton full scrape baslangic: $(date -Iseconds) ===="
-  export SCRAPER_URL=https://scraper.guezelwebdesign.com
-  export SCRAPER_API_KEY=scraper-sportoonline-Eq4lGI4KV4CLCMluihY9t9pn0jrZMmf-
   export SCRAPER_TIMEOUT=90
 
   timeout 20h "$VENV" -u maraton_scraper_v2.py --out "$OUT_JSON"

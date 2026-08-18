@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Link } from "@/i18n/routing";
 import { ROUTES } from "@/config/routes";
 import { Button } from "@/components/ui/button";
 import { CheckCircle } from "lucide-react";
 import { useCartRecoverMutation } from "@/modules/cart/abandoned-cart.service";
 import { getCartSessionId } from "@/hooks/use-cart-snapshot-sync";
+import { usePaymentSummaryQuery } from "@/modules/order/order.service";
+import { analyticsConsentGranted, trackPurchase } from "@/lib/gtm";
+import { trackFunnelEvent } from "@/lib/funnel-tracker";
 
 interface Props {
   orderId: string;
@@ -22,10 +25,82 @@ interface Props {
 
 export function OrderSuccessClient({ orderId, translations: t }: Props) {
   const recover = useCartRecoverMutation();
+  const numericOrderId = /^\d+$/.test(orderId) ? Number(orderId) : null;
+  const { data: paymentSummary } = usePaymentSummaryQuery(numericOrderId);
+  const conversionHandledRef = useRef(false);
+
   useEffect(() => {
-    // Mark this customer's snapshot as recovered so the reminder pipeline stops.
-    recover.mutate({ session_id: getCartSessionId() ?? undefined });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!numericOrderId || paymentSummary?.payment_status !== "paid") return;
+    // Mark recovery only after the backend confirms payment. Merely opening a
+    // success-looking URL must not inflate recovered-cart reporting.
+    recover.mutate({
+      session_id: getCartSessionId() ?? undefined,
+      order_master_id: numericOrderId,
+    });
+  }, [numericOrderId, paymentSummary?.payment_status]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (
+      conversionHandledRef.current ||
+      !paymentSummary ||
+      paymentSummary.payment_status !== "paid"
+    ) {
+      return;
+    }
+    conversionHandledRef.current = true;
+
+    const funnelKey = `sportoonline_funnel_purchase:${paymentSummary.id}`;
+    const gaKey = `sportoonline_ga_purchase:${paymentSummary.id}`;
+    const analyticsItems = paymentSummary.items.map((item) => ({
+      item_id: item.item_id,
+      item_name: item.item_name,
+      ...(item.item_variant ? { item_variant: item.item_variant } : {}),
+      price: item.price,
+      quantity: item.quantity,
+    }));
+
+    try {
+      if (!localStorage.getItem(funnelKey)) {
+        trackFunnelEvent({
+          event: "payment_success",
+          order_id: paymentSummary.id,
+          amount: paymentSummary.value,
+          meta: { payment_method: paymentSummary.payment_gateway },
+        });
+        localStorage.setItem(funnelKey, "1");
+      }
+
+      if (analyticsConsentGranted() && !localStorage.getItem(gaKey)) {
+        trackPurchase(
+          String(paymentSummary.id),
+          analyticsItems,
+          paymentSummary.value,
+          paymentSummary.currency,
+          paymentSummary.shipping,
+          paymentSummary.coupon ?? undefined,
+        );
+        localStorage.setItem(gaKey, "1");
+      }
+    } catch {
+      // Storage-disabled browsers still get one event for this mounted page.
+      trackFunnelEvent({
+        event: "payment_success",
+        order_id: paymentSummary.id,
+        amount: paymentSummary.value,
+        meta: { payment_method: paymentSummary.payment_gateway },
+      });
+      if (analyticsConsentGranted()) {
+        trackPurchase(
+          String(paymentSummary.id),
+          analyticsItems,
+          paymentSummary.value,
+          paymentSummary.currency,
+          paymentSummary.shipping,
+          paymentSummary.coupon ?? undefined,
+        );
+      }
+    }
+  }, [paymentSummary]);
 
   return (
     <div className="container mx-auto flex min-h-[60vh] items-center justify-center px-4 py-16">

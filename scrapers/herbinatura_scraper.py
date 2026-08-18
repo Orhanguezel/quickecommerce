@@ -155,7 +155,12 @@ def _parse_product(session, url):
     avail = ""
     if avail_el:
         avail = (avail_el.get("href") or avail_el.get("content") or "").lower()
-    in_stock = "instock" in avail.replace("/", "") or avail == ""
+    # FAIL-CLOSED (2026-07-27): alan okunamazsa urun "stokta" SAYILMAZ.
+    # Eski hali `or avail == ""` idi; gosterge kaybolursa 45 urun sessizce
+    # daima stokta gorunur ve yok satariz. IdeaSoft microdata'yi
+    # <link itemprop='availability' href='https://schema.org/InStock'> olarak
+    # verir — 51 urunluk tam taramada 50'sinde alan mevcut (2026-07-27).
+    in_stock = "instock" in avail.replace("/", "")
 
     # --- sku / barkod ---
     sku = ""

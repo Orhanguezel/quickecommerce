@@ -101,9 +101,40 @@ class AdminAbandonedCartController extends Controller
 
         $abandonedValue = (float) (clone $scope)->whereNotNull('abandoned_at')->sum('cart_total');
         $recoveredValue = (float) (clone $scope)->whereNotNull('recovered_at')->sum('cart_total');
+        $recoveredAfterReminder = (clone $scope)
+            ->whereNotNull('recovered_at')
+            ->whereNotNull('first_reminded_at')
+            ->count();
+        $recoveredAfterReminderValue = (float) (clone $scope)
+            ->whereNotNull('recovered_at')
+            ->whereNotNull('first_reminded_at')
+            ->sum('cart_total');
+        $incentiveCost = (float) (clone $scope)->whereNotNull('recovered_at')->sum('incentive_cost');
+        $variants = (clone $scope)
+            ->whereNotNull('recovery_variant')
+            ->select('recovery_variant')
+            ->selectRaw('COUNT(*) as assigned')
+            ->selectRaw('SUM(first_reminded_at IS NOT NULL) as reminded')
+            ->selectRaw('SUM(recovered_at IS NOT NULL AND first_reminded_at IS NOT NULL) as recovered')
+            ->selectRaw('SUM(CASE WHEN recovered_at IS NOT NULL AND first_reminded_at IS NOT NULL THEN cart_total ELSE 0 END) as recovered_value')
+            ->groupBy('recovery_variant')
+            ->get()
+            ->map(fn ($row) => [
+                'variant' => $row->recovery_variant,
+                'assigned' => (int) $row->assigned,
+                'reminded' => (int) $row->reminded,
+                'recovered' => (int) $row->recovered,
+                'recovery_rate_pct' => (int) $row->reminded > 0
+                    ? round(((int) $row->recovered / (int) $row->reminded) * 100, 2)
+                    : 0,
+                'recovered_value' => (float) $row->recovered_value,
+            ]);
 
         $recoveryRate = $abandoned > 0
             ? round(($recovered / $abandoned) * 100, 2)
+            : 0.0;
+        $reminderRecoveryRate = $reminded1 > 0
+            ? round(($recoveredAfterReminder / $reminded1) * 100, 2)
             : 0.0;
 
         return response()->json([
@@ -118,8 +149,14 @@ class AdminAbandonedCartController extends Controller
                 'recovered'         => $recovered,
                 'unsubscribed'      => $unsubscribed,
                 'recovery_rate_pct' => $recoveryRate,
+                'reminder_recovery_rate_pct' => $reminderRecoveryRate,
                 'abandoned_value'   => $abandonedValue,
                 'recovered_value'   => $recoveredValue,
+                'recovered_after_reminder' => $recoveredAfterReminder,
+                'recovered_after_reminder_value' => $recoveredAfterReminderValue,
+                'incentive_cost' => $incentiveCost,
+                'net_recovered_value' => max(0, $recoveredAfterReminderValue - $incentiveCost),
+                'variants' => $variants,
             ],
         ]);
     }

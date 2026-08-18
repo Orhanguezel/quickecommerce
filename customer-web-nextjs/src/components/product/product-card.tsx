@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useSyncExternalStore } from "react";
 
 import type { Product } from "@/modules/product/product.type";
 import { Link, useRouter } from "@/i18n/routing";
@@ -18,6 +18,7 @@ import { useRef } from "react";
 import { flyToCart } from "@/lib/cart-animation";
 import { resolveProductPricing } from "@/lib/product-pricing";
 import { trackFunnelEvent } from "@/lib/funnel-tracker";
+import { trackSelectItem } from "@/lib/gtm";
 
 interface ProductCardProps {
   product: Product;
@@ -27,6 +28,10 @@ interface ProductCardProps {
   variant?: "grid" | "list";
   /** Recommendation block context, used to attribute add-to-cart events. */
   recommendationBlockType?: string;
+  /** Optional page-level analytics callback (for example search attribution). */
+  onProductClick?: (productId: number) => void;
+  itemListName?: string;
+  itemIndex?: number;
 }
 
 function StarRating({ rating, count }: { rating: number; count: number }) {
@@ -54,6 +59,9 @@ export function ProductCard({
   compact = false,
   variant = "grid",
   recommendationBlockType,
+  onProductClick,
+  itemListName = "product_grid",
+  itemIndex,
 }: ProductCardProps) {
   const t = useTranslations("product");
   const { formatPrice } = usePrice();
@@ -68,7 +76,11 @@ export function ProductCard({
   const wishlistRemove = useWishlistRemoveMutation();
   const [isWishlisted, setIsWishlisted] = useState(Boolean(product.wishlist));
 
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false,
+  );
   const [isAdding, setIsAdding] = useState(false);
   const [imageError, setImageError] = useState(false);
   const imageRef = useRef<HTMLDivElement>(null);
@@ -84,9 +96,6 @@ export function ProductCard({
     stockCount > 0 &&
     stockCount <= STOCK_COUNT_MAX;
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -201,7 +210,7 @@ export function ProductCard({
   /* ── Discount badge (shared) ── */
   const discountBadge =
     isInStock && hasDiscount && discountText ? (
-      <span className="absolute right-2 top-2.5 z-10 flex items-center gap-0.5 rounded bg-[#EB5A25] px-1.5 py-0.5 text-xs font-bold text-white">
+      <span className="absolute right-2 top-2.5 z-10 flex items-center gap-0.5 rounded bg-red-700 px-1.5 py-0.5 text-xs font-bold text-white">
         {flashSaleDiscountPct != null && <Zap className="h-2.5 w-2.5 fill-white" />}
         {discountText}
       </span>
@@ -247,7 +256,6 @@ export function ProductCard({
           : "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
       }
       className="object-cover"
-      unoptimized
       onError={() => setImageError(true)}
     />
   ) : (
@@ -257,14 +265,13 @@ export function ProductCard({
         alt={product.name}
         fill
         className="object-contain"
-        unoptimized
       />
     </div>
   );
 
   /* ── Stock label ── */
   const stockLabel = isInStock ? (
-    <span className="text-xs font-medium text-green-600 dark:text-green-400">
+    <span className="text-xs font-medium text-green-700 dark:text-green-300">
       {showStockCount ? `${t("in_stock")} (${stockCount})` : t("in_stock")}
     </span>
   ) : (
@@ -303,6 +310,12 @@ export function ProductCard({
   );
 
   const handleProductClick = () => {
+    trackSelectItem({
+      item_id: String(product.id),
+      item_name: product.name,
+      price: displayPrice ?? undefined,
+      quantity: 1,
+    }, itemListName, itemIndex);
     trackFunnelEvent({
       event: "product_click",
       product_id: product.id,
@@ -311,8 +324,20 @@ export function ProductCard({
         slug: product.slug,
         source: "product_card",
         variant,
+        item_list_name: itemListName,
+        item_index: itemIndex,
       },
     });
+    if (recommendationBlockType) {
+      trackFunnelEvent({
+        event: "recommendation_click",
+        block_type: recommendationBlockType,
+        product_id: product.id,
+        amount: displayPrice ?? undefined,
+        meta: { slug: product.slug, item_list_name: itemListName, item_index: itemIndex },
+      });
+    }
+    onProductClick?.(product.id);
   };
 
   /* ── Cart button icon (using cart.png) ── */
@@ -334,7 +359,6 @@ export function ProductCard({
           alt="Cart"
           width={18}
           height={18}
-          unoptimized
         />
       </button>
     </div>

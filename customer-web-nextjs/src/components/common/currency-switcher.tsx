@@ -68,7 +68,7 @@ export function CurrencySwitcher() {
     return (
       <Button variant="ghost" size="sm" disabled className="gap-1 font-medium">
         <span>TRY</span>
-        <span className="text-muted-foreground">(₺)</span>
+        <span className="text-white">(₺)</span>
       </Button>
     );
   }
@@ -78,7 +78,7 @@ export function CurrencySwitcher() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="gap-1 font-medium">
           <span>{selectedCurrency.code}</span>
-          <span className="text-muted-foreground">({selectedCurrency.symbol})</span>
+          <span className="text-white">({selectedCurrency.symbol})</span>
           <ChevronDown className="h-4 w-4 opacity-50" />
         </Button>
       </DropdownMenuTrigger>

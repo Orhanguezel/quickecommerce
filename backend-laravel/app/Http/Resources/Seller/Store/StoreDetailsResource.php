@@ -30,6 +30,7 @@ class StoreDetailsResource extends JsonResource
                     'status' => $this->seller->status,
                 ],
                 'store_type' => $this->store_type,
+                'fulfillment_model' => $this->fulfillment_model ?: 'seller',
                 'name' => $this->name,
                 'slug' => $this->slug,
                 'phone' => $this->phone,

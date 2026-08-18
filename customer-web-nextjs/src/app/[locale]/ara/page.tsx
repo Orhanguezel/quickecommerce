@@ -16,7 +16,7 @@ async function getSearchResults(
   page: number,
   sort?: string
 ) {
-  if (!query) return { products: [], totalPages: 0, totalProducts: 0 };
+  if (!query) return { products: [], totalPages: 0, totalProducts: 0, suggestions: [] as Product[] };
 
   try {
     const res = await fetchAPI<any>(
@@ -29,13 +29,24 @@ async function getSearchResults(
       },
       locale
     );
+    const products = (res?.data ?? []) as Product[];
+    let suggestions: Product[] = [];
+    if (products.length === 0 && page === 1) {
+      const suggestionRes = await fetchAPI<{ data?: Product[] }>(
+        API_ENDPOINTS.POPULAR_PRODUCTS,
+        { per_page: 10 },
+        locale
+      ).catch(() => null);
+      suggestions = suggestionRes?.data ?? [];
+    }
     return {
-      products: (res?.data ?? []) as Product[],
+      products,
       totalPages: res?.meta?.last_page ?? res?.last_page ?? 1,
       totalProducts: res?.meta?.total ?? res?.total ?? 0,
+      suggestions,
     };
   } catch {
-    return { products: [], totalPages: 0, totalProducts: 0 };
+    return { products: [], totalPages: 0, totalProducts: 0, suggestions: [] as Product[] };
   }
 }
 
@@ -79,6 +90,7 @@ export default async function SearchPage({ params, searchParams }: Props) {
       query={query}
       totalPages={data.totalPages}
       totalProducts={data.totalProducts}
+      suggestedProducts={data.suggestions}
       currentPage={page}
       currentSort={sort}
       translations={{

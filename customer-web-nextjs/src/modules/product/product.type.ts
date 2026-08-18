@@ -123,6 +123,7 @@ export interface ProductReview {
     image_url: string | null;
   };
   review: string;
+  images: string[];
   rating: number;
   like_count: number;
   dislike_count: number;
@@ -158,6 +159,8 @@ export interface FlashSaleInfo {
 export interface ProductDetailResponse {
   messages: string;
   data: ProductDetail;
+  canonical_slug?: string | null;
+  locales?: string[];
   related_products: Product[];
 }
 

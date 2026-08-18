@@ -30,6 +30,7 @@ class FunnelEvent extends Model
         'product_id',
         'category_id',
         'order_id',
+        'dedupe_key',
         'block_type',
         'amount',
         'meta',

@@ -26,7 +26,7 @@ export function HeroSliderVariant1({ sliders }: HeroSliderProps) {
     if (isManualViewport || sliders.length <= 1 || timerRef.current) return;
     timerRef.current = setInterval(() => {
       setCurrent((prev) => (prev + 1) % sliders.length);
-    }, 8000);
+    }, 12000);
   }, [isManualViewport, sliders.length]);
 
   const stopAutoPlay = useCallback(() => {
@@ -151,6 +151,8 @@ export function HeroSliderVariant1({ sliders }: HeroSliderProps) {
                     fill
                     className="object-cover"
                     priority={index === 0}
+                    fetchPriority={index === 0 ? 'high' : 'auto'}
+                    sizes="(max-width: 640px) calc(100vw - 32px), (max-width: 1440px) calc(100vw - 32px), 1408px"
                   />
                 ) : null}
 

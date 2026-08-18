@@ -136,6 +136,23 @@ export interface OrderDetailResponse {
   order_refund_tracking: OrderTracking[];
 }
 
+export interface PaymentSummary {
+  id: number;
+  payment_status: string;
+  payment_gateway: string;
+  value: number;
+  currency: string;
+  shipping: number;
+  coupon: string | null;
+  items: Array<{
+    item_id: string;
+    item_name: string;
+    item_variant?: string | null;
+    price: number;
+    quantity: number;
+  }>;
+}
+
 // --- Return Shipment ---
 export interface ReturnShipment {
   carrier_name: string | null;
