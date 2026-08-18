@@ -2,7 +2,13 @@
 
 import { Link } from '@/i18n/routing';
 import { ROUTES } from '@/config/routes';
-import { useMenuQuery } from '@/modules/site/site.action';
+import { useCategoryQuery, useMenuQuery } from '@/modules/site/site.action';
+import {
+  isBuyPayCampaignCategory,
+  isDisplayableProductCategory,
+  isPrimaryNavigationCategory,
+  sortCategoriesForNavigation,
+} from '@/modules/site/category-utils';
 import { useAuthStore } from '@/stores/auth-store';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
@@ -22,8 +28,8 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { useToken } from '@/lib/use-token';
-import { useState } from 'react';
-import type { MenuItem } from '@/modules/site/site.type';
+import { useMemo, useState } from 'react';
+import type { Category, MenuItem } from '@/modules/site/site.type';
 
 interface MobileNavProps {
   open: boolean;
@@ -39,10 +45,41 @@ interface DefaultLink {
 export function MobileNav({ open, onClose }: MobileNavProps) {
   const t = useTranslations();
   const { menus } = useMenuQuery();
+  const { categories } = useCategoryQuery();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const logout = useAuthStore((s) => s.logout);
   const { removeToken } = useToken();
   const [expandedMenus, setExpandedMenus] = useState<number[]>([]);
+  const [expandedCategories, setExpandedCategories] = useState<number[]>([]);
+
+  const allCategories = useMemo(() => categories as Category[], [categories]);
+  const visibleCategories = useMemo(
+    () => allCategories
+      .filter((category) => category.parent_id === null)
+      .filter(isPrimaryNavigationCategory)
+      .filter((category) => !isBuyPayCampaignCategory(category))
+      .filter(isDisplayableProductCategory)
+      .sort(sortCategoriesForNavigation),
+    [allCategories]
+  );
+  const categoryChildren = useMemo(() => {
+    const result = new Map<number, Category[]>();
+    for (const category of allCategories) {
+      if (
+        category.parent_id === null ||
+        isBuyPayCampaignCategory(category) ||
+        !isDisplayableProductCategory(category)
+      ) continue;
+      const parentId = Number(category.parent_id);
+      const siblings = result.get(parentId) ?? [];
+      siblings.push(category);
+      result.set(parentId, siblings);
+    }
+    for (const siblings of result.values()) {
+      siblings.sort(sortCategoriesForNavigation);
+    }
+    return result;
+  }, [allCategories]);
 
   const handleLogout = () => {
     removeToken();
@@ -102,6 +139,76 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
 
           {/* Links */}
           <nav className="flex-1 overflow-y-auto p-5">
+            <div className="mb-2 px-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              {t('nav.categories')}
+            </div>
+            <ul className="space-y-1">
+              <li>
+                <Link
+                  href={ROUTES.PRODUCTS}
+                  prefetch
+                  onClick={onClose}
+                  className="flex items-center gap-3 rounded-md px-4 py-3 text-base font-bold text-primary transition-colors hover:bg-accent"
+                >
+                  <ShoppingBag className="h-[18px] w-[18px]" />
+                  {t('home.all_products_title')}
+                </Link>
+              </li>
+              {visibleCategories.map((category) => {
+                const children = categoryChildren.get(category.id) ?? [];
+                const expanded = expandedCategories.includes(category.id);
+                return (
+                  <li key={category.id}>
+                    <div className="flex items-center">
+                      <Link
+                        href={ROUTES.CATEGORY(category.category_slug)}
+                        prefetch
+                        onClick={onClose}
+                        className="min-w-0 flex-1 rounded-md px-4 py-3 text-base font-medium transition-colors hover:bg-accent"
+                      >
+                        {category.category_name}
+                      </Link>
+                      {children.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setExpandedCategories((current) =>
+                            current.includes(category.id)
+                              ? current.filter((id) => id !== category.id)
+                              : [...current, category.id]
+                          )}
+                          className="rounded-md p-3 hover:bg-accent"
+                          aria-label={`${category.category_name} alt kategorileri`}
+                          aria-expanded={expanded}
+                        >
+                          <ChevronDown className={`h-4 w-4 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+                        </button>
+                      )}
+                    </div>
+                    {expanded && children.length > 0 && (
+                      <ul className="space-y-1 pl-4">
+                        {children.map((child) => (
+                          <li key={child.id}>
+                            <Link
+                              href={ROUTES.CATEGORY(child.category_slug)}
+                              prefetch
+                              onClick={onClose}
+                              className="block rounded-md px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                            >
+                              {child.category_name} ({child.product_count})
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+
+            <div className="my-4 border-t" />
+            <div className="mb-2 px-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Menü
+            </div>
             <ul className="space-y-2">
               {menus.length > 0
                 ? menus

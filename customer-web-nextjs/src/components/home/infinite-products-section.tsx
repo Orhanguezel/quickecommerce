@@ -51,7 +51,9 @@ export function InfiniteProductsSection({
   const t = useTranslations("home");
   const { findAll } = useBaseService<ProductListPage>(API_ENDPOINTS.PRODUCTS);
   const title = titleProp || t("all_products_title");
+  const sectionRef = useRef<HTMLElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const [isActivated, setIsActivated] = useState(false);
   // Oturum basina stabil random seed: ayni seed tum sayfalarda gonderilir ->
   // backend RAND(seed) ile tutarli siralar -> sonsuz scroll'da tekrar/eksik olmaz.
   // Kategoriler karisik gelir. sessionStorage ile cift-mount ayni seed kullanir
@@ -105,7 +107,23 @@ export function InfiniteProductsSection({
       return undefined;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: isActivated,
   });
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el || isActivated) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        setIsActivated(true);
+        observer.disconnect();
+      },
+      { rootMargin: "800px 0px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [isActivated]);
 
   useEffect(() => {
     hasNextPageRef.current = hasNextPage ?? false;
@@ -141,7 +159,7 @@ export function InfiniteProductsSection({
   if (isError) return null;
 
   return (
-    <section className="border-t pt-8">
+    <section ref={sectionRef} className="min-h-[420px] border-t pt-8">
       <SectionHeader
         title={title}
         subtitle={t("all_products_subtitle")}
@@ -155,7 +173,7 @@ export function InfiniteProductsSection({
         ))}
 
         {/* Skeleton cards while loading first page */}
-        {isLoading &&
+        {(!isActivated || isLoading) &&
           Array.from({ length: 10 }).map((_, i) => (
             <ProductSkeleton key={`skeleton-${i}`} />
           ))}

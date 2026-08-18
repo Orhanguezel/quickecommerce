@@ -42,6 +42,7 @@ type GdprContent = {
 
 type StoredConsent = {
   accepted_at: string;
+  analytics_granted: boolean;
   /** Kullanıcının her kategori için seçimi. Required olanlar her zaman true. */
   categories: Record<string, boolean>;
 };
@@ -108,14 +109,16 @@ export function CookieBanner({ apiUrl, locale }: Props) {
   const more = content.gdpr_more_info_section;
   const canRejectAll = basic.com_gdpr_can_reject_all !== "off";
 
-  const persist = (categories: Record<string, boolean>) => {
+  const persist = (categories: Record<string, boolean>, analyticsGranted: boolean) => {
     const payload: StoredConsent = {
       accepted_at: new Date().toISOString(),
+      analytics_granted: analyticsGranted,
       categories,
     };
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
     } catch {}
+    window.dispatchEvent(new Event("sportoonline:cookie-consent"));
     setVisible(false);
     setShowManage(false);
   };
@@ -123,7 +126,7 @@ export function CookieBanner({ apiUrl, locale }: Props) {
   const acceptAll = () => {
     const all: Record<string, boolean> = {};
     for (const step of more?.steps || []) all[step.title] = true;
-    persist(all);
+    persist(all, true);
   };
 
   const rejectAll = () => {
@@ -131,10 +134,14 @@ export function CookieBanner({ apiUrl, locale }: Props) {
     for (const step of more?.steps || []) {
       minimal[step.title] = step.req_status === "required";
     }
-    persist(minimal);
+    persist(minimal, false);
   };
 
-  const saveSelection = () => persist(categoryChoices);
+  const saveSelection = () => {
+    const optionalSteps = (more?.steps || []).filter((step) => step.req_status !== "required");
+    const analyticsGranted = optionalSteps.some((step) => categoryChoices[step.title]);
+    persist(categoryChoices, analyticsGranted);
+  };
 
   return (
     <>

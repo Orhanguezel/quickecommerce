@@ -1,11 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useLocale } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { Link } from "@/i18n/routing";
 import { Search } from "lucide-react";
 import type { Product } from "@/modules/product/product.type";
 import { ProductCard } from "@/components/product/product-card";
+import { getApiBaseUrl } from "@/lib/api-url";
+import { trackViewItemList } from "@/lib/gtm";
+import { resolveProductPricing } from "@/lib/product-pricing";
 
 interface SearchTranslations {
   title: string;
@@ -30,6 +34,7 @@ interface SearchPageClientProps {
   query: string;
   totalPages: number;
   totalProducts: number;
+  suggestedProducts: Product[];
   currentPage: number;
   currentSort?: string;
   translations: SearchTranslations;
@@ -40,12 +45,65 @@ export function SearchPageClient({
   query,
   totalPages,
   totalProducts,
+  suggestedProducts,
   currentPage,
   currentSort,
   translations: t,
 }: SearchPageClientProps) {
   const router = useRouter();
+  const locale = useLocale();
   const [searchInput, setSearchInput] = useState(query);
+  const trackedSearchRef = useRef<string | null>(null);
+  const trackedListRef = useRef<string | null>(null);
+
+  // Bir gecis render'inda totalProducts hala 0 olabilirken listede urun bulunabilir.
+  // Rapora giden sayi, ekranda gercekten duran sonucla tutarli olmali.
+  const resolvedResultCount = Math.max(totalProducts, products.length);
+
+  const trackSearch = (clickedProductId?: number) => {
+    if (!query.trim()) return;
+    void fetch(`${getApiBaseUrl()}/search/track`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-localization": locale,
+      },
+      body: JSON.stringify({
+        term: query,
+        results_count: resolvedResultCount,
+        ...(clickedProductId ? { clicked_product_id: clickedProductId } : {}),
+      }),
+      keepalive: true,
+    }).catch(() => undefined);
+  };
+
+  // Aramayi terim basina bir kez, sonuc sayisi oturduktan sonra kaydet.
+  // Anahtar sayiyi icermez: aksi halde ayni arama once 0, sonra gercek sayiyla
+  // iki kez kaydediliyor ve "sonucsuz arama" orani sisiyordu.
+  useEffect(() => {
+    if (!query.trim() || currentPage !== 1) return;
+    const key = query.trim().toLocaleLowerCase("tr-TR");
+    if (trackedSearchRef.current === key) return;
+
+    const timer = setTimeout(() => {
+      trackedSearchRef.current = key;
+      trackSearch();
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [query, resolvedResultCount, currentPage]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const key = `${query}:${currentPage}:${products.map((product) => product.id).join(",")}`;
+    if (!products.length || trackedListRef.current === key) return;
+    trackedListRef.current = key;
+    trackViewItemList(products.map((product) => ({
+      item_id: String(product.id),
+      item_name: product.name,
+      price: resolveProductPricing(product, product.default_variant_id).displayPrice ?? undefined,
+      quantity: 1,
+    })), `search:${query}`);
+  }, [currentPage, products, query]);
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -118,17 +176,43 @@ export function SearchPageClient({
           {/* Results */}
           {products.length > 0 ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-              {products.map((product) => (
-                <ProductCard key={product.id} product={product} compact />
+              {products.map((product, index) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  compact
+                  onProductClick={trackSearch}
+                  itemListName={`search:${query}`}
+                  itemIndex={(currentPage - 1) * products.length + index}
+                />
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <Search className="mb-4 h-12 w-12 text-muted-foreground/50" />
-              <p className="text-lg font-medium">{t.no_results}</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {t.try_different}
-              </p>
+            <div className="py-12">
+              <div className="mb-8 flex flex-col items-center text-center">
+                <Search className="mb-4 h-12 w-12 text-muted-foreground/50" />
+                <p className="text-lg font-medium">{t.no_results}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{t.try_different}</p>
+              </div>
+              {suggestedProducts.length > 0 ? (
+                <section aria-labelledby="nearby-products-title">
+                  <h2 id="nearby-products-title" className="mb-4 text-lg font-semibold">
+                    Bunları mı aradınız?
+                  </h2>
+                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                    {suggestedProducts.map((product, index) => (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        compact
+                        onProductClick={trackSearch}
+                        itemListName={`search-suggestions:${query}`}
+                        itemIndex={index}
+                      />
+                    ))}
+                  </div>
+                </section>
+              ) : null}
             </div>
           )}
 

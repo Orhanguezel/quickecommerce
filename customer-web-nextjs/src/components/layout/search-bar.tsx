@@ -271,10 +271,15 @@ export function SearchBar({ mobile = false }: { mobile?: boolean }) {
 
   // Suggest urunden tiklama -> track icin (analytics: hangi arama hangi urune donustu)
   const trackProductClick = (term: string, productId: number) => {
+    // Buradaki sayi yalnizca oneri listesinin uzunlugu — arama sayfasinin
+    // toplam sonucu degil. Bos oldugunda hic gonderme, yoksa kayitli gercek
+    // sonuc sayisini "0 sonuc" diye ezer.
+    const suggestionCount = products.length;
+
     getAxiosInstance()
       .post("/search/track", {
         term,
-        results_count: products.length,
+        ...(suggestionCount > 0 ? { results_count: suggestionCount } : {}),
         clicked_product_id: productId,
       })
       .catch(() => {
@@ -327,15 +332,8 @@ export function SearchBar({ mobile = false }: { mobile?: boolean }) {
     setOpen(false);
     setActiveIndex(-1);
     inputRef.current?.blur();
-    // KVKK uyumlu analytics: backend ip_hash + sha256
-    getAxiosInstance()
-      .post("/search/track", {
-        term: q,
-        results_count: products.length,
-      })
-      .catch(() => {
-        // tracking sessiz fail — kullaniciya yansimasin
-      });
+    // Search analytics is recorded on the results page, where the real total
+    // result count is known. Autocomplete length is not a result count.
     router.push(`${ROUTES.SEARCH}?q=${encodeURIComponent(q)}`);
   };
 

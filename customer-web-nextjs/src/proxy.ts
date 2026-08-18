@@ -35,10 +35,25 @@ async function goneResponse(request: NextRequest): Promise<NextResponse | null> 
   if (!match) return null;
 
   let slug = match[1];
-  try {
-    slug = decodeURIComponent(slug);
-  } catch {
-    // bozuk encoding — slug'i oldugu gibi dene
+  // Eski scraper URL'lerinde cift encode edilmis, gecersiz byte'lar bulunuyor
+  // (orn. "%2580" -> "%80"). Ilk decode basarili olsa bile ikinci katman
+  // URIError atip Next.js'i 500'e dusurebilir. En fazla iki kati guvenle ac;
+  // bozuk encoding kalirsa bunun kalici olarak gecersiz bir urun URL'i oldugunu
+  // bildir ve uygulama router'ina gecirme.
+  for (let pass = 0; pass < 2; pass += 1) {
+    try {
+      const decoded = decodeURIComponent(slug);
+      if (decoded === slug) break;
+      slug = decoded;
+    } catch {
+      return new NextResponse(null, {
+        status: 410,
+        headers: {
+          'cache-control': 'public, max-age=86400',
+          'x-robots-tag': 'noindex',
+        },
+      });
+    }
   }
 
   const gone = await getGoneSlugs();

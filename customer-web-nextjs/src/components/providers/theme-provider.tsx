@@ -65,9 +65,14 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     if (colors?.primary) {
       const primaryHSL = hexToHSL(colors.primary);
       if (primaryHSL) {
-        root.style.setProperty("--primary", primaryHSL);
-        root.style.setProperty("--ring", primaryHSL);
-        const lightness = parseInt(primaryHSL.split("%")[1]);
+        const parts = primaryHSL.match(/^([\d.]+)\s+([\d.]+)%\s+([\d.]+)%$/);
+        const accessiblePrimaryHSL =
+          parts && Number(parts[3]) > 29
+            ? `${parts[1]} ${parts[2]}% 29%`
+            : primaryHSL;
+        root.style.setProperty("--primary", accessiblePrimaryHSL);
+        root.style.setProperty("--ring", accessiblePrimaryHSL);
+        const lightness = parts ? Math.min(Number(parts[3]), 29) : parseInt(primaryHSL.split("%")[1]);
         const fgColor = lightness > 65 ? "222.2 47.4% 11.2%" : "210 40% 98%";
         root.style.setProperty("--primary-foreground", fgColor);
       }

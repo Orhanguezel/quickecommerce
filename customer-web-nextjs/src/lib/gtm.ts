@@ -12,6 +12,8 @@ type GtagItem = {
   price?: number;
   quantity?: number;
   discount?: number;
+  item_list_name?: string;
+  index?: number;
 };
 
 type GoogleEventParams = Record<string, string | number | boolean | undefined | null>;
@@ -115,6 +117,22 @@ export function trackViewItem(item: GtagItem, currency = 'TRY') {
   });
 }
 
+export function trackViewItemList(items: GtagItem[], itemListName: string, currency = 'TRY') {
+  pushDataLayer('view_item_list', {
+    currency,
+    item_list_name: itemListName,
+    items: items.map((item, index) => ({ ...item, item_list_name: itemListName, index })),
+  });
+}
+
+export function trackSelectItem(item: GtagItem, itemListName: string, index?: number, currency = 'TRY') {
+  pushDataLayer('select_item', {
+    currency,
+    item_list_name: itemListName,
+    items: [{ ...item, item_list_name: itemListName, ...(index != null ? { index } : {}) }],
+  });
+}
+
 export function trackAddToCart(item: GtagItem, currency = 'TRY') {
   pushDataLayer('add_to_cart', {
     currency,
@@ -158,6 +176,20 @@ export function trackAddPaymentInfo(
     currency,
     value,
     ...(paymentType ? { payment_type: paymentType } : {}),
+    items,
+  });
+}
+
+export function trackAddShippingInfo(
+  items: GtagItem[],
+  value: number,
+  currency = 'TRY',
+  shippingTier?: string,
+) {
+  pushDataLayer('add_shipping_info', {
+    currency,
+    value,
+    ...(shippingTier ? { shipping_tier: shippingTier } : {}),
     items,
   });
 }

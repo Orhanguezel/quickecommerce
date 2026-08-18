@@ -3,9 +3,11 @@
 import { Link, useRouter } from "@/i18n/routing";
 import { ROUTES } from "@/config/routes";
 import { ChevronRight, Grid3X3, List, ChevronLeft } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Product } from "@/modules/product/product.type";
 import { ProductCard } from "@/components/product/product-card";
+import { trackViewItemList } from "@/lib/gtm";
+import { resolveProductPricing } from "@/lib/product-pricing";
 import {
   FilterSidebar,
   type FilterState,
@@ -92,7 +94,6 @@ function pickFilterTranslations(t: Translations) {
 export function ProductsPageClient({
   products,
   totalPages,
-  totalProducts,
   currentPage,
   perPage,
   currentSort,
@@ -105,6 +106,18 @@ export function ProductsPageClient({
 }: ProductsPageClientProps) {
   const router = useRouter();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const trackedListKeyRef = useRef("");
+  useEffect(() => {
+    const key = `${currentPage}:${products.map((product) => product.id).join(",")}`;
+    if (!products.length || trackedListKeyRef.current === key) return;
+    trackedListKeyRef.current = key;
+    trackViewItemList(products.map((product) => ({
+      item_id: String(product.id),
+      item_name: product.name,
+      price: resolveProductPricing(product, product.default_variant_id).displayPrice ?? undefined,
+      quantity: 1,
+    })), "all_products");
+  }, [currentPage, products]);
 
   function buildPageUrl(page: number) {
     const params = new URLSearchParams();
@@ -240,12 +253,14 @@ export function ProductsPageClient({
                   : "grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"
               }
             >
-              {products.map((product) => (
+              {products.map((product, index) => (
                 <ProductCard
                   key={product.id}
                   product={product}
                   compact
                   variant={viewMode}
+                  itemListName="all_products"
+                  itemIndex={(currentPage - 1) * perPage + index}
                 />
               ))}
             </div>

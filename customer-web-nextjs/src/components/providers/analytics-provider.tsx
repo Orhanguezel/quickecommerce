@@ -2,17 +2,12 @@
 
 import { Suspense, useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { initializeFirebaseAnalytics } from "@/lib/firebase";
 import { trackFunnelEvent } from "@/lib/funnel-tracker";
 
 function AnalyticsEvents() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const lastTrackedRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    void initializeFirebaseAnalytics();
-  }, []);
 
   useEffect(() => {
     const query = searchParams.toString();
@@ -62,18 +57,9 @@ function AnalyticsEvents() {
       trackFunnelEvent({ event: "cart_view", locale });
     }
 
-    if (section === "odeme") {
-      trackFunnelEvent({ event: "checkout_start", locale });
-    }
-
-    if (section === "siparis-basarili") {
-      const orderId = searchParams.get("order");
-      trackFunnelEvent({
-        event: "payment_success",
-        locale,
-        order_id: orderId ? Number(orderId) : undefined,
-      });
-    }
+    // checkout_start is emitted by CheckoutClient with cart value/items.
+    // payment_success is emitted by OrderSuccessClient only after the
+    // authenticated payment summary confirms that the order is actually paid.
   }, [pathname, searchParams]);
 
   return null;

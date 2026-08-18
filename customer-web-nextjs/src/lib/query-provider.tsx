@@ -1,13 +1,21 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ReactNode, useState } from "react";
+import type { ThemeResponse } from "@/modules/theme/theme.type";
 
-export function QueryProvider({ children }: { children: ReactNode }) {
+export function QueryProvider({
+  children,
+  initialTheme,
+  locale,
+}: {
+  children: ReactNode;
+  initialTheme?: ThemeResponse | null;
+  locale?: string;
+}) {
   const [client] = useState(
-    () =>
-      new QueryClient({
+    () => {
+      const queryClient = new QueryClient({
         defaultOptions: {
           queries: {
             staleTime: 1000 * 60 * 10,
@@ -15,13 +23,13 @@ export function QueryProvider({ children }: { children: ReactNode }) {
             refetchOnWindowFocus: false,
           },
         },
-      })
+      });
+      if (initialTheme && locale) {
+        queryClient.setQueryData(["theme", locale], initialTheme);
+      }
+      return queryClient;
+    }
   );
 
-  return (
-    <QueryClientProvider client={client}>
-      {children}
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
-  );
+  return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
 }

@@ -9,6 +9,9 @@ export const routing = defineRouting({
   locales: ["tr"],
   defaultLocale: "tr",
   localeDetection: false,
+  // There is only one locale. Persisting NEXT_LOCALE made every public page
+  // private/no-store and disabled both ISR caching and the browser bfcache.
+  localeCookie: false,
   localePrefix: "always",
 });
 

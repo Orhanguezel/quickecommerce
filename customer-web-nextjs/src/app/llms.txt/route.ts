@@ -9,19 +9,18 @@ export function GET() {
 
 ## Primary Site
 
-- Website: ${SITE_URL}
-- Turkish homepage: ${SITE_URL}/tr
-- English homepage: ${SITE_URL}/en
-- Contact: ${SITE_URL}/tr/iletisim
-- About: ${SITE_URL}/tr/hakkimizda
+- [Website](${SITE_URL})
+- [Turkish homepage](${SITE_URL}/tr)
+- [Contact](${SITE_URL}/tr/iletisim)
+- [About](${SITE_URL}/tr/hakkimizda)
 
 ## Key Sections
 
-- Products: ${SITE_URL}/tr/urunler
-- Categories: ${SITE_URL}/tr/kategoriler
-- Blog: ${SITE_URL}/tr/blog
-- Stores: ${SITE_URL}/tr/magazalar
-- Campaigns: ${SITE_URL}/tr/kampanyalar
+- [Products](${SITE_URL}/tr/urunler)
+- [Categories](${SITE_URL}/tr/kategoriler)
+- [Blog](${SITE_URL}/tr/blog)
+- [Stores](${SITE_URL}/tr/magazalar)
+- [Campaigns](${SITE_URL}/tr/kampanyalar)
 
 ## Important Product Topics
 
@@ -42,7 +41,7 @@ AI crawlers are allowed to crawl public product, category, store, and blog pages
 
 ## Sitemap
 
-- ${SITE_URL}/sitemap.xml
+- [XML sitemap](${SITE_URL}/sitemap.xml)
 `;
 
   return new Response(body, {
@@ -52,4 +51,3 @@ AI crawlers are allowed to crawl public product, category, store, and blog pages
     },
   });
 }
-

@@ -5,6 +5,7 @@ import { usePrice } from "@/hooks/use-price";
 import { Link } from "@/i18n/routing";
 import { ROUTES } from "@/config/routes";
 import { useCartStore } from "@/stores/cart-store";
+import { useAuthStore } from "@/stores/auth-store";
 import { useCheckoutExtraInfoQuery } from "@/modules/checkout/checkout.service";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -40,6 +41,7 @@ export function CartClient({ translations: t }: Props) {
   const updateQuantity = useCartStore((s) => s.updateQuantity);
   const totalPrice = useCartStore((s) => s.totalPrice);
   const totalItems = useCartStore((s) => s.totalItems);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const { formatPrice } = usePrice();
   const mounted = useSyncExternalStore(
     () => () => {},
@@ -284,8 +286,16 @@ export function CartClient({ translations: t }: Props) {
             </div>
 
             <Button asChild className="mt-6 w-full" size="lg">
-              <Link href={ROUTES.CHECKOUT}>{t.checkout}</Link>
+              <Link href={isAuthenticated ? ROUTES.CHECKOUT : "/giris?redirect=/odeme"}>
+                {isAuthenticated ? t.checkout : "Üye olmadan ödeme yap"}
+              </Link>
             </Button>
+
+            {!isAuthenticated && (
+              <p className="mt-2 text-center text-xs text-muted-foreground">
+                Hesap açmanız gerekmez. İletişim bilgilerinizi girip misafir olarak devam edebilirsiniz.
+              </p>
+            )}
 
             <Button variant="outline" asChild className="mt-3 w-full">
               <Link href={ROUTES.HOME}>{t.continue_shopping}</Link>

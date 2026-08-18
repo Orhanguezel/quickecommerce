@@ -1,4 +1,5 @@
 export const API_ENDPOINTS = {
+  SEARCH_SUGGEST: "/search/suggest",
   // Auth (customer)
   LOGIN: "/customer/login",
   GUEST_CHECKOUT: "/customer/guest-checkout",

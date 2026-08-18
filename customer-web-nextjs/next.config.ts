@@ -80,11 +80,6 @@ const nextConfig: NextConfig = {
         source: "/(.*)",
         headers: [
           {
-            key: "Content-Security-Policy-Report-Only",
-            value:
-              "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'",
-          },
-          {
             // microphone=(self): sesli arama (Web Speech API) icin ZORUNLU.
             // "microphone=()" mikrofonu kendi origin'ine bile kapatiyor ve
             // Chrome SpeechRecognition'i sessizce "not-allowed" ile dusuruyordu.
@@ -114,7 +109,11 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
-    unoptimized: true, // Development'da localhost resimlerini yüklemek için gerekli
+    // Production must use Next's responsive image pipeline. Local development
+    // keeps direct URLs so localhost media remains easy to inspect.
+    unoptimized: process.env.NODE_ENV !== "production",
+    deviceSizes: [384, 640, 750, 828, 1080, 1200, 1366, 1440, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 220, 256, 384],
     remotePatterns: [
       {
         protocol: "https",

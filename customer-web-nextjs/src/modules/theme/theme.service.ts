@@ -28,7 +28,7 @@ export function useThemeQuery() {
     },
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 60,
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 }
