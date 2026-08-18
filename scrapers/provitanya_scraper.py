@@ -73,6 +73,13 @@ def _to_product(p):
     slug = (p.get("seo_keyword") or "").strip()
     if not slug:
         return None
+    # Historical sitemap imports accidentally stored /provitanya-blog/*
+    # articles as products. The current API should contain catalogue rows,
+    # but fail closed if a content URL/record appears again.
+    raw_url = str(p.get("url") or p.get("href") or "").lower()
+    product_type = str(p.get("type") or p.get("record_type") or "").lower()
+    if "/provitanya-blog/" in raw_url or product_type in {"blog", "article", "post"}:
+        return None
     list_price = _num(p.get("retail_price_with_tax")) or _num(p.get("price_with_tax"))
     special = _num(p.get("retail_special_with_tax"))
     # special yalniz gercek indirimse uygula

@@ -32,6 +32,7 @@ while IFS= read -r base; do
   count=$(python3 -c "import json,sys; d=json.load(open('$f')); print(len(d) if isinstance(d,list) else len(d.get('products',[])))" 2>/dev/null || echo "?")
   age_h=$(( ($(date +%s) - $(stat --printf="%Y" "$f")) / 3600 ))
   status="OK   "
+  if [ "$count" = "0" ]; then status="BOS  "; fi
   if [ $age_h -gt 48 ]; then status="ESKI "; fi
   if [ $age_h -gt 168 ]; then status="OLDU "; fi
   printf "  [%s] %-32s | %5s urun | %4d saat once | %10s bytes | %s\n" "$status" "$base" "$count" "$age_h" "$size" "$f"

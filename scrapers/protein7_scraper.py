@@ -16,6 +16,7 @@ import re
 import sys
 import time
 from html import unescape
+from urllib.parse import urlencode
 
 import requests
 
@@ -90,6 +91,38 @@ def parse_itemlist(html):
                 for el in data.get("itemListElement", [])
                 if isinstance(el, dict) and isinstance(el.get("item"), dict)
             ]
+
+    # T-Soft gecisi (2026-08): kategori urunleri artik JSON-LD ItemList yerine
+    # PRODUCT_DATA.push(JSON.parse('...')) bloklariyla sayfaya gomuluyor.
+    items = []
+    pattern = r"PRODUCT_DATA\.push\(JSON\.parse\('((?:\\.|[^'])*)'\)\);"
+    for match in re.finditer(pattern, html, re.S):
+        try:
+            # Ilk decode JavaScript string katmanini, ikincisi urun JSON'unu acar.
+            encoded = json.loads('"' + match.group(1) + '"')
+            product = json.loads(encoded)
+        except (json.JSONDecodeError, TypeError):
+            continue
+
+        raw_url = str(product.get("url") or "")
+        url = raw_url if raw_url.startswith("http") else f"{BASE_URL}/{raw_url.lstrip('/')}"
+        image = str(product.get("image") or "")
+        items.append({
+            "name": product.get("name", ""),
+            "sku": product.get("code", ""),
+            "url": url,
+            "category": product.get("category", ""),
+            "brand": {"name": product.get("brand", "")},
+            "image": [image] if image else [],
+            "offers": {
+                "price": product.get("total_sale_price") or product.get("total_price"),
+                "availability": "https://schema.org/InStock"
+                if product.get("available") and float(product.get("quantity") or 0) > 0
+                else "https://schema.org/OutOfStock",
+            },
+        })
+    if items:
+        return items
     return []
 
 
@@ -158,14 +191,21 @@ def main():
     for category in categories:
         url = f"{BASE_URL}/{category}"
         print(f"  {category} ...")
-        try:
-            resp = session.get(url, timeout=25)
-            resp.raise_for_status()
-        except Exception as exc:  # noqa: BLE001
-            print(f"    HATA: {exc}")
-            continue
-
-        items = parse_itemlist(resp.text)
+        items = []
+        for attempt in range(3):
+            try:
+                # T-Soft/CDN occasionally serves the shell before PRODUCT_DATA.
+                # A cache-busting query and retry prevents a false empty run.
+                request_url = f"{url}?{urlencode({'scrape_refresh': int(time.time())})}"
+                resp = session.get(request_url, timeout=25)
+                resp.raise_for_status()
+                items = parse_itemlist(resp.text)
+                if items:
+                    break
+            except Exception as exc:  # noqa: BLE001
+                print(f"    deneme {attempt + 1}/3 HATA: {exc}")
+            if attempt < 2:
+                time.sleep(5 * (attempt + 1))
         print(f"    {len(items)} urun (JSON-LD ItemList)")
         for item in items:
             product = process_product(item, category)
@@ -195,13 +235,16 @@ def main():
         time.sleep(0.5)
 
     result = list(products.values())
+    if not result:
+        # Son bilinen saglam JSON'u koru. run-all exit kodundan bu run'i fail
+        # sayar ve DB senkronunu atlar; bos dosya ile kanit yok edilmez.
+        print("\nHATA: hic urun ayrıştırılamadı; mevcut JSON korunuyor.", file=sys.stderr)
+        sys.exit(1)
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         json.dump(result, f, ensure_ascii=False, indent=2)
 
     in_stock = sum(1 for p in result if p["available"])
     print(f"\nTamamlandi! {len(result)} urun ({in_stock} stokta) -> {OUTPUT_FILE}")
-    if not result:
-        sys.exit(1)
 
 
 if __name__ == "__main__":

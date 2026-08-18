@@ -18,10 +18,19 @@ cd /var/www/quikecommerce
 DATE=$(date +%Y%m%d)
 LOG="/var/www/quikecommerce/logs/scrapers-intraday-$DATE.log"
 VENV="/var/www/quikecommerce/venv/bin/python3"
+ROOT_ENV="/var/www/quikecommerce/.env"
 
 # Anti-bot (run-all.sh ile ayni)
-export SCRAPER_URL=https://scraper.guezelwebdesign.com
-export SCRAPER_API_KEY=scraper-sportoonline-Eq4lGI4KV4CLCMluihY9t9pn0jrZMmf-
+if [ -f "$ROOT_ENV" ]; then
+  SCRAPER_URL=$(grep -E '^SCRAPER_URL=' "$ROOT_ENV" | head -1 | cut -d'=' -f2- | tr -d '"' | tr -d "'")
+  SCRAPER_API_KEY=$(grep -E '^SCRAPER_API_KEY=' "$ROOT_ENV" | head -1 | cut -d'=' -f2- | tr -d '"' | tr -d "'")
+fi
+: "${SCRAPER_URL:=https://scraper.guezelwebdesign.com}"
+if [ -z "${SCRAPER_API_KEY:-}" ]; then
+  echo "FAIL: SCRAPER_API_KEY is not configured in $ROOT_ENV" >&2
+  exit 1
+fi
+export SCRAPER_URL SCRAPER_API_KEY
 export SCRAPER_TIMEOUT=90
 
 # Intraday taranacak bool-only kaynaklar: "name|script|json"

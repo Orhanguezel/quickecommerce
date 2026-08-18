@@ -46,9 +46,9 @@ from shopify_scraper import clean_description_html, make_slug, resolve_relative_
 # Varsayilan YEREL servis (2026-06-21): dis scraper.guezelwebdesign.com kaldirildi,
 # CF-agir IdeaSoft/Ticimax sitelerinde ~1s'de HTTP 500 doruyordu.
 SCRAPER_URL = os.environ.get("SCRAPER_URL", "http://127.0.0.1:8200").rstrip("/")
-SCRAPER_API_KEY = os.environ.get(
-    "SCRAPER_API_KEY", "scraper-sportoonline-Eq4lGI4KV4CLCMluihY9t9pn0jrZMmf-"
-)
+SCRAPER_API_KEY = os.environ.get("SCRAPER_API_KEY", "")
+SCRAPER_FALLBACK_URL = os.environ.get("SCRAPER_FALLBACK_URL", "").rstrip("/")
+SCRAPER_FALLBACK_API_KEY = os.environ.get("SCRAPER_FALLBACK_API_KEY", "")
 SCRAPER_TIMEOUT = int(os.environ.get("SCRAPER_TIMEOUT", "90"))
 
 
@@ -60,8 +60,39 @@ class ScrapeResult:
     error: str | None = None
 
 
+def _scrape_endpoint(base_url: str, api_key: str, payload: dict) -> tuple[dict | None, str | None]:
+    payload = {
+        **payload,
+    }
+    body = json.dumps(payload).encode("utf-8")
+    req = urlrequest.Request(
+        f"{base_url}/api/v1/scrape",
+        data=body,
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+            # Servis onundeki CF, varsayilan Python-urllib UA'sini 403'ler.
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        },
+        method="POST",
+    )
+    data = None
+    last_error = None
+    for attempt in range(3):
+        try:
+            with urlrequest.urlopen(req, timeout=SCRAPER_TIMEOUT + 30) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+            break
+        except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as exc:
+            last_error = str(exc)
+            if attempt < 2:
+                time.sleep(5 * (attempt + 1))
+    return data, last_error
+
+
 def scrape(url: str, mode: str = "stealthy", solve_cf: bool = True) -> ScrapeResult:
-    """scraper-service /api/v1/scrape cagrisi (maraton_scraper_v2.py paterni)."""
+    """Scrape with transient retries and an isolated-service fallback."""
     if not SCRAPER_URL or not SCRAPER_API_KEY:
         return ScrapeResult(False, None, None, "scraper_env_missing")
 
@@ -70,30 +101,35 @@ def scrape(url: str, mode: str = "stealthy", solve_cf: bool = True) -> ScrapeRes
         "mode": mode,
         "options": {
             "headless": True,
-            "network_idle": True,
+            # Ticimax/IdeaSoft pages keep analytics/socket requests alive.
+            "network_idle": False,
             "timeout": SCRAPER_TIMEOUT,
             "solve_cloudflare": solve_cf,
         },
         "return_html": True,
     }
-    body = json.dumps(payload).encode("utf-8")
-    req = urlrequest.Request(
-        f"{SCRAPER_URL}/api/v1/scrape",
-        data=body,
-        headers={
-            "Authorization": f"Bearer {SCRAPER_API_KEY}",
-            "Content-Type": "application/json",
-            "Cache-Control": "no-cache",
-            # Servis onundeki CF, varsayilan Python-urllib UA'sini 403'ler.
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        },
-        method="POST",
+    data, last_error = _scrape_endpoint(SCRAPER_URL, SCRAPER_API_KEY, payload)
+
+    primary_failed = data is None or not bool(data.get("success"))
+    fallback_ready = (
+        SCRAPER_FALLBACK_URL
+        and SCRAPER_FALLBACK_API_KEY
+        and SCRAPER_FALLBACK_URL != SCRAPER_URL
     )
-    try:
-        with urlrequest.urlopen(req, timeout=SCRAPER_TIMEOUT + 30) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-    except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as exc:
-        return ScrapeResult(False, None, None, str(exc))
+    if primary_failed and fallback_ready:
+        fallback_data, fallback_error = _scrape_endpoint(
+            SCRAPER_FALLBACK_URL,
+            SCRAPER_FALLBACK_API_KEY,
+            payload,
+        )
+        if fallback_data is not None:
+            data = fallback_data
+            last_error = fallback_error
+        elif fallback_error:
+            last_error = f"primary={last_error or data.get('error') if data else last_error}; fallback={fallback_error}"
+
+    if data is None:
+        return ScrapeResult(False, None, None, last_error)
 
     return ScrapeResult(
         ok=bool(data.get("success")),
