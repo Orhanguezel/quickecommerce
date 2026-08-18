@@ -22,13 +22,34 @@ class AdminNotifier
      * @param  array<string,mixed>  $data   Bildirim payload (type, ilgili id'ler)
      * @param  bool  $sendEmail  E-posta da gonderilsin mi (kritik olaylar icin)
      */
-    public static function notify(string $title, string $message, array $data = [], bool $sendEmail = false): void
+    public static function notify(string $title, string $message, array $data = [], bool $sendEmail = false): bool
+    {
+        return self::notifyAdmins(
+            User::where('activity_scope', 'system_level')->where('status', 1)->get(),
+            $title,
+            $message,
+            $data,
+            $sendEmail
+        );
+    }
+
+    /** Yalnizca birincil/aktif site adminine bildir (destek talepleri icin). */
+    public static function notifyPrimarySiteAdmin(string $title, string $message, array $data = [], bool $sendEmail = false): bool
+    {
+        $admin = User::where('activity_scope', 'system_level')
+            ->where('status', 1)
+            ->orderBy('id')
+            ->first();
+
+        return self::notifyAdmins($admin ? collect([$admin]) : collect(), $title, $message, $data, $sendEmail);
+    }
+
+    private static function notifyAdmins($admins, string $title, string $message, array $data, bool $sendEmail): bool
     {
         try {
-            $admins = User::where('activity_scope', 'system_level')->get();
             if ($admins->isEmpty()) {
                 Log::warning('AdminNotifier: sistem admini yok, bildirim atlandi.', ['title' => $title]);
-                return;
+                return false;
             }
 
             // 1) Panel cani (DB) — admin tipi bildirimleri tum adminler gorur,
@@ -37,7 +58,7 @@ class AdminNotifier
                 'notifiable_id' => $admins->first()->id,
                 'title' => $title,
                 'message' => $message,
-                'data' => json_encode($data, JSON_UNESCAPED_UNICODE),
+                'data' => $data,
                 'notifiable_type' => 'admin',
                 'status' => 'unread',
             ]);
@@ -49,11 +70,13 @@ class AdminNotifier
 
             // 3) Firebase push — best-effort
             self::push($admins, $title, $message, $data);
+            return true;
         } catch (\Throwable $e) {
             Log::error('AdminNotifier bildirim hatasi', [
                 'title' => $title,
                 'error' => $e->getMessage(),
             ]);
+            return false;
         }
     }
 

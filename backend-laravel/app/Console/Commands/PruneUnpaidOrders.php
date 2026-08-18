@@ -6,6 +6,7 @@ use App\Models\OrderMaster;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
 class PruneUnpaidOrders extends Command
@@ -54,6 +55,8 @@ class PruneUnpaidOrders extends Command
             return self::SUCCESS;
         }
 
+        $this->recordPrunedOrders($masterIds);
+
         DB::transaction(function () use ($masterIds, $orderIds): void {
             $this->restoreInventoryForOrders($orderIds);
             $this->deleteRelatedOrderRows($masterIds, $orderIds);
@@ -88,6 +91,31 @@ class PruneUnpaidOrders extends Command
                     ->where('payment_status', 'paid')
                     ->orWhere('order_type', 'pos')
                     ->orWhereNotIn('status', ['pending', 'cancelled', 'on_hold']);
+            });
+    }
+
+    /**
+     * Deleting an unpaid order erases the only evidence that someone reached
+     * checkout and did not pay. Write a summary to the log first, so the
+     * payment drop-off can still be counted after the rows are gone.
+     */
+    private function recordPrunedOrders($masterIds): void
+    {
+        DB::table('order_masters')
+            ->whereIn('id', $masterIds)
+            ->orderBy('id')
+            ->get(['id', 'customer_id', 'order_amount', 'payment_gateway', 'payment_status', 'utm_source', 'landing_page', 'created_at'])
+            ->each(function ($master): void {
+                Log::info('[orders:prune-unpaid] silinen odenmemis siparis', [
+                    'order_master_id' => $master->id,
+                    'customer_id' => $master->customer_id,
+                    'order_amount' => $master->order_amount,
+                    'payment_gateway' => $master->payment_gateway,
+                    'payment_status' => $master->payment_status,
+                    'utm_source' => $master->utm_source,
+                    'landing_page' => $master->landing_page,
+                    'created_at' => (string) $master->created_at,
+                ]);
             });
     }
 
@@ -145,11 +173,25 @@ class PruneUnpaidOrders extends Command
         $this->deleteWhereIn('order_refunds', 'order_id', $orderIds);
         $this->deleteWhereIn('order_delivery_histories', 'order_id', $orderIds);
         $this->deleteWhereIn('order_activities', 'order_id', $orderIds);
-        $this->deleteWhereIn('funnel_events', 'order_id', $orderIds);
+        $this->detachFunnelEvents($orderIds);
         $this->deleteWhereIn('order_details', 'order_id', $orderIds);
         $this->deleteWhereIn('orders', 'id', $orderIds);
         $this->deleteWhereIn('order_addresses', 'order_master_id', $masterIds);
         $this->deleteWhereIn('order_masters', 'id', $masterIds);
+    }
+
+    /**
+     * Funnel events outlive the order they point at. Dropping them with the
+     * order would delete the checkout history the analytics reports are built
+     * from, so only the reference is cleared.
+     */
+    private function detachFunnelEvents($orderIds): void
+    {
+        if ($orderIds->isEmpty() || !Schema::hasTable('funnel_events') || !Schema::hasColumn('funnel_events', 'order_id')) {
+            return;
+        }
+
+        DB::table('funnel_events')->whereIn('order_id', $orderIds)->update(['order_id' => null]);
     }
 
     private function deleteWhereIn(string $table, string $column, $ids): void

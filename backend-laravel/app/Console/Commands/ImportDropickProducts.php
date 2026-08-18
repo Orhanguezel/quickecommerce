@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use App\Models\Media;
 use App\Models\Product;
-use App\Models\ProductCategory;
 use App\Models\ProductSpecification;
 use App\Models\ProductSourceMapping;
 use App\Models\ProductSlugRedirect;
@@ -12,6 +11,7 @@ use App\Models\ProductVariant;
 use App\Models\Store;
 use App\Models\Translation;
 use App\Services\ProductSeoQuality;
+use App\Services\SourceCategoryMapper;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -47,8 +47,9 @@ class ImportDropickProducts extends Command
     private bool $sourceMappingEnabled;
     private array $categoryCache = [];
     private string $imageBasePath;
+    private SourceCategoryMapper $categoryMapper;
 
-    public function handle(ProductSeoQuality $quality): int
+    public function handle(ProductSeoQuality $quality, SourceCategoryMapper $categoryMapper): int
     {
         $jsonFile = $this->argument('json_file');
         $this->storeId = (int) $this->argument('store_id');
@@ -60,6 +61,7 @@ class ImportDropickProducts extends Command
         $this->skuPrefix = $this->option('sku-prefix');
         $this->sourceName = $this->normalizeSourceName($this->option('source-name') ?: pathinfo($jsonFile, PATHINFO_FILENAME));
         $this->sourceMappingEnabled = !$this->option('no-source-mapping');
+        $this->categoryMapper = $categoryMapper;
 
         // Validasyonlar
         if (!file_exists($jsonFile)) {
@@ -104,9 +106,15 @@ class ImportDropickProducts extends Command
 
         $this->newLine();
 
-        // Kategorileri olustur
-        $this->info("Kategoriler olusturuluyor...");
-        $this->createCategories($products);
+        // Kaynak kategori metinlerini onceden tanimli kanonik kategorilere bagla.
+        // Scraper verisinden kategori olusturmak kesinlikle yasaktir.
+        $this->info("Kategori esleme politikasi dogrulaniyor...");
+        try {
+            $this->mapCategories($products);
+        } catch (\Throwable $e) {
+            $this->error($e->getMessage());
+            return self::FAILURE;
+        }
 
         // Urunleri import et
         $this->info("Urunler import ediliyor...");
@@ -218,103 +226,26 @@ class ImportDropickProducts extends Command
         return count($seen);
     }
 
-    private function createCategories(array $products): void
+    private function mapCategories(array $products): void
     {
-        // Oncelikle benzersiz kategori + parent bilgilerini topla
-        $categoryMap = [];
+        $summary = [];
         foreach ($products as $p) {
-            $catName = $p['category'];
-            $parentName = $p['parent_category'] ?? null;
-            if (!isset($categoryMap[$catName])) {
-                $categoryMap[$catName] = $parentName;
+            $catName = trim((string) ($p['category'] ?? ''));
+            $parentName = isset($p['parent_category']) ? trim((string) $p['parent_category']) : null;
+            $cacheKey = $catName . '_' . ($parentName ?: 'root');
+            if (isset($this->categoryCache[$cacheKey])) {
+                continue;
             }
+
+            $resolved = $this->categoryMapper->resolve($this->sourceName, $catName, $parentName);
+            $this->categoryCache[$cacheKey] = $resolved['category_id'];
+            $summary[$resolved['category_id']] = $resolved['category_name'];
         }
 
-        // Once parent'lari olustur
-        foreach ($categoryMap as $catName => $parentName) {
-            if ($parentName === null) {
-                $this->findOrCreateCategory($catName, null);
-            }
+        foreach ($summary as $id => $name) {
+            $this->line("  #{$id} {$name}");
         }
-
-        // Sonra child'lari olustur
-        foreach ($categoryMap as $catName => $parentName) {
-            if ($parentName !== null) {
-                $parentId = $this->findOrCreateCategory($parentName, null);
-                $this->findOrCreateCategory($catName, $parentId);
-            }
-        }
-
-        $this->info("  " . count($this->categoryCache) . " kategori hazirlandi.");
-    }
-
-    private function findOrCreateCategory(string $name, ?int $parentId): int
-    {
-        $cacheKey = $name . '_' . ($parentId ?? 'root');
-
-        if (isset($this->categoryCache[$cacheKey])) {
-            return $this->categoryCache[$cacheKey];
-        }
-
-        $slug = Str::slug($name);
-
-        // 1. Alias map kontrolü: silinen/merge edilen slug'lar canonical ID'ye
-        //    (config/category_aliases.php — taxonomy cleanup 2026-05-24)
-        $aliases = config('category_aliases', []);
-        if (!$aliases && file_exists(config_path('category_aliases.php'))) {
-            $aliases = require config_path('category_aliases.php');
-        }
-        if (isset($aliases[$slug])) {
-            $aliasedId = (int) $aliases[$slug];
-            $aliasedCat = ProductCategory::find($aliasedId);
-            if ($aliasedCat) {
-                $this->categoryCache[$cacheKey] = $aliasedId;
-                return $aliasedId;
-            }
-        }
-
-        // 2. Slug-only matching (parent_id eşleşmesi zorunlu değil) —
-        //    duplicate kategori yaratılmasını önler. Eğer mevcut kategori farklı
-        //    bir parent altındaysa warn log basıp yine kullan.
-        $existing = ProductCategory::where('category_slug', $slug)->first();
-
-        if ($existing) {
-            if ($parentId && $existing->parent_id !== null && (int) $existing->parent_id !== (int) $parentId) {
-                \Log::warning("[import:products] kategori parent_id mismatch: slug={$slug} mevcut parent={$existing->parent_id} istenen parent={$parentId} — mevcut kullaniliyor (#{$existing->id})");
-            }
-            $this->categoryCache[$cacheKey] = $existing->id;
-            return $existing->id;
-        }
-
-        if ($this->dryRun) {
-            $fakeId = crc32($cacheKey) & 0x7FFFFFFF;
-            $this->categoryCache[$cacheKey] = $fakeId;
-            return $fakeId;
-        }
-
-        $level = $parentId ? 2 : 1;
-
-        $category = ProductCategory::create([
-            'category_name' => $name,
-            'category_slug' => $slug,
-            'type'          => $this->productType,
-            'parent_id'     => $parentId,
-            'category_level' => $level,
-            'is_featured'   => true,
-            'status'        => 1,
-        ]);
-
-        // Turkce translation ekle
-        Translation::create([
-            'translatable_type' => ProductCategory::class,
-            'translatable_id'   => $category->id,
-            'language'           => $this->defaultLang,
-            'key'                => 'category_name',
-            'value'              => $name,
-        ]);
-
-        $this->categoryCache[$cacheKey] = $category->id;
-        return $category->id;
+        $this->info('  ' . count($this->categoryCache) . ' kaynak kategori etiketi eslendi; yeni kategori olusturulmadi.');
     }
 
     private function importProduct(array $data, string $slug): void

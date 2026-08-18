@@ -6,6 +6,8 @@ use App\Enums\StoreType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Validation\Rule;
+use App\Models\Store;
 
 class SellerStoreRequest extends FormRequest
 {
@@ -24,12 +26,17 @@ class SellerStoreRequest extends FormRequest
      */
     public function rules(): array
     {
+        $fulfillmentModel = $this->input('fulfillment_model')
+            ?: ($this->id ? Store::query()->whereKey($this->id)->value('fulfillment_model') : null)
+            ?: 'seller';
+
         return [
             'subscription_type' => 'required|in:subscription,commission',
             'subscription_id' => 'nullable|exists:subscriptions,id',
             'payment_gateway' => 'nullable',
             'area_id' => 'nullable|exists:store_areas,id',
             'id' => 'nullable|exists:stores,id',
+            'fulfillment_model' => 'nullable|in:seller,dropship,digital',
             'store_types'   => 'required|array|min:1',
             'store_types.*' => 'in:' . $this->getEnumValues(StoreType::class),
             'name' => 'required|string|max:255',
@@ -39,8 +46,8 @@ class SellerStoreRequest extends FormRequest
             'logo' => 'nullable|max:255',
             'banner' => 'nullable|max:255',
             'address' => 'nullable|string',
-            'latitude' => 'required|numeric|between:-90,90',
-            'longitude' => 'required|numeric|between:-180,180',
+            'latitude' => [Rule::requiredIf($fulfillmentModel === 'seller'), 'nullable', 'numeric', 'between:-90,90'],
+            'longitude' => [Rule::requiredIf($fulfillmentModel === 'seller'), 'nullable', 'numeric', 'between:-180,180'],
             'tax' => 'required|numeric|min:0',
             'tax_number' => 'nullable|string|max:255',
             'is_featured' => 'nullable|boolean',

@@ -34,12 +34,14 @@ class OrderDetail extends Model
         'admin_commission_rate',
         'admin_commission_amount',
         'coupon_discount_amount',
+        'replenishment_reminder_sent_at',
     ];
     protected array $excludedFieldsFromRounding = ['coupon_discount_amount', 'line_total_excluding_tax', 'line_total_price'];
 
 
     protected $casts = [
-        'quantity' => 'integer'
+        'quantity' => 'integer',
+        'replenishment_reminder_sent_at' => 'datetime',
     ];
 
     public function order()

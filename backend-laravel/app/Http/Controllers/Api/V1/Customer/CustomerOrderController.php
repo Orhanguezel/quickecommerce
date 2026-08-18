@@ -30,6 +30,48 @@ class CustomerOrderController extends Controller
         $this->orderManageNotificationService = $orderManageNotificationService;
     }
 
+    /**
+     * Authenticated source of truth for purchase conversion tracking.
+     * Only the owner can read the summary; pending/failed orders are returned
+     * without being misreported as successful payments by the frontend.
+     */
+    public function paymentSummary(int $order_master_id)
+    {
+        $customerId = (int) auth()->guard('api_customer')->id();
+        $orderMaster = OrderMaster::with(['orders.orderDetail.product'])
+            ->where('id', $order_master_id)
+            ->where('customer_id', $customerId)
+            ->first();
+
+        if (!$orderMaster) {
+            return response()->json(['message' => __('messages.data_not_found')], 404);
+        }
+
+        $items = $orderMaster->orders
+            ->flatMap(fn ($order) => $order->orderDetail)
+            ->map(fn ($detail) => [
+                'item_id' => (string) $detail->product_id,
+                'item_name' => $detail->product?->name ?: $detail->product_sku,
+                'item_variant' => $detail->product_sku ?: null,
+                'price' => (float) $detail->price,
+                'quantity' => (int) $detail->quantity,
+            ])
+            ->values();
+
+        return response()->json([
+            'data' => [
+                'id' => (int) $orderMaster->id,
+                'payment_status' => (string) $orderMaster->payment_status,
+                'payment_gateway' => (string) $orderMaster->payment_gateway,
+                'value' => (float) ($orderMaster->paid_amount ?: $orderMaster->order_amount),
+                'currency' => (string) ($orderMaster->currency_code ?: 'TRY'),
+                'shipping' => (float) $orderMaster->shipping_charge,
+                'coupon' => $orderMaster->coupon_code ?: null,
+                'items' => $items,
+            ],
+        ]);
+    }
+
     public function myOrders(Request $request)
     {
         $customer_id = auth()->guard('api_customer')->user()->id;

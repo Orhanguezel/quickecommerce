@@ -64,7 +64,7 @@ class AdminPaymentApprovalController extends Controller
         // birakmadan ONCE canli stok teyidi yap. Kesin tukenmis varsa BLOKLA —
         // admin once iade etsin. Erken approve, post-order otomatik iade netini
         // devre disi birakiyordu (job 'zaten Approval gonderildi' deyip skip).
-        // ?force=1 ile bilincli gecilebilir. Belirsiz probe engellemez (fail-open).
+        // ?force=1 ile bilincli gecilebilir. Dogrulanamayan stok da bloklanir.
         if (!request()->boolean('force')) {
             $lines = [];
             $orderMaster->loadMissing(['orders.orderDetail.product']);
@@ -89,10 +89,15 @@ class AdminPaymentApprovalController extends Controller
                         ], 409);
                     }
                 } catch (\Throwable $e) {
-                    Log::warning('Approval stock guard failed-open', [
+                    Log::error('Approval stock guard failed-closed', [
                         'order_master_id' => $orderMaster->id,
                         'error' => $e->getMessage(),
                     ]);
+                    return response()->json([
+                        'success' => false,
+                        'code' => 'stock_verification_unavailable',
+                        'message' => 'Stok doğrulama servisine ulaşılamadı. Onay güvenlik nedeniyle durduruldu; force=1 ile bilinçli olarak geçebilirsiniz.',
+                    ], 503);
                 }
             }
         }

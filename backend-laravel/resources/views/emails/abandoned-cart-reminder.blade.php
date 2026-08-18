@@ -36,14 +36,16 @@
         <div class="header stage-{{ $stage }}">
             <h1>
                 @if($stage === 1) {{ __('Sepetinizi unuttunuz mu?') }}
-                @elseif($stage === 2) {{ __('Size özel bir indirim hazırladık!') }}
+                @elseif($stage === 2 && !empty($couponCode)) {{ __('Size özel bir indirim hazırladık!') }}
+                @elseif($stage === 2) {{ __('Sepetiniz hâlâ hazır') }}
                 @else {{ __('Son şans!') }}
                 @endif
             </h1>
             <p>
                 @if($stage === 1) {{ __('Seçtiğiniz ürünler hâlâ sepetinizde.') }}
-                @elseif($stage === 2) {{ __('Kupon kodunuz ile avantajlı fiyata tamamlayın.') }}
-                @else {{ __('Sepetiniz yakında silinecek — kaçırmayın!') }}
+                @elseif($stage === 2 && !empty($couponCode)) {{ __('Kupon kodunuz ile avantajlı fiyata tamamlayın.') }}
+                @elseif($stage === 2) {{ __('Ürünlerinize kaldığınız yerden devam edin.') }}
+                @else {{ __('Stok durumu değişmeden önce sepetinizi yeniden kontrol edin.') }}
                 @endif
             </p>
         </div>
@@ -53,10 +55,16 @@
             <p>
                 @if($stage === 1)
                     {{ __('Sepetinizde kaldığınız yerden devam edebilirsiniz. Aşağıdaki ürünler sizi bekliyor:') }}
-                @elseif($stage === 2)
+                @elseif($stage === 2 && !empty($couponCode))
                     {{ __('Dün sepetinizdeki ürünleri tamamlamadınız. Sizin için özel bir indirim kuponu hazırladık — aşağıdan kullanabilirsiniz.') }}
+                @elseif($stage === 2 && $variant === 'message_b')
+                    {{ __('Seçtiğiniz ürünler ve güncel teslimat seçenekleri sepetinizde hazır. Güvenli ödemeyle kaldığınız yerden devam edebilirsiniz.') }}
+                @elseif($stage === 2)
+                    {{ __('Dün sepetinizdeki ürünleri tamamlamadınız. Fiyat ve stok durumlarını yeniden görmek için sepetinize dönebilirsiniz.') }}
                 @else
-                    {{ __('Bu sepeti koruyabildiğimiz son saatler. Ürünler stokta varken hızlıca tamamlayın, indiriminizi kaçırmayın.') }}
+                    {{ !empty($couponCode)
+                        ? __('Ürünler stokta iken siparişinizi tamamlayabilir ve sepet avantajınızı kullanabilirsiniz.')
+                        : __('Bu son hatırlatmadır. Ürünlerin güncel stok ve fiyat durumunu sepetinizden kontrol edebilirsiniz.') }}
                 @endif
             </p>
 

@@ -63,7 +63,7 @@ class SearchController extends Controller
         $salt = config('app.key', 'fallback-salt');
         $ipHash = hash('sha256', $ip . '|' . $salt);
 
-        SearchLog::create([
+        $attributes = [
             'term' => mb_strtolower($term, 'UTF-8'),
             'user_id' => $request->user()?->id,
             'locale' => $request->header('X-localization', 'tr'),
@@ -71,7 +71,62 @@ class SearchController extends Controller
             'clicked_product_id' => $validated['clicked_product_id'] ?? null,
             'ip_hash' => $ipHash,
             'created_at' => now(),
-        ]);
+        ];
+
+        // A click proves the search had at least one result, whatever the client reported.
+        if (!empty($validated['clicked_product_id'])) {
+            $attributes['results_count'] = max(1, (int) $attributes['results_count']);
+        }
+
+        // A click is a conversion of the preceding search, not a second search.
+        // Match it to the latest same-term search from this privacy-safe IP hash.
+        if (!empty($validated['clicked_product_id'])) {
+            $existing = SearchLog::query()
+                ->where('term', $attributes['term'])
+                ->where('ip_hash', $ipHash)
+                ->where('created_at', '>=', now()->subMinutes(30))
+                ->latest('created_at')
+                ->first();
+
+            if ($existing) {
+                if (!$existing->clicked_product_id) {
+                    $existing->clicked_product_id = $validated['clicked_product_id'];
+                    // Never lower a recorded count: the click may arrive from the
+                    // suggestion dropdown, which knows only its own short list.
+                    $existing->results_count = max(
+                        (int) $existing->results_count,
+                        (int) $attributes['results_count']
+                    );
+                    $existing->save();
+                }
+
+                return response()->json(['ok' => true, 'updated' => true]);
+            }
+        }
+
+        // The search page reports its result count as soon as the query is known,
+        // and again once the count settles. Without this guard the same search is
+        // stored twice - first with 0, then with the real number - which inflates
+        // the "no results" rate and hides the terms that genuinely return nothing.
+        $recent = SearchLog::query()
+            ->where('term', $attributes['term'])
+            ->where('ip_hash', $ipHash)
+            ->where('created_at', '>=', now()->subSeconds(60))
+            ->latest('created_at')
+            ->first();
+
+        if ($recent) {
+            $count = max((int) $recent->results_count, (int) $attributes['results_count']);
+
+            if ($count !== (int) $recent->results_count) {
+                $recent->results_count = $count;
+                $recent->save();
+            }
+
+            return response()->json(['ok' => true, 'merged' => true]);
+        }
+
+        SearchLog::create($attributes);
 
         return response()->json(['ok' => true]);
     }
@@ -82,7 +137,8 @@ class SearchController extends Controller
      */
     public function suggest(Request $request): JsonResponse
     {
-        $q = trim((string) $request->input('q', ''));
+        $normalizer = app(\App\Services\SearchNormalizer::class);
+        $q = $normalizer->normalize((string) $request->input('q', ''));
         $limit = (int) $request->input('limit', 10);
         $limit = max(1, min($limit, 20));
 
@@ -96,32 +152,31 @@ class SearchController extends Controller
         }
 
         $cacheKey = 'search_suggest:v2:' . md5(mb_strtolower($q, 'UTF-8') . "|{$limit}");
-        $payload = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($q, $limit) {
-            $like = '%' . $q . '%';
+        $payload = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($q, $limit, $normalizer) {
             // Cok kelimeli sorgu: "whey izole cikolata" -> her token AND'lenir.
             // Tek LIKE '%whole query%' bitisik olmayan eslesmeleri kaciriyordu.
-            $tokens = collect(preg_split('/\s+/u', $q, -1, PREG_SPLIT_NO_EMPTY))
-                ->filter(fn ($t) => mb_strlen($t) >= 2)
-                ->take(5)
-                ->values()
-                ->all();
+            $tokens = app(\App\Services\SearchNormalizer::class)->expandedTokens($q);
             if (empty($tokens)) {
-                $tokens = [$q];
+                $tokens = [[$q]];
             }
 
             $applyTokens = function ($query, string $column) use ($tokens) {
-                foreach ($tokens as $token) {
-                    $query->where($column, 'like', '%' . $token . '%');
+                foreach ($tokens as $alternatives) {
+                    $query->where(function ($nested) use ($column, $alternatives) {
+                        foreach ($alternatives as $alternative) {
+                            $nested->orWhere($column, 'like', '%' . $alternative . '%');
+                        }
+                    });
                 }
 
                 return $query;
             };
 
             // Prefix eslesmesi > kelime basi eslesmesi > govdede eslesme
-            $prefixOrder = "CASE WHEN name LIKE ? THEN 0 WHEN name LIKE ? THEN 1 ELSE 2 END";
+            $prefixOrder = "CASE WHEN search_text LIKE ? THEN 0 WHEN search_text LIKE ? THEN 1 ELSE 2 END";
             $prefixBindings = [$q . '%', '% ' . $q . '%'];
 
-            $products = $applyTokens(Product::publiclySellable(), 'name')
+            $products = $applyTokens(Product::publiclySellable(), 'search_text')
                 ->select('id', 'name', 'slug', 'image')
                 ->orderByRaw($prefixOrder, $prefixBindings)
                 ->orderBy('order_count', 'desc')
@@ -137,7 +192,7 @@ class SearchController extends Controller
                 });
 
             // Kelime tamamlama havuzu: eslesen urun adlarindan n-gram cikarilir.
-            $namePool = $applyTokens(Product::publiclySellable(), 'name')
+            $namePool = $applyTokens(Product::publiclySellable(), 'search_text')
                 ->orderByRaw($prefixOrder, $prefixBindings)
                 ->orderBy('order_count', 'desc')
                 ->limit(150)
@@ -145,7 +200,7 @@ class SearchController extends Controller
                 ->all();
             $terms = $this->buildTermSuggestions($namePool, $q, 8);
 
-            $categories = ProductCategory::where('category_name', 'like', $like)
+            $categories = ProductCategory::query()
                 ->whereNotIn('id', function ($q) {
                     // 'Diger (Arsiv)' altindaki kategoriler harict
                     $q->select('id')->from('product_category')->where('category_slug', 'diger-arsiv');
@@ -174,14 +229,15 @@ class SearchController extends Controller
                         });
                 })
                 ->select('id', 'category_name', 'category_slug')
-                ->limit(3)
-                ->get();
+                ->get()
+                ->filter(fn ($category) => str_contains($normalizer->normalize($category->category_name), $q))
+                ->take(3)
+                ->values();
 
             // NOT: products.brand_id tabloda hic doldurulmuyor (2026-07: 0 kayit).
             // brand_id join'i marka onerilerini her zaman bos donduruyordu; marka adi
             // urun adinin basinda geciyor mu diye bakiyoruz (isim bazli eslesme).
-            $brands = ProductBrand::where('brand_name', 'like', $like)
-                ->where('status', 1)
+            $brands = ProductBrand::where('status', 1)
                 ->whereExists(function ($exists) {
                     $exists->select(DB::raw(1))
                         ->from('products')
@@ -193,8 +249,8 @@ class SearchController extends Controller
                 })
                 ->select('id', 'brand_name as name', 'brand_slug as slug')
                 ->orderByRaw('CHAR_LENGTH(brand_name) asc')
-                ->limit(12)
                 ->get()
+                ->filter(fn ($brand) => str_contains($normalizer->normalize($brand->name), $q))
                 // Ayni marka adi birden fazla kayitta olabiliyor (or. 4x "Multipower")
                 ->unique(fn ($b) => mb_strtolower($b->name, 'UTF-8'))
                 ->take(3)

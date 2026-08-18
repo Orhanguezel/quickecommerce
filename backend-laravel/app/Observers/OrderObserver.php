@@ -25,6 +25,16 @@ class OrderObserver
     {
         // Check if the order status has changed
         if ($order->isDirty('status')) {
+            if ($order->status === 'shipped' && ! $order->shipped_at) {
+                $shippedAt = now();
+                $order->forceFill([
+                    'shipped_at' => $shippedAt,
+                    'sla_breached_at' => $order->promised_ship_at && $shippedAt->gt($order->promised_ship_at)
+                        ? ($order->sla_breached_at ?? $shippedAt)
+                        : $order->sla_breached_at,
+                ])->saveQuietly();
+            }
+
             // check which guard is being used
             $user = null;
             if (auth()->guard('api_customer')->check()) {

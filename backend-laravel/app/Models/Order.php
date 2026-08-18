@@ -19,6 +19,9 @@ class Order extends Model
         'delivery_option',
         'delivery_type',
         'delivery_time',
+        'promised_ship_at',
+        'shipped_at',
+        'sla_breached_at',
         'order_amount',
         'order_amount_store_value',
         'order_amount_admin_commission',
@@ -43,6 +46,12 @@ class Order extends Model
         'refund_status',
         'payment_status',
         'status',
+    ];
+
+    protected $casts = [
+        'promised_ship_at' => 'datetime',
+        'shipped_at' => 'datetime',
+        'sla_breached_at' => 'datetime',
     ];
 
     public function orderMaster()

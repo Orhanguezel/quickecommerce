@@ -20,6 +20,7 @@ class SyncSourcePrices extends Command
                             {--backfill-by-name : Mapping yoksa urun adiyla esleme (slug uyusmazsa; birebir ad, ayni ad birden fazlaysa atlar)}
                             {--backfill-only : Sadece mapping backfill yap, fiyat/stok sync calistirma}
                             {--max-change-percent=30 : Fiyat degisim yuzdesi bu siniri asarsa fiyati atla (stok yine guncellenir)}
+                            {--stock-only : Yalnizca stok uygula; fiyat alanlarina dokunma}
                             {--allow-zero-price : 0 fiyat gelirse de uygula (varsayilan: engelle)}
                             {--keep-missing-stock : Kaynakta bulunamayan urunlerde stogu sifirlama (varsayilan: sifirla)}';
 
@@ -31,6 +32,7 @@ class SyncSourcePrices extends Command
     private bool $backfillBySlug = false;
     private bool $backfillByName = false;
     private bool $allowZeroPrice = false;
+    private bool $stockOnly = false;
     private float $maxChangePercent = 30.0;
     private bool $zeroMissingStock = true;
     private bool $safeToZeroMissing = true;
@@ -43,6 +45,7 @@ class SyncSourcePrices extends Command
         $this->backfillBySlug = (bool) $this->option('backfill-by-slug');
         $this->backfillByName = (bool) $this->option('backfill-by-name');
         $this->allowZeroPrice = (bool) $this->option('allow-zero-price');
+        $this->stockOnly = (bool) $this->option('stock-only');
         $this->maxChangePercent = (float) $this->option('max-change-percent');
         $this->zeroMissingStock = !$this->option('keep-missing-stock');
 
@@ -224,7 +227,9 @@ class SyncSourcePrices extends Command
               && $incoming['stock_quantity'] !== null
               && (int) $incoming['stock_quantity'] === 0;
 
-        if ($incomingStockZero) {
+        if ($this->stockOnly) {
+            $priceStatus = 'stock_only';
+        } elseif ($incomingStockZero) {
             // 2026-06-04: Tukenmis (stok=0) urunlerde tedarikciler fiyat alanini
             // genelde bozuk veriyor (eprotein Cellucor C4: 1500 TL gercek ->
             // tukendiginde JSON-LD'de 194 TL gosterildi). Bu yuzden stok=0 ise
@@ -257,11 +262,12 @@ class SyncSourcePrices extends Command
 
         if (empty($changes)) {
             // Yazilacak bir sey yok: fiyat donduysa onu, degilse 'unchanged' raporla.
-            $status = $priceStatus ?? 'unchanged';
+            $status = $priceStatus === 'stock_only' ? 'unchanged' : ($priceStatus ?? 'unchanged');
             $note = match ($priceStatus) {
                 'invalid_price' => 'Source returned empty or zero price.',
                 'price_guard' => 'Price change exceeded max-change-percent.',
                 'stock_zero_skip_price' => 'Stock is zero; price not synced (source price may be unreliable).',
+                'stock_only' => 'Stock checked; price sync disabled (--stock-only).',
                 default => 'No price or stock change.',
             };
             $this->markMapping($mapping, $status, $note);
@@ -278,8 +284,14 @@ class SyncSourcePrices extends Command
 
         $variant->update($changes);
         $note = $priceStatus
-            ? "Stock updated; price skipped ({$priceStatus})."
+            ? ($priceStatus === 'stock_only'
+                ? 'Stock updated; price sync disabled (--stock-only).'
+                : "Stock updated; price skipped ({$priceStatus}).")
             : 'Price/stock updated.';
+        if ($this->stockOnly) {
+            $incoming['price'] = $this->numberOrNull($variant->price);
+            $incoming['special_price'] = $this->numberOrNull($variant->special_price);
+        }
         $this->markMapping($mapping, 'updated', $note, $incoming);
 
         return 'updated';

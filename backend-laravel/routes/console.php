@@ -12,12 +12,56 @@ Schedule::command('subscription:expire')->everyMinute();
 Schedule::command('currency:update-rates --base=USD')->hourly();
 Schedule::command('recommendations:build-co-purchase')->dailyAt('03:00')->withoutOverlapping();
 Schedule::command('abandoned-cart:dispatch-reminders')->everyFifteenMinutes()->withoutOverlapping();
+Schedule::command('orders:check-shipping-sla')
+    ->everyFifteenMinutes()
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/orders-shipping-sla.log'));
+Schedule::command('orders:report-shipping-sla --days=7 --notify')
+    ->weeklyOn(1, '08:30')
+    ->timezone('Europe/Istanbul')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/orders-shipping-sla-weekly.log'));
+Schedule::command('commerce:refresh-readiness --apply')
+    ->dailyAt('05:30')
+    ->timezone('Europe/Istanbul')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/commerce-readiness.log'));
+Schedule::command('commerce:enforce-product-quality --apply')
+    ->dailyAt('06:00')
+    ->timezone('Europe/Istanbul')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/commerce-quality-gate.log'));
+Schedule::command('commerce:enforce-store-readiness --grace-days=7 --apply')
+    ->dailyAt('08:00')
+    ->timezone('Europe/Istanbul')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/store-readiness.log'));
+Schedule::command('commerce:report-homepage-featured --days=7 --notify')
+    ->weeklyOn(1, '08:15')
+    ->timezone('Europe/Istanbul')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/homepage-featured-weekly.log'));
+Schedule::command('abandoned-cart:audit-coverage --days=30 --notify')
+    ->dailyAt('10:00')
+    ->timezone('Europe/Istanbul')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/abandoned-cart-coverage.log'));
+Schedule::command('payments:audit-integrity --days=2 --notify')
+    ->dailyAt('07:30')
+    ->timezone('Europe/Istanbul')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/payment-integrity-audit.log'));
 // Teslim edilen siparisler icin urun degerlendirme daveti — sadece gunduz (11:00-19:00 TR)
 Schedule::command('orders:dispatch-review-requests')
     ->everyThirtyMinutes()
     ->between('11:00', '19:00')
     ->timezone('Europe/Istanbul')
     ->withoutOverlapping();
+Schedule::command('orders:dispatch-replenishment-reminders --days=30 --limit=200')
+    ->dailyAt('11:15')
+    ->timezone('Europe/Istanbul')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/replenishment-reminders.log'));
 Schedule::command('products:compute-velocity')->dailyAt('04:00')->withoutOverlapping();
 Schedule::command('products:prune-stale --months=' . env('PRODUCT_STALE_RETENTION_MONTHS', 6) . ' --force')
     ->weeklyOn(0, '03:00')
@@ -45,6 +89,11 @@ Schedule::command('monitor:5xx-alarm --threshold=' . env('ALARM_5XX_THRESHOLD', 
     ->hourly()
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/monitor-5xx.log'));
+Schedule::command('monitor:commerce-health --notify')
+    ->dailyAt('07:00')
+    ->timezone('Europe/Istanbul')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/commerce-health.log'));
 
 // Scraper saglik kontrolu: gunluk scrape cron'u 02:00 UTC'de basladigi icin
 // ~7 saat sonra (TR 09:00) sonuclari rapor et. Sorun varsa Telegram'a digest.
@@ -55,6 +104,20 @@ Schedule::command('scrapers:health-check --quiet-when-ok')
     ->timezone('Europe/Istanbul')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/scrapers-health.log'));
+Schedule::command('scrapers:enforce-freshness --hours=36 --apply')
+    ->hourlyAt(20)
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/scrapers-freshness.log'));
+Schedule::command('search:report-zero-results --hours=24 --min-count=2 --notify')
+    ->dailyAt('09:15')
+    ->timezone('Europe/Istanbul')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/search-zero-results.log'));
+Schedule::command('search:reindex-products --apply')
+    ->dailyAt('05:45')
+    ->timezone('Europe/Istanbul')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/search-reindex.log'));
 
 // Haftalik trafik raporu: her Pazartesi 08:00 (TR) son 7 gunluk
 // trafik+hata raporunu storage/app/reports/ altina HTML olarak yazar.
@@ -78,4 +141,3 @@ if ($swanSyncStoreId) {
         ->withoutOverlapping()
         ->appendOutputTo(storage_path('logs/swan-source-sync-dry-run.log'));
 }
-

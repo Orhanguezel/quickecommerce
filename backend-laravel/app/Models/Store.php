@@ -24,6 +24,7 @@ class Store extends Model
         'area_id',
         'store_seller_id',
         'store_type', // primary type (backward-compat)
+        'fulfillment_model',
         'name',
         'slug',
         'phone',
@@ -44,6 +45,10 @@ class Store extends Model
         'admin_commission_amount',
         'delivery_charge',
         'delivery_time',
+        'shipping_sla_hours',
+        'profile_completion_score',
+        'sales_suspended_at',
+        'sales_suspension_reason',
         'delivery_self_system',
         'delivery_take_away',
         'order_minimum',
@@ -61,6 +66,7 @@ class Store extends Model
 
     protected $casts = [
         'online_at' => 'datetime',
+        'sales_suspended_at' => 'datetime',
     ];
 
     public $translationKeys = [
@@ -73,7 +79,7 @@ class Store extends Model
 
     public function scopeValidForCustomerView($query)
     {
-        return $query->where(function ($q) {
+        return $query->whereNull('sales_suspended_at')->where(function ($q) {
             $q->where('subscription_type', 'commission')
                 ->orWhere(function ($q2) {
                     $q2->where('subscription_type', 'subscription')
