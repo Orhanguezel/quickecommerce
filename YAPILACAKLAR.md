@@ -4,6 +4,72 @@
 > 5 günlük trafik raporu + ayrı nginx log, Geliver Türkçe il/ilçe fix + #113,
 > Google Places API, admin sipariş detayı/fatura adres + isim + temiz format.
 
+## 🆕 Satış Büyütme + Ana Sayfa Vitrini — UYGULAMA ÇEKLİSTİ (2026-08-13)
+
+### A. “Öne Çıkan Ürünler” gerçek Sportoonline vitrini
+
+- [X] Canlı bölüm denetlendi: spor ürünü yerine 3 GZL Teknoloji hizmeti gösterdiği tespit edildi.
+- [X] Satıcıların `is_featured` tercihi ile ana sayfa vitrini birbirinden ayrıldı.
+- [X] Ürünlere tekil ve sıralı `homepage_featured_rank` alanı eklendi.
+- [X] `/featured-products` yalnız ana sayfa için sıralanmış vitrin ürünlerini döndürecek şekilde düzeltildi.
+- [X] `commerce:curate-homepage-featured` komutu eklendi; 6–20 ürün ve manuel sıra destekleniyor.
+- [X] Kalite kapısı eklendi: onaylı ürün, aktif satıcı, geçerli fiyat, stok, görsel, en az 180 karakter açıklama.
+- [X] Tedarikçi ürünlerinde son stok senkronu 36 saatten eskiyse vitrine alma engellendi.
+- [X] Admin ticari hazırlık ekranına ana sayfa vitrin ürün sayısı eklendi.
+- [X] 10 spor odaklı ürün canlıya sıralı alındı; mobil/masaüstü render ve ürün çeşitliliği görsel QA ile doğrulandı.
+- [X] Vitrin ürünleri için haftalık CTR → sepete ekleme → satış raporu ve düşük performanslı ürün rotasyon kuyruğu (`commerce:report-homepage-featured`, Pazartesi 08:15 TR).
+
+### B. Ölçüm ve dönüşüm doğruluğu
+
+- [X] İlk canlı baz ölçüm alındı: 30 günde 1.114 ziyaretçi, 86 sepete ekleme, 42 checkout, 9 ödeme, 7 net satış.
+- [X] Stok doğrulama ve yapay zekâ ödeme cevapları düzeltildi.
+- [X] Yeni ödeme eventlerinde sipariş bazlı `dedupe_key` altyapısı eklendi.
+- [X] Geçmiş mükerrer `payment_success` kayıtlarını rapordan tekilleştir.
+- [X] Dahili Sportoonline referrer’larını edinim kanalından çıkar; first/last-touch alanlarını ayrı raporla.
+- [X] Iyzico ↔ sipariş ↔ funnel günlük otomatik mutabakat alarmı.
+- [X] Checkout terk nedenleri: stok, form validasyonu, Iyzico red/3DS, kullanıcı çıkışı şeklinde ölçülsün.
+
+### C. Arama ve ürün bulunabilirliği
+
+- [X] Sıfır sonuç baz ölçümü alındı: 153 aramanın 75’i (`%49`) sonuçsuz.
+- [X] Türkçe `I/İ/ı/i`, aksan ve boşluk normalizasyonu.
+- [X] Yazım toleransı, marka/SKU/kategori ve eş anlamlı arama.
+- [X] “Sonuç yok” ekranında yakın ürün ve kategori önerileri.
+- [X] Günlük sıfır-sonuç kuyruğu; tekrar eden sorgularda admin alarmı.
+- [ ] Hedef: sıfır sonuç oranı `%15` altı, aramadan ürün tıklaması `%25+`.
+
+### D. Katalog kalite kapısı
+
+- [X] Baz ölçüm: 4.541 kısa açıklama, 12.838 eksik meta açıklama, 12.892 eksik marka, 290 mükerrer ad grubu.
+- [X] `catalog_quality_score`, hero katalog ve reklam uygunluk altyapısı eklendi.
+- [ ] İlk 500–1.000 satılabilir çekirdek ürünü seç ve yalnız bunları reklam/feed büyümesine aç.
+- [~] İlk çekirdek dalga 65 doğrulanmış hero ürüne indirildi: meta, açıklama uzunluğu, yerel ana görsel, teslimat ve iade alanları tamam. İsimden güvenilir çıkarılamayan 17 marka uydurulmadan inceleme kuyruğunda.
+- [X] 64 görselsiz ürünün 2'si kaynaktan yerelleştirildi, kaynakta gerçek görseli olmayan 62'si geri alınabilir `inactive` karantinaya taşındı. ProteinMax'taki 238 uzak ana görselin tamamı yerelleştirildi; yayımdaki eksik/uzak ana görsel sayısı `0`.
+- [ ] İlk hedef: 50 doğrulanmış alışveriş yorumu.
+
+### E. Stok ve tedarikçi güvenilirliği
+
+- [X] Eski kök JSON yerine en güncel tedarikçi çıktısını kullanan sync düzeltildi.
+- [X] 3.734 stok sapması canlıda düzeltildi.
+- [~] Protein7 kapalı. ProteinAVM/eProtein cron'u fail-closed; günlük geçici yerel stealth 500'leri için izole scraper-service fallback'i canlıda zorunlu failover testiyle doğrulandı. Sonraki başarılı tam koşum bekleniyor.
+- [X] Dropick ve Speedwa bayat verisi fail-closed karantinaya bağlandı; bayat stok müşteri kataloğuna çıkmıyor.
+- [X] Ana cron başarısızlığını gün içi başarılı stok koşularının maskelemesi engellendi.
+- [X] Kritik kaynak boş çıktı verdiğinde vitrin/feed/satış otomatik karantinaya alınıyor.
+
+### F. Terk edilmiş sepet ve güven
+
+- [X] Baz ölçüm: 81 terk edilmiş sepet, 15 hatırlatma, 8 geri kazanım.
+- [~] İzinli ve iletişim bilgisi bulunan müşterilerde hatırlatma akışı açık; `%70+` sonuç hedefi canlı trafikle ölçülecek.
+- [X] 30/60 dakika A/B + 20–24 saat + yalnız yüksek değerli sepet üçüncü aşaması; stok/izin/frequency-cap koruması eklendi.
+- [X] Checkout’ta teslimat/toplam, güvenli ödeme ve iade/değişim güvencesi ödeme butonu yanında gösteriliyor.
+
+### G. Güvenli release düzeni
+
+- [ ] Yerel 82 değiştirilmiş + 32 yeni dosyayı görev bazlı temiz branch/commit’lere ayır.
+- [ ] Canlı 109 değiştirilmiş + 35 yeni dosyayı denetle; kaynak dışı değişiklikleri release manifestine bağla.
+- [ ] Tekrarlanabilir build artifact, release etiketi, health check ve otomatik rollback kur.
+- [ ] Canlı sunucuda doğrudan dosya düzenleme yerine kontrollü deploy zorunlu olsun.
+
 ## 🆕 Search Console Coverage + ürün SEO kalite kapısı — KOD TAMAM / CANLI BEKLİYOR (2026-07-27)
 
 - [X] Coverage ZIP analiz edildi: 3.157 indekslenmeyen URL; 2.058 crawl-not-indexed,
@@ -24,9 +90,9 @@
   [`docs/SCRAPER_PRODUCT_SEO_CHECKLIST.md`](docs/SCRAPER_PRODUCT_SEO_CHECKLIST.md)
 - [X] Denetim raporu:
   [`docs/reports/SEO_COVERAGE_AUDIT_2026-07-27.md`](docs/reports/SEO_COVERAGE_AUDIT_2026-07-27.md)
-- [ ] Migration + backend/frontend deploy.
-- [ ] Canlı `products:seo-audit` tam CSV üretimi.
-- [ ] Redirect korumalı 79 slug düzeltmesini uygula.
+- [X] Migration + backend/frontend deploy. Canlı migration zinciri 2026-08-13 dahil eksiksiz `Ran`.
+- [X] Canlı `products:seo-audit` tam CSV üretimi: `storage/app/reports/product-seo-audit-20260813-after-slug-fix.csv` (12.891 ürün, 9,2 MB).
+- [X] Redirect korumalı slug düzeltmeleri uygulandı. Denetleyici ile düzeltme komutu aynı kalite kuralına bağlandı; 34 aktif hatalı slug düzeltildi, sonraki dry-run `0`. İki örnek eski URL canlıda `308`, soft-delete ürün URL'si `410` veriyor. SEO error sayısı 98 → 64'e indi; kalan 64 hata görselsiz ürün.
 - [ ] Search Console’dan 664 adet 404 için URL örnek CSV’sini ayrıca indir ve
   geçmiş alias’ları redirect tablosuna ekle.
 - [ ] EYB/Ceysport/Speedwa/Provitanya açıklama + görsel backfill.
@@ -287,7 +353,8 @@ Sporcu besinleri ve ml/gr içerikli ürünler için weight filter — scraper up
 - **Hizli fix CANLIDA (commit `af973944`):** ProductCard + product-detail-client onError + SSR `BLOCKED_IMAGE_DOMAINS` listesi. Compex URL'leri SSR'da direkt placeholder'a yonlendiriliyor.
 - **Resim cekme — 140/161 OK (commit pending):** Scrapling Stealthy ile 140 ana resim indirildi, sportoonline VPS storage'ina taşindi, Media kayitlari (#39348+) olusturuldu, Product.image local Media ID'ye gecirildi. Test URL `/tr/urun/compex-sp6-0-...` artik gercek resimle aciliyor. Kategori `/tr/kategori/compex-spor-sp` da gercek resimler.
 - **KRITIK OLAY — yanlis VPS kullanildi:** Scrapling fetch isi `guezelwebdesign` canli musteri VPS'inde container icinde calistirildi; load 11.8'e cikti, zombie chrome process'ler birikti. UYARI: [`UYARI_2026-05-24_compex_yanlis_vps.md`](UYARI_2026-05-24_compex_yanlis_vps.md). Kural: **guezelwebdesign'da CF arkasi scraping ASLA**. Dogru yer: scraper-service endpoint veya VPS-sportoonline.
-- **Kalan 21 urun:** Resimleri henuz indirilmedi (placeholder gosteriyor). Codex Gorev 10'da kalici cozum: scraper-service'e binary fetch endpoint + Artisan `images:cache-remote` komutu.
+- **Kalan 21 urun:** Ana görselleri uzak URL olduğu için soft-delete korumasında. `images:cache-remote` Artisan komutu ve `scrapers/_scrapling_client.py` canlıya eklendi; 139 Compex ürününde ana/galeri uzak görseli dry-run ile buluyor. Scraper async API sözleşmesinde binary/base64 sonuç henüz bulunmadığından `--apply` açılmadı. Binary endpoint geldiğinde aynı komut veri kaybı olmadan Media kaydı üretip ürünleri geri almaya hazır.
+- **Güvenlik:** `compexturkiye_scraper.py` ve `ideasoft_scraper.py` içindeki gömülü API anahtarı kaldırıldı; yalnız sunucu env kullanılıyor. Daha önce kaynakta bulunan anahtar ayrıca servis tarafında rotate edilmelidir.
 
 ## 🚧 BEKLEYEN UNCOMMITTED DEĞİŞİKLİKLER (2026-05-24)
 
@@ -399,12 +466,13 @@ Sporcu besinleri ve ml/gr içerikli ürünler için weight filter — scraper up
   - Detay/mimari: `e-fatura-service/docs/` (WORK-PLAN, REVIEW-FAZ1..5, FAZ-0-ONKOSULLAR),
     `quickecommerce/docs/EARSIV-FATURA-ENTEGRASYON-PLANI.md`.
 
-- [X] **2. Geliver gönderici = satıcının kendi adresi** → Kod **CANLI DEPLOY** (2026-05-23 22:55 UTC, commit 8d0d973c). Geliver dashboard/store ID üzerinden gerçek satıcı testi bekliyor.
+- [X] **2. Geliver gönderici modeli fulfillment tipine göre çalışıyor** → Kod **CANLI DEPLOY** (2026-08-13).
 
-  - Kargolar her **satıcının kendi adresinden** alınacak.
+  - Bağımsız fiziksel satıcı varsa kargo o satıcının kendi adresinden alınır.
+  - Engin'e ait 26 kaynak mağaza `dropship` modelindedir; ürün tedarikçiden doğrudan çıkar ve mağaza bazlı Geliver adresi zorunlu değildir.
+  - GZL Teknoloji `digital`/kargosuz modelindedir; fiziksel gönderici adresi aranmaz.
   - `GdeliveryService::buildShipmentData` zaten `store->geliver_sender_address_id ?? global` sırasını destekliyor.
-  - Yapılacak: her satıcının Geliver'da kayıtlı **sender address ID**'si olmalı (şu an tek global adres `8ba4a825-…`).
-  - Admin/seller panelinde satıcı adresi → Geliver sender address oluşturma/eşleme akışı.
+  - Admin/seller panelindeki Geliver adres formu yalnız `seller` modelinde gösterilir; dropship/dijital mağazada doğru operasyon açıklaması gösterilir.
 - [X] **3. yesilmarka.com scraper — AYRI MAĞAZAYA TAŞINDI**
   - Scraper var: `scrapers/yesilmarka_scraper.py` (6329 B), VPS root'ta deploy, cron'da.
   - Mevcut durum: `yesilmarka_products.json` 4 ürün, source mapping 4 kayıt.
@@ -691,6 +759,7 @@ Sporcu besinleri ve ml/gr içerikli ürünler için weight filter — scraper up
     Next.js route cache, React lazy load, kategori list API'sinin yanıt süresi.
   - Olası fix: kategori meta'yı SSG/ISR ile cache, client navigation prefetch.
   - **Codex 2026-05-24:** header kategori/menu linklerine explicit `prefetch` eklendi; kategori API sorgusu aggregate join + 10 dk backend cache ile hızlandırıldı. Canlı ölçüm: sıcak `product-category/list` **262-315ms**.
+  - **Codex 2026-08-13 CANLI:** frontend kategori limiti 500 → 1000; kategori filtreleri tüm derinliklerde descendant-aware; mobil drawer gerçek kategori ağacına geçirildi. 75 yanlış root kanonik spor ağacına bağlandı, 14 `&gt;` adı temizlendi, duplicate `kadin-giyim` pasife alındı. Root sayısı 147 → 72. Kategori cache HIT TTFB **0.238 sn**; `/tr/kategori/spor-beslenmesi` API/UI toplamı **2.940** olarak eşitlendi. Canlı doğrudan deploy edildi (PR yok).
 
 - [X] **13. Tüm Ürünler section: kategori rotation random** (AGENTS.md Görev 8)
   - "Tüm ürünler" listesinde her sayfa yüklemesinde **farklı kategoriyle başla**
@@ -701,9 +770,67 @@ Sporcu besinleri ve ml/gr içerikli ürünler için weight filter — scraper up
 
 ## 🧹 Kapanmayan Teknik Borç
 
+- [X] **Mağaza sahipliği ve fulfillment modeli düzeltildi (Codex 2026-08-13 CANLI).**
+  - 26 aktif kaynak mağaza `dropship` olarak Engin Eser’in gerçek store-level hesabına (`engineserplus@gmail.com`, user #3) bağlandı.
+  - GZL Teknoloji Orhan’ın user #2 hesabında `digital` olarak işaretlendi; fiziksel adres/Geliver zorunluluğu kaldırıldı.
+  - Yalnız bağımsız fiziksel satıcılar profil/adres/Geliver eksikliğinde 7 günlük uyarı ve askı akışına giriyor.
+  - Önceki yanlış 8 hazırlık uyarısı silinmeden `read` durumuna alındı; yeni dry-run: bildirim 0, askı 0.
+
+- [X] **Arama + katalog güvenlik paketi canlı (Codex 2026-08-13).**
+  - 14.996 ürün Türkçe karakterlerden bağımsız `search_text` alanına yeniden indekslendi; `dambil/dumbbell/dumbell`, `kreatin/creatine`, `nutrent/nutrend` gibi sorgular eşleniyor.
+  - Sıfır sonuç ekranı mobil/masaüstünde popüler ürün öneriyor; tekrar eden boş aramalar günlük olarak birincil site yöneticisi Engin Eser'e raporlanıyor, Orhan Güzel'e yönlendirilmiyor.
+  - Canlı smoke: `dumbell` 50 sonuç, `koşu bandı` ve `kosu bandi` 9 sonuç, `kreatin` ve `creatine` 122 sonuç.
+  - 6.410 düşük kaliteli kayıt vitrin/reklam kalite kapısından geçirildi; mevcut 10 ana sayfa vitrini etkilenmedi.
+
+- [~] **Scraper fail-closed ve üç kaynak kurtarma (Codex 2026-08-13).**
+  - Bayat kaynak stokları otomatik sıfırlanıyor; pasif/soft-delete kaynakların tarihsel varyant stoğunu yanlışlıkla karantinaya alma açığı dry-run'da yakalanıp giderildi.
+  - Compex düzeldi: 163 ürün, 138 stokta; 160 mapping güncellendi ve kaynak yeniden açıldı.
+  - ProteinAVM ve eProtein günlük cron'u çalışıyor ancak yerel stealth servisindeki geçici HTTP 500 nedeniyle son koşumlar fail-closed kaldı; eski JSON kesinlikle senkronize edilmiyor.
+  - Kök neden için `network_idle=false` + üç deneme/backoff'a ek olarak ayrı scraper-service fallback'i eklendi. Birincil servis kasıtlı kapatılarak yapılan canlı testte fallback eProtein sayfasını HTTP 200 / 828 KB HTML ile aldı.
+  - Protein7 ve Swan pasif/soft-delete mağaza oldukları için gereksiz günlük cron'dan çıkarıldı; fail-closed stok okuyan Herbinatura yeniden günlük zincire alındı.
+
+- [X] **Ödeme ve sepet işletme denetimi canlı (Codex 2026-08-13).**
+  - Son 30 gün: 7 ücretli sipariş; eksik işlem referansı, mükerrer referans, sıfır tutar ve paket/tutar uyuşmazlığı 0.
+  - Iyzico/stok/session/runtime ödeme başarısızlıkları sunucu funnel'ına neden koduyla yazılıyor.
+  - Son 30 gün terk sepet kapsamı: 66 e-posta eksik, 14 pazarlama izni yok, 1 misafir kimliği yok; izinsiz müşteriye otomatik mesaj gönderilmiyor.
+  - 73 adaydan içerik eşiğini karşılamayan 8'i hero listesinden çıkarıldı; kalan 65 ürünün meta, teslimat/iade ve yerel ana görsel alanları tamamlandı. Piyasa fiyat verisi olmadığı için reklam uygunluğu güvenli biçimde 0 bırakıldı.
+
+- [X] **Canlı katalog görsel/SEO kritik hata temizliği (Codex 2026-08-13).**
+  - SEO taraması 12.829 onaylı üründe kritik hatayı `98 → 0` indirdi; son CSV `storage/app/reports/product-seo-audit-20260813-after-catalog-cleanup.csv`.
+  - ProteinMax'ta kontrollü 10/10 test sonrası 235 ürün işlendi; ana + galeri toplam 432 yeni Media üretildi, hata 0. URL boşluk/Türkçe karakter kodlama açığı giderildi.
+  - Yayımdaki eksik ana görsel `0`, uzak ana görsel `0`. Kalan 119 uzak galeri yalnız Compex'in kayıpsız binary endpoint bekleyen korumalı görselleri; ana kartları etkilemiyor ve placeholder koruması aktif.
+  - Canlı sağlık: tüm kritik sayfalar HTTP 200, 43–269 ms; DB/cache sağlıklı, son 24 saatte failed job 0.
+  - Zorunlu kaynak kategori sözlüğüyle 3.645 silinmemiş kategorisiz ürün yedekli olarak bağlandı; tekrar dry-run aday `0`. SEO `missing_category` uyarısı `3.364 → 0`, toplam uyarı `38.336 → 34.972`.
+  - Kategori geri dönüş yedeği: `storage/app/category-taxonomy-backups/missing-product-categories-20260813-233156.json`; son SEO CSV: `storage/app/reports/product-seo-audit-20260813-after-category-backfill.csv`.
+
+- [~] **Büyüme ve dönüşüm raporu — kodlanabilir altyapı tamamlandı (2026-08-13)**
+  - Sipariş atribüsyonu, test satış izolasyonu, doğrulanmış/dedupe purchase, cihaz funnel'ı ve ölçüm sağlık raporu eklendi.
+  - Kahraman katalog, katalog/mağaza kalite skoru, piyasa fiyat endeksi, reklam uygunluk kapısı ve admin ticaret panosu eklendi.
+  - Public response cache + invalidation, store eager-load kaldırma ve flash ürün sellability filtresi eklendi.
+  - Kargo SLA/admin alarmı, ödeme mutabakat alarmı, güvenli terk sepet A/B/frequency-cap ve yenileme e-postası eklendi.
+  - Test müşteri/cüzdan işlemi exact-email + dry-run komutuyla güvenli hale getirildi; canlı finansal veri otomatik değiştirilmedi.
+  - Test: PHP Unit 10/10, iki Next.js production build, TypeScript, migration `--pretend`, Playwright desktop/mobile render geçti.
+  - **Codex 2026-08-13 CANLI:** iki migration batch #32 olarak yedek + `--pretend` sonrası uygulandı; migration ve kategoriye bağlı backend/frontend kodu canlıya alındı. DB yedeği 11.07 MB ve kategori geri dönüş yedeği `storage/app/category-taxonomy-backups/category-taxonomy-20260813-175533.json`.
+  - **Kalan:** piyasa fiyat CSV'si, test hesap e-postası ve reklam/operasyon kararları.
+  - Ayrıntılı teslim ve canlı kapı: `docs/Sportoonline_90_Gunluk_Detayli_Checklist_2026-08-13.md`.
+
 - [X] Checkout harita akışı: Places hatasını sessiz yutuyor + city/district zorunlu değil (D adımı). → Codex: UI uyarı + city/district zorunluluk + backend 422 eklendi.
 - [X] admin-POS / seller / seller-POS fatura+detay bileşenlerinde adres hâlâ eski dağınık formatta. → Codex: ortak tek satır adres formatı uygulandı.
 - [X] `InvoiceResource.php:23` `round(null)` DEPRECATED notice. → Codex: nullable tutarlar güvenli round edildi.
+- [X] **Stok iadesi fail-open açığı kapatıldı (Codex 2026-08-13 CANLI).**
+  - Denetimde checkout + ödeme + 30 dk post-order kontrol zincirinin çalıştığı,
+    ancak `timeout/no_signal` sonucunun satışa izin verdiği doğrulandı. Compex
+    order #192 ürünü kaynakta doğrulanamadan geçmiş ve sonradan stok 0 olmuştu.
+  - `CheckoutStockVerifier` artık kaynak mapping'i olan üründe stok sinyali
+    kesin değilse `ok=false` döndürüyor; frontend, Iyzico ödeme başlatma ve admin
+    approval altyapı hatasında da fail-closed. Canlı test: Compex product #4694
+    `no_signal → bloke`, Ceysport product #6216 `in_stock → geçti`.
+- [X] **Her scraper için zorunlu kategori sözlüğü (Codex 2026-08-13 CANLI).**
+  - `ScraperSourceRegistry` içindeki 31/31 kaynak `source_category_mappings.php`
+    ile kanonik kategoriye bağlandı. Registry dışı/politikasız kaynak importu
+    başlamadan duruyor; scraper metninden yeni kategori/root oluşturma kaldırıldı.
+  - Compex 163 ürün dry-run: 8 kaynak etiketi `Fitness & Egzersiz` / `Fizik
+    Tedavi` dallarına eşlendi; root sayısı **72 → 72**, yeni kategori yok.
 - [X] `.gitignore` + `CLAUDE.md` (mail log hatırlatması) commit (commit 6069eda8).
 
 > **2026-05-23 22:55 UTC — Tüm teknik borç ve Codex 4 görevi CANLI DEPLOY:**

@@ -1,25 +1,92 @@
 {
-  "title": "QuickEcommerce",
-  "slug": "quickecommerce",
-  "summary": "Enterprise e-commerce platform with Laravel backend, Next.js web apps, Flutter mobile app and multi-store marketplace workflows.",
-  "category": "E-COMMERCE",
-  "services": ["Frontend Development", "Backend Development", "Mobile Development", "Architecture & Optimization"],
-  "techs": ["Laravel", "PHP", "Next.js", "React", "TypeScript", "Flutter", "MySQL", "Tailwind CSS", "Redux Toolkit", "React Query", "Zustand", "i18n", "SEO"],
-  "features": ["Admin panel", "Customer web", "Mobile application", "Store and seller management", "Multi-language support"],
-  "designHighlights": ["Production-ready commerce stack", "Shared architecture across channels", "Marketplace-style store workflows"],
-  "featured": true,
-  "displayOrder": 1,
-  "clientName": "Own Project",
-  "status": "live",
-  "startDate": "2025-01-01",
-  "completeDate": null,
-  "completionTimeLabel": "Ongoing",
-  "repoUrl": "https://github.com/Orhanguezel/quickecommerce",
-  "websiteUrl": "https://sportoonline.com",
-  "demoUrl": "https://sportoonline.com",
-  "featuredImage": "/assets/imgs/work/projects/quickecommerce.png",
-  "featuredImageAlt": "QuickEcommerce cover image",
-  "resumeTitle": "QuickEcommerce",
-  "resumeSubtitle": "Enterprise E-Commerce Platform",
-  "excludeFromPortfolio": false
+  "schemaVersion": 2,
+  "project": {
+    "key": "quickecommerce",
+    "title": "QuickEcommerce",
+    "summary": "Enterprise e-commerce platform with Laravel backend, Next.js web apps, Flutter mobile app and multi-store marketplace workflows.",
+    "description": "Enterprise e-commerce platform with Laravel backend, Next.js web apps, Flutter mobile app and multi-store marketplace workflows.",
+    "category": "web-ecommerce",
+    "status": "live",
+    "ownership": "own",
+    "owner": {
+      "id": "orhan-guzel",
+      "name": "Orhan Güzel",
+      "kind": "person"
+    },
+    "group": {
+      "id": "independent",
+      "name": "Bağımsız Projeler"
+    },
+    "productType": "marketplace"
+  },
+  "services": [
+    "Frontend Development",
+    "Backend Development",
+    "Mobile Development",
+    "Architecture & Optimization"
+  ],
+  "technologies": [
+    "Laravel",
+    "PHP",
+    "Next.js",
+    "React",
+    "TypeScript",
+    "Flutter",
+    "MySQL",
+    "Tailwind CSS",
+    "Redux Toolkit",
+    "React Query",
+    "Zustand",
+    "i18n",
+    "SEO"
+  ],
+  "features": [
+    "Admin panel",
+    "Customer web",
+    "Mobile application",
+    "Store and seller management",
+    "Multi-language support"
+  ],
+  "timeline": {
+    "startedAt": "2025-01-01",
+    "targetEndAt": null,
+    "completedAt": null,
+    "progressPercent": null
+  },
+  "links": {
+    "website": "https://sportoonline.com",
+    "demo": "https://sportoonline.com",
+    "repository": "https://github.com/Orhanguezel/quickecommerce"
+  },
+  "media": [
+    {
+      "id": "legacy-1",
+      "role": "cover",
+      "src": "/assets/imgs/work/projects/quickecommerce.png",
+      "alt": "QuickEcommerce cover image",
+      "caption": "",
+      "displayPermission": true,
+      "rightsConfirmed": true
+    }
+  ],
+  "channels": {
+    "website": {
+      "enabled": false,
+      "disabledReason": "CRM v2 geçişinde web yayın içeriği ve izinleri kullanıcı onayı bekliyor"
+    },
+    "bionluk": {
+      "enabled": false,
+      "disabledReason": "CRM v2 geçişinde Bionluk içeriği ve ticari uygunluk kullanıcı onayı bekliyor"
+    }
+  },
+  "publication": {
+    "privacy": "public",
+    "displayPermission": true
+  },
+  "management": {
+    "priority": "normal",
+    "controlPlane": "gzl-gelir-crm",
+    "lastChangedBy": "orhan"
+  },
+  "updatedAt": "2026-08-16T13:36:26.672Z"
 }

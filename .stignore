@@ -1,0 +1,20 @@
+// Generated dependencies and build output are local-only.
+(?d)**/.git
+(?d)**/node_modules
+(?d)**/vendor
+(?d)**/.venv
+(?d)**/venv
+(?d)**/__pycache__
+(?d)**/.next
+(?d)**/.nuxt
+(?d)**/.turbo
+(?d)**/dist
+(?d)**/build
+(?d)**/coverage
+
+// Runtime caches and logs are local-only.
+(?d)**/.cache
+(?d)**/storage/logs
+(?d)**/storage/framework/cache
+(?d)**/storage/framework/sessions
+(?d)**/storage/framework/views

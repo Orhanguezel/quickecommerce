@@ -283,3 +283,6 @@ sosialmedia/
 docs/
 data/
 reports/
+
+# GZL private project manifest
+project.portfolio.private.json
