@@ -92,9 +92,16 @@ run_scraper() {
   local duration=$((end_ts - start_ts))
   echo "  scraper exit: $exit (sure: ${duration}s)"
 
+  # Scraperlar kanonik olarak data/source-products/ altina yazar; proje kokunde
+  # ilk importtan kalma ayni isimli dosyalar da var. Eskiden "kok dosyasi varsa
+  # onu kullan" mantigi yuzunden 3 aylik stale JSON sync ediliyordu: 18 Agustos'ta
+  # proteinmax fiyatlari 23 Mayis degerleriyle yazilmis, 150 urun tedarikci
+  # fiyatinin altinda kalmisti. run-all.sh ile ayni kural: iki adaydan EN YENI
+  # olani sec.
   local json_path=$json
-  if [ ! -s "$json_path" ] && [ -s "data/source-products/$(basename "$json")" ]; then
-    json_path="data/source-products/$(basename "$json")"
+  local canonical_path="data/source-products/$(basename "$json")"
+  if [ -s "$canonical_path" ] && { [ ! -s "$json_path" ] || [ "$canonical_path" -nt "$json_path" ]; }; then
+    json_path="$canonical_path"
   fi
 
   local json_size=0
