@@ -7,6 +7,7 @@ use App\Models\ProductSourceMapping;
 use App\Models\ProductVariant;
 use Illuminate\Console\Command;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class SyncSourcePrices extends Command
@@ -35,6 +36,7 @@ class SyncSourcePrices extends Command
     private bool $stockOnly = false;
     private float $maxChangePercent = 30.0;
     private bool $zeroMissingStock = true;
+    private ?string $defaultCurrencyCode = null;
     private bool $safeToZeroMissing = true;
 
     public function handle(): int
@@ -258,6 +260,8 @@ class SyncSourcePrices extends Command
                 && (float) $variant->special_price > 0) {
                 $changes['special_price'] = null;
             }
+
+            $this->keepCurrencyInputInSync($variant, $changes);
         }
 
         if (empty($changes)) {
@@ -295,6 +299,49 @@ class SyncSourcePrices extends Command
         $this->markMapping($mapping, 'updated', $note, $incoming);
 
         return 'updated';
+    }
+
+    /**
+     * Kur servisi, price_input_currency_code dolu olan her varyantin fiyatini
+     * saat basi price_input_amount'tan yeniden hesaplar. Sync yalnizca price
+     * yazdigi icin bir sonraki kur kosusu fiyati ESKI input degerine geri
+     * cekiyordu: ceysport masa tenisi masasi 31.000 TL'ye guncelleniyor,
+     * saat basinda 400 TL'ye donuyordu (61 urun, 206.755 TL fark). Admin
+     * paneli ayni tuzagi input alanlarini da yazarak cozuyor; sync de artik
+     * ayni sekilde davraniyor.
+     *
+     * Girdi para birimi bos olan varyantlara dokunulmaz — onlar kur
+     * yonetiminde degil, fiyatlari zaten oldugu gibi kalir.
+     */
+    private function keepCurrencyInputInSync(ProductVariant $variant, array &$changes): void
+    {
+        if (empty($variant->price_input_currency_code)) {
+            return;
+        }
+
+        $currencyCode = $this->defaultCurrencyCode();
+
+        if (array_key_exists('price', $changes)) {
+            $changes['price_input_amount'] = $changes['price'];
+            $changes['price_input_currency_code'] = $currencyCode;
+        }
+
+        if (array_key_exists('special_price', $changes)) {
+            $changes['special_price_input_amount'] = $changes['special_price'];
+            $changes['special_price_input_currency_code'] = $changes['special_price'] === null ? null : $currencyCode;
+        }
+    }
+
+    private function defaultCurrencyCode(): string
+    {
+        if ($this->defaultCurrencyCode === null) {
+            $this->defaultCurrencyCode = (string) (DB::table('currencies')
+                ->where('is_default', true)
+                ->where('status', true)
+                ->value('code') ?? 'TRY');
+        }
+
+        return $this->defaultCurrencyCode;
     }
 
     private function indexSourceProducts(array $products): array
