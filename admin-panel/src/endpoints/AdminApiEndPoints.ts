@@ -624,6 +624,7 @@ export const API_ENDPOINTS = {
   ADMIN_ANALYTICS_RECOMMENDATION_CTR: "v1/admin/analytics/recommendation-ctr",
   ADMIN_ANALYTICS_EXPERIMENTS: "v1/admin/analytics/experiments",
   ADMIN_ANALYTICS_SEARCH: "v1/admin/analytics/search",
+  ADMIN_ANALYTICS_COMMERCE: "v1/admin/analytics/commerce",
 
   ADMIN_BUNDLE_LIST: "v1/admin/bundles",
   ADMIN_BUNDLE_DETAIL: "v1/admin/bundles",

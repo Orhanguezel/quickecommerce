@@ -44,10 +44,11 @@ closing_time: z
   }),
   area_id: z.string().optional(),
   store_seller_id: z.string().optional(),
+  fulfillment_model: z.enum(["seller", "dropship", "digital"]).optional(),
   store_types: z.array(z.string()).optional(),
   time_type: z.string().optional(),
   amount: z.string().optional(),
-  phone: z.string().nonempty("Contact number is required"),
+  phone: z.string().optional(),
 };
 
 const dynamicFields = allLangs

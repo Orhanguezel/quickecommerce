@@ -8,7 +8,18 @@ import { toast } from 'react-toastify';
 type Props = {
   storeId?: string | number | null;
   endpoint: string;
-  store?: any;
+  store?: {
+    address?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    geliver_sender_address_id?: string | null;
+    profile_completion_score?: number | null;
+    shipping_sla_hours?: number | null;
+    sales_suspended_at?: string | null;
+    sales_suspension_reason?: string | null;
+    fulfillment_model?: 'seller' | 'dropship' | 'digital' | null;
+    seller?: { first_name?: string | null; last_name?: string | null } | null;
+  } | null;
 };
 
 type FormState = {
@@ -37,9 +48,10 @@ export default function GeliverSenderAddressPanel({ storeId, endpoint, store }: 
   const [form, setForm] = useState<FormState>(emptyForm);
   const [senderAddressId, setSenderAddressId] = useState<string>('');
   const [loading, setLoading] = useState(false);
+  const fulfillmentModel = store?.fulfillment_model ?? 'seller';
 
   useEffect(() => {
-    if (!storeId) return;
+    if (!storeId || fulfillmentModel !== 'seller') return;
 
     setLoading(true);
     axios
@@ -57,17 +69,32 @@ export default function GeliverSenderAddressPanel({ storeId, endpoint, store }: 
           phone: suggested.phone || store?.phone || '',
           email: suggested.email || store?.email || '',
           address: suggested.address || store?.address || '',
-          city: '',
-          district: '',
+          city: suggested.city || '',
+          district: suggested.district || '',
         });
       })
       .catch((error) => {
         toast.error(error?.response?.data?.message || 'Geliver gönderici adres durumu alınamadı.');
       })
       .finally(() => setLoading(false));
-  }, [endpoint, storeId]);
+  }, [endpoint, fulfillmentModel, storeId]);
 
   if (!storeId) return null;
+
+  if (fulfillmentModel !== 'seller') {
+    return (
+      <Card className="mt-4">
+        <CardContent className="p-4">
+          <p className="text-lg md:text-2xl font-medium">Sipariş karşılama modeli</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {fulfillmentModel === 'digital'
+              ? 'Bu mağaza dijital hizmet satıyor; fiziksel adres ve Geliver gönderici adresi zorunlu değildir.'
+              : 'Bu mağaza merkezi dropshipping operasyonuyla yönetiliyor. Ürünü kaynak tedarikçi gönderdiği için mağaza bazında kopya adres ve Geliver gönderici adresi zorunlu değildir.'}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const isComplete = Object.values(form).every((value) => value.trim().length > 0);
 
@@ -100,6 +127,26 @@ export default function GeliverSenderAddressPanel({ storeId, endpoint, store }: 
       <CardContent className="p-4 space-y-4">
         <div>
           <p className="text-lg md:text-2xl font-medium">Geliver Gönderici Adresi</p>
+          <div className="mt-3 rounded-lg border bg-muted/30 p-3">
+            <div className="mb-1 flex items-center justify-between text-sm">
+              <span>Mağaza profil tamamlama</span>
+              <strong>%{store?.profile_completion_score ?? 0}</strong>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-emerald-500 transition-[width]"
+                style={{ width: `${Math.min(100, Math.max(0, store?.profile_completion_score ?? 0))}%` }}
+              />
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Kargoya teslim hedefi: {store?.shipping_sla_hours ?? 48} saat
+            </p>
+            {store?.sales_suspended_at && (
+              <p className="mt-2 text-sm font-medium text-red-600">
+                Satış askıda: {store.sales_suspension_reason || 'Profil/operasyon kontrolü gerekli'}
+              </p>
+            )}
+          </div>
           {senderAddressId ? (
             <p className="mt-1 text-sm text-green-600">Bağlı ID: {senderAddressId}</p>
           ) : (
