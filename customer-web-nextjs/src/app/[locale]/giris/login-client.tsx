@@ -1,11 +1,15 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link } from "@/i18n/routing";
 import { ROUTES } from "@/config/routes";
-import { useLoginMutation, useGuestCheckoutMutation } from "@/modules/auth/auth.service";
+import {
+  useLoginMutation,
+  useGuestCheckoutMutation,
+  useGuestCheckoutSendCodeMutation,
+} from "@/modules/auth/auth.service";
 import {
   useOtpLoginResendMutation,
   useOtpLoginSendMutation,
@@ -66,31 +70,120 @@ export function LoginClient({ translations: t }: Props) {
   const [otpSent, setOtpSent] = useState(false);
   const loginMutation = useLoginMutation();
   const guestMutation = useGuestCheckoutMutation();
+  const guestCodeMutation = useGuestCheckoutSendCodeMutation();
   const [showGuest, setShowGuest] = useState(false);
+  // Misafir akisi iki adim: "form" (ad/e-posta/telefon) -> "code" (6 haneli kod).
+  const [guestStep, setGuestStep] = useState<"form" | "code">("form");
   const [guest, setGuest] = useState({
     first_name: "",
     last_name: "",
     email: "",
     phone: "",
   });
+  const [guestCode, setGuestCode] = useState("");
   const [guestError, setGuestError] = useState<string | null>(null);
+  const [guestInfo, setGuestInfo] = useState<string | null>(null);
+  const [guestCooldown, setGuestCooldown] = useState(0);
+
+  useEffect(() => {
+    if (guestCooldown <= 0) return;
+    const id = setTimeout(() => setGuestCooldown((s) => s - 1), 1000);
+    return () => clearTimeout(id);
+  }, [guestCooldown]);
+
+  const guestApiError = (err: unknown, fallback = "Bir hata oluştu, lütfen tekrar deneyin.") => {
+    const res = (err as { response?: { data?: { code?: string; message?: string; retry_after?: number | null } } })
+      ?.response?.data;
+    if (res?.code === "email_registered") {
+      return "Bu e-posta veya telefon kayıtlı. Lütfen giriş yapın.";
+    }
+    return res?.message || fallback;
+  };
+
+  const submitGuestCheckout = (code?: string) => {
+    guestMutation.mutate(
+      { ...guest, code },
+      {
+        onError: (err: unknown) => setGuestError(guestApiError(err)),
+      }
+    );
+  };
+
+  // 1. adim: bilgileri dogrula ve e-postaya kod gonder.
   const handleGuestSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setGuestError(null);
+    setGuestInfo(null);
+
     if (!guest.first_name.trim() || !guest.email.trim() || !guest.phone.trim()) {
       setGuestError("Ad, e-posta ve telefon zorunludur.");
       return;
     }
-    guestMutation.mutate(guest, {
-      onError: (err: unknown) => {
-        const res = (err as { response?: { data?: { code?: string; message?: string } } })?.response?.data;
-        setGuestError(
-          res?.code === "email_registered"
-            ? "Bu e-posta veya telefon kayıtlı. Lütfen giriş yapın."
-            : res?.message || "Bir hata oluştu, lütfen tekrar deneyin."
-        );
-      },
-    });
+    // Sunucu libphonenumber ile dogruluyor; burada sadece hizli on kontrol.
+    if (guest.phone.replace(/\D/g, "").length < 10) {
+      setGuestError("Geçerli bir telefon numarası giriniz (ör. 0555 123 45 67).");
+      return;
+    }
+
+    guestCodeMutation.mutate(
+      { email: guest.email, first_name: guest.first_name, phone: guest.phone },
+      {
+        onSuccess: (data) => {
+          // Sunucuda dogrulama kapaliysa kod adimini atla.
+          if (data?.verification_required === false) {
+            submitGuestCheckout();
+            return;
+          }
+          setGuestStep("code");
+          setGuestInfo(`Doğrulama kodu ${guest.email} adresine gönderildi.`);
+          setGuestCooldown(data?.retry_after ?? 60);
+        },
+        onError: (err: unknown) => {
+          const res = (err as { response?: { data?: { code?: string; retry_after?: number | null } } })
+            ?.response?.data;
+          // Kod zaten gonderilmis (60 sn kilidi) -> kod adimina gec.
+          if (res?.code === "cooldown" && res.retry_after) {
+            setGuestStep("code");
+            setGuestInfo(`Doğrulama kodu ${guest.email} adresine gönderildi.`);
+            setGuestCooldown(res.retry_after);
+            return;
+          }
+          setGuestError(guestApiError(err));
+        },
+      }
+    );
+  };
+
+  // 2. adim: kodu dogrula ve misafir oturumunu ac.
+  const handleGuestCodeSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setGuestError(null);
+
+    const trimmed = guestCode.trim();
+    if (trimmed.length !== 6) {
+      setGuestError("Lütfen e-postanıza gelen 6 haneli kodu girin.");
+      return;
+    }
+
+    submitGuestCheckout(trimmed);
+  };
+
+  const handleGuestResend = () => {
+    setGuestError(null);
+    guestCodeMutation.mutate(
+      { email: guest.email, first_name: guest.first_name, phone: guest.phone },
+      {
+        onSuccess: (data) => {
+          setGuestInfo(`Doğrulama kodu ${guest.email} adresine tekrar gönderildi.`);
+          setGuestCooldown(data?.retry_after ?? 60);
+        },
+        onError: (err: unknown) => {
+          const res = (err as { response?: { data?: { retry_after?: number | null } } })?.response?.data;
+          if (res?.retry_after) setGuestCooldown(res.retry_after);
+          setGuestError(guestApiError(err));
+        },
+      }
+    );
   };
   const otpSendMutation = useOtpLoginSendMutation();
   const otpResendMutation = useOtpLoginResendMutation();
@@ -326,7 +419,7 @@ export function LoginClient({ translations: t }: Props) {
                     Üye olmadan devam et
                   </Button>
                 </>
-              ) : (
+              ) : guestStep === "form" ? (
                 <form onSubmit={handleGuestSubmit} className="space-y-3 rounded-lg border p-4">
                   <p className="text-sm font-medium">Misafir olarak devam et</p>
                   <div className="grid grid-cols-2 gap-2">
@@ -360,12 +453,69 @@ export function LoginClient({ translations: t }: Props) {
                   {guestError && (
                     <p className="text-sm text-destructive">{guestError}</p>
                   )}
-                  <Button type="submit" className="w-full" disabled={guestMutation.isPending}>
-                    {guestMutation.isPending ? "Devam ediliyor…" : "Misafir olarak devam et"}
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={guestCodeMutation.isPending || guestMutation.isPending}
+                  >
+                    {guestCodeMutation.isPending || guestMutation.isPending
+                      ? "Gönderiliyor…"
+                      : "Devam et"}
                   </Button>
                   <p className="text-xs text-muted-foreground">
-                    Siparişinizi üyelik olmadan tamamlayabilirsiniz. Bilgileriniz yalnızca
-                    bu sipariş için kullanılır; dilerseniz sonra şifre belirleyip hesap oluşturabilirsiniz.
+                    Siparişinizi üyelik olmadan tamamlayabilirsiniz. E-posta adresinize
+                    tek kullanımlık bir doğrulama kodu göndereceğiz; sipariş durumu ve
+                    fatura bilgileri de bu adrese iletilir.
+                  </p>
+                </form>
+              ) : (
+                <form onSubmit={handleGuestCodeSubmit} className="space-y-3 rounded-lg border p-4">
+                  <p className="text-sm font-medium">E-posta doğrulama</p>
+                  {guestInfo && !guestError && (
+                    <p className="text-sm text-green-700 dark:text-green-400">{guestInfo}</p>
+                  )}
+                  <Input
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    placeholder="000000"
+                    className="text-center text-xl tracking-[0.4em]"
+                    value={guestCode}
+                    onChange={(e) => setGuestCode(e.target.value.replace(/\D/g, ""))}
+                  />
+                  {guestError && (
+                    <p className="text-sm text-destructive">{guestError}</p>
+                  )}
+                  <Button type="submit" className="w-full" disabled={guestMutation.isPending}>
+                    {guestMutation.isPending ? "Devam ediliyor…" : "Doğrula ve devam et"}
+                  </Button>
+                  <div className="flex items-center justify-between">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setGuestStep("form");
+                        setGuestError(null);
+                        setGuestInfo(null);
+                      }}
+                    >
+                      Bilgileri düzenle
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      disabled={guestCooldown > 0 || guestCodeMutation.isPending}
+                      onClick={handleGuestResend}
+                    >
+                      {guestCooldown > 0
+                        ? `Tekrar gönder (${guestCooldown})`
+                        : "Kodu tekrar gönder"}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Kod gelmediyse spam/gereksiz klasörünü kontrol edin.
                   </p>
                 </form>
               )}

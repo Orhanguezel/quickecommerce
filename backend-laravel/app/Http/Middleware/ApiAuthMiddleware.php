@@ -29,6 +29,8 @@ class ApiAuthMiddleware
                 $req_url === 'api/v1/delivery-man/registration' ||
                 $req_url === 'api/v1/customer/login' ||
                 $req_url === 'api/v1/customer/guest-checkout' ||
+                // Misafir checkout e-posta dogrulama kodu: henuz oturum yok.
+                $req_url === 'api/v1/customer/guest-checkout/send-code' ||
                 $req_url === 'api/v1/customer/google' ||
                 $req_url === 'api/v1/customer/google/callback' ||
                 $req_url === 'api/v1/customer/registration' ||

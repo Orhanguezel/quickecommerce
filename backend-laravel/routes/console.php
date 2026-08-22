@@ -74,6 +74,12 @@ Schedule::command('orders:prune-unpaid --hours=' . env('ORDER_UNPAID_RETENTION_H
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/order-prune-unpaid.log'));
 
+// Suresi dolmus e-posta dogrulama kodlarini temizle. Kodlar 15 dk gecerli,
+// 1 saatlik pencere sayaci icin biraz daha bekletilir (2 saat sonra silinir).
+Schedule::call(function () {
+    \App\Models\EmailVerificationCode::where('expires_at', '<', now()->subHours(2))->delete();
+})->hourly()->name('prune-email-verification-codes')->withoutOverlapping();
+
 // Google + Cimri urun feed'lerini her 2 saatte bir onceden uret: HTTP istek
 // anindaki cache miss yerine cron'da kontrollu uretim. Cache 6 saat oldugu
 // icin 2 saatlik aralik cache eviction olsa bile her zaman taze tutar.

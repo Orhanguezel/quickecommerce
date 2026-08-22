@@ -5,6 +5,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import { useLocale } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
+import { ROUTES } from "@/config/routes";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import { toast } from "@/hooks/use-toast";
 import { getApiBaseUrl } from "@/lib/api-url";
@@ -22,6 +23,8 @@ import type {
   OtpLoginSendInput,
   OtpLoginSendResponse,
   OtpLoginVerifyInput,
+  VerifyEmailInput,
+  VerificationCodeResponse,
   User,
 } from "./auth.type";
 
@@ -66,6 +69,8 @@ export interface GuestCheckoutInput {
   first_name: string;
   last_name?: string;
   phone: string;
+  /** E-posta dogrulama kodu (misafir dogrulamasi acikken zorunlu). */
+  code?: string;
 }
 
 interface GuestCheckoutResponse {
@@ -75,6 +80,37 @@ interface GuestCheckoutResponse {
   is_guest: boolean;
   message?: string;
   code?: string;
+}
+
+export interface GuestCodeInput {
+  email: string;
+  first_name?: string;
+  phone?: string;
+}
+
+export interface GuestCodeResponse {
+  status: boolean;
+  /** false ise sunucuda misafir dogrulamasi kapali; kod adimi atlanir. */
+  verification_required?: boolean;
+  retry_after?: number | null;
+  message?: string;
+  code?: string;
+}
+
+// Misafir checkout icin e-postaya 6 haneli kod gonderir.
+export function useGuestCheckoutSendCodeMutation() {
+  const locale = useLocale();
+
+  return useMutation({
+    mutationFn: async (data: GuestCodeInput) => {
+      const res = await api.post<GuestCodeResponse>(
+        API_ENDPOINTS.GUEST_CHECKOUT_SEND_CODE,
+        data,
+        { headers: { "X-localization": locale } }
+      );
+      return res.data;
+    },
+  });
 }
 
 // Misafir (guest) checkout: üyeliksiz sipariş. Hafif hesap + token alır,
@@ -123,14 +159,70 @@ export function useRegisterMutation() {
       });
       return res.data;
     },
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       Cookies.set(AUTH_TOKEN_KEY, data.token, { expires: 30 });
-      Cookies.set(AUTH_USER, JSON.stringify(data.user), { expires: 30 });
+      // Backend kayit yanitinda `user` nesnesi dondurmuyor; forma girilen
+      // bilgilerden kur ki hesap menusu/dogrulama ekrani bos kalmasin.
+      const user = (data.user ?? {
+        email: data.email ?? variables.email,
+        first_name: variables.first_name,
+        last_name: variables.last_name,
+        phone: variables.phone,
+      }) as User;
+      Cookies.set(AUTH_USER, JSON.stringify(user), { expires: 30 });
       if (data.expires_at) {
         localStorage.setItem("expires_at", data.expires_at);
       }
-      setUser(data.user);
+      setUser(user);
+
+      // E-posta dogrulamasi aciksa once kod ekranina.
+      if (data.email_verification_settings === "on" && !data.email_verified) {
+        router.push(`/${locale}${ROUTES.VERIFY_EMAIL}`);
+        return;
+      }
+
       router.push(`/${locale}`);
+    },
+  });
+}
+
+// --- Uyelik e-posta dogrulamasi (6 haneli kod) ------------------------------
+
+function authHeaders(locale: string) {
+  return {
+    Authorization: `Bearer ${Cookies.get(AUTH_TOKEN_KEY) || ""}`,
+    "X-localization": locale,
+  };
+}
+
+/** Oturum acmis musterinin kendi adresine dogrulama kodu gonderir. */
+export function useSendVerificationCodeMutation() {
+  const locale = useLocale();
+  return useMutation({
+    mutationFn: async (resend: boolean = false) => {
+      const res = await api.post<VerificationCodeResponse>(
+        resend
+          ? API_ENDPOINTS.RESEND_VERIFICATION_EMAIL
+          : API_ENDPOINTS.SEND_VERIFICATION_EMAIL,
+        {},
+        { headers: authHeaders(locale) }
+      );
+      return res.data;
+    },
+  });
+}
+
+/** Kodu dogrular; basarili olursa hesap dogrulanmis olur. */
+export function useVerifyEmailMutation() {
+  const locale = useLocale();
+  return useMutation({
+    mutationFn: async (data: VerifyEmailInput) => {
+      const res = await api.post<VerificationCodeResponse>(
+        API_ENDPOINTS.VERIFY_EMAIL,
+        data,
+        { headers: authHeaders(locale) }
+      );
+      return res.data;
     },
   });
 }

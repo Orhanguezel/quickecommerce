@@ -22,8 +22,12 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'customer/'], function () {
     // For customer register and login
     Route::post('registration', [CustomerManageController::class, 'registerCustomer']);
     Route::post('login', [CustomerManageController::class, 'loginCustomer']);
-    // Misafir (guest) checkout: uyeliksiz siparis icin hafif hesap + token
-    Route::post('guest-checkout', [CustomerManageController::class, 'guestCheckout']);
+    // Misafir (guest) checkout: uyeliksiz siparis icin hafif hesap + token.
+    // Once send-code ile e-postaya 6 haneli kod gider, guest-checkout o kodu ister.
+    Route::post('guest-checkout/send-code', [CustomerManageController::class, 'sendGuestCheckoutCode'])
+        ->middleware('throttle:10,1');
+    Route::post('guest-checkout', [CustomerManageController::class, 'guestCheckout'])
+        ->middleware('throttle:20,1');
     Route::post('forget-password', [CustomerManageController::class, 'sendPasswordResetToken']);
     Route::post('verify-token', [CustomerManageController::class, 'verifyPasswordResetToken']);
     Route::patch('reset-password', [CustomerManageController::class, 'resetPassword']);
@@ -44,7 +48,6 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'customer/', 'middleware' => 
         Route::group(['prefix' => 'profile/'], function () {
             Route::get('/', [CustomerManageController::class, 'customerProfile']);
             Route::post('/update', [CustomerManageController::class, 'updateCustomerProfile']);
-            Route::post('/change-email', [CustomerManageController::class, 'updateCustomerEmail']);
             Route::patch('/change-password', [CustomerManageController::class, 'changeCustomerPassword']);
             Route::patch('/activate-deactivate', [CustomerManageController::class, 'updateAccountStatus']);
             Route::get('/change-activity-notification-status', [CustomerManageController::class, 'toggleActivityNotification']);
@@ -111,6 +114,12 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'customer/', 'middleware' => 
     Route::put('orders/payment-status-update', [OrderPaymentController::class, 'orderPaymentStatusUpdate'])->middleware('verify.hmac');
 
     Route::get('generate-hmac', [HmacGenerateController::class, 'generateHmac']);
+
+    // E-posta degistirme dogrulama KAPISININ DISINDA durur: kayitta e-postasini
+    // yanlis yazan kullanici kodu alamaz, dogrulayamaz ve icerde kalirsa
+    // adresini de duzeltemez (hesap tamamen kilitlenir). Yeni adrese giden kod
+    // zorunlu oldugu icin disarida olmasi guvenligi dusurmez.
+    Route::post('profile/change-email', [CustomerManageController::class, 'updateCustomerEmail']);
 
     // customer verify email
     Route::post('send-verification-email', [CustomerManageController::class, 'sendVerificationEmail']);

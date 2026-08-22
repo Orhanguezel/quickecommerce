@@ -5,6 +5,7 @@ export const ROUTES = {
   LOGIN: "/giris",
   REGISTER: "/kayit",
   FORGOT_PASSWORD: "/sifremi-unuttum",
+  VERIFY_EMAIL: "/eposta-dogrula",
   SELLER_REGISTER: "/satici-basvuru",
 
   // Products

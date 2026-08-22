@@ -2,60 +2,56 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Customer;
+use App\Services\EmailVerificationCodeService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Illuminate\Support\Facades\DB;
 
 class CheckEmailVerificationOption
 {
     /**
-     * Handle an incoming request.
+     * Hesap panelini e-posta dogrulamasi arkasina alir.
      *
-     * @param \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response) $next
+     * Ayar: setting_options.com_user_email_verification (on/off).
+     *
+     * Onemli iki nokta:
+     *  - MISAFIR (is_guest) hesaplar MUAFTIR. Misafir kendi akisinda zaten
+     *    e-posta kodu ile dogrulaniyor; burada 403 verilirse "siparisim"
+     *    / "odeme ozeti" ekranlari kirilir ve satis durur.
+     *  - Kullanici e-posta ile degil ID ile bulunur. Onceki surum
+     *    Customer::where('email', ...) ile ariyordu; ayni e-postaya sahip
+     *    baska bir kayit varsa yanlis sonuc dondurebiliyordu.
      */
     public function handle(Request $request, Closure $next, ...$roles)
     {
         foreach ($roles as $role) {
             if ($role === 'customer') {
-                $authCustomer = auth('api_customer')->user();
-                if (!$authCustomer) {
-                    continue; // auth:api_customer middleware already handles unauthenticated requests
+                $user = auth('api_customer')->user();
+                if (!$user) {
+                    continue; // auth:api_customer middleware'i zaten hallediyor
                 }
-                $isVerified = \App\Models\Customer::where('email', $authCustomer->email)
-                    ->where('email_verified', 1)
-                    ->exists();
+                if ((bool) ($user->is_guest ?? false)) {
+                    continue; // misafir akisi muaf
+                }
+                $isVerified = (bool) $user->email_verified;
             } elseif ($role === 'seller') {
-                $authSeller = auth('api')->user();
-                if (!$authSeller) {
+                $user = auth('api')->user();
+                if (!$user) {
                     continue;
                 }
-                $isVerified = \App\Models\User::where('email', $authSeller->email)
-                    ->where('email_verified', 1)
-                    ->exists();
+                $isVerified = (bool) $user->email_verified;
             } else {
-                continue; // Unknown role, skip
+                continue; // bilinmeyen rol
             }
 
-            // Check email verification setting
-            $emailVerificationValue = DB::table('setting_options')
-                ->where('option_name', 'com_user_email_verification')
-                ->value('option_value');
-
-            $emailVerificationEnabled = in_array(
-                strtolower((string) $emailVerificationValue),
-                ['on', '1', 'true'],
-                true
-            );
-
-            if (!$isVerified && $emailVerificationEnabled) {
+            if (!$isVerified && EmailVerificationCodeService::accountVerificationEnabled()) {
                 return response()->json([
                     'status' => false,
                     'status_code' => Response::HTTP_FORBIDDEN,
                     'email_verified' => false,
-                    'message' => 'Email verification is not completed.',
-                ]);
+                    'code' => 'email_not_verified',
+                    'message' => 'E-posta adresiniz henüz doğrulanmadı.',
+                ], Response::HTTP_FORBIDDEN);
             }
         }
 

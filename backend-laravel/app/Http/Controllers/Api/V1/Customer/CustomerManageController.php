@@ -11,7 +11,10 @@ use App\Mail\EmailVerificationMail;
 use App\Models\Customer;
 use App\Models\CustomerDeactivationReason;
 use App\Models\UniversalNotification;
+use App\Models\EmailVerificationCode;
 use App\Models\Wishlist;
+use App\Rules\ValidCustomerPhone;
+use App\Services\EmailVerificationCodeService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -23,8 +26,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CustomerManageController extends Controller
 {
-    public function __construct(protected CustomerManageInterface $customerRepo)
-    {
+    public function __construct(
+        protected CustomerManageInterface $customerRepo,
+        protected EmailVerificationCodeService $verificationCodes,
+    ) {
     }
 
     public function registerCustomer(CustomerRequest $request)
@@ -48,6 +53,24 @@ class CustomerManageController extends Controller
                 true
             );
 
+            // E-posta dogrulama aciksa kayit biter bitmez 6 haneli kodu yolla.
+            // Onceden hicbir yerde tetiklenmiyordu: ayar acilsa bile kimseye
+            // kod gitmedigi icin kullanici hesabina giremez hale gelirdi.
+            $verificationEnabled = EmailVerificationCodeService::accountVerificationEnabled();
+            $verificationSent = false;
+
+            if ($verificationEnabled) {
+                // Kod gonderilemezse kayit yine de basarili sayilir; kullanici
+                // dogrulama ekranindan "tekrar gonder" diyebilir.
+                $issued = $this->verificationCodes->issue(
+                    $customer->email,
+                    EmailVerificationCode::PURPOSE_ACCOUNT,
+                    $customer->first_name,
+                    $request->ip()
+                );
+                $verificationSent = $issued['ok'];
+            }
+
             // Return a successful response with the token and permissions
             return response()->json([
                 "status" => true,
@@ -56,7 +79,8 @@ class CustomerManageController extends Controller
                 "token" => $token,
                 "email" => $customer->email,
                 "email_verified" => (bool)$customer->email_verified,
-                "email_verification_settings" => com_option_get('com_user_email_verification',null,false) ?? 'off',
+                "email_verification_settings" => $verificationEnabled ? 'on' : 'off',
+                "verification_code_sent" => $verificationSent,
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
@@ -68,6 +92,72 @@ class CustomerManageController extends Controller
     }
 
     /**
+     * Misafir checkout icin e-posta dogrulama kodu gonderir.
+     *
+     * Sahte siparis korumasi (bkz. siparis #204: "adawd awdawd" /
+     * awdawd@gmail.com / 535788754541): artik siparis kaydi olusmadan once
+     * e-posta adresinin gercekten kullanicinin olduguna dair 6 haneli kod
+     * dogrulanir.
+     */
+    public function sendGuestCheckoutCode(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|max:191',
+            'first_name' => 'nullable|string|max:100',
+            'phone' => ['nullable', new ValidCustomerPhone()],
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'status_code' => 422,
+                'message' => $validator->errors()->first(),
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        if (!EmailVerificationCodeService::guestVerificationEnabled()) {
+            // Ayar kapaliysa istemci kod adimini atlar.
+            return response()->json([
+                'status' => true,
+                'status_code' => 200,
+                'verification_required' => false,
+                'message' => 'Doğrulama gerekmiyor.',
+            ]);
+        }
+
+        $email = mb_strtolower(trim((string) $request->email));
+
+        // Kayitli (uye) bir hesabin adresine misafir kodu gondermeyelim;
+        // kullaniciyi bosuna kod bekletmek yerine girise yonlendir.
+        $registered = Customer::where('email', $email)->where('is_guest', 0)->exists();
+        if ($registered) {
+            return response()->json([
+                'status' => false,
+                'status_code' => 409,
+                'code' => 'email_registered',
+                'message' => 'Bu e-posta ile kayıtlı bir hesap var. Lütfen giriş yapın.',
+            ], 409);
+        }
+
+        $result = $this->verificationCodes->issue(
+            $email,
+            EmailVerificationCode::PURPOSE_GUEST_CHECKOUT,
+            $request->input('first_name'),
+            $request->ip()
+        );
+
+        return response()->json([
+            'status' => $result['ok'],
+            'status_code' => $result['ok'] ? 200 : 429,
+            'code' => $result['code'],
+            'verification_required' => true,
+            'email' => $email,
+            'retry_after' => $result['retry_after'],
+            'message' => $result['message'],
+        ], $result['ok'] ? 200 : ($result['code'] === 'send_failed' ? 500 : 429));
+    }
+
+    /**
      * Misafir (guest) checkout: uyeliksiz siparis. E-posta/ad/telefon alir,
      * hafif bir musteri hesabi (is_guest=1, rastgele sifre) olusturur ve token
      * doner — boylece mevcut checkout/odeme akisi hic degismeden calisir.
@@ -75,14 +165,26 @@ class CustomerManageController extends Controller
      * Guvenlik: kayitli (is_guest=0) bir hesabin e-postasiyla guest girisi
      * VERILMEZ (sifresiz baskasinin hesabina girilemesin) -> giris yonlendirilir.
      * Ayni e-postayla onceki guest hesap tekrar kullanilir (iletisim guncellenir).
+     *
+     * 2026-08-22: e-posta dogrulama kodu ('code') ve gercek telefon
+     * dogrulamasi zorunlu hale getirildi (sahte siparis #204).
      */
     public function guestCheckout(Request $request)
     {
+        $verificationRequired = EmailVerificationCodeService::guestVerificationEnabled();
+
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|max:191',
             'first_name' => 'required|string|max:100',
             'last_name' => 'nullable|string|max:100',
-            'phone' => 'required|string|max:32',
+            'phone' => ['required', 'string', 'max:32', new ValidCustomerPhone()],
+            'code' => [$verificationRequired ? 'required' : 'nullable', 'string', 'max:16'],
+        ], [
+            'code.required' => 'Lütfen e-postanıza gönderilen 6 haneli doğrulama kodunu girin.',
+            'email.required' => 'E-posta adresi zorunludur.',
+            'email.email' => 'Geçerli bir e-posta adresi giriniz.',
+            'first_name.required' => 'Ad zorunludur.',
+            'phone.required' => 'Telefon numarası zorunludur.',
         ]);
         if ($validator->fails()) {
             return response()->json([
@@ -96,6 +198,24 @@ class CustomerManageController extends Controller
         try {
             $email = strtolower(trim((string) $request->email));
             $phone = trim((string) $request->phone);
+
+            if ($verificationRequired) {
+                $result = $this->verificationCodes->verify(
+                    $email,
+                    EmailVerificationCode::PURPOSE_GUEST_CHECKOUT,
+                    (string) $request->input('code')
+                );
+
+                if (!$result['ok']) {
+                    return response()->json([
+                        'status' => false,
+                        'status_code' => 422,
+                        'code' => $result['code'],
+                        'message' => $result['message'],
+                    ], 422);
+                }
+            }
+
             // email/phone ikisi de UNIQUE -> ikisinden biri eslesirse mevcut
             // musteriyi bul (donen misafir ayni telefonu/e-postayi kullanabilir).
             $existing = Customer::where('email', $email)->orWhere('phone', $phone)->first();
@@ -106,6 +226,17 @@ class CustomerManageController extends Controller
                     'status_code' => 409,
                     'code' => 'email_registered',
                     'message' => 'Bu e-posta veya telefon ile kayıtlı bir hesap var. Lütfen giriş yapın.',
+                ], 409);
+            }
+
+            // Dogrulanan adres ile eslesmeyen bir kayda (telefon uzerinden
+            // bulunan baska bir misafir) kod ile giris verilmesin.
+            if ($verificationRequired && $existing && mb_strtolower((string) $existing->email) !== $email) {
+                return response()->json([
+                    'status' => false,
+                    'status_code' => 409,
+                    'code' => 'phone_in_use',
+                    'message' => 'Bu telefon numarası başka bir e-posta ile kullanılıyor. Lütfen o e-posta ile devam edin.',
                 ], 409);
             }
 
@@ -130,6 +261,14 @@ class CustomerManageController extends Controller
                 ]);
             }
 
+            // Kod ile ispatlandi -> misafir hesabin e-postasi dogrulanmis sayilir.
+            if ($verificationRequired && !$customer->email_verified) {
+                $customer->forceFill([
+                    'email_verified' => 1,
+                    'email_verified_at' => now(),
+                ])->save();
+            }
+
             $token = $customer->createToken('customer_guest_token')->plainTextToken;
 
             return response()->json([
@@ -138,7 +277,7 @@ class CustomerManageController extends Controller
                 'message' => 'Misafir olarak devam ediliyor.',
                 'token' => $token,
                 'email' => $customer->email,
-                'email_verified' => false,
+                'email_verified' => (bool) $customer->email_verified,
                 'email_verification_settings' => 'off',
                 'is_guest' => true,
             ], 200);
@@ -382,73 +521,119 @@ class CustomerManageController extends Controller
         ]);
     }
 
-    // Verify email with token
+    /**
+     * Uyelik e-posta dogrulamasi: kullanici kendi e-postasina gelen 6 haneli
+     * kodu girer.
+     *
+     * Eski surum kodu GLOBAL ariyordu (Customer::where('email_verify_token', $token))
+     * — yani 6 haneli bir kod, hangi hesaba aitse onu dogruluyordu ve o kolon
+     * sifre sifirlama ile paylasimliydi. Artik kod, oturum acmis musterinin
+     * e-postasina + 'account' amacina bagli olarak dogrulanir.
+     */
     public function verifyEmail(Request $request)
     {
+        $customer = auth('api_customer')->user();
+        if (!$customer) {
+            return unauthorized_response();
+        }
+
         $validator = Validator::make($request->all(), [
-            'token' => 'required',
+            // Eski istemciler 'token' yolluyordu, geriye donuk kabul ediyoruz.
+            'code' => 'required_without:token|nullable|string|max:16',
+            'token' => 'required_without:code|nullable|string|max:16',
         ]);
         if ($validator->fails()) {
             return response()->json([
-                "status" => false,
-                "status_code" => 500,
-                "message" => $validator->errors()
+                'status' => false,
+                'status_code' => 422,
+                'message' => $validator->errors()->first(),
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        if ($customer->email_verified) {
+            return response()->json([
+                'status' => true,
+                'status_code' => 200,
+                'email_verified' => true,
+                'message' => 'E-posta adresiniz zaten doğrulanmış.',
             ]);
         }
 
-        $result = $this->customerRepo->verifyEmail($request->token);
+        $result = $this->verificationCodes->verify(
+            $customer->email,
+            EmailVerificationCode::PURPOSE_ACCOUNT,
+            (string) ($request->input('code') ?? $request->input('token'))
+        );
 
-        if (!$result) {
+        if (!$result['ok']) {
             return response()->json([
                 'status' => false,
-                'status_code' => 400,
-                'message' => __('messages.token.invalid')
-            ], 400);
+                'status_code' => 422,
+                'code' => $result['code'],
+                'email_verified' => false,
+                'message' => $result['message'],
+            ], 422);
         }
+
+        $customer->forceFill([
+            'email_verified' => 1,
+            'email_verified_at' => now(),
+            'verified' => 1,
+            'email_verify_token' => null,
+        ])->save();
 
         return response()->json([
             'status' => true,
             'status_code' => 200,
-            'message' => __('messages.email.verify.success')
+            'email_verified' => true,
+            'message' => 'E-posta adresiniz doğrulandı.',
         ]);
     }
 
-    // Resend verification email
+    /**
+     * Dogrulama kodunu tekrar gonder.
+     *
+     * Onceden govdedeki 'email' alanina ne yazilirsa oraya mail atiyordu
+     * (oturum acmis herkes istedigi adrese mail attirabiliyordu). Artik
+     * hedef her zaman oturum acmis musterinin kendi e-postasidir.
+     */
     public function resendVerificationEmail(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|string|email|max:255',
-        ]);
-        if ($validator->fails()) {
-            return response()->json([
-                "status" => false,
-                "status_code" => 500,
-                "message" => $validator->errors()
-            ]);
+        return $this->issueAccountVerificationCode($request);
+    }
+
+    private function issueAccountVerificationCode(Request $request)
+    {
+        $customer = auth('api_customer')->user();
+        if (!$customer) {
+            return unauthorized_response();
         }
-        try {
-            $result = $this->customerRepo->resendVerificationEmail($request->email);
 
-            if (!$result) {
-                return response()->json([
-                    'status' => false,
-                    'status_code' => 500,
-                    'message' => __('messages.email.resend.failed')
-                ], 500);
-            }
-
+        if ($customer->email_verified) {
             return response()->json([
                 'status' => true,
                 'status_code' => 200,
-                'message' => __('messages.email.resend.success')
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => false,
-                'status_code' => 500,
-                'message' => $e->getMessage()
+                'email_verified' => true,
+                'message' => 'E-posta adresiniz zaten doğrulanmış.',
             ]);
         }
+
+        $result = $this->verificationCodes->issue(
+            $customer->email,
+            EmailVerificationCode::PURPOSE_ACCOUNT,
+            $customer->first_name,
+            $request->ip()
+        );
+
+        return response()->json([
+            'status' => $result['ok'],
+            'status_code' => $result['ok'] ? 200 : 429,
+            'code' => $result['code'],
+            'email' => $customer->email,
+            'retry_after' => $result['retry_after'],
+            'message' => $result['message'],
+        ], $result['ok'] ? 200 : ($result['code'] === 'send_failed' ? 500 : 429));
     }
 
     public function sendPasswordResetToken(Request $request)
@@ -678,80 +863,134 @@ class CustomerManageController extends Controller
         }
     }
 
+    /**
+     * Dogrulama kodunu gonder.
+     *
+     * Iki senaryo:
+     *  - Govdede e-posta yok / mevcut e-posta ile ayni -> hesap dogrulama kodu.
+     *  - Govdede FARKLI bir e-posta var -> e-posta degistirme kodu, YENI
+     *    adrese gider (Flutter uygulamasinin "e-posta degistir" akisi boyle
+     *    calisiyor: once buraya yeni adres, sonra profile/change-email).
+     *
+     * Her iki durumda da hedef adres kullanicinin kendi hesabina baglidir;
+     * eskiden oldugu gibi rastgele adreslere mail attirilamaz.
+     */
     public function sendVerificationEmail(Request $request)
     {
-        if (!auth('api_customer')->check()) {
+        $customer = auth('api_customer')->user();
+        if (!$customer) {
             return unauthorized_response();
         }
+
+        $requested = mb_strtolower(trim((string) $request->input('email')));
+        $current = mb_strtolower(trim((string) $customer->email));
+
+        if ($requested === '' || $requested === $current) {
+            return $this->issueAccountVerificationCode($request);
+        }
+
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
+            'email' => 'required|email|max:191|unique:customers,email',
         ]);
         if ($validator->fails()) {
             return response()->json([
-                'errors' => $validator->errors()
+                'status' => false,
+                'status_code' => 422,
+                'message' => $validator->errors()->first(),
+                'errors' => $validator->errors(),
             ], 422);
         }
-        $user = auth('api_customer')->user();
 
-        try {
-            $token = rand(100000, 999999);
-            $user->email_verify_token = $token;
-            $user->save();
-            // Send email verification
-            Mail::to($request->email)->send(new EmailVerificationMail($user));
+        $result = $this->verificationCodes->issue(
+            $requested,
+            EmailVerificationCode::PURPOSE_EMAIL_CHANGE,
+            $customer->first_name,
+            $request->ip()
+        );
 
-            return response()->json(['status' => true, 'message' => 'Verification email sent.']);
-        } catch (\Exception $e) {
-            return response()->json([
-                "status" => false,
-                "status_code" => 500,
-                "message" => $e->getMessage()
-            ]);
-        }
+        return response()->json([
+            'status' => $result['ok'],
+            'status_code' => $result['ok'] ? 200 : 429,
+            'code' => $result['code'],
+            'email' => $requested,
+            'retry_after' => $result['retry_after'],
+            'message' => $result['message'],
+        ], $result['ok'] ? 200 : ($result['code'] === 'send_failed' ? 500 : 429));
     }
 
+    /**
+     * E-posta degistir: yeni adrese gonderilen kod dogrulanir.
+     *
+     * Eskiden customers.email_verify_token ile gevsek karsilastirma yapiyordu
+     * ($user->email_verify_token == $request->token) ve o kolon sifre
+     * sifirlama ile paylasimliydi; artik kod, YENI adres + 'email_change'
+     * amacina bagli olarak dogrulanir.
+     */
     public function updateCustomerEmail(Request $request)
     {
-        if (!auth('api_customer')->check()) {
+        $customer = auth('api_customer')->user();
+        if (!$customer) {
             return unauthorized_response();
         }
+
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email|unique:customers,email',
-            'token' => 'required|string'
+            'email' => 'required|email|max:191|unique:customers,email',
+            'code' => 'required_without:token|nullable|string|max:16',
+            'token' => 'required_without:code|nullable|string|max:16',
         ]);
         if ($validator->fails()) {
             return response()->json([
-                'errors' => $validator->errors()
+                'status' => false,
+                'status_code' => 422,
+                'message' => $validator->errors()->first(),
+                'errors' => $validator->errors(),
             ], 422);
         }
-        try {
 
-            $userId = auth('api_customer')->id();
-            $user = Customer::findOrFail($userId);
-            if ($user && $user->email_verify_token == $request->token) {
-                $user->update([
-                    'email' => $request->email,
-                    'email_verify_token' => null,
-                ]);
+        try {
+            $newEmail = mb_strtolower(trim((string) $request->email));
+            $oldEmail = (string) $customer->email;
+
+            $result = $this->verificationCodes->verify(
+                $newEmail,
+                EmailVerificationCode::PURPOSE_EMAIL_CHANGE,
+                (string) ($request->input('code') ?? $request->input('token'))
+            );
+
+            if (!$result['ok']) {
                 return response()->json([
-                    'status' => true,
-                    'status_code' => 200,
-                    'message' => __('messages.update_successful'),
-                ]);
-            } else {
-                return response()->json([
-                    'status' => true,
-                    'status_code' => 500,
-                    'message' => __('messages.update_failed', ['name' => 'Customer']),
-                ]);
+                    'status' => false,
+                    'status_code' => 422,
+                    'code' => $result['code'],
+                    'message' => $result['message'],
+                ], 422);
             }
+
+            // Yeni adres kod ile ispatlandi -> dogrulanmis say.
+            $customer->forceFill([
+                'email' => $newEmail,
+                'email_verified' => 1,
+                'email_verified_at' => now(),
+                'email_verify_token' => null,
+            ])->save();
+
+            // Eski adres icin bekleyen hesap dogrulama kodu varsa anlamsiz kaldi.
+            $this->verificationCodes->invalidate($oldEmail, EmailVerificationCode::PURPOSE_ACCOUNT);
+
+            return response()->json([
+                'status' => true,
+                'status_code' => 200,
+                'email' => $newEmail,
+                'email_verified' => true,
+                'message' => __('messages.update_successful'),
+            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
                 'status_code' => 500,
                 'message' => __('messages.something_went_wrong'),
                 'error' => $e->getMessage(),
-            ]);
+            ], 500);
         }
     }
 

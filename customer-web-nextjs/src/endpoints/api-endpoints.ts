@@ -3,6 +3,7 @@ export const API_ENDPOINTS = {
   // Auth (customer)
   LOGIN: "/customer/login",
   GUEST_CHECKOUT: "/customer/guest-checkout",
+  GUEST_CHECKOUT_SEND_CODE: "/customer/guest-checkout/send-code",
   REGISTER: "/customer/registration",
   LOGOUT: "/customer/logout",
   REFRESH_TOKEN: "/customer/refresh-token",
@@ -12,6 +13,10 @@ export const API_ENDPOINTS = {
   OTP_LOGIN_SEND: "/otp-login/send",
   OTP_LOGIN_VERIFY: "/otp-login/verify",
   OTP_LOGIN_RESEND: "/otp-login/resend",
+  // Uyelik e-posta dogrulamasi (6 haneli kod)
+  SEND_VERIFICATION_EMAIL: "/customer/send-verification-email",
+  RESEND_VERIFICATION_EMAIL: "/customer/resend-verification-email",
+  VERIFY_EMAIL: "/customer/verify-email",
 
   // Site
   SITE_GENERAL_INFO: "/site-general-info",

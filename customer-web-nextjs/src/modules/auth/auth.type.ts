@@ -67,5 +67,24 @@ export interface LoginResponse {
 export interface RegisterResponse {
   token: string;
   expires_at: string;
-  user: User;
+  /** Backend kayit yanitinda `user` gondermiyor; e-posta ust seviyede geliyor. */
+  user?: User;
+  email?: string;
+  email_verified?: boolean;
+  /** "on" ise kayit sonrasi e-posta dogrulama ekranina gidilir. */
+  email_verification_settings?: "on" | "off" | string;
+  verification_code_sent?: boolean;
+}
+
+export interface VerifyEmailInput {
+  code: string;
+}
+
+export interface VerificationCodeResponse {
+  status: boolean;
+  message?: string;
+  code?: string;
+  email?: string;
+  email_verified?: boolean;
+  retry_after?: number | null;
 }
