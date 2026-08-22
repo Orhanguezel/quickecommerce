@@ -59,6 +59,8 @@ class Product extends Model
         "ads_eligible",
         "ads_ineligibility_reason",
         "market_min_price",
+        "market_median_price",
+        "market_price_source_count",
         "price_index",
         "market_price_checked_at",
         "commercial_reviewed_at",
@@ -70,6 +72,8 @@ class Product extends Model
         'is_hero' => 'boolean',
         'ads_eligible' => 'boolean',
         'market_min_price' => 'decimal:4',
+        'market_median_price' => 'decimal:4',
+        'market_price_source_count' => 'integer',
         'price_index' => 'decimal:4',
         'market_price_checked_at' => 'datetime',
         'commercial_reviewed_at' => 'datetime',
@@ -154,6 +158,11 @@ class Product extends Model
     public function sourceMappings()
     {
         return $this->hasMany(ProductSourceMapping::class, 'product_id');
+    }
+
+    public function marketPriceObservations()
+    {
+        return $this->hasMany(ProductMarketPriceObservation::class);
     }
 
     public function displayVariant()

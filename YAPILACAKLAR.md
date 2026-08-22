@@ -4,6 +4,15 @@
 > 5 günlük trafik raporu + ayrı nginx log, Geliver Türkçe il/ilçe fix + #113,
 > Google Places API, admin sipariş detayı/fatura adres + isim + temiz format.
 
+## 🆕 Reklam Uygunluğu Pilot Sistemi — BAŞLADI (2026-08-22)
+
+- [X] Canlı katalog, uygunluk kapıları, Google feed ve talep sinyalleri denetlendi.
+- [X] Kök uygulama checklist'i oluşturuldu: [`REKLAM_UYGUNLUK_CHECKLIST.md`](REKLAM_UYGUNLUK_CHECKLIST.md).
+- [X] Kaynak bazlı piyasa fiyatı gözlemleri, minimum/medyan aggregate ve geriye uyumlu CSV importu geliştirildi; canlı migration/import bekliyor.
+- [X] 20 ürünlük dengeli, salt-okunur pilot aday seçici geliştirildi; canlı migration sonrası aday raporu bekliyor.
+- [ ] Ayrı reklam feed'i/etiketi ve Merchant Center doğrulaması.
+- [ ] Küçük bütçeli kampanya ve katkı marjı ölçümü.
+
 ## 🆕 Satış Büyütme + Ana Sayfa Vitrini — UYGULAMA ÇEKLİSTİ (2026-08-13)
 
 ### A. “Öne Çıkan Ürünler” gerçek Sportoonline vitrini
