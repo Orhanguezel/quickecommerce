@@ -698,7 +698,7 @@ const OwnerDashboard = () => {
               </Card>
 
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 xl:gap-6 my-6 mt-6">
-                <Card dir={dir} className="p-2 md:p-4">
+                <Card dir={dir} className="min-w-0 p-2 md:p-4">
                   <div className="p-2 flex flex-col md:flex-row gap-4 md:gap-0 items-start md:items-center justify-between w-full mb-4">
                     <div
                       className={` ${
@@ -730,7 +730,7 @@ const OwnerDashboard = () => {
                     isPending={isSalesSummaryLoading}
                   />
                 </Card>
-                <Card className="p-2 md:p-4">
+                <Card className="min-w-0 p-2 md:p-4">
                   <div className="p-2 flex items-center justify-between mb-4">
                     <div
                       className={` ${
