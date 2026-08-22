@@ -30,6 +30,8 @@ class ScrapersHealthCheck extends Command
     private const STALE_HOURS = 24;
     private const MISSING_RATE_WARN = 0.20;   // %20+ mapping missing -> uyari
     private const STOCK100_RATE_WARN = 0.80;  // %80+ stok=100 -> bool default supheli
+    // Kaynak-yonetimli bir magazada bu kadar mapsiz-ama-stokta varyant varsa uyar.
+    private const UNMAPPED_IN_STOCK_WARN = 5;
 
     public function handle(): int
     {
@@ -149,6 +151,41 @@ class ScrapersHealthCheck extends Command
                 $issues[] = sprintf('%s: %d/%d (%.0f%%) urun stok=100 (eski bool default - sync bekliyor)',
                     $r->source_name, $r->s_100, $r->total, $rate * 100);
             }
+        }
+
+        // 4b) MAPSIZ ama STOKTA gorunen varyantlar.
+        //     sync:source-prices yalnizca product_source_mappings satirlari
+        //     uzerinde yurur. Mapping'i olmayan bir varyant is listesine hic
+        //     girmez: fiyati/stogu import anindan beri DONMUS kalir ve
+        //     tedarikcide tukenmis olsa bile satilmaya devam eder.
+        //     2026-08-23: Everyway EV-906A (urun #4744, Compex) tam olarak
+        //     boyle satildi (siparis #204) — kaynak available=False, DB stok=1.
+        //     Backfill artik varsayilan acik, ama kaynaktan tamamen kalkmis
+        //     urunler slug ile de eslesmez; onlari burada gorunur tutuyoruz.
+        $unmappedRows = DB::table('stores as s')
+            ->join('products as p', function ($join) {
+                $join->on('p.store_id', '=', 's.id')->whereNull('p.deleted_at');
+            })
+            ->join('product_variants as pv', 'pv.product_id', '=', 'p.id')
+            ->leftJoin('product_source_mappings as m', 'm.product_variant_id', '=', 'pv.id')
+            ->whereNull('m.product_variant_id')
+            ->where('pv.stock_quantity', '>', 0)
+            // Yalnizca kaynak-yonetimli magazalar: tamamen manuel magazalarda
+            // (kendi stogunu tutanlar) mapping olmamasi normaldir.
+            ->whereIn('s.id', function ($q) {
+                $q->select('store_id')->from('product_source_mappings')->whereNotNull('store_id');
+            })
+            ->groupBy('s.id', 's.name')
+            ->selectRaw('s.name as store_name, COUNT(*) as adet')
+            ->havingRaw('COUNT(*) >= ?', [self::UNMAPPED_IN_STOCK_WARN])
+            ->get();
+
+        foreach ($unmappedRows as $r) {
+            $issues[] = sprintf(
+                '%s: %d varyant mapping\'siz ama stokta gorunuyor (sync bunlara HIC dokunmuyor - oversell riski)',
+                $r->store_name,
+                $r->adet
+            );
         }
 
         // 5) Sessiz bozukluk: exit=0 + JSON tazel AMA veri dejenere.

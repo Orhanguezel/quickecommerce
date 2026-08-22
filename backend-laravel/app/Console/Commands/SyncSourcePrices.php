@@ -17,7 +17,8 @@ class SyncSourcePrices extends Command
                             {json_file : Guncel scraper JSON dosyasi}
                             {--store_id= : Sadece belirli magazayi sync et}
                             {--apply : Degisiklikleri DB\'ye yaz}
-                            {--backfill-by-slug : Mapping yoksa slug + varyant bilgisiyle esleme onizle/olustur}
+                            {--backfill-by-slug : (VARSAYILAN ACIK) Mapping yoksa slug + varyant bilgisiyle esleme onizle/olustur}
+                            {--no-backfill : Slug backfill\'i kapat; sadece mevcut mapping\'ler sync edilir}
                             {--backfill-by-name : Mapping yoksa urun adiyla esleme (slug uyusmazsa; birebir ad, ayni ad birden fazlaysa atlar)}
                             {--backfill-only : Sadece mapping backfill yap, fiyat/stok sync calistirma}
                             {--max-change-percent=30 : Fiyat degisim yuzdesi bu siniri asarsa fiyati atla (stok yine guncellenir)}
@@ -44,7 +45,17 @@ class SyncSourcePrices extends Command
         $this->sourceName = $this->normalizeSourceName($this->argument('source_name'));
         $jsonFile = $this->argument('json_file');
         $this->apply = (bool) $this->option('apply');
-        $this->backfillBySlug = (bool) $this->option('backfill-by-slug');
+        // 2026-08-23: SLUG BACKFILL ARTIK VARSAYILAN ACIK.
+        //
+        // Onceden mapping olusturmak icin --backfill-by-slug'i elle vermek
+        // gerekiyordu ve HICBIR cagiran vermiyordu (run-all.sh,
+        // run-intraday-stock.sh, run-evening-stock.sh, ScrapersRunOne hepsi
+        // bayraksiz cagiriyordu). Sonuc: magazaya sonradan giren veya
+        // mapping'i dusen urunler sync'in is listesine hic girmiyor, import
+        // anindaki stokla DONMUS kaliyor ve tedarikcide tukenmis olsa bile
+        // satiliyordu. Somut vaka: Everyway EV-906A (urun #4744, Compex)
+        // kaynakta available=False iken DB'de stok=1 kaldi -> siparis #204.
+        $this->backfillBySlug = !$this->option('no-backfill');
         $this->backfillByName = (bool) $this->option('backfill-by-name');
         $this->allowZeroPrice = (bool) $this->option('allow-zero-price');
         $this->stockOnly = (bool) $this->option('stock-only');
@@ -546,7 +557,9 @@ class SyncSourcePrices extends Command
     private function backfillMappings(array $products): int
     {
         $created = 0;
-        $storeId = $this->option('store_id') ? (int) $this->option('store_id') : null;
+        $storeId = $this->option('store_id')
+            ? (int) $this->option('store_id')
+            : $this->inferStoreIdForSource();
         $plannedVariantIds = [];
 
         // Isim modu: ayni ada sahip DB urunlerini onceden indeksle; bir ad
@@ -674,6 +687,25 @@ class SyncSourcePrices extends Command
     private function normalizeSourceName(string $value): string
     {
         return Str::of($value)->lower()->replace(['_products', '-products'], '')->slug('_')->toString();
+    }
+
+    /**
+     * Backfill artik varsayilan acik oldugu icin slug eslemesi KAPSAMSIZ
+     * kalmamali: bu kaynagin bugune kadar hangi magazaya yazdigini mevcut
+     * mapping'lerden turet ve slug aramasini o magazayla sinirla.
+     *
+     * Kaynak birden fazla magazaya yaziyorsa (ya da hic mapping yoksa) null
+     * doner; o zaman global slug eslesmesi kullanilir. products.slug tekil
+     * oldugu icin bu da guvenli, sadece daha genis.
+     */
+    private function inferStoreIdForSource(): ?int
+    {
+        $storeIds = ProductSourceMapping::where('source_name', $this->sourceName)
+            ->whereNotNull('store_id')
+            ->distinct()
+            ->pluck('store_id');
+
+        return $storeIds->count() === 1 ? (int) $storeIds->first() : null;
     }
 
     private function normalizeSlug(?string $value): string
