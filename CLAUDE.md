@@ -4,6 +4,23 @@
 
 ## 🔔 Aktif Hatirlatmalar (TARIH ILE KONTROL ET)
 
+### 🔔 2026-08-25 (E-POSTA DOGRULAMA — 3 GUN SONRA KONTROL)
+**Why:** 2026-08-22'de misafir checkout e-posta kod dogrulamasi + telefon dogrulamasi canliya alindi (sahte siparis #204). Uyelik dogrulamasi (`com_user_email_verification`) KASITLI KAPALI birakildi — once misafir tarafi gozlenecek.
+**Yapilacak:**
+```bash
+# Kac kod istendi / kac misafir dogrulandi
+ssh vps-sportoonline 'cd /var/www/quikecommerce/backend-laravel && php artisan tinker --execute="
+echo \"bekleyen kod: \", \DB::table(\"email_verification_codes\")->count(), PHP_EOL;
+echo \"dogrulanmis misafir: \", \DB::table(\"customers\")->where(\"is_guest\",1)->where(\"email_verified\",1)->count(), PHP_EOL;
+echo \"22 Agustos sonrasi misafir: \", \DB::table(\"customers\")->where(\"is_guest\",1)->where(\"created_at\",\">\",\"2026-08-22\")->count(), PHP_EOL;"'
+# Kod maili gonderilemedi hatasi var mi
+ssh vps-sportoonline 'grep -c "email-verification. kod gonderilemedi" /var/www/quikecommerce/backend-laravel/storage/logs/laravel.log'
+```
+- **Dogrulanan misafir sayisi ~ yeni misafir sayisi ise**: akis saglikli. Uyelik dogrulamasini da acmayi degerlendir:
+  `php artisan customers:backfill-email-verified` (tekrar, yeni kayitlar icin) → sonra admin panelden `com_user_email_verification = on`.
+- **Yeni misafir sayisi bariz DUSTUYSE** (kod adimi terk ediliyorsa): kill switch `com_guest_checkout_email_verification = off`.
+- Detay/tuzaklar: memory `email-verification-system`.
+
 ### 🔔 2026-06-07 sabah (4-SCRAPER FIX ILK GERCEK CRON SONRASI)
 **Why:** 2026-06-06'da musclepump_import (TCP timeout) + compexturkiye/eprotein/proteinavm (HTTP 301) FAIL etti. ScrapersRunOne.php source bazli `SCRAPER_URL=http://127.0.0.1:8200` override eklendi (yerel scraper service) + musclepump_scraper.py'a fallback eklendi. 07'de 02:00 UTC (05:00 TR) cron ilk kez bu fix'lerle calisacak.
 **Yapilacak (sabah ilk is):**
