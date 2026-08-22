@@ -47,6 +47,16 @@ ssh vps-sportoonline 'cd /var/www/quikecommerce/backend-laravel && php artisan s
 - Yok satan urunler oldu mu? (musteri sikayeti / siparis kontrol)
 - Hangi scraper'lar hala "bool only" donduruyorsa onlara da CSS class detection eklenmesi gerekebilir (linktech/herbinatura — %100 true donduruyorlar)
 
+### 🔔 BEKLEYEN: SMS OTP (telefon sahiplik dogrulamasi) — KULLANICI ERTELEDI (2026-08-22)
+**Karar:** Telefon **format** dogrulamasi yeterli (`App\Rules\ValidCustomerPhone`, libphonenumber — kayit + misafir checkout + admin musteri ekleme). Sahiplik dogrulamasi (SMS OTP) **su an gerekmiyor**; sahte siparis korumasini misafir checkout e-posta OTP'si zaten sagliyor. Kullanici acmak isterse asagidakiler yapilmali.
+**Mevcut durum (2026-08-22 tespit) — iskelet var ama HICBIRI CALISMIYOR:**
+- `sms_providers` tablosu **tamamen bos** → `SmsManager::driver()` "No active SMS provider found" firlatir.
+- `otp_login_enabled_disable` = `off`, `com_user_login_otp` = NULL.
+- `customers.verified` 0/122, `verify_method` hepsi `email`. `user_otps` 0 kayit.
+- Desteklenen saglayicilar sadece **Twilio / Nexmo** — TR icin pahali, NetGSM/Iletimerkezi provider'i yok.
+- **FRONTEND BOZUK:** `giris/login-client.tsx` `/otp-login/send`'e `{email}` yolluyor, `UserOtpController` `{region, phone, user_type}` bekliyor. Ayar kapali oldugu icin buton hic gorunmemis, bu yuzden fark edilmemis.
+**Acilacaksa yapilacaklar:** (1) TR saglayici icin yeni `SmsInterface` provider'i, (2) frontend OTP payload'unu duzelt, (3) checkout'a ikinci OTP adiminin sepet terk oranina etkisini olc.
+
 ### 🔔 BEKLEYEN: Maraton magazasi karari
 **Durum (2026-06-06 tespit):** maraton.com.tr **memlekethosting.com'a redirect** — tedarikci siteyi kapatmis. Sportoonline DB'de Maraton Sportswear (store_id=47) status=1 (aktif), 317 urun, tum stok=0. Sipariş alinmiyor zaten ama frontend'de magaza linki goruluyor.
 **Yapilacak (kullanici karari):**
