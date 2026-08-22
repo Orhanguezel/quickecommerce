@@ -7,6 +7,7 @@ use App\Models\EmailVerificationCode;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
 
 /**
  * 6 haneli e-posta dogrulama kodu uretir/dogrular.
@@ -68,33 +69,41 @@ class EmailVerificationCodeService
     {
         $email = $this->normalizeEmail($email);
 
+        // GONDERIM SAYACLARI DB SATIRINDA TUTULMAZ.
+        //
+        // Onceki surumde limitler email_verification_codes satirinin
+        // send_count/ip alanlarindaydi; satir ise dogrulama basarili olunca
+        // VEYA 5 yanlis denemede siliniyordu. Yani saldirgan 5 kod isteyip
+        // ardindan 6 yanlis kod deneyerek satiri sildiriyor ve hem e-posta
+        // hem IP sayacini SIFIRLIYORDU -> secilen bir adrese sinirsiz
+        // dogrulama maili (Gmail SMTP kotasi yanar, siparis mailleri susar).
+        // Sayaclar artik Redis'te (RateLimiter), satirin omrunden bagimsiz.
+        $cooldownKey = $this->limiterKey('cd', $purpose, $email);
+        $emailKey = $this->limiterKey('send', $purpose, $email);
+        $ipKey = $ip !== null ? 'evc:ip:' . sha1($ip) : null;
+
+        if (RateLimiter::tooManyAttempts($cooldownKey, 1)) {
+            $wait = RateLimiter::availableIn($cooldownKey);
+            return $this->fail('cooldown', "Yeni kod icin {$wait} saniye bekleyin.", max($wait, 1));
+        }
+
+        if (RateLimiter::tooManyAttempts($emailKey, self::MAX_SENDS_PER_HOUR)) {
+            return $this->fail(
+                'too_many_sends',
+                'Bu e-posta icin cok fazla kod istendi. Lutfen 1 saat sonra tekrar deneyin.',
+                max(RateLimiter::availableIn($emailKey), 1)
+            );
+        }
+
+        if ($ipKey !== null && RateLimiter::tooManyAttempts($ipKey, self::MAX_SENDS_PER_IP_PER_HOUR)) {
+            return $this->fail(
+                'ip_limit',
+                'Cok fazla dogrulama kodu istendi. Lutfen daha sonra tekrar deneyin.',
+                max(RateLimiter::availableIn($ipKey), 1)
+            );
+        }
+
         $row = EmailVerificationCode::where('email', $email)->where('purpose', $purpose)->first();
-
-        // 1 saatlik pencere doldu -> sayaclari sifirla.
-        if ($row && $row->created_at !== null && $row->created_at->lt(now()->subHour())) {
-            $row->delete();
-            $row = null;
-        }
-
-        if ($row) {
-            if ($row->last_sent_at !== null && $row->last_sent_at->gt(now()->subSeconds(self::RESEND_COOLDOWN_SECONDS))) {
-                $wait = self::RESEND_COOLDOWN_SECONDS - (int) $row->last_sent_at->diffInSeconds(now());
-                return $this->fail('cooldown', "Yeni kod icin {$wait} saniye bekleyin.", max($wait, 1));
-            }
-
-            if ($row->send_count >= self::MAX_SENDS_PER_HOUR) {
-                $wait = (int) now()->diffInSeconds($row->created_at->copy()->addHour(), false);
-                return $this->fail(
-                    'too_many_sends',
-                    'Bu e-posta icin cok fazla kod istendi. Lutfen 1 saat sonra tekrar deneyin.',
-                    max($wait, 1)
-                );
-            }
-        }
-
-        if ($ip !== null && $this->ipSendCount($ip) >= self::MAX_SENDS_PER_IP_PER_HOUR) {
-            return $this->fail('ip_limit', 'Cok fazla dogrulama kodu istendi. Lutfen daha sonra tekrar deneyin.', 3600);
-        }
 
         $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
@@ -110,6 +119,12 @@ class EmailVerificationCodeService
             ]);
 
             return $this->fail('send_failed', 'Dogrulama e-postasi gonderilemedi. Lutfen tekrar deneyin.');
+        }
+
+        RateLimiter::hit($cooldownKey, self::RESEND_COOLDOWN_SECONDS);
+        RateLimiter::hit($emailKey, 3600);
+        if ($ipKey !== null) {
+            RateLimiter::hit($ipKey, 3600);
         }
 
         if ($row) {
@@ -193,11 +208,10 @@ class EmailVerificationCodeService
             ->delete();
     }
 
-    private function ipSendCount(string $ip): int
+    /** Sayac anahtarlari: e-posta acik metin olarak cache'e yazilmasin. */
+    private function limiterKey(string $prefix, string $purpose, string $email): string
     {
-        return (int) EmailVerificationCode::where('ip', $ip)
-            ->where('created_at', '>=', now()->subHour())
-            ->sum('send_count');
+        return 'evc:' . $prefix . ':' . sha1($purpose . '|' . $email);
     }
 
     private function normalizeEmail(string $email): string
