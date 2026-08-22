@@ -63,6 +63,8 @@ Route::group(['prefix' => 'v1/'], function () {
         Route::group(['prefix' => 'auth/'], function () {
             Route::get('google', [UserController::class, 'redirectToGoogle']);
             Route::get('google/callback', [UserController::class, 'handleGoogleCallback']);
+            Route::post('google/admin/exchange', [UserController::class, 'exchangeAdminGoogleCode'])
+                ->middleware('throttle:10,1');
             Route::get('facebook', [UserController::class, 'redirectToFacebook']);
             Route::get('facebook/callback', [UserController::class, 'handleFacebookCallback']);
             Route::post('forget-password', [UserController::class, 'forgetPassword']);

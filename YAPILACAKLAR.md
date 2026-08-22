@@ -4,6 +4,16 @@
 > 5 günlük trafik raporu + ayrı nginx log, Geliver Türkçe il/ilçe fix + #113,
 > Google Places API, admin sipariş detayı/fatura adres + isim + temiz format.
 
+## 🔐 Admin Google girişi — TAMAMLANDI (2026-08-22)
+
+- [X] Admin giriş ekranına Google ile giriş eklendi.
+- [X] Yalnız `sportoonlinecom@gmail.com` ve `engineserplus@gmail.com` whitelist'e alındı.
+- [X] İki Google kimliği mevcut `admin@sportoonline.com` sistem adminine eşlendi.
+- [X] Engin Eser'in seller ve customer hesapları değiştirilmeden korundu.
+- [X] Tek kullanımlık OAuth state + 60 saniyelik exchange code ile token'ın URL'ye yazılması engellendi.
+- [X] Whitelist unit testi, admin-panel lint ve production build tamamlandı.
+- [X] PR: <https://github.com/Orhanguezel/quickecommerce/pull/7>
+
 ## 🆕 Search backend dinamik + yeni taxonomy attributes — ÇEKLİST (2026-05-25)
 
 > 2026-05-25/26 oturumunda yapılanlar + bekleyenler.

@@ -560,6 +560,7 @@ export const API_ENDPOINTS = {
   YOUTUBE_SEARCH_API: "https://www.googleapis.com/youtube/v3/search",
   REGISTER: "/register",
   USERS_LOGIN: "/token",
+  ADMIN_GOOGLE_EXCHANGE: "/v1/auth/google/admin/exchange",
   STORE_OWNER_REGISTER: "v1/seller/registration",
   SHOP_OWNER_LOGIN: "/v1/seller/login",
   USERS: "users",
