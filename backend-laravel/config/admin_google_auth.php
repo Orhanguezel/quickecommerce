@@ -15,6 +15,8 @@ return [
         'ADMIN_GOOGLE_TARGET_EMAIL',
         'admin@sportoonline.com'
     )),
+    // Keep null to reuse the callback already authorized in Google Cloud.
+    'redirect_uri' => env('ADMIN_GOOGLE_REDIRECT_URI'),
     'state_ttl_seconds' => 600,
     'exchange_ttl_seconds' => 60,
 ];

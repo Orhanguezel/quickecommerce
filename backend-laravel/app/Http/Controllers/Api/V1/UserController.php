@@ -224,7 +224,7 @@ class UserController extends Controller
             }
 
             $state = $this->adminGoogleAuth->begin((string) $request->query('locale', 'tr'));
-            $redirectUri = config('services.googleOAuth.redirect');
+            $redirectUri = $this->adminGoogleRedirectUri();
         } else {
             $state = $role;
             $redirectUri = com_option_get('com_google_client_callback_url');
@@ -265,7 +265,7 @@ class UserController extends Controller
                 'client_id' => com_option_get('com_google_app_id'),
                 'client_secret' => com_option_get('com_google_client_secret'),
                 'redirect_uri' => $adminStatePayload
-                    ? config('services.googleOAuth.redirect')
+                    ? $this->adminGoogleRedirectUri()
                     : com_option_get('com_google_client_callback_url'),
             ])->stateless()->user();
         } catch (\Throwable $exception) {
@@ -462,6 +462,15 @@ class UserController extends Controller
             . '/admin/google/callback';
 
         return redirect()->away($callbackUrl . '?' . http_build_query($query));
+    }
+
+    private function adminGoogleRedirectUri(): string
+    {
+        $configuredRedirect = trim((string) config('admin_google_auth.redirect_uri', ''));
+
+        return $configuredRedirect !== ''
+            ? $configuredRedirect
+            : (string) com_option_get('com_google_client_callback_url');
     }
 
 
