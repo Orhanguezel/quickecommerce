@@ -91,7 +91,7 @@ if (!function_exists('shouldRound')) {
 }
 
 if (!function_exists('socialLogin')) {
-    function socialLogin(string $accessToken, string $type, string $firebaseToken = null, string $role)
+    function socialLogin(string $accessToken, string $type, ?string $firebaseToken, string $role)
     {
         $socialId = null;
         $name = null;

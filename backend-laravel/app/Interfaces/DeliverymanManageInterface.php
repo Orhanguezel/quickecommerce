@@ -49,7 +49,7 @@ interface DeliverymanManageInterface
 
     public function orderRequests();
 
-    public function updateOrderStatus(string $status, int $order_id, string $reason);
+    public function updateOrderStatus(string $status, int $order_id, ?string $reason = null);
 
     public function orderChangeStatus(string $status, int $order_id);
 

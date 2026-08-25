@@ -525,7 +525,7 @@ class DeliverymanManageRepository implements DeliverymanManageInterface
         return $order_requests;
     }
 
-    public function updateOrderStatus(string $status, int $order_id, string $reason = null)
+    public function updateOrderStatus(string $status, int $order_id, ?string $reason = null)
     {
         $deliveryman = auth('api')->user();
         DB::beginTransaction();
