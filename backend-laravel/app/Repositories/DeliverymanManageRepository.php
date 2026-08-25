@@ -21,6 +21,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Modules\Wallet\app\Models\Wallet;
 use Modules\Wallet\app\Models\WalletTransaction;
@@ -718,66 +719,45 @@ class DeliverymanManageRepository implements DeliverymanManageInterface
 
 
                 // mail send
-                try {
-                    // order notification
-                    $email_template_deliveryman = EmailTemplate::where('type', 'deliveryman-earning')->where('status', 1)->first();
-                    $email_template_order_delivered = EmailTemplate::where('type', 'order-status-delivered')->where('status', 1)->first();
-                    $email_template_order_store = EmailTemplate::where('type', 'order-status-delivered-store')->where('status', 1)->first();
-                    $email_template_order_admin = EmailTemplate::where('type', 'order-status-delivered-admin')->where('status', 1)->first();
+                // Her alici KENDI try/catch'inde: eskiden tek try vardi ve
+                // magaza e-postasi bos oldugunda Mail::to(null) firlatip
+                // ardindaki admin + kurye maillerini de sessizce dusuruyordu.
+                // Ayrica sablonlardan biri pasifse ->subject erisimi \Error
+                // firlatiyordu; catch (\Exception) bunu yakalamiyordu.
+                $orderAmount = amount_with_symbol_format($order->order_amount);
 
-                    // customer, store and admin
-                    $customer_subject = $email_template_order_delivered->subject;
-                    $store_subject = $email_template_order_store->subject;
-                    $admin_subject = $email_template_order_admin->subject;
-                    $deliveryman_subject = $email_template_deliveryman->subject;
+                $templates = EmailTemplate::whereIn('type', [
+                    'order-status-delivered',
+                    'order-status-delivered-store',
+                    'order-status-delivered-admin',
+                    'deliveryman-earning',
+                ])->where('status', 1)->get()->keyBy('type');
 
-                    $customer_message = $email_template_order_delivered->body;
-                    $store_message = $email_template_order_store->body;
-                    $admin_message = $email_template_order_admin->body;
-                    $deliveryman_message = $email_template_deliveryman->body;
+                $this->sendDeliveredMail($customer_email, $templates['order-status-delivered'] ?? null, [
+                    '@customer_name' => $order->orderMaster?->customer?->full_name,
+                    '@order_id'      => $order->id,
+                    '@order_amount'  => $orderAmount,
+                ], $order->id, 'customer');
 
-                    $order_amount = amount_with_symbol_format($order->order_amount);
+                $this->sendDeliveredMail($store_email, $templates['order-status-delivered-store'] ?? null, [
+                    '@store_name'            => $order->store?->name,
+                    '@order_id'              => $order->id,
+                    '@order_amount_for_store' => amount_with_symbol_format($order->order_amount_store_value),
+                ], $order->id, 'store');
 
-                    $customer_message = str_replace(["@customer_name", "@order_id", "@order_amount"],
-                        [
-                            $order->orderMaster?->customer?->full_name,
-                            $order->id,
-                            $order_amount,
-                        ], $customer_message);
+                $this->sendDeliveredMail($system_global_email, $templates['order-status-delivered-admin'] ?? null, [
+                    '@order_id'                          => $order->id,
+                    '@order_amount_admin_commission'     => amount_with_symbol_format($order->order_amount_admin_commission),
+                    '@delivery_charge_commission_amount' => amount_with_symbol_format($order->delivery_charge_admin_commission),
+                ], $order->id, 'admin');
 
-                    $store_message = str_replace(["@store_name", "@order_id", "@order_amount_for_store"],
-                        [
-                            $order->store?->name,
-                            $order->id,
-                            amount_with_symbol_format($order->order_amount_store_value),
-                        ], $store_message);
+                $this->sendDeliveredMail($delivery_man, $templates['deliveryman-earning'] ?? null, [
+                    '@name'            => auth('api')->user()?->full_name,
+                    '@order_id'        => $order->id,
+                    '@order_amount'    => $orderAmount,
+                    '@earnings_amount' => amount_with_symbol_format($order->delivery_charge_admin),
+                ], $order->id, 'deliveryman');
 
-                    $admin_message = str_replace(["@order_id", "@order_amount_admin_commission", "@delivery_charge_commission_amount"],
-                        [
-                            $order->id,
-                            amount_with_symbol_format($order->order_amount_admin_commission),
-                            amount_with_symbol_format($order->delivery_charge_admin_commission),
-                        ], $admin_message);
-
-                    $deliveryman_message = str_replace(["@name", "@order_id", "@order_amount", "@earnings_amount"],
-                        [
-                            auth('api')->user()->full_name,
-                            $order->id,
-                            $order_amount,
-                            amount_with_symbol_format($order->delivery_charge_admin)
-                        ], $deliveryman_message);
-
-
-                    // customer
-                    Mail::to($customer_email)->send(new DynamicEmail($customer_subject, (string)$customer_message));
-                    // store
-                    Mail::to($store_email)->send(new DynamicEmail($store_subject, (string)$store_message));
-                    // admin
-                    Mail::to($system_global_email)->send(new DynamicEmail($admin_subject, (string)$admin_message));
-                    // deliveryman
-                    Mail::to($delivery_man)->send(new DynamicEmail($deliveryman_subject, (string)$deliveryman_message));
-                } catch (\Exception $th) {
-                }
                 return 'delivered';
             }
 
@@ -1003,5 +983,35 @@ class DeliverymanManageRepository implements DeliverymanManageInterface
         return $query->get()->sum(function ($history) {
             return round($history->order->delivery_charge_admin, 2) ?? 0; // Sum admin delivery charge
         });
+    }
+
+    /**
+     * Tek alici icin teslimat maili. Bos adres veya pasif sablon tum zinciri
+     * dusurmesin diye her cagri kendi try/catch'inde ve sessiz degil.
+     */
+    private function sendDeliveredMail(?string $email, $template, array $replacements, $orderId, string $recipient): void
+    {
+        $email = trim((string) $email);
+
+        if ($email === '' || !$template) {
+            Log::info('[order-status-email] teslimat maili atlandi', [
+                'order_id'  => $orderId,
+                'recipient' => $recipient,
+                'reason'    => $email === '' ? 'adres yok' : 'sablon pasif/yok',
+            ]);
+            return;
+        }
+
+        $body = str_replace(array_keys($replacements), array_values($replacements), (string) ($template->body ?? ''));
+
+        try {
+            Mail::to($email)->send(new DynamicEmail($template->subject ?: 'Sipariş Teslim Edildi', $body));
+        } catch (\Throwable $e) {
+            Log::error('[order-status-email] teslimat maili gonderilemedi', [
+                'order_id'  => $orderId,
+                'recipient' => $recipient,
+                'error'     => $e->getMessage(),
+            ]);
+        }
     }
 }

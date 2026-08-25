@@ -2,7 +2,6 @@
 
 namespace App\Observers;
 
-use App\Jobs\DispatchOrderEmails;
 use App\Models\Order;
 use App\Models\OrderActivity;
 use Illuminate\Support\Facades\DB;
@@ -14,8 +13,9 @@ class OrderObserver
      */
     public function created(Order $order): void
     {
-        // Dispatch the job to send emails when the order is created
-        dispatch(new DispatchOrderEmails($order->id, 'new-order'));
+        // Mail gonderimi burada YAPILMAZ. DispatchOrderEmails order_master_id
+        // bekliyor, buraya order id veriliyordu -> yanlis musteriye mail.
+        // Siparis olusturma maili OrderService::... icinde dogru id ile atiliyor.
     }
 
     /**
@@ -39,19 +39,18 @@ class OrderObserver
             $user = null;
             if (auth()->guard('api_customer')->check()) {
                 $user = auth()->guard('api_customer')->user();
-                dispatch(new DispatchOrderEmails($order->id, 'order-status-change-deliveryman'));
             } elseif (auth()->guard('api')->check()) {
                 $user = auth()->guard('api')->user();
             }
 
-            // Check if the user is a seller, admin, customer, or deliveryman
-            if ($user && $user->activity_scope === 'store_level') {
-                dispatch(new DispatchOrderEmails($order->id, 'order-status-change-store'));
-            } elseif ($user && $user->activity_scope === 'system_level') {
-                dispatch(new DispatchOrderEmails($order->id, 'order-status-change-admin'));
-            } elseif ($user && $user->activity_scope === 'delivery_level') {
-                dispatch(new DispatchOrderEmails($order->id, 'order-status-change-customer'));
-            }
+            // Durum degisikligi e-postalari BURADAN gonderilmez.
+            // Eskiden buradaki 3 dispatch DispatchOrderEmails'e order id
+            // veriyordu (order_master_id bekleniyor) -> canli veride 35
+            // siparisin 13'unde iki id cakisiyor ve BASKA bir musteriye
+            // "Siparisiniz Alindi!" maili gidiyordu. Ustelik durum
+            // degisiminde order-created sablonu yanlis icerik demekti.
+            // Dogru durum maili: AdminOrderManageController /
+            // SellerStoreOrderController -> order-status-{status}.
         }
         // If the order is refunded or cancelled then restore the product quantity
         if ($order->isDirty('refund_status') && $order->refund_status === 'refunded' ||

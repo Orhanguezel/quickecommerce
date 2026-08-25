@@ -24,6 +24,7 @@ use App\Models\SystemCommission;
 use App\Services\Order\OrderManageNotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Modules\Wallet\app\Models\Wallet;
@@ -272,66 +273,115 @@ class AdminOrderManageController extends Controller
         }
     }
 
+    /**
+     * Siparis durumu degisince bildirim + e-posta gonderir.
+     *
+     * DIKKAT: E-posta sablonu HER ZAMAN siparisin gercek durumundan secilir
+     * (order-status-{status}). Eskiden bu metot durumdan bagimsiz olarak
+     * "order-status-delivered" sablonunu yolluyordu; bu yuzden siparis sadece
+     * "confirmed"/"cancelled" yapildiginda bile musteriye "Siparisiniz Teslim
+     * Edildi!" maili gidiyordu (2026-08-25, siparis #208).
+     */
     protected function sendOrderDeliveredNotifications(Order $order, $deliveryHistory = null, $type = null)
     {
-
-        // check if change admin order  status
+        // In-app / push bildirimi (mesaji zaten $order->status uzerinden uretir)
         $this->orderManageNotificationService->createOrderNotification($order->id, $type);
 
-        try {
+        $status = (string) $order->status;
+        $customerTemplateType = 'order-status-' . $status;
+        $isDelivered = $status === 'delivered';
 
-            $emailTemplates = EmailTemplate::whereIn('type', [
-                'order-status-delivered',
-                'order-status-delivered-store',
-                'order-status-delivered-admin',
-                'deliveryman-earning'
-            ])->where('status', 1)->get()->keyBy('type');
+        // Kurye atama siparis durumunu degistirmez; musteriye mail gonderilmez
+        // (bildirim servisi de bu tipte sadece kurye + saticiyi bilgilendirir).
+        $notifyCustomer = $type !== 'admin_order_assign_deliveryman';
 
-            $orderAmount = amount_with_symbol_format($order->order_amount);
+        $emailTemplates = EmailTemplate::whereIn('type', [
+            $customerTemplateType,
+            'order-status-delivered-store',
+            'order-status-delivered-admin',
+            'deliveryman-earning',
+        ])->where('status', 1)->get()->keyBy('type');
 
-            // Customer
+        $orderAmount = amount_with_symbol_format($order->order_amount);
+
+        // Musteri — siparisin gercek durumuna ait sablon
+        $customerTemplate = $emailTemplates[$customerTemplateType] ?? null;
+        $customerEmail = $order->orderAddress?->email ?? $order->orderMaster?->customer?->email;
+
+        if ($notifyCustomer && $customerTemplate) {
             $customerMessage = str_replace(
                 ["@customer_name", "@order_id", "@order_amount"],
                 [$order->orderMaster?->customer?->full_name, $order->id, $orderAmount],
-                $emailTemplates['order-status-delivered']?->body ?? ''
+                $customerTemplate->body ?? ''
             );
+            $this->sendStatusEmail($customerEmail, $customerTemplate->subject, $customerMessage, $order->id, 'customer');
+        } elseif ($notifyCustomer) {
+            Log::warning('[order-status-email] sablon bulunamadi, musteriye mail gonderilmedi', [
+                'order_id' => $order->id,
+                'template'  => $customerTemplateType,
+            ]);
+        }
 
-            // Store
+        // Magaza / admin / kurye "teslim edildi" mailleri SADECE gercekten teslim edildiyse
+        if (! $isDelivered) {
+            return;
+        }
+
+        $storeTemplate = $emailTemplates['order-status-delivered-store'] ?? null;
+        if ($storeTemplate) {
             $storeMessage = str_replace(
                 ["@store_name", "@order_id", "@order_amount_for_store"],
                 [$order->store?->name, $order->id, amount_with_symbol_format($order->order_amount_store_value)],
-                $emailTemplates['order-status-delivered-store']?->body ?? ''
+                $storeTemplate->body ?? ''
             );
+            $this->sendStatusEmail($order->store?->email, $storeTemplate->subject, $storeMessage, $order->id, 'store');
+        }
 
-            // Admin
+        $adminTemplate = $emailTemplates['order-status-delivered-admin'] ?? null;
+        if ($adminTemplate) {
             $adminMessage = str_replace(
                 ["@order_id", "@order_amount_admin_commission", "@delivery_charge_commission_amount"],
                 [$order->id, amount_with_symbol_format($order->order_amount_admin_commission), amount_with_symbol_format($order->delivery_charge_admin_commission)],
-                $emailTemplates['order-status-delivered-admin']?->body ?? ''
+                $adminTemplate->body ?? ''
             );
+            $this->sendStatusEmail(com_option_get('com_site_email'), $adminTemplate->subject, $adminMessage, $order->id, 'admin');
+        }
 
-            // Deliveryman
-            if ($deliveryHistory) {
-                $deliverymanMessage = str_replace(
-                    ["@name", "@order_id", "@order_amount", "@earnings_amount"],
-                    [auth('api')->user()->full_name, $order->id, $orderAmount, amount_with_symbol_format($order->delivery_charge_admin)],
-                    $emailTemplates['deliveryman-earning']?->body ?? ''
-                );
-            }
+        $deliverymanTemplate = $emailTemplates['deliveryman-earning'] ?? null;
+        if ($deliveryHistory && $deliverymanTemplate) {
+            $deliverymanMessage = str_replace(
+                ["@name", "@order_id", "@order_amount", "@earnings_amount"],
+                [auth('api')->user()?->full_name, $order->id, $orderAmount, amount_with_symbol_format($order->delivery_charge_admin)],
+                $deliverymanTemplate->body ?? ''
+            );
+            $this->sendStatusEmail($order->deliveryman?->email, $deliverymanTemplate->subject, $deliverymanMessage, $order->id, 'deliveryman');
+        }
+    }
 
-            // Sending
-            Mail::to($order->orderAddress?->email ?? $order->orderMaster?->customer?->email)
-                ->send(new DynamicEmail($emailTemplates['order-status-delivered']->subject ?? 'Order Delivered', $customerMessage));
+    /**
+     * Tek alici icin mail gonderir. Bos adres / SMTP hatasi diger alicilari
+     * engellemez (eskiden tek try-catch vardi: magaza e-postasi bos olunca
+     * admin maili de sessizce dusuyordu).
+     */
+    private function sendStatusEmail(?string $email, ?string $subject, string $body, $orderId, string $recipient): void
+    {
+        $email = trim((string) $email);
+        if ($email === '') {
+            Log::info('[order-status-email] alici adresi bos, atlandi', [
+                'order_id'  => $orderId,
+                'recipient' => $recipient,
+            ]);
+            return;
+        }
 
-            Mail::to($order->store?->email)->send(new DynamicEmail($emailTemplates['order-status-delivered-store']->subject ?? 'Order Delivered', $storeMessage));
-            Mail::to(com_option_get('com_site_email'))->send(new DynamicEmail($emailTemplates['order-status-delivered-admin']->subject ?? 'Order Delivered', $adminMessage));
-
-            if ($deliveryHistory) {
-                Mail::to($order->deliveryman?->email)->send(new DynamicEmail($emailTemplates['deliveryman-earning']->subject ?? 'Delivery Earnings', $deliverymanMessage));
-            }
-
-        } catch (\Exception $e) {
-            // Optional: log or ignore
+        try {
+            Mail::to($email)->send(new DynamicEmail($subject ?: 'Sipariş Durumu', $body));
+        } catch (\Throwable $e) {
+            Log::error('[order-status-email] gonderilemedi', [
+                'order_id'  => $orderId,
+                'recipient' => $recipient,
+                'error'     => $e->getMessage(),
+            ]);
         }
     }
 

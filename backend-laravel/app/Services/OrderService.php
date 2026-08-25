@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Helpers\DeliveryChargeHelper;
-use App\Jobs\DispatchOrderEmails;
 use App\Models\OrderAddress;
 use App\Models\Store;
 use App\Models\CustomerAddress;
@@ -670,8 +669,10 @@ class OrderService
             // notification send
             $this->orderManageNotificationService->createOrderNotification($all_orders_ids, 'new-order');
 
-            // mail send Dispatch the email job asynchronously
-            dispatch(new DispatchOrderEmails($order_master->id));
+            // Siparis maili (musteri + admin + magaza) createOrderNotification
+            // icindeki 'new-order' bacaginda gonderiliyor. Burada ayrica
+            // DispatchOrderEmails cagriliyordu -> musteriye ve admin'e IKINCI
+            // bir "Siparisiniz Alindi!" maili gidiyordu. Kaldirildi.
             DB::commit();
 
             return [

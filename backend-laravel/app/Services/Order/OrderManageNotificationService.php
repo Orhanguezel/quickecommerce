@@ -2,8 +2,10 @@
 
 namespace App\Services\Order;
 
+use App\Mail\DynamicEmail;
 use App\Mail\OrderCreatedToAdmin;
 use App\Mail\OrderCreatedToCustomer;
+use App\Models\EmailTemplate;
 use App\Models\Order;
 use App\Models\UniversalNotification;
 use App\Models\User;
@@ -260,6 +262,29 @@ class OrderManageNotificationService
 
             if ($adminEmail) {
                 Mail::to($adminEmail)->queue(new OrderCreatedToAdmin($order));
+            }
+
+            // Magaza/satici bilgilendirmesi. Eskiden bunu OrderService icindeki
+            // ikinci `dispatch(new DispatchOrderEmails(...))` yapiyordu; o is ayni
+            // zamanda musteri + admin'e IKINCI bir "Siparisiniz Alindi!" maili
+            // yolluyordu. Cift mail kaldirildi, magaza bacagi buraya tasindi.
+            $storeEmail = $order->store?->email;
+            $storeTemplate = EmailTemplate::where('type', 'order-created-store')
+                ->where('status', 1)
+                ->first();
+
+            if ($storeEmail && $storeTemplate) {
+                $storeMessage = str_replace(
+                    ['@store_owner_name', '@store_name', '@order_id', '@order_amount'],
+                    [
+                        $order->store?->seller?->full_name ?? __('Store Owner'),
+                        $order->store?->name,
+                        $order->id,
+                        amount_with_symbol_format($order->order_amount),
+                    ],
+                    $storeTemplate->body ?? ''
+                );
+                Mail::to($storeEmail)->queue(new DynamicEmail($storeTemplate->subject ?: 'Yeni Sipariş', $storeMessage));
             }
         } catch (\Throwable $e) {
             Log::warning('OrderCreated email dispatch failed', [
