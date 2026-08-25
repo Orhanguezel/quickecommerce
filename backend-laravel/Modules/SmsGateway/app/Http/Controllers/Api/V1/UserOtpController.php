@@ -25,7 +25,15 @@ class UserOtpController extends Controller
      * @throws \Exception
      */
 
-    public function __construct()
+    /**
+     * OTP girisi acik degilse istegi 422 ile keser.
+     *
+     * Bu kontrol eskiden __construct icindeydi; Laravel controller'i
+     * container'dan cozerken (orn. `php artisan route:list`) constructor
+     * calisip HttpResponseException firlatiyor ve komutu tamamen kiriyordu.
+     * Istek bazinda kontrol ayni sonucu verir, tooling'i kirmaz.
+     */
+    private function ensureOtpLoginEnabled(): void
     {
         $setting_options = SettingOption::where('option_name', 'otp_login_enabled_disable')->value('option_value');
         if (empty($setting_options) || $setting_options === 'off') {
@@ -37,6 +45,8 @@ class UserOtpController extends Controller
 
     public function sendOtp(Request $request): Response
     {
+        $this->ensureOtpLoginEnabled();
+
         $validator = Validator::make($request->all(), [
             'region' => 'required|string',
             'phone' => 'required|string',
@@ -106,6 +116,8 @@ class UserOtpController extends Controller
 
     public function verifyOtp(Request $request): Response
     {
+        $this->ensureOtpLoginEnabled();
+
         $validator = Validator::make($request->all(), [
             'phone' => 'required|string',
             'region' => 'required|string',
@@ -216,6 +228,8 @@ class UserOtpController extends Controller
 
     public function resendOtp(Request $request): Response
     {
+        $this->ensureOtpLoginEnabled();
+
         $validator = Validator::make($request->all(), [
             'phone' => 'required|string',
             'region' => 'required|string',

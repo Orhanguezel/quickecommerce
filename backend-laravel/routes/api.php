@@ -29,7 +29,6 @@ use App\Http\Controllers\Api\V1\StripePaymentController;
 use App\Http\Controllers\Api\V1\StripeWebhookController;
 use App\Http\Controllers\Api\V1\TaxInfoController;
 use App\Http\Controllers\Api\V1\UserController;
-use App\Http\Controllers\Api\V1\Webhooks\EinvoiceWebhookController;
 use App\Http\Controllers\Api\V1\Webhooks\GdeliverWebhookController;
 use App\Http\Middleware\ApiAuthMiddleware;
 use Illuminate\Support\Facades\Route;
@@ -220,7 +219,9 @@ Route::group(['prefix' => 'v1/'], function () {
 
     // Geliver kargo takip webhook (Geliver bu endpoint'i çağırır)
     Route::post('webhooks/geliver', [GdeliverWebhookController::class, 'handleWebhook']);
-    Route::post('webhooks/einvoice', [EinvoiceWebhookController::class, 'handle']);
+    // e-Fatura webhook'u, saglayici secilip EinvoiceWebhookController yazildiginda
+    // geri eklenecek. Sinif hic var olmadigi icin rota 500 uretiyor ve
+    // `artisan route:list` komutunu tamamen kiriyordu.
 });
 
 // Admin Currency Management Routes
