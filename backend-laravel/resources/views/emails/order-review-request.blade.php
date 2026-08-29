@@ -13,6 +13,26 @@
         diğer müşterilerimiz için çok değerli. ⭐
       </p>
 
+      @if (!empty($reward))
+        {{-- Puan kampanyasi. Yasal: puan yildiz sayisindan BAGIMSIZ verilir ve
+             urun basina bir kez gecerlidir; bu ikisi metinde acikca yazar. --}}
+        <div style="border:1px solid #16a34a; background:#f0fdf4; border-radius:10px; padding:14px; margin-bottom:16px;">
+          <p style="margin:0 0 6px; font-weight:700; color:#166534;">
+            🎁 Değerlendirin, puan kazanın
+          </p>
+          <p style="margin:0; font-size:14px; color:#374151; line-height:1.5;">
+            Fotoğraflı değerlendirmeye <strong>{{ $reward['with_image_value'] }} TL</strong>,
+            fotoğrafsız değerlendirmeye <strong>{{ $reward['no_image_value'] }} TL</strong>
+            değerinde puan kazanırsınız. {{ $reward['min_redeem_value'] }} TL'ye ulaştığınızda
+            indirim çekine dönüştürebilirsiniz.
+          </p>
+          <p style="margin:8px 0 0; font-size:12px; color:#6b7280; line-height:1.5;">
+            Puan, verdiğiniz yıldız sayısından bağımsız olarak verilir ve her ürün için
+            bir kez geçerlidir.
+          </p>
+        </div>
+      @endif
+
       @foreach ($items as $item)
         <div style="border:1px solid #e5e7eb; border-radius:10px; padding:12px; margin-bottom:12px;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>

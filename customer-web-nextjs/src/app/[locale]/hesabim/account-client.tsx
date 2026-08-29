@@ -108,6 +108,7 @@ import {
 } from "lucide-react";
 import Cookies from "js-cookie";
 import { LoyaltyTab } from "@/components/account/loyalty-tab";
+import { ReviewRewardBanner } from "@/components/product/review-reward-banner";
 import { AUTH_TOKEN_KEY, AUTH_USER } from "@/lib/constants";
 
 type ApiError = {
@@ -1194,6 +1195,9 @@ export function AccountClient({ translations: t }: Props) {
             <div className="rounded-lg border bg-card p-4 sm:p-6">
               <h2 className="mb-4 text-lg font-bold">{t.my_orders}</h2>
 
+              {/* Degerlendirme kampanyasi — kampanya kapaliyken cizilmez */}
+              <ReviewRewardBanner className="mb-4" />
+
               {/* Search & Filters */}
               <div className="mb-4 space-y-3">
                 <div className="relative w-full sm:max-w-sm">
@@ -1504,6 +1508,8 @@ export function AccountClient({ translations: t }: Props) {
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-bold">{t.my_reviews || "Değerlendirmelerim"}</h2>
               </div>
+
+              <ReviewRewardBanner className="mb-4" />
 
               {myReviewsLoading ? (
                 <div className="flex justify-center py-10">

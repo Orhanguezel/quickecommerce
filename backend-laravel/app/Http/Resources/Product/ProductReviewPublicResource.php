@@ -29,10 +29,15 @@ class ProductReviewPublicResource extends JsonResource
             // bu sekilde isaretlenmesi Ticari Reklam ve Haksiz Ticari
             // Uygulamalar Yonetmeligi ile Google Merchant urun yorumu
             // politikasinin gerektirdigi aciklamadir.
-            "is_incentivized" => \App\Models\LoyaltyPointTransaction::where('type', 'review')
-                ->where('reference_type', \App\Models\Review::class)
-                ->where('reference_id', $this->id)
-                ->exists(),
+            // Bonus URUN basina verilir (defter referansi Product), bu yuzden
+            // musteri + urun uzerinden bakilir.
+            "is_incentivized" => $this->customer_id
+                ? \App\Models\LoyaltyPointTransaction::where('customer_id', $this->customer_id)
+                    ->where('type', 'review')
+                    ->where('reference_type', \App\Models\Product::class)
+                    ->where('reference_id', $this->reviewable_id)
+                    ->exists()
+                : false,
             "like_count" => $this->like_count,
             "dislike_count" => $this->dislike_count,
             "reviewed_at" => $this->created_at->diffForHumans(),

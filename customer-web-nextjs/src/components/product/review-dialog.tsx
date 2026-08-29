@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Star, Loader2, X, ImagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSubmitReviewMutation } from "@/modules/product/product-review.service";
+import { ReviewRewardBanner } from "./review-reward-banner";
 
 const MAX_IMAGES = 5;
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024; // 4MB (backend ile ayni)
@@ -100,7 +101,10 @@ export function ReviewDialog({
           </div>
         ) : (
           <>
-            <p className="mb-4 text-sm text-muted-foreground">{productName}</p>
+            <p className="mb-3 text-sm text-muted-foreground">{productName}</p>
+
+            {/* Kampanya hatirlatmasi — kampanya kapaliyken hicbir sey cizmez */}
+            <ReviewRewardBanner variant="compact" className="mb-4" />
 
             {/* Star Rating */}
             <div className="mb-4 flex items-center gap-1">

@@ -58,3 +58,25 @@ export interface LoyaltyRedeemResponse {
   message: string;
   data: LoyaltyVoucher;
 }
+
+export interface LoyaltyCampaign {
+  active: boolean;
+  review_bonus_with_image: number;
+  review_bonus_with_image_value: number;
+  review_bonus_no_image: number;
+  review_bonus_no_image_value: number;
+  earn_per_currency: number;
+  min_redeem_points: number;
+  min_redeem_value: number;
+  voucher_min_order: number;
+  voucher_valid_days: number;
+  max_per_order: number;
+  /** Yasal aciklama metni; tek yerden gelir. */
+  disclosure: string;
+  terms_url: string;
+}
+
+export interface LoyaltyCampaignResponse {
+  status: boolean;
+  data: LoyaltyCampaign;
+}

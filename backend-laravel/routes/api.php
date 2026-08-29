@@ -88,6 +88,9 @@ Route::group(['prefix' => 'v1/'], function () {
     // public routes for frontend
     Route::middleware('detect.platform')->group(function () {
         Route::get('/slider-list', [FrontendController::class, 'sliders'])->middleware('public.cache:3600');
+        // Sadakat kampanyasi: giris yapmamis ziyaretci de banner'i gorebilsin.
+        Route::get('/loyalty-campaign', [\App\Http\Controllers\Api\V1\Customer\CustomerLoyaltyController::class, 'campaign'])
+            ->middleware('public.cache:300');
         Route::get('/sitemap/products', [FrontendController::class, 'sitemapProducts']);
         Route::get('/sitemap/gone-products', [FrontendController::class, 'sitemapGoneProducts']);
         Route::match(['GET', 'POST'], '/product-list', [FrontendController::class, 'products'])->middleware('public.cache:300');

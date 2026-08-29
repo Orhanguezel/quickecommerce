@@ -59,6 +59,41 @@ class CustomerLoyaltyController extends Controller
     }
 
     /**
+     * HERKESE ACIK kampanya bilgisi.
+     *
+     * Giris yapmamis ziyaretcinin de banner'i gorebilmesi icin auth
+     * gerektirmez. Yalnizca program kurallarini doner, kisisel veri icermez.
+     */
+    public function campaign(): JsonResponse
+    {
+        $withImage = (int) (com_option_get('com_loyalty_review_bonus_with_image') ?: 2000);
+        $noImage = (int) (com_option_get('com_loyalty_review_bonus_no_image') ?: 1000);
+
+        return response()->json([
+            'status' => true,
+            'data' => [
+                // Kampanya yalnizca puan KAZANIMI acikken duyurulur.
+                'active' => $this->loyalty->enabled(),
+                'review_bonus_with_image' => $withImage,
+                'review_bonus_with_image_value' => $this->loyalty->pointsToCurrency($withImage),
+                'review_bonus_no_image' => $noImage,
+                'review_bonus_no_image_value' => $this->loyalty->pointsToCurrency($noImage),
+                'earn_per_currency' => $this->loyalty->earnPerCurrency(),
+                'min_redeem_points' => $this->loyalty->minRedeemPoints(),
+                'min_redeem_value' => $this->loyalty->pointsToCurrency($this->loyalty->minRedeemPoints()),
+                'voucher_min_order' => $this->loyalty->voucherMinOrder(),
+                'voucher_valid_days' => $this->loyalty->voucherValidDays(),
+                'max_per_order' => $this->loyalty->reviewMaxPerOrder(),
+                // Yasal aciklama metni tek yerden gelsin ki arayuzler
+                // birbirinden ayrismasin.
+                'disclosure' => 'Puan, verdiğiniz yıldız sayısından bağımsız olarak '
+                    . 'satın aldığınız ürünler için verilir. Her ürün için bir kez geçerlidir.',
+                'terms_url' => '/sayfa/sadakat-programi',
+            ],
+        ]);
+    }
+
+    /**
      * Puani kisiye ozel indirim chekine cevirir.
      */
     public function redeem(Request $request): JsonResponse

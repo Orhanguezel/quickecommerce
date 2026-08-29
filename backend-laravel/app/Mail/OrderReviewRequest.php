@@ -69,7 +69,35 @@ class OrderReviewRequest extends Mailable
                 'items'        => $items,
                 'customerName' => $customerName !== '' ? $customerName : 'Değerli müşterimiz',
                 'siteName'     => com_option_get('com_site_title') ?: config('app.name'),
+                // Puan kampanyasi ACIKSA sablonda duyurulur. Kapali kampanyayi
+                // duyurmak yaniltici olurdu, o yuzden null gecilir.
+                'reward'       => $this->rewardInfo(),
             ],
         );
+    }
+
+    /**
+     * Degerlendirme kampanyasi bilgisi; kapaliysa null.
+     */
+    private function rewardInfo(): ?array
+    {
+        $loyalty = app(\App\Services\Loyalty\LoyaltyService::class);
+
+        if (! $loyalty->enabled()) {
+            return null;
+        }
+
+        $withImage = (int) (com_option_get('com_loyalty_review_bonus_with_image') ?: 0);
+        $noImage = (int) (com_option_get('com_loyalty_review_bonus_no_image') ?: 0);
+
+        if ($withImage <= 0 && $noImage <= 0) {
+            return null;
+        }
+
+        return [
+            'with_image_value' => $loyalty->pointsToCurrency($withImage),
+            'no_image_value'   => $loyalty->pointsToCurrency($noImage),
+            'min_redeem_value' => $loyalty->pointsToCurrency($loyalty->minRedeemPoints()),
+        ];
     }
 }

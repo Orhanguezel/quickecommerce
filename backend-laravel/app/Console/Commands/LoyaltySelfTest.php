@@ -80,25 +80,63 @@ class LoyaltySelfTest extends Command
         $this->check('bakiye degismedi', $loyalty->balance($customerId) === $before + $expected);
 
         // 3) Yorum bonusu
-        $review = Review::whereNotNull('customer_id')->first();
+        $review = Review::whereNotNull('customer_id')
+            ->where('reviewable_type', \App\Models\Product::class)
+            ->first();
+
         if ($review) {
             $reviewCustomerId = (int) $review->customer_id;
+            $productId = (int) $review->reviewable_id;
             $balBefore = $loyalty->balance($reviewCustomerId);
-            $wantBonus = filled($review->images) ? 250 : 100;
+            $wantBonus = filled($review->images)
+                ? (int) (com_option_get('com_loyalty_review_bonus_with_image') ?: 2000)
+                : (int) (com_option_get('com_loyalty_review_bonus_no_image') ?: 1000);
 
             $rtx = $loyalty->awardForApprovedReview($review);
-            $this->check('yorum bonusu yazildi', $rtx !== null && $rtx->points === $wantBonus);
-            $this->check('yorum bonusu tekrar yazilmadi', $loyalty->awardForApprovedReview($review) === null);
+            $this->check("yorum bonusu yazildi ({$wantBonus} puan)", $rtx !== null && $rtx->points === $wantBonus);
+            $this->check('bonus referansi PRODUCT (urun basina teklik icin)',
+                $rtx?->reference_type === \App\Models\Product::class && (int) $rtx?->reference_id === $productId);
+            $this->check('ayni yorum tekrar puan yazmadi', $loyalty->awardForApprovedReview($review) === null);
             $this->check('yorum bonusu bakiyeye eklendi', $loyalty->balance($reviewCustomerId) === $balBefore + $wantBonus);
+            $this->check('hasReviewBonusForProduct true doner',
+                $loyalty->hasReviewBonusForProduct($reviewCustomerId, $productId));
 
             // Puan yildiz sayisindan BAGIMSIZ olmali.
             $lowStar = $review->replicate();
             $lowStar->rating = 1;
             $lowStar->save();
-            $lowTx = $loyalty->awardForApprovedReview($lowStar);
-            $this->check('1 yildizli yoruma da ayni puan', $lowTx !== null && $lowTx->points === $wantBonus);
+            $this->check('1 yildiz da ayni kurala tabi (urun basina teklik)',
+                $loyalty->awardForApprovedReview($lowStar) === null);
+
+            // AYNI URUN, BASKA SIPARIS -> ikinci bonus OLMAMALI.
+            $secondPurchase = $review->replicate();
+            $secondPurchase->order_id = ($review->order_id ?? 0) + 999999;
+            $secondPurchase->save();
+            $balBeforeSecond = $loyalty->balance($reviewCustomerId);
+            $this->check('ayni urun ikinci siparişte de puan vermedi',
+                $loyalty->awardForApprovedReview($secondPurchase) === null);
+            $this->check('bakiye degismedi', $loyalty->balance($reviewCustomerId) === $balBeforeSecond);
+
+            // BASKA URUN -> bonus verilmeli.
+            $otherProduct = \App\Models\Product::where('id', '!=', $productId)->first();
+            if ($otherProduct) {
+                $otherReview = $review->replicate();
+                $otherReview->reviewable_id = $otherProduct->id;
+                $otherReview->order_id = ($review->order_id ?? 0) + 888888;
+                $otherReview->save();
+                $this->check('farkli urun icin bonus verildi',
+                    $loyalty->awardForApprovedReview($otherReview) !== null);
+            }
+
+            // Kurye degerlendirmesi bonus kapsaminda OLMAMALI.
+            $deliveryReview = $review->replicate();
+            $deliveryReview->reviewable_type = \App\Models\User::class;
+            $deliveryReview->order_id = ($review->order_id ?? 0) + 777777;
+            $deliveryReview->save();
+            $this->check('kurye degerlendirmesi puan vermedi',
+                $loyalty->awardForApprovedReview($deliveryReview) === null);
         } else {
-            $this->warn('  [ATLANDI] sistemde yorum yok');
+            $this->warn('  [ATLANDI] sistemde urun yorumu yok');
         }
 
         // Bozdurma testleri icin bakiyeyi yeterli seviyeye cikar.

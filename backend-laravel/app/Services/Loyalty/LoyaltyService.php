@@ -7,6 +7,7 @@ use App\Models\CouponLine;
 use App\Models\Customer;
 use App\Models\LoyaltyPointTransaction;
 use App\Models\Order;
+use App\Models\Product;
 use App\Models\Review;
 use App\Models\UniversalNotification;
 use Illuminate\Database\QueryException;
@@ -146,28 +147,53 @@ class LoyaltyService
     }
 
     /**
-     * Onaylanan yorum icin bonus yazar. Gorselli yorum daha yuksek.
+     * Onaylanan URUN degerlendirmesi icin bonus yazar.
      *
-     * Puan YILDIZ SAYISINDAN BAGIMSIZ verilir. Olumlu yoruma sart kosmak hem
-     * Ticari Reklam Yonetmeligi acisindan riskli hem de yorumlarin
-     * guvenilirligini bitirir.
+     * Kurallar:
+     * - Puan YILDIZ SAYISINDAN BAGIMSIZ. Olumlu yoruma sart kosmak hem Ticari
+     *   Reklam Yonetmeligi acisindan riskli hem de yorumlarin guvenilirligini
+     *   bitirir.
+     * - URUN BASINA BIR KEZ. Defter kaydinin referansi Review degil PRODUCT;
+     *   boylece (customer_id, type, reference_type, reference_id) benzersiz
+     *   indeksi "ayni musteri ayni urunden ikinci kez puan alamaz" kuralini
+     *   VERITABANI seviyesinde uygular. Musteri urunu tekrar satin alip yeni
+     *   bir yorum yazsa bile ikinci bonus olusmaz.
+     * - SIPARIS BASINA TAVAN. Cok kalemli sepetlerde bonusun marji yemesini
+     *   engeller (com_loyalty_review_max_per_order).
+     * - Sadece urun yorumlari; kurye degerlendirmesi puan kazandirmaz.
      */
     public function awardForApprovedReview(Review $review): ?LoyaltyPointTransaction
     {
-        if (! $this->enabled()) {
+        if (! $this->enabled() || ! $review->customer_id) {
             return null;
         }
 
-        if (! $review->customer_id) {
+        // Kurye/diger degerlendirmeler bonus kapsaminda degil.
+        if ($review->reviewable_type !== Product::class) {
+            return null;
+        }
+
+        $productId = (int) $review->reviewable_id;
+        if ($productId <= 0) {
             return null;
         }
 
         $hasImage = filled($review->images);
         $points = $hasImage
-            ? (int) (com_option_get('com_loyalty_review_bonus_with_image') ?: 250)
-            : (int) (com_option_get('com_loyalty_review_bonus_no_image') ?: 100);
+            ? (int) (com_option_get('com_loyalty_review_bonus_with_image') ?: 2000)
+            : (int) (com_option_get('com_loyalty_review_bonus_no_image') ?: 1000);
 
         if ($points <= 0) {
+            return null;
+        }
+
+        if ($this->orderReviewBonusCapReached($review)) {
+            Log::info('[loyalty] siparis basina yorum bonusu tavani doldu', [
+                'review_id' => $review->id,
+                'order_id' => $review->order_id,
+                'customer_id' => $review->customer_id,
+            ]);
+
             return null;
         }
 
@@ -175,9 +201,10 @@ class LoyaltyService
             (int) $review->customer_id,
             $points,
             LoyaltyPointTransaction::TYPE_REVIEW,
-            Review::class,
-            $review->id,
-            $hasImage ? 'Görselli değerlendirme bonusu' : 'Değerlendirme bonusu',
+            Product::class,
+            $productId,
+            ($hasImage ? 'Görselli değerlendirme bonusu' : 'Değerlendirme bonusu')
+                . ($review->order_id ? " (Sipariş #{$review->order_id})" : ''),
             now()->addDays($this->pointsExpireDays())
         );
 
@@ -186,11 +213,62 @@ class LoyaltyService
                 (int) $review->customer_id,
                 $points,
                 'Değerlendirmeniz yayınlandı',
-                ['type' => 'loyalty_earned', 'review_id' => $review->id]
+                [
+                    'type' => 'loyalty_earned',
+                    'review_id' => $review->id,
+                    'product_id' => $productId,
+                ]
             );
         }
 
         return $transaction;
+    }
+
+    /** Siparis basina odullendirilecek yorum sayisi tavani. */
+    public function reviewMaxPerOrder(): int
+    {
+        return max(1, (int) (com_option_get('com_loyalty_review_max_per_order') ?: 3));
+    }
+
+    /**
+     * Bu siparis icin tavan doldu mu?
+     *
+     * Ayni siparisin urunlerinden kac tanesi zaten bonus almis, ona bakar.
+     */
+    private function orderReviewBonusCapReached(Review $review): bool
+    {
+        if (! $review->order_id) {
+            return false;
+        }
+
+        $orderProductIds = Review::where('order_id', $review->order_id)
+            ->where('customer_id', $review->customer_id)
+            ->where('reviewable_type', Product::class)
+            ->pluck('reviewable_id')
+            ->map(fn ($id) => (int) $id)
+            ->unique();
+
+        if ($orderProductIds->isEmpty()) {
+            return false;
+        }
+
+        $alreadyRewarded = LoyaltyPointTransaction::where('customer_id', $review->customer_id)
+            ->where('type', LoyaltyPointTransaction::TYPE_REVIEW)
+            ->where('reference_type', Product::class)
+            ->whereIn('reference_id', $orderProductIds)
+            ->count();
+
+        return $alreadyRewarded >= $this->reviewMaxPerOrder();
+    }
+
+    /** Musteri bu urun icin daha once yorum bonusu aldi mi? */
+    public function hasReviewBonusForProduct(int $customerId, int $productId): bool
+    {
+        return LoyaltyPointTransaction::where('customer_id', $customerId)
+            ->where('type', LoyaltyPointTransaction::TYPE_REVIEW)
+            ->where('reference_type', Product::class)
+            ->where('reference_id', $productId)
+            ->exists();
     }
 
     /**

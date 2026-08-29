@@ -36,14 +36,20 @@ const NUMERIC_FIELDS: {
   },
   {
     key: 'com_loyalty_review_bonus_with_image',
-    label: 'Görselli değerlendirme bonusu',
-    help: 'Değerlendirme onaylandığında verilir. Yıldız sayısından bağımsızdır.',
+    label: 'Görselli değerlendirme bonusu (puan)',
+    help: 'Değerlendirme onaylandığında verilir. Yıldız sayısından BAĞIMSIZ, ÜRÜN BAŞINA bir kez.',
     section: 'earn',
   },
   {
     key: 'com_loyalty_review_bonus_no_image',
-    label: 'Görselsiz değerlendirme bonusu',
-    help: 'Sipariş başına bir kez.',
+    label: 'Görselsiz değerlendirme bonusu (puan)',
+    help: 'Ürün başına bir kez; aynı ürün tekrar alınsa da ikinci bonus verilmez.',
+    section: 'earn',
+  },
+  {
+    key: 'com_loyalty_review_max_per_order',
+    label: 'Sipariş başına en fazla kaç değerlendirme puan kazandırsın',
+    help: 'Çok kalemli sepette bonusun marjı yemesini engeller.',
     section: 'earn',
   },
   {
@@ -172,6 +178,13 @@ const LoyaltySettingsForm = () => {
   const givebackPct =
     perUnit > 0 && earnRate > 0 ? ((unitValue / perUnit) * earnRate * 100).toFixed(2) : null;
 
+  // Fotografli yorum bonusunun TL karsiligi — puan degeri tek basina anlamsiz.
+  const reviewBonusPoints = Number(watch('com_loyalty_review_bonus_with_image')) || 0;
+  const reviewBonusValue =
+    perUnit > 0 && reviewBonusPoints > 0
+      ? ((reviewBonusPoints / perUnit) * unitValue).toFixed(2)
+      : null;
+
   const renderField = (field: (typeof NUMERIC_FIELDS)[number]) => (
     <div key={field.key}>
       <label htmlFor={field.key} className="text-sm font-medium mb-1 block">
@@ -285,10 +298,24 @@ const LoyaltySettingsForm = () => {
               </div>
 
               {givebackPct && (
-                <p className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm">
-                  Bu oranlarla müşteriye <strong>ciro üzerinden %{givebackPct}</strong>{' '}
-                  geri verilir. Platform komisyonunuzun altında kalması gerekir.
-                </p>
+                <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm">
+                  <p>
+                    Alışveriş puanı müşteriye{' '}
+                    <strong>ciro üzerinden %{givebackPct}</strong> geri verir.
+                    Platform komisyonunuzun altında kalmalı.
+                  </p>
+                  {reviewBonusValue !== null && (
+                    <p className="mt-1">
+                      Buna ek olarak her fotoğraflı değerlendirme{' '}
+                      <strong>{reviewBonusValue} TL</strong> maliyet yaratır (ürün
+                      başına bir kez, sipariş başına en fazla{' '}
+                      {watch('com_loyalty_review_max_per_order') || 3} adet).
+                    </p>
+                  )}
+                  <p className="mt-1 text-xs text-gray-500">
+                    Üst sınır %20; aşan ayarlar sunucu tarafından reddedilir.
+                  </p>
+                </div>
               )}
             </CardContent>
           </Card>

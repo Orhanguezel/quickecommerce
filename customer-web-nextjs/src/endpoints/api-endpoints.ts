@@ -111,6 +111,8 @@ export const API_ENDPOINTS = {
   LOYALTY: "/customer/loyalty",
   LOYALTY_REDEEM: "/customer/loyalty/redeem",
   LOYALTY_VOUCHERS: "/customer/loyalty/vouchers",
+  /** Herkese acik kampanya bilgisi (auth gerektirmez). */
+  LOYALTY_CAMPAIGN: "/loyalty-campaign",
 
   WALLET: "/customer/wallet",
   WALLET_DEPOSIT: "/customer/wallet/deposit",

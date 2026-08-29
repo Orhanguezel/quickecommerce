@@ -41,8 +41,12 @@ class LoyaltySettingsSeeder extends Seeder
             'com_loyalty_voucher_valid_days' => '90',
 
             // Yorum bonusu (yildiz sayisindan BAGIMSIZ verilir)
-            'com_loyalty_review_bonus_with_image' => '250',
-            'com_loyalty_review_bonus_no_image' => '100',
+            // 1000 puan = 10 TL oldugu icin: 2000 = 20 TL, 1000 = 10 TL.
+            // URUN BASINA BIR KEZ verilir.
+            'com_loyalty_review_bonus_with_image' => '2000',
+            'com_loyalty_review_bonus_no_image' => '1000',
+            // Cok kalemli sepette bonusun marji yemesini engelleyen tavan.
+            'com_loyalty_review_max_per_order' => '3',
 
             // Puan omru
             'com_loyalty_points_expire_days' => '365',

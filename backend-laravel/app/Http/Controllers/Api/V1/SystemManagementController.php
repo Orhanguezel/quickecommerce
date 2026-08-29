@@ -584,6 +584,7 @@ class SystemManagementController extends Controller
             'com_loyalty_voucher_valid_days',
             'com_loyalty_review_bonus_with_image',
             'com_loyalty_review_bonus_no_image',
+            'com_loyalty_review_max_per_order',
             'com_loyalty_points_expire_days',
             'com_review_invite_window_days',
         ];
@@ -592,7 +593,7 @@ class SystemManagementController extends Controller
             $validator = Validator::make($request->all(), [
                 'com_loyalty_enabled' => 'nullable|in:on,off',
                 'com_loyalty_redeem_enabled' => 'nullable|in:on,off',
-                'com_loyalty_earn_per_currency' => 'nullable|numeric|min:0|max:100',
+                'com_loyalty_earn_per_currency' => 'nullable|numeric|min:0|max:10',
                 'com_loyalty_redeem_points_per_unit' => 'nullable|integer|min:1',
                 'com_loyalty_redeem_value' => 'nullable|numeric|min:0.01',
                 'com_loyalty_min_redeem_points' => 'nullable|integer|min:1',
@@ -600,12 +601,43 @@ class SystemManagementController extends Controller
                 'com_loyalty_voucher_valid_days' => 'nullable|integer|min:1|max:3650',
                 'com_loyalty_review_bonus_with_image' => 'nullable|integer|min:0',
                 'com_loyalty_review_bonus_no_image' => 'nullable|integer|min:0',
+                'com_loyalty_review_max_per_order' => 'nullable|integer|min:1|max:50',
                 'com_loyalty_points_expire_days' => 'nullable|integer|min:1|max:3650',
                 'com_review_invite_window_days' => 'nullable|integer|min:1|max:90',
             ]);
 
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 422);
+            }
+
+            // Ekonomik akil saglamasi: kazanma ve harcama oranlari birlikte
+            // "ciro uzerinden yuzde kac geri verildigini" belirler. Tek bir
+            // alani yanlis girmek (orn. 1 TL = 100 puan) programi aninda
+            // surdurulemez hale getirir; bu yuzden sonuc oran kontrol edilir.
+            $loyalty = app(\App\Services\Loyalty\LoyaltyService::class);
+
+            $earn = (float) ($request->input('com_loyalty_earn_per_currency') ?? $loyalty->earnPerCurrency());
+            $perUnit = (float) ($request->input('com_loyalty_redeem_points_per_unit') ?? $loyalty->redeemPointsPerUnit());
+            $unitValue = (float) ($request->input('com_loyalty_redeem_value') ?? $loyalty->redeemValue());
+
+            if ($perUnit > 0) {
+                $givebackPct = ($unitValue / $perUnit) * $earn * 100;
+                $maxGiveback = (float) (com_option_get('com_loyalty_max_giveback_pct') ?: 20);
+
+                if ($givebackPct > $maxGiveback) {
+                    return response()->json([
+                        'errors' => [
+                            'com_loyalty_earn_per_currency' => [
+                                sprintf(
+                                    'Bu oranlarla ciro üzerinden %%%s geri verilir; üst sınır %%%s. '
+                                        . 'Kazanma oranını düşürün ya da puan/TL karşılığını değiştirin.',
+                                    number_format($givebackPct, 2),
+                                    number_format($maxGiveback, 2)
+                                ),
+                            ],
+                        ],
+                    ], 422);
+                }
             }
 
             foreach ($keys as $key) {
