@@ -52,6 +52,19 @@ class SourceStockProbe
 
     /** Checkout senkron probe timeout (sn) — tek tek 30s yerine kisa. */
     private const CHECKOUT_TIMEOUT_SEC = 8;
+
+    /**
+     * Cloudflare challenge'i cozen ikinci gecisin suresi.
+     *
+     * Scraper servisinin `solve_cloudflare` secenegi olcumde ~28 sn suruyor ve
+     * kendi `timeout` alani EN FAZLA 120 kabul ediyor (openapi: maximum 120).
+     * Laravel tarafi bundan biraz uzun olmali, yoksa scraper isini bitirmeden
+     * baglanti kopar ve urun bosuna "dogrulanamadi" sayilir.
+     */
+    private const CF_SOLVE_TIMEOUT_SEC = 35;
+
+    /** Scraper servisinin kabul ettigi ust sinir (openapi: maximum 120). */
+    private const SCRAPER_MAX_TIMEOUT_SEC = 120;
     /** Kesin sonuc cache (sn) */
     private const CACHE_TTL_OK_SEC = 600;
     /** Belirsiz sonuc cache (sn) — kisa, yakinda tekrar denenir */
@@ -79,11 +92,70 @@ class SourceStockProbe
                 return new ProbeResult(null, 'http_' . $response->status(), $durationMs, "Scraper HTTP {$response->status()}");
             }
 
-            return $this->interpretBody($response->json(), $durationMs);
+            $result = $this->interpretBody($response->json(), $durationMs);
+
+            // Hizli gecis Cloudflare duvarina takildiysa, challenge'i cozen
+            // pahali gecisi dene. Aksi halde CF arkasindaki her kaynak
+            // (eprotein gibi) kalici olarak "dogrulanamadi" sayilir ve
+            // satilabilir urunler odeme adiminda bloke olur.
+            if ($result->signal === 'cf_challenge') {
+                return $this->probeSolvingCloudflare($sourceUrl);
+            }
+
+            return $result;
         } catch (\Throwable $e) {
             Log::warning('SourceStockProbe exception', ['url' => $sourceUrl, 'error' => $e->getMessage()]);
             return new ProbeResult(null, 'exception', 0, $e->getMessage());
         }
+    }
+
+    /**
+     * Cloudflare challenge'ini cozerek tekrar dener (yavas, ~28 sn).
+     *
+     * DIKKAT — bu uc ayar BIRLIKTE dogru olmali, biri eksikse CF asilmaz:
+     *   mode = "stealthy"  (servis yalnizca fast|stealthy|dynamic kabul eder;
+     *                       "stealth" yazmak 422 doner)
+     *   options.solve_cloudflare = true   (ust seviyede DEGIL, options icinde)
+     *   options.timeout <= 120            (buyugu 422 doner)
+     */
+    private function probeSolvingCloudflare(string $sourceUrl): ProbeResult
+    {
+        $apiKey = (string) config('services.local_scraper.api_key', env('LOCAL_SCRAPER_API_KEY', ''));
+        $base = rtrim((string) config('services.local_scraper.url', env('LOCAL_SCRAPER_URL', 'http://127.0.0.1:8200')), '/');
+
+        try {
+            $started = microtime(true);
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $apiKey,
+                'Content-Type' => 'application/json',
+            ])->timeout(self::CF_SOLVE_TIMEOUT_SEC)
+                ->post("{$base}/api/v1/scrape", $this->cloudflareRequestBody($sourceUrl));
+            $durationMs = (int) round((microtime(true) - $started) * 1000);
+
+            if (!$response->successful()) {
+                return new ProbeResult(null, 'http_' . $response->status(), $durationMs, "Scraper HTTP {$response->status()}");
+            }
+
+            return $this->interpretBody($response->json(), $durationMs);
+        } catch (\Throwable $e) {
+            Log::warning('SourceStockProbe cloudflare exception', ['url' => $sourceUrl, 'error' => $e->getMessage()]);
+            return new ProbeResult(null, 'cf_solve_failed', 0, $e->getMessage());
+        }
+    }
+
+    /** @return array<string, mixed> */
+    private function cloudflareRequestBody(string $url): array
+    {
+        return [
+            'url' => $url,
+            'mode' => 'stealthy',
+            'options' => [
+                'solve_cloudflare' => true,
+                'timeout' => self::SCRAPER_MAX_TIMEOUT_SEC,
+            ],
+            'return_html' => true,
+            'return_text' => true,
+        ];
     }
 
     /**
@@ -140,9 +212,19 @@ class SourceStockProbe
                 $responses = [];
             }
 
+            $needsCloudflare = [];
             foreach ($toFetch as $url) {
                 $resp = $responses[$url] ?? null;
                 $pr = $this->interpretResponse($resp);
+
+                // Cloudflare duvarina takilanlari simdi cachelemE — ikinci
+                // gecisten sonraki GERCEK sonuc cachelenmeli, yoksa challenge
+                // sayfasi 2 dakika boyunca "dogrulanamadi" olarak yapisir.
+                if ($pr->signal === 'cf_challenge') {
+                    $needsCloudflare[] = $url;
+                    continue;
+                }
+
                 $results[$url] = $pr;
                 // Sadece kesin sonuc uzun, belirsiz kisa cachelenir.
                 Cache::put(
@@ -150,6 +232,38 @@ class SourceStockProbe
                     $pr,
                     $pr->inStock === null ? self::CACHE_TTL_UNKNOWN_SEC : self::CACHE_TTL_OK_SEC
                 );
+            }
+
+            // IKINCI GECIS — yalnizca CF arkasindaki adresler icin.
+            // Pahali (~28 sn), o yuzden hizli gecise takilmayan adresler bu
+            // beklemeyi hic yasamaz. Sonuc cachelendigi icin bedeli yalnizca
+            // ilk musteri oder.
+            if (!empty($needsCloudflare)) {
+                $cfResponses = [];
+                try {
+                    $cfResponses = Http::pool(fn (Pool $pool) => array_map(
+                        fn ($url) => $pool->as($url)
+                            ->withHeaders([
+                                'Authorization' => 'Bearer ' . $apiKey,
+                                'Content-Type' => 'application/json',
+                            ])
+                            ->timeout(self::CF_SOLVE_TIMEOUT_SEC)
+                            ->post("{$base}/api/v1/scrape", $this->cloudflareRequestBody($url)),
+                        $needsCloudflare
+                    ));
+                } catch (\Throwable $e) {
+                    Log::warning('SourceStockProbe cloudflare pool exception', ['error' => $e->getMessage()]);
+                }
+
+                foreach ($needsCloudflare as $url) {
+                    $pr = $this->interpretResponse($cfResponses[$url] ?? null);
+                    $results[$url] = $pr;
+                    Cache::put(
+                        $this->cacheKey($url),
+                        $pr,
+                        $pr->inStock === null ? self::CACHE_TTL_UNKNOWN_SEC : self::CACHE_TTL_OK_SEC
+                    );
+                }
             }
         }
 
@@ -181,6 +295,23 @@ class SourceStockProbe
         $html = (string) ($body['html'] ?? '');
         $text = strtolower((string) ($body['text'] ?? ''));
 
+        // 0. KAYNAK SITENIN kendi HTTP durumu.
+        //
+        // Scraper servisi challenge sayfasini basariyla "cekmis" sayip bize
+        // success=true + HTTP 200 doner; gercek durum govdenin ICINDEKI
+        // status_code alanindadir. Bu kontrol olmadan bir Cloudflare 403
+        // sayfasi asagidaki desen aramalarina dusuyor, hicbir sey bulamiyor ve
+        // "no_signal" olarak donuyordu -- yani "sitede stok sinyali yok" gibi
+        // gorunuyor, oysa sayfaya hic ULASILAMAMISTI. Teshis yanlis yone
+        // gidiyor, urun de bosuna satilamaz oluyordu.
+        $sourceStatus = (int) ($body['status_code'] ?? 0);
+        if ($this->looksLikeCloudflareChallenge($sourceStatus, $body, $text)) {
+            return new ProbeResult(null, 'cf_challenge', $durationMs, 'Cloudflare challenge');
+        }
+        if ($sourceStatus >= 400) {
+            return new ProbeResult(null, 'source_http_' . $sourceStatus, $durationMs, "Kaynak site HTTP {$sourceStatus}");
+        }
+
         // 1. JSON-LD availability (en saglam)
         $jsonldSignal = $this->detectFromJsonLd($body['data']['structured_data'] ?? []);
         if ($jsonldSignal !== null) {
@@ -207,6 +338,30 @@ class SourceStockProbe
 
         // Hicbir sinyal yakalanmadi — belirsiz (manuel kontrol)
         return new ProbeResult(null, 'no_signal', $durationMs);
+    }
+
+    /**
+     * Yanit, kaynak siteye degil Cloudflare challenge sayfasina mi ait?
+     *
+     * Yalnizca 403'e bakmak yetmez: challenge bazen 503 ya da 200 ile de
+     * gelebiliyor. Sayfanin kendisi ("Just a moment...", JS/cerez uyarisi)
+     * ayirt edici isaret.
+     */
+    private function looksLikeCloudflareChallenge(int $status, array $body, string $lowerText): bool
+    {
+        $title = strtolower((string) ($body['data']['title'] ?? ''));
+
+        $challengeMarkers = str_contains($title, 'just a moment')
+            || str_contains($lowerText, 'just a moment')
+            || str_contains($lowerText, 'enable javascript and cookies')
+            || str_contains($lowerText, 'checking your browser');
+
+        if ($challengeMarkers) {
+            return true;
+        }
+
+        // Govde bos ve durum engelleme kodu ise de challenge varsay.
+        return in_array($status, [403, 503], true) && trim($lowerText) === '';
     }
 
     private function cacheKey(string $url): string

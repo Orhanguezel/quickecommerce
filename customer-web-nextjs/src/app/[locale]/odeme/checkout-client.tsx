@@ -31,6 +31,15 @@ import type {
 } from "@/modules/checkout/checkout.type";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -100,6 +109,18 @@ export function CheckoutClient({ translations: t }: Props) {
     null
   );
   const [showAddressForm, setShowAddressForm] = useState(false);
+  /**
+   * Odeme durdurulunca gosterilen uyari.
+   *
+   * Native `alert()` KULLANILMIYOR: tarayicinin kendi kutusu, adresi ve
+   * "su siteden mesaj var" basligini TARAYICI DILINDE gosteriyor (Almanca
+   * Chrome'da "Auf sportoonline.com wird Folgendes angezeigt"), sayfa
+   * temasindan kopuk duruyor ve odeme adiminda dolandiricilik uyarisi gibi
+   * algilaniyor. Ustelik metin bicimlendirilemiyor.
+   */
+  const [notice, setNotice] = useState<{ title: string; message: string } | null>(null);
+
+  const showNotice = (title: string, message: string) => setNotice({ title, message });
   const [paymentMethod, setPaymentMethod] = useState<string>("");
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<{
@@ -445,8 +466,11 @@ export function CheckoutClient({ translations: t }: Props) {
     // Final validation after resolution
     const stillMissing = resolvedItems.filter((i) => !i.variant_id || !i.store_id);
     if (stillMissing.length > 0) {
-      alert(
-        `Sepetinizdeki bazı ürünler güncellenemedi: ${stillMissing.map((i) => i.name).join(", ")}\n\nLütfen bu ürünleri sepetten kaldırıp tekrar ekleyin.`
+      showNotice(
+        "Sepetiniz güncellenemedi",
+        `Şu ürünler için güncel bilgi alınamadı: ${stillMissing
+          .map((i) => i.name)
+          .join(", ")}. Lütfen bu ürünleri sepetten kaldırıp tekrar ekleyin.`
       );
       return;
     }
@@ -478,15 +502,27 @@ export function CheckoutClient({ translations: t }: Props) {
         const onlyVerificationProblem = stockCheck.out_of_stock.every((item) =>
           verificationSignals.has(item.signal) || item.signal.startsWith("http_")
         );
-        alert(
-          onlyVerificationProblem
-            ? `Şu ürün(ler) için güncel stok şu anda doğrulanamadı: ${names}\n\nGüvenliğiniz için ödeme başlatılmadı. Lütfen kısa süre sonra tekrar deneyin.`
-            : `Şu ürün(ler) tedarikçide tükenmiş: ${names}\n\nKartınızdan ödeme alınmadı. Lütfen ürünü sepetinizden çıkarıp tekrar deneyin.`
-        );
+        if (onlyVerificationProblem) {
+          showNotice(
+            "Stok bilgisi doğrulanamadı",
+            `${names} için tedarikçi stoğu şu anda teyit edilemedi. ` +
+              "Kartınızdan herhangi bir çekim yapılmadı. Birkaç dakika sonra tekrar deneyin."
+          );
+        } else {
+          showNotice(
+            "Ürün tedarikçide tükenmiş",
+            `${names} şu anda temin edilemiyor. Kartınızdan herhangi bir çekim ` +
+              "yapılmadı. Ürünü sepetinizden çıkarıp siparişinizi tamamlayabilirsiniz."
+          );
+        }
         return;
       }
     } catch {
-      alert("Stok doğrulama servisine şu anda ulaşılamıyor. Güvenliğiniz için ödeme başlatılmadı; lütfen kısa süre sonra tekrar deneyin.");
+      showNotice(
+        "Stok kontrolü yapılamadı",
+        "Stok doğrulama servisine şu anda ulaşılamıyor. Kartınızdan herhangi bir " +
+          "çekim yapılmadı; lütfen birkaç dakika sonra tekrar deneyin."
+      );
       return;
     }
 
@@ -587,6 +623,24 @@ export function CheckoutClient({ translations: t }: Props) {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Odeme durduruldu uyarisi — native alert() yerine site temasinda */}
+      <AlertDialog
+        open={notice !== null}
+        onOpenChange={(open) => !open && setNotice(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{notice?.title}</AlertDialogTitle>
+            <AlertDialogDescription>{notice?.message}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setNotice(null)}>
+              Tamam
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Breadcrumb */}
       <nav className="mb-6 text-sm text-muted-foreground">
         <Link href={ROUTES.HOME} className="hover:text-foreground">
