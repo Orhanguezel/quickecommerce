@@ -50,6 +50,42 @@ const ManagementGuide = () => {
             </section>
 
             <section>
+              <h4 className="font-semibold">Bekleme süresi — iadeyi kurtaran ayar</h4>
+              <p className="mt-1 text-gray-600 dark:text-gray-300">
+                Kazanılan puan hemen kullanılamaz;{" "}
+                <strong>bekleme süresi</strong> kadar (varsayılan 14 gün)
+                beklemede kalır, sonra kendiliğinden kullanıma açılır. Sebebi
+                iade: müşteri puanı teslimat günü çeke çevirip harcarsa, beş gün
+                sonra gelen iadede geri alınacak puan kalmaz. 14 gün, mesafeli
+                satışta cayma hakkı süresidir — iade penceresi kapanmadan puan
+                harcanamaz.
+              </p>
+              <ul className="mt-2 list-disc space-y-1 pl-5 text-gray-600 dark:text-gray-300">
+                <li>
+                  Bekleyen puan iade edilirse <strong>sessizce silinir</strong>;
+                  müşterinin kullanılabilir bakiyesine hiç dokunulmaz.
+                </li>
+                <li>
+                  Puan açıldıktan sonra iade gelirse kullanılabilir bakiyeden
+                  düşülür. Müşteri o puanı harcamışsa{" "}
+                  <strong>borç çıkarılmaz</strong>: geri alma kalan bakiye kadar
+                  kırpılır, fark mağazanın üstünde kalır ve loglanır.
+                </li>
+                <li>
+                  Değişiklik <strong>geriye dönük değildir</strong>. Süreyi
+                  uzatmak, hâlihazırda beklemedeki puanların açılış tarihini
+                  değiştirmez.
+                </li>
+                <li>
+                  <strong>0 yazmak beklemeyi kapatır.</strong> Program durumu
+                  kartındaki &quot;Bekleyen puan&quot;, açık yükümlülüğün ne
+                  kadarının hâlâ geri alınabilir olduğunu gösterir; 0&apos;a
+                  ayarlarsanız bu güvenlik payı kaybolur.
+                </li>
+              </ul>
+            </section>
+
+            <section>
               <h4 className="font-semibold">İlk kez açarken sıra</h4>
               <ol className="mt-1 list-decimal space-y-1 pl-5 text-gray-600 dark:text-gray-300">
                 <li>Oranları gözden geçirin, kaydedin (kazanım kapalıyken).</li>
@@ -90,7 +126,9 @@ const ManagementGuide = () => {
                 toplam indirim. Muhasebe anlamında bir borç kalemi gibi düşünün:
                 dağıttığınız puan arttıkça büyür, çekler kullanıldıkça erir.
                 Düzenli takip edin; beklenmedik şekilde büyüyorsa oranlar fazla
-                cömerttir.
+                cömerttir. Yanındaki <strong>bekleyen puan</strong>, bu
+                yükümlülüğün henüz kesinleşmemiş — iade halinde geri
+                alınabilecek — kısmıdır.
               </p>
             </section>
 
@@ -118,6 +156,11 @@ const ManagementGuide = () => {
                   verilir ve <strong>yıldız sayısından bağımsızdır</strong>. Bu
                   ikisi yasal zorunluluktur, arayüzde de açıkça yazar.
                 </li>
+                <li>
+                  <strong>Puan geçerlilik süresi</strong>, bekleme bittikten
+                  sonra başlar; 14 günlük bekleme müşterinin kullanma süresinden
+                  kesilmez.
+                </li>
               </ul>
             </section>
 
@@ -140,6 +183,11 @@ const ManagementGuide = () => {
                 <li>
                   Kaydettiğiniz an geçerli olur; yayın öncesi denemelerinizi
                   kazanım anahtarı kapalıyken yapın.
+                </li>
+                <li>
+                  <strong>Bekleme süresini 0 yapmayın.</strong> İade korumasını
+                  kapatan tek ayar budur; 14 gün, cayma hakkı süresiyle
+                  hizalıdır.
                 </li>
               </ul>
             </section>
@@ -172,8 +220,9 @@ const LoyaltySettings = () => {
             </h1>
             <p className="mt-1 text-sm text-gray-500">
               Müşteriler teslim edilen siparişlerden ve onaylanan
-              değerlendirmelerden puan kazanır; puanları kişiye özel indirim
-              çekine dönüştürür.
+              değerlendirmelerden puan kazanır. Puanlar bekleme süresi
+              (varsayılan 14 gün) dolduktan sonra kullanıma açılır ve kişiye
+              özel indirim çekine dönüştürülür.
             </p>
           </div>
         </CardContent>

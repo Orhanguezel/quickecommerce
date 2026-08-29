@@ -12,6 +12,10 @@ export interface LoyaltyTransaction {
   type: LoyaltyTransactionType;
   description: string | null;
   expires_at: string | null;
+  /** Puanin kullanima acilacagi an. null = aninda kullanilabilir. */
+  available_at: string | null;
+  /** Bekleme suresi henuz dolmadi. */
+  is_pending: boolean;
   created_at: string;
 }
 
@@ -22,6 +26,8 @@ export interface LoyaltyRules {
   min_redeem_points: number;
   voucher_min_order: number;
   voucher_valid_days: number;
+  /** Kazanilan puanin kullanima acilmasi icin beklenen gun sayisi. */
+  hold_days: number;
 }
 
 export interface LoyaltyInfoResponse {
@@ -29,6 +35,11 @@ export interface LoyaltyInfoResponse {
   data: {
     balance: number;
     balance_value: number;
+    /** Bekleme suresi dolmamis, henuz bozdurulamayan puan. */
+    pending_balance: number;
+    pending_value: number;
+    /** Bekleyen puanlardan en yakin acilma tarihi. */
+    next_available_at: string | null;
     earning_enabled: boolean;
     redeem_enabled: boolean;
     /** Misafir checkout ile acilmis hafif hesap. */
@@ -71,6 +82,7 @@ export interface LoyaltyCampaign {
   voucher_min_order: number;
   voucher_valid_days: number;
   max_per_order: number;
+  hold_days: number;
   /** Yasal aciklama metni; tek yerden gelir. */
   disclosure: string;
   terms_url: string;

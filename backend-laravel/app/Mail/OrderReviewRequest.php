@@ -98,6 +98,9 @@ class OrderReviewRequest extends Mailable
             'with_image_value' => $loyalty->pointsToCurrency($withImage),
             'no_image_value'   => $loyalty->pointsToCurrency($noImage),
             'min_redeem_value' => $loyalty->pointsToCurrency($loyalty->minRedeemPoints()),
+            // Bekleme suresi varsa mailde de yazar: musteriye "kazandiniz"
+            // deyip puani gorunmez kilmak destek talebi uretir.
+            'hold_days'        => $loyalty->holdDays(),
         ];
     }
 }

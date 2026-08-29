@@ -28,7 +28,8 @@
           </p>
           <p style="margin:8px 0 0; font-size:12px; color:#6b7280; line-height:1.5;">
             Puan, verdiğiniz yıldız sayısından bağımsız olarak verilir ve her ürün için
-            bir kez geçerlidir.
+            bir kez geçerlidir.@if (!empty($reward['hold_days'])) Kazanılan puanlar
+            {{ $reward['hold_days'] }} gün bekledikten sonra kullanıma açılır.@endif
           </p>
         </div>
       @endif

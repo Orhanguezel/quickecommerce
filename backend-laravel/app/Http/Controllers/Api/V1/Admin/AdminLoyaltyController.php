@@ -29,7 +29,11 @@ class AdminLoyaltyController extends Controller
                 'c.first_name',
                 'c.last_name',
                 'c.email',
-                DB::raw('SUM(lpt.points) as balance'),
+                // Kullanilabilir bakiye ile bekleyen puan AYRI toplanir:
+                // bekleyen puan henuz musterinin degil, iade gelirse geri
+                // alinacak. Ikisini toplamak yoneticiye yanlis rakam gosterir.
+                DB::raw('SUM(CASE WHEN lpt.available_at IS NULL OR lpt.available_at <= NOW() THEN lpt.points ELSE 0 END) as balance'),
+                DB::raw('SUM(CASE WHEN lpt.available_at IS NOT NULL AND lpt.available_at > NOW() THEN lpt.points ELSE 0 END) as pending'),
                 DB::raw('MAX(lpt.created_at) as last_activity'),
             ]);
 
@@ -51,6 +55,7 @@ class AdminLoyaltyController extends Controller
                 'email' => $r->email,
                 'balance' => (int) $r->balance,
                 'balance_value' => $this->loyalty->pointsToCurrency((int) $r->balance),
+                'pending' => (int) $r->pending,
                 'last_activity' => $r->last_activity,
             ]),
             'meta' => new PaginationResource($rows),
@@ -82,6 +87,8 @@ class AdminLoyaltyController extends Controller
                 ],
                 'balance' => $this->loyalty->balance($customerId),
                 'balance_value' => $this->loyalty->pointsToCurrency($this->loyalty->balance($customerId)),
+                'pending' => $this->loyalty->pendingBalance($customerId),
+                'next_available_at' => $this->loyalty->nextAvailableAt($customerId)?->toIso8601String(),
                 'transactions' => collect($transactions->items())->map(fn ($t) => [
                     'id' => $t->id,
                     'points' => $t->points,
@@ -90,6 +97,8 @@ class AdminLoyaltyController extends Controller
                     'reference_type' => $t->reference_type ? class_basename($t->reference_type) : null,
                     'reference_id' => $t->reference_id,
                     'expires_at' => $t->expires_at,
+                    'available_at' => $t->available_at,
+                    'is_pending' => $t->isPending(),
                     'created_at' => $t->created_at,
                 ]),
             ],
@@ -141,6 +150,10 @@ class AdminLoyaltyController extends Controller
         $spent = (int) abs(LoyaltyPointTransaction::where('points', '<', 0)->sum('points'));
         $outstanding = $earned - $spent;
 
+        // Acik yukumlulugun ne kadari hala BEKLEMEDE, yani iade halinde geri
+        // alinabilir durumda.
+        $pending = (int) LoyaltyPointTransaction::pending()->sum('points');
+
         $vouchers = DB::table('coupon_lines')->where('coupon_code', 'like', 'PUAN-%');
 
         return response()->json([
@@ -153,6 +166,9 @@ class AdminLoyaltyController extends Controller
                 'points_outstanding' => $outstanding,
                 // Acik yukumluluk: bugun herkes bozdursa ne kadar indirim verilir.
                 'outstanding_liability' => $this->loyalty->pointsToCurrency($outstanding),
+                'points_pending' => $pending,
+                'pending_liability' => $this->loyalty->pointsToCurrency($pending),
+                'hold_days' => $this->loyalty->holdDays(),
                 'vouchers_created' => (clone $vouchers)->count(),
                 'vouchers_used' => (clone $vouchers)->where('usage_limit', '<=', 0)->count(),
                 'customers_with_points' => LoyaltyPointTransaction::distinct('customer_id')->count('customer_id'),

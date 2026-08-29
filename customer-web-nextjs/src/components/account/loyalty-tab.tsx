@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   Award,
   Check,
+  Clock,
   Copy,
   Gift,
   Loader2,
@@ -48,7 +49,11 @@ export function LoyaltyTab({ t, enabled }: Props) {
   const info = data?.data;
   const rules = info?.rules;
   const balance = info?.balance ?? 0;
+  const pending = info?.pending_balance ?? 0;
   const vouchers = vouchersData?.data ?? [];
+
+  const formatDate = (value?: string | null) =>
+    value ? new Date(value).toLocaleDateString("tr-TR") : "";
 
   // Bakiyenin tamami bozdurulabilir mi?
   const minPoints = rules?.min_redeem_points ?? 2500;
@@ -72,7 +77,14 @@ export function LoyaltyTab({ t, enabled }: Props) {
       return;
     }
     if (points > balance) {
-      setError(`Yetersiz puan. Bakiyeniz: ${balance.toLocaleString("tr-TR")}`);
+      // Bekleyen puan bozdurulamaz; musteri toplami gorup sasirmasin diye
+      // ayrimi burada da soyluyoruz.
+      setError(
+        pending > 0
+          ? `Kullanılabilir puanınız: ${balance.toLocaleString("tr-TR")}. ` +
+              `${pending.toLocaleString("tr-TR")} puanınız hâlâ beklemede.`
+          : `Yetersiz puan. Bakiyeniz: ${balance.toLocaleString("tr-TR")}`,
+      );
       return;
     }
 
@@ -108,15 +120,31 @@ export function LoyaltyTab({ t, enabled }: Props) {
   return (
     <div className="space-y-4">
       {/* Bakiye */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="rounded-lg border bg-card p-4">
           <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
             <Award className="h-4 w-4 text-primary" />
-            Puan Bakiyeniz
+            Kullanılabilir
           </div>
           <p className="text-2xl font-bold text-primary">
             {balance.toLocaleString("tr-TR")}
           </p>
+        </div>
+        {/* Bekleyen puan AYRI gosterilir: musteri toplami gorup bozduramayinca
+            "puanim kayboldu" diye destek acar. */}
+        <div className="rounded-lg border bg-card p-4">
+          <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
+            <Clock className="h-4 w-4 text-blue-600" />
+            Beklemede
+          </div>
+          <p className="text-2xl font-bold text-blue-600">
+            {pending.toLocaleString("tr-TR")}
+          </p>
+          {pending > 0 && info?.next_available_at && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              {formatDate(info.next_available_at)} tarihinde açılıyor
+            </p>
+          )}
         </div>
         <div className="rounded-lg border bg-card p-4">
           <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
@@ -172,6 +200,12 @@ export function LoyaltyTab({ t, enabled }: Props) {
               (fotoğraflı değerlendirme daha fazla). Puan, verdiğiniz yıldızdan
               bağımsızdır.
             </li>
+            {rules.hold_days > 0 && (
+              <li>
+                • Kazandığınız puanlar <strong>{rules.hold_days} gün</strong>{" "}
+                beklemede kalır, iade süreniz dolduktan sonra kullanıma açılır.
+              </li>
+            )}
             <li>
               • {rules.redeem_points_per_unit.toLocaleString("tr-TR")} puan ={" "}
               {t.currency}
@@ -243,6 +277,16 @@ export function LoyaltyTab({ t, enabled }: Props) {
                 Çek oluşturmak için en az{" "}
                 {minPoints.toLocaleString("tr-TR")} puana ulaşmanız gerekiyor.{" "}
                 {(minPoints - balance).toLocaleString("tr-TR")} puan kaldı.
+              </p>
+            )}
+
+            {pending > 0 && (
+              <p className="mt-2 text-sm text-blue-600">
+                {pending.toLocaleString("tr-TR")} puanınız beklemede
+                {info?.next_available_at
+                  ? `; ${formatDate(info.next_available_at)} tarihinden itibaren`
+                  : ""}{" "}
+                kullanabileceksiniz.
               </p>
             )}
 
@@ -337,16 +381,20 @@ export function LoyaltyTab({ t, enabled }: Props) {
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {new Date(tx.created_at).toLocaleDateString("tr-TR")}
-                      {tx.expires_at
-                        ? ` • ${new Date(tx.expires_at).toLocaleDateString("tr-TR")} tarihinde sona erer`
-                        : ""}
+                      {tx.is_pending && tx.available_at
+                        ? ` • ${formatDate(tx.available_at)} tarihinde kullanıma açılacak`
+                        : tx.expires_at
+                          ? ` • ${formatDate(tx.expires_at)} tarihinde sona erer`
+                          : ""}
                     </p>
                   </div>
                   <span
                     className={`shrink-0 font-bold ${
-                      tx.points > 0
-                        ? "text-green-600"
-                        : "text-orange-600"
+                      tx.is_pending
+                        ? "text-blue-600"
+                        : tx.points > 0
+                          ? "text-green-600"
+                          : "text-orange-600"
                     }`}
                   >
                     {tx.points > 0 ? "+" : ""}

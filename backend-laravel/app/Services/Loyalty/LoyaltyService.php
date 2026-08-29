@@ -20,6 +20,11 @@ use Illuminate\Support\Facades\Log;
  *
  * Kazanma : teslim edilen sipariste 1 TL = 1 puan (ODENEN degil, TESLIM EDILEN
  *           -- iptal/iade hayalet puan birakmasin), onaylanan yoruma bonus.
+ * Bekleme : kazanilan puan hemen kullanilamaz, BEKLEME SURESI kadar (varsayilan
+ *           14 gun, tuketicinin cayma hakki penceresi) beklemede kalir. Iade
+ *           bu pencerede geldiginde puan henuz harcanamadigi icin temiz sekilde
+ *           geri alinir; bekleme olmasa musteri puani ayni gun bozdurur ve
+ *           iadede geri alinacak puan kalmazdi.
  * Harcama : puan -> kisiye ozel indirim cheki (coupon_lines).
  *
  * Neden kupon, cuzdan degil: kupon motoru canlida calisiyor ve musteri kisiti,
@@ -51,9 +56,35 @@ class LoyaltyService
         return com_option_get('com_loyalty_redeem_enabled') !== 'off';
     }
 
+    /**
+     * KULLANILABILIR bakiye. Bekleme suresi dolmamis puanlar dahil DEGILDIR;
+     * bozdurma, yetersiz bakiye kontrolu ve arayuzdeki "Puan Bakiyeniz" hep
+     * bu degeri kullanir.
+     */
     public function balance(int $customerId): int
     {
-        return (int) LoyaltyPointTransaction::where('customer_id', $customerId)->sum('points');
+        return (int) LoyaltyPointTransaction::where('customer_id', $customerId)
+            ->available()
+            ->sum('points');
+    }
+
+    /** Henuz kullanima acilmamis puan toplami. */
+    public function pendingBalance(int $customerId): int
+    {
+        return (int) LoyaltyPointTransaction::where('customer_id', $customerId)
+            ->pending()
+            ->sum('points');
+    }
+
+    /** Bekleyen puanlardan en yakin kullanima acilma tarihi. */
+    public function nextAvailableAt(int $customerId): ?\Illuminate\Support\Carbon
+    {
+        $value = LoyaltyPointTransaction::where('customer_id', $customerId)
+            ->pending()
+            ->where('points', '>', 0)
+            ->min('available_at');
+
+        return $value ? \Illuminate\Support\Carbon::parse($value) : null;
     }
 
     // ----------------------------------------------------------------- ayarlar
@@ -91,6 +122,48 @@ class LoyaltyService
     public function pointsExpireDays(): int
     {
         return max(1, (int) (com_option_get('com_loyalty_points_expire_days') ?: 365));
+    }
+
+    /**
+     * Kazanilan puanin kullanima acilmasi icin beklenecek gun sayisi.
+     *
+     * Varsayilan 14: mesafeli satislarda cayma hakki teslimattan itibaren 14
+     * gundur. Bu sure boyunca puan beklemede tutulur ki iade geldiginde geri
+     * alinacak puan mutlaka bulunsun.
+     *
+     * 0 girilirse bekleme kapanir -- ama o zaman iade sonrasi bakiye eksiye
+     * dusebilir; ayar arayuzu bu riski yazar.
+     */
+    public function holdDays(): int
+    {
+        $value = com_option_get('com_loyalty_hold_days');
+
+        // Hic yazilmamissa (NULL / bos) varsayilan 14. Acikca "0" yazilmissa
+        // yoneticinin bilincli tercihidir, 14'e cevrilmez.
+        if ($value === null || $value === '') {
+            return 14;
+        }
+
+        return max(0, (int) $value);
+    }
+
+    /** Yeni kazanimin kullanima acilacagi an. Bekleme 0 ise NULL (aninda). */
+    private function availableAt(): ?\Illuminate\Support\Carbon
+    {
+        $days = $this->holdDays();
+
+        return $days > 0 ? now()->addDays($days) : null;
+    }
+
+    /**
+     * Kazanimin son kullanma tarihi.
+     *
+     * Gecerlilik suresi BEKLEME BITTIKTEN SONRA baslar; aksi halde 14 gunluk
+     * bekleme, musterinin puani kullanabilecegi sureden kesilirdi.
+     */
+    private function expiresAt(): \Illuminate\Support\Carbon
+    {
+        return now()->addDays($this->holdDays() + $this->pointsExpireDays());
     }
 
     /** Verilen puanin TL karsiligi. */
@@ -131,7 +204,8 @@ class LoyaltyService
             Order::class,
             $order->id,
             "Sipariş #{$order->id} teslim edildi",
-            now()->addDays($this->pointsExpireDays())
+            $this->expiresAt(),
+            $this->availableAt()
         );
 
         if ($transaction) {
@@ -139,7 +213,8 @@ class LoyaltyService
                 $customerId,
                 $points,
                 "Sipariş #{$order->id} teslim edildi",
-                ['type' => 'loyalty_earned', 'order_id' => $order->id]
+                ['type' => 'loyalty_earned', 'order_id' => $order->id],
+                $transaction->available_at
             );
         }
 
@@ -205,7 +280,8 @@ class LoyaltyService
             $productId,
             ($hasImage ? 'Görselli değerlendirme bonusu' : 'Değerlendirme bonusu')
                 . ($review->order_id ? " (Sipariş #{$review->order_id})" : ''),
-            now()->addDays($this->pointsExpireDays())
+            $this->expiresAt(),
+            $this->availableAt()
         );
 
         if ($transaction) {
@@ -217,7 +293,8 @@ class LoyaltyService
                     'type' => 'loyalty_earned',
                     'review_id' => $review->id,
                     'product_id' => $productId,
-                ]
+                ],
+                $transaction->available_at
             );
         }
 
@@ -276,6 +353,20 @@ class LoyaltyService
      *
      * Kazanim anahtari kapali olsa bile calisir: verilmis puani geri almak
      * programin acik olmasina bagli olmamali.
+     *
+     * IKI DURUM VAR:
+     *
+     * 1) Puan hala BEKLEMEDE (normal hal — iade penceresi 14 gun, bekleme de
+     *    14 gun). Geri alma kaydi, kazanimin `available_at` degerini AYNEN
+     *    kopyalar. Boylece iki kayit ayni havuzda (bekleyen) toplanip sifirlanir;
+     *    musterinin kullanilabilir bakiyesine hic dokunulmaz. Geri alma kaydini
+     *    "aninda" yazmak, bekleyen +1000'e karsi kullanilabilir -1000 demek
+     *    olurdu ve bakiye sebepsiz eksiye duserdi.
+     *
+     * 2) Puan KULLANIMA ACILMIS (iade bekleme suresinden sonra gelmis). O zaman
+     *    puan harcanmis olabilir. Geri alma, kullanilabilir bakiye kadar
+     *    kirpilir -- musteriye borc cikarilmaz. Kirpilan fark loglanir; admin
+     *    gerekirse "Sadakat Puanlari" ekranindan elle duzeltir.
      */
     public function revokeForOrder(Order $order): ?LoyaltyPointTransaction
     {
@@ -288,14 +379,40 @@ class LoyaltyService
             return null;
         }
 
+        $customerId = (int) $awarded->customer_id;
+        $full = abs((int) $awarded->points);
+        $amount = $full;
+
+        if (! $awarded->isPending()) {
+            // Kullanima acilmis puanin bir kismi harcanmis olabilir.
+            $amount = max(0, min($full, $this->balance($customerId)));
+
+            if ($amount < $full) {
+                Log::warning('[loyalty] iade puani tam geri alinamadi (puan harcanmis)', [
+                    'order_id' => $order->id,
+                    'customer_id' => $customerId,
+                    'awarded' => $full,
+                    'revoked' => $amount,
+                    'shortfall' => $full - $amount,
+                ]);
+            }
+        }
+
+        if ($amount <= 0) {
+            return null;
+        }
+
         return $this->record(
-            (int) $awarded->customer_id,
-            -abs($awarded->points),
+            $customerId,
+            -$amount,
             LoyaltyPointTransaction::TYPE_REVOKE,
             Order::class,
             $order->id,
             "Sipariş #{$order->id} iptal/iade edildi",
-            null
+            null,
+            // Bekleyen kazanimin geri alinmasi da BEKLEYEN kayittir; ikisi ayni
+            // havuzda birbirini goturur.
+            $awarded->available_at
         );
     }
 
@@ -333,12 +450,29 @@ class LoyaltyService
         try {
             return DB::transaction(function () use ($customer, $points) {
                 // Bakiye kilit altinda tekrar okunur: kilit alinmadan once
-                // baska bir istek harcamis olabilir.
+                // baska bir istek harcamis olabilir. Yalnizca KULLANILABILIR
+                // kayitlar sayilir; bekleme suresi dolmamis puan bozdurulamaz.
                 $balance = (int) LoyaltyPointTransaction::where('customer_id', $customer->id)
+                    ->available()
                     ->lockForUpdate()
                     ->sum('points');
 
                 if ($balance < $points) {
+                    $pending = $this->pendingBalance((int) $customer->id);
+
+                    if ($pending > 0) {
+                        $next = $this->nextAvailableAt((int) $customer->id);
+
+                        throw new \RuntimeException(__(
+                            'Yetersiz puan. Kullanılabilir bakiyeniz: :balance. :pending puanınız hâlâ beklemede:next',
+                            [
+                                'balance' => $balance,
+                                'pending' => $pending,
+                                'next' => $next ? ' (' . $next->format('d.m.Y') . ' tarihinde kullanıma açılır)' : '',
+                            ]
+                        ));
+                    }
+
                     throw new \RuntimeException(__('Yetersiz puan. Bakiyeniz: :balance', ['balance' => $balance]));
                 }
 
@@ -443,19 +577,35 @@ class LoyaltyService
      * Puan kazanildiginda musteriye bildirim. Bildirim yazilamazsa puan
      * islemini asla bozmaz.
      */
-    private function notifyEarned(int $customerId, int $points, string $reason, array $data): void
-    {
+    private function notifyEarned(
+        int $customerId,
+        int $points,
+        string $reason,
+        array $data,
+        $availableAt = null
+    ): void {
         try {
             $value = $this->pointsToCurrency($points);
+            $formatted = number_format($points, 0, ',', '.');
+
+            // Bekleme suresi varsa musteriye ILK ANDA soylenir; puani gorup
+            // kullanamamak, hic gormemekten daha kotu bir deneyimdir.
+            $availability = $availableAt
+                ? ' Puanlarınız ' . $availableAt->format('d.m.Y') . ' tarihinde kullanıma açılacak'
+                    . ' (iade süresi dolduktan sonra); o tarihten itibaren Hesabım > Puanlarım'
+                    . ' sayfasından indirim çekine dönüştürebilirsiniz.'
+                : ' Puanlarınızı Hesabım > Puanlarım sayfasından indirim çekine dönüştürebilirsiniz.';
 
             UniversalNotification::create([
                 'notifiable_id' => $customerId,
                 'notifiable_type' => 'customer',
-                'title' => number_format($points, 0, ',', '.') . ' puan kazandınız',
-                'message' => "{$reason}. Hesabınıza " . number_format($points, 0, ',', '.')
-                    . " puan eklendi (yaklaşık {$value} TL değerinde). Puanlarınızı Hesabım > Puanlarım"
-                    . ' sayfasından indirim çekine dönüştürebilirsiniz.',
-                'data' => $data + ['points' => $points],
+                'title' => $formatted . ' puan kazandınız',
+                'message' => "{$reason}. Hesabınıza {$formatted} puan eklendi"
+                    . " (yaklaşık {$value} TL değerinde)." . $availability,
+                'data' => $data + [
+                    'points' => $points,
+                    'available_at' => $availableAt?->toIso8601String(),
+                ],
                 'status' => 'unread',
             ]);
         } catch (\Throwable $e) {
@@ -478,7 +628,8 @@ class LoyaltyService
         ?string $referenceType,
         ?int $referenceId,
         ?string $description,
-        $expiresAt
+        $expiresAt,
+        $availableAt = null
     ): ?LoyaltyPointTransaction {
         try {
             return LoyaltyPointTransaction::create([
@@ -489,6 +640,7 @@ class LoyaltyService
                 'reference_id' => $referenceId,
                 'description' => $description,
                 'expires_at' => $expiresAt,
+                'available_at' => $availableAt,
             ]);
         } catch (QueryException $e) {
             // 23000 = integrity constraint violation (benzersiz indeks)

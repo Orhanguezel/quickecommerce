@@ -586,6 +586,7 @@ class SystemManagementController extends Controller
             'com_loyalty_review_bonus_no_image',
             'com_loyalty_review_max_per_order',
             'com_loyalty_points_expire_days',
+            'com_loyalty_hold_days',
             'com_review_invite_window_days',
         ];
 
@@ -603,6 +604,9 @@ class SystemManagementController extends Controller
                 'com_loyalty_review_bonus_no_image' => 'nullable|integer|min:0',
                 'com_loyalty_review_max_per_order' => 'nullable|integer|min:1|max:50',
                 'com_loyalty_points_expire_days' => 'nullable|integer|min:1|max:3650',
+                // 0 = bekleme yok. Ust sinir 90 gun: daha uzunu puani fiilen
+                // kullanilamaz hale getirir.
+                'com_loyalty_hold_days' => 'nullable|integer|min:0|max:90',
                 'com_review_invite_window_days' => 'nullable|integer|min:1|max:90',
             ]);
 
@@ -656,12 +660,19 @@ class SystemManagementController extends Controller
 
         // Yoneticinin oranin gercek maliyetini gormesi icin ozet.
         $loyalty = app(\App\Services\Loyalty\LoyaltyService::class);
+        $outstanding = (int) \App\Models\LoyaltyPointTransaction::sum('points');
+        $pending = (int) \App\Models\LoyaltyPointTransaction::pending()->sum('points');
+
         $data['summary'] = [
-            'outstanding_points' => (int) \App\Models\LoyaltyPointTransaction::sum('points'),
-            'outstanding_value' => $loyalty->pointsToCurrency(
-                (int) \App\Models\LoyaltyPointTransaction::sum('points')
-            ),
+            'outstanding_points' => $outstanding,
+            'outstanding_value' => $loyalty->pointsToCurrency($outstanding),
+            // Bekleyen puan: yazilmis ama iade penceresi kapanmadigi icin
+            // henuz kullanilamayan kisim. Acik yukumlulugun ne kadarinin
+            // hala geri alinabilir oldugunu gosterir.
+            'pending_points' => $pending,
+            'pending_value' => $loyalty->pointsToCurrency($pending),
             'min_redeem_value' => $loyalty->pointsToCurrency($loyalty->minRedeemPoints()),
+            'hold_days' => $loyalty->holdDays(),
         ];
 
         return response()->json(['success' => true, 'data' => $data], 200);

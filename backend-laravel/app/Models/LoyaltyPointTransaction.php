@@ -29,11 +29,13 @@ class LoyaltyPointTransaction extends Model
         'reference_id',
         'description',
         'expires_at',
+        'available_at',
     ];
 
     protected $casts = [
         'points' => 'integer',
         'expires_at' => 'datetime',
+        'available_at' => 'datetime',
     ];
 
     public function customer(): BelongsTo
@@ -49,5 +51,27 @@ class LoyaltyPointTransaction extends Model
     public function scopeSpendings($query)
     {
         return $query->where('points', '<', 0);
+    }
+
+    /**
+     * Kullanilabilir kayitlar: bekleme suresi dolmus ya da hic olmayanlar.
+     * Bakiye HER ZAMAN bu kume uzerinden hesaplanir.
+     */
+    public function scopeAvailable($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereNull('available_at')->orWhere('available_at', '<=', now());
+        });
+    }
+
+    /** Henuz kullanima acilmamis (bekleyen) kayitlar. */
+    public function scopePending($query)
+    {
+        return $query->whereNotNull('available_at')->where('available_at', '>', now());
+    }
+
+    public function isPending(): bool
+    {
+        return $this->available_at !== null && $this->available_at->isFuture();
     }
 }

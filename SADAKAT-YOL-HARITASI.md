@@ -220,6 +220,32 @@ Benzersiz indeks: `(customer_id, type, reference_type, reference_id)` — aynı 
 | Sipariş `delivered` oldu | `GdeliverWebhookController::handleDelivered()` + `AdminOrderManageController` delivered dalı + `DeliverymanManageRepository` | `order_amount` kadar puan yaz, `expires_at = +365 gün` |
 | Yorum `approved` oldu | Admin yorum moderasyon aksiyonu | Görselli +250 / görselsiz +100 |
 | Sipariş iptal/iade | `refund_status = refunded` veya `status = cancelled` | O siparişin puanını **geri al** (negatif kayıt) |
+
+### Bekleme süresi (14 gün) — iadenin çalışmasını sağlayan şey
+
+Puanın **teslimatta** yazılması tek başına yetmiyor: müşteri puanı teslimat günü
+çeke çevirip harcarsa, beş gün sonra gelen iadede geri alınacak puan kalmaz.
+
+Bu yüzden kazanılan puan `available_at` tarihine kadar **beklemede** tutulur
+(`com_loyalty_hold_days`, varsayılan **14 gün** — mesafeli satışta cayma hakkı
+süresi). Bakiye her zaman yalnızca `available_at IS NULL OR available_at <= NOW()`
+satırlarının toplamıdır.
+
+**Durum alanı + cron değil, tarih.** Puanı "olgunlaştıran" bir job olsaydı, job
+çalışmadığında puanlar sonsuza kadar askıda kalırdı. Tarih karşılaştırması ile
+böyle bir arıza mümkün değil.
+
+| Senaryo | Davranış |
+|---|---|
+| İade, puan hâlâ beklemedeyken (olağan) | Geri alma kaydı **aynı `available_at` ile** yazılır; iki kayıt bekleyen havuzda netleşir, kullanılabilir bakiyeye dokunulmaz |
+| İade, puan açıldıktan sonra | Kullanılabilir bakiyeden düşülür |
+| İade, puan zaten harcanmış | Geri alma **kalan bakiye kadar kırpılır**, müşteriye borç çıkarılmaz; fark loglanır (`[loyalty] iade puani tam geri alinamadi`) |
+
+Geri alma kaydına `available_at`'i kopyalamak kritik: "anında" yazsaydık bekleyen
++1000'e karşılık kullanılabilir −1000 olur, bakiye sebepsiz eksiye düşerdi.
+
+`expires_at` de bekleme **bittikten sonra** başlar; 14 gün müşterinin kullanma
+süresinden kesilmez.
 | Puan bozdurma | Yeni müşteri endpoint'i | Puan düş + kişiye özel kupon üret |
 
 **Kritik:** puan yazımı `delivered` olayına bağlanacak, `paid` olayına değil. Bugün 17 ödenmiş siparişin 7'si teslim edilmemiş; `paid` üzerinden puan verilirse iptal edilen siparişler hayalet puan bırakır.
@@ -355,7 +381,8 @@ Yoruma puan vermek serbest, ama **açıklama zorunlu**. Dayanak: Ticari Reklam v
 **Açılış**
 
 - [x] `com_loyalty_enabled = off` ile deploy edildi
-- [x] Uçtan uca test: `php artisan loyalty:selftest` — canlıda **27/27 geçti** (transaction + rollback, kalıcı yazım yok)
+- [x] Uçtan uca test: `php artisan loyalty:selftest` — canlıda **49/49 geçti** (transaction + rollback, kalıcı yazım yok)
+- [x] 14 günlük bekleme süresi (`com_loyalty_hold_days`) — iade geri alımının fiilen çalışması için
 - [ ] Koşullar sayfasını (`sadakat-programi`, taslak) gözden geçirip yayınla
 - [ ] `php artisan loyalty:selftest` çalıştır (canlıda güvenli), sonra `com_loyalty_enabled = on`
 - [ ] Aç, ilk hafta günlük kontrol: dağıtılan puan, üretilen çek, kullanılan çek
@@ -373,6 +400,8 @@ Yoruma puan vermek serbest, ama **açıklama zorunlu**. Dayanak: Ticari Reklam v
 | `paid` üzerinden puan | İptal edilen siparişler hayalet puan bırakır | Tasarım kararı |
 | Anahtarı kapatınca puan iptali | Müşteri kaybı | Tasarım kararı |
 | Trait'te Eloquent metod adı | `forceFill` sessizce çalışmaz | `RoundNumericFields` (düzeltildi) |
+| Bekleme süresi 0 | İade koruması kapanır; harcanmış puan geri alınamaz | `com_loyalty_hold_days` (form uyarı veriyor) |
+| Geri alma kaydına `available_at` kopyalanmazsa | Bekleyen +N'e karşı kullanılabilir −N → bakiye eksiye düşer | `LoyaltyService::revokeForOrder()` |
 
 ## 6. Ölçüm
 

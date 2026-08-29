@@ -13,6 +13,8 @@ type CustomerRow = {
   email: string;
   balance: number;
   balance_value: number;
+  /** Bekleme suresi dolmamis, henuz kullanilamayan puan. */
+  pending: number;
   last_activity: string | null;
 };
 
@@ -24,6 +26,8 @@ type Transaction = {
   reference_type: string | null;
   reference_id: number | null;
   expires_at: string | null;
+  available_at: string | null;
+  is_pending: boolean;
   created_at: string;
 };
 
@@ -207,6 +211,11 @@ const LoyaltyCustomers = () => {
                       <p className="text-xs text-gray-500">
                         {row.balance_value} TL
                       </p>
+                      {row.pending > 0 && (
+                        <p className="text-xs text-blue-600">
+                          +{row.pending.toLocaleString("tr-TR")} beklemede
+                        </p>
+                      )}
                     </div>
                   </button>
                 ))}
@@ -228,10 +237,21 @@ const LoyaltyCustomers = () => {
                   <h2 className="font-semibold">{selected.name}</h2>
                   <p className="text-xs text-gray-500">{selected.email}</p>
                   <p className="mt-1 text-sm">
-                    Bakiye:{" "}
+                    Kullanılabilir bakiye:{" "}
                     <strong>{history?.balance?.toLocaleString("tr-TR")}</strong> puan
                     ({history?.balance_value} TL)
                   </p>
+                  {(history?.pending ?? 0) > 0 && (
+                    <p className="text-sm text-blue-600">
+                      Beklemede:{" "}
+                      <strong>{history.pending.toLocaleString("tr-TR")}</strong> puan
+                      {history?.next_available_at
+                        ? ` — ilk açılış ${new Date(
+                            history.next_available_at,
+                          ).toLocaleDateString("tr-TR")}`
+                        : ""}
+                    </p>
+                  )}
                 </div>
 
                 {/* Elle duzeltme */}
@@ -281,15 +301,26 @@ const LoyaltyCustomers = () => {
                             ? ` • ${tx.reference_type} #${tx.reference_id}`
                             : ""}{" "}
                           • {new Date(tx.created_at).toLocaleDateString("tr-TR")}
+                          {tx.is_pending && tx.available_at
+                            ? ` • ${new Date(tx.available_at).toLocaleDateString(
+                                "tr-TR",
+                              )} tarihinde açılacak`
+                            : ""}
                         </p>
                       </div>
                       <span
                         className={`shrink-0 font-bold ${
-                          tx.points > 0 ? "text-green-600" : "text-orange-600"
+                          tx.is_pending
+                            ? "text-blue-600"
+                            : tx.points > 0
+                              ? "text-green-600"
+                              : "text-orange-600"
                         }`}
+                        title={tx.is_pending ? "Beklemede — henüz kullanılamaz" : undefined}
                       >
                         {tx.points > 0 ? "+" : ""}
                         {tx.points.toLocaleString("tr-TR")}
+                        {tx.is_pending ? " ⏳" : ""}
                       </span>
                     </div>
                   ))}

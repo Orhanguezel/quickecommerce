@@ -21,7 +21,13 @@ class CustomerLoyaltyController extends Controller
     public function index(Request $request): JsonResponse
     {
         $customer = auth('api_customer')->user();
-        $balance = $this->loyalty->balance((int) $customer->id);
+        $customerId = (int) $customer->id;
+        $balance = $this->loyalty->balance($customerId);
+
+        // Bekleyen puan ayri gosterilir: musteri toplami gorup bozduramayinca
+        // "puanim kayboldu" diye destek acar. Ne zaman acilacagi da soylenir.
+        $pending = $this->loyalty->pendingBalance($customerId);
+        $nextAvailable = $this->loyalty->nextAvailableAt($customerId);
 
         $history = LoyaltyPointTransaction::where('customer_id', $customer->id)
             ->orderByDesc('id')
@@ -32,6 +38,9 @@ class CustomerLoyaltyController extends Controller
             'data' => [
                 'balance' => $balance,
                 'balance_value' => $this->loyalty->pointsToCurrency($balance),
+                'pending_balance' => $pending,
+                'pending_value' => $this->loyalty->pointsToCurrency($pending),
+                'next_available_at' => $nextAvailable?->toIso8601String(),
                 'earning_enabled' => $this->loyalty->enabled(),
                 'redeem_enabled' => $this->loyalty->redeemEnabled(),
                 // Misafir checkout hafif bir hesap aciyor (is_guest=1). Puan
@@ -44,6 +53,7 @@ class CustomerLoyaltyController extends Controller
                     'min_redeem_points' => $this->loyalty->minRedeemPoints(),
                     'voucher_min_order' => $this->loyalty->voucherMinOrder(),
                     'voucher_valid_days' => $this->loyalty->voucherValidDays(),
+                    'hold_days' => $this->loyalty->holdDays(),
                 ],
                 'transactions' => $history->getCollection()->map(fn ($t) => [
                     'id' => $t->id,
@@ -51,6 +61,8 @@ class CustomerLoyaltyController extends Controller
                     'type' => $t->type,
                     'description' => $t->description,
                     'expires_at' => $t->expires_at,
+                    'available_at' => $t->available_at,
+                    'is_pending' => $t->isPending(),
                     'created_at' => $t->created_at,
                 ]),
             ],
@@ -84,10 +96,15 @@ class CustomerLoyaltyController extends Controller
                 'voucher_min_order' => $this->loyalty->voucherMinOrder(),
                 'voucher_valid_days' => $this->loyalty->voucherValidDays(),
                 'max_per_order' => $this->loyalty->reviewMaxPerOrder(),
+                'hold_days' => $this->loyalty->holdDays(),
                 // Yasal aciklama metni tek yerden gelsin ki arayuzler
                 // birbirinden ayrismasin.
                 'disclosure' => 'Puan, verdiğiniz yıldız sayısından bağımsız olarak '
-                    . 'satın aldığınız ürünler için verilir. Her ürün için bir kez geçerlidir.',
+                    . 'satın aldığınız ürünler için verilir. Her ürün için bir kez geçerlidir.'
+                    . ($this->loyalty->holdDays() > 0
+                        ? ' Kazanılan puanlar, iade süresi dolduktan sonra ('
+                            . $this->loyalty->holdDays() . ' gün) kullanıma açılır.'
+                        : ''),
                 'terms_url' => '/sayfa/sadakat-programi',
             ],
         ]);

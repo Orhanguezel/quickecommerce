@@ -53,9 +53,15 @@ const NUMERIC_FIELDS: {
     section: 'earn',
   },
   {
+    key: 'com_loyalty_hold_days',
+    label: 'Puan bekleme süresi (gün)',
+    help: 'Kazanılan puan bu süre boyunca beklemede kalır, sonra kullanıma açılır. İade gelirse puan henüz harcanamadığı için temiz şekilde geri alınır. Varsayılan 14 gün = cayma hakkı süresi.',
+    section: 'earn',
+  },
+  {
     key: 'com_loyalty_points_expire_days',
     label: 'Puan geçerlilik süresi (gün)',
-    help: 'Kazanılan puanın kaç gün sonra geçersiz olacağı.',
+    help: 'Puan, kullanıma açıldıktan sonra kaç gün geçerli olacak. Bekleme süresi bu süreden düşülmez.',
     section: 'earn',
   },
   {
@@ -96,6 +102,14 @@ const NUMERIC_FIELDS: {
   },
 ];
 
+/**
+ * Ayar veritabaninda yoksa formda gosterilecek deger. Backend'deki varsayilanla
+ * AYNI olmalidir (LoyaltyService::holdDays).
+ */
+const FIELD_DEFAULTS: Partial<Record<keyof LoyaltySettingsFormData, string>> = {
+  com_loyalty_hold_days: '14',
+};
+
 const LoyaltySettingsForm = () => {
   const pathname = usePathname();
   const locale = pathname.split('/')[1];
@@ -127,7 +141,9 @@ const LoyaltySettingsForm = () => {
     if (!settings) return;
 
     NUMERIC_FIELDS.forEach(({ key }) => {
-      setValue(key, settings?.[key] ?? '');
+      // Sunucu bu ayari hic yazilmamissa bos doner ama servis varsayilani
+      // uygular. Formu bos birakmak yoneticiye "bekleme yok" izlenimi verirdi.
+      setValue(key, settings?.[key] ?? FIELD_DEFAULTS[key] ?? '');
     });
 
     setToggles({
@@ -185,6 +201,9 @@ const LoyaltySettingsForm = () => {
       ? ((reviewBonusPoints / perUnit) * unitValue).toFixed(2)
       : null;
 
+  const holdRaw = watch('com_loyalty_hold_days');
+  const holdDays = holdRaw === undefined || holdRaw === '' ? 14 : Number(holdRaw);
+
   const renderField = (field: (typeof NUMERIC_FIELDS)[number]) => (
     <div key={field.key}>
       <label htmlFor={field.key} className="text-sm font-medium mb-1 block">
@@ -212,7 +231,7 @@ const LoyaltySettingsForm = () => {
             <Card className="mt-4">
               <CardContent className="p-2 md:p-4">
                 <h3 className="text-base font-semibold mb-3">Program Durumu</h3>
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
                   <div className="rounded-lg border p-3">
                     <p className="text-xs text-gray-500">Dağıtılan puan</p>
                     <p className="text-lg font-bold">{summary.points_earned?.toLocaleString('tr-TR')}</p>
@@ -228,6 +247,15 @@ const LoyaltySettingsForm = () => {
                     </p>
                     <p className="text-[11px] text-gray-400">
                       Bugün herkes bozdursa verilecek indirim
+                    </p>
+                  </div>
+                  <div className="rounded-lg border p-3">
+                    <p className="text-xs text-gray-500">Bekleyen puan</p>
+                    <p className="text-lg font-bold text-blue-600">
+                      {summary.points_pending?.toLocaleString('tr-TR') ?? 0}
+                    </p>
+                    <p className="text-[11px] text-gray-400">
+                      İade gelirse geri alınabilir kısım
                     </p>
                   </div>
                   <div className="rounded-lg border p-3">
@@ -286,6 +314,16 @@ const LoyaltySettingsForm = () => {
               <div dir={dir} className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-8">
                 {NUMERIC_FIELDS.filter((f) => f.section === 'earn').map(renderField)}
               </div>
+
+              {holdDays === 0 && (
+                <div className="mt-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+                  <strong>Bekleme süresi 0.</strong> Puan teslimatın hemen ardından
+                  kullanıma açılır; müşteri aynı gün çeke çevirip harcayabilir. Sonradan
+                  gelen iadede geri alınacak puan kalmayabilir — bu durumda sistem
+                  müşteriye borç çıkarmaz, geri alma kalan bakiye kadar kırpılır ve
+                  fark mağazanın üzerinde kalır. Cayma hakkı süresi olan 14 gün önerilir.
+                </div>
+              )}
             </CardContent>
           </Card>
 
