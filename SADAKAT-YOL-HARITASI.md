@@ -109,8 +109,12 @@ Komut 11:00–19:00 arası 30 dakikada bir koşuyor. Teslimattan sonraki 2 gün 
 | Kaynak | Puan | Koşul |
 |---|---|---|
 | Sipariş | 1 TL = **1 puan** | Sipariş `delivered` olduğunda. Ödendiğinde **değil** |
-| Yorum (görselli) | **+250 puan** | Yorum `approved` olduğunda, sipariş başına bir kez |
-| Yorum (görselsiz) | **+100 puan** | Yorum `approved` olduğunda, sipariş başına bir kez |
+| Yorum (görselli) | **2.000 puan = 20 TL** | Yorum `approved` olduğunda, **ürün başına bir kez** |
+| Yorum (görselsiz) | **1.000 puan = 10 TL** | Yorum `approved` olduğunda, **ürün başına bir kez** |
+
+Yorum bonusu için iki koruma: **ürün başına bir kez** (aynı ürünü tekrar alıp yeniden
+değerlendirse de ikinci bonus yok) ve **sipariş başına en fazla 3 değerlendirme**
+(`com_loyalty_review_max_per_order`). Kurye değerlendirmeleri kapsam dışı.
 
 **Harcama**
 
@@ -124,12 +128,24 @@ Komut 11:00–19:00 arası 30 dakikada bir koşuyor. Teslimattan sonraki 2 gün 
 ### 3.2 Ekonomi kontrolü
 
 Ortalama sepet 2.472,90 TL, komisyon %10,33 → sipariş başına ~255 TL marj.
+**Canlıda her siparişte tek ürün var** (17 sipariş / 17 satır), yani pratikte
+sipariş başına en fazla bir yorum bonusu çıkıyor.
 
-- Müşteri ortalama siparişte 2.473 puan kazanır → **24,73 TL** çek değeri
-- Bu, GMV'nin **%1'i**, marjın **~%9,7'si**
-- Yorum bonusu: 250 puan = 2,50 TL — sipariş başına bir kez, ihmal edilebilir maliyet
+| | TL | Ciro payı | Marj payı |
+|---|---|---|---|
+| Sipariş puanı (2.473 puan) | 24,72 | %1,00 | %9,7 |
+| Fotoğraflı yorum (2.000 puan) | 20,00 | %0,81 | %7,8 |
+| **Toplam** | **44,72** | **%1,81** | **%17,5** |
 
-Sürdürülebilir aralıkta. Marj %10'un altına inerse kur (1000 puan = 10 TL) aşağı çekilmeli.
+Kalıcı bir program için yüksek; **lansman kampanyası** olarak makul. Katalogda
+tek onaylı yorum var, içerik edinme maliyeti olarak bakılmalı. Hacim gelince
+panelden düşürülür — Trendyol da programı hacme ulaşınca kapatmıştı.
+
+**Ayar koruması:** kazanma ve harcama oranları birlikte "efektif geri verme
+yüzdesi"ni belirler. Sunucu bunu hesaplayıp **%20 üstünü reddediyor**, ayrıca
+`com_loyalty_earn_per_currency` en fazla 10 olabiliyor. (2026-08-29'da panelden
+1 TL = 100 puan girilip kazanım açılmıştı; defter boş olduğu için zarar
+oluşmadı, koruma bu olaydan sonra eklendi.)
 
 **Neden 1 TL = 1 puan ama 1000 puan = 10 TL?** Kazanma oranı yüksek görünsün, harcama oranı marjı korusun diye. Müşteri "2.473 puan kazandım" görür, karşılığı 24,73 TL'dir. Trendyol dahil tüm sadakat programları bu ayrımı kullanır.
 
@@ -311,6 +327,15 @@ Yoruma puan vermek serbest, ama **açıklama zorunlu**. Dayanak: Ticari Reklam v
 - [x] Admin panelde sadakat ayarları ekranı — `/admin/system-management/loyalty-settings`, açık yükümlülük özeti + canlı geri-verme oranı hesabı
 - [x] Admin: müşteri puan geçmişi + manuel puan ekleme/silme — `/admin/loyalty`
 - [x] Kapatma akışı: `com_loyalty_enabled` (kazanım) + `com_loyalty_redeem_enabled` (bozdurma) ayrı
+
+**Kampanya duyurusu (popup değil banner)**
+
+- [x] Herkese açık `GET /api/v1/loyalty-campaign` — giriş yapmamış ziyaretçi de görebilir
+- [x] Hesabım > Siparişlerim ve Değerlendirmelerim üstünde tam banner
+- [x] Yorum yazma dialogunda tek satırlık hatırlatma
+- [x] Değerlendirme davet e-postasında kampanya kutusu
+- [x] Hepsi kampanya kapalıyken hiçbir şey çizmez
+- [x] Yasal açıklama metni tek kaynaktan (`disclosure` alanı) geliyor
 
 **Müşteri arayüzü**
 
