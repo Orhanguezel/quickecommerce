@@ -174,6 +174,9 @@ export const Sidebar = memo(({ setIsLoading }: any) => {
         : [],
     [getPermissions?.activity_scope],
   );
+  // Menu bir kez cizildikten sonra arka plan istekleri onu sokmesin.
+  const hasMenuData = Array.isArray(MenuItems) && MenuItems.length > 0;
+
   const menuItems: any =
     storedSlug === "" && getPermissions?.activity_scope === "store_level"
       ? [...accountGroup, ...(MenuItems || [])]
@@ -349,7 +352,12 @@ export const Sidebar = memo(({ setIsLoading }: any) => {
             />
           </div>
         </div>
-        {isPending || isFetching ? (
+        {/* Iskelet YALNIZCA hic menu verisi yokken gosterilir.
+            Eskiden kosul `isPending || isFetching` idi: arka planda her
+            veri tazelemesinde Menu sokuluyor, ScrollArea yeniden
+            kuruluyor ve sidebar basa donuyordu. Kullanici uzun menude
+            her sayfa gecisinde linki yeniden aramak zorunda kaliyordu. */}
+        {!hasMenuData && (isPending || isFetching) ? (
           <div>
             <div className="p-4 w-full">
               <div className="space-y-4">

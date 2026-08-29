@@ -15,7 +15,7 @@ import {
 import { Ellipsis, LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Key, useEffect, useMemo } from "react";
+import { Key, useEffect, useMemo, useRef } from "react";
 import { CollapseMenuButton } from "./collapse-menu-button";
 import { CustomIcons } from "@/assets/icons";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
@@ -23,6 +23,9 @@ import { setDynamicValue } from "@/redux/slices/refetchSlice";
 import * as LucideIcons from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 const AllIcons = { ...LucideIcons, ...CustomIcons };
+
+/** Ayni sekmede kalici, yeni sekmede sifir. */
+const SIDEBAR_SCROLL_KEY = "admin-sidebar-scroll";
 
 export function Menu({
   isOpen,
@@ -32,6 +35,15 @@ export function Menu({
   setIsLoading,
 }: any) {
   const t = useTranslations();
+
+  // Sidebar kaydirma konumu. Menu uzun; kullanici asagi inip bir link
+  // tikladiginda liste bastan basliyordu ve her sayfa gecisinde ayni yeri
+  // yeniden aramak gerekiyordu. Konum sessionStorage'da tutulur: ayni
+  // sekmede kalici, yeni sekmede sifir, kalici depolama kirlenmez.
+  const viewportRef = useRef<HTMLDivElement | null>(null);
+  const scrollHostRef = useRef<HTMLDivElement | null>(null);
+  const didRestoreScroll = useRef(false);
+  const pendingRaf = useRef<number | null>(null);
   const pathname = usePathname();
   const locale = useLocale();
   const dir = locale === "ar" ? "rtl" : "ltr";
@@ -157,6 +169,50 @@ export function Menu({
     getPermissions?.activity_scope,
   ]);
 
+  // Kaydirma konumunu koru.
+  //
+  // Radix ScrollArea gercek kaydirmayi [data-radix-scroll-area-viewport]
+  // elemaninda yapar; konum oradan okunup oraya geri yazilir. Geri yukleme
+  // mount basina BIR KEZ ve icerik olustuktan sonra (rAF) yapilir; aksi
+  // halde yukseklik henuz 0 iken atanan scrollTop kirpilir.
+  useEffect(() => {
+    const host = scrollHostRef.current;
+    if (!host) return;
+
+    const viewport = host.querySelector<HTMLDivElement>(
+      "[data-radix-scroll-area-viewport]"
+    );
+    if (!viewport) return;
+
+    viewportRef.current = viewport;
+
+    if (!didRestoreScroll.current) {
+      didRestoreScroll.current = true;
+      pendingRaf.current = requestAnimationFrame(() => {
+        try {
+          const saved = Number(sessionStorage.getItem(SIDEBAR_SCROLL_KEY) || 0);
+          if (saved > 0) viewport.scrollTop = saved;
+        } catch {
+          // sessionStorage kapaliysa sessizce gec; menu yine calisir.
+        }
+      });
+    }
+
+    const onScroll = () => {
+      try {
+        sessionStorage.setItem(SIDEBAR_SCROLL_KEY, String(viewport.scrollTop));
+      } catch {
+        // yok say
+      }
+    };
+
+    viewport.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      viewport.removeEventListener("scroll", onScroll);
+      if (pendingRaf.current) cancelAnimationFrame(pendingRaf.current);
+    };
+  }, [filteredMenuItems.length]);
+
   if (search && filteredMenuItems.length === 0) {
     return (
       <div className="flex items-center justify-center h-32 text-muted-foreground">
@@ -166,6 +222,7 @@ export function Menu({
   }
   return (
     <>
+      <div ref={scrollHostRef} className="contents">
       <ScrollArea className="[&>div>div[style]]:!block">
         <nav dir={dir} className="mt-2 h-full w-full">
           <ul className="relative flex flex-col min-h-[calc(100vh-48px-36px-16px-32px)] lg:min-h-[calc(100vh-32px-40px-60px)] items-start space-y-1 px-2 pb-10">
@@ -468,6 +525,7 @@ export function Menu({
           </ul>
         </nav>
       </ScrollArea>
+      </div>
     </>
   );
 }
