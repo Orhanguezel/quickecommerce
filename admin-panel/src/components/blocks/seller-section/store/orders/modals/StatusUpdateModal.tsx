@@ -77,7 +77,7 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
       actionButtonLabel={t("button.confirm")}
       IsLoading={loading}
       onSave={handleSave}
-      customClass="left-1/2 top-1/2 w-[92vw] max-w-md max-h-[85vh] overflow-y-auto"
+      customClass="!transform-none inset-x-4 mx-auto max-w-md top-[8vh] max-h-[84vh] overflow-y-auto"
       isOpen={isModalOpen}
       onOpenChange={setIsModalOpen}
       smallModal
