@@ -15,7 +15,7 @@ import { MenuIcon, Search } from "lucide-react";
 import { useLocale } from "next-intl";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Menu } from "./menu";
 
 export function SheetMenu({ getPermissions }: any) {
@@ -34,6 +34,16 @@ export function SheetMenu({ getPermissions }: any) {
   const menuItems: any = MenuItems;
 
   const [search, setSearch] = useState("");
+
+  // Sheet KONTROLLU olmali. Radix, icindeki bir baglantiya tiklanip rota
+  // degistiginde bunu bilemez; kontrolsuz birakilirsa menu acilan sayfanin
+  // ustunde acik kalir ve kullanici her tiklamadan sonra elle kapatmak
+  // zorunda kalir (mobilde en cok sikayet edilen davranis).
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
   const { general, refetch: generalRefetch } = useGeneralQuery({
     language: localeMain,
   });
@@ -46,6 +56,8 @@ export function SheetMenu({ getPermissions }: any) {
   const handleLogo = () => {
     localStorage.setItem("selectedStore", JSON.stringify({ id: "", slug: "" }));
     dispatch(setSelectedStore({ id: "", type: "", slug: "" }));
+    // Ayni sayfadaysak pathname degismeyecegi icin acikca kapatiyoruz.
+    setOpen(false);
     router.push(`${dashboardLink}`);
     if (getPermissions?.activity_scope == "store_level") {
       dispatch(setRefetch(true));
@@ -53,7 +65,7 @@ export function SheetMenu({ getPermissions }: any) {
     }
   };
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger className="lg:hidden" asChild>
         <Button className="h-8" variant="outline" size="icon">
           <MenuIcon size={20} />
