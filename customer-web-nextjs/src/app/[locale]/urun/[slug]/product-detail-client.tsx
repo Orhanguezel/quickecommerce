@@ -1704,6 +1704,13 @@ export function ProductDetailClient({
                     <p className="mt-1.5 text-sm text-muted-foreground">
                       {review.review}
                     </p>
+                    {review.is_incentivized && (
+                      // Tesvikli yorum aciklamasi (yasal zorunluluk). Puan
+                      // yildiz sayisindan bagimsiz verilir.
+                      <p className="mt-1 text-[11px] text-muted-foreground/80">
+                        Puan kazanılan değerlendirme
+                      </p>
+                    )}
                     {review.images?.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-2">
                         {review.images.map((img, i) => (

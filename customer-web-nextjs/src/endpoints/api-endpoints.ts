@@ -107,6 +107,11 @@ export const API_ENDPOINTS = {
   DELETE_ACCOUNT: "/customer/profile/delete",
 
   // Wallet
+  // Sadakat puani
+  LOYALTY: "/customer/loyalty",
+  LOYALTY_REDEEM: "/customer/loyalty/redeem",
+  LOYALTY_VOUCHERS: "/customer/loyalty/vouchers",
+
   WALLET: "/customer/wallet",
   WALLET_DEPOSIT: "/customer/wallet/deposit",
   WALLET_TRANSACTIONS: "/customer/wallet/transactions",

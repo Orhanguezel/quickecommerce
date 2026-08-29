@@ -104,8 +104,10 @@ import {
   TrendingDown,
   ArrowDownCircle,
   ArrowUpCircle,
+  Award,
 } from "lucide-react";
 import Cookies from "js-cookie";
+import { LoyaltyTab } from "@/components/account/loyalty-tab";
 import { AUTH_TOKEN_KEY, AUTH_USER } from "@/lib/constants";
 
 type ApiError = {
@@ -126,7 +128,7 @@ interface Props {
   translations: Record<string, string>;
 }
 
-type Tab = "profile" | "orders" | "wishlist" | "recently_viewed" | "reviews" | "support" | "addresses" | "password" | "wallet";
+type Tab = "profile" | "orders" | "wishlist" | "recently_viewed" | "reviews" | "support" | "addresses" | "password" | "wallet" | "loyalty";
 
 export function AccountClient({ translations: t }: Props) {
   const locale = useLocale();
@@ -491,6 +493,7 @@ export function AccountClient({ translations: t }: Props) {
   const tabs: { key: Tab; label: string; icon: typeof User }[] = [
     { key: "profile", label: t.profile, icon: User },
     { key: "wallet", label: t.wallet || "Cüzdan", icon: Wallet },
+    { key: "loyalty", label: t.loyalty_points || "Puanlarım", icon: Award },
     { key: "orders", label: t.my_orders, icon: Package },
     { key: "wishlist", label: t.wishlist, icon: Heart },
     { key: "recently_viewed", label: t.recently_viewed, icon: Clock },
@@ -2052,6 +2055,10 @@ export function AccountClient({ translations: t }: Props) {
           )}
 
           {/* Wallet Tab */}
+          {activeTab === "loyalty" && (
+            <LoyaltyTab t={t as unknown as Record<string, string>} enabled={hasAuthToken} />
+          )}
+
           {activeTab === "wallet" && (
             <div className="space-y-4">
               {/* Success Banner */}

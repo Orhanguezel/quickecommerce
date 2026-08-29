@@ -130,6 +130,8 @@ export interface ProductReview {
   reviewed_at: string;
   liked: boolean;
   disliked: boolean;
+  /** Bu degerlendirme icin sadakat puani verildi mi (yasal aciklama rozeti). */
+  is_incentivized?: boolean;
 }
 
 export interface ProductSpecification {

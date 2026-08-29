@@ -563,6 +563,78 @@ class SystemManagementController extends Controller
 
     }
 
+    /**
+     * Sadakat puani ayarlari.
+     *
+     * com_loyalty_enabled ve com_loyalty_redeem_enabled AYRI anahtarlardir:
+     * program kapatilirken once kazanim durur, birikmis puanlar duyurulan
+     * tarihe kadar bozdurulabilir kalir. Ikisini birden kapatmak musteriye
+     * verilmis bir sozu bozar.
+     */
+    public function loyaltySettings(Request $request)
+    {
+        $keys = [
+            'com_loyalty_enabled',
+            'com_loyalty_redeem_enabled',
+            'com_loyalty_earn_per_currency',
+            'com_loyalty_redeem_points_per_unit',
+            'com_loyalty_redeem_value',
+            'com_loyalty_min_redeem_points',
+            'com_loyalty_voucher_min_order',
+            'com_loyalty_voucher_valid_days',
+            'com_loyalty_review_bonus_with_image',
+            'com_loyalty_review_bonus_no_image',
+            'com_loyalty_points_expire_days',
+            'com_review_invite_window_days',
+        ];
+
+        if ($request->isMethod('POST')) {
+            $validator = Validator::make($request->all(), [
+                'com_loyalty_enabled' => 'nullable|in:on,off',
+                'com_loyalty_redeem_enabled' => 'nullable|in:on,off',
+                'com_loyalty_earn_per_currency' => 'nullable|numeric|min:0|max:100',
+                'com_loyalty_redeem_points_per_unit' => 'nullable|integer|min:1',
+                'com_loyalty_redeem_value' => 'nullable|numeric|min:0.01',
+                'com_loyalty_min_redeem_points' => 'nullable|integer|min:1',
+                'com_loyalty_voucher_min_order' => 'nullable|numeric|min:0',
+                'com_loyalty_voucher_valid_days' => 'nullable|integer|min:1|max:3650',
+                'com_loyalty_review_bonus_with_image' => 'nullable|integer|min:0',
+                'com_loyalty_review_bonus_no_image' => 'nullable|integer|min:0',
+                'com_loyalty_points_expire_days' => 'nullable|integer|min:1|max:3650',
+                'com_review_invite_window_days' => 'nullable|integer|min:1|max:90',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+
+            foreach ($keys as $key) {
+                if ($request->has($key)) {
+                    com_option_update($key, (string) $request->input($key));
+                }
+            }
+
+            return $this->success(translate('messages.update_success', ['name' => 'Loyalty Settings']));
+        }
+
+        $data = [];
+        foreach ($keys as $key) {
+            $data[$key] = com_option_get($key);
+        }
+
+        // Yoneticinin oranin gercek maliyetini gormesi icin ozet.
+        $loyalty = app(\App\Services\Loyalty\LoyaltyService::class);
+        $data['summary'] = [
+            'outstanding_points' => (int) \App\Models\LoyaltyPointTransaction::sum('points'),
+            'outstanding_value' => $loyalty->pointsToCurrency(
+                (int) \App\Models\LoyaltyPointTransaction::sum('points')
+            ),
+            'min_redeem_value' => $loyalty->pointsToCurrency($loyalty->minRedeemPoints()),
+        ];
+
+        return response()->json(['success' => true, 'data' => $data], 200);
+    }
+
   public function googleMapSettings(Request $request)
     {
         if ($request->isMethod('POST')) {

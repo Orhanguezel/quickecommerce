@@ -297,6 +297,45 @@ class LoyaltyService
         ]);
     }
 
+    /**
+     * Admin tarafindan elle puan ekleme/silme.
+     *
+     * Bakiyeyi eksiye dusurmez. reference bos birakilir; benzersiz indekste
+     * NULL'lar cakismadigi icin ayni musteriye birden fazla manuel kayit
+     * yazilabilir.
+     *
+     * @throws \RuntimeException
+     */
+    public function adjustManually(int $customerId, int $points, ?string $note = null): LoyaltyPointTransaction
+    {
+        if ($points === 0) {
+            throw new \RuntimeException(__('Puan sıfır olamaz.'));
+        }
+
+        if ($points < 0 && $this->balance($customerId) + $points < 0) {
+            throw new \RuntimeException(__('Bakiye eksiye düşemez. Mevcut bakiye: :balance', [
+                'balance' => $this->balance($customerId),
+            ]));
+        }
+
+        $transaction = LoyaltyPointTransaction::create([
+            'customer_id' => $customerId,
+            'points' => $points,
+            'type' => LoyaltyPointTransaction::TYPE_MANUAL,
+            'description' => $note ?: ($points > 0 ? 'Yönetici tarafından eklendi' : 'Yönetici tarafından düşüldü'),
+            'expires_at' => $points > 0 ? now()->addDays($this->pointsExpireDays()) : null,
+        ]);
+
+        Log::info('[loyalty] manuel puan islemi', [
+            'customer_id' => $customerId,
+            'points' => $points,
+            'admin_id' => auth('api')->id(),
+            'note' => $note,
+        ]);
+
+        return $transaction;
+    }
+
     // ---------------------------------------------------------------- yardimci
 
     /**

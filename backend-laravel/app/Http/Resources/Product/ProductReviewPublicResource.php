@@ -25,6 +25,14 @@ class ProductReviewPublicResource extends JsonResource
                 )))
                 : [],
             "rating" => $this->rating,
+            // Tesvikli degerlendirme aciklamasi: puan kazanilmis bir yorumun
+            // bu sekilde isaretlenmesi Ticari Reklam ve Haksiz Ticari
+            // Uygulamalar Yonetmeligi ile Google Merchant urun yorumu
+            // politikasinin gerektirdigi aciklamadir.
+            "is_incentivized" => \App\Models\LoyaltyPointTransaction::where('type', 'review')
+                ->where('reference_type', \App\Models\Review::class)
+                ->where('reference_id', $this->id)
+                ->exists(),
             "like_count" => $this->like_count,
             "dislike_count" => $this->dislike_count,
             "reviewed_at" => $this->created_at->diffForHumans(),

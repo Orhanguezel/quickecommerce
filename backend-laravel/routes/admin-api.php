@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\V1\Admin\AdminOrderRefundManageController;
 use App\Http\Controllers\Api\V1\Admin\AdminProductManageController;
 use App\Http\Controllers\Api\V1\Admin\AdminProductQueryManageController;
 use App\Http\Controllers\Api\V1\Admin\AdminReportAnalyticsManageController;
+use App\Http\Controllers\Api\V1\Admin\AdminLoyaltyController;
 use App\Http\Controllers\Api\V1\Admin\AdminReviewManageController;
 use App\Http\Controllers\Api\V1\Admin\AdminSellerManageController;
 use App\Http\Controllers\Api\V1\Admin\AdminSitemapController;
@@ -457,6 +458,15 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => ['auth:sanctum']], functi
             Route::post('remove', [AdminStoreNoticeController::class, 'destroy']);
         });
 
+        // Sadakat puani yonetimi (feedback-control altinda DEGIL: puan bir
+        // musteri/finans konusu, yorum moderasyonu degil)
+        Route::group(['prefix' => 'loyalty/'], function () {
+            Route::get('summary', [AdminLoyaltyController::class, 'summary']);
+            Route::get('customers', [AdminLoyaltyController::class, 'customers']);
+            Route::get('customer/{customer_id}', [AdminLoyaltyController::class, 'history']);
+            Route::post('adjust', [AdminLoyaltyController::class, 'adjust']);
+        });
+
         Route::group(['prefix' => 'feedback-control/'], function () {
             Route::group(['prefix' => 'review/'], function () {
                 Route::get('/', [AdminReviewManageController::class, 'index']);
@@ -627,6 +637,8 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => ['auth:sanctum']], functi
             Route::match(['get', 'post'], '/firebase-settings', [SystemManagementController::class, 'firebaseSettings'])->middleware('permission:' . PermissionKey::FIREBASE_SETTINGS->value);
             Route::match(['get', 'post'], '/social-login-settings', [SystemManagementController::class, 'socialLoginSettings'])->middleware('permission:' . PermissionKey::SOCIAL_LOGIN_SETTINGS->value);
             Route::match(['get', 'post'], '/openai-settings', [SystemManagementController::class, 'openAiSettings'])->middleware('permission:' . PermissionKey::GOOGLE_MAP_SETTINGS->value);
+            // Sadakat puani ayarlari (kazanim ve bozdurma AYRI anahtar)
+            Route::match(['get', 'post'], '/loyalty-settings', [SystemManagementController::class, 'loyaltySettings'])->middleware('permission:' . PermissionKey::GENERAL_SETTINGS->value);
             Route::match(['get', 'post'], '/google-map-settings', [SystemManagementController::class, 'googleMapSettings'])->middleware('permission:' . PermissionKey::GOOGLE_MAP_SETTINGS->value);
             Route::match(['get', 'post'], '/recaptcha-settings', [SystemManagementController::class, 'recaptchaSettings'])->middleware('permission:' . PermissionKey::RECAPTCHA_SETTINGS->value);
             Route::match(['get', 'post'], '/cargo-settings', [SystemManagementController::class, 'cargoSettings'])->middleware('permission:' . PermissionKey::CARGO_SETTINGS->value);
