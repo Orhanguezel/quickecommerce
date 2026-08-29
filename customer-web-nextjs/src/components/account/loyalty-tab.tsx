@@ -55,6 +55,16 @@ export function LoyaltyTab({ t, enabled }: Props) {
   const formatDate = (value?: string | null) =>
     value ? new Date(value).toLocaleDateString("tr-TR") : "";
 
+  // Kazanma orani 1'in altindaysa ("1 TL = 0,01 puan") oran TERS okunur:
+  // "her 100 TL'ye 1 puan". Kimse 0,01 puani zihninde canlandiramaz.
+  const earnRate = rules?.earn_per_currency ?? 0;
+  const spendPerPoint = earnRate > 0 && earnRate < 1 ? Math.round(1 / earnRate) : 0;
+
+  // Puan ile para birebirse cevrim cumlesini hic kurma; "1 puan = 1 TL"
+  // demek yeterli ve kafa karistirmaz.
+  const oneToOne =
+    rules?.redeem_points_per_unit === 1 && rules?.redeem_value === 1;
+
   // Bakiyenin tamami bozdurulabilir mi?
   const minPoints = rules?.min_redeem_points ?? 2500;
   const canRedeem = Boolean(info?.redeem_enabled) && balance >= minPoints;
@@ -192,8 +202,22 @@ export function LoyaltyTab({ t, enabled }: Props) {
           </div>
           <ul className="ml-1 space-y-1 text-muted-foreground">
             <li>
-              • Siparişiniz <strong>teslim edildiğinde</strong> her {t.currency}1 için{" "}
-              {rules.earn_per_currency} puan kazanırsınız.
+              • Siparişiniz <strong>teslim edildiğinde</strong> puan kazanırsınız:{" "}
+              {spendPerPoint > 0 ? (
+                <>
+                  her {t.currency}
+                  {spendPerPoint.toLocaleString("tr-TR")} alışverişe{" "}
+                  <strong>1 puan</strong>
+                </>
+              ) : (
+                <>
+                  her {t.currency}1 alışverişe{" "}
+                  <strong>
+                    {rules.earn_per_currency.toLocaleString("tr-TR")} puan
+                  </strong>
+                </>
+              )}
+              .
             </li>
             <li>
               • Satın aldığınız ürünü değerlendirdiğinizde ek puan kazanırsınız
@@ -207,11 +231,26 @@ export function LoyaltyTab({ t, enabled }: Props) {
               </li>
             )}
             <li>
-              • {rules.redeem_points_per_unit.toLocaleString("tr-TR")} puan ={" "}
-              {t.currency}
-              {rules.redeem_value} indirim çeki. En az{" "}
-              {rules.min_redeem_points.toLocaleString("tr-TR")} puan
-              bozdurabilirsiniz.
+              •{" "}
+              {oneToOne ? (
+                <>
+                  <strong>
+                    1 puan = {t.currency}1
+                  </strong>
+                  . En az {rules.min_redeem_points.toLocaleString("tr-TR")} puan
+                  ({t.currency}
+                  {rules.min_redeem_points.toLocaleString("tr-TR")}) biriktirince
+                  indirim çekine dönüştürebilirsiniz.
+                </>
+              ) : (
+                <>
+                  {rules.redeem_points_per_unit.toLocaleString("tr-TR")} puan ={" "}
+                  {t.currency}
+                  {rules.redeem_value} indirim çeki. En az{" "}
+                  {rules.min_redeem_points.toLocaleString("tr-TR")} puan
+                  bozdurabilirsiniz.
+                </>
+              )}
             </li>
             <li>
               • Çekler {t.currency}

@@ -663,6 +663,17 @@ class SystemManagementController extends Controller
         $outstanding = (int) \App\Models\LoyaltyPointTransaction::sum('points');
         $pending = (int) \App\Models\LoyaltyPointTransaction::pending()->sum('points');
 
+        // Ortalama sepet ve siparis basina kalem sayisi, yoneticinin oranlari
+        // SOYUT degil KENDI verisiyle degerlendirebilmesi icin. "2500 puan
+        // gerekiyor" tek basina bir sey soylemez; "ortalama sepetiniz 2.473 TL,
+        // yani kabaca bir siparis" soyler.
+        $paid = \DB::table('order_masters')->where('payment_status', 'paid');
+        $avgOrder = (float) ((clone $paid)->avg('order_amount') ?? 0);
+        $orderCount = (int) \DB::table('orders')->count();
+        $itemsPerOrder = $orderCount > 0
+            ? round(\DB::table('order_details')->count() / $orderCount, 2)
+            : 0;
+
         $data['summary'] = [
             'outstanding_points' => $outstanding,
             'outstanding_value' => $loyalty->pointsToCurrency($outstanding),
@@ -673,6 +684,9 @@ class SystemManagementController extends Controller
             'pending_value' => $loyalty->pointsToCurrency($pending),
             'min_redeem_value' => $loyalty->pointsToCurrency($loyalty->minRedeemPoints()),
             'hold_days' => $loyalty->holdDays(),
+            'avg_order_value' => round($avgOrder, 2),
+            'paid_orders' => (clone $paid)->count(),
+            'items_per_order' => $itemsPerOrder,
         ];
 
         return response()->json(['success' => true, 'data' => $data], 200);

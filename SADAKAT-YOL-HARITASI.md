@@ -265,18 +265,47 @@ süresinden kesilmez.
 
 Mevcut `com_option_get()` deseni kullanılacak (`setting_options` tablosu):
 
-| Ayar | Varsayılan | Açıklama |
+| Ayar | Canlı değer | Açıklama |
 |---|---|---|
 | `com_loyalty_enabled` | `off` | Ana anahtar |
-| `com_loyalty_earn_per_currency` | `1` | 1 TL kaç puan |
-| `com_loyalty_redeem_points_per_unit` | `1000` | Kaç puan = 1 birim |
-| `com_loyalty_redeem_value` | `10` | O birimin TL karşılığı |
-| `com_loyalty_min_redeem_points` | `2500` | Minimum bozdurma |
+| `com_loyalty_redeem_points_per_unit` | `1` | **1 puan…** |
+| `com_loyalty_redeem_value` | `1` | **…= 1 TL** |
+| `com_loyalty_earn_per_currency` | `0.01` | 100 TL alışveriş → 1 puan (%1) |
+| `com_loyalty_min_redeem_points` | `25` | 25 puan = 25 TL çek |
 | `com_loyalty_voucher_min_order` | `500` | Çekin minimum sepeti |
 | `com_loyalty_voucher_valid_days` | `90` | Çek geçerliliği |
-| `com_loyalty_review_bonus_with_image` | `250` | Görselli yorum |
-| `com_loyalty_review_bonus_no_image` | `100` | Görselsiz yorum |
-| `com_loyalty_points_expire_days` | `365` | Puan ömrü |
+| `com_loyalty_review_bonus_with_image` | `20` | Fotoğraflı yorum = 20 TL |
+| `com_loyalty_review_bonus_no_image` | `10` | Fotoğrafsız yorum = 10 TL |
+| `com_loyalty_review_max_per_order` | `3` | Sipariş başına tavan |
+| `com_loyalty_hold_days` | `14` | Bekleme (iade koruması) |
+| `com_loyalty_points_expire_days` | `365` | Puan ömrü (henüz uygulanmıyor) |
+
+### Neden bu rakamlar — 2026-08-29 canlı verisi
+
+| Ölçü | Değer |
+|---|---|
+| Ödenmiş sipariş | 17 |
+| **Ortalama sepet** | **2.473 TL** |
+| Toplam ciro | 42.039 TL |
+| **Sipariş başına ürün** | **1,05** |
+| Müşteri | 129 (24 misafir) |
+| Ürün yorumu | **1** |
+
+Bu sayılar şemayı belirledi:
+
+- **1 puan = 1 TL (kur birebir).** Çevrim katmanı hem müşterinin hem yöneticinin
+  kafasını karıştırıyordu. Kazanma hızı kurdan değil `earn_per_currency`'den
+  ayarlanır.
+- **%1 geri verme** (100 TL → 1 puan). Ortalama sepet 2.473 TL olduğu için
+  müşteri **kabaca tek siparişte** 25 TL'lik çek hakkına ulaşıyor — ödül
+  "erişilebilir" hissettiren, maliyeti düşük tek nokta.
+- **Çek min. sepet 500 TL** asıl frendir: 25 TL'lik çek en kötü ihtimalle %5
+  indirim demek.
+- **Yorum bonusu 20/10 TL agresif ama gerekli.** Mağazada toplam **1 yorum**
+  var. Sipariş başına 1,05 ürün olduğu için `max_per_order = 3` pratikte
+  bağlayıcı değil; gerçek maliyet sipariş başına ~20 TL, yani ortalama sepette
+  **%0,8**. Yorum ürün başına bir kez verildiği için tekrarlayan gider değil.
+- Ortalama sepette tipik toplam maliyet ≈ **44,7 TL / %1,8**.
 
 **Kapatma davranışı — ayrı düşünülmeli.** `com_loyalty_enabled = off` yapmak *yeni kazanımı* durdurur; **birikmiş puanlar müşteriye verilmiş bir sözdür**. Kapatırken:
 
@@ -394,6 +423,8 @@ Yoruma puan vermek serbest, ama **açıklama zorunlu**. Dayanak: Ticari Reklam v
 - [x] `com_loyalty_enabled = off` ile deploy edildi
 - [x] Uçtan uca test: `php artisan loyalty:selftest` — canlıda **49/49 geçti** (transaction + rollback, kalıcı yazım yok)
 - [x] 14 günlük bekleme süresi (`com_loyalty_hold_days`) — iade geri alımının fiilen çalışması için
+- [x] Oranlar canlı veriye göre dolduruldu; **1 puan = 1 TL** kuru (çevrim kaldırıldı)
+- [x] Ayar formuna canlı "Şu anki ayarlarla ne oluyor?" paneli — oranları yöneticinin kendi ortalama sepetiyle TL cinsinden anlatıyor
 - [ ] Koşullar sayfasını (`sadakat-programi`, taslak) gözden geçirip yayınla
 - [ ] `php artisan loyalty:selftest` çalıştır (canlıda güvenli), sonra `com_loyalty_enabled = on`
 - [ ] Aç, ilk hafta günlük kontrol: dağıtılan puan, üretilen çek, kullanılan çek
