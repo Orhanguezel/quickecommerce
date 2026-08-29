@@ -85,7 +85,8 @@ export interface LoyaltyCampaign {
   hold_days: number;
   /** Yasal aciklama metni; tek yerden gelir. */
   disclosure: string;
-  terms_url: string;
+  /** Kosullar sayfasi yayinda degilse null gelir; arayuz baglantiyi basmaz. */
+  terms_url: string | null;
 }
 
 export interface LoyaltyCampaignResponse {

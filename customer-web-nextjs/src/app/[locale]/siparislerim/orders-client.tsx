@@ -6,6 +6,7 @@ import { ROUTES } from "@/config/routes";
 import { useOrderListQuery, useCancelOrderMutation } from "@/modules/order/order.service";
 import type { Order, OrderStatus } from "@/modules/order/order.type";
 import { Button } from "@/components/ui/button";
+import { OrderReviewCta } from "@/components/product/review-cta";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
 import {
@@ -240,6 +241,11 @@ export function OrdersClient({ translations: t }: Props) {
                     {t.view_detail}
                   </Link>
                 </Button>
+                <OrderReviewCta
+                  status={order.status}
+                  orderId={order.order_id}
+                  details={order.order_details}
+                />
                 {order.status !== "cancelled" &&
                   order.status !== "delivered" && (
                     <Button

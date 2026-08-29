@@ -13,6 +13,8 @@ export interface OrderDetail {
   store_id: number;
   product_id: number;
   product_name: string;
+  /** Urun sayfasina gidip degerlendirme yazabilmek icin (rota slug tabanli). */
+  product_slug?: string | null;
   product_image_url: string;
   product_sku: string;
   variant_details: Record<string, string> | null;

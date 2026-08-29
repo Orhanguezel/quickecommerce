@@ -105,9 +105,26 @@ class CustomerLoyaltyController extends Controller
                         ? ' Kazanılan puanlar, iade süresi dolduktan sonra ('
                             . $this->loyalty->holdDays() . ' gün) kullanıma açılır.'
                         : ''),
-                'terms_url' => '/sayfa/sadakat-programi',
+                // Kosullar sayfasi TASLAK ise link verilmez -- yayinlanmamis
+                // sayfa 404 doner ve banner'daki "Kampanya kosullari" baglantisi
+                // kirik cikardi. Arayuz null gelince baglantiyi hic basmaz.
+                'terms_url' => $this->publishedTermsUrl(),
             ],
         ]);
+    }
+
+    /** Kosullar sayfasi yayindaysa adresi, degilse null. */
+    private function publishedTermsUrl(): ?string
+    {
+        // DIKKAT: pages.status degeri 'publish' (sonda 'ed' YOK). 'published'
+        // yazmak sessizce hicbir zaman eslesmez ve link hep gizli kalirdi.
+        $published = \App\Models\Page::where('slug', 'sadakat-programi')
+            ->where('status', 'publish')
+            ->exists();
+
+        // Frontend'de jenerik /sayfa/{slug} rotasi YOK; her sayfanin kendi
+        // Turkce rotasi var. Karsiligi: app/[locale]/puan-programi
+        return $published ? '/puan-programi' : null;
     }
 
     /**

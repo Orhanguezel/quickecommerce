@@ -12,6 +12,8 @@ import {
 } from "@/modules/order/order.service";
 import type { OrderStatus } from "@/modules/order/order.type";
 import { Button } from "@/components/ui/button";
+import { ProductReviewCta } from "@/components/product/review-cta";
+import { ReviewRewardBanner } from "@/components/product/review-reward-banner";
 import Image from "next/image";
 import {
   ArrowLeft,
@@ -373,6 +375,12 @@ export function OrderDetailClient({ orderId, translations: t }: Props) {
               {t.order_items} ({order.order_details?.length ?? 0})
             </h2>
 
+            {/* Teslim edilmis sipariste kampanya duyurusu: musteri tam da
+                degerlendirme yazabilecegi anda ve yerde goruyor. */}
+            {order.status === "delivered" && (
+              <ReviewRewardBanner className="mb-4" />
+            )}
+
             <div className="divide-y">
               {order.order_details?.map((item) => (
                 <div key={item.id} className="flex gap-4 py-4 first:pt-0 last:pb-0">
@@ -405,6 +413,14 @@ export function OrderDetailClient({ orderId, translations: t }: Props) {
                         {t.quantity}: {item.quantity}
                       </span>
                     </div>
+                    {/* Degerlendirme girisi: urun BAZINDA, cunku bonus urun
+                        basina bir kez veriliyor. */}
+                    <ProductReviewCta
+                      status={order.status}
+                      orderId={order.order_id}
+                      detail={item}
+                      className="mt-2"
+                    />
                   </div>
                   <div className="text-right">
                     <p className="font-bold">

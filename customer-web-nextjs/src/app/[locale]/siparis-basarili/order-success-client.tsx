@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { Link } from "@/i18n/routing";
 import { ROUTES } from "@/config/routes";
 import { Button } from "@/components/ui/button";
+import { ReviewRewardBanner } from "@/components/product/review-reward-banner";
 import { CheckCircle } from "lucide-react";
 import { useCartRecoverMutation } from "@/modules/cart/abandoned-cart.service";
 import { getCartSessionId } from "@/hooks/use-cart-snapshot-sync";
@@ -115,6 +116,11 @@ export function OrderSuccessClient({ orderId, translations: t }: Props) {
             <p className="text-lg font-bold">#{orderId}</p>
           </div>
         )}
+
+        {/* Beklenti kurma: musteri urunu daha eline almadan "gelince
+            degerlendir" fikrini aliyor. Kampanya kapaliyken hicbir sey
+            basmiyor. */}
+        <ReviewRewardBanner variant="compact" className="mb-6 text-left" />
 
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Button asChild>

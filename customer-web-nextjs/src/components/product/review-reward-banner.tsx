@@ -69,12 +69,16 @@ export function ReviewRewardBanner({ variant = "full", className = "" }: Props) 
           <p className="mt-2 text-xs text-muted-foreground">
             {campaign.disclosure} Çekler {campaign.voucher_min_order} TL ve üzeri
             sepetlerde {campaign.voucher_valid_days} gün geçerlidir.{" "}
-            <Link
-              href={campaign.terms_url}
-              className="underline underline-offset-2 hover:text-foreground"
-            >
-              Kampanya koşulları
-            </Link>
+            {/* Kosullar sayfasi yayinda degilse API null doner; kirik link
+                basmaktansa hic basmamak dogru. */}
+            {campaign.terms_url && (
+              <Link
+                href={campaign.terms_url}
+                className="underline underline-offset-2 hover:text-foreground"
+              >
+                Kampanya koşulları
+              </Link>
+            )}
           </p>
         </div>
       </div>

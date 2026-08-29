@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Link, useRouter } from "@/i18n/routing";
 import { useSearchParams } from "next/navigation";
 import { ReviewDialog } from "@/components/product/review-dialog";
+import { ReviewRewardBanner } from "@/components/product/review-reward-banner";
 import {
   Star,
   Heart,
@@ -1673,6 +1674,12 @@ export function ProductDetailClient({
             // onceki "border-b" tema dependent solgun cikiyordu, ardisik
             // yorumlar arasi ayraс gozukmuyordu.
             <div className="space-y-3">
+              {/* Kampanya duyurusu yorumlarin BASINDA: hem satin almis
+                  musteriyi degerlendirmeye tesvik eder, hem de asagidaki
+                  "Puan kazanilan degerlendirme" ibaresinin baglamini verir
+                  (tesvikli yorum aciklamasi yasal zorunluluk). */}
+              <ReviewRewardBanner className="mb-4" />
+
               {product.reviews?.length > 0 ? (
                 product.reviews.map((review) => (
                   <div
