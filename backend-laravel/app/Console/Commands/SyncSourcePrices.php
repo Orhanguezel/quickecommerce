@@ -119,10 +119,21 @@ class SyncSourcePrices extends Command
             'errors' => 0,
         ];
 
-        // Guvenlik: kaynak JSON, mevcut mapping sayisinin yarisindan az urun
+        // Guvenlik: kaynak JSON, mevcut URUN sayisinin yarisindan az urun
         // iceriyorsa scrape muhtemelen kismidir; 'missing' urunlerde stok
         // sifirlamayi DEVRE DISI birak (yoksa saglam urunler yanlislikla 0 olur).
-        $mappingTotal = (clone $query)->count();
+        //
+        // 2026-08-29 DUZELTME: burada mapping SATIRI sayiliyordu; mapping ise
+        // VARYANT basina bir tane. Kaynak JSON'daki sayi ise URUN sayisi.
+        // Elma-armut karsilastirmasi, cok varyantli kaynaklarda freni KALICI
+        // olarak tetikliyordu:
+        //   everlast   2310 mapping / 542 urun = 4.3 varyant  -> 576 < 1155  FREN
+        //   superstacy 1735 mapping / 468 urun = 3.7 varyant  -> 464 <  867  FREN
+        //   norfolk     815 mapping / 303 urun = 2.7 varyant  -> 337 <  407  FREN
+        // Uc kaynagin da scrape'i aslinda TAMDI (576 >= 542). Fren kilitli
+        // kaldigi icin kaynaktan kalkmis urunlerin stogu hic sifirlanmadi ve
+        // 23 urun satista kalmaya devam etti (yok satma riski).
+        $mappingTotal = (clone $query)->distinct()->count('product_id');
         $sourceUnique = max(
             count($this->sourceProducts['slug']),
             count($this->sourceProducts['url']),

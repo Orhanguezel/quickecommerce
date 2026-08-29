@@ -28,6 +28,9 @@ class ScrapersHealthCheck extends Command
     protected $description = 'Tum scraper kaynaklarinin saglik durumunu kontrol edip Telegram\'a rapor gonderir.';
 
     private const STALE_HOURS = 24;
+
+    /** Bu sayinin altindaki kataloglarda "hic tukenmis yok" normal olabilir. */
+    private const NEVER_OUT_OF_STOCK_MIN_PRODUCTS = 40;
     private const MISSING_RATE_WARN = 0.20;   // %20+ mapping missing -> uyari
     private const STOCK100_RATE_WARN = 0.80;  // %80+ stok=100 -> bool default supheli
     // Kaynak-yonetimli bir magazada bu kadar mapsiz-ama-stokta varyant varsa uyar.
@@ -232,6 +235,42 @@ class ScrapersHealthCheck extends Command
             // TUM urunler kesin "tukendi" (null/unknown degil) -> stok tespiti kirilmis
             if ($defOut === $total) {
                 $issues[] = "{$source}: SESSIZ BOZUK? {$total} urunun TAMAMI 'tukendi' isaretli — stok tespiti kirilmis olabilir (exit=0 + JSON tazel)";
+            }
+            // TERS YON: hicbir urun tukenmis degil. Bu, "hepsi tukendi"den DAHA
+            // TEHLIKELI — yok satmaya yol acan yon budur. Saglikli kaynaklarda
+            // urunlerin %15-50'si tukenmis cikar (provitanya %36, proteinmax %36).
+            // Bir kaynak yuzlerce urunde tek bir "tukendi" bile uretmiyorsa
+            // parser buyuk ihtimalle fail-open: stok sinyalini bulamayinca
+            // "stokta" varsayiyor.
+            //
+            // Yanlis alarmi onlemek icin iki kosul: yeterli urun sayisi ve
+            // kaynagin gecmiste de hic 0 uretmemis olmasi.
+            if ($defOut === 0 && $total >= self::NEVER_OUT_OF_STOCK_MIN_PRODUCTS) {
+                $everZero = DB::table('product_source_mappings')
+                    ->where('source_name', $source)
+                    ->where('last_synced_stock', 0)
+                    ->exists();
+
+                if (! $everZero) {
+                    $sellable = DB::table('product_source_mappings as m')
+                        ->join('products as p', 'p.id', '=', 'm.product_id')
+                        ->join('product_variants as v', 'v.product_id', '=', 'p.id')
+                        ->where('m.source_name', $source)
+                        ->where('p.status', 'approved')
+                        ->whereNull('p.deleted_at')
+                        ->whereNull('v.deleted_at')
+                        ->where('v.stock_quantity', '>', 0)
+                        ->distinct()
+                        ->count('p.id');
+
+                    $issues[] = sprintf(
+                        '%s: FAIL-OPEN SUPHESI — %d urunun HICBIRI tukenmis degil ve bu kaynak bugune kadar hic stok=0 uretmedi. '
+                            . 'Satista %d urun var; parser tukenmis urunu okuyamiyorsa bunlar yok satar.',
+                        $source,
+                        $total,
+                        $sellable
+                    );
+                }
             }
             // Hicbir urunde fiyat yok -> fiyat tespiti kirilmis
             if ($priced === 0) {
