@@ -156,6 +156,18 @@ export const Sidebar = memo(({ setIsLoading }: any) => {
                   icon: "ShoppingCart",
                   children: [],
                 },
+                {
+                  perm_title: "Sadakat Puanlari",
+                  perm_name: "/admin/loyalty",
+                  icon: "Award",
+                  children: [],
+                },
+                {
+                  perm_title: "Sadakat Ayarlari",
+                  perm_name: "/admin/system-management/loyalty-settings",
+                  icon: "Settings2",
+                  children: [],
+                },
               ],
             },
           ]

@@ -8,6 +8,7 @@ use App\Models\Customer;
 use App\Models\LoyaltyPointTransaction;
 use App\Models\Order;
 use App\Models\Review;
+use App\Models\UniversalNotification;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -122,7 +123,7 @@ class LoyaltyService
             return null;
         }
 
-        return $this->record(
+        $transaction = $this->record(
             $customerId,
             $points,
             LoyaltyPointTransaction::TYPE_ORDER,
@@ -131,6 +132,17 @@ class LoyaltyService
             "Sipariş #{$order->id} teslim edildi",
             now()->addDays($this->pointsExpireDays())
         );
+
+        if ($transaction) {
+            $this->notifyEarned(
+                $customerId,
+                $points,
+                "Sipariş #{$order->id} teslim edildi",
+                ['type' => 'loyalty_earned', 'order_id' => $order->id]
+            );
+        }
+
+        return $transaction;
     }
 
     /**
@@ -159,7 +171,7 @@ class LoyaltyService
             return null;
         }
 
-        return $this->record(
+        $transaction = $this->record(
             (int) $review->customer_id,
             $points,
             LoyaltyPointTransaction::TYPE_REVIEW,
@@ -168,6 +180,17 @@ class LoyaltyService
             $hasImage ? 'Görselli değerlendirme bonusu' : 'Değerlendirme bonusu',
             now()->addDays($this->pointsExpireDays())
         );
+
+        if ($transaction) {
+            $this->notifyEarned(
+                (int) $review->customer_id,
+                $points,
+                'Değerlendirmeniz yayınlandı',
+                ['type' => 'loyalty_earned', 'review_id' => $review->id]
+            );
+        }
+
+        return $transaction;
     }
 
     /**
@@ -337,6 +360,33 @@ class LoyaltyService
     }
 
     // ---------------------------------------------------------------- yardimci
+
+    /**
+     * Puan kazanildiginda musteriye bildirim. Bildirim yazilamazsa puan
+     * islemini asla bozmaz.
+     */
+    private function notifyEarned(int $customerId, int $points, string $reason, array $data): void
+    {
+        try {
+            $value = $this->pointsToCurrency($points);
+
+            UniversalNotification::create([
+                'notifiable_id' => $customerId,
+                'notifiable_type' => 'customer',
+                'title' => number_format($points, 0, ',', '.') . ' puan kazandınız',
+                'message' => "{$reason}. Hesabınıza " . number_format($points, 0, ',', '.')
+                    . " puan eklendi (yaklaşık {$value} TL değerinde). Puanlarınızı Hesabım > Puanlarım"
+                    . ' sayfasından indirim çekine dönüştürebilirsiniz.',
+                'data' => $data + ['points' => $points],
+                'status' => 'unread',
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('[loyalty] puan bildirimi olusturulamadi', [
+                'customer_id' => $customerId,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
 
     /**
      * Defter kaydi yazar. Ayni kaynak icin ikinci kayit denemesi benzersiz

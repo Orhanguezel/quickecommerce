@@ -34,6 +34,9 @@ class CustomerLoyaltyController extends Controller
                 'balance_value' => $this->loyalty->pointsToCurrency($balance),
                 'earning_enabled' => $this->loyalty->enabled(),
                 'redeem_enabled' => $this->loyalty->redeemEnabled(),
+                // Misafir checkout hafif bir hesap aciyor (is_guest=1). Puan
+                // biriktirebilir ama hesabini tamamlamasi icin uyarilir.
+                'is_guest' => (bool) ($customer->is_guest ?? false),
                 'rules' => [
                     'earn_per_currency' => $this->loyalty->earnPerCurrency(),
                     'redeem_points_per_unit' => $this->loyalty->redeemPointsPerUnit(),

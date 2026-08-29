@@ -10,6 +10,7 @@ import {
   Sparkles,
   TicketPercent,
 } from "lucide-react";
+import { Link } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -137,6 +138,22 @@ export function LoyaltyTab({ t, enabled }: Props) {
           </p>
         </div>
       </div>
+
+      {/* Misafir hesabi uyarisi: puan biriktirebilir ama hesabini
+          tamamlamadan takip etmesi/kullanmasi zor. */}
+      {info?.is_guest && (
+        <div className="rounded-lg border border-primary/40 bg-primary/5 p-4 text-sm">
+          <p className="font-semibold">Hesabınızı tamamlayın</p>
+          <p className="mt-1 text-muted-foreground">
+            Misafir olarak alışveriş yaptınız. Puanlarınızı her cihazdan takip
+            edebilmek ve indirim çeklerinizi rahatça kullanabilmek için bir
+            şifre belirleyip hesabınızı tamamlayın.
+          </p>
+          <Button asChild size="sm" className="mt-3">
+            <Link href="/hesabim?tab=password">Şifre Belirle</Link>
+          </Button>
+        </div>
+      )}
 
       {/* Nasil kazanilir */}
       {rules && (

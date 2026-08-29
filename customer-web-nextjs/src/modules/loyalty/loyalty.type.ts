@@ -31,6 +31,8 @@ export interface LoyaltyInfoResponse {
     balance_value: number;
     earning_enabled: boolean;
     redeem_enabled: boolean;
+    /** Misafir checkout ile acilmis hafif hesap. */
+    is_guest: boolean;
     rules: LoyaltyRules;
     transactions: LoyaltyTransaction[];
   };

@@ -555,11 +555,18 @@ export const API_ENDPOINTS = {
   DYNAMIC_FIELD_OPTION_DELETE: "v1/admin/dynamic-fields/options/remove",
 
   OPEN_AI_SETTINGS: "v1/admin/system-management/openai-settings",
+  // Sadakat puani
+  LOYALTY_SETTINGS: "v1/admin/system-management/loyalty-settings",
+  LOYALTY_SUMMARY: "v1/admin/loyalty/summary",
+  LOYALTY_CUSTOMERS: "v1/admin/loyalty/customers",
+  LOYALTY_CUSTOMER_HISTORY: "v1/admin/loyalty/customer",
+  LOYALTY_ADJUST: "v1/admin/loyalty/adjust",
 
   //common routes  for users
   YOUTUBE_SEARCH_API: "https://www.googleapis.com/youtube/v3/search",
   REGISTER: "/register",
   USERS_LOGIN: "/token",
+  ADMIN_GOOGLE_EXCHANGE: "/v1/auth/google/admin/exchange",
   STORE_OWNER_REGISTER: "v1/seller/registration",
   SHOP_OWNER_LOGIN: "/v1/seller/login",
   USERS: "users",
