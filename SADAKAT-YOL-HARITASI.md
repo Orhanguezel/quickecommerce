@@ -246,6 +246,17 @@ Geri alma kaydına `available_at`'i kopyalamak kritik: "anında" yazsaydık bekl
 
 `expires_at` de bekleme **bittikten sonra** başlar; 14 gün müşterinin kullanma
 süresinden kesilmez.
+
+> **Açık kalan iş — puan sona erdirme henüz uygulanmadı.** `expires_at` yazılıyor
+> ama okunmuyor: `TYPE_EXPIRE` kaydı üreten bir komut yok ve `balance()` süresi
+> dolmuş satırları dışlamıyor. Yani koşullar sayfasındaki "365 gün" şu an
+> uygulanmıyor — hata müşteri lehine, puanlar süresiz duruyor.
+>
+> Beklemenin aksine bunu **tarihle çözmek mümkün değil**: bir kazanım satırını
+> sorgudan düşürmek, onu harcayan negatif satırı yerinde bıraktığı için bakiyeyi
+> haksız yere eksiye çeker (kazan +1000, boz −1000, 366. gün → −1000). Doğru
+> çözüm FIFO tüketim takibi + gerçek `expire` satırı yazan bir cron. Program
+> açıldıktan ~11 ay sonra gerekecek; o tarihe kadar açık kalabilir.
 | Puan bozdurma | Yeni müşteri endpoint'i | Puan düş + kişiye özel kupon üret |
 
 **Kritik:** puan yazımı `delivered` olayına bağlanacak, `paid` olayına değil. Bugün 17 ödenmiş siparişin 7'si teslim edilmemiş; `paid` üzerinden puan verilirse iptal edilen siparişler hayalet puan bırakır.
