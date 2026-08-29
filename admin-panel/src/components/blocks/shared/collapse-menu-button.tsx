@@ -26,6 +26,7 @@ import { DropdownMenuArrow } from "@radix-ui/react-dropdown-menu";
 import * as LucideIcons from "lucide-react";
 import { ChevronDown, Dot } from "lucide-react";
 import { useLocale } from "next-intl";
+import { localeHref } from "@/lib/locale-href";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { Key, useEffect, useMemo, useState } from "react";
@@ -177,7 +178,7 @@ export function CollapseMenuButton({
                   asChild
                 >
                   <Link
-                    href={href}
+                    href={localeHref(href, locale)}
                     onClick={(e) => {
                       handleNavIntent(e, href);
 
@@ -255,7 +256,7 @@ export function CollapseMenuButton({
             <DropdownMenuItem key={index} asChild>
               <Link
                 className="cursor-pointer"
-                href={href}
+                href={localeHref(href, locale)}
                 onClick={(e) => {
                   handleNavIntent(e, href);
 

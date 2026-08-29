@@ -14,6 +14,7 @@ import {
 } from "@/modules/users/users.action";
 import { Ellipsis, LogOut } from "lucide-react";
 import Link from "next/link";
+import { localeHref } from "@/lib/locale-href";
 import { usePathname, useRouter } from "next/navigation";
 import { Key, useEffect, useMemo, useRef } from "react";
 import { CollapseMenuButton } from "./collapse-menu-button";
@@ -258,7 +259,10 @@ export function Menu({
                           asChild
                         >
                           <Link
-                            href={menu?.type ? menu?.perm_name : dashboardLink}
+                            href={localeHref(
+                              menu?.type ? menu?.perm_name : dashboardLink,
+                              locale
+                            )}
                             onClick={(e) => {
                               const isNewTab =
                                 e.metaKey || e.ctrlKey || e.button === 1;
@@ -323,7 +327,7 @@ export function Menu({
                         </TooltipProvider>
                       ) : (
                         <Link
-                          href={menu?.perm_name || "#"}
+                          href={localeHref(menu?.perm_name, locale)}
                           onClick={() => {
                             if (menu?.options) {
                               localStorage.setItem(
@@ -437,7 +441,7 @@ export function Menu({
                                     }}
                                   >
                                     <Link
-                                      href={perm_name || "#"}
+                                      href={localeHref(perm_name, locale)}
                                       onClick={() => {
                                         if (options) {
                                           localStorage.setItem(
