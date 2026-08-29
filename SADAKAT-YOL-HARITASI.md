@@ -251,9 +251,10 @@ Yoruma puan vermek serbest, ama **açıklama zorunlu**. Dayanak: Ticari Reklam v
 
 ## 4. Checklist
 
-> **Durum (2026-08-29 akşamı):** 26/48 tamamlandı. Backend tamamen bitti ve canlıda,
-> `com_loyalty_enabled` **kapalı** duruyor. Kalanlar: Sıra 1'in operasyonel
-> temizliği (7 sipariş), admin paneli ekranları ve müşteri arayüzü.
+> **Durum (2026-08-29 akşamı):** Yazılım tarafı **bitti** — backend, admin paneli ve
+> müşteri arayüzü canlıda, `com_loyalty_enabled` **kapalı** duruyor.
+> Kalanlar tamamen operasyonel: Sıra 1'deki 7 siparişin durumunu ilerletmek,
+> koşullar sayfasını gözden geçirip yayınlamak, sonra programı açıp izlemek.
 
 
 ### Sıra 1 — Sipariş durumu hijyeni
@@ -307,29 +308,31 @@ Yoruma puan vermek serbest, ama **açıklama zorunlu**. Dayanak: Ticari Reklam v
 **Ayarlar ve panel**
 
 - [x] Ayarlar eklendi — `LoyaltySettingsSeeder`, canlıda 12 kayıt
-- [ ] Admin panelde sadakat ayarları ekranı
-- [ ] Admin: müşteri puan geçmişi görüntüleme + manuel puan ekleme/silme
+- [x] Admin panelde sadakat ayarları ekranı — `/admin/system-management/loyalty-settings`, açık yükümlülük özeti + canlı geri-verme oranı hesabı
+- [x] Admin: müşteri puan geçmişi + manuel puan ekleme/silme — `/admin/loyalty`
 - [x] Kapatma akışı: `com_loyalty_enabled` (kazanım) + `com_loyalty_redeem_enabled` (bozdurma) ayrı
 
 **Müşteri arayüzü**
 
-- [ ] Hesabım → puan bakiyesi + geçmiş
-- [ ] Bozdurma ekranı (kaç puan → kaç TL, minimum uyarısı)
-- [ ] Çeklerim listesi (kod, tutar, min. sepet, son kullanma)
-- [ ] Sipariş sonrası "X puan kazandınız" bildirimi
-- [ ] Yorum sonrası "X puan kazandınız" bildirimi
-- [ ] Misafir için "puanlarınızı kullanmak için hesabınızı tamamlayın"
+- [x] Hesabım → "Puanlarım" sekmesi: bakiye + TL karşılığı + geçmiş
+- [x] Bozdurma ekranı — canlı TL önizlemesi, minimuma ne kadar kaldığı
+- [x] Çeklerim listesi — kod kopyalama, min sepet, son kullanma, kullanıldı/süresi doldu
+- [x] Sipariş sonrası "X puan kazandınız" bildirimi (UniversalNotification)
+- [x] Yorum sonrası "X puan kazandınız" bildirimi
+- [x] Misafir CTA'sı — `/customer/loyalty` artık `is_guest` dönüyor
 
 **Uyum**
 
 - [x] Puan yıldız sayısından bağımsız — self-test bunu da doğruluyor
-- [ ] Yorum kartına "Puan kazanılan değerlendirme" rozeti
-- [ ] Sadakat programı koşulları sayfası
+- [x] Yorum kartına "Puan kazanılan değerlendirme" rozeti (`is_incentivized`)
+- [x] Koşullar sayfası — `pages` #16 `sadakat-programi`, **TASLAK**; sayılar canlı ayarlardan üretildi, yayınlamak sende
 
 **Açılış**
 
 - [x] `com_loyalty_enabled = off` ile deploy edildi
 - [x] Uçtan uca test: `php artisan loyalty:selftest` — canlıda **27/27 geçti** (transaction + rollback, kalıcı yazım yok)
+- [ ] Koşullar sayfasını (`sadakat-programi`, taslak) gözden geçirip yayınla
+- [ ] `php artisan loyalty:selftest` çalıştır (canlıda güvenli), sonra `com_loyalty_enabled = on`
 - [ ] Aç, ilk hafta günlük kontrol: dağıtılan puan, üretilen çek, kullanılan çek
 - [ ] Bir ay sonra: efektif geri verme oranı %1 civarında mı, marj korunuyor mu
 
