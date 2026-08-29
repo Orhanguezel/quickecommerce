@@ -251,6 +251,11 @@ Yoruma puan vermek serbest, ama **açıklama zorunlu**. Dayanak: Ticari Reklam v
 
 ## 4. Checklist
 
+> **Durum (2026-08-29 akşamı):** 26/48 tamamlandı. Backend tamamen bitti ve canlıda,
+> `com_loyalty_enabled` **kapalı** duruyor. Kalanlar: Sıra 1'in operasyonel
+> temizliği (7 sipariş), admin paneli ekranları ve müşteri arayüzü.
+
+
 ### Sıra 1 — Sipariş durumu hijyeni
 
 - [ ] #184 (3.450,00 TL, 44 gün) gerçek durumunu tespit et → `delivered` / `cancelled`
@@ -261,50 +266,50 @@ Yoruma puan vermek serbest, ama **açıklama zorunlu**. Dayanak: Ticari Reklam v
 - [ ] #209 (699,00 TL) — kargoda, takip `6487058268514`, Geliver webhook'u teslimatta kapatacak
 - [ ] #211 (1.197,00 TL) — kargo süreci başlat
 - [ ] İptal edilenler için iade işlemini tamamla
-- [ ] Sipariş oluşturulurken `promised_ship_at` doldur → `orders:check-shipping-sla` alarmı gerçekten çalışsın
+- [x] `promised_ship_at` artık yazılıyor — `OrderService` zaten set ediyordu ama `Order::$fillable`'da olmadığı için mass-assignment **sessizce atıyordu**; bugünkü `Order.php` deploy'u ile düzeldi, canlıda doğrulandı
 - [ ] Bir hafta sonra tekrar bak: ödenmiş + teslim edilmemiş sipariş sayısı düşüyor mu
 
 ### Sıra 2 — Yorum davet penceresi
 
-- [ ] `RoundNumericFields` düzeltmesinin canlıda olduğunu doğrula (`forceFill` testi)
-- [ ] `DispatchReviewRequests`: `subDays(2)` → `subDays(14)`
-- [ ] Geçmişe toplu mail gitmesin diye alt tarih sınırı ekle
-- [ ] `--since=` parametresi ekle (kontrollü geriye dönük gönderim)
-- [ ] `--dry-run` ile kime gideceğini gör, sonra uygula
+- [x] `RoundNumericFields` düzeltmesinin canlıda olduğunu doğrula (`forceFill` testi) — commit `6e6d25fd`
+- [x] `DispatchReviewRequests`: `subDays(2)` → `subDays(14)` — `com_review_invite_window_days` ile ayarlanabilir, commit `7aaae0de`
+- [x] Geçmişe toplu mail gitmesin diye alt tarih sınırı ekle — `--since` / `com_review_invite_not_before`
+- [x] `--since=` parametresi ekle (kontrollü geriye dönük gönderim)
+- [x] `--dry-run` ile doğrulandı: 14 gün → boş, 30 gün → #193, `--since=2026-08-20` → boş
 - [ ] İlk gerçek koşudan sonra: kaç davet gitti, kaç yorum geldi
 
 ### Sıra 3 — Sadakat sistemi
 
 **Veri katmanı**
 
-- [ ] `loyalty_point_transactions` migration
-- [ ] `(customer_id, type, reference_type, reference_id)` benzersiz indeksi
-- [ ] `LoyaltyPointTransaction` modeli + `Customer::loyaltyPoints()` ilişkisi
-- [ ] `LoyaltyService`: `award()`, `revoke()`, `balance()`, `redeem()`
+- [x] `loyalty_point_transactions` migration — canlıda koşuldu
+- [x] `(customer_id, type, reference_type, reference_id)` benzersiz indeksi
+- [x] `LoyaltyPointTransaction` modeli
+- [x] `LoyaltyService`: award / revoke / balance / redeem
 
 **Kazanma**
 
-- [ ] `delivered` olan üç akışa da puan yazımı bağla (Geliver webhook, admin paneli, kurye)
-- [ ] Yorum `approved` olduğunda bonus yaz (görselli/görselsiz ayrımı)
-- [ ] İptal/iade durumunda puanı geri al
-- [ ] Aynı sipariş/yorum için ikinci kez puan yazılamadığını test et
+- [x] `delivered` olan üç akışa da puan yazımı bağlandı (Geliver webhook, admin paneli, kurye)
+- [x] Yorum `approved` olduğunda bonus yazılıyor (görselli/görselsiz)
+- [x] İptal/iade geri alımı — `OrderObserver` + `IyzicoRefundService` (ham SQL yolu observer'ı tetiklemiyor)
+- [x] Aynı sipariş/yorum için ikinci kez puan yazılamadığı test edildi
 
 **Harcama**
 
-- [ ] "Sadakat Puanı Çeki" üst kupon kaydını oluştur (`coupons` tablosu)
-- [ ] Bozdurma endpoint'i: puan düş + `coupon_lines` kaydı üret
-- [ ] `max_discount = discount` set edildiğini doğrula (**NULL bırakılırsa indirim 0 TL olur**)
-- [ ] `coupon_id` dolu olduğunu doğrula (**NULL ise `$coupon->coupon->status` patlar**)
-- [ ] `usage_limit = 1` ile tek kullanımlık olduğunu canlıda test et
-- [ ] Başka bir müşterinin çeki kullanamadığını test et
-- [ ] `min_order_value` altındaki sepette reddedildiğini test et
+- [x] "Sadakat Puanı Çeki" üst kuponu ilk bozdurmada otomatik oluşuyor (`firstOrCreate`)
+- [x] Bozdurma endpoint'i: `POST /customer/loyalty/redeem`
+- [x] `max_discount = discount` doğrulandı
+- [x] `coupon_id` dolu, doğrulandı
+- [x] `usage_limit = 1` canlıda test edildi
+- [x] Başka müşterinin çeki kullanamadığı test edildi
+- [x] `min_order_value` altında reddedildiği test edildi
 
 **Ayarlar ve panel**
 
-- [ ] 10 `com_loyalty_*` ayarını `setting_options`'a ekle
+- [x] Ayarlar eklendi — `LoyaltySettingsSeeder`, canlıda 12 kayıt
 - [ ] Admin panelde sadakat ayarları ekranı
 - [ ] Admin: müşteri puan geçmişi görüntüleme + manuel puan ekleme/silme
-- [ ] Kapatma akışı: yeni kazanım durur, mevcut puan bozdurulabilir kalır
+- [x] Kapatma akışı: `com_loyalty_enabled` (kazanım) + `com_loyalty_redeem_enabled` (bozdurma) ayrı
 
 **Müşteri arayüzü**
 
@@ -317,14 +322,14 @@ Yoruma puan vermek serbest, ama **açıklama zorunlu**. Dayanak: Ticari Reklam v
 
 **Uyum**
 
-- [ ] Puan yıldız sayısından bağımsız verildiğini kodda garanti et
+- [x] Puan yıldız sayısından bağımsız — self-test bunu da doğruluyor
 - [ ] Yorum kartına "Puan kazanılan değerlendirme" rozeti
 - [ ] Sadakat programı koşulları sayfası
 
 **Açılış**
 
-- [ ] `com_loyalty_enabled = off` ile deploy et
-- [ ] Test müşterisiyle uçtan uca dene (sipariş → teslim → puan → yorum → bonus → bozdur → çeki kullan)
+- [x] `com_loyalty_enabled = off` ile deploy edildi
+- [x] Uçtan uca test: `php artisan loyalty:selftest` — canlıda **27/27 geçti** (transaction + rollback, kalıcı yazım yok)
 - [ ] Aç, ilk hafta günlük kontrol: dağıtılan puan, üretilen çek, kullanılan çek
 - [ ] Bir ay sonra: efektif geri verme oranı %1 civarında mı, marj korunuyor mu
 
