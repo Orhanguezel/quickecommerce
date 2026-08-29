@@ -4,7 +4,9 @@ namespace App\Observers;
 
 use App\Models\Order;
 use App\Models\OrderActivity;
+use App\Services\Loyalty\LoyaltyService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class OrderObserver
 {
@@ -55,6 +57,17 @@ class OrderObserver
         // If the order is refunded or cancelled then restore the product quantity
         if ($order->isDirty('refund_status') && $order->refund_status === 'refunded' ||
             $order->isDirty('status') && $order->status === 'cancelled') {
+            // Teslimatta verilmis sadakat puanini geri al. Idempotent:
+            // benzersiz indeks ayni siparis icin ikinci revoke'u engeller.
+            try {
+                app(LoyaltyService::class)->revokeForOrder($order);
+            } catch (\Throwable $e) {
+                Log::error('[loyalty] iptal/iade puani geri alinamadi', [
+                    'order_id' => $order->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
             DB::transaction(function () use ($order) {
                 foreach ($order->orderDetail as $detail) {
                     if ($detail->productVariant) {

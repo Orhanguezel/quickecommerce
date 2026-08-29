@@ -21,6 +21,7 @@ use App\Models\Order;
 use App\Models\OrderActivity;
 use App\Models\OrderDeliveryHistory;
 use App\Models\SystemCommission;
+use App\Services\Loyalty\LoyaltyService;
 use App\Services\Order\OrderManageNotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -33,10 +34,14 @@ use Modules\Wallet\app\Models\WalletTransaction;
 class AdminOrderManageController extends Controller
 {
     protected $orderManageNotificationService;
+    protected LoyaltyService $loyaltyService;
 
-    public function __construct(OrderManageNotificationService $orderManageNotificationService)
-    {
+    public function __construct(
+        OrderManageNotificationService $orderManageNotificationService,
+        LoyaltyService $loyaltyService
+    ) {
         $this->orderManageNotificationService = $orderManageNotificationService;
+        $this->loyaltyService = $loyaltyService;
     }
 
     public function allOrders(Request $request)
@@ -212,6 +217,8 @@ class AdminOrderManageController extends Controller
             $order->status = 'delivered';
             $success = $order->save();
 
+            $this->awardLoyaltyPoints($order);
+
             // Notification + Email
             $this->sendOrderDeliveredNotifications($order, $deliveryHistory, 'admin_order_status_delivery');
 
@@ -282,6 +289,22 @@ class AdminOrderManageController extends Controller
      * "confirmed"/"cancelled" yapildiginda bile musteriye "Siparisiniz Teslim
      * Edildi!" maili gidiyordu (2026-08-25, siparis #208).
      */
+    /**
+     * Teslim edilen siparis icin sadakat puani yazar. Puan yazilamamasi
+     * teslimat islemini asla bozmamali.
+     */
+    protected function awardLoyaltyPoints(Order $order): void
+    {
+        try {
+            $this->loyaltyService->awardForDeliveredOrder($order);
+        } catch (\Throwable $e) {
+            Log::error('[loyalty] teslimat puani yazilamadi', [
+                'order_id' => $order->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
     protected function sendOrderDeliveredNotifications(Order $order, $deliveryHistory = null, $type = null)
     {
         // In-app / push bildirimi (mesaji zaten $order->status uzerinden uretir)

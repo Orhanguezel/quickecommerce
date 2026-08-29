@@ -312,6 +312,23 @@ class IyzicoRefundService
             }
         });
 
+        // Verilmis sadakat puanini geri al. Bu akis orders tablosunu ham query
+        // builder ile guncelledigi icin OrderObserver TETIKLENMEZ; revoke burada
+        // acikca cagrilmali. Idempotent: benzersiz indeks ikinci revoke'u engeller.
+        foreach ($orderIds as $oid) {
+            try {
+                $order = \App\Models\Order::find($oid);
+                if ($order) {
+                    app(\App\Services\Loyalty\LoyaltyService::class)->revokeForOrder($order);
+                }
+            } catch (\Throwable $e) {
+                Log::error('[loyalty] otomatik iade sonrasi puan geri alinamadi', [
+                    'order_id' => $oid,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
         // Iade DB'ye yazildi -> musteriye bilgilendirme e-postasi. Yalnizca bu calismada
         // YENI iade edilen sub-order'lar icin gonderilir; job retry'inde order_refunds
         // zaten var oldugu icin $newlyRefunded bos kalir ve mukerrer mail gitmez.

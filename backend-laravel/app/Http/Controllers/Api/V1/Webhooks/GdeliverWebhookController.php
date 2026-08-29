@@ -12,6 +12,7 @@ use App\Models\Order;
 use App\Models\OrderActivity;
 use App\Models\OrderDeliveryHistory;
 use App\Models\ReturnShipment;
+use App\Services\Loyalty\LoyaltyService;
 use App\Services\Order\OrderManageNotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -25,7 +26,8 @@ use Modules\Wallet\app\Models\WalletTransaction;
 class GdeliverWebhookController extends Controller
 {
     public function __construct(
-        private OrderManageNotificationService $notificationService
+        private OrderManageNotificationService $notificationService,
+        private LoyaltyService $loyaltyService
     ) {}
 
     /**
@@ -405,6 +407,16 @@ class GdeliverWebhookController extends Controller
                 'reference'      => 'geliver_webhook',
             ]);
         });
+
+        // Sadakat puani (transaction disinda; puan yazilamamasi teslimati bozmasin)
+        try {
+            $this->loyaltyService->awardForDeliveredOrder($order);
+        } catch (\Throwable $e) {
+            Log::channel('geliver_webhook')->error('Sadakat puani yazilamadi', [
+                'order_id' => $order->id,
+                'error'    => $e->getMessage(),
+            ]);
+        }
 
         // Bildirimler (transaction dışında)
         try {

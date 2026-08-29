@@ -7,12 +7,16 @@ use App\Models\Product;
 use App\Models\Store;
 use App\Models\Review;
 use App\Models\ReviewReaction;
+use App\Services\Loyalty\LoyaltyService;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
 
 class ReviewService
 {
-    public function __construct(protected MediaService $mediaService)
-    {
+    public function __construct(
+        protected MediaService $mediaService,
+        protected LoyaltyService $loyaltyService
+    ) {
     }
 
     public function getAllReviews($filters)
@@ -266,15 +270,33 @@ class ReviewService
 
     public function bulkApprove(array $ids)
     {
-        if (!empty($ids)) {
-            $reviews = Review::whereIn('id', $ids)
-                ->where('status', 'pending')
-                ->where('status', '!=', 'rejected')
-                ->update(['status' => 'approved']);
-            return $reviews > 0;
-        } else {
+        if (empty($ids)) {
             return false;
         }
+
+        // Toplu update model olaylarini tetiklemez; onaylanacak kayitlari
+        // ONCE cekip sadakat puanini sonra elle yaziyoruz.
+        $approved = Review::whereIn('id', $ids)->where('status', 'pending')->get();
+
+        if ($approved->isEmpty()) {
+            return false;
+        }
+
+        Review::whereIn('id', $approved->pluck('id'))->update(['status' => 'approved']);
+
+        foreach ($approved as $review) {
+            try {
+                $this->loyaltyService->awardForApprovedReview($review);
+            } catch (\Throwable $e) {
+                // Puan yazilamamasi onay islemini bozmasin.
+                Log::error('[loyalty] yorum bonusu yazilamadi', [
+                    'review_id' => $review->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        return true;
     }
 
     public function bulkReject(array $ids)

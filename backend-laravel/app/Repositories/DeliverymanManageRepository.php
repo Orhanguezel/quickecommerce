@@ -15,6 +15,7 @@ use App\Models\SystemCommission;
 use App\Models\Translation;
 use App\Models\User;
 use App\Models\VehicleType;
+use App\Services\Loyalty\LoyaltyService;
 use App\Services\Order\OrderManageNotificationService;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
@@ -643,6 +644,16 @@ class DeliverymanManageRepository implements DeliverymanManageInterface
             $order->status = 'delivered';
             $order->delivery_completed_at = Carbon::now();
             $order->save();
+
+            // Sadakat puani; yazilamamasi teslimati bozmasin.
+            try {
+                app(LoyaltyService::class)->awardForDeliveredOrder($order);
+            } catch (\Throwable $e) {
+                Log::error('[loyalty] kurye teslimat puani yazilamadi', [
+                    'order_id' => $order->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
 
             OrderDeliveryHistory::create([
                 'order_id' => $order_id,

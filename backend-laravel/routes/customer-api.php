@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\Customer\CustomerAddressManageController;
 use App\Http\Controllers\Api\V1\Customer\CustomerBlogController;
+use App\Http\Controllers\Api\V1\Customer\CustomerLoyaltyController;
 use App\Http\Controllers\Api\V1\Customer\CustomerManageController;
 use App\Http\Controllers\Api\V1\Customer\CustomerOrderController;
 use App\Http\Controllers\Api\V1\Customer\CustomerOrderRefundController;
@@ -99,6 +100,12 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'customer/', 'middleware' => 
             Route::post('check-coupon', [CustomerOrderController::class, 'checkCoupon']);
             Route::post('request-refund', [CustomerOrderRefundController::class, 'orderRefundRequest']);
             Route::get('{order_id?}', [CustomerOrderController::class, 'myOrders']);
+        });
+        // Sadakat puani: bakiye/gecmis, bozdurma, cekler
+        Route::group(['prefix' => 'loyalty/'], function () {
+            Route::get('/', [CustomerLoyaltyController::class, 'index']);
+            Route::post('redeem', [CustomerLoyaltyController::class, 'redeem'])->middleware('throttle:10,1');
+            Route::get('vouchers', [CustomerLoyaltyController::class, 'vouchers']);
         });
         Route::group(['prefix' => 'review/'], function () {
             Route::get('/', [CustomerReviewManageController::class, 'index']);
