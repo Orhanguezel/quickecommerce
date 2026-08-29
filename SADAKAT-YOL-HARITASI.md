@@ -1,0 +1,353 @@
+# Sadakat Puanı Sistemi — Yol Haritası ve Checklist
+
+**Tarih:** 2026-08-29
+**Kapsam:** Yorum/alışveriş puanı + puan→hediye çeki sistemi, ve bu sistemin çalışabilmesi için önce kapatılması gereken iki tıkanıklık.
+
+---
+
+## 0. Özet
+
+Sadakat sistemi doğru fikir, ama **bugün açılırsa boşa çalışır**. Sebep basit: sistemin yakıtı yorum ve teslim edilmiş sipariş, ikisi de bugün yok denecek kadar az. Önce huniyi açıyoruz, sonra ödülü koyuyoruz.
+
+### Canlı durum (2026-08-29 tespit)
+
+| Ölçüm | Değer |
+|---|---|
+| Ödenmiş sipariş | 17 |
+| Toplam ciro (GMV) | 42.039,31 TL |
+| Platform komisyonu | 4.340,68 TL (**%10,33**) |
+| Ortalama sepet | **2.472,90 TL** |
+| Ortalama marj / sipariş | ~255 TL |
+| Teslim edilen sipariş | 10 |
+| **Ödenmiş ama teslim edilmemiş** | **7 sipariş / 11.184,75 TL** |
+| Toplam onaylı yorum | **1** |
+| Müşteri | 129 (24'ü misafir) |
+| Müşteri cüzdanı | 0 |
+| Cüzdanla ödenen sipariş | 0 |
+
+**Çıkarım:** %10,33 marjla çalışıyoruz. Geri verilen her kuruş buradan çıkıyor. Sadakat bütçesi bu sayının içinde kurgulanmalı.
+
+### Sıralama
+
+1. **Sipariş durumu hijyeni** — teslim edildi işaretlenmeyen sipariş yorum daveti üretmez
+2. **Yorum davet penceresini genişlet** — 2 günü kaçıran sipariş bir daha davet alamıyor
+3. **Sadakat sistemi** — huni çalışmaya başlayınca gerçek taban oluşur
+
+---
+
+## 1. Sıra 1 — Sipariş durumu hijyeni
+
+### Sorun
+
+7 ödenmiş sipariş `delivered` durumuna hiç geçmemiş. Üçü **bir aydan eski**:
+
+| Sipariş | Durum | Tutar | Tarih | Bekleme | Müşteri |
+|---|---|---|---|---|---|
+| #184 | confirmed | 3.450,00 | 2026-07-16 | 44 gün | Ayhan Gülşen |
+| #187 | confirmed | 1.099,00 | 2026-07-26 | 34 gün | Can Önür |
+| #188 | confirmed | 764,75 | 2026-07-27 | 33 gün | SELÇUK TAŞ |
+| #202 | confirmed | 2.025,00 | 2026-08-16 | 13 gün | Okan Dedeoğlu |
+| #208 | confirmed | 1.950,00 | 2026-08-24 | 5 gün | ilhan turan |
+| #209 | shipped | 699,00 | 2026-08-29 | 0 gün | Ali Akay |
+| #211 | confirmed | 1.197,00 | 2026-08-29 | 0 gün | Asiye Bektaş |
+
+### Neden önemli
+
+`delivered` işareti üç şeyi birden tetikliyor:
+
+- **Yorum daveti** (`orders:dispatch-review-requests`) — sadece `status = delivered` siparişlere gider
+- **Satıcı cüzdanına hakediş** — `order_amount_store_value` ancak teslimatta yazılıyor
+- **İade penceresi** — `OrderRefundRepository` `delivered` değilse `not_delivered` döner
+
+Yani teslim işaretlenmeyen sipariş; yorum üretmez, satıcıya para geçmez, iade edilemez. Sadakat sisteminin puan kaynağı da budur.
+
+### Yapılacak
+
+Bu operasyonel bir iş, kod işi değil. Her sipariş için gerçek durumu tespit edip panelden ilerlet:
+
+- Kargo teslim edilmişse → `delivered`
+- Tedarik edilemediyse → `cancelled` + iade
+- Hâlâ yolda ise → `shipped` (Geliver webhook'u teslimatta otomatik `delivered` yapar)
+
+**Kalıcı çözüm:** `orders:check-shipping-sla` komutu 15 dakikada bir çalışıyor ama sorgusu `whereNotNull('promised_ship_at')` ile başlıyor. Bu alan **35 siparişin hiçbirinde dolu değil**, dolayısıyla SLA alarmı yapısal olarak hiçbir zaman eşleşmiyor — bu liste bu yüzden sessizce birikti. Sipariş oluşturulurken `promised_ship_at` doldurulursa (örn. mağazanın hazırlık süresi + 1 iş günü) alarm gerçekten çalışmaya başlar.
+
+---
+
+## 2. Sıra 2 — Yorum davet penceresi
+
+### Sorun
+
+`app/Console/Commands/DispatchReviewRequests.php`:
+
+```php
+->where('status', 'delivered')
+->whereNull('review_request_sent_at')
+->whereNotNull('delivery_completed_at')
+->where('delivery_completed_at', '>=', now()->subDays(2))   // ← 2 GÜN
+```
+
+Komut 11:00–19:00 arası 30 dakikada bir koşuyor. Teslimattan sonraki 2 gün içinde yakalanamayan sipariş **bir daha asla** davet alamıyor. Teslim işareti geç konursa (Sıra 1'deki gibi haftalar sonra), pencere çoktan kapanmış olur.
+
+### Yapılacak
+
+- Pencereyi **14 güne** çıkar (`subDays(2)` → `subDays(14)`)
+- Alt sınır ekle: `delivery_completed_at >= '2026-08-01'` gibi bir tabanla, geçmişteki 10 teslimata toplu mail gitmesini engelle
+- Tercihen komuta `--since=` parametresi ekle, geriye dönük toplu gönderim kontrollü yapılabilsin
+
+### Düzeltilmiş ilgili hata (2026-08-29, commit `6e6d25fd`)
+
+`RoundNumericFields` trait'i Eloquent'in `isFillable()` metodunu eziyordu; `forceFill()` `$fillable` dışındaki alanları sessizce atıyordu. `review_request_sent_at` hiç yazılamadığı için komut aynı siparişi her 30 dakikada yeniden uygun görüyordu — **sipariş #194'ün müşterisine 2 günde 14 davet maili gitti**. Düzeltildi ve canlıda doğrulandı. Pencere genişletilmeden önce bu düzeltmenin canlıda olduğundan emin ol, yoksa 14 günlük pencere spam'i 7 katına çıkarır.
+
+---
+
+## 3. Sıra 3 — Sadakat puanı sistemi
+
+### 3.1 Şema (onaylandı)
+
+**Kazanma**
+
+| Kaynak | Puan | Koşul |
+|---|---|---|
+| Sipariş | 1 TL = **1 puan** | Sipariş `delivered` olduğunda. Ödendiğinde **değil** |
+| Yorum (görselli) | **+250 puan** | Yorum `approved` olduğunda, sipariş başına bir kez |
+| Yorum (görselsiz) | **+100 puan** | Yorum `approved` olduğunda, sipariş başına bir kez |
+
+**Harcama**
+
+| Kural | Değer |
+|---|---|
+| Kur | **1000 puan = 10 TL** |
+| Minimum çek | **25 TL** (2.500 puan) |
+| Minimum sepet | **500 TL** |
+| Geçerlilik | **90 gün** |
+
+### 3.2 Ekonomi kontrolü
+
+Ortalama sepet 2.472,90 TL, komisyon %10,33 → sipariş başına ~255 TL marj.
+
+- Müşteri ortalama siparişte 2.473 puan kazanır → **24,73 TL** çek değeri
+- Bu, GMV'nin **%1'i**, marjın **~%9,7'si**
+- Yorum bonusu: 250 puan = 2,50 TL — sipariş başına bir kez, ihmal edilebilir maliyet
+
+Sürdürülebilir aralıkta. Marj %10'un altına inerse kur (1000 puan = 10 TL) aşağı çekilmeli.
+
+**Neden 1 TL = 1 puan ama 1000 puan = 10 TL?** Kazanma oranı yüksek görünsün, harcama oranı marjı korusun diye. Müşteri "2.473 puan kazandım" görür, karşılığı 24,73 TL'dir. Trendyol dahil tüm sadakat programları bu ayrımı kullanır.
+
+### 3.3 Neden cüzdan değil, kupon
+
+Puan karşılığı **kişiye özel kupon** olarak verilecek. Cüzdan **kullanılmayacak**.
+
+| | Kupon | Cüzdan |
+|---|---|---|
+| Canlıda kullanımda mı | ✅ 8 kupon, 215 kullanım | ❌ 0 müşteri cüzdanı, 0 sipariş |
+| Kişiye özel | ✅ `coupon_lines.customer_id` | ✅ |
+| Minimum sepet | ✅ `min_order_value` | ❌ yok |
+| Son kullanma | ✅ `start_date` / `end_date` | ❌ yok |
+| Tek kullanımlık | ✅ `usage_limit` sayaç | ❌ yok |
+| Bilinen hata | — | ⚠️ aşağıya bak |
+
+**Cüzdan yolundaki hata:** `PlaceOrderController::updateWallet()` başarısızlıkta `JsonResponse` döndürüyor, çağıran `if ($success)` yapıyor. PHP'de `JsonResponse` nesnesi **her zaman truthy** — yani bakiye yetmezse sipariş **para düşülmeden "ödendi"** işaretlenir. Bugün zararsız (0 cüzdan, 0 cüzdan siparişi) ama puanları cüzdana yazarsak doğrudan bu hataya basarız.
+
+### 3.4 Kupon motoru — doğrulanmış davranış
+
+`Helpers::checkCoupon()` / `Helpers::applyCoupon()` okundu, gereken her şeyi yapıyor:
+
+- `customer_id` doluysa giriş yapmış müşteriyle eşleşmesi zorunlu ✅
+- `start_date` / `end_date` kontrolü ✅
+- `min_order_value` kontrolü ✅
+- `usage_limit == 0` ise reddediyor; `applyCoupon()` kullanımda `usage_count`'u artırıp `usage_limit`'i **azaltıyor** (geri sayaç) ✅
+
+**İki tuzak — çek üretirken zorunlu:**
+
+1. **`max_discount` NULL BIRAKILAMAZ.** Kod `if ($discount_amount > $coupon->max_discount)` yapıyor. NULL, karşılaştırmada 0'a dönüşür, koşul her zaman doğru olur ve indirim **0 TL**'ye kırpılır. Çek tutarı neyse `max_discount` da o olmalı.
+2. **`coupon_id` NULL BIRAKILAMAZ.** Kod `$coupon->coupon->status` diyor. Tek bir üst kupon kaydı ("Sadakat Puanı Çeki") açılıp üretilen tüm `coupon_lines` ona bağlanmalı.
+
+Üretilecek çekin şablonu:
+
+```
+coupon_id        = <"Sadakat Puanı Çeki" kaydının id'si>
+customer_id      = <müşteri>
+coupon_code      = PUAN-XXXXXXXX          (Helpers'ta benzersizlik döngüsü var)
+discount_type    = 'amount'
+discount         = 25.00                   (çek tutarı)
+max_discount     = 25.00                   (ZORUNLU, discount ile aynı)
+min_order_value  = 500.00
+usage_limit      = 1
+start_date       = now()
+end_date         = now()->addDays(90)
+status           = 1
+```
+
+### 3.5 Veri modeli
+
+Puan altyapısı sıfırdan yazılacak — mevcut yarım iskelet yok.
+
+**`loyalty_point_transactions`** (defter; bakiye bu tablodan toplanır, ayrı bakiye alanı tutulmaz)
+
+| Alan | Tip | Not |
+|---|---|---|
+| `id` | bigint | |
+| `customer_id` | FK customers | |
+| `points` | int | Kazanım `+`, harcama `-` |
+| `type` | enum | `order`, `review`, `redeem`, `expire`, `manual` |
+| `reference_type` / `reference_id` | polimorfik | Order / Review / CouponLine |
+| `description` | string | Müşteriye gösterilecek metin |
+| `expires_at` | datetime, nullable | Kazanımlarda dolu, harcamalarda boş |
+| `created_at` | timestamp | |
+
+Benzersiz indeks: `(customer_id, type, reference_type, reference_id)` — aynı sipariş/yorum için ikinci kez puan yazılmasını **veritabanı seviyesinde** engeller. Bu, iki kez tetiklenen bir job'ın çift puan yazmasına karşı tek gerçek koruma.
+
+### 3.6 Tetikleyiciler
+
+| Olay | Nerede | Aksiyon |
+|---|---|---|
+| Sipariş `delivered` oldu | `GdeliverWebhookController::handleDelivered()` + `AdminOrderManageController` delivered dalı + `DeliverymanManageRepository` | `order_amount` kadar puan yaz, `expires_at = +365 gün` |
+| Yorum `approved` oldu | Admin yorum moderasyon aksiyonu | Görselli +250 / görselsiz +100 |
+| Sipariş iptal/iade | `refund_status = refunded` veya `status = cancelled` | O siparişin puanını **geri al** (negatif kayıt) |
+| Puan bozdurma | Yeni müşteri endpoint'i | Puan düş + kişiye özel kupon üret |
+
+**Kritik:** puan yazımı `delivered` olayına bağlanacak, `paid` olayına değil. Bugün 17 ödenmiş siparişin 7'si teslim edilmemiş; `paid` üzerinden puan verilirse iptal edilen siparişler hayalet puan bırakır.
+
+### 3.7 Admin kontrolü
+
+Mevcut `com_option_get()` deseni kullanılacak (`setting_options` tablosu):
+
+| Ayar | Varsayılan | Açıklama |
+|---|---|---|
+| `com_loyalty_enabled` | `off` | Ana anahtar |
+| `com_loyalty_earn_per_currency` | `1` | 1 TL kaç puan |
+| `com_loyalty_redeem_points_per_unit` | `1000` | Kaç puan = 1 birim |
+| `com_loyalty_redeem_value` | `10` | O birimin TL karşılığı |
+| `com_loyalty_min_redeem_points` | `2500` | Minimum bozdurma |
+| `com_loyalty_voucher_min_order` | `500` | Çekin minimum sepeti |
+| `com_loyalty_voucher_valid_days` | `90` | Çek geçerliliği |
+| `com_loyalty_review_bonus_with_image` | `250` | Görselli yorum |
+| `com_loyalty_review_bonus_no_image` | `100` | Görselsiz yorum |
+| `com_loyalty_points_expire_days` | `365` | Puan ömrü |
+
+**Kapatma davranışı — ayrı düşünülmeli.** `com_loyalty_enabled = off` yapmak *yeni kazanımı* durdurur; **birikmiş puanlar müşteriye verilmiş bir sözdür**. Kapatırken:
+
+- Yeni puan kazanımı durur
+- Mevcut puanlar duyurulan bir tarihe kadar bozdurulabilir kalır
+- Üretilmiş çekler `end_date`'ine kadar geçerli kalır
+
+Anahtarı kapatıp puanları anında iptal etmek müşteri kaybettirir. Trendyol da programı kapatırken bu geçişi verdi.
+
+### 3.8 Yasal uyum
+
+Yoruma puan vermek serbest, ama **açıklama zorunlu**. Dayanak: Ticari Reklam ve Haksız Ticari Uygulamalar Yönetmeliği; Reklam Kurulu bu konuda ceza kesiyor. Google Merchant Center ürün yorumu politikası da gizlenmiş teşviki yasaklıyor.
+
+Üç kural, kurguyu bozmuyor:
+
+1. **Puan yıldız sayısından bağımsız.** 1 yıldıza da 5 yıldıza da aynı puan. Olumluya şart koşmak hem hukuki risk hem güvenilirlik kaybı.
+2. **Rozet.** Puan kazanılmış yorumun yanında "Puan kazanılan değerlendirme" ibaresi.
+3. **Sadece doğrulanmış alışveriş.** `reviews` tablosu zaten `order_id` + `customer_id` taşıyor, bu yapısal olarak garanti.
+
+### 3.9 Yan fayda: misafir → üye dönüşümü
+
+129 müşterinin 24'ü misafir. Misafir checkout gerçek bir `customers` kaydı açıyor (`is_guest = 1`), yani puanı teknik olarak biriktirebilir. "Puanlarınızı kullanmak için hesabınızı tamamlayın" doğal bir dönüşüm kaldıracı olur.
+
+---
+
+## 4. Checklist
+
+### Sıra 1 — Sipariş durumu hijyeni
+
+- [ ] #184 (3.450,00 TL, 44 gün) gerçek durumunu tespit et → `delivered` / `cancelled`
+- [ ] #187 (1.099,00 TL, 34 gün) gerçek durumunu tespit et
+- [ ] #188 (764,75 TL, 33 gün) gerçek durumunu tespit et
+- [ ] #202 (2.025,00 TL, 13 gün) gerçek durumunu tespit et
+- [ ] #208 (1.950,00 TL, 5 gün) — ürün tedarik edildi mi, kargoya verildi mi
+- [ ] #209 (699,00 TL) — kargoda, takip `6487058268514`, Geliver webhook'u teslimatta kapatacak
+- [ ] #211 (1.197,00 TL) — kargo süreci başlat
+- [ ] İptal edilenler için iade işlemini tamamla
+- [ ] Sipariş oluşturulurken `promised_ship_at` doldur → `orders:check-shipping-sla` alarmı gerçekten çalışsın
+- [ ] Bir hafta sonra tekrar bak: ödenmiş + teslim edilmemiş sipariş sayısı düşüyor mu
+
+### Sıra 2 — Yorum davet penceresi
+
+- [ ] `RoundNumericFields` düzeltmesinin canlıda olduğunu doğrula (`forceFill` testi)
+- [ ] `DispatchReviewRequests`: `subDays(2)` → `subDays(14)`
+- [ ] Geçmişe toplu mail gitmesin diye alt tarih sınırı ekle
+- [ ] `--since=` parametresi ekle (kontrollü geriye dönük gönderim)
+- [ ] `--dry-run` ile kime gideceğini gör, sonra uygula
+- [ ] İlk gerçek koşudan sonra: kaç davet gitti, kaç yorum geldi
+
+### Sıra 3 — Sadakat sistemi
+
+**Veri katmanı**
+
+- [ ] `loyalty_point_transactions` migration
+- [ ] `(customer_id, type, reference_type, reference_id)` benzersiz indeksi
+- [ ] `LoyaltyPointTransaction` modeli + `Customer::loyaltyPoints()` ilişkisi
+- [ ] `LoyaltyService`: `award()`, `revoke()`, `balance()`, `redeem()`
+
+**Kazanma**
+
+- [ ] `delivered` olan üç akışa da puan yazımı bağla (Geliver webhook, admin paneli, kurye)
+- [ ] Yorum `approved` olduğunda bonus yaz (görselli/görselsiz ayrımı)
+- [ ] İptal/iade durumunda puanı geri al
+- [ ] Aynı sipariş/yorum için ikinci kez puan yazılamadığını test et
+
+**Harcama**
+
+- [ ] "Sadakat Puanı Çeki" üst kupon kaydını oluştur (`coupons` tablosu)
+- [ ] Bozdurma endpoint'i: puan düş + `coupon_lines` kaydı üret
+- [ ] `max_discount = discount` set edildiğini doğrula (**NULL bırakılırsa indirim 0 TL olur**)
+- [ ] `coupon_id` dolu olduğunu doğrula (**NULL ise `$coupon->coupon->status` patlar**)
+- [ ] `usage_limit = 1` ile tek kullanımlık olduğunu canlıda test et
+- [ ] Başka bir müşterinin çeki kullanamadığını test et
+- [ ] `min_order_value` altındaki sepette reddedildiğini test et
+
+**Ayarlar ve panel**
+
+- [ ] 10 `com_loyalty_*` ayarını `setting_options`'a ekle
+- [ ] Admin panelde sadakat ayarları ekranı
+- [ ] Admin: müşteri puan geçmişi görüntüleme + manuel puan ekleme/silme
+- [ ] Kapatma akışı: yeni kazanım durur, mevcut puan bozdurulabilir kalır
+
+**Müşteri arayüzü**
+
+- [ ] Hesabım → puan bakiyesi + geçmiş
+- [ ] Bozdurma ekranı (kaç puan → kaç TL, minimum uyarısı)
+- [ ] Çeklerim listesi (kod, tutar, min. sepet, son kullanma)
+- [ ] Sipariş sonrası "X puan kazandınız" bildirimi
+- [ ] Yorum sonrası "X puan kazandınız" bildirimi
+- [ ] Misafir için "puanlarınızı kullanmak için hesabınızı tamamlayın"
+
+**Uyum**
+
+- [ ] Puan yıldız sayısından bağımsız verildiğini kodda garanti et
+- [ ] Yorum kartına "Puan kazanılan değerlendirme" rozeti
+- [ ] Sadakat programı koşulları sayfası
+
+**Açılış**
+
+- [ ] `com_loyalty_enabled = off` ile deploy et
+- [ ] Test müşterisiyle uçtan uca dene (sipariş → teslim → puan → yorum → bonus → bozdur → çeki kullan)
+- [ ] Aç, ilk hafta günlük kontrol: dağıtılan puan, üretilen çek, kullanılan çek
+- [ ] Bir ay sonra: efektif geri verme oranı %1 civarında mı, marj korunuyor mu
+
+---
+
+## 5. Bilinen tuzaklar
+
+| Tuzak | Sonuç | Nerede |
+|---|---|---|
+| `coupon_lines.max_discount` NULL | İndirim 0 TL'ye kırpılır, çek işe yaramaz | `Helpers::checkCoupon()` |
+| `coupon_lines.coupon_id` NULL | `$coupon->coupon->status` null erişimi | `Helpers::checkCoupon()` |
+| Cüzdanla ödeme | Bakiye yetmezse sipariş parasız "ödendi" olur | `PlaceOrderController::updateWallet()` |
+| `paid` üzerinden puan | İptal edilen siparişler hayalet puan bırakır | Tasarım kararı |
+| Anahtarı kapatınca puan iptali | Müşteri kaybı | Tasarım kararı |
+| Trait'te Eloquent metod adı | `forceFill` sessizce çalışmaz | `RoundNumericFields` (düzeltildi) |
+
+## 6. Ölçüm
+
+Açtıktan sonra haftalık bakılacak:
+
+- Dağıtılan puan / dönüştürülen çek / kullanılan çek
+- **Efektif geri verme oranı** = kullanılan çek tutarı ÷ GMV → hedef **%1**
+- Yorum sayısı (taban: 1)
+- Teslim edilen sipariş oranı
+- Misafirden üyeliğe dönüşüm
+- Puanlı müşterinin tekrar alışveriş oranı vs. puansız
