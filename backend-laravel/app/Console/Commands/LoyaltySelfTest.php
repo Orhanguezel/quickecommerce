@@ -174,6 +174,23 @@ class LoyaltySelfTest extends Command
         $this->check('manuel puan aninda kullanilabilir (beklemeye takilmaz)',
             $loyalty->balance($customerId) >= $loyalty->minRedeemPoints() * 2);
 
+        // 3a) BOZDURMA ANAHTARI KAPALIYKEN hicbir cek uretilemez.
+        //
+        // Bu kontrol ayni zamanda testin kendi KURULUMUDUR: anahtar canlida
+        // kapali olabilir (yonetici programi kapatmis olabilir) ve o zaman
+        // asagidaki butun bozdurma testleri "kapali" hatasiyla patlar --
+        // ya da daha kotusu, minimum/yetersiz-bakiye kontrolleri YANLIS
+        // SEBEPLE gecmis gorunur. Once kapali halini dogrula, sonra ac.
+        $this->setOption('com_loyalty_redeem_enabled', 'off');
+        $this->forgetOptionCache();
+        $this->check('bozdurma kapaliyken cek uretilemedi', $this->throws(
+            fn () => $loyalty->redeem($customer, $loyalty->minRedeemPoints())
+        ));
+
+        $this->setOption('com_loyalty_redeem_enabled', 'on');
+        $this->forgetOptionCache();
+        $this->check('bozdurma acildi', $loyalty->redeemEnabled());
+
         // 3b) BEKLEYEN puan bozdurulamaz: kullanilabilir + bekleyen kadar
         //     istenirse reddedilmeli. Bekleme suresinin tek isi bu.
         $pendingNow = $loyalty->pendingBalance($customerId);
