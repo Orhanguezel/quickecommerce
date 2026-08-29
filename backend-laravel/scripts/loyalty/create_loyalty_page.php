@@ -89,6 +89,12 @@ $content = <<<HTML
 <p>Puan programıyla ilgili sorularınız için müşteri hizmetlerimize ulaşabilirsiniz.</p>
 HTML;
 
+// YAYIN DURUMUNA DOKUNMA. Bu script oranlar degistiginde TEKRAR
+// calistirilmak icin var; sabit 'draft' yazmak, yayindaki kosullar sayfasini
+// sessizce taslaga dusurur ve kampanya yine kosulsuz kalirdi. Durum yalnizca
+// sayfa ILK kez olusturulurken belirlenir.
+$existing = Page::where('slug', 'sadakat-programi')->first();
+
 $page = Page::updateOrCreate(
     ['slug' => 'sadakat-programi'],
     [
@@ -102,12 +108,14 @@ $page = Page::updateOrCreate(
         'content' => $content,
         'meta_title' => 'Puan Programı Koşulları | Sportoonline',
         'meta_description' => 'Sportoonline puan programı: alışveriş ve değerlendirmelerden puan kazanın, indirim çekine dönüştürün. Kazanım, kullanım ve geçerlilik koşulları.',
-        // TASLAK olarak birakiliyor; hukuki metin yayinlanmadan once
-        // gozden gecirilmeli.
-        'status' => 'draft',
+        // Yeni olusturuluyorsa taslak (hukuki metin gozden gecirilmeden
+        // yayina cikmasin); mevcutsa yoneticinin belirledigi durum korunur.
+        'status' => $existing->status ?? 'draft',
     ]
 );
 
 echo 'Sayfa ' . ($page->wasRecentlyCreated ? 'olusturuldu' : 'guncellendi') . ': #' . $page->id . ' /' . $page->slug . PHP_EOL;
-echo 'Durum: ' . $page->status . ' (yayinlamak icin admin panelden publish yapin)' . PHP_EOL;
+echo 'Durum: ' . $page->status
+    . ($page->status === 'publish' ? ' (korundu)' : ' — yayinlamak icin admin panelden publish yapin')
+    . PHP_EOL;
 echo 'content tipi: ' . gettype($page->content) . ', uzunluk: ' . strlen($page->content) . PHP_EOL;
