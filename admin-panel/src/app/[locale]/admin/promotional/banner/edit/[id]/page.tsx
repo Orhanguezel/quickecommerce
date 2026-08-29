@@ -1,4 +1,3 @@
-import CustomLayout from "@/components/layout/CustomLayout";
 import EditBanner from "@/components/screen/admin-section/promotional/banner/EditBanner";
 
 
@@ -7,9 +6,7 @@ const EditBannerPage = async ({ params }: Props) => {
     const param = await params;
   return (
     <>
-      <CustomLayout>
-        <EditBanner ID={param.id} />
-      </CustomLayout>
+      <EditBanner ID={param.id} />
     </>
   );
 };

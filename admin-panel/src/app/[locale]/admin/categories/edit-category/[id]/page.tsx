@@ -1,4 +1,3 @@
-import CustomLayout from "@/components/layout/CustomLayout";
 import EditCategory from "@/components/screen/admin-section/category/EditCategory";
 
 
@@ -7,9 +6,7 @@ const EditCategoryPage = async ({ params }: Props) => {
  const param = await params;
 
   return (
-    <CustomLayout>
-      <EditCategory ID={param.id} />
-    </CustomLayout>
+    <EditCategory ID={param.id} />
   );
 };
 export default EditCategoryPage;

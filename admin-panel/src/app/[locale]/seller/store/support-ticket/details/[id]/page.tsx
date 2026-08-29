@@ -1,4 +1,3 @@
-import CustomLayout from "@/components/layout/CustomLayout";
 import SupportTicketDetails from "@/components/screen/seller-section/store/support-ticket/SupportTicketDetails";
 
 
@@ -7,9 +6,7 @@ const SupportTicketDetailsPage = async ({ params }: Props) => {
    const param = await params;
   return (
     <>
-      <CustomLayout>
-        <SupportTicketDetails ID={param.id} />
-      </CustomLayout>
+      <SupportTicketDetails ID={param.id} />
     </>
   );
 };

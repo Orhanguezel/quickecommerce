@@ -1,4 +1,3 @@
-import CustomLayout from "@/components/layout/CustomLayout";
 import EditPage from "@/components/screen/admin-section/pages/EditPage";
 
 
@@ -7,9 +6,7 @@ const EditPages = async ({ params }: Props) => {
     const param = await params;
 
   return (
-    <CustomLayout>
-      <EditPage ID={param.id} />
-    </CustomLayout>
+    <EditPage ID={param.id} />
   );
 };
 export default EditPages;

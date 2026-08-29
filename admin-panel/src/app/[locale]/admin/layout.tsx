@@ -18,6 +18,7 @@ import { useStore } from "@/hooks/use-store";
 import { useSidebarToggle } from "@/hooks/use-sidebar-toggle";
 import { cn } from "@/lib/utils";
 import GoogleMapsLoader from "@/components/molecules/GoogleMapsLoader";
+import CustomLayout from "@/components/layout/CustomLayout";
 
 const Sidebar = dynamic(
   () => import("@/components/blocks/shared/sidebar").then((m) => m.Sidebar),
@@ -116,9 +117,12 @@ export default function AdminLayout({
         <LoaderOverlay isLoading={isLoading} />
         <Sidebar setIsLoading={setIsLoading} />
         <Navbar setIsLoading={setIsLoading} MeData={MeData} />
-        <div className="flex-1 flex flex-col justify-between w-full mx-auto ">
-          {children}
-        </div>
+        {/* Sayfa cercevesi (sidebar bosluklu <main> + footer) BURADA.
+            Eskiden 266 sayfanin her biri kendi <CustomLayout>'unu
+            cizerdi; ayni cerceveyi rota bazli layout'ta bir kez cizmek
+            hem dogrusu hem de sayfa gecislerinde gereksiz yeniden
+            kurulumu onler. */}
+        <CustomLayout>{children}</CustomLayout>
       </div>
     </GoogleMapsLoader>
   );

@@ -1,4 +1,3 @@
-import CustomLayout from "@/components/layout/CustomLayout";
 import EditBlogPost from "@/components/screen/admin-section/blog/posts/EditBlogPost";
 
 
@@ -8,9 +7,7 @@ const EditBlogPostPage =async ({ params }: Props) => {
     const param =  await params;
 
   return (
-    <CustomLayout>
-      <EditBlogPost ID={param.id} />
-    </CustomLayout>
+    <EditBlogPost ID={param.id} />
   );
 };
 export default EditBlogPostPage;

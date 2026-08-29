@@ -1,4 +1,3 @@
-import CustomLayout from "@/components/layout/CustomLayout";
 import EditShippingCampaign from "@/components/screen/admin-section/promotional/shipping-campaign/EditShippingCampaign";
 import { use } from "react";
 
@@ -9,9 +8,7 @@ interface Props {
 const EditShippingCampaignPage = ({ params }: Props) => {
   const { id } = use(params);
   return (
-    <CustomLayout>
-      <EditShippingCampaign id={id} />
-    </CustomLayout>
+    <EditShippingCampaign id={id} />
   );
 };
 

@@ -1,4 +1,3 @@
-import CustomLayout from "@/components/layout/CustomLayout";
 import EditStoreNotices from "@/components/screen/admin-section/store-notices/EditStoreNotices";
 
 
@@ -7,9 +6,7 @@ const EditStoreNoticesPage = async ({ params }: Props) => {
     const param = await params;
   return (
     <>
-      <CustomLayout>
-        <EditStoreNotices ID={param.id} />
-      </CustomLayout>
+      <EditStoreNotices ID={param.id} />
     </>
   );
 };

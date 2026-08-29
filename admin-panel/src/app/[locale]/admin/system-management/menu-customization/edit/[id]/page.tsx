@@ -1,4 +1,3 @@
-import CustomLayout from "@/components/layout/CustomLayout";
 import EditMenuCustomization from "@/components/screen/admin-section/system-management/menu-customization/EditMenuCustomization";
  
 
@@ -7,9 +6,7 @@ const EditMenuCustomizationPage = async ({ params }: Props) => {
     const param = await params;
   return (
     <>
-      <CustomLayout>
-        <EditMenuCustomization ID={param.id} />
-      </CustomLayout>
+      <EditMenuCustomization ID={param.id} />
     </>
   );
 };
