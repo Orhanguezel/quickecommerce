@@ -188,7 +188,11 @@ Route::group(['prefix' => 'v1/'], function () {
 
         // customer place order
         Route::group(['namespace' => 'Api\V1', 'middleware' => ['auth:api_customer', 'check.customer.account.status']], function () {
-            Route::post('orders/checkout', [PlaceOrderController::class, 'placeOrder']);
+            // release.checkout.hold: musterinin kendi terk ettigi odenmemis
+            // siparisinin tuttugu stok rezervini, dogrulama kurallari
+            // calismadan once geri verir (bkz. UnpaidOrderReleaseService).
+            Route::post('orders/checkout', [PlaceOrderController::class, 'placeOrder'])
+                ->middleware('release.checkout.hold');
             // checkout-oncesi canli stok dogrulama (odeme oncesi pre-check)
             Route::post('orders/verify-stock', [CheckoutStockController::class, 'verify']);
             // Kargo takip (müşteri)

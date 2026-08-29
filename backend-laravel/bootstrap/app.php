@@ -42,6 +42,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'detect.platform' => \App\Http\Middleware\DetectPlatform::class,
             'public.cache' => \App\Http\Middleware\CachePublicResponse::class,
+            'release.checkout.hold' => \App\Http\Middleware\ReleaseStaleCheckoutHold::class,
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
