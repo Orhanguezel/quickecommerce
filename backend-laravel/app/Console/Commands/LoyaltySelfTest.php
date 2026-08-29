@@ -66,6 +66,27 @@ class LoyaltySelfTest extends Command
         $this->check('kazanim acildi', $loyalty->enabled());
         $this->check('bekleme suresi 14 gun', $loyalty->holdDays() === 14);
 
+        // ALISVERIS PUANI 0 iken hicbir puan yazilmamali. Canli yapilandirma
+        // budur (puan yalnizca yorumdan kazanilir), o yuzden ONCE bunu
+        // dogrula. `?:` ile yazilmis bir varsayilan burada 0'i 1'e cevirip
+        // ciro uzerinden %100 geri verme yapardi.
+        $this->setOption('com_loyalty_earn_per_currency', '0');
+        $this->forgetOptionCache();
+        $this->check('earn=0 gercekten 0 (varsayilana dusmuyor)', $loyalty->earnPerCurrency() === 0.0);
+        $this->check('earn=0 iken alisveris puani KAPALI', ! $loyalty->purchaseEarningEnabled());
+
+        $probe = $this->pickOrder();
+        if ($probe) {
+            $this->check('earn=0 iken teslimat puani yazilmadi',
+                $loyalty->awardForDeliveredOrder($probe) === null);
+        }
+
+        // Alisveris puani makinesi de test edilmeli (yonetici sonradan
+        // acabilir), o yuzden testin geri kalani icin sabit bir oran verilir.
+        $this->setOption('com_loyalty_earn_per_currency', '1');
+        $this->forgetOptionCache();
+        $this->check('alisveris puani testi icin 1 puan/TL ayarlandi', $loyalty->earnPerCurrency() === 1.0);
+
         $order = $this->pickOrder();
         if (! $order) {
             $this->warn('  [ATLANDI] teslim edilmis, musterisi olan siparis bulunamadi');
@@ -254,6 +275,33 @@ class LoyaltySelfTest extends Command
         $this->check('KULLANILABILIR bakiyeye DOKUNULMADI', $loyalty->balance($customerId) === $balBefore);
         $this->check('ikinci revoke engellendi', $loyalty->revokeForOrder($order) === null);
 
+        // 9b) Iade YORUM BONUSUNU da geri almali. Alisveris puani kapaliyken
+        //     tek puan kaynagi bu oldugu icin, iadenin bir anlami olmasi buna
+        //     bagli.
+        $bonusOrder = $this->orderWithReviewedProduct();
+        if ($bonusOrder) {
+            $bCustomer = (int) $bonusOrder->orderMaster->customer_id;
+            $bProductId = (int) Review::where('order_id', $bonusOrder->id)
+                ->where('reviewable_type', \App\Models\Product::class)
+                ->value('reviewable_id');
+
+            $hadBonus = $loyalty->hasReviewBonusForProduct($bCustomer, $bProductId);
+            $pendBefore = $loyalty->pendingBalance($bCustomer);
+            $loyalty->revokeForOrder($bonusOrder);
+            $revokedBonus = LoyaltyPointTransaction::where('customer_id', $bCustomer)
+                ->where('type', LoyaltyPointTransaction::TYPE_REVOKE)
+                ->where('reference_type', \App\Models\Product::class)
+                ->where('reference_id', $bProductId)
+                ->first();
+
+            $this->check('iade yorum bonusunu da geri aldi',
+                ! $hadBonus || $revokedBonus !== null);
+            $this->check('yorum bonusu geri alimi bakiyeyi eksiye dusurmedi',
+                $loyalty->balance($bCustomer) >= 0 && $loyalty->pendingBalance($bCustomer) <= $pendBefore);
+        } else {
+            $this->warn('  [ATLANDI] yorumlanmis urunu olan siparis bulunamadi');
+        }
+
         // 10) IADE, puan KULLANIMA ACILDIKTAN sonra: kullanilabilir bakiyeden
         //     dusulmeli.
         $matured = $this->pickAnotherOrder([$order->id]);
@@ -308,6 +356,26 @@ class LoyaltySelfTest extends Command
         $ledger = (int) LoyaltyPointTransaction::where('customer_id', $customerId)->sum('points');
         $this->check('kullanilabilir + bekleyen = defter toplami',
             $ledger === $loyalty->balance($customerId) + $loyalty->pendingBalance($customerId));
+    }
+
+    /**
+     * Icinde, ayni musterinin degerlendirdigi bir urun bulunan siparis.
+     * Yorum bonusunun iadede geri alinmasini test etmek icin.
+     */
+    private function orderWithReviewedProduct(): ?Order
+    {
+        $review = Review::whereNotNull('order_id')
+            ->whereNotNull('customer_id')
+            ->where('reviewable_type', \App\Models\Product::class)
+            ->first();
+
+        if (! $review) {
+            return null;
+        }
+
+        return Order::with('orderMaster')
+            ->whereHas('orderMaster', fn ($q) => $q->whereNotNull('customer_id'))
+            ->find($review->order_id);
     }
 
     /** Testte kullanilmamis, teslim edilmis baska bir siparis. */
@@ -370,7 +438,12 @@ class LoyaltySelfTest extends Command
      */
     private function forgetOptionCache(): void
     {
-        foreach (['com_loyalty_enabled', 'com_loyalty_redeem_enabled', 'com_loyalty_hold_days'] as $key) {
+        foreach ([
+            'com_loyalty_enabled',
+            'com_loyalty_redeem_enabled',
+            'com_loyalty_hold_days',
+            'com_loyalty_earn_per_currency',
+        ] as $key) {
             foreach (array_unique(['tr', 'en', app()->getLocale()]) as $locale) {
                 Cache::forget("{$key}_{$locale}");
             }

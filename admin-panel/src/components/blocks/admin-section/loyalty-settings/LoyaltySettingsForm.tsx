@@ -30,8 +30,8 @@ const NUMERIC_FIELDS: {
 }[] = [
   {
     key: 'com_loyalty_earn_per_currency',
-    label: '1 TL alışveriş kaç puan kazandırsın',
-    help: '0,01 yazarsanız 100 TL alışveriş 1 puan kazandırır. Puan, sipariş TESLİM EDİLDİĞİNDE yazılır — ödendiğinde değil. Aşağıdaki özet kutusu bu oranın ne demek olduğunu yazıyor.',
+    label: '1 TL alışveriş kaç puan kazandırsın (0 = kapalı)',
+    help: 'ŞU AN 0: müşteri alışveriş yaparak puan kazanmıyor, sadece değerlendirme yazarak kazanıyor. Açmak isterseniz 0,01 yazın — o zaman 100 TL alışveriş 1 puan kazandırır.',
     section: 'earn',
   },
   {
@@ -339,32 +339,39 @@ const LoyaltySettingsForm = () => {
                 <div className="rounded-lg border p-3">
                   <p className="mb-2 font-semibold">Müşteri nasıl kazanıyor?</p>
                   <ul className="list-disc space-y-1 pl-5 text-gray-700 dark:text-gray-300">
-                    {earnRate > 0 && (
+                    {earnRate > 0 ? (
                       <li>
-                        Her <strong>{tl(spendPerPoint)}</strong> alışverişte{' '}
-                        <strong>1 puan</strong>. Örnek: 1.000 TL&apos;lik sipariş{' '}
+                        <strong>Alışverişten:</strong> her {tl(spendPerPoint)}{' '}
+                        harcamaya <strong>1 puan</strong>. Örnek: 1.000 TL&apos;lik
+                        sipariş{' '}
                         <strong>
                           {Math.floor(1000 * earnRate).toLocaleString('tr-TR')} puan
                         </strong>{' '}
-                        ({tl(toTL(Math.floor(1000 * earnRate)))}) kazandırır.
+                        ({tl(toTL(Math.floor(1000 * earnRate)))}) kazandırır. Puan
+                        ödemede değil <strong>teslimatta</strong> yazılır.
+                      </li>
+                    ) : (
+                      <li className="text-gray-500">
+                        <strong>Alışverişten puan verilmiyor.</strong> &quot;1 TL kaç
+                        puan&quot; alanı 0 — müşteri sadece alışveriş yaparak puan
+                        kazanamaz. Açmak isterseniz oraya 0&apos;dan büyük bir değer
+                        yazın.
                       </li>
                     )}
                     <li>
-                      Puan <strong>teslimatta</strong> yazılır, ödemede değil.
-                      {holdDays > 0 && (
-                        <>
-                          {' '}
-                          Sonra <strong>{holdDays} gün</strong> beklemede kalır;
-                          bu sürede iade gelirse puan temiz şekilde geri alınır.
-                        </>
-                      )}
-                    </li>
-                    <li>
-                      Fotoğraflı değerlendirme <strong>{tl(toTL(bonusImg))}</strong>,
-                      fotoğrafsız <strong>{tl(toTL(bonusNoImg))}</strong> — her ürün
-                      için <strong>bir kez</strong>, bir siparişte en fazla{' '}
+                      <strong>Değerlendirmeden:</strong> fotoğraflı{' '}
+                      <strong>{tl(toTL(bonusImg))}</strong>, fotoğrafsız{' '}
+                      <strong>{tl(toTL(bonusNoImg))}</strong> — her ürün için{' '}
+                      <strong>bir kez</strong>, bir siparişte en fazla{' '}
                       <strong>{maxPerOrder} ürün</strong>.
                     </li>
+                    {holdDays > 0 && (
+                      <li>
+                        Kazanılan puan <strong>{holdDays} gün</strong> beklemede
+                        kalır. Bu sürede iade gelirse puan — değerlendirme bonusu
+                        dahil — temiz şekilde geri alınır.
+                      </li>
+                    )}
                   </ul>
                 </div>
 
@@ -422,12 +429,18 @@ const LoyaltySettingsForm = () => {
                     Size maliyeti
                   </p>
                   <ul className="list-disc space-y-1 pl-5 text-orange-900 dark:text-orange-300">
-                    {givebackPct && (
+                    {earnRate > 0 ? (
                       <li>
                         Alışveriş puanı: <strong>ciro üzerinden %{givebackPct}</strong>.
                         Bu oran platform komisyonunuzun altında kalmalı, yoksa her
                         sipariş zararına çalışır. (Üst sınır %20; aşan ayar sunucu
                         tarafından reddedilir.)
+                      </li>
+                    ) : (
+                      <li>
+                        Alışveriş puanı kapalı olduğu için{' '}
+                        <strong>cironun üzerinde sabit bir maliyet yok</strong>.
+                        Tek gider kalemi değerlendirme bonusu.
                       </li>
                     )}
                     {avgOrder > 0 && (
@@ -455,8 +468,8 @@ const LoyaltySettingsForm = () => {
                     )}
                     <li>
                       Değerlendirme bonusu <strong>ürün başına bir kez</strong>{' '}
-                      verildiği için tekrarlayan bir gider değil; asıl büyüyen kalem
-                      alışveriş puanıdır.
+                      verilir — aynı müşteri aynı ürüne ikinci kez puan alamaz. Yani
+                      tekrarlayan bir gider değil, tek seferlik içerik maliyetidir.
                     </li>
                   </ul>
                 </div>

@@ -18,8 +18,11 @@ use Illuminate\Support\Facades\Log;
 /**
  * Sadakat puani sistemi.
  *
- * Kazanma : teslim edilen sipariste 1 TL = 1 puan (ODENEN degil, TESLIM EDILEN
- *           -- iptal/iade hayalet puan birakmasin), onaylanan yoruma bonus.
+ * Kazanma : onaylanan URUN DEGERLENDIRMESINE bonus. Alisveris puani ayri bir
+ *           kalemdir ve `com_loyalty_earn_per_currency = 0` ile KAPATILABILIR
+ *           (canli yapilandirma budur: puan yalnizca yorumdan kazanilir).
+ *           Acikken puan ODEMEDE degil TESLIMATTA yazilir ki iptal edilen
+ *           siparis hayalet puan birakmasin.
  * Bekleme : kazanilan puan hemen kullanilamaz, BEKLEME SURESI kadar (varsayilan
  *           14 gun, tuketicinin cayma hakki penceresi) beklemede kalir. Iade
  *           bu pencerede geldiginde puan henuz harcanamadigi icin temiz sekilde
@@ -89,9 +92,29 @@ class LoyaltyService
 
     // ----------------------------------------------------------------- ayarlar
 
+    /**
+     * 1 TL alisverisin kac puan kazandiracagi. 0 = ALISVERIS PUANI KAPALI.
+     *
+     * DIKKAT: burada `?:` KULLANILAMAZ. "0" PHP'de falsy oldugu icin `?: 1`
+     * yazmak, yoneticinin acikca kapattigi alisveris puanini sessizce 1 puan/TL
+     * yapardi -- yani ciro uzerinden %100 geri verme. Ayirt etmek icin yalnizca
+     * gercekten YAZILMAMIS deger varsayilana duser.
+     */
     public function earnPerCurrency(): float
     {
-        return (float) (com_option_get('com_loyalty_earn_per_currency') ?: 1);
+        $value = com_option_get('com_loyalty_earn_per_currency');
+
+        if ($value === null || $value === '') {
+            return 1;
+        }
+
+        return max(0, (float) $value);
+    }
+
+    /** Alisverisden puan kazanimi acik mi (0 ise yalnizca yorumdan kazanilir). */
+    public function purchaseEarningEnabled(): bool
+    {
+        return $this->earnPerCurrency() > 0;
     }
 
     public function redeemPointsPerUnit(): int
@@ -370,6 +393,12 @@ class LoyaltyService
      */
     public function revokeForOrder(Order $order): ?LoyaltyPointTransaction
     {
+        // Yorum bonuslari da bu siparise bagli; iade edilen bir urunun
+        // degerlendirme odulu de geri alinir. Alisveris puani kapatildiginda
+        // (earn = 0) TEK puan kaynagi bu oldugu icin, iadenin bir anlami
+        // olmasi buna bagli.
+        $this->revokeReviewBonusesForOrder($order);
+
         $awarded = LoyaltyPointTransaction::where('type', LoyaltyPointTransaction::TYPE_ORDER)
             ->where('reference_type', Order::class)
             ->where('reference_id', $order->id)
@@ -414,6 +443,74 @@ class LoyaltyService
             // havuzda birbirini goturur.
             $awarded->available_at
         );
+    }
+
+    /**
+     * Iade edilen siparisin urunlerine yazilmis yorum bonuslarini geri alir.
+     *
+     * Eslesme CIFT kosullu: degerlendirmenin `order_id`'si bu siparis OLACAK
+     * *ve* urun bu siparisin kalemlerinde bulunacak. Tek kosulla yetinmek
+     * riskli -- musteri ayni urunu iki kez alip birini iade ederse, saglam
+     * siparisten kazandigi bonusu haksiz yere geri alirdik.
+     *
+     * Bonus zaten harcanmissa geri alma kalan bakiye kadar kirpilir; musteriye
+     * borc cikarilmaz.
+     */
+    private function revokeReviewBonusesForOrder(Order $order): void
+    {
+        $customerId = (int) ($order->orderMaster?->customer_id ?? 0);
+        if ($customerId <= 0) {
+            return;
+        }
+
+        $orderProductIds = $order->orderDetail()->pluck('product_id')
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->unique();
+
+        if ($orderProductIds->isEmpty()) {
+            return;
+        }
+
+        $productIds = Review::where('order_id', $order->id)
+            ->where('customer_id', $customerId)
+            ->where('reviewable_type', Product::class)
+            ->whereIn('reviewable_id', $orderProductIds)
+            ->pluck('reviewable_id')
+            ->map(fn ($id) => (int) $id)
+            ->unique();
+
+        foreach ($productIds as $productId) {
+            $bonus = LoyaltyPointTransaction::where('customer_id', $customerId)
+                ->where('type', LoyaltyPointTransaction::TYPE_REVIEW)
+                ->where('reference_type', Product::class)
+                ->where('reference_id', $productId)
+                ->first();
+
+            if (! $bonus) {
+                continue;
+            }
+
+            $full = abs((int) $bonus->points);
+            $amount = $bonus->isPending()
+                ? $full
+                : max(0, min($full, $this->balance($customerId)));
+
+            if ($amount <= 0) {
+                continue;
+            }
+
+            $this->record(
+                $customerId,
+                -$amount,
+                LoyaltyPointTransaction::TYPE_REVOKE,
+                Product::class,
+                $productId,
+                "Sipariş #{$order->id} iade edildi — değerlendirme bonusu geri alındı",
+                null,
+                $bonus->available_at
+            );
+        }
     }
 
     // --------------------------------------------------------------- harcama

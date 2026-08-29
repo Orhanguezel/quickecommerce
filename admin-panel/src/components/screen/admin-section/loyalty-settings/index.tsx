@@ -40,8 +40,9 @@ const ManagementGuide = () => {
               <h4 className="font-semibold">Üç cümlede program</h4>
               <ol className="mt-1 list-decimal space-y-1 pl-5 text-gray-600 dark:text-gray-300">
                 <li>
-                  Müşteri <strong>siparişi teslim alınca</strong> ve{" "}
-                  <strong>aldığı ürünü değerlendirince</strong> puan kazanır.
+                  Müşteri <strong>satın aldığı ürünü değerlendirince</strong> puan
+                  kazanır. (Alışverişin kendisi puan kazandırmaz — o ayrı bir
+                  ayardır ve şu an <strong>kapalı</strong>.)
                 </li>
                 <li>
                   Puan <strong>14 gün beklemede</strong> kalır — iade süresi
@@ -53,10 +54,15 @@ const ManagementGuide = () => {
                 </li>
               </ol>
               <p className="mt-2 text-gray-600 dark:text-gray-300">
-                Puan ödeme anında değil <strong>teslimatta</strong> yazılır; iptal
-                edilen sipariş hayalet puan bırakmasın diye. Çek mevcut kupon
-                altyapısında çalışır: tek kullanımlık, minimum sepet şartlı,
-                süreli ve yalnızca o müşteriye ait.
+                Program <strong>ödeme yapana değil, içerik üretene</strong> ödeme
+                yapıyor: mağazada bugün toplam 1 değerlendirme var ve
+                değerlendirme, ürün sayfasının satışa dönüşünü kalıcı olarak
+                artıran tek şey. Bonus <strong>ürün başına bir kez</strong>
+                verildiği için tekrarlayan bir gider değil.
+              </p>
+              <p className="mt-2 text-gray-600 dark:text-gray-300">
+                Çek mevcut kupon altyapısında çalışır: tek kullanımlık, minimum
+                sepet şartlı, süreli ve yalnızca o müşteriye ait.
               </p>
             </section>
 
@@ -91,8 +97,10 @@ const ManagementGuide = () => {
                   <tbody className="text-gray-600 dark:text-gray-300">
                     <tr className="border-b">
                       <td className="py-1.5 pr-3">1 TL kaç puan</td>
-                      <td className="py-1.5 pr-3">Kazanma hızı</td>
-                      <td className="py-1.5">Maliyet artar (ana kalem)</td>
+                      <td className="py-1.5 pr-3">
+                        Alışveriş puanı — <strong>şu an 0, yani kapalı</strong>
+                      </td>
+                      <td className="py-1.5">Ciro üzerinden sürekli gider başlar</td>
                     </tr>
                     <tr className="border-b">
                       <td className="py-1.5 pr-3">Değerlendirme bonusu</td>
@@ -133,7 +141,9 @@ const ManagementGuide = () => {
               <ul className="mt-2 list-disc space-y-1 pl-5 text-gray-600 dark:text-gray-300">
                 <li>
                   Bekleyen puan iade edilirse <strong>sessizce silinir</strong>;
-                  müşterinin kullanılabilir bakiyesine hiç dokunulmaz.
+                  müşterinin kullanılabilir bakiyesine hiç dokunulmaz. İade,{" "}
+                  <strong>o siparişteki ürünlerin değerlendirme bonuslarını da</strong>{" "}
+                  geri alır.
                 </li>
                 <li>
                   Puan açıldıktan sonra iade gelirse kullanılabilir bakiyeden
@@ -246,10 +256,11 @@ const ManagementGuide = () => {
                   Hata mesajı hangi oranın çıktığını söyler.
                 </li>
                 <li>
-                  1 puan = 1 TL kurunda &quot;1 TL kaç puan&quot; alanına{" "}
-                  <strong>0,01</strong> yazmak %1 geri verir. Buraya{" "}
-                  <strong>1</strong> yazmak siparişin <strong>tamamını</strong>{" "}
-                  geri vermek demektir — sunucu zaten reddeder.
+                  &quot;1 TL kaç puan&quot; alanı <strong>0</strong> olduğu sürece
+                  alışveriş puanı kapalıdır. Açacaksanız 1 puan = 1 TL kurunda{" "}
+                  <strong>0,01</strong> yazın (%1 geri verir); <strong>1</strong>{" "}
+                  yazmak siparişin tamamını geri vermek demektir — sunucu zaten
+                  reddeder.
                 </li>
                 <li>
                   Kaydettiğiniz an geçerli olur; yayın öncesi denemelerinizi
@@ -290,10 +301,10 @@ const LoyaltySettings = () => {
               Sadakat Puanı Ayarları
             </h1>
             <p className="mt-1 text-sm text-gray-500">
-              Müşteriler teslim edilen siparişlerden ve onaylanan
-              değerlendirmelerden puan kazanır. <strong>1 puan = 1 TL.</strong>{" "}
-              Puanlar 14 gün beklemede kaldıktan sonra kullanıma açılır ve
-              kişiye özel indirim çekine dönüştürülür.
+              Müşteriler <strong>satın aldıkları ürünü değerlendirdiklerinde</strong>{" "}
+              puan kazanır. <strong>1 puan = 1 TL.</strong> Puanlar 14 gün
+              beklemede kaldıktan sonra kullanıma açılır ve kişiye özel indirim
+              çekine dönüştürülür.
             </p>
           </div>
         </CardContent>

@@ -201,28 +201,33 @@ export function LoyaltyTab({ t, enabled }: Props) {
             Nasıl çalışır?
           </div>
           <ul className="ml-1 space-y-1 text-muted-foreground">
+            {/* Alisveris puani kapaliyken (earn = 0) bundan HIC bahsedilmez;
+                olmayan bir kazanimi vaat etmek yaniltici olur. */}
+            {earnRate > 0 && (
+              <li>
+                • Siparişiniz <strong>teslim edildiğinde</strong> puan
+                kazanırsınız:{" "}
+                {spendPerPoint > 0 ? (
+                  <>
+                    her {t.currency}
+                    {spendPerPoint.toLocaleString("tr-TR")} alışverişe{" "}
+                    <strong>1 puan</strong>
+                  </>
+                ) : (
+                  <>
+                    her {t.currency}1 alışverişe{" "}
+                    <strong>
+                      {rules.earn_per_currency.toLocaleString("tr-TR")} puan
+                    </strong>
+                  </>
+                )}
+                .
+              </li>
+            )}
             <li>
-              • Siparişiniz <strong>teslim edildiğinde</strong> puan kazanırsınız:{" "}
-              {spendPerPoint > 0 ? (
-                <>
-                  her {t.currency}
-                  {spendPerPoint.toLocaleString("tr-TR")} alışverişe{" "}
-                  <strong>1 puan</strong>
-                </>
-              ) : (
-                <>
-                  her {t.currency}1 alışverişe{" "}
-                  <strong>
-                    {rules.earn_per_currency.toLocaleString("tr-TR")} puan
-                  </strong>
-                </>
-              )}
-              .
-            </li>
-            <li>
-              • Satın aldığınız ürünü değerlendirdiğinizde ek puan kazanırsınız
-              (fotoğraflı değerlendirme daha fazla). Puan, verdiğiniz yıldızdan
-              bağımsızdır.
+              • <strong>Satın aldığınız ürünü değerlendirin, puan kazanın.</strong>{" "}
+              Fotoğraflı değerlendirme daha fazla kazandırır. Puan, verdiğiniz
+              yıldız sayısından bağımsızdır ve her ürün için bir kez verilir.
             </li>
             {rules.hold_days > 0 && (
               <li>
@@ -403,8 +408,8 @@ export function LoyaltyTab({ t, enabled }: Props) {
 
         {!info?.transactions?.length ? (
           <p className="py-6 text-center text-sm text-muted-foreground">
-            Henüz puan hareketiniz yok. İlk siparişiniz teslim edildiğinde puan
-            kazanmaya başlarsınız.
+            Henüz puan hareketiniz yok. Satın aldığınız bir ürünü
+            değerlendirdiğinizde puan kazanmaya başlarsınız.
           </p>
         ) : (
           <>

@@ -270,8 +270,8 @@ Mevcut `com_option_get()` deseni kullanılacak (`setting_options` tablosu):
 | `com_loyalty_enabled` | `off` | Ana anahtar |
 | `com_loyalty_redeem_points_per_unit` | `1` | **1 puan…** |
 | `com_loyalty_redeem_value` | `1` | **…= 1 TL** |
-| `com_loyalty_earn_per_currency` | `0.01` | 100 TL alışveriş → 1 puan (%1) |
-| `com_loyalty_min_redeem_points` | `25` | 25 puan = 25 TL çek |
+| `com_loyalty_earn_per_currency` | **`0`** | **Alışveriş puanı KAPALI** |
+| `com_loyalty_min_redeem_points` | `20` | 20 puan = 20 TL çek |
 | `com_loyalty_voucher_min_order` | `500` | Çekin minimum sepeti |
 | `com_loyalty_voucher_valid_days` | `90` | Çek geçerliliği |
 | `com_loyalty_review_bonus_with_image` | `20` | Fotoğraflı yorum = 20 TL |
@@ -291,21 +291,37 @@ Mevcut `com_option_get()` deseni kullanılacak (`setting_options` tablosu):
 | Müşteri | 129 (24 misafir) |
 | Ürün yorumu | **1** |
 
-Bu sayılar şemayı belirledi:
+### Karar: puan YALNIZCA yorumdan kazanılır
 
-- **1 puan = 1 TL (kur birebir).** Çevrim katmanı hem müşterinin hem yöneticinin
-  kafasını karıştırıyordu. Kazanma hızı kurdan değil `earn_per_currency`'den
-  ayarlanır.
-- **%1 geri verme** (100 TL → 1 puan). Ortalama sepet 2.473 TL olduğu için
-  müşteri **kabaca tek siparişte** 25 TL'lik çek hakkına ulaşıyor — ödül
-  "erişilebilir" hissettiren, maliyeti düşük tek nokta.
-- **Çek min. sepet 500 TL** asıl frendir: 25 TL'lik çek en kötü ihtimalle %5
-  indirim demek.
-- **Yorum bonusu 20/10 TL agresif ama gerekli.** Mağazada toplam **1 yorum**
-  var. Sipariş başına 1,05 ürün olduğu için `max_per_order = 3` pratikte
-  bağlayıcı değil; gerçek maliyet sipariş başına ~20 TL, yani ortalama sepette
-  **%0,8**. Yorum ürün başına bir kez verildiği için tekrarlayan gider değil.
-- Ortalama sepette tipik toplam maliyet ≈ **44,7 TL / %1,8**.
+`com_loyalty_earn_per_currency = 0`. Alışverişin kendisi puan kazandırmaz.
+Program, **ödeme yapana değil içerik üretene** ödeme yapar.
+
+Gerekçe: alışveriş puanı ciro üzerinden **sürekli** bir gider kalemidir ve
+karşılığında hiçbir şey üretmez — müşteri zaten satın almıştı. Değerlendirme
+ise ürün sayfasının dönüşümünü kalıcı olarak artıran bir varlık üretir ve
+**ürün başına bir kez** ödendiği için tekrarlamaz. Mağazada bugün toplam
+**1 yorum** var; asıl sorun bu.
+
+- **1 puan = 1 TL (kur birebir).** Çevrim katmanı hem müşterinin hem
+  yöneticinin kafasını karıştırıyordu. Bonus alanına yazılan sayı doğrudan TL.
+- **Fotoğraflı yorum 20 TL, fotoğrafsız 10 TL.** Çek eşiği **20 puan** olduğu
+  için *tek bir fotoğraflı değerlendirme* doğrudan bir çek eder — teklif tek
+  cümleyle anlatılabiliyor: "fotoğraflı yorum yaz, 20 TL kazan".
+- **Çek min. sepet 500 TL** asıl frendir: 20 TL'lik çek en fazla **%4** indirim.
+- Sipariş başına 1,05 ürün olduğu için `max_per_order = 3` pratikte bağlayıcı
+  değil; gerçek maliyet sipariş başına ~20 TL, ortalama sepette **%0,8**.
+
+**İade artık yorum bonusunu da geri alır** (`revokeReviewBonusesForOrder`).
+Alışveriş puanı kapalıyken tek puan kaynağı bu olduğu için, iadenin bir anlamı
+olması buna bağlıydı. Eşleşme çift koşullu — değerlendirmenin `order_id`'si o
+sipariş **ve** ürün o siparişin kalemlerinde — yoksa müşteri aynı ürünü iki kez
+alıp birini iade ettiğinde sağlam siparişin bonusu haksız yere geri alınırdı.
+
+> **Tuzak (düzeltildi):** `earnPerCurrency()` `?: 1` kullanıyordu. `"0"` PHP'de
+> falsy olduğu için, yöneticinin açıkça kapattığı alışveriş puanı sessizce
+> **1 puan/TL** yani ciro üzerinden **%100 geri verme** olurdu. Artık yalnızca
+> gerçekten yazılmamış değer varsayılana düşüyor; `loyalty:selftest` bunu ayrıca
+> kontrol ediyor.
 
 **Kapatma davranışı — ayrı düşünülmeli.** `com_loyalty_enabled = off` yapmak *yeni kazanımı* durdurur; **birikmiş puanlar müşteriye verilmiş bir sözdür**. Kapatırken:
 
@@ -424,6 +440,8 @@ Yoruma puan vermek serbest, ama **açıklama zorunlu**. Dayanak: Ticari Reklam v
 - [x] Uçtan uca test: `php artisan loyalty:selftest` — canlıda **49/49 geçti** (transaction + rollback, kalıcı yazım yok)
 - [x] 14 günlük bekleme süresi (`com_loyalty_hold_days`) — iade geri alımının fiilen çalışması için
 - [x] Oranlar canlı veriye göre dolduruldu; **1 puan = 1 TL** kuru (çevrim kaldırıldı)
+- [x] **Alışveriş puanı kapatıldı** (`earn = 0`) — puan yalnızca yorumdan kazanılır
+- [x] İade, o siparişteki ürünlerin **yorum bonuslarını da** geri alıyor
 - [x] Ayar formuna canlı "Şu anki ayarlarla ne oluyor?" paneli — oranları yöneticinin kendi ortalama sepetiyle TL cinsinden anlatıyor
 - [ ] Koşullar sayfasını (`sadakat-programi`, taslak) gözden geçirip yayınla
 - [ ] `php artisan loyalty:selftest` çalıştır (canlıda güvenli), sonra `com_loyalty_enabled = on`
@@ -443,6 +461,7 @@ Yoruma puan vermek serbest, ama **açıklama zorunlu**. Dayanak: Ticari Reklam v
 | Anahtarı kapatınca puan iptali | Müşteri kaybı | Tasarım kararı |
 | Trait'te Eloquent metod adı | `forceFill` sessizce çalışmaz | `RoundNumericFields` (düzeltildi) |
 | Bekleme süresi 0 | İade koruması kapanır; harcanmış puan geri alınamaz | `com_loyalty_hold_days` (form uyarı veriyor) |
+| `?:` ile ayar varsayılanı | `"0"` falsy → kapatılan ayar sessizce varsayılana döner | `earnPerCurrency()` (düzeltildi, testi var) |
 | Geri alma kaydına `available_at` kopyalanmazsa | Bekleyen +N'e karşı kullanılabilir −N → bakiye eksiye düşer | `LoyaltyService::revokeForOrder()` |
 
 ## 6. Ölçüm
