@@ -52,7 +52,7 @@
             padding: 20px;
             background-color: #ffffff !important;
             border-radius: 8px;
-            margin: 140px auto;
+            margin: 24px auto;
             text-align: center;
             display: block;
         }
