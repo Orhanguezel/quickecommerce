@@ -596,12 +596,12 @@ class LoyaltyService
     /**
      * Kisiye ozel, tek kullanimlik indirim cheki uretir.
      *
-     * IKI ZORUNLU ALAN:
-     * - max_discount: Helpers::checkCoupon() `$discount_amount > $coupon->max_discount`
-     *   karsilastirmasi yapiyor. NULL karsilastirmada 0'a doner, kosul her zaman
-     *   dogru olur ve indirim 0 TL'ye kirpilir -> cek ise yaramaz.
-     * - coupon_id: ayni fonksiyon `$coupon->coupon->status` diyor; ust kupon
-     *   kaydi olmadan null erisimi olur.
+     * IKI ONEMLI ALAN:
+     * - max_discount: cek tutarina esit yazilir; boylece yuzde/tutar hesabi ne
+     *   donerse donsun cek kendi degerini asamaz. (NULL max_discount artik indirimi
+     *   0'a kirpmiyor; kupon kontrolleri "bos = sinir yok" olarak duzeltildi.)
+     * - coupon_id: kupon kontrolleri ust kampanyanin status'una da bakar; ust kupon
+     *   kaydi olmayan cek "pasif" sayilir.
      */
     private function createVoucher(Customer $customer, float $amount): CouponLine
     {

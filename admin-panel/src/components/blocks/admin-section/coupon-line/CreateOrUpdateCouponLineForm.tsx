@@ -50,6 +50,7 @@ const CreateOrUpdateCouponLineForm = ({ data }: any) => {
     if (data) {
       const customerValue = data?.customer !== null ? data?.customer.value : undefined;
       setValue('customer_id', customerValue);
+      setValue('coupon_code', data.coupon_code ?? '');
       setValue('max_discount', data.max_discount ?? 0);
       setValue('usage_limit', data.usage_limit ?? 0);
       setValue('min_order_value', data.min_order_value ?? 0);
@@ -124,6 +125,25 @@ const CreateOrUpdateCouponLineForm = ({ data }: any) => {
                 </>
               )}
             />
+          </div>
+          <div>
+            <p className="text-sm font-medium mb-1">{t('table_header.coupon_code')}</p>
+            <Input
+              type="text"
+              id="coupon_code"
+              {...register('coupon_code' as keyof CouponLineFormData)}
+              className="app-input uppercase"
+              placeholder={t('place_holder.enter_coupon_code')}
+            />
+            {errors.coupon_code ? (
+              <p className="text-xs text-red-500 mt-1">
+                {errors.coupon_code.message as string}
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground mt-1">
+                {t('label.coupon_code_auto_hint')}
+              </p>
+            )}
           </div>
           <div>
             <p className="text-sm font-medium mb-1">{t('label.min_order')}</p>

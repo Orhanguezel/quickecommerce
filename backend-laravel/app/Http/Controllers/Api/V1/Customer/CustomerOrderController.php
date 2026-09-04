@@ -262,8 +262,10 @@ class CustomerOrderController extends Controller
             ], 422);
         }
 
-        // Check if the coupon usage limit has been reached
-        if ($coupon->usage_limit == 0) {
+        // Kullanim limiti: usage_limit her kullanimda 1 azalan sayactir, NULL = sinirsiz.
+        // Onceden `== 0` idi; PHP'de `null == 0` TRUE oldugu icin limiti bos birakilan
+        // kupon "limit doldu" deyip hic calismiyordu.
+        if ($coupon->usage_limit !== null && $coupon->usage_limit <= 0) {
             return response()->json([
                 'message' => __('messages.coupon_limit_reached'),
             ], 422);
@@ -274,7 +276,10 @@ class CustomerOrderController extends Controller
                 'message' => __('messages.coupon_already_used'),
             ], 422);
         }
-        if ($coupon->coupon->status != 1 && $coupon->status != 1) {
+        // Kupon satiri VEYA ust kampanya pasifse kupon gecersiz. Onceden `&&` idi;
+        // kampanya kapatilsa bile satir aktif kaldigi surece kupon calismaya devam
+        // ediyordu. `?->` ust kampanya silinmisse 500 yerine "pasif" dondurur.
+        if ($coupon->status != 1 || $coupon->coupon?->status != 1) {
             return response()->json([
                 'message' => __('messages.coupon_inactive'),
             ], 422);
@@ -304,8 +309,10 @@ class CustomerOrderController extends Controller
                 'message' => __('messages.something_wrong'),
             ], 500);
         }
-        // check max discount amount
-        if ($discount_amount > $coupon->max_discount) {
+        // Ust indirim siniri: bos veya 0 birakildiysa sinir yoktur. Onceden kosulsuz
+        // karsilastiriliyordu; max_discount NULL olan kuponda `$x > null` her zaman
+        // TRUE oldugu icin indirim sessizce 0 TL'ye kirpiliyordu.
+        if ($coupon->max_discount > 0 && $discount_amount > $coupon->max_discount) {
             $discount_amount = $coupon->max_discount;
             $final_amount_after_removing_coupon_discount = $sub_total - $discount_amount;
         }

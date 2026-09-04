@@ -832,14 +832,43 @@ function applyCoupon(string $couponCode, float $orderAmount, ?int $customerId = 
         ];
     }
 
-    if ($coupon->expires_at && $coupon->expires_at->isPast()) {
+    // Kisiye ozel kupon (orn. sadakat cheki) yalnizca sahibinde calisir.
+    // Bu kontrol yoktu: siparis endpoint'ine baskasinin kupon kodu POST edilince
+    // indirim uygulaniyordu (checkCoupon sadece frontend'i koruyor).
+    if ($coupon->customer_id !== null && (int) $coupon->customer_id !== (int) $customerId) {
         return [
             'success' => false,
-            'message' => 'Coupon has expired.',
+            'message' => __('messages.coupon_does_not_belong'),
         ];
     }
 
-    if ($coupon->usage_limit == 0) {
+    // Kupon satiri VEYA ust kampanya pasifse gecersiz.
+    if ($coupon->status != 1 || $coupon->coupon?->status != 1) {
+        return [
+            'success' => false,
+            'message' => __('messages.coupon_inactive'),
+        ];
+    }
+
+    // Tarih araligi. Onceki kod `expires_at` okuyordu; CouponLine'da boyle bir
+    // kolon yok, yani ifade her zaman NULL donup suresi dolmus kupon gecebiliyordu.
+    if ($coupon->start_date && $coupon->start_date > now()) {
+        return [
+            'success' => false,
+            'message' => __('messages.coupon_inactive'),
+        ];
+    }
+
+    if ($coupon->end_date && $coupon->end_date < now()) {
+        return [
+            'success' => false,
+            'message' => __('messages.coupon_expired'),
+        ];
+    }
+
+    // usage_limit her kullanimda 1 azalan sayactir, NULL = sinirsiz.
+    // `null == 0` TRUE oldugu icin limiti bos kupon "limit doldu" veriyordu.
+    if ($coupon->usage_limit !== null && $coupon->usage_limit <= 0) {
         return [
             'success' => false,
             'message' => 'Coupon usage limit reached.',
@@ -929,11 +958,12 @@ if (!function_exists('checkCoupon')) {
             return [];
         }
 
-        // Check if the coupon usage limit has been reached
-        if ($coupon->usage_limit == 0) {
+        // usage_limit NULL = sinirsiz (`null == 0` TRUE tuzagi).
+        if ($coupon->usage_limit !== null && $coupon->usage_limit <= 0) {
             return [];
         }
-        if ($coupon->coupon->status != 1 && $coupon->status != 1) {
+        // Satir VEYA ust kampanya pasifse gecersiz (onceden `&&` idi).
+        if ($coupon->status != 1 || $coupon->coupon?->status != 1) {
             return [];
         }
         // check min_order status
@@ -952,8 +982,9 @@ if (!function_exists('checkCoupon')) {
         } else {
             return [];
         }
-        // check max discount amount
-        if ($discount_amount > $coupon->max_discount) {
+        // Ust indirim siniri: bos/0 ise sinir yok (max_discount NULL iken indirim
+        // sessizce 0 TL'ye kirpiliyordu).
+        if ($coupon->max_discount > 0 && $discount_amount > $coupon->max_discount) {
             $discount_amount = $coupon->max_discount;
             $final_amount_after_removing_coupon_discount = $sub_total - $discount_amount;
         }

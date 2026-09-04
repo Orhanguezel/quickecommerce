@@ -110,10 +110,15 @@ class CouponManageController extends Controller
                 'message' => __('messages.should_round', ['name' => 'Discount']),
             ]);
         }
-        if (!isset($request->coupon_code)) {
-            $request['coupon_code'] = generateRandomCouponCode();
+        // Admin kod girdiyse (CouponLineRequest'te buyuk harfe cevrilip benzersizligi
+        // dogrulanmis olarak gelir) onu kullan; bos birakildiysa rastgele uret.
+        // Onceki `!isset($request->coupon_code)` kontrolu, formda kod alani hic
+        // olmadigi icin her kuponu rastgele kodla kaydediyordu.
+        $data = $request->all();
+        if (blank($data['coupon_code'] ?? null)) {
+            $data['coupon_code'] = generateRandomCouponCode();
         }
-        $couponLine = $this->couponLineRepo->couponLineStore($request->all());
+        $couponLine = $this->couponLineRepo->couponLineStore($data);
 
         if ($couponLine) {
             return $this->success(translate('messages.save_success', ['name' => 'Coupon Line']));
@@ -132,7 +137,13 @@ class CouponManageController extends Controller
                 'message' => __('messages.should_round', ['name' => 'Discount']),
             ]);
         }
-        $couponLine = $this->couponLineRepo->couponLineUpdate($request->all());
+        // Guncellemede kod alani bos birakildiysa mevcut kod korunur; aksi halde
+        // yayindaki bir kupon kodu yanlislikla silinebilirdi.
+        $data = $request->all();
+        if (blank($data['coupon_code'] ?? null)) {
+            unset($data['coupon_code']);
+        }
+        $couponLine = $this->couponLineRepo->couponLineUpdate($data);
         if ($couponLine) {
             return $this->success(translate('messages.update_success', ['name' => 'Coupon Line']));
         } else {

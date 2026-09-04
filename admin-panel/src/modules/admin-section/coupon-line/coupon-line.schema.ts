@@ -14,6 +14,15 @@ export type statusUpdateData = z.infer<typeof statusUpdateSchema> & {
 
 const baseSchema = {
   customer_id: z.union([z.number(), z.null()]).optional(), 
+  // Bos birakilabilir: backend rastgele kod uretir (yeni) veya mevcut kodu korur (duzenleme).
+  coupon_code: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .max(50, "At most 50 characters")
+    .regex(/^[A-Z0-9._-]*$/, "Only letters, digits and . _ - are allowed")
+    .optional()
+    .refine((v) => !v || v.length >= 3, "At least 3 characters"),
   discount_type: z.string().min(1, "Discount type is required"),
   discount: z.number().min(1, "Required"),
   min_order_value: z.number().optional(),

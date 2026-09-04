@@ -848,6 +848,7 @@
     "bank_swift_code": "SWIFT Code",
     "phone": "Phone",
     "min_order": "Min Order",
+    "coupon_code_auto_hint": "Auto-generated if left empty",
     "usage_limit": "Usage Limit",
     "usage_count": "Usage Count",
     "max_discount": "Max Discount",

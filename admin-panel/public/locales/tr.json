@@ -851,6 +851,7 @@
     "bank_swift_code": "SWIFT Kodu",
     "phone": "Telefon",
     "min_order": "Min Sipariş",
+    "coupon_code_auto_hint": "Boş bırakılırsa otomatik üretilir",
     "usage_limit": "Kullanım Limiti",
     "usage_count": "Kullanım Sayısı",
     "max_discount": "Maks İndirim",
