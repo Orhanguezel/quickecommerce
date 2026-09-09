@@ -3,7 +3,7 @@ import sys
 import unittest
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from ticimax_brand_scraper import parse_product
+from ticimax_brand_scraper import parse_product, category_for
 
 
 def html(brand='Yonex', stock=9, model_patch=None):
@@ -45,3 +45,8 @@ class TicimaxTests(unittest.TestCase):
         self.assertEqual((p['original_price'],p['discounted_price']),(320,180))
         with self.assertRaises(ValueError):
             parse_product(html(model_patch={'productCurrency':'USD'}),'https://www.raketspor.com.tr/test','raketspor_yonex')
+
+    def test_categories_follow_the_actual_product_type(self):
+        self.assertEqual(category_for('raketspor_yonex', 'Yonex Tenis Şort Etek Beyaz'), 'Spor Giyim')
+        self.assertEqual(category_for('heynut', 'HeynuT Hurma Pekmezi'), 'Bal & Pekmez')
+        self.assertEqual(category_for('heynut', 'HeynuT Hindistan Cevizi Yağı'), 'Hindistan Cevizi Yağı')

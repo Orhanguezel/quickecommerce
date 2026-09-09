@@ -34,6 +34,20 @@ def model_from_html(html):
     return model
 
 
+def category_for(source, name):
+    name = name.casefold()
+    if source == 'raketspor_yonex':
+        clothing = any(word in name for word in ['ayakkabı', 'ayakkabi', 'şort', 'sort ', 'tshirt', 'tişört', 'tayt', 'bra ', 'brası', 'etek', 'çorap', 'corap', 'eşofman', 'esofman', 'mont ', 'ceket'])
+        return 'Spor Giyim' if clothing else ('Badminton' if 'badminton' in name else ('Tenis & Badminton' if 'raket' in name else 'Tenis Aksesuarları'))
+    elif 'yağı' in name:
+        return 'Hindistan Cevizi Yağı'
+    elif 'pekmezi' in name or 'balı' in name:
+        return 'Bal & Pekmez'
+    elif 'ezmesi' not in name:
+        return 'Kuruyemişler'
+    return SOURCES[source][2]
+
+
 def parse_product(html, url, source):
     _, brand, category = SOURCES[source]
     model = model_from_html(html)
@@ -93,16 +107,7 @@ def parse_product(html, url, source):
         'stock_quantity': sum(v['stock_quantity'] for v in variants),
         'all_image_urls': list(dict.fromkeys(images or data['all_image_urls'])),
     })
-    name = data['name'].casefold()
-    if source == 'raketspor_yonex':
-        clothing = any(word in name for word in ['ayakkabı', 'ayakkabi', 'şort', 'sort ', 'tshirt', 'tişört', 'tayt', 'bra ', 'brası', 'etek', 'çorap', 'corap', 'eşofman', 'esofman', 'mont ', 'ceket'])
-        data['category'] = 'Spor Giyim' if clothing else ('Badminton' if 'badminton' in name else ('Tenis & Badminton' if 'raket' in name else 'Tenis Aksesuarları'))
-    elif 'yağı' in name:
-        data['category'] = 'Hindistan Cevizi Yağı'
-    elif 'pekmezi' in name or 'balı' in name:
-        data['category'] = 'Bal & Pekmez'
-    elif 'ezmesi' not in name:
-        data['category'] = 'Kuruyemişler'
+    data['category'] = category_for(source, data['name'])
     data['thumbnail_url'] = data['all_image_urls'][0] if data['all_image_urls'] else ''
     return data
 
@@ -182,6 +187,8 @@ def discover(source):
 
 
 def main(default_source=None):
+    from paths import load_repo_env
+    load_repo_env()
     parser = argparse.ArgumentParser()
     parser.add_argument('source', choices=SOURCES, nargs='?' if default_source else None, default=default_source)
     parser.add_argument('--limit', type=int, default=0)
@@ -218,6 +225,7 @@ def main(default_source=None):
                 checkpoint_temp.write_text(json.dumps(completed, ensure_ascii=False))
                 checkpoint_temp.replace(checkpoint)
             product = entry['product']
+            product['category'] = category_for(args.source, product['name'])
             products.append(product)
             print(f"[{i}/{len(urls)}] {product['name'][:65]} variants={len(product['variants'])} stock={product['stock_quantity']}", flush=True)
     finally:
