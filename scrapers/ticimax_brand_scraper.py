@@ -4,6 +4,7 @@ Only complete runs replace the canonical output. Limited runs require a separate
 output. Browser work is restricted to the local sportoonline scraper service.
 """
 import argparse
+from concurrent.futures import ThreadPoolExecutor
 import json
 import os
 import re
@@ -94,9 +95,12 @@ def parse_product(html, url, source):
     })
     name = data['name'].casefold()
     if source == 'raketspor_yonex':
-        data['category'] = 'Badminton' if 'badminton' in name else ('Tenis & Badminton' if 'raket' in name else 'Tenis Aksesuarları')
+        clothing = any(word in name for word in ['ayakkabı', 'ayakkabi', 'şort', 'sort ', 'tshirt', 'tişört', 'tayt', 'bra ', 'brası', 'etek', 'çorap', 'corap', 'eşofman', 'esofman', 'mont ', 'ceket'])
+        data['category'] = 'Spor Giyim' if clothing else ('Badminton' if 'badminton' in name else ('Tenis & Badminton' if 'raket' in name else 'Tenis Aksesuarları'))
     elif 'yağı' in name:
         data['category'] = 'Hindistan Cevizi Yağı'
+    elif 'pekmezi' in name or 'balı' in name:
+        data['category'] = 'Bal & Pekmez'
     elif 'ezmesi' not in name:
         data['category'] = 'Kuruyemişler'
     data['thumbnail_url'] = data['all_image_urls'][0] if data['all_image_urls'] else ''
@@ -196,21 +200,28 @@ def main(default_source=None):
     if checkpoint and checkpoint.exists() and time.time() - checkpoint.stat().st_mtime < 10800:
         completed = json.loads(checkpoint.read_text())
     products = []
-    for i, url in enumerate(urls, 1):
+    def fetch_product(url):
         cached = completed.get(url)
         if cached and time.time() - cached.get('fetched_at', 0) < 10800:
-            product = cached['product']
-        else:
-            product = parse_product(fetch_html(url), url, args.source)
-            completed[url] = {'fetched_at': time.time(), 'product': product}
+            return url, cached
+        product = parse_product(fetch_html(url), url, args.source)
+        time.sleep(0.5)
+        return url, {'fetched_at': time.time(), 'product': product}
+    # Two browser jobs maximum, and checkpoints are written only by this thread.
+    pool = ThreadPoolExecutor(max_workers=2)
+    try:
+        for i, (url, entry) in enumerate(pool.map(fetch_product, urls), 1):
+            completed[url] = entry
             if checkpoint:
                 checkpoint.parent.mkdir(parents=True, exist_ok=True)
                 checkpoint_temp = checkpoint.with_suffix('.tmp')
                 checkpoint_temp.write_text(json.dumps(completed, ensure_ascii=False))
                 checkpoint_temp.replace(checkpoint)
-            time.sleep(0.5)
-        products.append(product)
-        print(f"[{i}/{len(urls)}] {product['name'][:65]} variants={len(product['variants'])} stock={product['stock_quantity']}", flush=True)
+            product = entry['product']
+            products.append(product)
+            print(f"[{i}/{len(urls)}] {product['name'][:65]} variants={len(product['variants'])} stock={product['stock_quantity']}", flush=True)
+    finally:
+        pool.shutdown(wait=True, cancel_futures=True)
     output.parent.mkdir(parents=True, exist_ok=True)
     temporary = output.with_suffix('.tmp')
     temporary.write_text(json.dumps(products, ensure_ascii=False, indent=2))

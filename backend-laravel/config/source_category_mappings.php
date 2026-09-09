@@ -10,8 +10,8 @@
  * yeni bir kaynak etiketi katalogda yeni root kategori uretemez.
  */
 return [
-    'heynut' => ['fallback_category_id' => 544, 'mappings' => ['kuruyemisler' => 582, 'hindistan-cevizi-yagi' => 480]],
-    'raketspor_yonex' => ['fallback_category_id' => 387, 'mappings' => ['badminton' => 818, 'tenis-aksesuarlari' => 810]],
+    'heynut' => ['fallback_category_id' => 544, 'mappings' => ['kuruyemisler' => 582, 'hindistan-cevizi-yagi' => 585, 'bal-pekmez' => 586]],
+    'raketspor_yonex' => ['fallback_category_id' => 387, 'mappings' => ['spor-giyim' => 393, 'badminton' => 818, 'tenis-aksesuarlari' => 810]],
     'eprotein' => ['fallback_category_id' => 1088],
     'animaljoy' => ['fallback_category_id' => 367],
     'everlast' => ['fallback_category_id' => 393],
