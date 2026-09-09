@@ -11,6 +11,11 @@ class Wishlist extends Model
         'product_id'
     ];
 
+    protected $casts = [
+        'price_alert_enabled' => 'boolean', 'price_alert_email' => 'boolean', 'price_alert_push' => 'boolean',
+        'price_alert_snapshot' => 'array', 'price_alert_notified' => 'array', 'last_price_alert_at' => 'datetime',
+    ];
+
     protected static function booted(): void
     {
         if (!request()->is('api/v1/admin/*') && !request()->is('api/v1/seller/*')) {

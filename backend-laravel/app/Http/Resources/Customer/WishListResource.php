@@ -22,6 +22,10 @@ class WishListResource extends JsonResource
 
         return [
             'id' => $this->product->id,
+            'price_alert_enabled' => (bool) ($this->price_alert_enabled ?? true),
+            'price_alert_email' => (bool) $this->price_alert_email,
+            'price_alert_push' => (bool) $this->price_alert_push,
+            'flash_sale' => $this->product->isInFlashDeal(),
             'store' => new StoreDetailsForOrderResource($this->product->store),
             'store_id' => $this->product->store->id ?? null,
             'name' => $this->product->name,

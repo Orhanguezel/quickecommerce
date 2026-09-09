@@ -168,7 +168,13 @@ export function NotificationClient({ translations: t }: NotificationClientProps)
                     </p>
                     <div className="mt-1.5 flex items-center gap-3 text-xs text-muted-foreground">
                       <span>{formatDate(notification.created_at)}</span>
-                      {notification.data?.order_id && (
+                      {notification.data?.type === "wishlist_price_drop" && notification.data.product_slug && (
+                      <Link href={`/urun/${encodeURIComponent(notification.data.product_slug)}`}
+                        className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
+                        Ürünü incele <ChevronRight className="h-3 w-3" />
+                      </Link>
+                    )}
+                    {notification.data?.order_id && (
                         <Link
                           href={`/siparislerim`}
                           className="text-primary hover:underline"

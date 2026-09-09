@@ -86,6 +86,7 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'customer/', 'middleware' => 
         });
 
         Route::group(['prefix' => 'wish-list'], function () {
+            Route::patch('price-alerts', [WishListManageController::class, 'updatePriceAlerts']);
             Route::get('list', [WishListManageController::class, 'wishlists']);
             Route::post('store', [WishListManageController::class, 'addToWishlist']);
             Route::put('remove', [WishListManageController::class, 'removeFromWishlist']);

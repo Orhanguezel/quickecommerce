@@ -1,5 +1,11 @@
 export interface NotificationData {
   order_id?: number;
+  type?: string;
+  product_id?: number;
+  product_slug?: string;
+  variant_id?: number;
+  old_price?: number;
+  new_price?: number;
   [key: string]: unknown;
 }
 

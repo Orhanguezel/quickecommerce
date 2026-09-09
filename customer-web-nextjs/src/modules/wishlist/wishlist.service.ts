@@ -5,8 +5,14 @@ import { useBaseService } from "@/lib/base-service";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { Product } from "@/modules/product/product.type";
 
+export interface WishlistProduct extends Product {
+  price_alert_enabled?: boolean;
+  price_alert_email?: boolean;
+  price_alert_push?: boolean;
+}
+
 interface WishlistResponse {
-  wishlist: Product[];
+  wishlist: WishlistProduct[];
   meta: {
     current_page: number;
     total: number;
@@ -64,5 +70,18 @@ export function useWishlistRemoveMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wishlist"] });
     },
+  });
+}
+
+export function useWishlistPriceAlertMutation() {
+  const queryClient = useQueryClient();
+  const endpoint = "/customer/wish-list/price-alerts";
+  const { getAxiosInstance } = useBaseService(endpoint);
+  return useMutation({
+    mutationFn: async (data: { product_id: number; price_alert_enabled?: boolean; price_alert_email?: boolean; price_alert_push?: boolean }) => {
+      const response = await getAxiosInstance().patch(endpoint, data);
+      return response.data;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["wishlist"] }),
   });
 }
