@@ -4,8 +4,8 @@
 - [X] Ticimax parser gerçek açıklama, saklama koşulları ve iki sütunlu teknik özellik tablolarını okuyor. Ödeme/yorum alanları alınmıyor; aktif HTML, kaynak stilleri ve gereksiz boşluklar temizleniyor. Eski eksik checkpoint yeniden kullanılmıyor; yerel servis 429 yanıtında bekleyerek yeniden deneniyor.
 - [X] Canlı, yedekli ve yalnız boş alanlara aktarım: HeynuT 46/46, Yonex 116/117 açıklama; Yonex 76 teknik özellik satırı. Türkçe çeviriler güncellendi. Tekrar dry-run: yazılacak alan 0. Fiyat/stok değiştirilmedi; kanonik JSON dosyaları içerikle tamamlandı, eski stok verisinin tazelik tarihi korunuyor.
 - [~] Yonex Pro 82212X Tenis ve Spor Çantası (#12396 kaynak): kaynak açıklama paneli ve teknik özellikleri de boş; uydurma açıklama eklenmedi.
-- [X] Python 15 test geçti. Canlı HeynuT açıklaması masaüstü/mobil doğrulandı. Kaynak freshness kontrolü temiz. Yedekler `backups/ticimax-content-20260909-*.json`, normalizasyon yedeği `backups/ticimax-content-normalization-20260909.json`.
-- PR: hazırlanıyor (`codex/gorev-16-urun-aciklama-aktarimi`).
+- [X] Python 15 test geçti. Canlı HeynuT/Yonex açıklamaları ve Yonex özellik sekmesi masaüstü/mobil doğrulandı; JS hatası ve taşma yok. Kaynak freshness kontrolü temiz. Yedekler `backups/ticimax-content-20260909-*.json`, normalizasyon yedeği `backups/ticimax-content-normalization-20260909.json`.
+- PR: https://github.com/Orhanguezel/quickecommerce/pull/16.
 
 ## 2026-09-09 — Fiyat görünürlüğü / kaynak karantinası düzeltmesi
 
