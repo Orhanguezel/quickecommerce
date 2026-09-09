@@ -869,7 +869,9 @@ export function ProductDetailClient({
       </nav>
 
       {/* Main Product Section */}
-      <div className="grid gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:grid-cols-[minmax(0,480px)_minmax(0,1fr)_minmax(0,320px)]">
+      <div className="grid items-start gap-4 sm:gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="contents xl:block">
+          <div className="order-1 grid items-start gap-4 sm:gap-6 lg:grid-cols-2">
         {/* Gallery */}
         <div className="space-y-3 overflow-hidden rounded-lg border bg-card p-2 sm:p-4">
           <div
@@ -1174,332 +1176,10 @@ export function ProductDetailClient({
           />
         </div>
 
-        {/* Right Sidebar */}
-        <aside className="min-w-0 space-y-4">
-          {/* Product Discount Highlight */}
-          {hasDiscount && effectiveDiscountPercent > 0 && (
-            <div className="rounded-lg border-2 border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900">
-                  <Zap className="h-4 w-4 text-red-600 dark:text-red-400" />
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-red-700 dark:text-red-400">
-                    %{effectiveDiscountPercent} İndirim
-                  </p>
-                  <p className="text-xs text-red-600/80 dark:text-red-400/70">
-                    ₺{savingsAmount} tasarruf edin
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Campaigns */}
-          {applicableCampaigns.length > 0 && (
-            <div className="rounded-lg border bg-card p-4">
-              <p className="mb-3 text-sm font-bold">Kampanyalar</p>
-              <div className="space-y-2">
-                {applicableCampaigns.map((campaign) => (
-                  <div
-                    key={campaign.id}
-                    className="flex items-start gap-2.5 rounded-md border px-3 py-2"
-                    style={{
-                      backgroundColor: campaign.background_color || undefined,
-                    }}
-                  >
-                    <Truck
-                      className="mt-0.5 h-4 w-4 shrink-0"
-                      style={{ color: campaign.title_color || "hsl(var(--primary))" }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className="text-sm font-semibold leading-tight"
-                        style={{ color: campaign.title_color || undefined }}
-                      >
-                        {campaign.title}
-                      </p>
-                      {campaign.description && (
-                        <p
-                          className="mt-0.5 text-xs leading-tight text-muted-foreground"
-                          style={{ color: campaign.description_color || undefined }}
-                        >
-                          {campaign.description}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Banners */}
-          {applicableBanners.length > 0 && (
-            <div className="space-y-2">
-              {applicableBanners.map((banner) => (
-                <Link
-                  key={banner.id}
-                  href={banner.redirect_url || "#"}
-                  className="group flex items-center gap-3 rounded-lg border bg-card px-4 py-3 transition-colors hover:bg-muted/50"
-                  style={{
-                    backgroundColor: banner.background_color || undefined,
-                  }}
-                >
-                  {banner.thumbnail_image && (
-                    <Image
-                      src={banner.thumbnail_image}
-                      alt={banner.title}
-                      width={40}
-                      height={40}
-                      className="h-10 w-10 shrink-0 rounded object-cover"
-                    />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p
-                      className="text-sm font-semibold group-hover:underline"
-                      style={{ color: banner.title_color || undefined }}
-                    >
-                      {banner.title}
-                    </p>
-                    {banner.description && (
-                      <p
-                        className="text-xs text-muted-foreground truncate"
-                        style={{ color: banner.description_color || undefined }}
-                      >
-                        {banner.description}
-                      </p>
-                    )}
-                  </div>
-                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                </Link>
-              ))}
-            </div>
-          )}
-
-          {product.store && (
-            <div className="rounded-lg border bg-card p-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-muted">
-                  {product.store.logo ? (
-                    <Image
-                      src={product.store.logo}
-                      alt={product.store.name}
-                      width={40}
-                      height={40}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <Store className="h-5 w-5 text-muted-foreground" />
-                  )}
-                </div>
-                <div>
-                  <p className="font-semibold text-primary">{product.store.name}</p>
-                  <div className="mt-1 flex items-center gap-1">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`h-3.5 w-3.5 ${
-                          i < Math.round(product.store?.rating || 0)
-                            ? "fill-yellow-400 text-yellow-400"
-                            : "text-muted-foreground/30"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <div className="mt-4 flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">
-                  {product.store.total_product} {t.all_products}
-                </p>
-                <Link
-                  href={`/magaza/${product.store.slug}`}
-                  className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-                >
-                  {t.visit_store}
-                </Link>
-              </div>
-            </div>
-          )}
-
-          <div className="rounded-lg border bg-card p-5">
-            {!inStock && (
-              <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
-                <div className="flex items-start gap-2">
-                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                  <p>{t.out_of_stock}. Bu ürün şu anda sepete eklenemez.</p>
-                </div>
-              </div>
-            )}
-            <div className="mb-3 flex items-center justify-between rounded-md border">
-              <button
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="px-3 py-2 hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={!inStock || quantity <= 1}
-                aria-label={t.decrease_quantity}
-              >
-                <Minus className="h-4 w-4" />
-              </button>
-              <span className="min-w-12 text-center text-sm font-semibold">
-                {inStock ? quantity : 0}
-              </span>
-              <button
-                onClick={() =>
-                  setQuantity(Math.min(maxPurchasableQuantity, quantity + 1))
-                }
-                className="px-3 py-2 hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={!inStock || quantity >= maxPurchasableQuantity}
-                aria-label={t.increase_quantity}
-              >
-                <Plus className="h-4 w-4" />
-              </button>
-            </div>
-            <button
-              onClick={handleAddToCart}
-              disabled={!inStock}
-              className="flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              <ShoppingCart className="h-4 w-4" />
-              {inStock ? t.add_to_cart : t.out_of_stock}
-            </button>
-            <button
-              onClick={handleBuyNow}
-              disabled={!inStock}
-              className="mt-2 w-full rounded-md bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {inStock ? t.buy_now : t.out_of_stock}
-            </button>
-
-            {/* Kupon */}
-            {productDetailsConfig.isCouponEnabled && coupons.length > 0 && (() => {
-              const themeCouponCode = productDetailsConfig.couponCode;
-              const filteredCoupons = themeCouponCode
-                ? coupons.filter((c) => c.coupon_code === themeCouponCode)
-                : coupons;
-              return filteredCoupons.length > 0 ? (
-                <div className="mt-4">
-                  <CouponSection coupons={filteredCoupons.slice(0, productDetailsConfig.couponCount)} />
-                </div>
-              ) : null;
-            })()}
-
-            <div className="mt-5">
-              <p className="text-sm font-semibold">{t.share_connect}</p>
-              <div className="mt-3 flex items-center gap-2">
-                {[
-                  {
-                    icon: "/assets/icons/facebook.png",
-                    label: t.facebook,
-                    buttonClass: "bg-[#1877F2]",
-                  },
-                  {
-                    icon: "/assets/icons/twitter.png",
-                    label: t.twitter,
-                    buttonClass: "bg-[#1DA1F2]",
-                  },
-                  {
-                    icon: "/assets/icons/whatsapp.png",
-                    label: t.whatsapp,
-                    buttonClass: "bg-[#25D366]",
-                  },
-                ].map((item, idx) => (
-                  <button
-                    key={idx}
-                    className={`inline-flex h-8 w-8 items-center justify-center rounded-full ring-1 ring-black/5 transition-opacity hover:opacity-90 ${item.buttonClass}`}
-                    aria-label={item.label}
-                  >
-                    <Image
-                      src={item.icon}
-                      alt={item.label}
-                      width={18}
-                      height={18}
-                      className="h-[18px] w-[18px] object-contain"
-                    />
-                  </button>
-                ))}
-                {[
-                  { icon: Mail, label: t.email },
-                  { icon: Link2, label: t.copy_link },
-                ].map((item, idx) => (
-                  <button
-                    key={idx}
-                    className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:text-foreground"
-                    aria-label={item.label}
-                  >
-                    <item.icon className="h-3.5 w-3.5" />
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-lg border bg-card p-5">
-            <div className="space-y-4">
-              {productDetailsConfig.isDeliveryEnabled && (
-                <div className="flex items-start gap-3">
-                  <Truck className="mt-0.5 h-4 w-4 text-primary" />
-                  <div>
-                    <p className="text-sm font-semibold">
-                      {productDetailsConfig.deliveryTitle || t.delivery_info}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {productDetailsConfig.deliverySubtitle ||
-                        product.delivery_time_text ||
-                        (product.delivery_time_min != null &&
-                        product.delivery_time_max != null
-                          ? `${product.delivery_time_min}-${product.delivery_time_max} ${t.days}`
-                          : "")}
-                    </p>
-                  </div>
-                </div>
-              )}
-              {productDetailsConfig.isRefundEnabled && (
-                <div className="flex items-start gap-3">
-                  <RotateCcw className="mt-0.5 h-4 w-4 text-primary" />
-                  <div>
-                    <p className="text-sm font-semibold">
-                      {productDetailsConfig.refundTitle || t.return_policy}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {productDetailsConfig.refundSubtitle ||
-                        product.return_text ||
-                        (product.return_in_days
-                          ? `${product.return_in_days} ${t.days}`
-                          : "")}
-                    </p>
-                  </div>
-                </div>
-              )}
-              {isCashOnDeliveryEnabled && (
-                <div className="flex items-start gap-3">
-                  <ShieldCheck className="mt-0.5 h-4 w-4 text-primary" />
-                  <div>
-                    <p className="text-sm font-semibold">{t.cash_on_delivery}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {t.cash_on_delivery_note}
-                    </p>
-                  </div>
-                </div>
-              )}
-              {isFreeShippingEnabled && (
-                <div className="flex items-start gap-3">
-                  <PackageCheck className="mt-0.5 h-4 w-4 text-primary" />
-                  <div>
-                    <p className="text-sm font-semibold">{t.free_shipping}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {t.free_shipping_note}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </aside>
-      </div>
+        </div>
 
       {/* Tabs */}
-      <div id="product-tabs" className="mt-8">
+      <div id="product-tabs" className="order-3 min-w-0 scroll-mt-24 rounded-lg border bg-card p-3 sm:p-5 xl:mt-6">
         <div className="flex overflow-x-auto border-b scrollbar-hide">
           {tabs.map((tab) => (
             <button
@@ -1840,6 +1520,304 @@ export function ProductDetailClient({
             </div>
           )}
         </div>
+      </div>
+
+        </div>
+        {/* Right Sidebar */}
+        <aside className="order-2 min-w-0 space-y-4 xl:sticky xl:top-24">
+          {/* Product Discount Highlight */}
+          {hasDiscount && effectiveDiscountPercent > 0 && (
+            <div className="rounded-lg border-2 border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900">
+                  <Zap className="h-4 w-4 text-red-600 dark:text-red-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-red-700 dark:text-red-400">
+                    %{effectiveDiscountPercent} İndirim
+                  </p>
+                  <p className="text-xs text-red-600/80 dark:text-red-400/70">
+                    ₺{savingsAmount} tasarruf edin
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Campaigns */}
+          {applicableCampaigns.length > 0 && (
+            <div className="rounded-lg border bg-card p-4">
+              <p className="mb-3 text-sm font-bold">Kampanyalar</p>
+              <div className="space-y-2">
+                {applicableCampaigns.map((campaign) => (
+                  <div
+                    key={campaign.id}
+                    className="flex items-start gap-2.5 rounded-md border px-3 py-2"
+                    style={{
+                      backgroundColor: campaign.background_color || undefined,
+                    }}
+                  >
+                    <Truck
+                      className="mt-0.5 h-4 w-4 shrink-0"
+                      style={{ color: campaign.title_color || "hsl(var(--primary))" }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p
+                        className="text-sm font-semibold leading-tight"
+                        style={{ color: campaign.title_color || undefined }}
+                      >
+                        {campaign.title}
+                      </p>
+                      {campaign.description && (
+                        <p
+                          className="mt-0.5 text-xs leading-tight text-muted-foreground"
+                          style={{ color: campaign.description_color || undefined }}
+                        >
+                          {campaign.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Banners */}
+          {applicableBanners.length > 0 && (
+            <div className="space-y-2">
+              {applicableBanners.map((banner) => (
+                <Link
+                  key={banner.id}
+                  href={banner.redirect_url || "#"}
+                  className="group flex items-center gap-3 rounded-lg border bg-card px-4 py-3 transition-colors hover:bg-muted/50"
+                  style={{
+                    backgroundColor: banner.background_color || undefined,
+                  }}
+                >
+                  {banner.thumbnail_image && (
+                    <Image
+                      src={banner.thumbnail_image}
+                      alt={banner.title}
+                      width={40}
+                      height={40}
+                      className="h-10 w-10 shrink-0 rounded object-cover"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className="text-sm font-semibold group-hover:underline"
+                      style={{ color: banner.title_color || undefined }}
+                    >
+                      {banner.title}
+                    </p>
+                    {banner.description && (
+                      <p
+                        className="text-xs text-muted-foreground truncate"
+                        style={{ color: banner.description_color || undefined }}
+                      >
+                        {banner.description}
+                      </p>
+                    )}
+                  </div>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </Link>
+              ))}
+            </div>
+          )}
+
+          {product.store && (
+            <div className="rounded-lg border bg-card p-5">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-muted">
+                  {product.store.logo ? (
+                    <Image
+                      src={product.store.logo}
+                      alt={product.store.name}
+                      width={40}
+                      height={40}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <Store className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </div>
+                <div>
+                  <p className="font-semibold text-primary">{product.store.name}</p>
+                  <div className="mt-1 flex items-center gap-1">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`h-3.5 w-3.5 ${
+                          i < Math.round(product.store?.rating || 0)
+                            ? "fill-yellow-400 text-yellow-400"
+                            : "text-muted-foreground/30"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">
+                  {product.store.total_product} {t.all_products}
+                </p>
+                <Link
+                  href={`/magaza/${product.store.slug}`}
+                  className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                >
+                  {t.visit_store}
+                </Link>
+              </div>
+            </div>
+          )}
+
+          <div className="rounded-lg border bg-card p-5">
+            {!inStock && (
+              <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <p>{t.out_of_stock}. Bu ürün şu anda sepete eklenemez.</p>
+                </div>
+              </div>
+            )}
+            <div className="mb-3 flex items-center justify-between rounded-md border">
+              <button
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                className="px-3 py-2 hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={!inStock || quantity <= 1}
+                aria-label={t.decrease_quantity}
+              >
+                <Minus className="h-4 w-4" />
+              </button>
+              <span className="min-w-12 text-center text-sm font-semibold">
+                {inStock ? quantity : 0}
+              </span>
+              <button
+                onClick={() =>
+                  setQuantity(Math.min(maxPurchasableQuantity, quantity + 1))
+                }
+                className="px-3 py-2 hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={!inStock || quantity >= maxPurchasableQuantity}
+                aria-label={t.increase_quantity}
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+            </div>
+            <button
+              onClick={handleAddToCart}
+              disabled={!inStock}
+              className="flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              {inStock ? t.add_to_cart : t.out_of_stock}
+            </button>
+            <button
+              onClick={handleBuyNow}
+              disabled={!inStock}
+              className="mt-2 w-full rounded-md bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {inStock ? t.buy_now : t.out_of_stock}
+            </button>
+
+            {/* Kupon */}
+            {productDetailsConfig.isCouponEnabled && coupons.length > 0 && (() => {
+              const themeCouponCode = productDetailsConfig.couponCode;
+              const filteredCoupons = themeCouponCode
+                ? coupons.filter((c) => c.coupon_code === themeCouponCode)
+                : coupons;
+              return filteredCoupons.length > 0 ? (
+                <div className="mt-4">
+                  <CouponSection coupons={filteredCoupons.slice(0, productDetailsConfig.couponCount)} />
+                </div>
+              ) : null;
+            })()}
+
+            <div className="mt-5">
+              <p className="text-sm font-semibold">{t.share_connect}</p>
+              <div className="mt-3 flex items-center gap-2">
+                {[
+                  {
+                    icon: "/assets/icons/facebook.png",
+                    label: t.facebook,
+                    buttonClass: "bg-[#1877F2]",
+                  },
+                  {
+                    icon: "/assets/icons/twitter.png",
+                    label: t.twitter,
+                    buttonClass: "bg-[#1DA1F2]",
+                  },
+                  {
+                    icon: "/assets/icons/whatsapp.png",
+                    label: t.whatsapp,
+                    buttonClass: "bg-[#25D366]",
+                  },
+                ].map((item, idx) => (
+                  <button
+                    key={idx}
+                    className={`inline-flex h-8 w-8 items-center justify-center rounded-full ring-1 ring-black/5 transition-opacity hover:opacity-90 ${item.buttonClass}`}
+                    aria-label={item.label}
+                  >
+                    <Image
+                      src={item.icon}
+                      alt={item.label}
+                      width={18}
+                      height={18}
+                      className="h-[18px] w-[18px] object-contain"
+                    />
+                  </button>
+                ))}
+                {[
+                  { icon: Mail, label: t.email },
+                  { icon: Link2, label: t.copy_link },
+                ].map((item, idx) => (
+                  <button
+                    key={idx}
+                    className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:text-foreground"
+                    aria-label={item.label}
+                  >
+                    <item.icon className="h-3.5 w-3.5" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-lg border bg-card p-5">
+            <div className="space-y-4">
+
+              {productDetailsConfig.isRefundEnabled && (
+                <div className="flex items-start gap-3">
+                  <RotateCcw className="mt-0.5 h-4 w-4 text-primary" />
+                  <div>
+                    <p className="text-sm font-semibold">
+                      {productDetailsConfig.refundTitle || t.return_policy}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {productDetailsConfig.refundSubtitle ||
+                        product.return_text ||
+                        (product.return_in_days
+                          ? `${product.return_in_days} ${t.days}`
+                          : "")}
+                    </p>
+                  </div>
+                </div>
+              )}
+              {isCashOnDeliveryEnabled && (
+                <div className="flex items-start gap-3">
+                  <ShieldCheck className="mt-0.5 h-4 w-4 text-primary" />
+                  <div>
+                    <p className="text-sm font-semibold">{t.cash_on_delivery}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t.cash_on_delivery_note}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+            </div>
+          </div>
+        </aside>
       </div>
 
       {/* Related Products */}
