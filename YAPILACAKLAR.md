@@ -1,3 +1,10 @@
+## 2026-09-09 — Ceysport aktarım kurtarma
+
+- [~] Python requests 403 alırken aynı VPS üzerinde curl 200 doğrulandı; curl fallback, eksik sitemap/ürün yanıtında çıktıyı koruma, atomik JSON yazımı ve belirsiz stokta satış kapatma eklendi.
+- [X] 5 Python regresyon testi geçti. Kaynaktan üç mevcut ürünün fiyat/stok bilgisi doğrulandı (3.800 / 1.040 / 4.500 TL).
+- [~] 985 URL tam katalog taraması ayrı `/tmp/ceysport-full-20260909.json` çıktısında çalışıyor; canlı sync/doğrulama bekliyor.
+- PR: hazırlanıyor (`codex/gorev-11-ceysport-kurtarma`).
+
 # Sportoonline — Yapılacaklar (Sonraki Oturum)
 
 > Oluşturma: 2026-05-15. Önceki oturumda tamamlananlar: Gmail SMTP, Firebase push,
