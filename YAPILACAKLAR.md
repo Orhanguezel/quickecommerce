@@ -4,7 +4,7 @@
 - [X] #3156–3158 kayıtlarının yalnız eksik dosya boyutları, ürün sayısı ve kanonik JSON doğrulanarak yedekli tamamlandı; tarihleri değiştirilmedi. Dry-run sonrası kaynak stokları senkronlandı: HeynuT 42, Yonex 117, Ceysport 793 satılabilir ürün. Freshness dry-run artık aday üretmiyor.
 - [X] `scrapers:record-run` başarılı kayıt için gerçek, 50 byte üzeri `--json-size` zorunlu kılıyor; eksik/geçersiz veri DB/alarmlara dokunmadan reddediliyor. Cron zaten bu alanı gönderiyor. Düzeltme canlıda.
 - [X] PHP Unit 45 test / 100 assertion; HeynuT 46 + Yonex 292 varyantta kanonik kaynak fiyatıyla fark 0. Canlı masaüstü/mobil ürün fiyatları ve mağaza kartları doğrulandı (300 TL / 462 TL eski fiyat; Yonex 789 TL). JS hatası/taşma yok.
-- PR: hazırlanıyor (`codex/gorev-15-fiyat-kaynak-dogrulamasi`).
+- PR: https://github.com/Orhanguezel/quickecommerce/pull/15.
 
 ## 2026-09-09 — Favori fiyat düşüşü bildirimi
 
