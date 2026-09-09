@@ -1,3 +1,10 @@
+## 2026-09-09 — Ürün detay yerleşimi
+
+- [X] Açıklama/özellik sekmeleri masaüstünde görsel ve ürün bilgilerinin altına, sağ satın alma sütunundan bağımsız taşındı. Mobilde satın alma → açıklama sırası korunuyor.
+- [X] Sağdaki tekrarlanan kargo mesajları kaldırıldı; kampanya koşullarını gösteren merkezi teslimat alanı korundu.
+- [X] İlk production build ve değişen dosyanın ESLint kontrolü geçti. Playwright 1440×1000 / 390×844: taşma ve JS hatası yok, sekme etkileşimi çalışıyor. Son kargo sadeleştirmesi sonrası nihai build/QA tekrar edilecek.
+- [~] Genel lint: değişiklik dışındaki 85 hata / 29 uyarı nedeniyle başarısız. Canlı yayın ve PR bekliyor.
+
 ## 2026-09-09 — Ceysport aktarım kurtarma
 
 - [~] Python requests 403 alırken aynı VPS üzerinde curl 200 doğrulandı; curl fallback, eksik sitemap/ürün yanıtında çıktıyı koruma, atomik JSON yazımı ve belirsiz stokta satış kapatma eklendi.
