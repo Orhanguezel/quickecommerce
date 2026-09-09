@@ -1,3 +1,12 @@
+## 2026-09-09 — HeynuT ve Multiprice / Yonex
+
+- [X] Çalışan kaynaklar `www.heynut.com.tr` ve `www.raketspor.com.tr/yonex` doğrulandı; yalnız Sportoonline yerel scraper servisi kullanılıyor.
+- [X] Ticimax modelinden KDV dahil gerçek fiyat, indirim, varyant seçeneği ve stok ayrıştırması; Yonex marka doğrulaması, tam katalog/ayrı checkpoint akışı eklendi.
+- [X] Tek varyantlı ürünlerde de seçeneklerin korunması ve açık marka ID'si ile import desteği eklendi.
+- [X] Kaynak registry, kategori sözlüğü, günlük cron ve admin manuel çalıştırma bağlantıları hazır.
+- [X] Python toplam 11 test, mevcut PHP Unit 36 test geçti.
+- [~] HeynuT 46 ve Yonex 117 ürün tam taraması sürüyor; mağaza/marka dry-run, import, canlı yayın ve PR bekliyor.
+
 ## 2026-09-09 — Ürün detay yerleşimi
 
 - [X] Açıklama/özellik sekmeleri masaüstünde görsel ve ürün bilgilerinin altına, sağ satın alma sütunundan bağımsız taşındı. Mobilde satın alma → açıklama sırası korunuyor.

@@ -29,6 +29,7 @@ class ImportDropickProducts extends Command
                             {--status=approved : Urun statusu (pending, approved, inactive)}
                             {--type=sports : Store type (sports, general, etc.)}
                             {--lang=tr : Varsayilan dil}
+                            {--brand-id= : Mevcut marka ID (opsiyonel)}
                             {--sku-prefix=PRD : SKU on eki (DPK, NFK vs.)}
                             {--source-name= : Fiyat/stok sync icin kaynak adi (swan, everlast vs.)}
                             {--skip-quality-check : Scraper SEO/veri kalite kapısını atla (yalnız acil durum)}
@@ -69,6 +70,10 @@ class ImportDropickProducts extends Command
             return 1;
         }
 
+        if ($this->option('brand-id') && !\App\Models\ProductBrand::whereKey($this->option('brand-id'))->exists()) {
+            $this->error('Marka bulunamadi.');
+            return self::FAILURE;
+        }
         $store = Store::find($this->storeId);
         if (!$store) {
             $this->error("Store bulunamadi: ID {$this->storeId}");
@@ -301,6 +306,7 @@ class ImportDropickProducts extends Command
             $product = Product::create([
                 'store_id'     => $this->storeId,
                 'category_id'  => $categoryId,
+                'brand_id'     => $this->option('brand-id') ?: null,
                 'type'         => $this->productType,
                 'behaviour'    => 'physical',
                 'name'         => $data['name'],
@@ -354,7 +360,7 @@ class ImportDropickProducts extends Command
             // Varyantlar — coklu varyant varsa (Norfolk beden vs.) hepsini olustur
             $variants = $data['variants'] ?? [];
 
-            if (!empty($variants) && count($variants) > 1) {
+            if (!empty($variants)) {
                 // Coklu varyant (beden, renk vs.)
                 foreach ($variants as $v) {
                     $vPrice = $v['price'] ?? $data['original_price'] ?? 0;

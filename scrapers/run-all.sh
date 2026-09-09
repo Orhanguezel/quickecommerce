@@ -207,6 +207,8 @@ run_scraper() {
   run_scraper maskotmeyvepresleri maskotmeyvepresleri_scraper.py maskotmeyvepresleri_products.json
   run_scraper provitanya          provitanya_scraper.py          provitanya_products.json
   run_scraper proteinmax          proteinmax_scraper.py          proteinmax_products.json
+  run_scraper heynut              heynut_scraper.py              heynut_products.json
+  run_scraper raketspor_yonex     raketspor_yonex_scraper.py     raketspor_yonex_products.json
   run_scraper ceysport            ceysport_scraper.py            ceysport_products.json
   # 2026-07-27 PASIF (kullanici kurali): speedwa urun sayfalarinda hicbir stok
   # sinyali yok (ne availability ne "tukendi" metni); parser 272 urunu daima
