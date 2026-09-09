@@ -17,16 +17,40 @@ class WishListManageController extends Controller
         if (!auth('api_customer')->check()) {
             unauthorized_response();
         }
-        $request['customer_id'] = auth('api_customer')->user()->id;
-        $exists = Wishlist::where('customer_id', $request['customer_id'])
-            ->where('product_id', $request->product_id)
-            ->exists();
-        if ($exists) {
-            $exists->delete();
+        $customerId = auth('api_customer')->id();
+        $existing = Wishlist::withoutGlobalScopes()->where('customer_id', $customerId)
+            ->where('product_id', $request->product_id)->first();
+        if ($existing) {
+            $existing->delete();
             return $this->success(translate('messages.wishlist_remove', ['name' => 'Product']));
         }
-        Wishlist::create(request()->all());
+        $product = \App\Models\Product::with('variants')->findOrFail($request->product_id);
+        $wishlist = new Wishlist(['customer_id' => $customerId, 'product_id' => $product->id]);
+        $wishlist->price_alert_snapshot = app(\App\Services\WishlistPriceAlertService::class)->snapshot($product);
+        $wishlist->save();
         return $this->success(translate('messages.wishlist_add', ['name' => 'Product']));
+    }
+
+    public function updatePriceAlerts(Request $request)
+    {
+        $data = $request->validate([
+            'product_id' => 'required|integer',
+            'price_alert_enabled' => 'sometimes|required|boolean',
+            'price_alert_email' => 'sometimes|required|boolean',
+            'price_alert_push' => 'sometimes|required|boolean',
+        ]);
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($data) {
+            $wishlist = Wishlist::withoutGlobalScopes()->where('customer_id', auth('api_customer')->id())
+                ->where('product_id', $data['product_id'])->lockForUpdate()->firstOrFail();
+            unset($data['product_id']);
+            if (isset($data['price_alert_enabled']) && (bool) $data['price_alert_enabled'] !== $wishlist->price_alert_enabled) {
+                $product = $wishlist->product;
+                $wishlist->price_alert_snapshot = $product
+                    ? app(\App\Services\WishlistPriceAlertService::class)->snapshot($product) : [];
+            }
+            $wishlist->forceFill($data)->save();
+            return response()->json(['success' => true]);
+        });
     }
 
     public function removeFromWishlist(Request $request)

@@ -147,3 +147,5 @@ if ($swanSyncStoreId) {
         ->withoutOverlapping()
         ->appendOutputTo(storage_path('logs/swan-source-sync-dry-run.log'));
 }
+
+Schedule::command('wishlist:check-price-drops --apply')->everyFifteenMinutes()->withoutOverlapping();

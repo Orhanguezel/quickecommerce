@@ -1,3 +1,13 @@
+## 2026-09-09 — Favori fiyat düşüşü bildirimi
+
+- [X] Aynı varyantın satış fiyatı (geçerli flash indirimi dahil) favoriye ekleme/son kontrol fiyatıyla karşılaştırılıyor. İlk kontrol mevcut favoriler için sessiz başlangıç oluşturuyor.
+- [X] Aynı indirim tekrar gönderilmiyor; ürün başına günlük sınır, stok/aktif müşteri/aktif mağaza kontrolleri var. Tercihler ürün bazında Favorilerim ekranından yönetiliyor.
+- [X] Site içi bildirim ve ürün bağlantısı; isteğe bağlı, doğrulanmış/izinli e-posta ve cihaz tokenı olan kullanıcıya push. Harici teslimat denemesi kayıtlı; başarısız gönderim otomatik tekrarlanmaz, site içi bildirim korunur.
+- [X] Favori toggle bool hatası ve başka müşterinin bildirimini okundu işaretleme açığı düzeltildi.
+- [X] PHP Unit 44 test / 88 assertion; migration up/down izole SQLite üzerinde geçti. Değişen frontend dosyalarında ESLint temiz, production build geçti. 1440 ve 390px Playwright: tercih kaydetme, ürün bağlantısı ve taşma kontrolü geçti (API fixture kullanıldı).
+- [~] Canlı migration MANUEL talimatı nedeniyle favori backend/UI henüz yayımlanmadı. Migration: `2026_09_09_100000_add_wishlist_price_alerts.php`. Önce migration, ardından bu görevin backend ve frontend dosyaları; `wishlist:check-price-drops --apply` ilk sessiz başlangıç için çalıştırılır.
+- PR: hazırlanıyor (`codex/gorev-14-favori-indirim-bildirimi`).
+
 ## 2026-09-09 — HeynuT ve Multiprice / Yonex
 
 - [X] Çalışan kaynaklar `www.heynut.com.tr` ve `www.raketspor.com.tr/yonex` doğrulandı; yalnız Sportoonline yerel scraper servisi kullanılıyor.

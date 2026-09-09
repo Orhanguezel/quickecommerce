@@ -77,7 +77,19 @@ class NotificationManageController extends Controller
     {
         try {
             // Attempt to find the notification
-            $notification = UniversalNotification::findOrFail($request->id);
+            $customer = auth('api_customer')->user();
+            $user = auth('api')->user();
+            if (!$customer && !$user) {
+                return response()->json(['message' => 'Unauthenticated'], 401);
+            }
+            $query = UniversalNotification::query();
+            if ($customer) {
+                $query->where('notifiable_type', 'customer')->where('notifiable_id', $customer->id);
+            } elseif ($user->activity_scope !== 'system_level') {
+                $type = $user->activity_scope === 'store_level' ? 'store' : 'deliveryman';
+                $query->where('notifiable_type', $type)->where('notifiable_id', $user->id);
+            }
+            $notification = $query->findOrFail($request->id);
 
             // If notification hasn't been read, mark it as read
             if ($notification->status == 'unread') {
