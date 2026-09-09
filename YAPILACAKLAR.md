@@ -5,8 +5,8 @@
 - [X] Site içi bildirim ve ürün bağlantısı; isteğe bağlı, doğrulanmış/izinli e-posta ve cihaz tokenı olan kullanıcıya push. Harici teslimat denemesi kayıtlı; başarısız gönderim otomatik tekrarlanmaz, site içi bildirim korunur.
 - [X] Favori toggle bool hatası ve başka müşterinin bildirimini okundu işaretleme açığı düzeltildi.
 - [X] PHP Unit 44 test / 88 assertion; migration up/down izole SQLite üzerinde geçti. Değişen frontend dosyalarında ESLint temiz, production build geçti. 1440 ve 390px Playwright: tercih kaydetme, ürün bağlantısı ve taşma kontrolü geçti (API fixture kullanıldı).
-- [~] Canlı migration MANUEL talimatı nedeniyle favori backend/UI henüz yayımlanmadı. Migration: `2026_09_09_100000_add_wishlist_price_alerts.php`. Önce migration, ardından bu görevin backend ve frontend dosyaları; `wishlist:check-price-drops --apply` ilk sessiz başlangıç için çalıştırılır.
-- PR: hazırlanıyor (`codex/gorev-14-favori-indirim-bildirimi`).
+- [X] Kullanıcının açık onayıyla yalnız `2026_09_09_100000_add_wishlist_price_alerts.php` migration canlıya uygulandı. Backend/queue ve izole production build sonrası müşteri UI yayımlandı. 15 dakikalık schedule kayıtlı; ilk başlangıç 0 bildirim oluşturdu. Canlı arayüzde 1440/390px fixture ile tercih kaydetme/ürün bağlantısı geçti, JS hatası ve taşma yok. Yetkisiz PATCH 401; gerçek müşteriye test mesajı gönderilmedi.
+- PR: https://github.com/Orhanguezel/quickecommerce/pull/14.
 
 ## 2026-09-09 — HeynuT ve Multiprice / Yonex
 
@@ -15,7 +15,9 @@
 - [X] Tek varyantlı ürünlerde de seçeneklerin korunması ve açık marka ID'si ile import desteği eklendi.
 - [X] Kaynak registry, kategori sözlüğü, günlük cron ve admin manuel çalıştırma bağlantıları hazır.
 - [X] Python toplam 12 test, mevcut PHP Unit 36 test geçti.
-- [~] HeynuT 46 ve Yonex 117 ürün tam taraması sürüyor; mağaza/marka dry-run, import, canlı yayın ve PR bekliyor.
+- [X] Canlı: HeynuT ayrı mağaza #77, 46 ürün / 42 satılabilir; Multiprice #41 içine Yonex markalı 117 ürün / 117 satılabilir eklendi. Tüm ana görseller yerel Media kayıtlarıyla doğrulandı, aktarım hatası 0. Yonex 292 varyant sync dry-run: fark 0, eksik mapping 0, hata 0.
+- [X] HeynuT canlı mağaza sayfası 1440/390px HTTP 200, JS hatası/taşma yok. Kaynaklar günlük cron'a bağlı, başarılı çalıştırmalar #3157/#3158 kaydedildi.
+- PR: https://github.com/Orhanguezel/quickecommerce/pull/13.
 
 ## 2026-09-09 — Ürün detay yerleşimi
 
