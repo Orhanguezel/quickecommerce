@@ -37,7 +37,7 @@ def model_from_html(html):
 def category_for(source, name):
     name = name.casefold()
     if source == 'raketspor_yonex':
-        clothing = any(word in name for word in ['ayakkabı', 'ayakkabi', 'şort', 'sort ', 'tshirt', 'tişört', 'tayt', 'bra ', 'brası', 'etek', 'çorap', 'corap', 'eşofman', 'esofman', 'mont ', 'ceket'])
+        clothing = any(word in name for word in ['ayakkabı', 'ayakkabi', 'şort', 'sort ', 'tshirt', 'tişört', 'atlet', 'tayt', 'bra ', 'brası', 'etek', 'çorap', 'corap', 'eşofman', 'esofman', 'mont ', 'ceket'])
         return 'Spor Giyim' if clothing else ('Badminton' if 'badminton' in name else ('Tenis & Badminton' if 'raket' in name else 'Tenis Aksesuarları'))
     elif 'yağı' in name:
         return 'Hindistan Cevizi Yağı'
