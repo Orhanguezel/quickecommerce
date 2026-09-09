@@ -1,16 +1,25 @@
+## 2026-09-09 — HeynuT ve Multiprice / Yonex
+
+- [X] Çalışan kaynaklar `www.heynut.com.tr` ve `www.raketspor.com.tr/yonex` doğrulandı; yalnız Sportoonline yerel scraper servisi kullanılıyor.
+- [X] Ticimax modelinden KDV dahil gerçek fiyat, indirim, varyant seçeneği ve stok ayrıştırması; Yonex marka doğrulaması, tam katalog/ayrı checkpoint akışı eklendi.
+- [X] Tek varyantlı ürünlerde de seçeneklerin korunması ve açık marka ID'si ile import desteği eklendi.
+- [X] Kaynak registry, kategori sözlüğü, günlük cron ve admin manuel çalıştırma bağlantıları hazır.
+- [X] Python toplam 12 test, mevcut PHP Unit 36 test geçti.
+- [~] HeynuT 46 ve Yonex 117 ürün tam taraması sürüyor; mağaza/marka dry-run, import, canlı yayın ve PR bekliyor.
+
 ## 2026-09-09 — Ürün detay yerleşimi
 
 - [X] Açıklama/özellik sekmeleri masaüstünde görsel ve ürün bilgilerinin altına, sağ satın alma sütunundan bağımsız taşındı. Mobilde satın alma → açıklama sırası korunuyor.
 - [X] Sağdaki tekrarlanan kargo mesajları kaldırıldı; kampanya koşullarını gösteren merkezi teslimat alanı korundu.
-- [X] İlk production build ve değişen dosyanın ESLint kontrolü geçti. Playwright 1440×1000 / 390×844: taşma ve JS hatası yok, sekme etkileşimi çalışıyor. Son kargo sadeleştirmesi sonrası nihai build/QA tekrar edilecek.
-- [~] Genel lint: değişiklik dışındaki 85 hata / 29 uyarı nedeniyle başarısız. Canlı yayın ve PR bekliyor.
+- [X] Production build ve değişen dosyanın ESLint kontrolü geçti. Canlı Playwright 1440×1000 / 390×844: taşma ve JS hatası yok, sekme etkileşimi çalışıyor.
+- [X] Canlıya yayımlandı. PR: https://github.com/Orhanguezel/quickecommerce/pull/12. Genel lint değişiklik dışındaki mevcut 85 hata / 29 uyarı nedeniyle başarısız.
 
 ## 2026-09-09 — Ceysport aktarım kurtarma
 
-- [~] Python requests 403 alırken aynı VPS üzerinde curl 200 doğrulandı; curl fallback, eksik sitemap/ürün yanıtında çıktıyı koruma, atomik JSON yazımı ve belirsiz stokta satış kapatma eklendi.
-- [X] 5 Python regresyon testi geçti. Kaynaktan üç mevcut ürünün fiyat/stok bilgisi doğrulandı (3.800 / 1.040 / 4.500 TL).
-- [~] 985 URL tam katalog taraması ayrı `/tmp/ceysport-full-20260909.json` çıktısında çalışıyor; canlı sync/doğrulama bekliyor.
-- PR: hazırlanıyor (`codex/gorev-11-ceysport-kurtarma`).
+- [X] Python requests 403 alırken aynı VPS üzerinde curl 200 doğrulandı; curl fallback, eksik sitemap/ürün yanıtında çıktıyı koruma, atomik JSON yazımı ve belirsiz stokta satış kapatma eklendi.
+- [X] 6 Python regresyon testi geçti. Kaynaktan üç mevcut ürünün fiyat/stok bilgisi doğrulandı (3.800 / 1.040 / 4.500 TL).
+- [X] 985 URL tarandı, 897 ürün alındı. Yedek + dry-run sonrası canlı sync: 792 güncelleme, 72 stok sıfırlama, 0 hata. Müşteriye satılabilir ürün sayısı 793; 7 eski kaynak alarmı kapatıldı.
+- PR: https://github.com/Orhanguezel/quickecommerce/pull/11.
 
 # Sportoonline — Yapılacaklar (Sonraki Oturum)
 

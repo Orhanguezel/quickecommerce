@@ -28,6 +28,7 @@ import re
 import sys
 import time
 from html import unescape
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from urllib.parse import urlsplit
 from xml.etree import ElementTree
@@ -89,6 +90,8 @@ def _fetch_text(session, url):
     if not getattr(session, "_ceysport_use_curl", False):
         try:
             response = session.get(url, timeout=(10, 30))
+            if response.status_code in {404, 410}:
+                return None
             response.raise_for_status()
             return response.text
         except requests.RequestException:
@@ -97,12 +100,17 @@ def _fetch_text(session, url):
         ["curl", "--fail", "--silent", "--show-error", "--location",
          "--proto", "=https", "--proto-redir", "=https",
          "--connect-timeout", "10", "--max-time", "40",
-         "--retry", "2", "--retry-delay", "2", url],
-        capture_output=True, text=True, timeout=135, check=True,
+         "--retry", "2", "--retry-delay", "2", "--write-out", "\n%{http_code}", url],
+        capture_output=True, text=True, timeout=135, check=False,
     )
-    if not result.stdout.strip():
+    body, _, status = result.stdout.rpartition("\n")
+    if status in {"404", "410"}:
+        return None
+    if result.returncode or status != "200":
+        raise ValueError(f"Ceysport request failed: HTTP {status} ({url})")
+    if not body.strip():
         raise ValueError("Empty Ceysport response")
-    return result.stdout
+    return body
 
 
 def _sitemap_locs(text):
@@ -216,6 +224,8 @@ def _parse_stock(soup):
 
 def _parse_product(session, url):
     html = _fetch_text(session, url)
+    if html is None:
+        return None
     soup = BeautifulSoup(html, "html.parser")
     jsonld = _jsonld_product(html) or {}
 
@@ -355,15 +365,20 @@ def main():
 
     products = []
     skipped = 0
-    for i, url in enumerate(urls, 1):
-        if i == 1 or i % 25 == 0:
-            print(f"  [{i}/{len(urls)}] ...")
-        prod = _parse_product(session, url)
-        if prod and prod["original_price"]:
-            products.append(prod)
-        else:
-            skipped += 1
+    # Discovery has already chosen the transport. curl subprocesses are isolated.
+    session._ceysport_use_curl = True
+    def fetch_product(url):
+        result = _parse_product(session, url)
         time.sleep(0.6)
+        return result
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        for i, prod in enumerate(pool.map(fetch_product, urls), 1):
+            if i == 1 or i % 25 == 0:
+                print(f"  [{i}/{len(urls)}] ...", flush=True)
+            if prod and prod["original_price"]:
+                products.append(prod)
+            else:
+                skipped += 1
 
     if with_images and image_dir:
         print("\nGorseller indiriliyor...")

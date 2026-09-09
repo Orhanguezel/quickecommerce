@@ -14,11 +14,20 @@ class CeysportTests(unittest.TestCase):
         session = Mock()
         session._ceysport_use_curl = False
         session.get.side_effect = requests.HTTPError('403')
-        with patch.object(scraper.subprocess, 'run', return_value=Mock(stdout='<xml/>')) as curl:
+        with patch.object(scraper.subprocess, 'run', return_value=Mock(stdout='<xml/>\n200', returncode=0)) as curl:
             self.assertEqual(scraper._fetch_text(session, scraper.SITEMAP_INDEX), '<xml/>')
             scraper._fetch_text(session, scraper.SITEMAP_INDEX)
         self.assertEqual(session.get.call_count, 1)
         self.assertEqual(curl.call_count, 2)
+
+    def test_removed_product_is_skipped_but_blocked_product_fails(self):
+        session = Mock()
+        session._ceysport_use_curl = True
+        with patch.object(scraper.subprocess, 'run', return_value=Mock(stdout='\n404', returncode=22)):
+            self.assertIsNone(scraper._parse_product(session, 'https://ceysport.com/urun/removed/'))
+        with patch.object(scraper.subprocess, 'run', return_value=Mock(stdout='\n403', returncode=22)):
+            with self.assertRaises(ValueError):
+                scraper._parse_product(session, 'https://ceysport.com/urun/blocked/')
 
     def test_missing_child_sitemap_fails_entire_discovery(self):
         index = '<sitemapindex><sitemap><loc>https://ceysport.com/product-sitemap.xml</loc></sitemap></sitemapindex>'
