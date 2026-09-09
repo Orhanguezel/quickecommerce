@@ -48,6 +48,62 @@ def category_for(source, name):
     return SOURCES[source][2]
 
 
+def extract_content(html, fallback=''):
+    """Read Ticimax's product panels, not empty JSON-LD or checkout tabs."""
+    soup = BeautifulSoup(html, 'html.parser')
+    panels = soup.select('#divOnyazi, #divTabOzellikler')
+    # Named custom tabs contain product information such as storage conditions.
+    for tab in soup.select('#divUrunOzellikAlani li'):
+        if any(re.fullmatch(r'Tab_\d+', c) for c in tab.get('class', [])):
+            panel = tab.select_one('.urunDetayPanel')
+            if panel and panel.get_text(' ', strip=True):
+                heading = tab.find('a', recursive=False)
+                if heading:
+                    title = soup.new_tag('h3')
+                    title.string = heading.get_text(' ', strip=True)
+                    panel.insert(0, title)
+                panels.append(panel)
+    fragments, seen, specs = [], set(), []
+    allowed = {'p', 'br', 'div', 'span', 'h2', 'h3', 'h4', 'strong', 'b',
+               'em', 'i', 'ul', 'ol', 'li', 'table', 'thead', 'tbody',
+               'tr', 'td', 'th', 'sup', 'sub'}
+    for panel in panels or [BeautifulSoup(fallback or '', 'html.parser')]:
+        panel = BeautifulSoup(str(panel), 'html.parser')
+        for element in panel.select('script, style, iframe, object, form, input, button, template'):
+            element.decompose()
+        for element in list(panel.find_all(True)):
+            if element.name not in allowed:
+                element.unwrap()
+            else:
+                element.attrs = {}
+        # The storefront preserves text newlines; source indentation must not
+        # turn each HTML paragraph into several blank lines.
+        for node in list(panel.find_all(string=True)):
+            node.replace_with(re.sub(r'\s+', ' ', str(node)))
+        for element in reversed(panel.find_all(True)):
+            if element.name != 'br' and not element.get_text(strip=True) and not element.find('br'):
+                element.decompose()
+        text = panel.get_text(' ', strip=True)
+        if not text or text in seen:
+            continue
+        seen.add(text)
+        fragments.append(re.sub(r'>\s+<', '><', str(panel)))
+        for row in panel.select('tr'):
+            cells = row.find_all(['td', 'th'], recursive=False)
+            if len(cells) == 2:
+                key, value = (c.get_text(' ', strip=True) for c in cells)
+                if key and value and len(key) <= 150 and len(value) <= 500:
+                    spec = {'name': key, 'value': value}
+                    if spec not in specs:
+                        specs.append(spec)
+    if not fragments and panels and fallback:
+        return extract_content('', fallback)
+    description = '\n'.join(fragments)
+    return {'description_html': description,
+            'description_text': BeautifulSoup(description, 'html.parser').get_text(' ', strip=True),
+            'specifications': specs}
+
+
 def parse_product(html, url, source):
     _, brand, category = SOURCES[source]
     model = model_from_html(html)
@@ -108,6 +164,7 @@ def parse_product(html, url, source):
         'all_image_urls': list(dict.fromkeys(images or data['all_image_urls'])),
     })
     data['category'] = category_for(source, data['name'])
+    data.update(extract_content(html, data.get('description_html', '')))
     data['thumbnail_url'] = data['all_image_urls'][0] if data['all_image_urls'] else ''
     return data
 
@@ -120,20 +177,25 @@ def fetch_html(url):
     key = os.environ.get('LOCAL_SCRAPER_API_KEY') or os.environ.get('SCRAPER_API_KEY')
     if not key:
         raise ValueError('Local scraper credentials missing')
-    for attempt in range(3):
+    for attempt in range(6):
         try:
             response = requests.post(endpoint + '/api/v1/scrape',
                 headers={'Authorization': 'Bearer ' + key},
                 json={'url': url, 'mode': 'stealthy', 'options': {
                     'headless': True, 'network_idle': False, 'timeout': 60,
                     'solve_cloudflare': True}, 'return_html': True}, timeout=95)
+            if response.status_code == 429 and attempt < 5:
+                retry_after = response.headers.get('Retry-After', '')
+                delay = float(retry_after) if retry_after.isdigit() else 10 * (attempt + 1)
+                time.sleep(min(60, max(10, delay)))
+                continue
             response.raise_for_status()
             result = response.json()
             if not result.get('success') or result.get('status_code') != 200 or not result.get('html'):
                 raise ValueError('Scraper returned blocked or empty content')
             return result['html']
         except (requests.RequestException, ValueError):
-            if attempt == 2:
+            if attempt >= 2:
                 raise
             time.sleep(5 * (attempt + 1))
 
@@ -209,11 +271,11 @@ def main(default_source=None):
     products = []
     def fetch_product(url):
         cached = completed.get(url)
-        if cached and time.time() - cached.get('fetched_at', 0) < 10800:
+        if cached and cached.get('content_version') == 1 and time.time() - cached.get('fetched_at', 0) < 10800:
             return url, cached
         product = parse_product(fetch_html(url), url, args.source)
         time.sleep(0.5)
-        return url, {'fetched_at': time.time(), 'product': product}
+        return url, {'fetched_at': time.time(), 'content_version': 1, 'product': product}
     # Two browser jobs maximum, and checkpoints are written only by this thread.
     pool = ThreadPoolExecutor(max_workers=2)
     try:

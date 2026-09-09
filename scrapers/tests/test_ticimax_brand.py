@@ -1,9 +1,10 @@
 import json
 import sys
 import unittest
+from unittest.mock import Mock, patch
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from ticimax_brand_scraper import parse_product, category_for
+from ticimax_brand_scraper import parse_product, category_for, extract_content, fetch_html
 
 
 def html(brand='Yonex', stock=9, model_patch=None):
@@ -18,6 +19,37 @@ def html(brand='Yonex', stock=9, model_patch=None):
     return '<script type="application/ld+json">'+json.dumps(ld)+'</script><script>var productDetailModel = '+json.dumps(model)+';</script>'
 
 class TicimaxTests(unittest.TestCase):
+    def test_local_service_rate_limit_waits_then_retries(self):
+        limited = Mock(status_code=429, headers={'Retry-After': '30'})
+        success = Mock(status_code=200)
+        success.json.return_value = {'success': True, 'status_code': 200, 'html': '<html>product</html>'}
+        with patch.dict('os.environ', {'LOCAL_SCRAPER_API_KEY': 'test', 'LOCAL_SCRAPER_URL': 'http://127.0.0.1:8200'}), \
+                patch('ticimax_brand_scraper.requests.post', side_effect=[limited, success]), \
+                patch('ticimax_brand_scraper.time.sleep') as sleep:
+            self.assertEqual(fetch_html('https://www.heynut.com.tr/product'), '<html>product</html>')
+            sleep.assert_called_once_with(30)
+
+    def test_native_panels_supply_description_and_specs_when_jsonld_is_empty(self):
+        content = '''<div id="divOnyazi"><p>Fıstık ezmesi</p></div>
+        <div id="divTabOzellikler"><table><tr><td>Ağırlık</td><td>195 g</td></tr></table></div>
+        <div id="divTabOdemeSecenekleri">Taksit 999 TL</div>
+        <div id="divUrunOzellikAlani"><li class="Tab_1"><a>Saklama Koşulları</a>
+        <div class="urunDetayPanel">Serin yerde saklayınız.</div></li></div>'''
+        result = extract_content(content)
+        self.assertIn('Fıstık ezmesi', result['description_text'])
+        self.assertIn('Saklama Koşulları', result['description_text'])
+        self.assertNotIn('999', result['description_text'])
+        self.assertEqual(result['specifications'], [{'name': 'Ağırlık', 'value': '195 g'}])
+
+    def test_content_removes_active_html_and_retains_jsonld_fallback(self):
+        result = extract_content('''<div id="divTabOzellikler"><p onclick="bad()">Açıklama</p>
+        <script>bad()</script><img src=x onerror="bad()"><a href="javascript:bad()">Bilgi</a></div>''')
+        self.assertNotIn('bad()', result['description_html'])
+        self.assertNotIn('<img', result['description_html'])
+        self.assertIn('Bilgi', result['description_text'])
+        self.assertEqual(extract_content('<html></html>', '<p>Yedek açıklama</p>')['description_text'], 'Yedek açıklama')
+        self.assertEqual(extract_content('<div id="divTabOzellikler"></div>', 'Yedek açıklama')['description_text'], 'Yedek açıklama')
+
     def test_vat_and_selectable_variant_stock(self):
         p=parse_product(html(), 'https://www.raketspor.com.tr/yonex-racket', 'raketspor_yonex')
         self.assertEqual(p['original_price'], 789)
