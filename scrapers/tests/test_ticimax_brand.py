@@ -48,5 +48,6 @@ class TicimaxTests(unittest.TestCase):
 
     def test_categories_follow_the_actual_product_type(self):
         self.assertEqual(category_for('raketspor_yonex', 'Yonex Tenis Şort Etek Beyaz'), 'Spor Giyim')
+        self.assertEqual(category_for('raketspor_yonex', 'Yonex YW0053 Kadın Atleti'), 'Spor Giyim')
         self.assertEqual(category_for('heynut', 'HeynuT Hurma Pekmezi'), 'Bal & Pekmez')
         self.assertEqual(category_for('heynut', 'HeynuT Hindistan Cevizi Yağı'), 'Hindistan Cevizi Yağı')
