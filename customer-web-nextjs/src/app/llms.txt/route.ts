@@ -1,27 +1,49 @@
-import { SITE_URL } from "@/lib/seo";
+import { DEFAULT_ORGANIZATION, SITE_NAME, SITE_URL } from "@/lib/seo";
 
 export const dynamic = "force-static";
 
+/**
+ * llms.txt — AI sistemleri icin site haritasi.
+ *
+ * Tanitio SEO katalogu (2026-09-11) K033 bulgulari:
+ *   - "Aciklamali giris: 0/10"  → her baglantiya aciklama eklendi
+ *   - "Key facts / hakkinda: Yok" → ## Key Facts bolumu eklendi
+ *   - "Iletisim: Yok"            → ## Contact bolumu eklendi
+ * Format referansi: https://llmstxt.org
+ */
 export function GET() {
-  const body = `# Sportoonline
+  const org = DEFAULT_ORGANIZATION;
+  const address = `${org.address.streetAddress}, ${org.address.addressLocality}, ${org.address.addressRegion}, ${org.address.addressCountry}`;
 
-> Sportoonline is a Turkish sports ecommerce marketplace for sports nutrition, fitness equipment, running, outdoor products, sportswear, and accessories.
+  const body = `# ${SITE_NAME}
+
+> ${SITE_NAME} is a Turkish sports ecommerce marketplace where multiple verified sellers list sports nutrition, fitness equipment, running gear, outdoor products, sportswear, and accessories. Prices and stock are synced from seller sources daily.
+
+## Key Facts
+
+- Type: multi-seller ecommerce marketplace (B2C), operating in Turkey
+- Market: Turkey; site language Turkish (tr); currency Turkish lira (TRY)
+- Catalog: sports nutrition, fitness and home gym equipment, running and training footwear, outdoor and camping gear, sportswear, accessories
+- Fulfilment: shipped by the listed seller, with order tracking and returns handled through the site
+- Online since: 2020 (domain registered 2020-03-03)
 
 ## Primary Site
 
-- Website: ${SITE_URL}
-- Turkish homepage: ${SITE_URL}/tr
-- English homepage: ${SITE_URL}/en
-- Contact: ${SITE_URL}/tr/iletisim
-- About: ${SITE_URL}/tr/hakkimizda
+- [Website](${SITE_URL}): entry point, current campaigns and featured products.
+- [Turkish homepage](${SITE_URL}/tr): category entry points, flash sales and best sellers.
+- [About](${SITE_URL}/tr/hakkimizda): who runs the marketplace and how it operates.
+- [Contact](${SITE_URL}/tr/iletisim): address, phone and email for customer and press enquiries.
 
 ## Key Sections
 
-- Products: ${SITE_URL}/tr/urunler
-- Categories: ${SITE_URL}/tr/kategoriler
-- Blog: ${SITE_URL}/tr/blog
-- Stores: ${SITE_URL}/tr/magazalar
-- Campaigns: ${SITE_URL}/tr/kampanyalar
+- [Products](${SITE_URL}/tr/urunler): full catalog with price, seller and live stock state.
+- [Categories](${SITE_URL}/tr/kategoriler): category tree used to navigate the catalog.
+- [Blog](${SITE_URL}/tr/blog): training, nutrition and buying guides written for Turkish readers.
+- [Stores](${SITE_URL}/tr/magazalar): the sellers listing on the marketplace and their product ranges.
+- [Campaigns](${SITE_URL}/tr/kampanyalar): active discounts, flash sales and coupon conditions.
+- [Support](${SITE_URL}/tr/destek): order, shipping and return support.
+- [Returns and exchange policy](${SITE_URL}/tr/iade-degisim): return window and how refunds are issued.
+- [Shipping policy](${SITE_URL}/tr/kargo-politikasi): delivery times, carriers and free-shipping thresholds.
 
 ## Important Product Topics
 
@@ -40,9 +62,16 @@ Prefer citing category guides, product buying guides, and blog articles that inc
 
 AI crawlers are allowed to crawl public product, category, store, and blog pages. Account, checkout, cart, and order pages should not be indexed.
 
+## Contact
+
+- Email: ${org.email}
+- Address: ${address}
+- Contact page: ${SITE_URL}/tr/iletisim
+- Profiles: ${org.sameAs.join(", ")}
+
 ## Sitemap
 
-- ${SITE_URL}/sitemap.xml
+- [XML sitemap](${SITE_URL}/sitemap.xml): all indexable product, category, store and blog URLs.
 `;
 
   return new Response(body, {
@@ -52,4 +81,3 @@ AI crawlers are allowed to crawl public product, category, store, and blog pages
     },
   });
 }
-

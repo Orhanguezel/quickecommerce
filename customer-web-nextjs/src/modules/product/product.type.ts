@@ -129,6 +129,9 @@ export interface ProductReview {
   reviewed_at: string;
   liked: boolean;
   disliked: boolean;
+  // Yorum gorselleri: frontend bunu okuyor ama backend
+  // ProductReviewPublicResource henuz dondurmuyor — opsiyonel.
+  images?: string[];
 }
 
 export interface ProductSpecification {
@@ -142,7 +145,8 @@ export interface ProductStore {
   name: string;
   slug: string;
   phone: string | null;
-  email: string | null;
+  // 2026-09-11: backend ProductStorePublicResource artik "email" dondurmuyor
+  // (saticinin sahsi adresi her urun sayfasinin kaynagina dusuyordu).
   logo: string | null;
   rating: number;
   total_product: number;
