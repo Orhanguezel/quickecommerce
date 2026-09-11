@@ -1,0 +1,123 @@
+/* QuickEcommerce (sportoonline.com) Bionluk gorsel temasi.
+   Renkler canli siteden alindi: --primary 142 71% 29%  (#166534 ailesi),
+   --accent 142 76% 36%. Tema yesil; gorsellerde ayni yesil kullanilir. */
+:root{
+  --green-900:#0b3b23;
+  --green-800:#12512f;
+  --green-700:#166534;
+  --green-600:#1a7a3f;
+  --green-500:#22a34f;
+  --green-300:#6ee7a0;
+  --ink:#0c1a14;
+  --ink-2:#1d2a23;
+  --muted:#6b7b72;
+  --line:#e3ebe6;
+  --line-2:#d2ded7;
+  --bg:#f4f7f5;
+  --card:#ffffff;
+  --amber:#b45309;
+  --amber-bg:#fef3c7;
+  --red:#b42318;
+  --red-bg:#fee4e2;
+  --blue:#1d4ed8;
+  --blue-bg:#e0e7ff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1600px;height:1000px}
+body{
+  font-family:"Ubuntu Sans","Ubuntu","DejaVu Sans",system-ui,sans-serif;
+  background:var(--bg);color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+}
+.page{width:1600px;height:1000px;display:flex;overflow:hidden}
+
+/* ---- sol kenar cubugu ---- */
+.side{
+  width:268px;flex:0 0 268px;background:linear-gradient(180deg,var(--green-900),var(--green-700));
+  color:#eaf5ee;padding:26px 20px;display:flex;flex-direction:column;gap:26px;
+}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-mark{
+  width:42px;height:42px;border-radius:11px;background:rgba(255,255,255,.14);
+  display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.22);
+}
+.brand-name{font-size:19px;font-weight:800;letter-spacing:-.3px}
+.brand-sub{font-size:11.5px;color:#a9cfb9;margin-top:2px}
+.nav{display:flex;flex-direction:column;gap:3px}
+.nav-label{font-size:10.5px;font-weight:700;color:#8fbfa3;letter-spacing:.8px;margin:12px 0 6px}
+.nav-item{
+  display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:8px;
+  font-size:13px;font-weight:600;color:#d7ebde;
+}
+.nav-item.on{background:rgba(255,255,255,.16);color:#fff}
+.nav-item .ico{opacity:.9;flex:0 0 auto}
+.side-foot{margin-top:auto;font-size:11px;color:#9cc8ae;line-height:1.6;border-top:1px solid rgba(255,255,255,.14);padding-top:14px}
+
+/* ---- ana alan ---- */
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.top{
+  height:74px;flex:0 0 74px;background:var(--card);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:18px;padding:0 28px;
+}
+.h-title{font-size:20px;font-weight:800;letter-spacing:-.3px}
+.h-sub{font-size:12px;color:var(--muted);margin-top:3px}
+.spacer{flex:1}
+.pill{
+  display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;
+  font-size:11.5px;font-weight:700;background:#eaf7ef;color:var(--green-700);border:1px solid #cfe9da;
+}
+.pill.amber{background:var(--amber-bg);color:var(--amber);border-color:#fcd9a0}
+.pill.red{background:var(--red-bg);color:var(--red);border-color:#fbb4ab}
+.pill.blue{background:var(--blue-bg);color:var(--blue);border-color:#c3cdfa}
+.dot{width:7px;height:7px;border-radius:999px;background:currentColor}
+.body{flex:1;min-height:0;padding:22px 28px;display:flex;flex-direction:column;gap:18px;overflow:hidden}
+
+/* ---- kartlar ---- */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:15px 17px}
+.kpi-k{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.3px;text-transform:none}
+.kpi-v{font-size:26px;font-weight:800;letter-spacing:-.8px;margin-top:7px}
+.kpi-d{font-size:11px;color:var(--green-600);font-weight:700;margin-top:5px}
+.kpi-d.neg{color:var(--red)}
+.kpi-d.mut{color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:13px;display:flex;flex-direction:column;overflow:hidden}
+.card-h{padding:14px 17px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.card-t{font-size:14px;font-weight:800;letter-spacing:-.2px}
+.card-s{font-size:11.5px;color:var(--muted);margin-top:2px}
+.card-b{padding:14px 17px;flex:1;min-height:0}
+.row2{display:grid;grid-template-columns:1.45fr 1fr;gap:16px;align-items:start}
+.row2b{display:grid;grid-template-columns:1fr 1fr;gap:16px;flex:1;min-height:0}
+
+/* ---- tablo ---- */
+table{width:100%;border-collapse:collapse}
+th{
+  text-align:left;font-size:10.5px;font-weight:700;color:var(--muted);letter-spacing:.4px;
+  padding:0 10px 9px;border-bottom:1px solid var(--line);white-space:nowrap;
+}
+td{padding:9px 10px;font-size:12.5px;border-bottom:1px solid #f1f5f2;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+.t-strong{font-weight:700}
+.t-mut{color:var(--muted);font-size:11.5px}
+.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.tag{
+  display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:6px;
+  font-size:10.5px;font-weight:700;background:#eef2f0;color:var(--ink-2);
+}
+.tag.ok{background:#e7f6ed;color:#12693a}
+.tag.warn{background:var(--amber-bg);color:var(--amber)}
+.tag.bad{background:var(--red-bg);color:var(--red)}
+.tag.info{background:var(--blue-bg);color:var(--blue)}
+
+/* ---- cubuk / ilerleme ---- */
+.bar{height:8px;border-radius:999px;background:#eaf0ec;overflow:hidden}
+.bar > i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--green-600),var(--green-500))}
+.bars{display:flex;flex-direction:column;gap:13px}
+.barrow{display:grid;grid-template-columns:132px 1fr 52px;align-items:center;gap:12px;font-size:12px}
+.barrow b{font-weight:700}
+
+/* ---- sutun grafik ---- */
+.chart{display:flex;align-items:flex-end;gap:14px;height:168px;padding-top:8px}
+.col{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end}
+.col .stack{width:100%;max-width:46px;display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.col .seg{width:100%;border-radius:5px 5px 0 0;background:linear-gradient(180deg,var(--green-500),var(--green-700))}
+.col .lab{font-size:10.5px;color:var(--muted);font-weight:700}

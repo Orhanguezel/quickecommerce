@@ -1,0 +1,97 @@
+/* Kapak (00-cover). Yesil canli siteden: --primary 142 71% 29%. */
+@import url("_base.css");
+
+body{background:#07271a}
+.wrap{
+  width:1600px;height:1000px;display:grid;grid-template-columns:660px 1fr;
+  background:
+    radial-gradient(1100px 620px at 8% 6%, rgba(34,163,79,.30), transparent 60%),
+    radial-gradient(900px 700px at 96% 92%, rgba(22,101,52,.55), transparent 62%),
+    linear-gradient(145deg,#07271a 0%,#0b3b23 45%,#124b2c 100%);
+  color:#eaf5ee;overflow:hidden;
+}
+
+/* --- sol: marka ve mesaj --- */
+.left{padding:62px 48px 54px 64px;display:flex;flex-direction:column}
+.cbrand{display:flex;align-items:center;gap:15px;margin-bottom:44px}
+.cmark{
+  width:60px;height:60px;border-radius:16px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,rgba(255,255,255,.22),rgba(255,255,255,.06));
+  border:1px solid rgba(255,255,255,.28);color:#d8f5e3;
+}
+.cname{font-size:27px;font-weight:800;letter-spacing:-.6px;line-height:1.1}
+.curl{font-size:13.5px;color:#8fd0a8;margin-top:4px;font-weight:600}
+.left h1{
+  font-size:59px;line-height:1.06;font-weight:800;letter-spacing:-2px;color:#fff;
+}
+.left p{
+  margin-top:26px;font-size:16.5px;line-height:1.68;color:#bfe0cd;max-width:520px;font-weight:400;
+}
+.chips{display:flex;flex-wrap:wrap;gap:9px;margin-top:34px;max-width:530px}
+.chips span{
+  font-size:12.5px;font-weight:700;padding:7px 13px;border-radius:999px;
+  background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.18);color:#d6f0e0;
+}
+.mods{margin-top:36px;display:flex;flex-direction:column;gap:11px;max-width:500px}
+.mod{display:flex;align-items:center;gap:12px;font-size:13.5px;color:#cfe8da;font-weight:600}
+.mod .ico{color:#7ee3a6;flex:0 0 auto}
+.stats{display:flex;gap:34px;margin-top:auto;padding-top:30px;border-top:1px solid rgba(255,255,255,.14)}
+.stats > div{display:flex;flex-direction:column;gap:5px}
+.stats b{font-size:31px;font-weight:800;letter-spacing:-1px;color:#8ef0b4}
+.stats i{font-style:normal;font-size:11.5px;color:#9ccdae;line-height:1.45;max-width:128px}
+
+/* --- sag: vitrin onizleme --- */
+.right{padding:56px 60px 54px 8px;display:flex;flex-direction:column;gap:18px;min-width:0}
+.shot{
+  flex:1;min-height:0;border-radius:15px;overflow:hidden;background:#f4f7f5;
+  box-shadow:0 34px 80px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.10);
+  display:flex;flex-direction:column;
+}
+.shot-top{
+  height:38px;flex:0 0 38px;background:#e8efea;border-bottom:1px solid #d5e1d9;
+  display:flex;align-items:center;gap:7px;padding:0 14px;
+}
+.sd{width:9px;height:9px;border-radius:999px}
+.sd.r{background:#e0736a}.sd.y{background:#e2b45c}.sd.g{background:#6fbf88}
+.shot-url{
+  margin-left:12px;background:#fff;border:1px solid #d5e1d9;border-radius:5px;
+  padding:3px 12px;font-size:11px;color:#5d6f66;font-weight:600;
+}
+.shot-body{flex:1;min-height:0;padding:14px;display:flex;flex-direction:column;gap:13px;overflow:hidden}
+.hero{
+  height:152px;flex:0 0 152px;border-radius:11px;padding:22px 26px;color:#fff;
+  display:flex;flex-direction:column;justify-content:center;
+  background:linear-gradient(100deg,#0f4b2b 0%,#1a7a3f 58%,#29a555 100%);
+}
+.hbadge{
+  align-self:flex-start;font-size:9.5px;font-weight:800;letter-spacing:.7px;
+  background:rgba(255,255,255,.22);padding:4px 10px;border-radius:999px;margin-bottom:10px;
+}
+.htitle{font-size:26px;font-weight:800;letter-spacing:-.7px}
+.hbtn{
+  align-self:flex-start;margin-top:14px;background:#fff;color:#12693a;
+  font-size:11.5px;font-weight:800;padding:8px 16px;border-radius:5px;
+}
+.grid{flex:1;min-height:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:10px}
+.pc{
+  background:#fff;border:1px solid #e3ebe6;border-radius:9px;padding:10px;
+  display:flex;flex-direction:column;gap:7px;min-width:0;
+}
+.pc-img{
+  flex:1;min-height:0;border-radius:6px;background:#eef5f0;color:#7fae92;
+  display:flex;align-items:center;justify-content:center;
+}
+
+.pc-n{font-size:10px;font-weight:700;color:#1d2a23;line-height:1.35;flex:0 0 auto}
+.pc-f{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.pc-f b{font-size:12.5px;font-weight:800;color:#12693a;white-space:nowrap}
+.pc-f .tag{font-size:9px;padding:2px 6px}
+
+/* --- sag alt: uc kisa deger --- */
+.mini{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;flex:0 0 auto}
+.mini-c{
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);
+  border-radius:11px;padding:14px 16px;
+}
+.mini-k{font-size:10.5px;font-weight:700;color:#9ccdae;letter-spacing:.4px}
+.mini-v{font-size:16px;font-weight:800;color:#fff;margin-top:6px;letter-spacing:-.3px}

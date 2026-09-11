@@ -66,9 +66,36 @@
     {
       "id": "cover",
       "role": "cover",
-      "src": "/assets/imgs/work/projects/quickecommerce.png",
-      "alt": "QuickEcommerce müşteri vitrininin ana sayfasını gösteren kapak görseli",
-      "caption": "QuickEcommerce kapak görseli",
+      "src": "docs/portfolio/assets/00-cover.png",
+      "alt": "QuickEcommerce kapak görseli: marka başlığı ve müşteri vitrini önizlemesi",
+      "caption": "Çok satıcılı e-ticaret pazaryeri altyapısı — canlı vitrin önizlemesi",
+      "displayPermission": true,
+      "rightsConfirmed": true
+    },
+    {
+      "id": "katalog",
+      "role": "screen",
+      "src": "docs/portfolio/assets/01-katalog.png",
+      "alt": "Katalog yönetimi ekranı: ürün listesi, kategori dağılımı ve fiyat koruma kuralı",
+      "caption": "Katalog yönetimi: 6.686 yayında ürün, kategori dağılımı, %30 fiyat değişim koruması",
+      "displayPermission": true,
+      "rightsConfirmed": true
+    },
+    {
+      "id": "pazaryeri",
+      "role": "screen",
+      "src": "docs/portfolio/assets/02-pazaryeri.png",
+      "alt": "Satıcı ve sipariş yönetimi ekranı: mağaza listesi, ödeme akışı ve sipariş durumları",
+      "caption": "Satıcı yönetimi: 32 mağaza, satıcı bazlı ödeme dağıtımı, sipariş ve kargo akışı",
+      "displayPermission": true,
+      "rightsConfirmed": true
+    },
+    {
+      "id": "fiyat-stok",
+      "role": "screen",
+      "src": "docs/portfolio/assets/03-fiyat-stok.png",
+      "alt": "Fiyat ve stok eşitleme ekranı: tedarikçi kaynak durumu ve otomatik iade zinciri",
+      "caption": "Tedarikçi eşitlemesi: 25 aktif kaynak, altyapı bazlı çözümleyici, otomatik iade",
       "displayPermission": true,
       "rightsConfirmed": true
     }
@@ -83,28 +110,61 @@
       "seoTitle": "QuickEcommerce — Çok Satıcılı E-Ticaret Pazaryeri Altyapısı",
       "seoDescription": "Laravel 12, Next.js 16 ve Flutter ile geliştirilen çok satıcılı e-ticaret pazaryeri: satıcı yönetimi, marketplace ödeme dağıtımı ve otomatik fiyat/stok senkronizasyonu.",
       "category": "E-COMMERCE",
-      "imageIds": ["cover"]
+      "imageIds": [
+        "cover",
+        "katalog",
+        "pazaryeri",
+        "fiyat-stok"
+      ]
     },
     "bionluk": {
-      "enabled": false,
-      "disabledReason": "docs/portfolio/ içeriği ve Bionluk görsel seti hazırlanmadı; uygunluk değerlendirmesi yapılmadı.",
+      "enabled": true,
+      "disabledReason": null,
       "portfolio": {
-        "enabled": false,
-        "category": "",
-        "title": "",
-        "description": "",
-        "imageIds": []
+        "enabled": true,
+        "category": "Yazılım & Teknoloji → Web Yazılım",
+        "title": "QuickEcommerce — Çok Satıcılı E-Ticaret Pazaryeri",
+        "description": "Laravel 12 API, Next.js 16 vitrin, yönetim paneli ve Flutter uygulamasıyla çok satıcılı e-ticaret pazaryeri. Satıcı mağazaları, satıcı bazlı ödeme dağıtımı, tedarikçi fiyat ve stok eşitlemesi, sipariş sonrası stok teyidi ve otomatik iade.",
+        "imageIds": [
+          "cover",
+          "katalog",
+          "pazaryeri",
+          "fiyat-stok"
+        ]
       },
       "listing": {
-        "eligible": false,
-        "blockedReasons": [
-          "docs/portfolio/ klasörü ve 4 görselli set henüz üretilmedi"
-        ],
-        "category": "",
-        "title": "",
-        "description": "",
-        "requirements": "",
-        "packages": []
+        "eligible": true,
+        "blockedReasons": [],
+        "category": "Yazılım & Teknoloji → Web Yazılım",
+        "title": "Ben, çok satıcılı e-ticaret sitesi kurarım",
+        "description": "Merhaba. Birden fazla satıcının kendi mağazasıyla listelendiği, siparişi ve ödemesi ayrı yürüyen bir e-ticaret sitesi kuruyorum. Tek satıcılı normal bir mağaza da aynı altyapıyla yapılabilir.\n\nNeler yapıyorum:\n- Müşteri tarafı: ürün ve kategori sayfaları, arama, sepet, üyelik, sipariş takibi ve değerlendirme.\n- Satıcı tarafı: her satıcı için ayrı mağaza sayfası, kendi ürün, stok ve sipariş yönetimi.\n- Yönetim paneli: ürün ve kategori yönetimi, kampanya ve kupon, kargo kuralları, iade ve raporlar.\n- Ödeme: sanal pos ve 3D Secure kurulumu, pazaryeri modunda satıcı bazlı tutar dağıtımı, kapıda ödeme ve havale seçenekleri.\n- Kargo: gönderi etiketi ve takip numarası entegrasyonu, ücretsiz kargo eşiği, satıcı adresine göre gönderici tanımı.\n- Arama motoru uyumu: sunucu tarafında oluşturulan sayfalar, ürün ve kategori için yapılandırılmış veri, site haritası ve çok dilli yapı.\n- İsteğe bağlı mobil uygulama: aynı servisleri kullanan iOS ve Android uygulaması.\n\nNasıl çalışıyoruz:\n1) İhtiyacınızı ve satıcı modelinizi konuşup kapsamı netleştiriyoruz.\n2) Veri yapısı ve ekran akışlarını çıkarıp onayınızı alıyorum.\n3) Geliştirme, kurulum ve testleri tamamlayıp sunucunuza kuruyorum.\n4) Panel kullanımını anlatıp teslim ediyorum.\n\nKurulum size özel ve bağımsızdır; kod ve veritabanı sizde kalır, aylık kullanım bedeli çıkmaz. Kullandığım teknolojiler: Laravel, Next.js, React, MySQL ve mobil için Flutter. Kapsamınızı yazarsanız uygun paketi birlikte belirleyelim.",
+        "requirements": "İşe başlamak için şunları paylaşmanız yeterli:\n\n1) Satış modeliniz: tek satıcı mı, çok satıcılı pazaryeri mi; tahmini satıcı ve ürün sayısı.\n2) Ürün bilgileriniz: kategori listesi ve varsa mevcut ürün dosyanız.\n3) Marka bilgileriniz: logo, renkler ve site adı.\n4) Çalışmak istediğiniz sanal pos ile kargo firması.\n5) Alan adı ve sunucu erişiminiz; yoksa uygun kurulum önerebilirim.\n6) Mobil uygulama isteyip istemediğiniz.\n\nBilgiler net değilse kısa bir görüşmeyle netleştirebiliriz.",
+        "packages": [
+          {
+            "key": "temel",
+            "name": "Tek Satıcı Mağaza",
+            "priceTRY": 35000,
+            "deliveryDays": 25,
+            "revisions": 1,
+            "summary": "Tek satıcılı mağaza: ürün ve kategori yönetimi, sepet, üyelik, sipariş takibi, sanal pos ve 3D Secure kurulumu, yönetim paneli, arama motoru uyumlu sayfalar."
+          },
+          {
+            "key": "standart",
+            "name": "Pazaryeri Altyapısı",
+            "priceTRY": 65000,
+            "deliveryDays": 45,
+            "revisions": 2,
+            "summary": "TEMEL + çok satıcılı yapı: satıcı mağaza sayfaları ve satıcı paneli, satıcı bazlı ödeme dağıtımı, kargo entegrasyonu, kampanya, kupon ve iade akışları, raporlar."
+          },
+          {
+            "key": "pro",
+            "name": "Pazaryeri ve Mobil",
+            "priceTRY": 120000,
+            "deliveryDays": 75,
+            "revisions": 3,
+            "summary": "STANDART + iOS ve Android uygulaması, çok dilli yapı, gelişmiş rapor ekranları, yüksek ürün sayısı için listeleme performansı ve teslim sonrası bir ay destek."
+          }
+        ]
       }
     }
   },

@@ -1,0 +1,135 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8">
+<title>QuickEcommerce — satıcı ve sipariş</title><link rel="stylesheet" href="_base.css"></head><body><div class="page"><aside class="side">
+  <div class="brand">
+    <div class="brand-mark"><svg class="ico" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14a1 1 0 0 1-.8-1.6l9.9-10.2a.5.5 0 0 1 .9.5l-1.9 6a1 1 0 0 0 .9 1.3h7a1 1 0 0 1 .8 1.6l-9.9 10.2a.5.5 0 0 1-.9-.5l1.9-6A1 1 0 0 0 11 14Z"/></svg></div>
+    <div><div class="brand-name">QuickEcommerce</div><div class="brand-sub">sportoonline.com</div></div>
+  </div>
+  <nav class="nav">
+    <div class="nav-label">MAĞAZA</div>
+    <div class="nav-item"><svg class="ico" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v8a2 2 0 0 1-1 1.73l-7 4a2 2 0 0 1-2 0l-7-4A2 2 0 0 1 3 16V8a2 2 0 0 1 1-1.73l7-4a2 2 0 0 1 2 0l7 4A2 2 0 0 1 21 8Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg><span>Katalog</span></div>
+    <div class="nav-item"><svg class="ico" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2 2h2l2.7 12.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6L22 7H5"/></svg><span>Siparişler</span></div>
+    <div class="nav-item on"><svg class="ico" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9 4.5 4h15L21 9"/><path d="M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/><path d="M9 20v-6h6v6"/></svg><span>Satıcılar</span></div>
+    <div class="nav-item"><svg class="ico" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2a2 2 0 0 1 1.4.6l6.7 6.7a2.4 2.4 0 0 1 0 3.4l-4.6 4.6a2.4 2.4 0 0 1-3.4 0l-6.7-6.7A2 2 0 0 1 6 9.2V3a1 1 0 0 1 1-1Z"/><circle cx="10.5" cy="6.5" r="1" fill="currentColor"/></svg><span>Kampanya ve kupon</span></div>
+    <div class="nav-label">OTOMASYON</div>
+    <div class="nav-item"><svg class="ico" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-7.9-4.7"/><path d="M3 12a9 9 0 0 1 9-9 9 9 0 0 1 7.9 4.7"/><path d="M21 3v5h-5"/><path d="M3 21v-5h5"/></svg><span>Fiyat ve stok eşitleme</span></div>
+    <div class="nav-item"><svg class="ico" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg><span>Otomatik iade</span></div>
+    <div class="nav-label">RAPOR</div>
+    <div class="nav-item"><svg class="ico" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16v-5"/><path d="M12 16V7"/><path d="M17 16v-8"/></svg><span>Satış raporları</span></div>
+    <div class="nav-item"><svg class="ico" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9"/></svg><span>Müşteriler</span></div>
+  </nav>
+  <div class="side-foot">Laravel 12 · Next.js 16 · Flutter<br>MySQL · iyzico pazaryeri</div>
+</aside><div class="main">
+<div class="top">
+  <div><div class="h-title">Satıcı ve sipariş yönetimi</div><div class="h-sub">Pazaryeri modeli: her satıcı kendi mağazası, ödemesi ve kargosuyla</div></div>
+  <div class="spacer"></div>
+  <span class="pill "><span class="dot"></span>iyzico pazaryeri modu</span>
+  <span class="pill blue"><span class="dot"></span>Kargo entegrasyonu açık</span>
+</div>
+<div class="body">
+  <div class="kpis">
+    <div class="kpi"><div class="kpi-k">Satıcı mağazası</div><div class="kpi-v">32</div><div class="kpi-d ">Her biri kendi kataloğu ve bakiyesiyle</div></div>
+    <div class="kpi"><div class="kpi-k">Ödeme dağıtımı</div><div class="kpi-v">Alt üye</div><div class="kpi-d ">Tutar doğrudan satıcı bakiyesine</div></div>
+    <div class="kpi"><div class="kpi-k">Sipariş durumu</div><div class="kpi-v">5 adım</div><div class="kpi-d ">Beklemede → teslim edildi</div></div>
+    <div class="kpi"><div class="kpi-k">İade yolu</div><div class="kpi-v">Otomatik</div><div class="kpi-d ">Stok teyidi başarısızsa iptal ve iade</div></div>
+  </div>
+  <div class="row2">
+    <div class="card"><div class="card-h"><div><div class="card-t">Satıcı mağazaları</div><div class="card-s">Katalog kaynağı ve eşitleme durumu</div></div><div class="spacer"></div></div><div class="card-b"><table>
+        <tr><th>Mağaza</th><th>Alan</th><th>Katalog kaynağı</th><th>Altyapı</th><th>Durum</th></tr>
+        <tr>
+          <td class="t-strong">Muscle Pump</td>
+          <td class="t-mut">Sporcu besinleri</td>
+          <td class="t-mut">musclepump</td>
+          <td><span class="tag">Custom</span></td>
+          <td><span class="tag ok">Eşitleniyor</span></td>
+        </tr><tr>
+          <td class="t-strong">Superstacy</td>
+          <td class="t-mut">Spor giyim</td>
+          <td class="t-mut">superstacy</td>
+          <td><span class="tag">Shopify</span></td>
+          <td><span class="tag ok">Eşitleniyor</span></td>
+        </tr><tr>
+          <td class="t-strong">Everlast</td>
+          <td class="t-mut">Boks ve dövüş</td>
+          <td class="t-mut">everlast</td>
+          <td><span class="tag">Shopify</span></td>
+          <td><span class="tag ok">Eşitleniyor</span></td>
+        </tr><tr>
+          <td class="t-strong">Norfolk</td>
+          <td class="t-mut">Çorap ve aksesuar</td>
+          <td class="t-mut">norfolk</td>
+          <td><span class="tag">Shopify</span></td>
+          <td><span class="tag ok">Eşitleniyor</span></td>
+        </tr><tr>
+          <td class="t-strong">Grand Gift Store</td>
+          <td class="t-mut">Hediye ve aksesuar</td>
+          <td class="t-mut">grandgiftstore</td>
+          <td><span class="tag">WooCommerce</span></td>
+          <td><span class="tag ok">Eşitleniyor</span></td>
+        </tr><tr>
+          <td class="t-strong">ProteinAVM</td>
+          <td class="t-mut">Sporcu besinleri</td>
+          <td class="t-mut">proteinavm</td>
+          <td><span class="tag">Ticimax</span></td>
+          <td><span class="tag ok">Eşitleniyor</span></td>
+        </tr><tr>
+          <td class="t-strong">Compex Turkiye</td>
+          <td class="t-mut">Elektro stimülasyon</td>
+          <td class="t-mut">compexturkiye</td>
+          <td><span class="tag">WooCommerce</span></td>
+          <td><span class="tag ok">Eşitleniyor</span></td>
+        </tr><tr>
+          <td class="t-strong">Provitanya</td>
+          <td class="t-mut">Takviye ve vitamin</td>
+          <td class="t-mut">provitanya</td>
+          <td><span class="tag">OpenCart</span></td>
+          <td><span class="tag ok">Eşitleniyor</span></td>
+        </tr><tr>
+          <td class="t-strong">Herbinatura</td>
+          <td class="t-mut">Bitkisel takviye</td>
+          <td class="t-mut">herbinatura</td>
+          <td><span class="tag">IdeaSoft</span></td>
+          <td><span class="tag ok">Eşitleniyor</span></td>
+        </tr><tr>
+          <td class="t-strong">HeynuT</td>
+          <td class="t-mut">Kuruyemiş ve atıştırmalık</td>
+          <td class="t-mut">heynut</td>
+          <td><span class="tag">Ticimax</span></td>
+          <td><span class="tag ok">Eşitleniyor</span></td>
+        </tr><tr>
+          <td class="t-strong">Decathlon</td>
+          <td class="t-mut">Genel spor</td>
+          <td class="t-mut">—</td>
+          <td><span class="tag">Manuel</span></td>
+          <td><span class="tag ok">Eşitleniyor</span></td>
+        </tr><tr>
+          <td class="t-strong">Maraton Sportswear</td>
+          <td class="t-mut">Spor giyim</td>
+          <td class="t-mut">maraton</td>
+          <td><span class="tag">Ticimax</span></td>
+          <td><span class="tag bad">Kaynak kapandı</span></td>
+        </tr>
+      </table></div></div>
+    <div style="display:flex;flex-direction:column;gap:16px;min-height:0">
+      <div class="card"><div class="card-h"><div><div class="card-t">Ödeme akışı</div><div class="card-s">Pazaryeri modunda tutarın yolu</div></div><div class="spacer"></div></div><div class="card-b"><table>
+          <tr><td class="t-strong">1. Müşteri ödemesi</td><td><span class="tag info">3D Secure</span></td></tr>
+          <tr><td class="t-strong">2. Satıcı payı</td><td class="t-mut">Alt üye bakiyesi</td></tr>
+          <tr><td class="t-strong">3. Platform komisyonu</td><td class="t-mut">Ana bakiye</td></tr>
+          <tr><td class="t-strong">4. Onay ve aktarım</td><td><span class="tag ok">Otomatik</span></td></tr>
+          <tr><td class="t-strong">Alternatif yöntem</td><td class="t-mut">Kapıda ödeme, havale</td></tr>
+        </table></div></div>
+      <div class="card"><div class="card-h"><div><div class="card-t">Sipariş durumları</div><div class="card-s">Panelde ve müşteri hesabında aynı adımlar</div></div><div class="spacer"></div></div><div class="card-b"><table>
+          <tr><td class="t-strong">Beklemede</td><td class="t-mut">Ödeme onayı bekliyor</td></tr>
+          <tr><td class="t-strong">Onaylandı</td><td class="t-mut">Satıcıya düştü</td></tr>
+          <tr><td class="t-strong">İşleniyor</td><td class="t-mut">Hazırlanıyor ve kargoya veriliyor</td></tr>
+          <tr><td class="t-strong">Teslim edildi</td><td><span class="tag ok">Tamamlandı</span></td></tr>
+          <tr><td class="t-strong">İptal edildi</td><td><span class="tag warn">İade süreci açılır</span></td></tr>
+        </table></div></div>
+      <div class="card"><div class="card-h"><div><div class="card-t">Kargo ve teslimat</div><div class="card-s">Gönderi etiketi ve takip numarası entegre</div></div><div class="spacer"></div></div><div class="card-b"><table>
+          <tr><td class="t-strong">Gönderici adresi</td><td class="t-mut">Satıcı mağazası bazında</td></tr>
+          <tr><td class="t-strong">Ücretsiz kargo</td><td class="t-mut">Kampanya eşiğine göre</td></tr>
+          <tr><td class="t-strong">Kapıda ödeme</td><td><span class="tag ok">Ürün bazında açılır</span></td></tr>
+          <tr><td class="t-strong">Takip bilgisi</td><td class="t-mut">Sipariş detayı ve e-posta</td></tr>
+        </table></div></div>
+    </div>
+  </div>
+</div></div></div></body></html>

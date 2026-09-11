@@ -280,7 +280,13 @@ Thumbs.db
 backend-laravel/storage/app/firebase/
 
 sosialmedia/
-docs/
+# docs/ icerigi repoda tutulmaz; TEK istisna docs/portfolio/.
+# Standart (PROJECT_PORTFOLIO_STANDARD.md) her gercek projede Bionluk
+# portfolyo/ilan icerigini ve gorsel setini burada ister.
+# "docs/*" yazilir, "docs/" DEGIL: sonunda slash olan bir dizin kalibi
+# ignore edildiginde git o dizinin icine hic inmez ve istisna calismaz.
+docs/*
+!docs/portfolio/
 data/
 reports/
 
