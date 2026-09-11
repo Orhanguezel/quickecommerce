@@ -134,3 +134,70 @@ export function absoluteUrl(path = ""): string {
   if (/^https?:\/\//i.test(path)) return path;
   return `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 }
+
+/**
+ * SEO basligini 30-60 karakter araliginda tutar.
+ *
+ * Tanitio SEO katalogu (2026-09-11) 5 urun sayfasinda "baslik 60 karakteri
+ * asiyor" bulgusu verdi: DB'deki meta_title zaten uzunken layout'taki
+ * `%s | ${siteName}` sablonu 15 karakter daha ekliyordu. Adaylar en zenginden
+ * en sadeye dogru denenir, 60'a sigan ilki secilir.
+ */
+export function buildPageTitle(
+  candidates: Array<string | null | undefined>,
+  siteName: string,
+  maxLength = 60
+): string {
+  const suffix = siteName ? ` | ${siteName}` : "";
+  const cleaned = candidates
+    .map((value) => value?.trim())
+    .filter((value): value is string => Boolean(value));
+
+  const ordered: string[] = [];
+  for (const value of cleaned) {
+    // Baslik zaten marka ekini tasiyorsa ikinci kez eklemeyiz.
+    const hasSuffix = suffix && value.toLowerCase().endsWith(suffix.trim().toLowerCase());
+    if (!hasSuffix && suffix) ordered.push(`${value}${suffix}`);
+    ordered.push(value);
+  }
+
+  const fitting = ordered.find((value) => value.length <= maxLength);
+  if (fitting) return fitting;
+
+  const fallback = ordered[0] ?? siteName;
+  return truncateText(fallback, maxLength);
+}
+
+/**
+ * Urun meta aciklamasi icin 70-160 karakter araliginda metin uretir.
+ *
+ * Katalogdaki 43/45/58 karakterlik aciklamalar DB'de meta_description alanina
+ * urun adinin kopyalanmasindan geliyordu; bu SERP'te bos alan birakir.
+ */
+export function buildProductDescription(input: {
+  metaDescription?: string | null;
+  description?: string | null;
+  name: string;
+  brand?: string | null;
+  category?: string | null;
+  siteName: string;
+  minLength?: number;
+  maxLength?: number;
+}): string {
+  const min = input.minLength ?? 70;
+  const max = input.maxLength ?? 160;
+
+  const meta = input.metaDescription?.trim();
+  if (meta && meta.length >= min) return truncateText(meta, max);
+
+  const body = stripHtml(input.description);
+  if (body.length >= min) return truncateText(body, max);
+
+  const parts = [input.name.trim()];
+  if (input.brand?.trim()) parts.push(input.brand.trim());
+  if (input.category?.trim()) parts.push(input.category.trim());
+
+  const head = parts.join(" · ");
+  const tail = `${input.siteName} güvencesiyle: güncel fiyat, stok durumu, hızlı kargo ve kolay iade.`;
+  return truncateText(`${head} — ${tail}`, max);
+}

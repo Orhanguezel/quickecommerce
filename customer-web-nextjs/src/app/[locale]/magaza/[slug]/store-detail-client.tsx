@@ -234,6 +234,7 @@ export function StoreDetailClient({
           <Image
             src={store.banner_url}
             alt=""
+            aria-hidden="true"
             fill
             className="object-cover opacity-20"
             priority

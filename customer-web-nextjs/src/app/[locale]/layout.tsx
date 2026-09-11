@@ -7,7 +7,7 @@ import { QueryProvider } from '@/lib/query-provider';
 import { ThemeProvider as NextThemesProvider } from 'next-themes';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { Header } from '@/components/layout/header';
-import { Footer } from '@/components/layout/footer';
+import { FooterServer } from '@/components/layout/footer-server';
 import { MaintenancePage } from '@/components/maintenance-page';
 import { ChatWidget } from '@/components/chat/chat-widget';
 import { FloatingCart } from '@/components/layout/floating-cart';
@@ -371,7 +371,7 @@ fbq('track','PageView');`}
                 <div className="flex min-h-screen flex-col">
                   <Header />
                   <main className="flex-1 overflow-x-hidden" style={{ paddingTop: "var(--theme-popup-top-offset, 0px)" }}>{children}</main>
-                  <Footer />
+                  <FooterServer locale={locale} />
                 </div>
                 <FloatingCart />
                 <CartDrawer />

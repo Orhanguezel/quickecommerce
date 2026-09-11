@@ -147,7 +147,7 @@ export function HeroSliderVariant1({ sliders }: HeroSliderProps) {
                 {backgroundImage ? (
                   <Image
                     src={backgroundImage}
-                    alt=""
+                    alt={slide.title || slide.sub_title || ""}
                     fill
                     className="object-cover"
                     priority={index === 0}
