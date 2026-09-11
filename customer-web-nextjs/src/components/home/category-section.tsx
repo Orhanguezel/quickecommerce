@@ -34,9 +34,10 @@ function CategoryItem({
           <Image
             src={imageUrl}
             alt={cat.category_name}
-            fill
+            width={104}
+            height={104}
             sizes="104px"
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
           <div className="flex h-full items-center justify-center bg-muted">

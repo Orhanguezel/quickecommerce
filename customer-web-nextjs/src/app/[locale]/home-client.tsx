@@ -345,8 +345,9 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
           <Image
             src={banner.thumbnail_image || "/images/banner-illustration.png"}
             alt={banner.title}
-            fill
-            className="object-contain object-right-bottom"
+            width={180}
+            height={150}
+            className="absolute inset-0 h-full w-full object-contain object-right-bottom"
             sizes="180px"
           />
         </div>
@@ -374,8 +375,9 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
             <Image
               src={deal.cover_image_url}
               alt={deal.title}
-              fill
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              width={640}
+              height={320}
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
             <div
               className="absolute inset-0"
@@ -410,8 +412,9 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
               <Image
                 src={deal.image_url}
                 alt={deal.title}
-                fill
-                className="object-contain transition-transform duration-300 group-hover:scale-110"
+                width={140}
+                height={170}
+                className="absolute inset-0 h-full w-full object-contain transition-transform duration-300 group-hover:scale-110"
               />
             </div>
           )}
@@ -461,9 +464,10 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
           <Image
             src={post.image_url}
             alt={post.title}
-            fill
+            width={384}
+            height={145}
             sizes="(max-width: 768px) calc(100vw - 32px), 384px"
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : null}
       </div>

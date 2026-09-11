@@ -173,8 +173,9 @@ function StoreCard({
           <Image
             src={store.logo_url}
             alt={store.name}
-            fill
-            className="object-cover"
+            width={80}
+            height={80}
+            className="absolute inset-0 h-full w-full object-cover"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-muted text-xl font-bold text-muted-foreground">
@@ -184,9 +185,9 @@ function StoreCard({
       </div>
 
       {/* Store Name */}
-      <h3 className="mb-4 text-center text-base font-bold text-foreground">
+      <h2 className="mb-4 text-center text-base font-bold text-foreground">
         {store.name}
-      </h3>
+      </h2>
 
       {/* Contact Info */}
       <div className="mb-5 w-full space-y-2.5">

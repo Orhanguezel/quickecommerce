@@ -2,7 +2,12 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import { getEnginEserAuthor } from "@/lib/authors";
-import { DEFAULT_ORGANIZATION, localizedAlternates, SITE_URL } from "@/lib/seo";
+import {
+  DEFAULT_ORGANIZATION,
+  SITE_URL,
+  buildMetaDescription,
+  localizedAlternates,
+} from "@/lib/seo";
 import { User } from "lucide-react";
 
 interface Props {
@@ -14,11 +19,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const author = getEnginEserAuthor(locale);
 
   return {
-    title:
-      locale === "tr"
-        ? `${author.name} | Sportoonline Yazar Profili`
-        : `${author.name} | Sportoonline Author Profile`,
-    description: author.bio,
+    // absolute: baslik marka ekini zaten tasiyor, sablon ikinci kez eklemesin.
+    title: {
+      absolute:
+        locale === "tr"
+          ? `${author.name} | Sportoonline Yazar Profili`
+          : `${author.name} | Sportoonline Author Profile`,
+    },
+    // Tanitio (2026-09-12): author.bio 245 karakterdi, SERP'te kirpiliyordu.
+    description: buildMetaDescription([author.bio]),
     alternates: {
       canonical: `/${locale}${author.path}`,
       languages: localizedAlternates(author.path),

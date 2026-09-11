@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildPageTitle, buildMetaDescription } from "@/lib/seo";
 import { getTranslations } from "next-intl/server";
 import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
@@ -22,9 +23,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const t = await getTranslations({ locale, namespace: "seo" });
   const data = await getPageContent("terms", locale);
 
+  // Tanitio (2026-09-12): veritabanindaki meta_title bu sayfalarda 8-19
+  // karakterdi ve marka eki eklendiginde bile 30 karakterin altinda kaliyordu;
+  // buildPageTitle kisa DB degerini atlayip ceviri basligina duser.
+  const pageTitle = buildPageTitle([data?.meta_title, t("terms_title")], "Sportoonline");
+  const pageDescription = buildMetaDescription([data?.meta_description, t("terms_description")]);
+
   return {
-    title: data?.meta_title || t("terms_title"),
-    description: data?.meta_description || t("terms_description"),
+    // absolute: buildPageTitle marka ekini kendi ekliyor; layout'taki
+    // `%s | ${siteName}` sablonu ikinci kez eklerse baslik 60'i asiyor.
+    title: { absolute: pageTitle },
+    description: pageDescription,
     alternates: {
       canonical: `/${locale}/kullanim-kosullari`,
       languages: { tr: `/tr/kullanim-kosullari`, en: `/en/kullanim-kosullari` },

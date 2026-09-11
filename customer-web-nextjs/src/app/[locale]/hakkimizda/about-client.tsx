@@ -122,7 +122,7 @@ export function AboutPageClient({ title, content, breadcrumbs }: AboutPageClient
               {/* Image — only render if API provides one */}
               {hasAboutImage && (
                 <div className="relative h-[300px] w-full max-w-[500px] shrink-0 overflow-hidden rounded-2xl lg:h-[380px] lg:w-[480px]">
-                  <Image src={about_section.image_url!} alt={about_section.title ?? ""} fill className="object-cover" />
+                  <Image src={about_section.image_url!} alt={about_section.title ?? ""} width={640} height={400} className="absolute inset-0 h-full w-full object-cover" />
                 </div>
               )}
 
@@ -167,7 +167,7 @@ export function AboutPageClient({ title, content, breadcrumbs }: AboutPageClient
                     <div key={i} className="flex flex-col items-center text-center">
                       {hasImage && (
                         <div className="relative mb-5 h-[220px] w-full overflow-hidden rounded-xl">
-                          <Image src={step.image_url!} alt={step.title ?? ""} fill className="object-cover" />
+                          <Image src={step.image_url!} alt={step.title ?? ""} width={640} height={400} className="absolute inset-0 h-full w-full object-cover" />
                         </div>
                       )}
                       {step.title && <h3 className="text-lg font-bold text-foreground">{step.title}</h3>}
@@ -209,7 +209,7 @@ export function AboutPageClient({ title, content, breadcrumbs }: AboutPageClient
                   >
                     {hasImage && (
                       <div className="relative h-[200px] w-full shrink-0 sm:h-auto sm:w-[240px]">
-                        <Image src={step.image_url!} alt={step.title ?? ""} fill className="object-cover" />
+                        <Image src={step.image_url!} alt={step.title ?? ""} width={640} height={400} className="absolute inset-0 h-full w-full object-cover" />
                       </div>
                     )}
                     <div className="flex flex-1 flex-col justify-center p-6">
@@ -250,7 +250,7 @@ export function AboutPageClient({ title, content, breadcrumbs }: AboutPageClient
                     <div className="mb-4 flex items-center gap-3">
                       {step.image_url ? (
                         <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full">
-                          <Image src={step.image_url} alt={step.title ?? ""} fill className="object-cover" />
+                          <Image src={step.image_url} alt={step.title ?? ""} width={640} height={400} className="absolute inset-0 h-full w-full object-cover" />
                         </div>
                       ) : step.title ? (
                         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-lg font-bold text-primary">

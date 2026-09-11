@@ -91,6 +91,9 @@ export function Footer({
   const getLinkUrl = (item: FooterLinkItem) =>
     item.com_quick_access_url || item.url || "/";
 
+  // Footer bolum basliklari h2'dir. Tanitio raporu (2026-09-12) icerigi az
+  // sayfalarda h1'den dogrudan h3'e atlandigini olctu; footer SSR'a tasindiktan
+  // sonra bu basliklar artik HTML'de gorundugu icin hiyerarsiye dahil oldular.
   return (
     <footer
       style={{
@@ -113,9 +116,9 @@ export function Footer({
                 className="h-10 w-auto object-contain"
               />
             ) : (
-              <h3 className="text-xl font-bold">
+              <h2 className="text-xl font-bold">
                 {siteInfo?.com_site_title || "Sportoonline"}
-              </h3>
+              </h2>
             )}
             {siteInfo?.com_site_subtitle && (
               <p className="mt-3 text-sm text-gray-200">
@@ -186,9 +189,9 @@ export function Footer({
           {/* Quick Access */}
           {showQuickAccess && (
             <div>
-              <h3 className="mb-4 text-base font-bold">
+              <h2 className="mb-4 text-base font-bold">
                 {t("footer.quick_access")}
-              </h3>
+              </h2>
               <ul className="space-y-2.5">
                 {quickAccess.map((item, i) => (
                   <li key={i}>
@@ -207,9 +210,9 @@ export function Footer({
           {/* Our Information */}
           {showOurInfo && (
             <div>
-              <h3 className="mb-4 text-base font-bold">
+              <h2 className="mb-4 text-base font-bold">
                 {t("footer.our_information")}
-              </h3>
+              </h2>
               <ul className="space-y-2.5">
                 {ourInfo.map((item, i) => (
                   <li key={i}>
@@ -228,9 +231,9 @@ export function Footer({
           {/* Help Center */}
           {helpCenter.length > 0 && (
             <div>
-              <h3 className="mb-4 text-base font-bold">
+              <h2 className="mb-4 text-base font-bold">
                 {t("footer.help_center")}
-              </h3>
+              </h2>
               <ul className="space-y-2.5">
                 {helpCenter.map((item, i) => (
                   <li key={i}>
@@ -256,9 +259,9 @@ export function Footer({
           {showSocial && hasSocialLink ? (
             <div>
               {footerData?.com_social_links_title === "on" && (
-                <h4 className="mb-3 text-sm font-bold">
+                <h2 className="mb-3 text-sm font-bold">
                   {t("footer.social_connect")}
-                </h4>
+                </h2>
               )}
               <div className="flex items-center gap-3">
                 {footerData?.com_social_links_facebook_url && (
@@ -351,9 +354,9 @@ export function Footer({
           {/* Download App */}
           {hasDownloadApp ? (
             <div className="lg:text-right">
-              <h4 className="mb-3 text-sm font-bold">
+              <h2 className="mb-3 text-sm font-bold">
                 {t("footer.download_app")}
-              </h4>
+              </h2>
               <div className="flex gap-3 lg:justify-end">
                 {footerData?.com_download_app_link_two && (
                   <a

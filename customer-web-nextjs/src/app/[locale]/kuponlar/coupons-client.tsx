@@ -154,7 +154,7 @@ function CouponCard({ coupon, translations: t }: { coupon: Coupon; translations:
           </span>
           <span className="text-sm font-medium text-primary">{t.off}</span>
         </div>
-        <h3 className="mt-1 font-semibold">{coupon.coupon_title}</h3>
+        <h2 className="mt-1 font-semibold">{coupon.coupon_title}</h2>
         {coupon.coupon_description && (
           <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2">
             {coupon.coupon_description}

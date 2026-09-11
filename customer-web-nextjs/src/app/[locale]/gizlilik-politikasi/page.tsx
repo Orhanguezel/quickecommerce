@@ -3,7 +3,11 @@ import { getTranslations } from "next-intl/server";
 import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import { ContentPageClient } from "@/components/common/content-page-client";
-import { localizedAlternates } from "@/lib/seo";
+import {
+  buildMetaDescription,
+  buildPageTitle,
+  localizedAlternates,
+} from "@/lib/seo";
 import { pageContentOrFallback, policyContent } from "../policy-content";
 
 interface Props {
@@ -24,9 +28,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const t = await getTranslations({ locale, namespace: "seo" });
   const data = await getPageContent("privacy", locale);
 
+  // Tanitio (2026-09-12): veritabanindaki meta_title bu sayfalarda 8-19
+  // karakterdi ve marka eki eklendiginde bile 30 karakterin altinda kaliyordu;
+  // buildPageTitle kisa DB degerini atlayip ceviri basligina duser.
+  const pageTitle = buildPageTitle([data?.meta_title, t("privacy_title")], "Sportoonline");
+  const pageDescription = buildMetaDescription([data?.meta_description, t("privacy_description")]);
+
   return {
-    title: data?.meta_title || t("privacy_title"),
-    description: data?.meta_description || t("privacy_description"),
+    // absolute: buildPageTitle marka ekini kendi ekliyor; layout'taki
+    // `%s | ${siteName}` sablonu ikinci kez eklerse baslik 60'i asiyor.
+    title: { absolute: pageTitle },
+    description: pageDescription,
     alternates: {
       canonical: `/${locale}/gizlilik-politikasi`,
       languages: localizedAlternates("/gizlilik-politikasi"),

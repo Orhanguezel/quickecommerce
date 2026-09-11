@@ -8,6 +8,7 @@ import { withSubtreeProductCounts } from "@/modules/site/category-utils";
 import type { FlashDeal } from "@/modules/flash-deal/flash-deal.type";
 import type { BlogPost } from "@/modules/blog/blog.type";
 import { HomePageClient } from "./home-client";
+import { HomeTrustSection } from '@/components/home/home-trust-section';
 import { absoluteUrl, localizedAlternates, SITE_URL } from "@/lib/seo";
 
 interface Props {
@@ -245,6 +246,12 @@ export default async function HomePage({ params }: Props) {
           recently_viewed_subtitle: t("recently_viewed_subtitle"),
         }}
       />
+      <div className="container pb-8">
+        <HomeTrustSection
+          siteName={siteName}
+          contactNumber={settings?.com_site_contact_number}
+        />
+      </div>
     </>
   );
 }

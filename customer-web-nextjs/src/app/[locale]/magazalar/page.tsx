@@ -4,7 +4,12 @@ import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { Store, StoreType } from "@/modules/store/store.type";
 import { StoreListClient } from "./store-list-client";
-import { localizedAlternates, SITE_URL } from "@/lib/seo";
+import {
+  SITE_URL,
+  buildMetaDescription,
+  buildPageTitle,
+  localizedAlternates,
+} from "@/lib/seo";
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -45,11 +50,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "seo" });
 
-  const title = t("stores_title");
-  const description = t("stores_description");
+  // Tanitio (2026-09-12): baslik 24 kr, aciklama 42 kr olculdu.
+  const title = buildPageTitle([t("stores_title")], "Sportoonline");
+  const description = buildMetaDescription([t("stores_description")]);
 
   return {
-    title,
+    // absolute: buildPageTitle marka ekini kendi ekliyor; layout'taki
+    // `%s | ${siteName}` sablonu ikinci kez eklerse baslik 60'i asiyor.
+    title: { absolute: title },
     description,
     openGraph: {
       title,

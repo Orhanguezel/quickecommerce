@@ -148,8 +148,9 @@ export function HeroSliderVariant1({ sliders }: HeroSliderProps) {
                   <Image
                     src={backgroundImage}
                     alt={slide.title || slide.sub_title || ""}
-                    fill
-                    className="object-cover"
+                    width={1408}
+                    height={448}
+                    className="absolute inset-0 h-full w-full object-cover"
                     priority={index === 0}
                     fetchPriority={index === 0 ? 'high' : 'auto'}
                     sizes="(max-width: 640px) calc(100vw - 32px), (max-width: 1440px) calc(100vw - 32px), 1408px"

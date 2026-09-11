@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildPageTitle, buildMetaDescription } from "@/lib/seo";
 import { getTranslations } from "next-intl/server";
 import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
@@ -44,8 +45,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const t = await getTranslations({ locale, namespace: "seo" });
 
   return {
-    title: t("coupons_title"),
-    description: t("coupons_description"),
+    // Tanitio (2026-09-12): baslik 23 kr, aciklama 33 kr olculdu.
+    title: { absolute: buildPageTitle([t("coupons_title")], "Sportoonline") },
+    description: buildMetaDescription([t("coupons_description")]),
     alternates: {
       canonical: `/${locale}/kuponlar`,
       languages: { tr: `/tr/kuponlar`, en: `/en/kuponlar` },

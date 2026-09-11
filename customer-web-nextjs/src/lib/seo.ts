@@ -148,7 +148,8 @@ export function absoluteUrl(path = ""): string {
 export function buildPageTitle(
   candidates: Array<string | null | undefined>,
   siteName: string,
-  maxLength = 60
+  maxLength = 60,
+  minLength = 30
 ): string {
   const suffix = siteName ? ` | ${siteName}` : "";
   const cleaned = candidates
@@ -163,11 +164,41 @@ export function buildPageTitle(
     ordered.push(value);
   }
 
+  // Once 30-60 penceresine tam oturan adayi ara. Bu adim onemli: veritabanindan
+  // gelen meta_title bazi sayfalarda 8-19 karakter ("Iletisim", "Kuponlar") ve
+  // marka eki eklendiginde bile 30'un altinda kaliyordu; boyle bir durumda
+  // ceviri dosyasindaki daha aciklayici baslik devreye girsin.
+  const ideal = ordered.find((value) => value.length >= minLength && value.length <= maxLength);
+  if (ideal) return ideal;
+
   const fitting = ordered.find((value) => value.length <= maxLength);
   if (fitting) return fitting;
 
   const fallback = ordered[0] ?? siteName;
   return truncateText(fallback, maxLength);
+}
+
+/**
+ * Meta aciklamasi icin 70-160 karakter araliginda metin secer.
+ *
+ * Tanitio raporu (2026-09-12) alti sayfada aciklamanin 70 karakterin altinda
+ * kaldigini olctu (33-57 kr). Adaylar sirayla denenir; hicbiri yeterince uzun
+ * degilse en uzun aday kirpilarak dondurulur.
+ */
+export function buildMetaDescription(
+  candidates: Array<string | null | undefined>,
+  minLength = 70,
+  maxLength = 160
+): string {
+  const cleaned = candidates
+    .map((value) => stripHtml(value).trim())
+    .filter(Boolean);
+
+  const ideal = cleaned.find((value) => value.length >= minLength);
+  if (ideal) return truncateText(ideal, maxLength);
+
+  const longest = cleaned.sort((a, b) => b.length - a.length)[0];
+  return longest ? truncateText(longest, maxLength) : "";
 }
 
 /**

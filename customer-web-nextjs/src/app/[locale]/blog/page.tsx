@@ -4,7 +4,17 @@ import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { BlogPost } from "@/modules/blog/blog.type";
 import { BlogListClient } from "./blog-list-client";
-import { DEFAULT_ORGANIZATION, SITE_URL, absoluteUrl, localizedAlternates, stripHtml, toIsoDate, truncateText } from "@/lib/seo";
+import {
+  DEFAULT_ORGANIZATION,
+  SITE_URL,
+  absoluteUrl,
+  buildMetaDescription,
+  buildPageTitle,
+  localizedAlternates,
+  stripHtml,
+  toIsoDate,
+  truncateText,
+} from "@/lib/seo";
 import { getEnginEserAuthor } from "@/lib/authors";
 
 interface Props {
@@ -50,11 +60,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "seo" });
 
-  const title = t("blog_title");
-  const description = t("blog_description");
+  // Tanitio (2026-09-12): baslik 19 kr, aciklama 56 kr olculdu.
+  const title = buildPageTitle([t("blog_title")], "Sportoonline");
+  const description = buildMetaDescription([t("blog_description")]);
 
   return {
-    title,
+    // absolute: buildPageTitle marka ekini kendi ekliyor; layout'taki
+    // `%s | ${siteName}` sablonu ikinci kez eklerse baslik 60'i asiyor.
+    title: { absolute: title },
     description,
     openGraph: {
       title,

@@ -249,13 +249,14 @@ export function ProductCard({
     <Image
       src={product.image_url!}
       alt={product.name}
-      fill
+      width={variant === "list" ? 130 : 400}
+      height={variant === "list" ? 130 : 400}
       sizes={
         variant === "list"
           ? "130px"
           : "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
       }
-      className="object-cover"
+      className="absolute inset-0 h-full w-full object-cover"
       onError={() => setImageError(true)}
     />
   ) : (
@@ -263,8 +264,9 @@ export function ProductCard({
       <Image
         src={PLACEHOLDER}
         alt={product.name}
-        fill
-        className="object-contain"
+        width={400}
+        height={400}
+        className="absolute inset-0 h-full w-full object-contain"
       />
     </div>
   );
