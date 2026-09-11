@@ -3,7 +3,7 @@
 import { Link, useRouter } from "@/i18n/routing";
 import { ROUTES } from "@/config/routes";
 import Image from "next/image";
-import { ChevronRight, ShoppingBag } from "lucide-react";
+import { ChevronRight, ShoppingBag, Phone, Mail, MapPin } from "lucide-react";
 import type { Store, StoreType } from "@/modules/store/store.type";
 
 interface StoreListTranslations {
@@ -194,7 +194,7 @@ function StoreCard({
         {/* Phone */}
         {store.phone && (
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <Image src="/assets/icons/suport_ticket.png" alt="" aria-hidden="true" width={20} height={20} className="h-5 w-5 shrink-0" />
+            <Phone className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
             <span className="truncate">{store.phone}</span>
           </div>
         )}
@@ -202,15 +202,7 @@ function StoreCard({
         {/* Email — email.png is white template, apply CSS filter to colorize blue */}
         {store.email && (
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <Image
-              src="/assets/icons/email.png"
-              alt=""
-              aria-hidden="true"
-              width={20}
-              height={20}
-              className="h-5 w-5 shrink-0 brightness-0 saturate-100"
-              style={{ filter: "invert(42%) sepia(93%) saturate(1352%) hue-rotate(196deg) brightness(97%) contrast(101%)" }}
-            />
+<Mail className="h-5 w-5 shrink-0 text-blue-500" aria-hidden="true" />
             <span className="truncate">{store.email}</span>
           </div>
         )}
@@ -218,7 +210,7 @@ function StoreCard({
         {/* Address */}
         {store.address && (
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <Image src="/assets/icons/address.png" alt="" aria-hidden="true" width={20} height={20} className="h-5 w-5 shrink-0" />
+            <MapPin className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
             <span className="line-clamp-1">{store.address}</span>
           </div>
         )}
