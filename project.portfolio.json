@@ -1,25 +1,116 @@
 {
-  "title": "QuickEcommerce",
-  "slug": "quickecommerce",
-  "summary": "Enterprise e-commerce platform with Laravel backend, Next.js web apps, Flutter mobile app and multi-store marketplace workflows.",
-  "category": "E-COMMERCE",
-  "services": ["Frontend Development", "Backend Development", "Mobile Development", "Architecture & Optimization"],
-  "techs": ["Laravel", "PHP", "Next.js", "React", "TypeScript", "Flutter", "MySQL", "Tailwind CSS", "Redux Toolkit", "React Query", "Zustand", "i18n", "SEO"],
-  "features": ["Admin panel", "Customer web", "Mobile application", "Store and seller management", "Multi-language support"],
-  "designHighlights": ["Production-ready commerce stack", "Shared architecture across channels", "Marketplace-style store workflows"],
-  "featured": true,
-  "displayOrder": 1,
-  "clientName": "Own Project",
-  "status": "live",
-  "startDate": "2025-01-01",
-  "completeDate": null,
-  "completionTimeLabel": "Ongoing",
-  "repoUrl": "https://github.com/Orhanguezel/quickecommerce",
-  "websiteUrl": "https://sportoonline.com",
-  "demoUrl": "https://sportoonline.com",
-  "featuredImage": "/assets/imgs/work/projects/quickecommerce.png",
-  "featuredImageAlt": "QuickEcommerce cover image",
-  "resumeTitle": "QuickEcommerce",
-  "resumeSubtitle": "Enterprise E-Commerce Platform",
-  "excludeFromPortfolio": false
+  "schemaVersion": 2,
+  "project": {
+    "key": "quickecommerce",
+    "title": "QuickEcommerce",
+    "summary": "Laravel 12 backend, Next.js müşteri ve yönetim panelleri ile Flutter mobil uygulamasını tek çatıda toplayan çok satıcılı e-ticaret pazaryeri altyapısı.",
+    "description": "QuickEcommerce, birden fazla satıcının kendi mağazasıyla listelendiği bir e-ticaret pazaryeri altyapısıdır ve sportoonline.com olarak canlı çalışır. Laravel 12 tabanlı API; ürün, sipariş, kupon, kargo ve iade akışlarını yönetir; iyzico marketplace modu ile ödeme alt üye işyeri bakiyelerine dağıtılır. Müşteri tarafı Next.js 16 ile sunucu taraflı render edilir, yönetim paneli ayrı bir Next.js uygulamasıdır, mobil taraf Flutter ile karşılanır. Platformun ayırt edici yanı tedarikçi fiyat ve stok verisini günlük cron ile ~22 kaynaktan kazıyıp senkronize etmesi, bool-only stok veren kaynaklar için sipariş sonrası otomatik stok teyidi yapması ve tükenmiş ürünlerde iyzico üzerinden otomatik iade başlatmasıdır. Spor beslenmesi, fitness ekipmanı, outdoor ve spor giyim kategorilerinde Türkiye pazarına hizmet eder.",
+    "category": "E-COMMERCE",
+    "status": "live",
+    "ownership": "own",
+    "owner": {
+      "id": "orhan-guzel",
+      "name": "Orhan Güzel",
+      "kind": "person"
+    },
+    "group": {
+      "id": "independent",
+      "name": "Bağımsız Projeler"
+    },
+    "productType": "marketplace"
+  },
+  "services": [
+    "Frontend Development",
+    "Backend Development",
+    "Mobile Development",
+    "Architecture & Optimization"
+  ],
+  "technologies": [
+    "Laravel",
+    "PHP",
+    "Next.js",
+    "React",
+    "TypeScript",
+    "Flutter",
+    "MySQL",
+    "Tailwind CSS",
+    "Redux Toolkit",
+    "React Query",
+    "Zustand",
+    "i18n",
+    "SEO"
+  ],
+  "features": [
+    "Admin panel",
+    "Customer web",
+    "Mobile application",
+    "Store and seller management",
+    "Multi-language support",
+    "Marketplace payments (iyzico sub-merchant)",
+    "Daily supplier price and stock scraping",
+    "Post-order stock verification with automatic refund"
+  ],
+  "timeline": {
+    "startedAt": "2025-01-01",
+    "targetEndAt": null,
+    "completedAt": null,
+    "progressPercent": null
+  },
+  "links": {
+    "website": "https://sportoonline.com",
+    "demo": "https://sportoonline.com",
+    "repository": "https://github.com/Orhanguezel/quickecommerce",
+    "admin": "https://panel.sportoonline.com"
+  },
+  "media": [
+    {
+      "id": "cover",
+      "role": "cover",
+      "src": "/assets/imgs/work/projects/quickecommerce.png",
+      "alt": "QuickEcommerce müşteri vitrininin ana sayfasını gösteren kapak görseli",
+      "caption": "QuickEcommerce kapak görseli",
+      "displayPermission": true,
+      "rightsConfirmed": true
+    }
+  ],
+  "channels": {
+    "website": {
+      "enabled": true,
+      "disabledReason": "",
+      "title": "QuickEcommerce",
+      "summary": "Laravel 12, Next.js 16 ve Flutter ile kurulmuş, tedarikçi fiyat/stok senkronizasyonu yapan çok satıcılı e-ticaret pazaryeri.",
+      "description": "Çok satıcılı bir e-ticaret pazaryeri altyapısı: Laravel 12 API, Next.js 16 müşteri vitrini, ayrı Next.js yönetim paneli ve Flutter mobil uygulaması. iyzico marketplace modu ile satıcı bazlı ödeme dağıtımı, günlük tedarikçi fiyat/stok kazıma ve sipariş sonrası otomatik stok teyidi ile iade akışı içerir. sportoonline.com olarak canlıdır.",
+      "seoTitle": "QuickEcommerce — Çok Satıcılı E-Ticaret Pazaryeri Altyapısı",
+      "seoDescription": "Laravel 12, Next.js 16 ve Flutter ile geliştirilen çok satıcılı e-ticaret pazaryeri: satıcı yönetimi, marketplace ödeme dağıtımı ve otomatik fiyat/stok senkronizasyonu.",
+      "category": "E-COMMERCE",
+      "imageIds": ["cover"]
+    },
+    "bionluk": {
+      "enabled": false,
+      "disabledReason": "docs/portfolio/ içeriği ve Bionluk görsel seti hazırlanmadı; uygunluk değerlendirmesi yapılmadı.",
+      "portfolio": {
+        "enabled": false,
+        "category": "",
+        "title": "",
+        "description": "",
+        "imageIds": []
+      },
+      "listing": {
+        "eligible": false,
+        "blockedReasons": [
+          "docs/portfolio/ klasörü ve 4 görselli set henüz üretilmedi"
+        ],
+        "category": "",
+        "title": "",
+        "description": "",
+        "requirements": "",
+        "packages": []
+      }
+    }
+  },
+  "publication": {
+    "privacy": "public",
+    "displayPermission": true
+  },
+  "updatedAt": "2026-09-12T00:00:00.000Z"
 }

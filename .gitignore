@@ -283,3 +283,6 @@ sosialmedia/
 docs/
 data/
 reports/
+
+# Portfolio gizli yerel ek — asla commit edilmez
+project.portfolio.private.json
