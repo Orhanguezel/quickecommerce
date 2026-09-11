@@ -153,10 +153,10 @@ function CouponSection({ coupons }: { coupons: PublicCoupon[] }) {
 
   return (
     <div className="rounded-lg border bg-card p-4">
-      <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-foreground">
+      <h2 className="mb-3 flex items-center gap-2 text-sm font-bold text-foreground">
         <Ticket className="h-4 w-4 text-primary" />
         Kuponlar
-      </h3>
+      </h2>
       <div className="space-y-2.5">
         {visibleCoupons.map((coupon) => {
           const isPercentage = coupon.discount_type === "percentage";
@@ -261,10 +261,10 @@ function DeliveryOptions({
 
   return (
     <div className="mt-5 rounded-lg border bg-muted/30 p-4">
-      <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-foreground">
+      <h2 className="mb-3 flex items-center gap-2 text-sm font-bold text-foreground">
         <Truck className="h-4 w-4 text-primary" />
         Teslimat Seçenekleri
-      </h3>
+      </h2>
 
       <div className="space-y-3">
         {/* Estimated delivery */}
@@ -973,7 +973,10 @@ export function ProductDetailClient({
               {allImages.map((img, i) => (
                 <button
                   key={i}
+                  type="button"
                   onClick={() => setSelectedImage(i)}
+                  aria-label={`${product.name} - görsel ${i + 1}`}
+                  aria-pressed={selectedImage === i}
                   className={`relative h-16 w-20 flex-shrink-0 overflow-hidden rounded border transition-colors ${
                     selectedImage === i
                       ? "border-primary"

@@ -10,7 +10,15 @@ import type { ShippingCampaign } from "@/modules/shipping-campaign/shipping-camp
 import type { BannerGroupedResponse } from "@/modules/banner/banner.type";
 import type { PublicCoupon } from "@/modules/coupon/coupon.type";
 import { ProductDetailClient } from "./product-detail-client";
-import { absoluteUrl, priceValidUntil, stripHtml, truncateText } from "@/lib/seo";
+import { ProductFaq, buildProductFaq, buildProductFaqJsonLd } from "./product-faq";
+import {
+  absoluteUrl,
+  buildPageTitle,
+  buildProductDescription,
+  priceValidUntil,
+  stripHtml,
+  truncateText,
+} from "@/lib/seo";
 
 interface Props {
   params: Promise<{ locale: string; slug: string }>;
@@ -122,6 +130,19 @@ async function getProductDetail(slug: string, locale: string) {
   }
 }
 
+const getSiteName = cache(async (locale: string): Promise<string> => {
+  try {
+    const res = await fetchAPI<{ site_settings?: { com_site_title?: string } }>(
+      API_ENDPOINTS.SITE_GENERAL_INFO,
+      {},
+      locale
+    );
+    return res?.site_settings?.com_site_title?.trim() || "";
+  } catch {
+    return "";
+  }
+});
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   const res = await getProductDetail(slug, locale);
@@ -150,14 +171,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     seoCurrency.defaultRate,
     seoCurrency.targetRate
   );
-  const title = product.meta_title || product.name;
-  const description =
-    product.meta_description ||
-    truncateText(stripHtml(product.description), 160) ||
-    "";
+  // Baslik/aciklama SEO katalogu bulgulari (2026-09-11) icin normalize edilir:
+  // 60 karakteri asan basliklar ve 70 karakterin altinda kalan aciklamalar
+  // SERP'te kirpiliyor ya da bos kaliyordu.
+  const siteName = await getSiteName(locale);
+  const title = buildPageTitle([product.meta_title, product.name], siteName);
+  const description = buildProductDescription({
+    metaDescription: product.meta_description,
+    description: product.description,
+    name: product.name,
+    brand: product.brand?.label,
+    category: product.category?.category_name,
+    siteName: siteName || product.name,
+  });
 
   return {
-    title,
+    // absolute: layout'taki `%s | ${siteName}` sablonu ikinci kez marka eki
+    // ekleyip basligi 60 karakterin uzerine cikariyordu.
+    title: { absolute: title },
     description,
     keywords: product.meta_keywords || undefined,
     openGraph: {
@@ -300,6 +331,15 @@ export default async function ProductDetailPage({ params }: Props) {
         : undefined,
   };
 
+  // GEO citability + E-E-A-T: sunucuda uretilen, urun verisine dayali SSS.
+  const faqItems = buildProductFaq({
+    product,
+    price,
+    currency: seoCurrency.code,
+    availableStock: Number(availableStock || 0),
+  });
+  const faqJsonLd = buildProductFaqJsonLd(faqItems);
+
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -338,6 +378,12 @@ export default async function ProductDetailPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
+      {faqJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      )}
       <ProductDetailClient
         product={product}
         relatedProducts={relatedProducts}
@@ -405,6 +451,7 @@ export default async function ProductDetailPage({ params }: Props) {
           apply_coupon: t("apply_coupon"),
         }}
       />
+      <ProductFaq items={faqItems} />
     </>
   );
 }

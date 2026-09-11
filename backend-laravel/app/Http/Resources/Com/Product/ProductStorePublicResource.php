@@ -30,14 +30,19 @@ class ProductStorePublicResource extends JsonResource
             "slug" => $this->slug,
             "area_id" => $this->area_id,
             "phone" => $this->phone,
-            "email" => $this->email,
+            // 2026-09-11: "email" ve "tax_number" bu resource'tan kaldirildi.
+            // Urun detay sayfasi bu iki alani hic kullanmiyordu ama degerler
+            // her urun sayfasinin HTML kaynagina dusuyordu; Tanitio SEO
+            // katalogu bunu "Acik e-posta adresi 2 (spam botlari toplar)"
+            // olarak raporladi ve saticinin sahsi adresi ile vergi
+            // numarasi herkese acik hale geliyordu. Satici iletisimi
+            // magaza sayfasinda kendi endpoint'inden sunulmaya devam ediyor.
             "logo" => ImageModifier::generateImageUrl($this->logo),
             "banner" => ImageModifier::generateImageUrl($this->banner),
             "address" => $this->address,
             "latitude" => $this->latitude,
             "longitude" => $this->longitude,
             "tax" => $this->tax,
-            "tax_number" => $this->tax_number,
             "delivery_time" => $this->delivery_time,
             "meta_title" => $this->meta_title,
             "meta_description" => $this->meta_description,

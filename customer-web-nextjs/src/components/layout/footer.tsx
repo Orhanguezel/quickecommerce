@@ -17,15 +17,37 @@ import {
   Banknote,
 } from "lucide-react";
 import { usePaymentGatewaysQuery } from "@/modules/checkout/checkout.service";
+import type { PaymentGateway } from "@/modules/checkout/checkout.type";
+import type { FooterContent, SiteSettings } from "@/modules/site/site.type";
 import { cleanContactPhone } from "@/lib/seo";
 import Image from "next/image";
 
-export function Footer() {
+interface FooterProps {
+  /**
+   * FooterServer'dan gelen SSR verisi. React Query yaniti gelene kadar
+   * kullanilir; bu olmadan sunucudan donen HTML'de footer bos kaliyordu ve
+   * botlar iletisim/sosyal/hizli erisim baglantilarini hic gormuyordu.
+   */
+  initialSiteInfo?: SiteSettings | null;
+  initialFooterData?: FooterContent | null;
+  initialPaymentGateways?: PaymentGateway[];
+}
+
+export function Footer({
+  initialSiteInfo = null,
+  initialFooterData = null,
+  initialPaymentGateways,
+}: FooterProps = {}) {
   const t = useTranslations();
-  const { siteInfo } = useSiteInfoQuery();
-  const { footerData } = useFooterQuery();
+  const { siteInfo: siteInfoQuery } = useSiteInfoQuery();
+  const { footerData: footerDataQuery } = useFooterQuery();
   const { footerConfig } = useThemeConfig();
-  const { data: paymentGateways } = usePaymentGatewaysQuery();
+  const { data: paymentGatewaysQuery } = usePaymentGatewaysQuery();
+
+  const siteInfo = siteInfoQuery ?? initialSiteInfo;
+  const footerData = footerDataQuery ?? initialFooterData;
+  const paymentGateways = paymentGatewaysQuery ?? initialPaymentGateways;
+
   const contactPhone = cleanContactPhone(siteInfo?.com_site_contact_number);
 
   const quickAccess: FooterLinkItem[] = footerData?.com_quick_access ?? [];

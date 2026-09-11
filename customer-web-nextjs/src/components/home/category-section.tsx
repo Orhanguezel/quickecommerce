@@ -33,7 +33,7 @@ function CategoryItem({
         {imageUrl ? (
           <Image
             src={imageUrl}
-            alt=""
+            alt={cat.category_name}
             fill
             sizes="104px"
             className="object-cover transition-transform duration-500 group-hover:scale-105"

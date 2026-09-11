@@ -80,6 +80,34 @@ const nextConfig: NextConfig = {
         source: "/(.*)",
         headers: [
           {
+            // Tanitio SEO katalogu (2026-09-11): "Content Security Policy: Pasif".
+            // script-src bilerek `https:` kadar genis tutuldu — GTM konteyneri
+            // panelden yeni etiket eklendiginde yeni bir kaynaktan script
+            // indirebilir; daraltilmis bir liste olcum/reklam etiketlerini
+            // sessizce kirardi. Geri kalan vektorler (object, base, frame
+            // ancestors, http kaynaklar) yine de kapatilir.
+            // Sonraki adim: layout'taki inline script'lere nonce verip
+            // 'unsafe-inline' ve genis https: iznini kaldirmak.
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "base-uri 'self'",
+              "object-src 'none'",
+              "frame-ancestors 'self'",
+              "form-action 'self' https:",
+              "img-src 'self' data: blob: https:",
+              "font-src 'self' data: https:",
+              "style-src 'self' 'unsafe-inline' https:",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:",
+              "connect-src 'self' https: wss:",
+              "frame-src 'self' https:",
+              "media-src 'self' data: blob: https:",
+              "worker-src 'self' blob:",
+              "manifest-src 'self'",
+              "upgrade-insecure-requests",
+            ].join("; "),
+          },
+          {
             // microphone=(self): sesli arama (Web Speech API) icin ZORUNLU.
             // "microphone=()" mikrofonu kendi origin'ine bile kapatiyor ve
             // Chrome SpeechRecognition'i sessizce "not-allowed" ile dusuruyordu.
