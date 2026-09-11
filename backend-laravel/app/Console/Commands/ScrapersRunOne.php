@@ -73,12 +73,16 @@ class ScrapersRunOne extends Command
         // 'musclepump' name'i 'musclepump_import' db_source_name'e map'leniyor
         // registry'de — burada cron source name'i ('musclepump') kullanilir.
         $sourceUrlMap = [
+            'heynut' => env('LOCAL_SCRAPER_URL', 'http://127.0.0.1:8200'),
+            'raketspor_yonex' => env('LOCAL_SCRAPER_URL', 'http://127.0.0.1:8200'),
             'compexturkiye' => env('LOCAL_SCRAPER_URL', 'http://127.0.0.1:8200'),
             'eprotein'      => env('LOCAL_SCRAPER_URL', 'http://127.0.0.1:8200'),
             'proteinavm'    => env('LOCAL_SCRAPER_URL', 'http://127.0.0.1:8200'),
             'musclepump'    => env('LOCAL_SCRAPER_URL', 'http://127.0.0.1:8200'),
         ];
         $sourceKeyMap = [
+            'heynut' => env('LOCAL_SCRAPER_API_KEY', ''),
+            'raketspor_yonex' => env('LOCAL_SCRAPER_API_KEY', ''),
             'compexturkiye' => env('LOCAL_SCRAPER_API_KEY', ''),
             'eprotein'      => env('LOCAL_SCRAPER_API_KEY', ''),
             'proteinavm'    => env('LOCAL_SCRAPER_API_KEY', ''),
@@ -97,6 +101,12 @@ class ScrapersRunOne extends Command
         $proc->setEnv([
             'SCRAPER_URL' => $scraperUrl,
             'SCRAPER_API_KEY' => $scraperKey,
+            'SCRAPER_FALLBACK_URL' => in_array($source, $cfHeavySources, true)
+                ? env('FALLBACK_SCRAPER_URL', env('SCRAPER_URL', 'https://scraper.guezelwebdesign.com'))
+                : '',
+            'SCRAPER_FALLBACK_API_KEY' => in_array($source, $cfHeavySources, true)
+                ? env('FALLBACK_SCRAPER_API_KEY', env('SCRAPER_API_KEY', ''))
+                : '',
             'SCRAPER_TIMEOUT' => $scraperTimeout,
         ]);
         $proc->run();

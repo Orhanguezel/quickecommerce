@@ -12,12 +12,15 @@ use App\Http\Resources\Order\InvoiceResource;
 use App\Http\Resources\Order\OrderRefundRequestResource;
 use App\Http\Resources\Order\OrderSummaryResource;
 use App\Http\Resources\Order\StoreOrderResource;
-use App\Jobs\DispatchOrderEmails;
+use App\Mail\DynamicEmail;
+use App\Models\EmailTemplate;
 use App\Models\Order;
 use App\Models\Store;
 use App\Services\Order\OrderManageNotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
 class SellerStoreOrderController extends Controller
@@ -257,14 +260,13 @@ class SellerStoreOrderController extends Controller
         $success = $order->save();
 
         // Notify seller and customer
-        $order = [$order->id];
-        $this->orderManageNotificationService->createOrderNotification($order, 'seller_order_status_pcpps');
+        $this->orderManageNotificationService->createOrderNotification([$order->id], 'seller_order_status_pcpps');
 
-        try {
-            // Dispatch the email job asynchronously
-            dispatch(new DispatchOrderEmails($order->orderMaster?->id));
-        } catch (\Exception $e) {
-        }
+        // Musteriye YENI duruma ait e-posta. Eskiden burada DispatchOrderEmails
+        // (order-created sablonlari) cagriliyordu, ustelik $order bir array'e
+        // ezildigi icin $order->orderMaster her zaman null donuyordu -> hicbir
+        // mail gitmiyordu.
+        $this->sendCustomerStatusEmail($order);
 
         if ($success) {
             return response()->json([
@@ -277,6 +279,44 @@ class SellerStoreOrderController extends Controller
         }
 
 
+    }
+
+    /**
+     * Siparisin GERCEK durumuna ait sablonu musteriye yollar
+     * (order-status-pending / -confirmed / -processing / -shipped ...).
+     */
+    private function sendCustomerStatusEmail(Order $order): void
+    {
+        $template = EmailTemplate::where('type', 'order-status-' . $order->status)
+            ->where('status', 1)
+            ->first();
+
+        $email = $order->orderAddress?->email ?? $order->orderMaster?->customer?->email;
+
+        if (!$template || !$email) {
+            Log::info('[order-status-email] seller status maili atlandi', [
+                'order_id' => $order->id,
+                'status'   => $order->status,
+                'template' => (bool) $template,
+                'email'    => (bool) $email,
+            ]);
+            return;
+        }
+
+        $body = str_replace(
+            ['@customer_name', '@order_id', '@order_amount'],
+            [$order->orderMaster?->customer?->full_name, $order->id, amount_with_symbol_format($order->order_amount)],
+            $template->body ?? ''
+        );
+
+        try {
+            Mail::to($email)->send(new DynamicEmail($template->subject ?: 'Sipariş Durumu', $body));
+        } catch (\Throwable $e) {
+            Log::error('[order-status-email] seller status maili gonderilemedi', [
+                'order_id' => $order->id,
+                'error'    => $e->getMessage(),
+            ]);
+        }
     }
 
     public function cancelOrder(Request $request)

@@ -96,6 +96,14 @@ export const AppModal: React.FC<ModalProps> = ({
                 ease: "easeInOut",
               }}
               dir={dir}
+              // DIKKAT: framer-motion animasyon icin inline `style.transform`
+              // yazar ve buradaki -translate-x-1/2 / -translate-y-1/2
+              // siniflarini EZER. Yani transform ile ortalama BU MODALDA
+              // CALISMAZ; `left-1/2` veren bir customClass modali ekranin
+              // sag yarisina yapistirir (2026-08-29, siparis #211 ekran
+              // goruntusu). Ortalamak icin transform yerine
+              // `inset-x-* mx-auto max-w-*` kullan; kesinlik gerekiyorsa
+              // customClass'a `!transform-none` ekle.
               className={`print-modal fixed transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-gray-900 p-4 shadow-lg rounded-md z-90 ${customClass}`}
               onClick={(e) => e.stopPropagation()}
             >

@@ -35,6 +35,7 @@ import {
 } from "@/modules/support/support.service";
 import type { SupportTicket, TicketMessage } from "@/modules/support/support.type";
 import { useWishlistQuery, useWishlistRemoveMutation } from "@/modules/wishlist/wishlist.service";
+import { useMyReviewsQuery } from "@/modules/product/product-review.service";
 import {
   useWalletInfoQuery,
   useWalletTransactionsQuery,
@@ -103,8 +104,11 @@ import {
   TrendingDown,
   ArrowDownCircle,
   ArrowUpCircle,
+  Award,
 } from "lucide-react";
 import Cookies from "js-cookie";
+import { LoyaltyTab } from "@/components/account/loyalty-tab";
+import { ReviewRewardBanner } from "@/components/product/review-reward-banner";
 import { AUTH_TOKEN_KEY, AUTH_USER } from "@/lib/constants";
 
 type ApiError = {
@@ -125,7 +129,7 @@ interface Props {
   translations: Record<string, string>;
 }
 
-type Tab = "profile" | "orders" | "wishlist" | "recently_viewed" | "support" | "addresses" | "password" | "wallet";
+type Tab = "profile" | "orders" | "wishlist" | "recently_viewed" | "reviews" | "support" | "addresses" | "password" | "wallet" | "loyalty";
 
 export function AccountClient({ translations: t }: Props) {
   const locale = useLocale();
@@ -226,6 +230,11 @@ export function AccountClient({ translations: t }: Props) {
   const { data: wishlistData, isLoading: wishlistLoading } = useWishlistQuery(wishlistPage, hasAuthToken);
   const wishlistRemoveMutation = useWishlistRemoveMutation();
 
+  // Müşterinin kendi yorumları (Değerlendirmelerim sekmesi)
+  const { data: myReviews, isLoading: myReviewsLoading } = useMyReviewsQuery(
+    hasAuthToken && activeTab === "reviews"
+  );
+
   // Wallet queries
   const { data: walletData, refetch: refetchWallet } = useWalletInfoQuery(hasAuthToken);
   const { data: walletTxData, isLoading: walletTxLoading } = useWalletTransactionsQuery({
@@ -281,7 +290,7 @@ export function AccountClient({ translations: t }: Props) {
 
   useEffect(() => {
     const tab = searchParams.get("tab");
-    const validTabs: Tab[] = ["profile", "orders", "wishlist", "recently_viewed", "support", "addresses", "password", "wallet"];
+    const validTabs: Tab[] = ["profile", "orders", "wishlist", "recently_viewed", "reviews", "support", "addresses", "password", "wallet"];
     if (tab && validTabs.includes(tab as Tab)) {
       setActiveTab(tab as Tab);
     }
@@ -485,9 +494,11 @@ export function AccountClient({ translations: t }: Props) {
   const tabs: { key: Tab; label: string; icon: typeof User }[] = [
     { key: "profile", label: t.profile, icon: User },
     { key: "wallet", label: t.wallet || "Cüzdan", icon: Wallet },
+    { key: "loyalty", label: t.loyalty_points || "Puanlarım", icon: Award },
     { key: "orders", label: t.my_orders, icon: Package },
     { key: "wishlist", label: t.wishlist, icon: Heart },
     { key: "recently_viewed", label: t.recently_viewed, icon: Clock },
+    { key: "reviews", label: t.my_reviews || "Değerlendirmelerim", icon: Star },
     { key: "support", label: t.support, icon: Headphones },
     { key: "addresses", label: t.addresses, icon: MapPin },
     { key: "password", label: t.change_password, icon: Lock },
@@ -1184,6 +1195,9 @@ export function AccountClient({ translations: t }: Props) {
             <div className="rounded-lg border bg-card p-4 sm:p-6">
               <h2 className="mb-4 text-lg font-bold">{t.my_orders}</h2>
 
+              {/* Degerlendirme kampanyasi — kampanya kapaliyken cizilmez */}
+              <ReviewRewardBanner className="mb-4" />
+
               {/* Search & Filters */}
               <div className="mb-4 space-y-3">
                 <div className="relative w-full sm:max-w-sm">
@@ -1489,6 +1503,90 @@ export function AccountClient({ translations: t }: Props) {
           )}
 
           {/* Recently Viewed Tab */}
+          {activeTab === "reviews" && (
+            <div className="rounded-lg border bg-card p-4 sm:p-6">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-lg font-bold">{t.my_reviews || "Değerlendirmelerim"}</h2>
+              </div>
+
+              <ReviewRewardBanner className="mb-4" />
+
+              {myReviewsLoading ? (
+                <div className="flex justify-center py-10">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : !myReviews || myReviews.length === 0 ? (
+                <div className="py-10 text-center text-sm text-muted-foreground">
+                  <Star className="mx-auto mb-2 h-8 w-8 text-muted-foreground/30" />
+                  {t.no_reviews || "Henüz bir değerlendirme yapmadınız."}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {myReviews.map((rev) => {
+                    const statusMap: Record<string, { label: string; cls: string }> = {
+                      approved: { label: t.review_status_approved || "Yayında", cls: "bg-green-100 text-green-700" },
+                      pending: { label: t.review_status_pending || "Onay bekliyor", cls: "bg-amber-100 text-amber-700" },
+                      rejected: { label: t.review_status_rejected || "Reddedildi", cls: "bg-red-100 text-red-700" },
+                    };
+                    const badge = statusMap[rev.status] || statusMap.pending;
+                    return (
+                      <div key={rev.id} className="rounded-lg border border-foreground/10 p-3">
+                        <div className="flex items-start gap-3">
+                          {rev.product_image && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={rev.product_image}
+                              alt={rev.reviewed || "product"}
+                              className="h-14 w-14 flex-shrink-0 rounded-md border object-cover"
+                            />
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <span className="truncate text-sm font-medium">{rev.reviewed}</span>
+                              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${badge.cls}`}>
+                                {badge.label}
+                              </span>
+                            </div>
+                            <div className="mt-1 flex items-center gap-0.5">
+                              {Array.from({ length: 5 }).map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`h-3.5 w-3.5 ${
+                                    i < rev.rating ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/30"
+                                  }`}
+                                />
+                              ))}
+                              {rev.reviewed_at && (
+                                <span className="ml-2 text-xs text-muted-foreground">{rev.reviewed_at}</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <p className="mt-2 text-sm text-muted-foreground">{rev.review}</p>
+                        {rev.images?.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {rev.images.map((img, i) => (
+                              <a
+                                key={i}
+                                href={img}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block h-16 w-16 overflow-hidden rounded-md border"
+                              >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={img} alt={`review-${i}`} loading="lazy" className="h-full w-full object-cover" />
+                              </a>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
           {activeTab === "recently_viewed" && (
             <div className="rounded-lg border bg-card p-4 sm:p-6">
               <div className="mb-4 flex items-center justify-between">
@@ -1963,6 +2061,10 @@ export function AccountClient({ translations: t }: Props) {
           )}
 
           {/* Wallet Tab */}
+          {activeTab === "loyalty" && (
+            <LoyaltyTab t={t as unknown as Record<string, string>} enabled={hasAuthToken} />
+          )}
+
           {activeTab === "wallet" && (
             <div className="space-y-4">
               {/* Success Banner */}

@@ -28,8 +28,13 @@ class ScrapersHealthCheck extends Command
     protected $description = 'Tum scraper kaynaklarinin saglik durumunu kontrol edip Telegram\'a rapor gonderir.';
 
     private const STALE_HOURS = 24;
+
+    /** Bu sayinin altindaki kataloglarda "hic tukenmis yok" normal olabilir. */
+    private const NEVER_OUT_OF_STOCK_MIN_PRODUCTS = 40;
     private const MISSING_RATE_WARN = 0.20;   // %20+ mapping missing -> uyari
     private const STOCK100_RATE_WARN = 0.80;  // %80+ stok=100 -> bool default supheli
+    // Kaynak-yonetimli bir magazada bu kadar mapsiz-ama-stokta varyant varsa uyar.
+    private const UNMAPPED_IN_STOCK_WARN = 5;
 
     public function handle(): int
     {
@@ -82,9 +87,14 @@ class ScrapersHealthCheck extends Command
         $logFile = "{$logsDir}/scrapers-{$today}.log";
         if (file_exists($logFile)) {
             $log = file_get_contents($logFile);
-            // "FAIL: <name> scraper, sync atlaniyor" satirlari
+            // "FAIL: <name> scraper, sync atlaniyor" satirlari.
+            // PASSIVE kaynaklari atla — pause edilmeden ONCE bugun calisip FAIL
+            // etmis olabilirler (bayat log kaydi); artik cron'da degiller.
             if (preg_match_all('/FAIL:\s*(\S+)\s+scraper/i', $log, $matches)) {
                 foreach (array_unique($matches[1]) as $failed) {
+                    if (isset($passiveSources[$failed])) {
+                        continue;
+                    }
                     $issues[] = "{$failed}: bugun scrape FAIL etti (cron log)";
                 }
             }
@@ -146,6 +156,128 @@ class ScrapersHealthCheck extends Command
             }
         }
 
+        // 4b) MAPSIZ ama STOKTA gorunen varyantlar.
+        //     sync:source-prices yalnizca product_source_mappings satirlari
+        //     uzerinde yurur. Mapping'i olmayan bir varyant is listesine hic
+        //     girmez: fiyati/stogu import anindan beri DONMUS kalir ve
+        //     tedarikcide tukenmis olsa bile satilmaya devam eder.
+        //     2026-08-23: Everyway EV-906A (urun #4744, Compex) tam olarak
+        //     boyle satildi (siparis #204) — kaynak available=False, DB stok=1.
+        //     Backfill artik varsayilan acik, ama kaynaktan tamamen kalkmis
+        //     urunler slug ile de eslesmez; onlari burada gorunur tutuyoruz.
+        $unmappedRows = DB::table('stores as s')
+            ->join('products as p', function ($join) {
+                $join->on('p.store_id', '=', 's.id')->whereNull('p.deleted_at');
+            })
+            ->join('product_variants as pv', 'pv.product_id', '=', 'p.id')
+            ->leftJoin('product_source_mappings as m', 'm.product_variant_id', '=', 'pv.id')
+            ->whereNull('m.product_variant_id')
+            ->where('pv.stock_quantity', '>', 0)
+            // Yalnizca kaynak-yonetimli magazalar: tamamen manuel magazalarda
+            // (kendi stogunu tutanlar) mapping olmamasi normaldir.
+            ->whereIn('s.id', function ($q) {
+                $q->select('store_id')->from('product_source_mappings')->whereNotNull('store_id');
+            })
+            ->groupBy('s.id', 's.name')
+            ->selectRaw('s.name as store_name, COUNT(*) as adet')
+            ->havingRaw('COUNT(*) >= ?', [self::UNMAPPED_IN_STOCK_WARN])
+            ->get();
+
+        foreach ($unmappedRows as $r) {
+            $issues[] = sprintf(
+                '%s: %d varyant mapping\'siz ama stokta gorunuyor (sync bunlara HIC dokunmuyor - oversell riski)',
+                $r->store_name,
+                $r->adet
+            );
+        }
+
+        // 5) Sessiz bozukluk: exit=0 + JSON tazel AMA veri dejenere.
+        //    proteinmax 2026-06-25: scraper "basarili" (exit=0, JSON tazel) ama
+        //    ".ekle_button_stokta_yok" her sayfanin related-urun bolumunde
+        //    eslesip 2046/2046 urun available=False oldu. ~20 gun kimse fark
+        //    etmedi cunku yukaridaki kontrollerin HICBIRI tetiklenmiyordu.
+        $activeNames = [];
+        foreach (\App\Services\ScraperSourceRegistry::all() as $src) {
+            if (($src['status'] ?? null) === \App\Services\ScraperSourceRegistry::STATUS_ACTIVE) {
+                $activeNames[$src['name']] = true;
+            }
+        }
+        foreach ($jsonAges as $source => $meta) {
+            if (!isset($activeNames[$source])) {
+                continue;
+            }
+            $data = json_decode((string) @file_get_contents($meta['path']), true);
+            if (!is_array($data) || count($data) < 30) {
+                continue;
+            }
+            $total = 0;
+            $defIn = 0;
+            $defOut = 0;
+            $priced = 0;
+            foreach ($data as $p) {
+                if (!is_array($p)) {
+                    continue;
+                }
+                $total++;
+                $s = $this->productInStock($p);
+                if ($s === true) {
+                    $defIn++;
+                } elseif ($s === false) {
+                    $defOut++;
+                }
+                if ($this->productPriced($p)) {
+                    $priced++;
+                }
+            }
+            if ($total < 30) {
+                continue;
+            }
+            // TUM urunler kesin "tukendi" (null/unknown degil) -> stok tespiti kirilmis
+            if ($defOut === $total) {
+                $issues[] = "{$source}: SESSIZ BOZUK? {$total} urunun TAMAMI 'tukendi' isaretli — stok tespiti kirilmis olabilir (exit=0 + JSON tazel)";
+            }
+            // TERS YON: hicbir urun tukenmis degil. Bu, "hepsi tukendi"den DAHA
+            // TEHLIKELI — yok satmaya yol acan yon budur. Saglikli kaynaklarda
+            // urunlerin %15-50'si tukenmis cikar (provitanya %36, proteinmax %36).
+            // Bir kaynak yuzlerce urunde tek bir "tukendi" bile uretmiyorsa
+            // parser buyuk ihtimalle fail-open: stok sinyalini bulamayinca
+            // "stokta" varsayiyor.
+            //
+            // Yanlis alarmi onlemek icin iki kosul: yeterli urun sayisi ve
+            // kaynagin gecmiste de hic 0 uretmemis olmasi.
+            if ($defOut === 0 && $total >= self::NEVER_OUT_OF_STOCK_MIN_PRODUCTS) {
+                $everZero = DB::table('product_source_mappings')
+                    ->where('source_name', $source)
+                    ->where('last_synced_stock', 0)
+                    ->exists();
+
+                if (! $everZero) {
+                    $sellable = DB::table('product_source_mappings as m')
+                        ->join('products as p', 'p.id', '=', 'm.product_id')
+                        ->join('product_variants as v', 'v.product_id', '=', 'p.id')
+                        ->where('m.source_name', $source)
+                        ->where('p.status', 'approved')
+                        ->whereNull('p.deleted_at')
+                        ->whereNull('v.deleted_at')
+                        ->where('v.stock_quantity', '>', 0)
+                        ->distinct()
+                        ->count('p.id');
+
+                    $issues[] = sprintf(
+                        '%s: FAIL-OPEN SUPHESI — %d urunun HICBIRI tukenmis degil ve bu kaynak bugune kadar hic stok=0 uretmedi. '
+                            . 'Satista %d urun var; parser tukenmis urunu okuyamiyorsa bunlar yok satar.',
+                        $source,
+                        $total,
+                        $sellable
+                    );
+                }
+            }
+            // Hicbir urunde fiyat yok -> fiyat tespiti kirilmis
+            if ($priced === 0) {
+                $issues[] = "{$source}: SESSIZ BOZUK? {$total} urunun hicbirinde fiyat yok — fiyat tespiti kirilmis olabilir";
+            }
+        }
+
         $issueCount = count($issues);
         $sourceCount = count($jsonAges);
 
@@ -177,5 +309,59 @@ class ScrapersHealthCheck extends Command
         );
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Bir scraper urununun kesin stok durumu. Scraper ciktilarinda alan adlari
+     * degisir: top-level stock_quantity/available/in_stock veya variants[].
+     *
+     * @return bool|null true=kesin stokta, false=kesin tukendi, null=bilinmiyor
+     */
+    private function productInStock(array $p): ?bool
+    {
+        foreach (['stock_quantity', 'stock'] as $k) {
+            if (isset($p[$k]) && is_numeric($p[$k])) {
+                return ((int) $p[$k]) > 0;
+            }
+        }
+        foreach (['available', 'in_stock'] as $b) {
+            if (array_key_exists($b, $p) && $p[$b] !== null) {
+                return (bool) $p[$b];
+            }
+        }
+        if (!empty($p['variants']) && is_array($p['variants'])) {
+            foreach ($p['variants'] as $v) {
+                if (!is_array($v)) {
+                    continue;
+                }
+                foreach (['available', 'in_stock'] as $b) {
+                    if (array_key_exists($b, $v) && $v[$b] !== null && $v[$b]) {
+                        return true;
+                    }
+                }
+                if (isset($v['stock_quantity']) && is_numeric($v['stock_quantity']) && (int) $v['stock_quantity'] > 0) {
+                    return true;
+                }
+            }
+        }
+        return null;
+    }
+
+    /** Urunde gecerli (>0) bir fiyat var mi? (top-level veya variant). */
+    private function productPriced(array $p): bool
+    {
+        foreach (['original_price', 'discounted_price', 'price'] as $k) {
+            if (isset($p[$k]) && is_numeric($p[$k]) && (float) $p[$k] > 0) {
+                return true;
+            }
+        }
+        if (!empty($p['variants']) && is_array($p['variants'])) {
+            foreach ($p['variants'] as $v) {
+                if (is_array($v) && isset($v['price']) && is_numeric($v['price']) && (float) $v['price'] > 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

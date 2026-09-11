@@ -16,11 +16,13 @@ import {
   useCreatePaytrSessionMutation,
   usePlaceOrderMutation,
   usePaymentGatewaysQuery,
+  useVerifyStockMutation,
 } from "@/modules/checkout/checkout.service";
 import { useWalletInfoQuery } from "@/modules/wallet/wallet.service";
 import { useProfileQuery } from "@/modules/profile/profile.service";
 import { useBaseService } from "@/lib/base-service";
 import { useSiteInfoQuery } from "@/modules/site/site.action";
+import { getCartSessionId } from "@/hooks/use-cart-snapshot-sync";
 import type {
   CustomerAddress,
   PlaceOrderInput,
@@ -29,6 +31,15 @@ import type {
 } from "@/modules/checkout/checkout.type";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -40,8 +51,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Image from "next/image";
-import { trackBeginCheckout, trackPurchase } from "@/lib/gtm";
-import { trackFunnelEvent } from "@/lib/funnel-tracker";
+import { trackBeginCheckout, trackAddPaymentInfo, trackAddShippingInfo } from "@/lib/gtm";
+import { getFunnelAttributionContext, trackFunnelEvent } from "@/lib/funnel-tracker";
 import {
   MapPin,
   Plus,
@@ -53,6 +64,9 @@ import {
   Check,
   Tag,
   XCircle,
+  ShieldCheck,
+  RotateCcw,
+  Truck,
 } from "lucide-react";
 
 const gatewayIconMap: Record<string, typeof CreditCard> = {
@@ -95,6 +109,18 @@ export function CheckoutClient({ translations: t }: Props) {
     null
   );
   const [showAddressForm, setShowAddressForm] = useState(false);
+  /**
+   * Odeme durdurulunca gosterilen uyari.
+   *
+   * Native `alert()` KULLANILMIYOR: tarayicinin kendi kutusu, adresi ve
+   * "su siteden mesaj var" basligini TARAYICI DILINDE gosteriyor (Almanca
+   * Chrome'da "Auf sportoonline.com wird Folgendes angezeigt"), sayfa
+   * temasindan kopuk duruyor ve odeme adiminda dolandiricilik uyarisi gibi
+   * algilaniyor. Ustelik metin bicimlendirilemiyor.
+   */
+  const [notice, setNotice] = useState<{ title: string; message: string } | null>(null);
+
+  const showNotice = (title: string, message: string) => setNotice({ title, message });
   const [paymentMethod, setPaymentMethod] = useState<string>("");
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<{
@@ -131,6 +157,7 @@ export function CheckoutClient({ translations: t }: Props) {
   const couponMutation = useCheckCouponMutation();
   const placeOrderMutation = usePlaceOrderMutation();
   const createIyzicoSessionMutation = useCreateIyzicoSessionMutation();
+  const verifyStockMutation = useVerifyStockMutation();
   const createPaytrSessionMutation = useCreatePaytrSessionMutation();
   const { data: paymentGateways, isLoading: gatewaysLoading } =
     usePaymentGatewaysQuery();
@@ -227,13 +254,54 @@ export function CheckoutClient({ translations: t }: Props) {
     });
   }, [items.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const shippingInfoSentRef = useRef(false);
+  useEffect(() => {
+    const hasShippingAddress = selectedAddress
+      ? !selectedAddressMissingLocation
+      : showAddressForm && isAddressFormComplete;
+    if (!hasShippingAddress || shippingInfoSentRef.current || items.length === 0) return;
+    shippingInfoSentRef.current = true;
+    const analyticsItems = items.map((item) => ({
+      item_id: String(item.product_id),
+      item_name: item.name,
+      item_variant: item.variant_label,
+      price: item.price,
+      quantity: item.quantity,
+    }));
+    trackAddShippingInfo(analyticsItems, total, selectedCurrencyCode || 'TRY', 'home_delivery');
+    trackFunnelEvent({
+      event: "shipping_selected",
+      amount: shippingAmount,
+      meta: { shipping_tier: "home_delivery", city: selectedAddress?.city_name || addressForm.city_name },
+    });
+  }, [selectedAddressId, selectedAddressMissingLocation, showAddressForm, isAddressFormComplete]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const paymentInfoSentRef = useRef(false);
   useEffect(() => {
     if (!paymentMethod) return;
     trackFunnelEvent({
       event: "payment_selected",
       meta: { payment_method: paymentMethod },
     });
-  }, [paymentMethod]);
+    // GA4 add_payment_info — funnel'da begin_checkout -> add_payment_info ->
+    // purchase basamagi tam olsun. items/value begin_checkout ile ayni kaynak
+    // (sepet). Tek sefer (ref guard): yontem degistirilse de tekrar atilmaz.
+    if (!paymentInfoSentRef.current && items.length > 0) {
+      paymentInfoSentRef.current = true;
+      trackAddPaymentInfo(
+        items.map((i) => ({
+          item_id: String(i.product_id),
+          item_name: i.name,
+          item_variant: i.variant_label,
+          price: i.price,
+          quantity: i.quantity,
+        })),
+        subtotal,
+        selectedCurrencyCode || 'TRY',
+        paymentMethod,
+      );
+    }
+  }, [paymentMethod]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Payment failed redirect
   if (paymentStatus === "failed") {
@@ -350,6 +418,16 @@ export function CheckoutClient({ translations: t }: Props) {
   const handlePlaceOrder = async () => {
     // Auto-resolve items missing variant_id or store_id (stale localStorage data)
     if (!selectedAddressId) {
+      // Onceden sessizce return ediyordu -> kullanici "Odemeye Gec"e basip hicbir
+      // sey olmayinca terk ediyordu. Artik net uyari + adres bolumune kaydir.
+      setAddressSearchError(
+        "Devam etmek için lütfen bir teslimat adresi seçin veya yeni adres ekleyin."
+      );
+      if (typeof window !== "undefined") {
+        requestAnimationFrame(() =>
+          window.scrollTo({ top: 0, behavior: "smooth" })
+        );
+      }
       return;
     }
 
@@ -388,8 +466,62 @@ export function CheckoutClient({ translations: t }: Props) {
     // Final validation after resolution
     const stillMissing = resolvedItems.filter((i) => !i.variant_id || !i.store_id);
     if (stillMissing.length > 0) {
-      alert(
-        `Sepetinizdeki bazı ürünler güncellenemedi: ${stillMissing.map((i) => i.name).join(", ")}\n\nLütfen bu ürünleri sepetten kaldırıp tekrar ekleyin.`
+      showNotice(
+        "Sepetiniz güncellenemedi",
+        `Şu ürünler için güncel bilgi alınamadı: ${stillMissing
+          .map((i) => i.name)
+          .join(", ")}. Lütfen bu ürünleri sepetten kaldırıp tekrar ekleyin.`
+      );
+      return;
+    }
+
+    // Checkout-oncesi canli stok kontrolu: tukenmis veya tedarikci kaynaginda
+    // dogrulanamayan urun varsa siparis OLUSTURMA.
+    try {
+      const stockCheck = await verifyStockMutation.mutateAsync(
+        resolvedItems.map((i) => ({
+          product_id: i.product_id,
+          variant_id: i.variant_id ?? null,
+          name: i.name,
+        }))
+      );
+      if (stockCheck && !stockCheck.ok && stockCheck.out_of_stock.length > 0) {
+        const names = stockCheck.out_of_stock
+          .map((o) => o.name)
+          .filter(Boolean)
+          .join(", ");
+        const verificationSignals = new Set([
+          "no_signal",
+          "pool_error",
+          "verification_unavailable",
+          "verification_uncertain",
+          "source_url_missing",
+          "scraper_failure",
+          "exception",
+        ]);
+        const onlyVerificationProblem = stockCheck.out_of_stock.every((item) =>
+          verificationSignals.has(item.signal) || item.signal.startsWith("http_")
+        );
+        if (onlyVerificationProblem) {
+          showNotice(
+            "Stok bilgisi doğrulanamadı",
+            `${names} için tedarikçi stoğu şu anda teyit edilemedi. ` +
+              "Kartınızdan herhangi bir çekim yapılmadı. Birkaç dakika sonra tekrar deneyin."
+          );
+        } else {
+          showNotice(
+            "Ürün tedarikçide tükenmiş",
+            `${names} şu anda temin edilemiyor. Kartınızdan herhangi bir çekim ` +
+              "yapılmadı. Ürünü sepetinizden çıkarıp siparişinizi tamamlayabilirsiniz."
+          );
+        }
+        return;
+      }
+    } catch {
+      showNotice(
+        "Stok kontrolü yapılamadı",
+        "Stok doğrulama servisine şu anda ulaşılamıyor. Kartınızdan herhangi bir " +
+          "çekim yapılmadı; lütfen birkaç dakika sonra tekrar deneyin."
       );
       return;
     }
@@ -425,6 +557,10 @@ export function CheckoutClient({ translations: t }: Props) {
       coupon_title: appliedCoupon?.title,
       coupon_discount_amount_admin: appliedCoupon?.discount,
       packages,
+      attribution: {
+        ...getFunnelAttributionContext(),
+        cart_session_id: getCartSessionId() ?? undefined,
+      },
     };
 
     placeOrderMutation.mutate(orderData, {
@@ -434,21 +570,6 @@ export function CheckoutClient({ translations: t }: Props) {
           return;
         }
 
-        // GA4: purchase (fires once before cart is cleared)
-        trackPurchase(
-          String(orderId),
-          items.map((i) => ({
-            item_id: String(i.product_id),
-            item_name: i.name,
-            item_variant: i.variant_label,
-            price: i.price,
-            quantity: i.quantity,
-          })),
-          total,
-          selectedCurrencyCode || 'TRY',
-          shippingAmount,
-          appliedCoupon?.code,
-        );
         trackFunnelEvent({
           event: "order_created",
           order_id: Number(orderId),
@@ -502,6 +623,24 @@ export function CheckoutClient({ translations: t }: Props) {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Odeme durduruldu uyarisi — native alert() yerine site temasinda */}
+      <AlertDialog
+        open={notice !== null}
+        onOpenChange={(open) => !open && setNotice(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{notice?.title}</AlertDialogTitle>
+            <AlertDialogDescription>{notice?.message}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setNotice(null)}>
+              Tamam
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Breadcrumb */}
       <nav className="mb-6 text-sm text-muted-foreground">
         <Link href={ROUTES.HOME} className="hover:text-foreground">
@@ -664,6 +803,8 @@ export function CheckoutClient({ translations: t }: Props) {
                     <Label>{t.address_email}</Label>
                     <Input
                       type="email"
+                      inputMode="email"
+                      autoComplete="email"
                       value={addressForm.email}
                       onChange={(e) =>
                         setAddressForm({ ...addressForm, email: e.target.value })
@@ -674,6 +815,8 @@ export function CheckoutClient({ translations: t }: Props) {
                     <Label>{t.address_phone}</Label>
                     <Input
                       type="tel"
+                      inputMode="tel"
+                      autoComplete="tel"
                       value={addressForm.contact_number}
                       onChange={(e) =>
                         setAddressForm({
@@ -781,6 +924,8 @@ export function CheckoutClient({ translations: t }: Props) {
                     <Label>{t.address_postal}</Label>
                     <Input
                       value={addressForm.postal_code}
+                      inputMode="numeric"
+                      autoComplete="postal-code"
                       onChange={(e) =>
                         setAddressForm({
                           ...addressForm,
@@ -1037,6 +1182,24 @@ export function CheckoutClient({ translations: t }: Props) {
                   t.place_order
                 )}
               </Button>
+
+              <div className="mt-4 grid gap-2 text-xs text-muted-foreground">
+                <p className="flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-600" />
+                  Ödeme bilgileriniz güvenli ödeme kuruluşu üzerinden işlenir.
+                </p>
+                <p className="flex items-center gap-2">
+                  <Truck className="h-4 w-4 shrink-0 text-primary" />
+                  Kargo ücreti ve sipariş toplamı ödeme öncesinde yukarıda gösterilir.
+                </p>
+                <p className="flex items-center gap-2">
+                  <RotateCcw className="h-4 w-4 shrink-0 text-primary" />
+                  İade ve değişim koşullarını inceleyebilirsiniz.
+                  <Link href="/iade-degisim" className="font-medium text-primary underline">
+                    Koşullar
+                  </Link>
+                </p>
+              </div>
             </div>
           </div>
         </div>

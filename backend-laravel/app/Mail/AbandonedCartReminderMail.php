@@ -46,7 +46,8 @@ class AbandonedCartReminderMail extends Mailable
         $token = AbandonedCartController::unsubscribeToken($cart->id);
         $baseUrl = rtrim($siteUrl, '/');
 
-        $this->cartUrl = "{$baseUrl}/{$locale}/sepet?utm_source=recovery&utm_medium=email&utm_campaign=abandoned_cart_{$this->stage}";
+        $variant = $cart->recovery_variant ?: 'message_a';
+        $this->cartUrl = "{$baseUrl}/{$locale}/sepet?utm_source=recovery&utm_medium=email&utm_campaign=abandoned_cart_{$this->stage}&utm_content={$variant}";
         $this->unsubscribeUrl = "{$baseUrl}/{$locale}/sepet/unsubscribe?token=" . urlencode($token);
     }
 
@@ -54,8 +55,12 @@ class AbandonedCartReminderMail extends Mailable
     {
         $subject = match ($this->stage) {
             1 => __('Sepetinizde ürünler sizi bekliyor'),
-            2 => __('Sepetiniz için özel bir indirim kazandınız!'),
-            3 => __('Son hatırlatma: sepetiniz yakında silinecek'),
+            2 => $this->couponCode
+                ? __('Sepetiniz için özel bir indirim kazandınız!')
+                : __('Sepetinizdeki ürünlere tekrar göz atın'),
+            3 => $this->couponCode
+                ? __('Son hatırlatma: sepet avantajınızı kaçırmayın')
+                : __('Son hatırlatma: ürünleriniz hâlâ sepetinizde'),
             default => __('Sepetinizde ürünler sizi bekliyor'),
         };
 
@@ -69,6 +74,7 @@ class AbandonedCartReminderMail extends Mailable
                 'couponDiscountPercent'  => $this->couponDiscountPercent,
                 'cartUrl'                => $this->cartUrl,
                 'unsubscribeUrl'         => $this->unsubscribeUrl,
+                'variant'               => $this->cart->recovery_variant ?: 'message_a',
             ]);
     }
 }

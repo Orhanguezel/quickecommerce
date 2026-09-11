@@ -30,7 +30,7 @@ Route::middleware(['auth:sanctum'])->prefix('v1/')->group(function () {
 
 // public blog routes
 Route::group(['prefix' => 'v1/'], function () {
-    Route::get('/blogs', [FrontendBlogController::class, 'blogs']);
+    Route::get('/blogs', [FrontendBlogController::class, 'blogs'])->middleware('public.cache:3600');
     Route::get('/blog/{slug}', [FrontendBlogController::class, 'blogDetails']);
     Route::get('/blog-page-settings', [FrontendBlogController::class, 'BlogPageSettings']);
 });

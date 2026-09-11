@@ -8,7 +8,7 @@ import {
   sortCategoriesForNavigation,
 } from "@/modules/site/category-utils";
 import Image from "next/image";
-import { useEffect, useRef } from "react";
+import { useMemo, useRef } from "react";
 import { ChevronLeft, ChevronRight, Grid3X3 } from "lucide-react";
 
 interface CategorySectionProps {
@@ -33,7 +33,7 @@ function CategoryItem({
         {imageUrl ? (
           <Image
             src={imageUrl}
-            alt={cat.category_name}
+            alt=""
             fill
             sizes="104px"
             className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -54,9 +54,6 @@ function CategoryItem({
 export function CategorySection({ categories }: CategorySectionProps) {
   const allCats = categories;
   const scrollRef = useRef<HTMLDivElement>(null);
-  const pauseAutoScrollRef = useRef(false);
-  const autoScrollPositionRef = useRef(0);
-  const resumeAutoScrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isUsableImageUrl = (value?: string | null) =>
     Boolean(value && (/^https?:\/\//.test(value) || value.startsWith("/")));
 
@@ -69,151 +66,77 @@ export function CategorySection({ categories }: CategorySectionProps) {
     return null;
   };
 
-  const fallbackImageUrl =
-    allCats.map(getOwnImageUrl).find((imageUrl): imageUrl is string => Boolean(imageUrl)) ??
-    null;
-
-  const getParent = (category: Category) =>
-    category.parent_id ? allCats.find((cat) => Number(cat.id) === Number(category.parent_id)) : null;
-
-  const getCategoryImageUrl = (category: Category): string | null => {
-    const ownImageUrl = getOwnImageUrl(category);
-    if (ownImageUrl) return ownImageUrl;
-
-    const visited = new Set<number>();
-    let current = getParent(category);
-    while (current && !visited.has(current.id)) {
-      const parentImageUrl = getOwnImageUrl(current);
-      if (parentImageUrl) return parentImageUrl;
-      visited.add(current.id);
-      current = getParent(current);
+  const renderableCategories = useMemo(() => {
+    const categoryById = new Map(allCats.map((category) => [Number(category.id), category]));
+    const childrenByParent = new Map<number, Category[]>();
+    for (const category of allCats) {
+      if (category.parent_id === null) continue;
+      const parentId = Number(category.parent_id);
+      const children = childrenByParent.get(parentId) ?? [];
+      children.push(category);
+      childrenByParent.set(parentId, children);
     }
+    const getChildren = (parentId: number) =>
+      childrenByParent.get(Number(parentId)) ?? categoryById.get(Number(parentId))?.children ?? [];
+    const fallbackImageUrl =
+      allCats.map(getOwnImageUrl).find((imageUrl): imageUrl is string => Boolean(imageUrl)) ?? null;
 
-    const findDescendantImageUrl = (parentId: number): string | null => {
+    const hasDisplayableDescendant = (parentId: number, visited = new Set<number>()): boolean => {
+      if (visited.has(parentId)) return false;
+      visited.add(parentId);
+      return getChildren(parentId).some(
+        (child) =>
+          !isBuyPayCampaignCategory(child) &&
+          (isDisplayableProductCategory(child) || hasDisplayableDescendant(child.id, visited))
+      );
+    };
+    const findDescendantImageUrl = (parentId: number, visited = new Set<number>()): string | null => {
+      if (visited.has(parentId)) return null;
+      visited.add(parentId);
       for (const child of getChildren(parentId)) {
-        const childImage = getOwnImageUrl(child) ?? findDescendantImageUrl(child.id);
-        if (childImage) return childImage;
+        const image = getOwnImageUrl(child) ?? findDescendantImageUrl(child.id, visited);
+        if (image) return image;
       }
       return null;
     };
+    const getCategoryImageUrl = (category: Category): string | null => {
+      const ownImage = getOwnImageUrl(category);
+      if (ownImage) return ownImage;
 
-    const childImageUrl = findDescendantImageUrl(category.id);
-    if (childImageUrl) return childImageUrl;
+      const visited = new Set<number>();
+      let current = category.parent_id ? categoryById.get(Number(category.parent_id)) : null;
+      while (current && !visited.has(current.id)) {
+        const parentImage = getOwnImageUrl(current);
+        if (parentImage) return parentImage;
+        visited.add(current.id);
+        current = current.parent_id ? categoryById.get(Number(current.parent_id)) : null;
+      }
 
-    const siblingImageUrl = category.parent_id
-      ? getChildren(category.parent_id)
-          .map(getOwnImageUrl)
-          .find((imageUrl): imageUrl is string => Boolean(imageUrl))
-      : null;
+      return findDescendantImageUrl(category.id) ?? fallbackImageUrl;
+    };
 
-    return siblingImageUrl ?? fallbackImageUrl;
-  };
-
-  const getChildren = (parentId: number) => {
-    const flatChildren = allCats.filter((c) => Number(c.parent_id) === Number(parentId));
-    if (flatChildren.length > 0) return flatChildren;
-    const parent = allCats.find((c) => c.id === parentId);
-    return parent?.children ?? [];
-  };
-
-  const getDisplayableDescendants = (parentId: number): Category[] =>
-    getChildren(parentId)
-      .filter((child) => !isBuyPayCampaignCategory(child))
+    return allCats
+      .filter((category) => category.parent_id === null)
+      .filter((parent) => !isBuyPayCampaignCategory(parent))
+      .filter(
+        (parent) =>
+          isDisplayableProductCategory(parent) || hasDisplayableDescendant(parent.id)
+      )
       .sort(sortCategoriesForNavigation)
-      .flatMap((child) =>
-        isDisplayableProductCategory(child)
-          ? [child, ...getDisplayableDescendants(child.id)]
-          : getDisplayableDescendants(child.id)
-      );
-
-  const renderableCategories = allCats
-    .filter((c) => c.parent_id === null)
-    .filter((parent) => !isBuyPayCampaignCategory(parent))
-    .filter(
-      (parent) =>
-        isDisplayableProductCategory(parent) ||
-        getDisplayableDescendants(parent.id).length > 0
-    )
-    .sort(sortCategoriesForNavigation)
-    .map((parent) => ({
-      parent,
-      targetSlug: parent.category_slug,
-      imageUrl: getCategoryImageUrl(parent),
-    }));
+      .map((parent) => ({
+        parent,
+        targetSlug: parent.category_slug,
+        imageUrl: getCategoryImageUrl(parent),
+      }));
+  }, [allCats]);
 
   const scrollByPage = (direction: -1 | 1) => {
     const el = scrollRef.current;
     if (!el) return;
 
-    if (resumeAutoScrollTimeoutRef.current) {
-      clearTimeout(resumeAutoScrollTimeoutRef.current);
-    }
-    pauseAutoScrollRef.current = true;
-
-    const loopPoint = el.scrollWidth / 2;
     const amount = Math.max(el.clientWidth * 0.75, 320);
-    let target = el.scrollLeft + direction * amount;
-    if (loopPoint > el.clientWidth) {
-      if (target >= loopPoint) target -= loopPoint;
-      if (target < 0) target = Math.max(loopPoint + target, 0);
-    }
-
-    el.scrollTo({
-      left: target,
-      behavior: "smooth",
-    });
-    autoScrollPositionRef.current = target;
-
-    resumeAutoScrollTimeoutRef.current = setTimeout(() => {
-      pauseAutoScrollRef.current = false;
-      resumeAutoScrollTimeoutRef.current = null;
-    }, 1200);
+    el.scrollBy({ left: direction * amount, behavior: "smooth" });
   };
-
-  const shouldLoop = renderableCategories.length > 8;
-  const carouselItems = shouldLoop
-    ? [...renderableCategories, ...renderableCategories]
-    : renderableCategories;
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el || !shouldLoop) return;
-
-    const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (reducedMotionQuery.matches) return;
-
-    let frameId = 0;
-    let lastTime = performance.now();
-    autoScrollPositionRef.current = el.scrollLeft;
-    const speed = 0.18; // px per ms
-
-    const tick = (time: number) => {
-      const delta = Math.min(time - lastTime, 50);
-      lastTime = time;
-
-      const loopPoint = el.scrollWidth / 2;
-      if (!pauseAutoScrollRef.current && loopPoint > el.clientWidth) {
-        autoScrollPositionRef.current += delta * speed;
-        if (autoScrollPositionRef.current >= loopPoint) {
-          autoScrollPositionRef.current -= loopPoint;
-        }
-        el.scrollLeft = autoScrollPositionRef.current;
-      } else {
-        autoScrollPositionRef.current = el.scrollLeft;
-      }
-
-      frameId = requestAnimationFrame(tick);
-    };
-
-    frameId = requestAnimationFrame(tick);
-    return () => {
-      cancelAnimationFrame(frameId);
-      if (resumeAutoScrollTimeoutRef.current) {
-        clearTimeout(resumeAutoScrollTimeoutRef.current);
-        resumeAutoScrollTimeoutRef.current = null;
-      }
-    };
-  }, [shouldLoop, renderableCategories.length]);
 
   if (!categories.length || !renderableCategories.length) return null;
 
@@ -222,29 +145,11 @@ export function CategorySection({ categories }: CategorySectionProps) {
       <div
         ref={scrollRef}
         className="scrollbar-hide overflow-x-auto"
-        onMouseEnter={() => {
-          pauseAutoScrollRef.current = true;
-        }}
-        onMouseLeave={() => {
-          pauseAutoScrollRef.current = false;
-        }}
-        onFocus={() => {
-          pauseAutoScrollRef.current = true;
-        }}
-        onBlur={() => {
-          pauseAutoScrollRef.current = false;
-        }}
-        onTouchStart={() => {
-          pauseAutoScrollRef.current = true;
-        }}
-        onTouchEnd={() => {
-          pauseAutoScrollRef.current = false;
-        }}
       >
         <div className="flex w-max gap-4 py-2 pr-3">
-          {carouselItems.map((item, index) => (
+          {renderableCategories.map((item) => (
             <CategoryItem
-              key={`${item.parent.id}-${index}`}
+              key={item.parent.id}
               cat={item.parent}
               targetSlug={item.targetSlug}
               imageUrl={item.imageUrl}

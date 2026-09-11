@@ -6,6 +6,7 @@ import type { Category } from "@/modules/site/site.type";
 import {
   isDisplayableProductCategory,
   sortCategoriesForNavigation,
+  withSubtreeProductCounts,
 } from "@/modules/site/category-utils";
 import { CategoriesPageClient } from "./categories-client";
 import { localizedAlternates } from "@/lib/seo";
@@ -14,14 +15,18 @@ interface Props {
   params: Promise<{ locale: string }>;
 }
 
+interface CategoryListResponse {
+  data?: Category[];
+}
+
 async function getCategories(locale: string) {
   try {
-    const res = await fetchAPI<any>(
+    const res = await fetchAPI<CategoryListResponse>(
       API_ENDPOINTS.CATEGORIES,
-      { per_page: 500, all: "true", language: locale },
+      { per_page: 1000, all: "true", language: locale },
       locale
     );
-    return (res?.data ?? []) as Category[];
+    return withSubtreeProductCounts((res?.data ?? []) as Category[]);
   } catch {
     return [] as Category[];
   }

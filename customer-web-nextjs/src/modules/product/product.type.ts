@@ -123,12 +123,15 @@ export interface ProductReview {
     image_url: string | null;
   };
   review: string;
+  images: string[];
   rating: number;
   like_count: number;
   dislike_count: number;
   reviewed_at: string;
   liked: boolean;
   disliked: boolean;
+  /** Bu degerlendirme icin sadakat puani verildi mi (yasal aciklama rozeti). */
+  is_incentivized?: boolean;
 }
 
 export interface ProductSpecification {
@@ -158,6 +161,8 @@ export interface FlashSaleInfo {
 export interface ProductDetailResponse {
   messages: string;
   data: ProductDetail;
+  canonical_slug?: string | null;
+  locales?: string[];
   related_products: Product[];
 }
 

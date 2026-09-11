@@ -28,6 +28,12 @@ class AdminReviewResource extends JsonResource
                 ) : null,
             "reviewer" => $this->customer ? $this->customer->first_name . ' ' . $this->customer->last_name : null,
             "review" => $this->review,
+            "images" => $this->images
+                ? array_values(array_filter(array_map(
+                    fn ($id) => com_option_get_id_wise_url(trim($id)),
+                    explode(',', $this->images)
+                )))
+                : [],
             "rating" => $this->rating,
             "status" => $this->status,
             "like_count" => $this->like_count,

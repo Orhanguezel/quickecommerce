@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Enums\Gender;
 use App\Models\Customer;
+use App\Rules\ValidCustomerPhone;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -29,7 +30,9 @@ class CustomerRequest extends FormRequest
             'first_name' => 'required|string|max:255',
             'last_name' => 'nullable|string|max:255',
             'email' => 'required|email|unique:customers,email',
-            'phone' => 'nullable|string|unique:customers,phone',
+            // Gercek numara zorunlu: "535788754541" gibi uydurma numaralar
+            // eskiden gecip siparise dusuyordu (bkz. sahte siparis #204).
+            'phone' => ['nullable', 'string', 'max:32', 'unique:customers,phone', new ValidCustomerPhone()],
             'password' => 'required|string|min:8|max:32',
             'birth_day' => 'nullable|date|date_format:Y-m-d',
             'gender' => 'nullable|in:' . $this->getEnumValues(Gender::class),

@@ -66,6 +66,19 @@ const LEGACY_MARKETPLACE_CATEGORY_TERMS = [
   "tesettür",
 ];
 
+const PRIMARY_NAVIGATION_CATEGORY_SLUGS = new Set([
+  "spor-beslenmesi",
+  "fitness-egzersiz",
+  "outdoor-kamp",
+  "takim-bireysel-sporlar",
+  "spor-giyim-ayakkabi",
+  "spor-teknoloji",
+  "canta-aksesuar",
+  "spor-kitaplari",
+  "balikcililik",
+  "fizik-tedavi",
+]);
+
 export function isBuyPayCampaignCategory(category: Category): boolean {
   const text = normalizeCategoryText(
     `${category.category_name || ""} ${category.category_slug || ""}`
@@ -97,6 +110,51 @@ export function isDisplayableProductCategory(category: Category): boolean {
     isSportoonlineRelevantCategory(category) &&
     Number(category.product_count || 0) > 0
   );
+}
+
+export function isPrimaryNavigationCategory(category: Category): boolean {
+  return PRIMARY_NAVIGATION_CATEGORY_SLUGS.has(
+    normalizeCategoryText(category.category_slug || "")
+  );
+}
+
+/**
+ * The API reports products assigned directly to each category. Navigation and
+ * landing pages need the whole subtree count; otherwise a curated parent such
+ * as "Takım & Bireysel Sporlar" looks empty while its children contain stock.
+ */
+export function withSubtreeProductCounts(categories: Category[]): Category[] {
+  const childrenByParent = new Map<number, Category[]>();
+  for (const category of categories) {
+    if (category.parent_id === null) continue;
+    const siblings = childrenByParent.get(Number(category.parent_id)) ?? [];
+    siblings.push(category);
+    childrenByParent.set(Number(category.parent_id), siblings);
+  }
+
+  const totals = new Map<number, number>();
+  const visiting = new Set<number>();
+  const getTotal = (category: Category): number => {
+    const cached = totals.get(category.id);
+    if (cached !== undefined) return cached;
+    if (visiting.has(category.id)) return Number(category.product_count || 0);
+
+    visiting.add(category.id);
+    const direct = Number(category.direct_product_count ?? category.product_count ?? 0);
+    const total = (childrenByParent.get(category.id) ?? []).reduce(
+      (sum, child) => sum + getTotal(child),
+      direct
+    );
+    visiting.delete(category.id);
+    totals.set(category.id, total);
+    return total;
+  };
+
+  return categories.map((category) => ({
+    ...category,
+    direct_product_count: Number(category.direct_product_count ?? category.product_count ?? 0),
+    product_count: getTotal(category),
+  }));
 }
 
 export function sortCategoriesForNavigation(a: Category, b: Category): number {

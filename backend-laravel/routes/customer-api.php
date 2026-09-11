@@ -2,9 +2,9 @@
 
 use App\Http\Controllers\Api\V1\Customer\CustomerAddressManageController;
 use App\Http\Controllers\Api\V1\Customer\CustomerBlogController;
+use App\Http\Controllers\Api\V1\Customer\CustomerLoyaltyController;
 use App\Http\Controllers\Api\V1\Customer\CustomerManageController;
 use App\Http\Controllers\Api\V1\Customer\CustomerOrderController;
-use App\Http\Controllers\Api\V1\Customer\EInvoiceDownloadController;
 use App\Http\Controllers\Api\V1\Customer\CustomerOrderRefundController;
 use App\Http\Controllers\Api\V1\Customer\CustomerProductQueryController;
 use App\Http\Controllers\Api\V1\Customer\CustomerReviewManageController;
@@ -22,6 +22,12 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'customer/'], function () {
     // For customer register and login
     Route::post('registration', [CustomerManageController::class, 'registerCustomer']);
     Route::post('login', [CustomerManageController::class, 'loginCustomer']);
+    // Misafir (guest) checkout: uyeliksiz siparis icin hafif hesap + token.
+    // Once send-code ile e-postaya 6 haneli kod gider, guest-checkout o kodu ister.
+    Route::post('guest-checkout/send-code', [CustomerManageController::class, 'sendGuestCheckoutCode'])
+        ->middleware('throttle:10,1');
+    Route::post('guest-checkout', [CustomerManageController::class, 'guestCheckout'])
+        ->middleware('throttle:20,1');
     Route::post('forget-password', [CustomerManageController::class, 'sendPasswordResetToken']);
     Route::post('verify-token', [CustomerManageController::class, 'verifyPasswordResetToken']);
     Route::patch('reset-password', [CustomerManageController::class, 'resetPassword']);
@@ -42,7 +48,6 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'customer/', 'middleware' => 
         Route::group(['prefix' => 'profile/'], function () {
             Route::get('/', [CustomerManageController::class, 'customerProfile']);
             Route::post('/update', [CustomerManageController::class, 'updateCustomerProfile']);
-            Route::post('/change-email', [CustomerManageController::class, 'updateCustomerEmail']);
             Route::patch('/change-password', [CustomerManageController::class, 'changeCustomerPassword']);
             Route::patch('/activate-deactivate', [CustomerManageController::class, 'updateAccountStatus']);
             Route::get('/change-activity-notification-status', [CustomerManageController::class, 'toggleActivityNotification']);
@@ -81,6 +86,7 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'customer/', 'middleware' => 
         });
 
         Route::group(['prefix' => 'wish-list'], function () {
+            Route::patch('price-alerts', [WishListManageController::class, 'updatePriceAlerts']);
             Route::get('list', [WishListManageController::class, 'wishlists']);
             Route::post('store', [WishListManageController::class, 'addToWishlist']);
             Route::put('remove', [WishListManageController::class, 'removeFromWishlist']);
@@ -88,11 +94,19 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'customer/', 'middleware' => 
         // order manage
         Route::group(['prefix' => 'orders/'], function () {
             Route::get('invoice', [CustomerOrderController::class, 'orderInvoice']);
-            Route::get('{order_id}/e-invoice/pdf', [EInvoiceDownloadController::class, 'download']);
+            Route::get('payment-summary/{order_master_id}', [CustomerOrderController::class, 'paymentSummary']);
+            // e-Fatura PDF indirme, EInvoiceDownloadController yazildiginda geri eklenecek.
+            // Sinif hic var olmadigi icin rota 500 uretiyordu (frontend cagirmiyor).
             Route::post('cancel-order', [CustomerOrderController::class, 'cancelOrder']);
             Route::post('check-coupon', [CustomerOrderController::class, 'checkCoupon']);
             Route::post('request-refund', [CustomerOrderRefundController::class, 'orderRefundRequest']);
             Route::get('{order_id?}', [CustomerOrderController::class, 'myOrders']);
+        });
+        // Sadakat puani: bakiye/gecmis, bozdurma, cekler
+        Route::group(['prefix' => 'loyalty/'], function () {
+            Route::get('/', [CustomerLoyaltyController::class, 'index']);
+            Route::post('redeem', [CustomerLoyaltyController::class, 'redeem'])->middleware('throttle:10,1');
+            Route::get('vouchers', [CustomerLoyaltyController::class, 'vouchers']);
         });
         Route::group(['prefix' => 'review/'], function () {
             Route::get('/', [CustomerReviewManageController::class, 'index']);
@@ -108,6 +122,12 @@ Route::group(['namespace' => 'Api\V1', 'prefix' => 'customer/', 'middleware' => 
     Route::put('orders/payment-status-update', [OrderPaymentController::class, 'orderPaymentStatusUpdate'])->middleware('verify.hmac');
 
     Route::get('generate-hmac', [HmacGenerateController::class, 'generateHmac']);
+
+    // E-posta degistirme dogrulama KAPISININ DISINDA durur: kayitta e-postasini
+    // yanlis yazan kullanici kodu alamaz, dogrulayamaz ve icerde kalirsa
+    // adresini de duzeltemez (hesap tamamen kilitlenir). Yeni adrese giden kod
+    // zorunlu oldugu icin disarida olmasi guvenligi dusurmez.
+    Route::post('profile/change-email', [CustomerManageController::class, 'updateCustomerEmail']);
 
     // customer verify email
     Route::post('send-verification-email', [CustomerManageController::class, 'sendVerificationEmail']);

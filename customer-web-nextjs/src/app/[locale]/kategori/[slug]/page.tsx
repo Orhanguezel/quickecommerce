@@ -7,6 +7,7 @@ import type { Category } from "@/modules/site/site.type";
 import {
   isDisplayableProductCategory,
   sortCategoriesForNavigation,
+  withSubtreeProductCounts,
 } from "@/modules/site/category-utils";
 import { CategoryPageClient } from "./category-client";
 import { absoluteUrl, localizedAlternates, SITE_URL } from "@/lib/seo";
@@ -35,6 +36,32 @@ interface Brand {
   slug: string;
 }
 
+interface CategoryListResponse {
+  data?: Category[];
+}
+
+interface ProductListResponse {
+  data?: Product[];
+  meta?: {
+    current_page?: number;
+    last_page?: number;
+    per_page?: number;
+    total?: number;
+  };
+  current_page?: number;
+  last_page?: number;
+  per_page?: number;
+  total?: number;
+}
+
+interface BrandListResponse {
+  data?: Brand[];
+}
+
+interface StoreListResponse {
+  data?: { id: number; name: string }[];
+}
+
 function decodeCategorySlug(slug: string) {
   try {
     return decodeURIComponent(slug);
@@ -50,22 +77,21 @@ function getChildren(categories: Category[], parentId: number) {
 function getDisplayableDescendants(categories: Category[], parentId: number): Category[] {
   return getChildren(categories, parentId)
     .sort(sortCategoriesForNavigation)
-    .flatMap((child) =>
-      isDisplayableProductCategory(child)
-        ? [child]
-        : getDisplayableDescendants(categories, child.id)
-    );
+    .flatMap((child) => [
+      ...(isDisplayableProductCategory(child) ? [child] : []),
+      ...getDisplayableDescendants(categories, child.id),
+    ]);
 }
 
 async function findCategoryContext(slug: string, locale: string) {
   const decodedSlug = decodeCategorySlug(slug);
   try {
-    const res = await fetchAPI<any>(
+    const res = await fetchAPI<CategoryListResponse>(
       API_ENDPOINTS.CATEGORIES,
-      { per_page: 500, all: "true", language: locale },
+      { per_page: 1000, all: "true", language: locale },
       locale
     );
-    const categories = (res?.data ?? []) as Category[];
+    const categories = withSubtreeProductCounts((res?.data ?? []) as Category[]);
     return {
       category: categories.find((c) => c.category_slug === decodedSlug) ?? null,
       categories,
@@ -106,9 +132,12 @@ async function getCategoryData(
   }
 
   const extraParams = new URLSearchParams();
-  const defaultCategoryIds = isDisplayableProductCategory(category)
-    ? [String(category.id)]
-    : getDisplayableDescendants(categories, category.id).map((item) => String(item.id));
+  const defaultCategoryIds = [
+    ...(Number(category.direct_product_count ?? category.product_count ?? 0) > 0
+      ? [String(category.id)]
+      : []),
+    ...getDisplayableDescendants(categories, category.id).map((item) => String(item.id)),
+  ];
   const filterCategoryIds =
     categoryIds && categoryIds.length > 0
       ? categoryIds
@@ -135,13 +164,13 @@ async function getCategoryData(
 
   const [productsRes, brandsRes, storesRes] =
     await Promise.allSettled([
-      fetchAPI<any>(
+      fetchAPI<ProductListResponse>(
         `${API_ENDPOINTS.PRODUCTS}?${extraParams.toString()}`,
         productParams,
         locale
       ),
-      fetchAPI<any>(API_ENDPOINTS.BRANDS, { per_page: 100 }, locale),
-      fetchAPI<any>(API_ENDPOINTS.STORES, { per_page: 100 }, locale),
+      fetchAPI<BrandListResponse>(API_ENDPOINTS.BRANDS, { per_page: 100 }, locale),
+      fetchAPI<StoreListResponse>(API_ENDPOINTS.STORES, { per_page: 100 }, locale),
     ]);
 
   const productsData =

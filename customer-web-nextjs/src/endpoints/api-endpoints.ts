@@ -1,6 +1,9 @@
 export const API_ENDPOINTS = {
+  SEARCH_SUGGEST: "/search/suggest",
   // Auth (customer)
   LOGIN: "/customer/login",
+  GUEST_CHECKOUT: "/customer/guest-checkout",
+  GUEST_CHECKOUT_SEND_CODE: "/customer/guest-checkout/send-code",
   REGISTER: "/customer/registration",
   LOGOUT: "/customer/logout",
   REFRESH_TOKEN: "/customer/refresh-token",
@@ -10,6 +13,10 @@ export const API_ENDPOINTS = {
   OTP_LOGIN_SEND: "/otp-login/send",
   OTP_LOGIN_VERIFY: "/otp-login/verify",
   OTP_LOGIN_RESEND: "/otp-login/resend",
+  // Uyelik e-posta dogrulamasi (6 haneli kod)
+  SEND_VERIFICATION_EMAIL: "/customer/send-verification-email",
+  RESEND_VERIFICATION_EMAIL: "/customer/resend-verification-email",
+  VERIFY_EMAIL: "/customer/verify-email",
 
   // Site
   SITE_GENERAL_INFO: "/site-general-info",
@@ -30,8 +37,9 @@ export const API_ENDPOINTS = {
   PRODUCT_QA: "/product-query/search-question",
   PRODUCT_QA_ASK: "/customer/product-query/ask-question",
   PRODUCT_SUGGESTION: "/product-suggestion",
-  REVIEW_ADD: "/product-review/store",
-  REVIEW_REACTION: "/product-review/reaction",
+  REVIEW_ADD: "/customer/review/add",
+  REVIEW_REACTION: "/customer/review/reaction",
+  REVIEW_MY: "/customer/review",
 
   // Homepage Product Sections
   NEW_ARRIVALS: "/new-arrivals",
@@ -74,6 +82,7 @@ export const API_ENDPOINTS = {
 
   // Checkout & Orders
   ORDER_CHECKOUT: "/orders/checkout",
+  VERIFY_STOCK: "/orders/verify-stock",
   CHECK_COUPON: "/check-coupon",
   DELIVERY_CHARGE: "/calculate-delivery-charge",
   CHECKOUT_INFO: "/checkout-info",
@@ -98,6 +107,13 @@ export const API_ENDPOINTS = {
   DELETE_ACCOUNT: "/customer/profile/delete",
 
   // Wallet
+  // Sadakat puani
+  LOYALTY: "/customer/loyalty",
+  LOYALTY_REDEEM: "/customer/loyalty/redeem",
+  LOYALTY_VOUCHERS: "/customer/loyalty/vouchers",
+  /** Herkese acik kampanya bilgisi (auth gerektirmez). */
+  LOYALTY_CAMPAIGN: "/loyalty-campaign",
+
   WALLET: "/customer/wallet",
   WALLET_DEPOSIT: "/customer/wallet/deposit",
   WALLET_TRANSACTIONS: "/customer/wallet/transactions",

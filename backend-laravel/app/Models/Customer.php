@@ -28,6 +28,7 @@ class Customer extends Authenticatable // Extend Authenticatable instead of Mode
         'birth_day',
         'gender',
         'verified',
+        'is_guest',
         'verify_method',
         'marketing_email',
         'marketing_sms',
@@ -55,6 +56,7 @@ class Customer extends Authenticatable // Extend Authenticatable instead of Mode
     {
         return [
             'password' => 'hashed',
+            'is_guest' => 'boolean',
         ];
     }
 

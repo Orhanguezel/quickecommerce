@@ -6,7 +6,7 @@ use Illuminate\Support\Str;
 class MultilangSlug
 {
 
-    public static function makeSlug(string $model, $slugText, string $field = '', string $divider = null): string
+    public static function makeSlug(string $model, $slugText, string $field = '', ?string $divider = null): string
     {
         $slugText = match (true) {
             !empty($slugText)  => $slugText,
@@ -16,7 +16,7 @@ class MultilangSlug
     }
 
 
-    public static function globalSlugify(string $model, string $slugText,  string $field = '', string $divider = null): string
+    public static function globalSlugify(string $model, string $slugText,  string $field = '', ?string $divider = null): string
     {
         try {
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 
 use App\Models\AbandonedCart;
+use App\Models\OrderMaster;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
@@ -106,6 +107,7 @@ class AbandonedCartController extends Controller
     {
         $validated = $request->validate([
             'session_id' => 'nullable|string|max:64',
+            'order_master_id' => 'required|integer',
         ]);
 
         $customerId = auth('api_customer')->check()
@@ -115,8 +117,34 @@ class AbandonedCartController extends Controller
             ? auth('api_customer')->user()->email
             : null;
 
+        $orderMaster = OrderMaster::query()
+            ->whereKey($validated['order_master_id'])
+            ->where('customer_id', $customerId)
+            ->where('payment_status', 'paid')
+            ->when($customerId === null, function ($query) use ($validated) {
+                $sessionId = $validated['session_id'] ?? null;
+                $query->whereNotNull('cart_session_id')->where('cart_session_id', $sessionId ?: '__missing__');
+            })
+            ->first();
+
+        if (! $orderMaster) {
+            return response()->json([
+                'status' => false,
+                'message' => 'paid order not found',
+            ], 422);
+        }
+
         $q = $this->identifyQuery($customerId, $email, $validated['session_id'] ?? null);
-        $q->whereNull('recovered_at')->update(['recovered_at' => now()]);
+        $carts = $q->whereNull('recovered_at')->get();
+        foreach ($carts as $cart) {
+            $cart->forceFill([
+                'recovered_at' => now(),
+                'recovered_order_master_id' => $orderMaster->id,
+                'incentive_cost' => $cart->first_reminded_at
+                    ? (float) ($orderMaster->coupon_discount_amount_admin ?? 0)
+                    : 0,
+            ])->save();
+        }
 
         return response()->json(['status' => true]);
     }

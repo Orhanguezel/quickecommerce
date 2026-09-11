@@ -220,7 +220,7 @@ export function ThemePopup() {
     <>
       <style>{`@keyframes marquee { 0%{transform:translateX(100%)} 100%{transform:translateX(-100%)} }`}</style>
       {topVisible && currentTopPopup ? (() => {
-        const { containerStyle, buttonStyle, closeButtonStyle } = buildStyles(currentTopPopup);
+        const { containerStyle, closeButtonStyle } = buildStyles(currentTopPopup);
         return (
           <div className="fixed top-0 left-0 right-0 z-[70] border bg-primary text-primary-foreground" style={containerStyle}>
             <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2">
@@ -231,7 +231,7 @@ export function ThemePopup() {
                 </button>
               ) : null}
               {currentTopPopup.buttonText && currentTopPopup.buttonUrl ? (
-                <a href={currentTopPopup.buttonUrl} onClick={dismissTop} target="_blank" rel="nofollow noopener noreferrer" className="rounded border bg-white px-3 py-1 text-xs font-semibold text-primary" style={buttonStyle}>
+                <a href={currentTopPopup.buttonUrl} onClick={dismissTop} target="_blank" rel="nofollow noopener noreferrer" className="rounded border bg-white px-3 py-1 text-xs font-semibold text-green-800">
                   {currentTopPopup.buttonText}
                 </a>
               ) : null}
@@ -244,7 +244,7 @@ export function ThemePopup() {
       })() : null}
 
       {bottomVisible && currentBottomPopup ? (() => {
-        const { containerStyle, buttonStyle, closeButtonStyle } = buildStyles(currentBottomPopup);
+        const { containerStyle, closeButtonStyle } = buildStyles(currentBottomPopup);
         return (
           <div className="fixed bottom-0 left-0 right-0 z-[70] border bg-primary text-primary-foreground" style={containerStyle}>
             <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2">
@@ -255,7 +255,7 @@ export function ThemePopup() {
                 </button>
               ) : null}
               {currentBottomPopup.buttonText && currentBottomPopup.buttonUrl ? (
-                <a href={currentBottomPopup.buttonUrl} onClick={dismissBottom} target="_blank" rel="nofollow noopener noreferrer" className="rounded border bg-white px-3 py-1 text-xs font-semibold text-primary" style={buttonStyle}>
+                <a href={currentBottomPopup.buttonUrl} onClick={dismissBottom} target="_blank" rel="nofollow noopener noreferrer" className="rounded border bg-white px-3 py-1 text-xs font-semibold text-green-800">
                   {currentBottomPopup.buttonText}
                 </a>
               ) : null}

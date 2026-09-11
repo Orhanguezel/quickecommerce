@@ -88,7 +88,6 @@ export function RecentlyViewedSection({
                       fill
                       sizes="200px"
                       className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      unoptimized
                     />
                   ) : (
                     <div className="flex h-full items-center justify-center">
@@ -96,7 +95,7 @@ export function RecentlyViewedSection({
                     </div>
                   )}
                   {item.discount_percentage > 0 && (
-                    <span className="absolute left-1.5 top-1.5 rounded bg-red-500 px-1.5 py-0.5 text-xs font-bold text-white">
+                    <span className="absolute left-1.5 top-1.5 rounded bg-red-700 px-1.5 py-0.5 text-xs font-bold text-white">
                       -{Math.round(item.discount_percentage)}%
                     </span>
                   )}

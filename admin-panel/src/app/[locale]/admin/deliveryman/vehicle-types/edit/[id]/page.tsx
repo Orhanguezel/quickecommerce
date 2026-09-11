@@ -1,4 +1,3 @@
-import CustomLayout from "@/components/layout/CustomLayout";
 import EditVehicleType from "@/components/screen/admin-section/deliveryman/vehicle-type/EditVehicleType";
 
 
@@ -7,9 +6,7 @@ const EditVehicleTypePage = async ({ params }: Props) => {
     const param = await params;
   return (
     <>
-      <CustomLayout>
-        <EditVehicleType ID={param.id} />
-      </CustomLayout>
+      <EditVehicleType ID={param.id} />
     </>
   );
 };

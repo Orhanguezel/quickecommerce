@@ -7,6 +7,7 @@ use App\Models\ProductSourceMapping;
 use App\Models\ProductVariant;
 use Illuminate\Console\Command;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class SyncSourcePrices extends Command
@@ -16,10 +17,12 @@ class SyncSourcePrices extends Command
                             {json_file : Guncel scraper JSON dosyasi}
                             {--store_id= : Sadece belirli magazayi sync et}
                             {--apply : Degisiklikleri DB\'ye yaz}
-                            {--backfill-by-slug : Mapping yoksa slug + varyant bilgisiyle esleme onizle/olustur}
+                            {--backfill-by-slug : (VARSAYILAN ACIK) Mapping yoksa slug + varyant bilgisiyle esleme onizle/olustur}
+                            {--no-backfill : Slug backfill\'i kapat; sadece mevcut mapping\'ler sync edilir}
                             {--backfill-by-name : Mapping yoksa urun adiyla esleme (slug uyusmazsa; birebir ad, ayni ad birden fazlaysa atlar)}
                             {--backfill-only : Sadece mapping backfill yap, fiyat/stok sync calistirma}
                             {--max-change-percent=30 : Fiyat degisim yuzdesi bu siniri asarsa fiyati atla (stok yine guncellenir)}
+                            {--stock-only : Yalnizca stok uygula; fiyat alanlarina dokunma}
                             {--allow-zero-price : 0 fiyat gelirse de uygula (varsayilan: engelle)}
                             {--keep-missing-stock : Kaynakta bulunamayan urunlerde stogu sifirlama (varsayilan: sifirla)}';
 
@@ -31,8 +34,10 @@ class SyncSourcePrices extends Command
     private bool $backfillBySlug = false;
     private bool $backfillByName = false;
     private bool $allowZeroPrice = false;
+    private bool $stockOnly = false;
     private float $maxChangePercent = 30.0;
     private bool $zeroMissingStock = true;
+    private ?string $defaultCurrencyCode = null;
     private bool $safeToZeroMissing = true;
 
     public function handle(): int
@@ -40,9 +45,20 @@ class SyncSourcePrices extends Command
         $this->sourceName = $this->normalizeSourceName($this->argument('source_name'));
         $jsonFile = $this->argument('json_file');
         $this->apply = (bool) $this->option('apply');
-        $this->backfillBySlug = (bool) $this->option('backfill-by-slug');
+        // 2026-08-23: SLUG BACKFILL ARTIK VARSAYILAN ACIK.
+        //
+        // Onceden mapping olusturmak icin --backfill-by-slug'i elle vermek
+        // gerekiyordu ve HICBIR cagiran vermiyordu (run-all.sh,
+        // run-intraday-stock.sh, run-evening-stock.sh, ScrapersRunOne hepsi
+        // bayraksiz cagiriyordu). Sonuc: magazaya sonradan giren veya
+        // mapping'i dusen urunler sync'in is listesine hic girmiyor, import
+        // anindaki stokla DONMUS kaliyor ve tedarikcide tukenmis olsa bile
+        // satiliyordu. Somut vaka: Everyway EV-906A (urun #4744, Compex)
+        // kaynakta available=False iken DB'de stok=1 kaldi -> siparis #204.
+        $this->backfillBySlug = !$this->option('no-backfill');
         $this->backfillByName = (bool) $this->option('backfill-by-name');
         $this->allowZeroPrice = (bool) $this->option('allow-zero-price');
+        $this->stockOnly = (bool) $this->option('stock-only');
         $this->maxChangePercent = (float) $this->option('max-change-percent');
         $this->zeroMissingStock = !$this->option('keep-missing-stock');
 
@@ -103,10 +119,21 @@ class SyncSourcePrices extends Command
             'errors' => 0,
         ];
 
-        // Guvenlik: kaynak JSON, mevcut mapping sayisinin yarisindan az urun
+        // Guvenlik: kaynak JSON, mevcut URUN sayisinin yarisindan az urun
         // iceriyorsa scrape muhtemelen kismidir; 'missing' urunlerde stok
         // sifirlamayi DEVRE DISI birak (yoksa saglam urunler yanlislikla 0 olur).
-        $mappingTotal = (clone $query)->count();
+        //
+        // 2026-08-29 DUZELTME: burada mapping SATIRI sayiliyordu; mapping ise
+        // VARYANT basina bir tane. Kaynak JSON'daki sayi ise URUN sayisi.
+        // Elma-armut karsilastirmasi, cok varyantli kaynaklarda freni KALICI
+        // olarak tetikliyordu:
+        //   everlast   2310 mapping / 542 urun = 4.3 varyant  -> 576 < 1155  FREN
+        //   superstacy 1735 mapping / 468 urun = 3.7 varyant  -> 464 <  867  FREN
+        //   norfolk     815 mapping / 303 urun = 2.7 varyant  -> 337 <  407  FREN
+        // Uc kaynagin da scrape'i aslinda TAMDI (576 >= 542). Fren kilitli
+        // kaldigi icin kaynaktan kalkmis urunlerin stogu hic sifirlanmadi ve
+        // 23 urun satista kalmaya devam etti (yok satma riski).
+        $mappingTotal = (clone $query)->distinct()->count('product_id');
         $sourceUnique = max(
             count($this->sourceProducts['slug']),
             count($this->sourceProducts['url']),
@@ -146,7 +173,19 @@ class SyncSourcePrices extends Command
                 ['Missing -> stok 0', $stats['missing_zeroed']],
                 ['Gecersiz/0 fiyat (stok yine guncellendi)', $stats['invalid_price']],
                 ['Fiyat limiti (stok yine guncellendi)', $stats['price_guard']],
+                // 2026-07-28: Bu iki satir eksikti. syncMapping stok=0 urunlerde
+                // 'stock_zero_skip_price', ilk kez kaybolanlarda 'missing_transient'
+                // dondurur; ikisi de hicbir satirda gorunmuyordu ve "Kontrol edilen"
+                // ile digerlerinin toplami tutmuyordu (or. 1853 kontrol / 999 raporlu).
+                // Sessiz kategori = fark edilmeyen sapma; artik gorunur.
+                ['Stok 0 (fiyat sync atlandi)', $stats['stock_zero_skip_price'] ?? 0],
+                ['Kaynakta yok - ilk tur (transient)', $stats['missing_transient'] ?? 0],
                 ['Hata', $stats['errors']],
+                ['-- raporlanmayan (olmamali)', max(0, $stats['checked']
+                    - ($this->apply ? $stats['updated'] : $stats['would_update'])
+                    - $stats['unchanged'] - $stats['missing'] - $stats['missing_zeroed']
+                    - $stats['invalid_price'] - $stats['price_guard'] - $stats['errors']
+                    - ($stats['stock_zero_skip_price'] ?? 0) - ($stats['missing_transient'] ?? 0))],
             ]
         );
 
@@ -173,8 +212,24 @@ class SyncSourcePrices extends Command
                 $this->markMapping($mapping, 'missing_zeroed', 'Source product not found; stock zeroed.');
                 return 'missing_zeroed';
             }
-            $this->markMapping($mapping, 'missing', 'Source product not found.');
-            return 'missing';
+            // 2026-07-17: Tek scrape'te kaybolma cogu zaman GECICI (urun sayfasinin
+            // fetch/parse'i o an basarisiz oldu / run-all timing) — gercekten
+            // kaldirilmis degil. Daha once basariyla sync olmus (last_synced_price
+            // dolu) bir urun ILK kez kayboluyorsa 'missing_transient' (health-check
+            // ALARMI YOK). Arka arkaya 2. turda da yoksa 'missing' (gercek kalkma).
+            // musclepump'in her gun bosuna flaglenmesini onler; stok davranisi
+            // degismez (yukaridaki safeToZeroMissing zaten koruyor).
+            $neverSynced = $mapping->last_synced_price === null;
+            $wasTransient = $mapping->last_sync_status === 'missing_transient';
+            $missStatus = ($neverSynced || $wasTransient) ? 'missing' : 'missing_transient';
+            $this->markMapping(
+                $mapping,
+                $missStatus,
+                $missStatus === 'missing'
+                    ? 'Source product not found.'
+                    : 'Not in this scrape — transient (1st miss, no alarm).'
+            );
+            return $missStatus;
         }
 
         $sourceVariant = $this->findSourceVariant($mapping, $sourceProduct);
@@ -196,7 +251,9 @@ class SyncSourcePrices extends Command
               && $incoming['stock_quantity'] !== null
               && (int) $incoming['stock_quantity'] === 0;
 
-        if ($incomingStockZero) {
+        if ($this->stockOnly) {
+            $priceStatus = 'stock_only';
+        } elseif ($incomingStockZero) {
             // 2026-06-04: Tukenmis (stok=0) urunlerde tedarikciler fiyat alanini
             // genelde bozuk veriyor (eprotein Cellucor C4: 1500 TL gercek ->
             // tukendiginde JSON-LD'de 194 TL gosterildi). Bu yuzden stok=0 ise
@@ -214,15 +271,29 @@ class SyncSourcePrices extends Command
                     $changes[$field] = $incomingValue;
                 }
             }
+
+            // BAYAT INDIRIM TEMIZLIGI (2026-07-17): Kaynak artik indirim yapmiyorsa
+            // (incoming special_price null) ama bizde eski bir special takiliysa TEMIZLE.
+            // Aksi halde kaynagin indirimi bitince/degisince bizim special bayat kalip
+            // tedarikci maliyetinin ALTINDA satisa (zarar) yol aciyordu — ceysport CPBP-10
+            // vakasi: 3450 special, tedarikci 4450. Yalniz bu dal (fiyat guvenilir) icinde.
+            if ($incoming['special_price'] === null
+                && $variant->special_price !== null
+                && (float) $variant->special_price > 0) {
+                $changes['special_price'] = null;
+            }
+
+            $this->keepCurrencyInputInSync($variant, $changes);
         }
 
         if (empty($changes)) {
             // Yazilacak bir sey yok: fiyat donduysa onu, degilse 'unchanged' raporla.
-            $status = $priceStatus ?? 'unchanged';
+            $status = $priceStatus === 'stock_only' ? 'unchanged' : ($priceStatus ?? 'unchanged');
             $note = match ($priceStatus) {
                 'invalid_price' => 'Source returned empty or zero price.',
                 'price_guard' => 'Price change exceeded max-change-percent.',
                 'stock_zero_skip_price' => 'Stock is zero; price not synced (source price may be unreliable).',
+                'stock_only' => 'Stock checked; price sync disabled (--stock-only).',
                 default => 'No price or stock change.',
             };
             $this->markMapping($mapping, $status, $note);
@@ -239,11 +310,60 @@ class SyncSourcePrices extends Command
 
         $variant->update($changes);
         $note = $priceStatus
-            ? "Stock updated; price skipped ({$priceStatus})."
+            ? ($priceStatus === 'stock_only'
+                ? 'Stock updated; price sync disabled (--stock-only).'
+                : "Stock updated; price skipped ({$priceStatus}).")
             : 'Price/stock updated.';
+        if ($this->stockOnly) {
+            $incoming['price'] = $this->numberOrNull($variant->price);
+            $incoming['special_price'] = $this->numberOrNull($variant->special_price);
+        }
         $this->markMapping($mapping, 'updated', $note, $incoming);
 
         return 'updated';
+    }
+
+    /**
+     * Kur servisi, price_input_currency_code dolu olan her varyantin fiyatini
+     * saat basi price_input_amount'tan yeniden hesaplar. Sync yalnizca price
+     * yazdigi icin bir sonraki kur kosusu fiyati ESKI input degerine geri
+     * cekiyordu: ceysport masa tenisi masasi 31.000 TL'ye guncelleniyor,
+     * saat basinda 400 TL'ye donuyordu (61 urun, 206.755 TL fark). Admin
+     * paneli ayni tuzagi input alanlarini da yazarak cozuyor; sync de artik
+     * ayni sekilde davraniyor.
+     *
+     * Girdi para birimi bos olan varyantlara dokunulmaz — onlar kur
+     * yonetiminde degil, fiyatlari zaten oldugu gibi kalir.
+     */
+    private function keepCurrencyInputInSync(ProductVariant $variant, array &$changes): void
+    {
+        if (empty($variant->price_input_currency_code)) {
+            return;
+        }
+
+        $currencyCode = $this->defaultCurrencyCode();
+
+        if (array_key_exists('price', $changes)) {
+            $changes['price_input_amount'] = $changes['price'];
+            $changes['price_input_currency_code'] = $currencyCode;
+        }
+
+        if (array_key_exists('special_price', $changes)) {
+            $changes['special_price_input_amount'] = $changes['special_price'];
+            $changes['special_price_input_currency_code'] = $changes['special_price'] === null ? null : $currencyCode;
+        }
+    }
+
+    private function defaultCurrencyCode(): string
+    {
+        if ($this->defaultCurrencyCode === null) {
+            $this->defaultCurrencyCode = (string) (DB::table('currencies')
+                ->where('is_default', true)
+                ->where('status', true)
+                ->value('code') ?? 'TRY');
+        }
+
+        return $this->defaultCurrencyCode;
     }
 
     private function indexSourceProducts(array $products): array
@@ -448,7 +568,9 @@ class SyncSourcePrices extends Command
     private function backfillMappings(array $products): int
     {
         $created = 0;
-        $storeId = $this->option('store_id') ? (int) $this->option('store_id') : null;
+        $storeId = $this->option('store_id')
+            ? (int) $this->option('store_id')
+            : $this->inferStoreIdForSource();
         $plannedVariantIds = [];
 
         // Isim modu: ayni ada sahip DB urunlerini onceden indeksle; bir ad
@@ -576,6 +698,25 @@ class SyncSourcePrices extends Command
     private function normalizeSourceName(string $value): string
     {
         return Str::of($value)->lower()->replace(['_products', '-products'], '')->slug('_')->toString();
+    }
+
+    /**
+     * Backfill artik varsayilan acik oldugu icin slug eslemesi KAPSAMSIZ
+     * kalmamali: bu kaynagin bugune kadar hangi magazaya yazdigini mevcut
+     * mapping'lerden turet ve slug aramasini o magazayla sinirla.
+     *
+     * Kaynak birden fazla magazaya yaziyorsa (ya da hic mapping yoksa) null
+     * doner; o zaman global slug eslesmesi kullanilir. products.slug tekil
+     * oldugu icin bu da guvenli, sadece daha genis.
+     */
+    private function inferStoreIdForSource(): ?int
+    {
+        $storeIds = ProductSourceMapping::where('source_name', $this->sourceName)
+            ->whereNotNull('store_id')
+            ->distinct()
+            ->pluck('store_id');
+
+        return $storeIds->count() === 1 ? (int) $storeIds->first() : null;
     }
 
     private function normalizeSlug(?string $value): string

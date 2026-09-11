@@ -31,6 +31,13 @@ class AdminFunnelAnalyticsController extends Controller
             ->groupBy('event')
             ->pluck('total', 'event');
 
+        $uniqueEventCounts = (clone $human)
+            ->select('event', DB::raw('COUNT(DISTINCT subject) as total'))
+            ->groupBy('event')
+            ->pluck('total', 'event');
+
+        $orderStats = $this->orderStats($since);
+
         $topPages = (clone $human)
             ->where('event', 'page_view')
             ->whereNotNull('path')
@@ -104,10 +111,10 @@ class AdminFunnelAnalyticsController extends Controller
                     'page_views' => (int) ($eventCounts['page_view'] ?? 0),
                     'product_views' => (int) ($eventCounts['product_view'] ?? 0),
                     'product_clicks' => (int) ($eventCounts['product_click'] ?? 0),
-                    'add_to_carts' => (int) ($eventCounts['add_to_cart'] ?? 0),
-                    'checkout_starts' => (int) ($eventCounts['checkout_start'] ?? 0),
-                    'orders' => (int) ($eventCounts['order_created'] ?? 0),
-                    'payments' => (int) ($eventCounts['payment_success'] ?? 0),
+                    'add_to_carts' => (int) ($uniqueEventCounts['add_to_cart'] ?? 0),
+                    'checkout_starts' => (int) ($uniqueEventCounts['checkout_start'] ?? 0),
+                    'orders' => (int) $orderStats->orders,
+                    'payments' => (int) $orderStats->payments,
                 ],
                 'top_pages' => $topPages,
                 'top_products' => $topProducts,
@@ -125,23 +132,58 @@ class AdminFunnelAnalyticsController extends Controller
         $days = $this->windowDays($request);
         $since = Carbon::now()->subDays($days);
 
-        $countsByEvent = FunnelEvent::query()
+        $subjectStages = FunnelEvent::query()
             ->where('occurred_at', '>=', $since)
             ->where('is_bot', false)
-            ->select('event', DB::raw('COUNT(DISTINCT subject) as unique_subjects'), DB::raw('COUNT(*) as total'))
-            ->groupBy('event')
-            ->pluck('unique_subjects', 'event');
+            ->select('subject', 'device_type')
+            ->selectRaw("MAX(event = 'page_view') as page_view")
+            ->selectRaw("MAX(event = 'product_view') as product_view")
+            ->selectRaw("MAX(event = 'product_click') as product_click")
+            ->selectRaw("MAX(event = 'add_to_cart') as add_to_cart")
+            ->selectRaw("MAX(event = 'cart_view') as cart_view")
+            ->selectRaw("MAX(event = 'checkout_start') as checkout_start")
+            ->groupBy('subject', 'device_type');
+
+        $stageCounts = DB::query()
+            ->fromSub((clone $subjectStages), 'stages')
+            ->selectRaw('SUM(page_view) as page_view')
+            ->selectRaw('SUM(product_view) as product_view')
+            ->selectRaw('SUM(product_click) as product_click')
+            ->selectRaw('SUM(add_to_cart) as add_to_cart')
+            ->selectRaw('SUM(cart_view) as cart_view')
+            ->selectRaw('SUM(checkout_start) as checkout_start')
+            ->selectRaw('SUM(product_view AND add_to_cart) as view_to_cart')
+            ->selectRaw('SUM(add_to_cart AND checkout_start) as cart_to_checkout')
+            ->first();
+        $deviceFunnel = DB::query()
+            ->fromSub((clone $subjectStages), 'stages')
+            ->selectRaw("COALESCE(device_type, 'unknown') as device_type")
+            ->selectRaw('SUM(product_view) as product_view')
+            ->selectRaw('SUM(add_to_cart) as add_to_cart')
+            ->selectRaw('SUM(checkout_start) as checkout_start')
+            ->groupBy('device_type')
+            ->orderByDesc('product_view')
+            ->get();
+
+        $orderStats = $this->orderStats($since);
 
         $funnel = [
-            'page_view'          => (int) ($countsByEvent['page_view'] ?? 0),
-            'product_view'       => (int) ($countsByEvent['product_view'] ?? 0),
-            'product_click'      => (int) ($countsByEvent['product_click'] ?? 0),
-            'add_to_cart'        => (int) ($countsByEvent['add_to_cart'] ?? 0),
-            'cart_view'          => (int) ($countsByEvent['cart_view'] ?? 0),
-            'checkout_start'     => (int) ($countsByEvent['checkout_start'] ?? 0),
-            'order_created'      => (int) ($countsByEvent['order_created'] ?? 0),
-            'payment_success'    => (int) ($countsByEvent['payment_success'] ?? 0),
+            'page_view'          => (int) ($stageCounts->page_view ?? 0),
+            'product_view'       => (int) ($stageCounts->product_view ?? 0),
+            'product_click'      => (int) ($stageCounts->product_click ?? 0),
+            'add_to_cart'        => (int) ($stageCounts->add_to_cart ?? 0),
+            'cart_view'          => (int) ($stageCounts->cart_view ?? 0),
+            'checkout_start'     => (int) ($stageCounts->checkout_start ?? 0),
+            'order_created'      => (int) $orderStats->orders,
+            'payment_success'    => (int) $orderStats->payments,
         ];
+        $verifiedPaymentEvents = FunnelEvent::query()
+            ->where('occurred_at', '>=', $since)
+            ->where('event', 'payment_success')
+            ->where('is_bot', false)
+            ->whereNotNull('order_id')
+            ->distinct('order_id')
+            ->count('order_id');
 
         // Conversion between sequential stages
         $rate = fn ($num, $den) => $den > 0 ? round(($num / $den) * 100, 2) : 0.0;
@@ -152,13 +194,34 @@ class AdminFunnelAnalyticsController extends Controller
                 'window_days' => $days,
                 'funnel'      => $funnel,
                 'rates'       => [
-                    'view_to_cart'       => $rate($funnel['add_to_cart'],      $funnel['product_view']),
-                    'cart_to_checkout'   => $rate($funnel['checkout_start'],   $funnel['cart_view']),
+                    'view_to_cart'       => $rate((int) ($stageCounts->view_to_cart ?? 0), $funnel['product_view']),
+                    'cart_to_checkout'   => $rate((int) ($stageCounts->cart_to_checkout ?? 0), $funnel['add_to_cart']),
                     'checkout_to_order'  => $rate($funnel['payment_success'],  $funnel['checkout_start']),
                     'end_to_end'         => $rate($funnel['payment_success'],  $funnel['product_view']),
                 ],
+                'device_funnel' => $deviceFunnel,
+                'measurement' => [
+                    'database_payments' => (int) $orderStats->payments,
+                    'verified_payment_events' => $verifiedPaymentEvents,
+                    'first_party_event_coverage_pct' => $rate($verifiedPaymentEvents, (int) $orderStats->payments),
+                    'attributed_paid_orders' => (int) ($orderStats->attributed_payments ?? 0),
+                    'order_attribution_coverage_pct' => $rate((int) ($orderStats->attributed_payments ?? 0), (int) $orderStats->payments),
+                ],
             ],
         ]);
+    }
+
+    private function orderStats(Carbon $since): object
+    {
+        return DB::table('order_masters as om')
+            ->join('orders as o', 'o.order_master_id', '=', 'om.id')
+            ->where('om.created_at', '>=', $since)
+            ->where('om.is_test', false)
+            ->where('o.order_type', '!=', 'pos')
+            ->selectRaw('COUNT(DISTINCT om.id) as orders')
+            ->selectRaw("COUNT(DISTINCT CASE WHEN om.payment_status = 'paid' THEN om.id END) as payments")
+            ->selectRaw("COUNT(DISTINCT CASE WHEN om.payment_status = 'paid' AND (om.utm_source IS NOT NULL OR om.referrer IS NOT NULL OR om.landing_page IS NOT NULL) THEN om.id END) as attributed_payments")
+            ->first();
     }
 
     /** GET /v1/admin/analytics/recommendation-ctr?days=30 */

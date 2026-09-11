@@ -23,6 +23,8 @@ import {
 } from "@/components/product/filter-sidebar";
 import { useBaseService } from "@/lib/base-service";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
+import { trackViewItemList } from "@/lib/gtm";
+import { resolveProductPricing } from "@/lib/product-pricing";
 
 interface ProductListPage {
   data: Product[];
@@ -231,6 +233,19 @@ export function CategoryPageClient({
 
   const allProducts =
     productsQuery.data?.pages.flatMap((p) => p?.data ?? []) ?? products;
+  const trackedListKeyRef = useRef("");
+  useEffect(() => {
+    const visibleProducts = allProducts.slice(0, 100);
+    const key = visibleProducts.map((product) => product.id).join(",");
+    if (!key || trackedListKeyRef.current === key) return;
+    trackedListKeyRef.current = key;
+    trackViewItemList(visibleProducts.map((product) => ({
+      item_id: String(product.id),
+      item_name: product.name,
+      price: resolveProductPricing(product, product.default_variant_id).displayPrice ?? undefined,
+      quantity: 1,
+    })), `category:${categorySlug}`);
+  }, [allProducts, categorySlug]);
 
   function handleSort(sort: string) {
     const params = new URLSearchParams();
@@ -523,12 +538,14 @@ export function CategoryPageClient({
                     : "grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"
                 }
               >
-                {allProducts.map((product) => (
+                {allProducts.map((product, index) => (
                   <ProductCard
                     key={product.id}
                     product={product}
                     compact
                     variant={viewMode}
+                    itemListName={`category:${categorySlug}`}
+                    itemIndex={index}
                   />
                 ))}
               </div>

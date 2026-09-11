@@ -11,6 +11,17 @@ class OrderMaster extends Model
 
     protected $fillable = [
         'customer_id',
+        'is_test',
+        'visitor_id',
+        'session_id',
+        'cart_session_id',
+        'utm_source',
+        'utm_medium',
+        'utm_campaign',
+        'utm_term',
+        'utm_content',
+        'landing_page',
+        'referrer',
         'area_id',
         'shipping_address_id',
         'coupon_code',
@@ -39,6 +50,7 @@ class OrderMaster extends Model
 
     protected $casts = [
         'iyzico_approved_at' => 'datetime',
+        'is_test' => 'boolean',
     ];
 
     public function orderAddress()

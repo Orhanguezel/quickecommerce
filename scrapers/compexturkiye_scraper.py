@@ -41,9 +41,7 @@ STORE_API = f"{SITE_BASE}/wp-json/wc/store/v1/products"
 PER_PAGE = 50
 
 SCRAPER_URL = os.environ.get("SCRAPER_URL", "https://scraper.guezelwebdesign.com").rstrip("/")
-SCRAPER_API_KEY = os.environ.get(
-    "SCRAPER_API_KEY", "scraper-sportoonline-Eq4lGI4KV4CLCMluihY9t9pn0jrZMmf-"
-)
+SCRAPER_API_KEY = os.environ.get("SCRAPER_API_KEY", "")
 SCRAPER_TIMEOUT = int(os.environ.get("SCRAPER_TIMEOUT", "60"))
 
 
@@ -60,7 +58,9 @@ def scrape_html(url: str, mode: str = "stealthy", solve_cf: bool = True):
         "mode": mode,
         "options": {
             "headless": True,
-            "network_idle": True,
+            # WooCommerce keeps background requests alive; the useful JSON
+            # response arrives before network-idle and waiting caused 500s.
+            "network_idle": False,
             "timeout": SCRAPER_TIMEOUT,
             "solve_cloudflare": solve_cf,
         },
@@ -79,11 +79,19 @@ def scrape_html(url: str, mode: str = "stealthy", solve_cf: bool = True):
         },
         method="POST",
     )
-    try:
-        with urlrequest.urlopen(req, timeout=SCRAPER_TIMEOUT + 30) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-    except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as exc:
-        return False, None, str(exc)
+    data = None
+    last_error = None
+    for attempt in range(3):
+        try:
+            with urlrequest.urlopen(req, timeout=SCRAPER_TIMEOUT + 30) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+            break
+        except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as exc:
+            last_error = str(exc)
+            if attempt < 2:
+                time.sleep(5 * (attempt + 1))
+    if data is None:
+        return False, None, last_error
 
     return bool(data.get("success")), data.get("html"), data.get("error")
 

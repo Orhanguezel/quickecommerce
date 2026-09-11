@@ -49,6 +49,13 @@ class ScrapersRecordRun extends Command
         $triggeredBy = (string) $this->option('triggered-by');
         $errorLog = $this->option('error-log');
 
+        // Freshness enforcement accepts successful runs only with a non-empty
+        // output size. Do not silently record a success it will later reject.
+        if ($exit === 0 && (!ctype_digit((string) $jsonSize) || (int) $jsonSize <= 50)) {
+            $this->error('Successful runs require --json-size greater than 50 bytes; pass the actual output file size.');
+            return self::FAILURE;
+        }
+
         $startedAt = $duration > 0 ? now()->subSeconds($duration) : now();
 
         $run = ScraperRun::create([
@@ -81,7 +88,7 @@ class ScrapersRecordRun extends Command
         // OTOMATIK COZUM: scrape basariliysa (exit 0 + dolu JSON), bu kaynagin
         // tum ACIK alarmlarini cozulduye cek. Boylece duzelen kaynagin eski FAIL
         // alarmlari panelde/feed'de birikip bayat gurultu yapmaz.
-        $jsonOk = $jsonSize === null || (int) $jsonSize > 50;
+        $jsonOk = (int) $jsonSize > 50;
         if ($exit === 0 && $jsonOk) {
             $resolved = \App\Models\ScraperAlert::resolveOpenForSource($source, 'auto');
             if ($resolved > 0) {

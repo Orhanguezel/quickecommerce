@@ -207,7 +207,7 @@ export function NewsletterSection({ title, subtitle }: NewsletterSectionProps) {
           <button
             type="submit"
             disabled={subscribeMutation.isPending}
-            className="mr-1.5 shrink-0 rounded-full bg-blue-500 px-7 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-600 disabled:opacity-60"
+            className="mr-1.5 shrink-0 rounded-full bg-blue-800 px-7 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-900 disabled:opacity-60"
           >
             {subscribeMutation.isPending
               ? t("common.loading") || "..."

@@ -6,11 +6,14 @@ import { ROUTES } from "@/config/routes";
 import {
   useWishlistQuery,
   useWishlistRemoveMutation,
+  useWishlistPriceAlertMutation,
+  type WishlistProduct,
 } from "@/modules/wishlist/wishlist.service";
 import { useCartStore, type CartItem } from "@/stores/cart-store";
 import { Button } from "@/components/ui/button";
 import { resolveProductPricing } from "@/lib/product-pricing";
 import Image from "next/image";
+import { toast } from "sonner";
 import {
   Heart,
   ShoppingCart,
@@ -36,13 +39,49 @@ interface Props {
   };
 }
 
+function PriceAlertControls({ product }: { product: WishlistProduct }) {
+  const mutation = useWishlistPriceAlertMutation();
+  const enabled = product.price_alert_enabled ?? true;
+  const update = (field: "price_alert_enabled" | "price_alert_email" | "price_alert_push", value: boolean) => {
+    mutation.mutate({ product_id: product.id, [field]: value }, {
+      onError: () => toast.error("Bildirim tercihi kaydedilemedi. Lütfen tekrar deneyin."),
+    });
+  };
+  return (
+    <div className="mt-3 border-t pt-3 text-xs">
+      <label className="flex cursor-pointer items-center gap-2">
+        <input type="checkbox" className="accent-green-700" checked={enabled} disabled={mutation.isPending}
+          onChange={(event) => update("price_alert_enabled", event.target.checked)} />
+        Fiyatı düşünce bildir
+      </label>
+      {enabled && (
+        <details className="mt-2 text-muted-foreground">
+          <summary className="cursor-pointer">Bildirim kanalları</summary>
+          <p className="my-2">Site içi bildirim açık. Aynı ürün için günde en fazla bir bildirim alırsınız.</p>
+          <label className="mb-2 flex items-center gap-2">
+            <input type="checkbox" checked={product.price_alert_email ?? false} disabled={mutation.isPending}
+              onChange={(event) => update("price_alert_email", event.target.checked)} />
+            E-posta
+          </label>
+          <label className="flex items-center gap-2">
+            <input type="checkbox" checked={product.price_alert_push ?? false} disabled={mutation.isPending}
+              onChange={(event) => update("price_alert_push", event.target.checked)} />
+            Cihaz bildirimi
+          </label>
+          <p className="mt-2">E-posta için doğrulanmış adres ve hesap e-posta izni; cihaz bildirimi için tarayıcı/uygulama izni gerekir.</p>
+        </details>
+      )}
+    </div>
+  );
+}
+
 export function WishlistClient({ translations: t }: Props) {
   const [page, setPage] = useState(1);
   const { data, isLoading, isError } = useWishlistQuery(page);
   const removeMutation = useWishlistRemoveMutation();
   const addItem = useCartStore((s) => s.addItem);
 
-  const handleAddToCart = (product: any) => {
+  const handleAddToCart = (product: WishlistProduct) => {
     const pricing = resolveProductPricing(product);
     if (pricing.displayPrice == null || pricing.displayPrice <= 0) return;
     const cartItem: CartItem = {
@@ -166,6 +205,8 @@ export function WishlistClient({ translations: t }: Props) {
                         </span>
                       )}
                     </div>
+
+                    <PriceAlertControls product={product} />
 
                     {/* Actions */}
                     <div className="mt-2 flex gap-2">

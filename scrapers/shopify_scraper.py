@@ -80,7 +80,11 @@ def clean_description_html(html):
     # multi-selector durumlari da yakalar. Selector ne olursa olsun, brace
     # icinde CSS property syntax (`prop: value;`) varsa CSS bloku kabul edilir.
     css_comment = re.compile(r'/\*.*?\*/', re.S)
-    css_property = re.compile(r'[a-z-]+\s*:\s*[^;}\n]{1,200}\s*(?:;|$)', re.I)
+    # 2026-07-28: sonlandirici olarak `}` da kabul edilir. Onceki hali
+    # `font-size:21px}` gibi noktali-virgulsuz son property'yi TANIMIYORDU;
+    # bu yuzden `@media(...){.x h2{font-size:21px}}` blogu CSS sayilmadi ve
+    # musteriye duz metin olarak gorundu (xtr-fitness-z-barbell vakasi).
+    css_property = re.compile(r'[a-z-]+\s*:\s*[^;}\n]{1,200}\s*(?:;|\}|$)', re.I)
 
     def find_matching_brace(s):
         """Ilk { ile eslesen kapanis } indexini doner; yoksa None."""
@@ -129,7 +133,12 @@ def clean_description_html(html):
             break
         block = s[:end + 1]
         body = block[block.find('{') + 1:-1]
-        if css_property.search(body):
+        # At-rule (@media/@supports/@keyframes/@font-face): govdesinde dogrudan
+        # property degil, ic selector bulunur — property aramadan CSS kabul et.
+        # Bosluksuz yazim da gecerlidir: "@media(max-width:768px){...}".
+        is_at_rule = re.match(r'@(?:media|supports|keyframes|font-face|layer|container)\b',
+                              selector_part.strip(), re.I) is not None
+        if is_at_rule or css_property.search(body):
             cleaned = s[end + 1:]
             continue
         cleaned = s

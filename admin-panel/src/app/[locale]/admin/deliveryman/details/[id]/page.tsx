@@ -1,4 +1,3 @@
-import CustomLayout from "@/components/layout/CustomLayout";
 import DeliverymanDashboard from "@/components/screen/admin-section/deliveryman/DeliverymanDashboard";
 
 
@@ -7,9 +6,7 @@ const EditDeliverymanPage = async ({ params }: Props) => {
     const param = await params;
   return (
     <>
-      <CustomLayout>
-        <DeliverymanDashboard ID={param.id} />
-      </CustomLayout>
+      <DeliverymanDashboard ID={param.id} />
     </>
   );
 };

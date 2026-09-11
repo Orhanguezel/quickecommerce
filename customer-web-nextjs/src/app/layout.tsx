@@ -61,20 +61,6 @@ export default function RootLayout({
   return (
     <html lang="tr" suppressHydrationWarning>
       <head>
-        <script
-          async
-          src="https://www.googletagmanager.com/gtag/js?id=AW-315699693"
-        />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `window.dataLayer=window.dataLayer||[];
-function gtag(){dataLayer.push(arguments);}
-window.__GOOGLE_ADS_CONVERSION_ID__='AW-315699693';
-window.__GOOGLE_ADS_PURCHASE_LABEL__='INsdC03LslwZEO3jxJYB';
-gtag('js',new Date());
-gtag('config','AW-315699693');`,
-          }}
-        />
       </head>
       <body suppressHydrationWarning>
         {children}

@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useBaseService } from "@/lib/base-service";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
-import type { Order, OrderDetailResponse, OrderListResponse, ReturnShipment } from "./order.type";
+import type { Order, OrderDetailResponse, OrderListResponse, PaymentSummary, ReturnShipment } from "./order.type";
 
 // --- Order List ---
 
@@ -59,6 +59,24 @@ export function useOrderDetailQuery(orderId: number | null) {
         `${API_ENDPOINTS.ORDERS}/${orderId}`
       );
       return res.data;
+    },
+  });
+}
+
+export function usePaymentSummaryQuery(orderMasterId: number | null) {
+  const { getAxiosInstance } = useBaseService<{ data: PaymentSummary }>(
+    API_ENDPOINTS.ORDERS
+  );
+
+  return useQuery({
+    queryKey: ["payment-summary", orderMasterId],
+    enabled: !!orderMasterId,
+    retry: false,
+    queryFn: async () => {
+      const res = await getAxiosInstance().get<{ data: PaymentSummary }>(
+        `${API_ENDPOINTS.ORDERS}/payment-summary/${orderMasterId}`
+      );
+      return res.data.data;
     },
   });
 }

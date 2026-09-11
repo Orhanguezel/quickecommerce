@@ -10,7 +10,7 @@ Tum katalog hedeflenir (/protein-tozu sadece bir kategoridir): urun URL'leri
 sayfasindaki JSON-LD `Product` parse edilir.
 
 Kullanim:
-  SCRAPER_URL=https://scraper.guezelwebdesign.com \\
+  SCRAPER_URL=http://127.0.0.1:8200 \\
   SCRAPER_API_KEY=scraper-sportoonline-... \\
     python3 scrapers/proteinavm_scraper.py [--limit 5]
 

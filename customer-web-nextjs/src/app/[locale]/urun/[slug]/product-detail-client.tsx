@@ -3,6 +3,9 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import Image from "next/image";
 import { Link, useRouter } from "@/i18n/routing";
+import { useSearchParams } from "next/navigation";
+import { ReviewDialog } from "@/components/product/review-dialog";
+import { ReviewRewardBanner } from "@/components/product/review-reward-banner";
 import {
   Star,
   Heart,
@@ -56,6 +59,7 @@ import { useRecentlyViewedStore } from "@/stores/recently-viewed-store";
 import { trackViewItem, trackAddToCart } from "@/lib/gtm";
 import { trackFunnelEvent } from "@/lib/funnel-tracker";
 import { resolveProductPricing } from "@/lib/product-pricing";
+import { encodeImageUrl } from "@/lib/image-url";
 import {
   useProductQuestionsQuery,
   useAskQuestionMutation,
@@ -338,6 +342,13 @@ export function ProductDetailClient({
   translations: t,
 }: ProductDetailClientProps) {
   const [selectedImage, setSelectedImage] = useState(0);
+  // Teslimat sonrasi e-postadan gelen ?review=<orderId> -> degerlendirme dialogu
+  const searchParams = useSearchParams();
+  const reviewOrderId = searchParams.get("review");
+  const [showReviewDialog, setShowReviewDialog] = useState(false);
+  useEffect(() => {
+    if (reviewOrderId && /^\d+$/.test(reviewOrderId)) setShowReviewDialog(true);
+  }, [reviewOrderId]);
   // 3rd party CORP/hotlink korumali (Compex CF gibi) gorseller — placeholder fallback
   const PRODUCT_IMAGE_PLACEHOLDER = "/images/product-placeholder.svg";
   const BLOCKED_IMAGE_DOMAINS = ["compexturkiye.com"];
@@ -353,7 +364,9 @@ export function ProductDetailClient({
     if (!src) return PRODUCT_IMAGE_PLACEHOLDER;
     if (imageErrors.has(src)) return PRODUCT_IMAGE_PLACEHOLDER;
     if (BLOCKED_IMAGE_DOMAINS.some((d) => src.includes(d))) return PRODUCT_IMAGE_PLACEHOLDER;
-    return src;
+    // ASCII-dışı (Türkçe/boşluk) görsel URL'lerini encode et: unoptimized
+    // <Image priority> preload Link header'ında ByteString patlamasını önler.
+    return encodeImageUrl(src);
   };
   const sanitizedDescription = (product.description ?? "")
     .replace(
@@ -723,6 +736,24 @@ export function ProductDetailClient({
 
   return (
     <div className="container overflow-x-hidden py-6 pb-24 lg:py-8 xl:pb-8">
+      {/* Teslimat sonrasi degerlendirme dialogu (e-postadaki ?review=orderId ile acilir) */}
+      {showReviewDialog && reviewOrderId && (
+        <ReviewDialog
+          orderId={Number(reviewOrderId)}
+          storeId={product.store?.id ?? 0}
+          productId={product.id}
+          productName={product.name}
+          onClose={() => setShowReviewDialog(false)}
+          translations={{
+            write_review: "Ürünü Değerlendir",
+            review_placeholder: "Bu ürünle ilgili deneyiminizi paylaşın...",
+            submit_review: "Yorumu Gönder",
+            submitting: "Gönderiliyor...",
+            review_success: "Yorumunuz için teşekkürler! 🌟",
+            close: "Kapat",
+          }}
+        />
+      )}
       {/* Image Lightbox Modal */}
       {lightboxOpen && allImages.length > 0 && (
         <div
@@ -838,7 +869,9 @@ export function ProductDetailClient({
       </nav>
 
       {/* Main Product Section */}
-      <div className="grid gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:grid-cols-[minmax(0,480px)_minmax(0,1fr)_minmax(0,320px)]">
+      <div className="grid items-start gap-4 sm:gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="contents xl:block">
+          <div className="order-1 grid items-start gap-4 sm:gap-6 lg:grid-cols-2">
         {/* Gallery */}
         <div className="space-y-3 overflow-hidden rounded-lg border bg-card p-2 sm:p-4">
           <div
@@ -1143,8 +1176,355 @@ export function ProductDetailClient({
           />
         </div>
 
+        </div>
+
+      {/* Tabs */}
+      <div id="product-tabs" className="order-3 min-w-0 scroll-mt-24 rounded-lg border bg-card p-3 sm:p-5 xl:mt-6">
+        <div className="flex overflow-x-auto border-b scrollbar-hide">
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex shrink-0 items-center gap-1.5 px-5 py-3 text-sm font-medium transition-colors ${
+                activeTab === tab.key
+                  ? "border-b-2 border-primary text-primary"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {tab.label}
+              {tab.badge > 0 && (
+                <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-semibold text-primary-foreground">
+                  {tab.badge}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        <div className="py-4">
+          {activeTab === "description" && (
+            <div
+              // 2026-06-04: whitespace-pre-line ile plain-text description'larin
+              // \n satir sonlarini gorsel olarak render et. HTML icerikte yan
+              // etki yok (block-level tag'ler zaten kendi spacing'ini kor).
+              // leading-relaxed ile satir aralasagi okumayi kolaylastirir.
+              className="prose prose-sm max-w-none overflow-x-auto whitespace-pre-line break-words leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
+            />
+          )}
+
+          {activeTab === "specs" && product.specifications?.length > 0 && (
+            <div className="overflow-x-auto rounded-lg border">
+              <table className="w-full text-sm">
+                <tbody>
+                  {product.specifications.map((spec, i) => (
+                    <tr
+                      key={i}
+                      className={i % 2 === 0 ? "bg-muted/50" : "bg-background"}
+                    >
+                      <td className="w-1/3 px-4 py-3 font-medium text-muted-foreground">
+                        {spec.name}
+                      </td>
+                      <td className="px-4 py-3">{spec.value}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {activeTab === "questions" && (
+            <div className="space-y-6">
+              {/* Soru Sorma Formu */}
+              <div className="rounded-lg border bg-card p-4">
+                {isAuthenticated ? (
+                  <div className="space-y-3">
+                    <textarea
+                      value={questionText}
+                      onChange={(e) => setQuestionText(e.target.value)}
+                      placeholder={t.your_question}
+                      rows={3}
+                      maxLength={1000}
+                      className="w-full resize-none rounded-md border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                    <div className="flex items-center justify-between">
+                      {questionSuccess && (
+                        <span className="flex items-center gap-1 text-sm text-green-600">
+                          <Check className="h-4 w-4" />
+                          {t.question_sent}
+                        </span>
+                      )}
+                      <button
+                        onClick={handleAskQuestion}
+                        disabled={!questionText.trim() || askQuestionMutation.isPending}
+                        className="ml-auto flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <Send className="h-4 w-4" />
+                        {t.send_question}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => router.push("/giris")}
+                    className="flex w-full items-center justify-center gap-2 rounded-md border-2 border-dashed border-muted-foreground/30 py-4 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                  >
+                    <LogIn className="h-4 w-4" />
+                    {t.login_to_ask}
+                  </button>
+                )}
+              </div>
+
+              {/* Soru Listesi */}
+              {questionsQuery.isLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                </div>
+              ) : questionsQuery.data && questionsQuery.data.questions.length > 0 ? (
+                <div className="space-y-4">
+                  {questionsQuery.data.questions.map((q) => (
+                    <div key={q.id} className="rounded-lg border bg-card">
+                      {/* Soru */}
+                      <div className="p-4">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-start gap-3">
+                            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                              <MessageCircleQuestion className="h-4 w-4" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-semibold">{q.customer || t.anonymous}</span>
+                                {q.created_at && (
+                                  <span className="text-xs text-muted-foreground">{q.created_at}</span>
+                                )}
+                              </div>
+                              <p className="mt-1 text-sm text-foreground">{q.question}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Cevap */}
+                      {q.reply && (
+                        <div className="border-t bg-muted/30 p-4">
+                          <div className="flex items-start gap-3">
+                            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400">
+                              <Store className="h-4 w-4" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-semibold text-green-700 dark:text-green-400">
+                                  {t.seller_reply}
+                                </span>
+                                {q.replied_at && (
+                                  <span className="text-xs text-muted-foreground">{q.replied_at}</span>
+                                )}
+                              </div>
+                              <p className="mt-1 text-sm text-foreground">{q.reply}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  {/* Pagination */}
+                  {questionsQuery.data.meta.current_page < questionsQuery.data.meta.last_page && (
+                    <div className="flex justify-center pt-2">
+                      <button
+                        onClick={() => setQaPage((p) => p + 1)}
+                        className="rounded-md border px-6 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                      >
+                        {t.load_more}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="py-8 text-center text-sm text-muted-foreground">
+                  {t.no_questions}
+                </p>
+              )}
+            </div>
+          )}
+
+          {activeTab === "reviews" && (
+            // 2026-06-04: space-y-6 -> space-y-3 (24px -> 12px); border-b'ye
+            // belirgin foreground rengi (border-foreground/15) verildi —
+            // onceki "border-b" tema dependent solgun cikiyordu, ardisik
+            // yorumlar arasi ayraс gozukmuyordu.
+            <div className="space-y-3">
+              {/* Kampanya duyurusu yorumlarin BASINDA: hem satin almis
+                  musteriyi degerlendirmeye tesvik eder, hem de asagidaki
+                  "Puan kazanilan degerlendirme" ibaresinin baglamini verir
+                  (tesvikli yorum aciklamasi yasal zorunluluk). */}
+              <ReviewRewardBanner className="mb-4" />
+
+              {product.reviews?.length > 0 ? (
+                product.reviews.map((review) => (
+                  <div
+                    key={review.review_id}
+                    className="border-b border-foreground/15 pb-3 last:border-0"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">
+                          {review.reviewed_by?.name || t.anonymous}
+                        </span>
+                        <div className="flex items-center gap-0.5">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`h-3 w-3 ${
+                                i < review.rating
+                                  ? "fill-yellow-400 text-yellow-400"
+                                  : "text-muted-foreground/30"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {review.reviewed_at}
+                      </span>
+                    </div>
+                    <p className="mt-1.5 text-sm text-muted-foreground">
+                      {review.review}
+                    </p>
+                    {review.is_incentivized && (
+                      // Tesvikli yorum aciklamasi (yasal zorunluluk). Puan
+                      // yildiz sayisindan bagimsiz verilir.
+                      <p className="mt-1 text-[11px] text-muted-foreground/80">
+                        Puan kazanılan değerlendirme
+                      </p>
+                    )}
+                    {review.images?.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {review.images.map((img, i) => (
+                          <a
+                            key={i}
+                            href={img}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block h-16 w-16 overflow-hidden rounded-md border"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={img}
+                              alt={`${review.reviewed_by?.name || t.anonymous} - ${i + 1}`}
+                              loading="lazy"
+                              className="h-full w-full object-cover transition hover:scale-105"
+                            />
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">{t.no_reviews}</p>
+              )}
+            </div>
+          )}
+
+          {activeTab === "delivery" && (
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <Truck className="mt-0.5 h-5 w-5 text-primary" />
+                <div>
+                  <h3 className="font-semibold">{productDetailsConfig.deliveryTitle}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {productDetailsConfig.deliverySubtitle}
+                  </p>
+                </div>
+              </div>
+              {product.delivery_time_min != null && (
+                <div className="flex items-start gap-3">
+                  <Clock className="mt-0.5 h-5 w-5 text-primary" />
+                  <div>
+                    <h3 className="font-semibold">{t.delivery_info}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {product.delivery_time_min}-{product.delivery_time_max} {t.days}
+                    </p>
+                  </div>
+                </div>
+              )}
+              {(product.free_shipping === 1 || product.free_shipping === "1") && (
+                <div className="flex items-start gap-3">
+                  <PackageCheck className="mt-0.5 h-5 w-5 text-green-600" />
+                  <div>
+                    <h3 className="font-semibold text-green-600">{t.free_shipping}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">{t.free_shipping_note}</p>
+                  </div>
+                </div>
+              )}
+              {isCashOnDeliveryEnabled && (
+                <div className="flex items-start gap-3">
+                  <ShieldCheck className="mt-0.5 h-5 w-5 text-primary" />
+                  <div>
+                    <h3 className="font-semibold">{t.cash_on_delivery}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">{t.cash_on_delivery_note}</p>
+                  </div>
+                </div>
+              )}
+              {productDetailsConfig.deliveryUrl && (
+                <Link
+                  href={productDetailsConfig.deliveryUrl}
+                  className="inline-block text-sm font-medium text-primary hover:underline"
+                >
+                  {t.delivery_info} →
+                </Link>
+              )}
+            </div>
+          )}
+
+          {activeTab === "refund" && (
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <RotateCcw className="mt-0.5 h-5 w-5 text-primary" />
+                <div>
+                  <h3 className="font-semibold">{productDetailsConfig.refundTitle}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {productDetailsConfig.refundSubtitle}
+                  </p>
+                </div>
+              </div>
+              {isChangeOfMindEnabled && (
+                <div className="flex items-start gap-3">
+                  <ShieldCheck className="mt-0.5 h-5 w-5 text-primary" />
+                  <div>
+                    <h3 className="font-semibold">{t.change_of_mind_allowed}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">{t.yes}</p>
+                  </div>
+                </div>
+              )}
+              {product.return_in_days != null && (
+                <div className="flex items-start gap-3">
+                  <Clock className="mt-0.5 h-5 w-5 text-primary" />
+                  <div>
+                    <h3 className="font-semibold">{t.return_policy}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {product.return_in_days} {t.days}
+                    </p>
+                  </div>
+                </div>
+              )}
+              {productDetailsConfig.refundUrl && (
+                <Link
+                  href={productDetailsConfig.refundUrl}
+                  className="inline-block text-sm font-medium text-primary hover:underline"
+                >
+                  {t.return_policy} →
+                </Link>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+        </div>
         {/* Right Sidebar */}
-        <aside className="min-w-0 space-y-4">
+        <aside className="order-2 min-w-0 space-y-4 xl:sticky xl:top-24">
           {/* Product Discount Highlight */}
           {hasDiscount && effectiveDiscountPercent > 0 && (
             <div className="rounded-lg border-2 border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
@@ -1405,24 +1785,7 @@ export function ProductDetailClient({
 
           <div className="rounded-lg border bg-card p-5">
             <div className="space-y-4">
-              {productDetailsConfig.isDeliveryEnabled && (
-                <div className="flex items-start gap-3">
-                  <Truck className="mt-0.5 h-4 w-4 text-primary" />
-                  <div>
-                    <p className="text-sm font-semibold">
-                      {productDetailsConfig.deliveryTitle || t.delivery_info}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {productDetailsConfig.deliverySubtitle ||
-                        product.delivery_time_text ||
-                        (product.delivery_time_min != null &&
-                        product.delivery_time_max != null
-                          ? `${product.delivery_time_min}-${product.delivery_time_max} ${t.days}`
-                          : "")}
-                    </p>
-                  </div>
-                </div>
-              )}
+
               {productDetailsConfig.isRefundEnabled && (
                 <div className="flex items-start gap-3">
                   <RotateCcw className="mt-0.5 h-4 w-4 text-primary" />
@@ -1451,330 +1814,10 @@ export function ProductDetailClient({
                   </div>
                 </div>
               )}
-              {isFreeShippingEnabled && (
-                <div className="flex items-start gap-3">
-                  <PackageCheck className="mt-0.5 h-4 w-4 text-primary" />
-                  <div>
-                    <p className="text-sm font-semibold">{t.free_shipping}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {t.free_shipping_note}
-                    </p>
-                  </div>
-                </div>
-              )}
+
             </div>
           </div>
         </aside>
-      </div>
-
-      {/* Tabs */}
-      <div id="product-tabs" className="mt-8">
-        <div className="flex overflow-x-auto border-b scrollbar-hide">
-          {tabs.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`flex shrink-0 items-center gap-1.5 px-5 py-3 text-sm font-medium transition-colors ${
-                activeTab === tab.key
-                  ? "border-b-2 border-primary text-primary"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {tab.label}
-              {tab.badge > 0 && (
-                <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-semibold text-primary-foreground">
-                  {tab.badge}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
-
-        <div className="py-4">
-          {activeTab === "description" && (
-            <div
-              // 2026-06-04: whitespace-pre-line ile plain-text description'larin
-              // \n satir sonlarini gorsel olarak render et. HTML icerikte yan
-              // etki yok (block-level tag'ler zaten kendi spacing'ini kor).
-              // leading-relaxed ile satir aralasagi okumayi kolaylastirir.
-              className="prose prose-sm max-w-none overflow-x-auto whitespace-pre-line break-words leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
-            />
-          )}
-
-          {activeTab === "specs" && product.specifications?.length > 0 && (
-            <div className="overflow-x-auto rounded-lg border">
-              <table className="w-full text-sm">
-                <tbody>
-                  {product.specifications.map((spec, i) => (
-                    <tr
-                      key={i}
-                      className={i % 2 === 0 ? "bg-muted/50" : "bg-background"}
-                    >
-                      <td className="w-1/3 px-4 py-3 font-medium text-muted-foreground">
-                        {spec.name}
-                      </td>
-                      <td className="px-4 py-3">{spec.value}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {activeTab === "questions" && (
-            <div className="space-y-6">
-              {/* Soru Sorma Formu */}
-              <div className="rounded-lg border bg-card p-4">
-                {isAuthenticated ? (
-                  <div className="space-y-3">
-                    <textarea
-                      value={questionText}
-                      onChange={(e) => setQuestionText(e.target.value)}
-                      placeholder={t.your_question}
-                      rows={3}
-                      maxLength={1000}
-                      className="w-full resize-none rounded-md border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                    />
-                    <div className="flex items-center justify-between">
-                      {questionSuccess && (
-                        <span className="flex items-center gap-1 text-sm text-green-600">
-                          <Check className="h-4 w-4" />
-                          {t.question_sent}
-                        </span>
-                      )}
-                      <button
-                        onClick={handleAskQuestion}
-                        disabled={!questionText.trim() || askQuestionMutation.isPending}
-                        className="ml-auto flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        <Send className="h-4 w-4" />
-                        {t.send_question}
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => router.push("/giris")}
-                    className="flex w-full items-center justify-center gap-2 rounded-md border-2 border-dashed border-muted-foreground/30 py-4 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-primary"
-                  >
-                    <LogIn className="h-4 w-4" />
-                    {t.login_to_ask}
-                  </button>
-                )}
-              </div>
-
-              {/* Soru Listesi */}
-              {questionsQuery.isLoading ? (
-                <div className="flex justify-center py-8">
-                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                </div>
-              ) : questionsQuery.data && questionsQuery.data.questions.length > 0 ? (
-                <div className="space-y-4">
-                  {questionsQuery.data.questions.map((q) => (
-                    <div key={q.id} className="rounded-lg border bg-card">
-                      {/* Soru */}
-                      <div className="p-4">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex items-start gap-3">
-                            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                              <MessageCircleQuestion className="h-4 w-4" />
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-semibold">{q.customer || t.anonymous}</span>
-                                {q.created_at && (
-                                  <span className="text-xs text-muted-foreground">{q.created_at}</span>
-                                )}
-                              </div>
-                              <p className="mt-1 text-sm text-foreground">{q.question}</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Cevap */}
-                      {q.reply && (
-                        <div className="border-t bg-muted/30 p-4">
-                          <div className="flex items-start gap-3">
-                            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400">
-                              <Store className="h-4 w-4" />
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-semibold text-green-700 dark:text-green-400">
-                                  {t.seller_reply}
-                                </span>
-                                {q.replied_at && (
-                                  <span className="text-xs text-muted-foreground">{q.replied_at}</span>
-                                )}
-                              </div>
-                              <p className="mt-1 text-sm text-foreground">{q.reply}</p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-
-                  {/* Pagination */}
-                  {questionsQuery.data.meta.current_page < questionsQuery.data.meta.last_page && (
-                    <div className="flex justify-center pt-2">
-                      <button
-                        onClick={() => setQaPage((p) => p + 1)}
-                        className="rounded-md border px-6 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary"
-                      >
-                        {t.load_more}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <p className="py-8 text-center text-sm text-muted-foreground">
-                  {t.no_questions}
-                </p>
-              )}
-            </div>
-          )}
-
-          {activeTab === "reviews" && (
-            // 2026-06-04: space-y-6 -> space-y-3 (24px -> 12px); border-b'ye
-            // belirgin foreground rengi (border-foreground/15) verildi —
-            // onceki "border-b" tema dependent solgun cikiyordu, ardisik
-            // yorumlar arasi ayraс gozukmuyordu.
-            <div className="space-y-3">
-              {product.reviews?.length > 0 ? (
-                product.reviews.map((review) => (
-                  <div
-                    key={review.review_id}
-                    className="border-b border-foreground/15 pb-3 last:border-0"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">
-                          {review.reviewed_by?.name || t.anonymous}
-                        </span>
-                        <div className="flex items-center gap-0.5">
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`h-3 w-3 ${
-                                i < review.rating
-                                  ? "fill-yellow-400 text-yellow-400"
-                                  : "text-muted-foreground/30"
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                      <span className="text-xs text-muted-foreground">
-                        {review.reviewed_at}
-                      </span>
-                    </div>
-                    <p className="mt-1.5 text-sm text-muted-foreground">
-                      {review.review}
-                    </p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground">{t.no_reviews}</p>
-              )}
-            </div>
-          )}
-
-          {activeTab === "delivery" && (
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <Truck className="mt-0.5 h-5 w-5 text-primary" />
-                <div>
-                  <h3 className="font-semibold">{productDetailsConfig.deliveryTitle}</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {productDetailsConfig.deliverySubtitle}
-                  </p>
-                </div>
-              </div>
-              {product.delivery_time_min != null && (
-                <div className="flex items-start gap-3">
-                  <Clock className="mt-0.5 h-5 w-5 text-primary" />
-                  <div>
-                    <h3 className="font-semibold">{t.delivery_info}</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {product.delivery_time_min}-{product.delivery_time_max} {t.days}
-                    </p>
-                  </div>
-                </div>
-              )}
-              {(product.free_shipping === 1 || product.free_shipping === "1") && (
-                <div className="flex items-start gap-3">
-                  <PackageCheck className="mt-0.5 h-5 w-5 text-green-600" />
-                  <div>
-                    <h3 className="font-semibold text-green-600">{t.free_shipping}</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">{t.free_shipping_note}</p>
-                  </div>
-                </div>
-              )}
-              {isCashOnDeliveryEnabled && (
-                <div className="flex items-start gap-3">
-                  <ShieldCheck className="mt-0.5 h-5 w-5 text-primary" />
-                  <div>
-                    <h3 className="font-semibold">{t.cash_on_delivery}</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">{t.cash_on_delivery_note}</p>
-                  </div>
-                </div>
-              )}
-              {productDetailsConfig.deliveryUrl && (
-                <Link
-                  href={productDetailsConfig.deliveryUrl}
-                  className="inline-block text-sm font-medium text-primary hover:underline"
-                >
-                  {t.delivery_info} →
-                </Link>
-              )}
-            </div>
-          )}
-
-          {activeTab === "refund" && (
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <RotateCcw className="mt-0.5 h-5 w-5 text-primary" />
-                <div>
-                  <h3 className="font-semibold">{productDetailsConfig.refundTitle}</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {productDetailsConfig.refundSubtitle}
-                  </p>
-                </div>
-              </div>
-              {isChangeOfMindEnabled && (
-                <div className="flex items-start gap-3">
-                  <ShieldCheck className="mt-0.5 h-5 w-5 text-primary" />
-                  <div>
-                    <h3 className="font-semibold">{t.change_of_mind_allowed}</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">{t.yes}</p>
-                  </div>
-                </div>
-              )}
-              {product.return_in_days != null && (
-                <div className="flex items-start gap-3">
-                  <Clock className="mt-0.5 h-5 w-5 text-primary" />
-                  <div>
-                    <h3 className="font-semibold">{t.return_policy}</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {product.return_in_days} {t.days}
-                    </p>
-                  </div>
-                </div>
-              )}
-              {productDetailsConfig.refundUrl && (
-                <Link
-                  href={productDetailsConfig.refundUrl}
-                  className="inline-block text-sm font-medium text-primary hover:underline"
-                >
-                  {t.return_policy} →
-                </Link>
-              )}
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Related Products */}

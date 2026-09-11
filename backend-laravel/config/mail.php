@@ -109,4 +109,26 @@ return [
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Admin Bildirim Alicilari
+    |--------------------------------------------------------------------------
+    |
+    | AdminNotifier normalde system_level admin kullanicilarinin e-postalarina
+    | yazar. Bu adresler ayni zamanda panel giris kimligi oldugu icin gercekte
+    | posta kutusu olmayabilir (ornek: MX kaydi olmayan kurumsal alan adi).
+    | Burasi doluysa admin kullanici e-postalari yerine BU liste kullanilir.
+    | Virgulle ayrilmis adres listesi: ADMIN_NOTIFY_EMAILS=a@x.com,b@y.com
+    |
+    */
+
+    'admin_notify_recipients' => env('ADMIN_NOTIFY_EMAILS'),
+
+    /*
+    | Alici alan adinda MX kaydi yoksa e-posta gonderilmez (bounce onleme).
+    | DNS sorgusu yapilamayan ortamlarda false yapilarak kapatilabilir.
+    */
+
+    'verify_recipient_mx' => (bool) env('MAIL_VERIFY_RECIPIENT_MX', true),
+
 ];

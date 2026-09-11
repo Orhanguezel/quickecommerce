@@ -1,4 +1,3 @@
-import CustomLayout from "@/components/layout/CustomLayout";
 import EditStaff from "@/components/screen/admin-section/staff/EditStaff";
 
 
@@ -7,9 +6,7 @@ const EditStaffPage = async ({ params }: Props) => {
     const param = await params;
   return (
     <>
-      <CustomLayout>
-        <EditStaff ID={param.id} />
-      </CustomLayout>
+      <EditStaff ID={param.id} />
     </>
   );
 };

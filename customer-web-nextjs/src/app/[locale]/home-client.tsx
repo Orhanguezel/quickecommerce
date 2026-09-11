@@ -319,15 +319,13 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
       <div className="flex min-h-[170px] items-center">
         <div className="flex flex-1 flex-col justify-center px-6 py-6 md:px-8">
           <h3
-            className="mb-1 text-lg font-bold leading-tight md:text-xl"
-            style={{ color: banner.title_color || "#1E293B" }}
+            className="mb-1 text-lg font-bold leading-tight text-slate-950 md:text-xl"
           >
             {banner.title}
           </h3>
           {banner.description && (
             <p
-              className="mb-4 line-clamp-2 text-xs md:text-sm"
-              style={{ color: banner.description_color || "#475569" }}
+              className="mb-4 line-clamp-2 text-xs text-slate-800 md:text-sm"
             >
               {banner.description}
             </p>
@@ -336,11 +334,7 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
             <div>
               <Link
                 href={banner.redirect_url}
-                className="inline-flex items-center rounded-full px-5 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
-                style={{
-                  backgroundColor: banner.button_color || "#0E5ABC",
-                  color: banner.button_text_color || "#FFFFFF",
-                }}
+                className="inline-flex items-center rounded-full bg-blue-800 px-5 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
               >
                 {banner.button_text || "Shop Now"}
               </Link>
@@ -354,7 +348,6 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
             fill
             className="object-contain object-right-bottom"
             sizes="180px"
-            unoptimized
           />
         </div>
       </div>
@@ -383,7 +376,6 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
               alt={deal.title}
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-105"
-              unoptimized
             />
             <div
               className="absolute inset-0"
@@ -420,7 +412,6 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
                 alt={deal.title}
                 fill
                 className="object-contain transition-transform duration-300 group-hover:scale-110"
-                unoptimized
               />
             </div>
           )}
@@ -471,8 +462,8 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
             src={post.image_url}
             alt={post.title}
             fill
+            sizes="(max-width: 768px) calc(100vw - 32px), 384px"
             className="object-cover transition-transform duration-300 group-hover:scale-105"
-            unoptimized
           />
         ) : null}
       </div>
@@ -523,6 +514,7 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
             title={homeConfig.featuredTitle || t.featured_title}
             subtitle={homeConfig.featuredSubtitle || t.featured_subtitle}
             products={data.featured}
+            analyticsBlockType="homepage_featured"
           />
         ) : null;
       case "banner_section":
@@ -580,6 +572,7 @@ export function HomePageClient({ data, translations: t }: HomePageClientProps) {
           <RecentlyViewedSection
             title={homeConfig.recentlyViewedTitle || t.recently_viewed_title}
             subtitle={homeConfig.recentlyViewedSubtitle || t.recently_viewed_subtitle}
+            maxItems={8}
           />
         );
       default:

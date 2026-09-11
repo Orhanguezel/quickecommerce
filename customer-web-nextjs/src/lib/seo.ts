@@ -122,10 +122,12 @@ export function priceValidUntil(days = 90): string {
 
 export function localizedAlternates(path = "") {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  const trPath = `/tr${normalizedPath === "/" ? "" : normalizedPath}`;
+  // "en" locale kaldirildi (2026-07-27) — hreflang'de artik yalnizca tr var.
+  // Var olmayan bir dile alternate vermek Google'a kirik sinyal gonderir.
   return {
-    tr: `/tr${normalizedPath === "/" ? "" : normalizedPath}`,
-    en: `/en${normalizedPath === "/" ? "" : normalizedPath}`,
-    "x-default": `/tr${normalizedPath === "/" ? "" : normalizedPath}`,
+    tr: trPath,
+    "x-default": trPath,
   };
 }
 

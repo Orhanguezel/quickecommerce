@@ -4,6 +4,100 @@
 > 5 günlük trafik raporu + ayrı nginx log, Geliver Türkçe il/ilçe fix + #113,
 > Google Places API, admin sipariş detayı/fatura adres + isim + temiz format.
 
+## 🆕 Satış Büyütme + Ana Sayfa Vitrini — UYGULAMA ÇEKLİSTİ (2026-08-13)
+
+### A. “Öne Çıkan Ürünler” gerçek Sportoonline vitrini
+
+- [X] Canlı bölüm denetlendi: spor ürünü yerine 3 GZL Teknoloji hizmeti gösterdiği tespit edildi.
+- [X] Satıcıların `is_featured` tercihi ile ana sayfa vitrini birbirinden ayrıldı.
+- [X] Ürünlere tekil ve sıralı `homepage_featured_rank` alanı eklendi.
+- [X] `/featured-products` yalnız ana sayfa için sıralanmış vitrin ürünlerini döndürecek şekilde düzeltildi.
+- [X] `commerce:curate-homepage-featured` komutu eklendi; 6–20 ürün ve manuel sıra destekleniyor.
+- [X] Kalite kapısı eklendi: onaylı ürün, aktif satıcı, geçerli fiyat, stok, görsel, en az 180 karakter açıklama.
+- [X] Tedarikçi ürünlerinde son stok senkronu 36 saatten eskiyse vitrine alma engellendi.
+- [X] Admin ticari hazırlık ekranına ana sayfa vitrin ürün sayısı eklendi.
+- [X] 10 spor odaklı ürün canlıya sıralı alındı; mobil/masaüstü render ve ürün çeşitliliği görsel QA ile doğrulandı.
+- [ ] Vitrin ürünleri için haftalık CTR → sepete ekleme → satış raporu ve düşük performanslı ürün rotasyonu.
+
+### B. Ölçüm ve dönüşüm doğruluğu
+
+- [X] İlk canlı baz ölçüm alındı: 30 günde 1.114 ziyaretçi, 86 sepete ekleme, 42 checkout, 9 ödeme, 7 net satış.
+- [X] Stok doğrulama ve yapay zekâ ödeme cevapları düzeltildi.
+- [X] Yeni ödeme eventlerinde sipariş bazlı `dedupe_key` altyapısı eklendi.
+- [ ] Geçmiş mükerrer `payment_success` kayıtlarını rapordan tekilleştir.
+- [ ] Dahili Sportoonline referrer’larını edinim kanalından çıkar; first/last-touch alanlarını ayrı raporla.
+- [ ] Iyzico ↔ sipariş ↔ funnel günlük otomatik mutabakat alarmı.
+- [ ] Checkout terk nedenleri: stok, form validasyonu, Iyzico red/3DS, kullanıcı çıkışı şeklinde ölçülsün.
+
+### C. Arama ve ürün bulunabilirliği
+
+- [X] Sıfır sonuç baz ölçümü alındı: 153 aramanın 75’i (`%49`) sonuçsuz.
+- [ ] Türkçe `I/İ/ı/i`, aksan ve boşluk normalizasyonu.
+- [ ] Yazım toleransı, marka/SKU/kategori ve eş anlamlı arama.
+- [ ] “Sonuç yok” ekranında yakın ürün ve kategori önerileri.
+- [ ] Günlük sıfır-sonuç kuyruğu; tekrar eden sorgularda admin alarmı.
+- [ ] Hedef: sıfır sonuç oranı `%15` altı, aramadan ürün tıklaması `%25+`.
+
+### D. Katalog kalite kapısı
+
+- [X] Baz ölçüm: 4.541 kısa açıklama, 12.838 eksik meta açıklama, 12.892 eksik marka, 290 mükerrer ad grubu.
+- [X] `catalog_quality_score`, hero katalog ve reklam uygunluk altyapısı eklendi.
+- [ ] İlk 500–1.000 satılabilir çekirdek ürünü seç ve yalnız bunları reklam/feed büyümesine aç.
+- [ ] Öncelikli çekirdek ürünlerde marka, meta, özgün açıklama, yerel görsel, teslimat ve iade alanlarını tamamla.
+- [ ] 64 görselsiz ve 238 uzak görselli ürünü düzelt veya satıştan kaldır.
+- [ ] İlk hedef: 50 doğrulanmış alışveriş yorumu.
+
+### E. Stok ve tedarikçi güvenilirliği
+
+- [X] Eski kök JSON yerine en güncel tedarikçi çıktısını kullanan sync düzeltildi.
+- [X] 3.734 stok sapması canlıda düzeltildi.
+- [ ] Protein7, Compex, ProteinAVM ve Eprotein ana cron hatalarını kapat.
+- [ ] Dropick ve Speedwa bayat verisini yenile veya mağazaları geçici satıştan kaldır.
+- [ ] Ana cron başarısızlığını gün içi başarılı stok koşularının maskelemesini engelle.
+- [ ] Kritik kaynak boş çıktı verdiğinde vitrin/feed/satış otomatik karantinaya alınsın.
+
+### F. Terk edilmiş sepet ve güven
+
+- [X] Baz ölçüm: 81 terk edilmiş sepet, 15 hatırlatma, 8 geri kazanım.
+- [ ] İzinli müşterilerde hatırlatma kapsaması `%70+` seviyesine çıkarılsın.
+- [ ] 1 saat / 24 saat akışı; stok ve ödeme hatasına özel mesajlar.
+- [ ] Ürün ve checkout’ta teslimat tarihi, iade güvencesi ve doğrulanmış satıcı bilgisi güçlendirilsin.
+
+### G. Güvenli release düzeni
+
+- [ ] Yerel 82 değiştirilmiş + 32 yeni dosyayı görev bazlı temiz branch/commit’lere ayır.
+- [ ] Canlı 109 değiştirilmiş + 35 yeni dosyayı denetle; kaynak dışı değişiklikleri release manifestine bağla.
+- [ ] Tekrarlanabilir build artifact, release etiketi, health check ve otomatik rollback kur.
+- [ ] Canlı sunucuda doğrudan dosya düzenleme yerine kontrollü deploy zorunlu olsun.
+
+## 🆕 Search Console Coverage + ürün SEO kalite kapısı — KOD TAMAM / CANLI BEKLİYOR (2026-07-27)
+
+- [X] Coverage ZIP analiz edildi: 3.157 indekslenmeyen URL; 2.058 crawl-not-indexed,
+  664 adet 404, 363 canonical alternatif.
+- [X] Kritik sitemap hatası bulundu: 10.458 public üründen yalnız ilk 100’ü
+  sitemap’e giriyordu (`per_page` backend’de 100 cap).
+- [X] Hafif `/api/v1/sitemap/products` endpoint’i + tam ürün sitemap kaynağı eklendi.
+- [X] Çevirisiz `/en/urun/...` kopyaları sitemap’ten çıkarıldı ve Türkçe
+  canonical’a kalıcı redirect eklendi.
+- [X] Sahte günlük `lastmod` kaldırıldı; gerçek `updated_at` kullanılıyor.
+- [X] 79 canlı slug/ad uyuşmazlığı dry-run ile bulundu.
+- [X] `product_slug_redirects` migration’ı + redirect korumalı slug düzeltmesi eklendi.
+- [X] `scrapers:validate-products` ve import kalite kapısı eklendi.
+- [X] `products:seo-audit` CSV rapor komutu eklendi.
+- [X] `scrapers/health.sh` eski kök JSON yerine kök + `data/source-products`
+  içindeki en yeni çıktıyı raporlayacak şekilde düzeltildi.
+- [X] Scraper SEO checklist:
+  [`docs/SCRAPER_PRODUCT_SEO_CHECKLIST.md`](docs/SCRAPER_PRODUCT_SEO_CHECKLIST.md)
+- [X] Denetim raporu:
+  [`docs/reports/SEO_COVERAGE_AUDIT_2026-07-27.md`](docs/reports/SEO_COVERAGE_AUDIT_2026-07-27.md)
+- [ ] Migration + backend/frontend deploy.
+- [ ] Canlı `products:seo-audit` tam CSV üretimi.
+- [ ] Redirect korumalı 79 slug düzeltmesini uygula.
+- [ ] Search Console’dan 664 adet 404 için URL örnek CSV’sini ayrıca indir ve
+  geçmiş alias’ları redirect tablosuna ekle.
+- [ ] EYB/Ceysport/Speedwa/Provitanya açıklama + görsel backfill.
+- [ ] Sitemap’i Search Console’a yeniden gönder; 7/28 gün doğrulama.
+
 ## 🆕 Search backend dinamik + yeni taxonomy attributes — ÇEKLİST (2026-05-25)
 
 > 2026-05-25/26 oturumunda yapılanlar + bekleyenler.
@@ -663,6 +757,7 @@ Sporcu besinleri ve ml/gr içerikli ürünler için weight filter — scraper up
     Next.js route cache, React lazy load, kategori list API'sinin yanıt süresi.
   - Olası fix: kategori meta'yı SSG/ISR ile cache, client navigation prefetch.
   - **Codex 2026-05-24:** header kategori/menu linklerine explicit `prefetch` eklendi; kategori API sorgusu aggregate join + 10 dk backend cache ile hızlandırıldı. Canlı ölçüm: sıcak `product-category/list` **262-315ms**.
+  - **Codex 2026-08-13 CANLI:** frontend kategori limiti 500 → 1000; kategori filtreleri tüm derinliklerde descendant-aware; mobil drawer gerçek kategori ağacına geçirildi. 75 yanlış root kanonik spor ağacına bağlandı, 14 `&gt;` adı temizlendi, duplicate `kadin-giyim` pasife alındı. Root sayısı 147 → 72. Kategori cache HIT TTFB **0.238 sn**; `/tr/kategori/spor-beslenmesi` API/UI toplamı **2.940** olarak eşitlendi. Canlı doğrudan deploy edildi (PR yok).
 
 - [X] **13. Tüm Ürünler section: kategori rotation random** (AGENTS.md Görev 8)
   - "Tüm ürünler" listesinde her sayfa yüklemesinde **farklı kategoriyle başla**
@@ -673,9 +768,53 @@ Sporcu besinleri ve ml/gr içerikli ürünler için weight filter — scraper up
 
 ## 🧹 Kapanmayan Teknik Borç
 
+- [X] **Arama + katalog güvenlik paketi canlı (Codex 2026-08-13).**
+  - 14.996 ürün Türkçe karakterlerden bağımsız `search_text` alanına yeniden indekslendi; `dambil/dumbbell/dumbell`, `kreatin/creatine`, `nutrent/nutrend` gibi sorgular eşleniyor.
+  - Sıfır sonuç ekranı mobil/masaüstünde popüler ürün öneriyor; tekrar eden boş aramalar günlük olarak birincil site yöneticisi Engin Eser'e raporlanıyor, Orhan Güzel'e yönlendirilmiyor.
+  - Canlı smoke: `dumbell` 50 sonuç, `koşu bandı` ve `kosu bandi` 9 sonuç, `kreatin` ve `creatine` 122 sonuç.
+  - 6.410 düşük kaliteli kayıt vitrin/reklam kalite kapısından geçirildi; mevcut 10 ana sayfa vitrini etkilenmedi.
+
+- [~] **Scraper fail-closed ve üç kaynak kurtarma (Codex 2026-08-13).**
+  - Bayat kaynak stokları otomatik sıfırlanıyor; pasif/soft-delete kaynakların tarihsel varyant stoğunu yanlışlıkla karantinaya alma açığı dry-run'da yakalanıp giderildi.
+  - Compex düzeldi: 163 ürün, 138 stokta; 160 mapping güncellendi ve kaynak yeniden açıldı.
+  - ProteinAVM ve eProtein tam taraması canlı arka planda devam ediyor; tamamlanana kadar eski 774 stok kaydı satışa kapalı kalıyor.
+  - Kök neden: tarayıcı servisinde `network_idle=true` analitik/socket istekleri nedeniyle sahte 500 üretiyordu. `false` + üç deneme/backoff yapıldı.
+  - Protein7 ve Swan pasif/soft-delete mağaza oldukları için gereksiz günlük cron'dan çıkarıldı; fail-closed stok okuyan Herbinatura yeniden günlük zincire alındı.
+
+- [X] **Ödeme ve sepet işletme denetimi canlı (Codex 2026-08-13).**
+  - Son 30 gün: 7 ücretli sipariş; eksik işlem referansı, mükerrer referans, sıfır tutar ve paket/tutar uyuşmazlığı 0.
+  - Iyzico/stok/session/runtime ödeme başarısızlıkları sunucu funnel'ına neden koduyla yazılıyor.
+  - Son 30 gün terk sepet kapsamı: 66 e-posta eksik, 14 pazarlama izni yok, 1 misafir kimliği yok; izinsiz müşteriye otomatik mesaj gönderilmiyor.
+  - 73 ürün canlı çekirdek/kahraman katalog seçildi. Piyasa fiyat verisi olmadığı için reklam uygunluğu güvenli biçimde 0 bırakıldı.
+
+- [~] **Büyüme ve dönüşüm raporu — kodlanabilir altyapı tamamlandı (2026-08-13)**
+  - Sipariş atribüsyonu, test satış izolasyonu, doğrulanmış/dedupe purchase, cihaz funnel'ı ve ölçüm sağlık raporu eklendi.
+  - Kahraman katalog, katalog/mağaza kalite skoru, piyasa fiyat endeksi, reklam uygunluk kapısı ve admin ticaret panosu eklendi.
+  - Public response cache + invalidation, store eager-load kaldırma ve flash ürün sellability filtresi eklendi.
+  - Kargo SLA/admin alarmı, ödeme mutabakat alarmı, güvenli terk sepet A/B/frequency-cap ve yenileme e-postası eklendi.
+  - Test müşteri/cüzdan işlemi exact-email + dry-run komutuyla güvenli hale getirildi; canlı finansal veri otomatik değiştirilmedi.
+  - Test: PHP Unit 10/10, iki Next.js production build, TypeScript, migration `--pretend`, Playwright desktop/mobile render geçti.
+  - **Codex 2026-08-13 CANLI:** iki migration batch #32 olarak yedek + `--pretend` sonrası uygulandı; migration ve kategoriye bağlı backend/frontend kodu canlıya alındı. DB yedeği 11.07 MB ve kategori geri dönüş yedeği `storage/app/category-taxonomy-backups/category-taxonomy-20260813-175533.json`.
+  - **Kalan:** piyasa fiyat CSV'si, test hesap e-postası ve reklam/operasyon kararları.
+  - Ayrıntılı teslim ve canlı kapı: `docs/Sportoonline_90_Gunluk_Detayli_Checklist_2026-08-13.md`.
+
 - [X] Checkout harita akışı: Places hatasını sessiz yutuyor + city/district zorunlu değil (D adımı). → Codex: UI uyarı + city/district zorunluluk + backend 422 eklendi.
 - [X] admin-POS / seller / seller-POS fatura+detay bileşenlerinde adres hâlâ eski dağınık formatta. → Codex: ortak tek satır adres formatı uygulandı.
 - [X] `InvoiceResource.php:23` `round(null)` DEPRECATED notice. → Codex: nullable tutarlar güvenli round edildi.
+- [X] **Stok iadesi fail-open açığı kapatıldı (Codex 2026-08-13 CANLI).**
+  - Denetimde checkout + ödeme + 30 dk post-order kontrol zincirinin çalıştığı,
+    ancak `timeout/no_signal` sonucunun satışa izin verdiği doğrulandı. Compex
+    order #192 ürünü kaynakta doğrulanamadan geçmiş ve sonradan stok 0 olmuştu.
+  - `CheckoutStockVerifier` artık kaynak mapping'i olan üründe stok sinyali
+    kesin değilse `ok=false` döndürüyor; frontend, Iyzico ödeme başlatma ve admin
+    approval altyapı hatasında da fail-closed. Canlı test: Compex product #4694
+    `no_signal → bloke`, Ceysport product #6216 `in_stock → geçti`.
+- [X] **Her scraper için zorunlu kategori sözlüğü (Codex 2026-08-13 CANLI).**
+  - `ScraperSourceRegistry` içindeki 31/31 kaynak `source_category_mappings.php`
+    ile kanonik kategoriye bağlandı. Registry dışı/politikasız kaynak importu
+    başlamadan duruyor; scraper metninden yeni kategori/root oluşturma kaldırıldı.
+  - Compex 163 ürün dry-run: 8 kaynak etiketi `Fitness & Egzersiz` / `Fizik
+    Tedavi` dallarına eşlendi; root sayısı **72 → 72**, yeni kategori yok.
 - [X] `.gitignore` + `CLAUDE.md` (mail log hatırlatması) commit (commit 6069eda8).
 
 > **2026-05-23 22:55 UTC — Tüm teknik borç ve Codex 4 görevi CANLI DEPLOY:**

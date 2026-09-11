@@ -19,6 +19,12 @@ class GeliverSenderAddressService
 
     public function status(Store $store): array
     {
+        $application = $store->seller?->sellerApplication;
+        $sellerAddress = trim(implode(' ', array_filter([
+            $application?->address_line1,
+            $application?->address_line2,
+        ])));
+
         return [
             'store_id' => $store->id,
             'geliver_sender_address_id' => $store->geliver_sender_address_id,
@@ -28,7 +34,10 @@ class GeliverSenderAddressService
                 'last_name' => $store->seller?->last_name ?? '',
                 'phone' => $store->phone ?: ($store->seller?->phone ?? ''),
                 'email' => $store->email ?: ($store->seller?->email ?? ''),
-                'address' => $store->address ?? '',
+                'address' => $store->address ?: $sellerAddress,
+                'city' => $application?->address_city ?? '',
+                'district' => $application?->address_district ?? '',
+                'zip' => $application?->address_postal_code ?? '',
             ],
         ];
     }
@@ -85,6 +94,9 @@ class GeliverSenderAddressService
             return '+90' . $match[1];
         }
         if (preg_match('/^(\d{10})$/', $phone, $match)) {
+            return '+90' . $match[1];
+        }
+        if (preg_match('/^90(\d{10})$/', $phone, $match)) {
             return '+90' . $match[1];
         }
 

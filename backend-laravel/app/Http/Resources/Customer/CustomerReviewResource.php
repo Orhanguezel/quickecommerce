@@ -18,6 +18,12 @@ class CustomerReviewResource extends JsonResource
             "id" => $this->id,
             "reviewable_type" => $this->reviewable_type,
             "review" => $this->review,
+            "images" => $this->images
+                ? array_values(array_filter(array_map(
+                    fn ($id) => com_option_get_id_wise_url(trim($id)),
+                    explode(',', $this->images)
+                )))
+                : [],
             "rating" => $this->rating,
             "status" => $this->status,
             "like_count" => $this->like_count,
@@ -27,7 +33,12 @@ class CustomerReviewResource extends JsonResource
                     $this->reviewable->first_name . ' ' . $this->reviewable->last_name :
                     ($this->reviewable_type == 'App\Models\Product' ?
                         $this->reviewable->name : null)) : null,
+            "product_slug" => ($this->reviewable && $this->reviewable_type == 'App\Models\Product')
+                ? ($this->reviewable->slug ?? null) : null,
+            "product_image" => ($this->reviewable && $this->reviewable_type == 'App\Models\Product')
+                ? com_option_get_id_wise_url($this->reviewable->image) : null,
             "store" => $this->store->name ?? null,
+            "reviewed_at" => $this->created_at ? $this->created_at->toDateString() : null,
         ];
     }
 }

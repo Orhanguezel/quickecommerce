@@ -16,10 +16,19 @@ cd /var/www/quikecommerce
 DATE=$(date +%Y%m%d)
 LOG="/var/www/quikecommerce/logs/scrapers-evening-$DATE.log"
 VENV="/var/www/quikecommerce/venv/bin/python3"
+ROOT_ENV="/var/www/quikecommerce/.env"
 
 # Anti-bot env (run-all.sh ile ayni) — bu iki kaynak kullanmaz ama tutarlilik icin.
-export SCRAPER_URL=https://scraper.guezelwebdesign.com
-export SCRAPER_API_KEY=scraper-sportoonline-Eq4lGI4KV4CLCMluihY9t9pn0jrZMmf-
+if [ -f "$ROOT_ENV" ]; then
+  SCRAPER_URL=$(grep -E '^SCRAPER_URL=' "$ROOT_ENV" | head -1 | cut -d'=' -f2- | tr -d '"' | tr -d "'")
+  SCRAPER_API_KEY=$(grep -E '^SCRAPER_API_KEY=' "$ROOT_ENV" | head -1 | cut -d'=' -f2- | tr -d '"' | tr -d "'")
+fi
+: "${SCRAPER_URL:=https://scraper.guezelwebdesign.com}"
+if [ -z "${SCRAPER_API_KEY:-}" ]; then
+  echo "FAIL: SCRAPER_API_KEY is not configured in $ROOT_ENV" >&2
+  exit 1
+fi
+export SCRAPER_URL SCRAPER_API_KEY
 export SCRAPER_TIMEOUT=90
 
 # Aksam taranacak HIZLI (bulk) kaynaklar: "name|script|json"
@@ -79,9 +88,16 @@ run_scraper() {
   local duration=$((end_ts - start_ts))
   echo "  scraper exit: $exit (sure: ${duration}s)"
 
+  # Scraperlar kanonik olarak data/source-products/ altina yazar; proje kokunde
+  # ilk importtan kalma ayni isimli dosyalar da var. Eskiden "kok dosyasi varsa
+  # onu kullan" mantigi yuzunden 3 aylik stale JSON sync ediliyordu: 18 Agustos'ta
+  # proteinmax fiyatlari 23 Mayis degerleriyle yazilmis, 150 urun tedarikci
+  # fiyatinin altinda kalmisti. run-all.sh ile ayni kural: iki adaydan EN YENI
+  # olani sec.
   local json_path=$json
-  if [ ! -s "$json_path" ] && [ -s "data/source-products/$(basename "$json")" ]; then
-    json_path="data/source-products/$(basename "$json")"
+  local canonical_path="data/source-products/$(basename "$json")"
+  if [ -s "$canonical_path" ] && { [ ! -s "$json_path" ] || [ "$canonical_path" -nt "$json_path" ]; }; then
+    json_path="$canonical_path"
   fi
 
   local json_size=0

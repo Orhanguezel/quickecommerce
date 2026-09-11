@@ -104,11 +104,11 @@ const CustomAreaChart: React.FC<{ data: SellerData[] | any; isPending: boolean }
   }, [data]);
 
   return (
-    <div dir={dir} className="w-full h-80">
+    <div dir={dir} className="h-80 w-full min-w-0">
       {isPending ? (
         <ChartSkeleton />
       ) : (
-        <ResponsiveContainer key={dir}>
+        <ResponsiveContainer key={dir} width="100%" height="100%" minWidth={0} minHeight={0}>
           <AreaChart
             data={transformedData}
             margin={{

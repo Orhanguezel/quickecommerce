@@ -30,6 +30,48 @@ class CustomerOrderController extends Controller
         $this->orderManageNotificationService = $orderManageNotificationService;
     }
 
+    /**
+     * Authenticated source of truth for purchase conversion tracking.
+     * Only the owner can read the summary; pending/failed orders are returned
+     * without being misreported as successful payments by the frontend.
+     */
+    public function paymentSummary(int $order_master_id)
+    {
+        $customerId = (int) auth()->guard('api_customer')->id();
+        $orderMaster = OrderMaster::with(['orders.orderDetail.product'])
+            ->where('id', $order_master_id)
+            ->where('customer_id', $customerId)
+            ->first();
+
+        if (!$orderMaster) {
+            return response()->json(['message' => __('messages.data_not_found')], 404);
+        }
+
+        $items = $orderMaster->orders
+            ->flatMap(fn ($order) => $order->orderDetail)
+            ->map(fn ($detail) => [
+                'item_id' => (string) $detail->product_id,
+                'item_name' => $detail->product?->name ?: $detail->product_sku,
+                'item_variant' => $detail->product_sku ?: null,
+                'price' => (float) $detail->price,
+                'quantity' => (int) $detail->quantity,
+            ])
+            ->values();
+
+        return response()->json([
+            'data' => [
+                'id' => (int) $orderMaster->id,
+                'payment_status' => (string) $orderMaster->payment_status,
+                'payment_gateway' => (string) $orderMaster->payment_gateway,
+                'value' => (float) ($orderMaster->paid_amount ?: $orderMaster->order_amount),
+                'currency' => (string) ($orderMaster->currency_code ?: 'TRY'),
+                'shipping' => (float) $orderMaster->shipping_charge,
+                'coupon' => $orderMaster->coupon_code ?: null,
+                'items' => $items,
+            ],
+        ]);
+    }
+
     public function myOrders(Request $request)
     {
         $customer_id = auth()->guard('api_customer')->user()->id;
@@ -220,8 +262,10 @@ class CustomerOrderController extends Controller
             ], 422);
         }
 
-        // Check if the coupon usage limit has been reached
-        if ($coupon->usage_limit == 0) {
+        // Kullanim limiti: usage_limit her kullanimda 1 azalan sayactir, NULL = sinirsiz.
+        // Onceden `== 0` idi; PHP'de `null == 0` TRUE oldugu icin limiti bos birakilan
+        // kupon "limit doldu" deyip hic calismiyordu.
+        if ($coupon->usage_limit !== null && $coupon->usage_limit <= 0) {
             return response()->json([
                 'message' => __('messages.coupon_limit_reached'),
             ], 422);
@@ -232,7 +276,10 @@ class CustomerOrderController extends Controller
                 'message' => __('messages.coupon_already_used'),
             ], 422);
         }
-        if ($coupon->coupon->status != 1 && $coupon->status != 1) {
+        // Kupon satiri VEYA ust kampanya pasifse kupon gecersiz. Onceden `&&` idi;
+        // kampanya kapatilsa bile satir aktif kaldigi surece kupon calismaya devam
+        // ediyordu. `?->` ust kampanya silinmisse 500 yerine "pasif" dondurur.
+        if ($coupon->status != 1 || $coupon->coupon?->status != 1) {
             return response()->json([
                 'message' => __('messages.coupon_inactive'),
             ], 422);
@@ -262,8 +309,10 @@ class CustomerOrderController extends Controller
                 'message' => __('messages.something_wrong'),
             ], 500);
         }
-        // check max discount amount
-        if ($discount_amount > $coupon->max_discount) {
+        // Ust indirim siniri: bos veya 0 birakildiysa sinir yoktur. Onceden kosulsuz
+        // karsilastiriliyordu; max_discount NULL olan kuponda `$x > null` her zaman
+        // TRUE oldugu icin indirim sessizce 0 TL'ye kirpiliyordu.
+        if ($coupon->max_discount > 0 && $discount_amount > $coupon->max_discount) {
             $discount_amount = $coupon->max_discount;
             $final_amount_after_removing_coupon_discount = $sub_total - $discount_amount;
         }

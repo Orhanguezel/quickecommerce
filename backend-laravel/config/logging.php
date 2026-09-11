@@ -18,7 +18,9 @@ return [
     |
     */
 
-    'default' => env('LOG_CHANNEL', 'stack'),
+    // Production installs without an explicit LOG_CHANNEL must rotate logs.
+    // The previous stack -> single fallback grew laravel.log past 700 MB.
+    'default' => env('LOG_CHANNEL', 'daily'),
 
     /*
     |--------------------------------------------------------------------------

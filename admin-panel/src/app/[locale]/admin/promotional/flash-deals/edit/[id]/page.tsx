@@ -1,4 +1,3 @@
-import CustomLayout from "@/components/layout/CustomLayout";
 import EditFlashDeals from "@/components/screen/admin-section/promotional/flash-deals/EditFlashDeals";
 
 
@@ -7,9 +6,7 @@ const EditFlashDealsPage = async ({ params }: Props) => {
     const param = await params;
   return (
     <>
-      <CustomLayout>
-        <EditFlashDeals ID={param.id} />
-      </CustomLayout>
+      <EditFlashDeals ID={param.id} />
     </>
   );
 };

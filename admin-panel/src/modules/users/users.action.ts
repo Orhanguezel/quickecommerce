@@ -4,6 +4,7 @@ import { SellerRoutes } from '@/config/sellerRoutes';
 import { API_ENDPOINTS } from '@/endpoints/AdminApiEndPoints';
 import { SELLER_API_ENDPOINTS } from '@/endpoints/SellerApiEndPoints';
 import { setAuthCredentials } from '@/lib/auth-utils';
+import { persistAdminAuthSession } from '@/lib/admin-auth-session';
 import { authorizationAtom } from '@/lib/authorization-atom';
 import { AUTH_TOKEN_KEY, AUTH_USER } from '@/lib/constants';
 import { useToken } from '@/lib/use-token';
@@ -105,12 +106,9 @@ export const useLogin = ({ isRedirect = true }: { isRedirect?: boolean }) => {
         return;
       }
       toast.success(data?.data?.message);
-      const { token, expires_at, permissions } = data.data;
-      Cookies.set(AUTH_TOKEN_KEY, token);
-      Cookies.set(AUTH_USER, 'system_level');
-      localStorage.setItem('expires_at', expires_at);
+      const { token } = data.data;
+      persistAdminAuthSession(data.data as any);
       setToken(data?.data?.token);
-      setAuthCredentials(data?.data?.token, data?.data?.permissions);
       setAuthorized(true);
       if (isRedirect) {
         router.push(`${Routes.dashboard}`);

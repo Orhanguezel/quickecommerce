@@ -1,4 +1,3 @@
-import CustomLayout from "@/components/layout/CustomLayout";
 import EditCategory from "@/components/screen/seller-section/store/category/EditCategory";
 
 type Props = { params: Promise<{ id: string }> };
@@ -6,9 +5,7 @@ type Props = { params: Promise<{ id: string }> };
 const EditCategoryPage = async ({ params }: Props) => {
   const param = await params;
   return (
-    <CustomLayout>
-      <EditCategory ID={param.id} />
-    </CustomLayout>
+    <EditCategory ID={param.id} />
   );
 };
 

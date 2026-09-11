@@ -182,17 +182,102 @@ function pageContext(): Partial<FunnelEventInput> {
   if (typeof window === "undefined") return {};
   const url = new URL(window.location.href);
   const parts = url.pathname.split("/").filter(Boolean);
+  const attr = resolveAttribution(url);
   return {
     url: url.href,
     path: url.pathname,
     locale: parts[0] || undefined,
     referer: document.referrer || undefined,
-    utm_source: url.searchParams.get("utm_source") || undefined,
-    utm_medium: url.searchParams.get("utm_medium") || undefined,
-    utm_campaign: url.searchParams.get("utm_campaign") || undefined,
+    utm_source: attr.utm_source,
+    utm_medium: attr.utm_medium,
+    utm_campaign: attr.utm_campaign,
+    utm_term: attr.utm_term,
+    utm_content: attr.utm_content,
+  };
+}
+
+export interface FunnelAttributionContext {
+  visitor_id?: string;
+  session_id?: string;
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_term?: string;
+  utm_content?: string;
+  landing_page?: string;
+  referrer?: string;
+}
+
+/** Returns the same first-party identity and attribution used by funnel events. */
+export function getFunnelAttributionContext(): FunnelAttributionContext {
+  if (typeof window === "undefined") return {};
+  const url = new URL(window.location.href);
+  const context = resolveAttribution(url);
+
+  return {
+    visitor_id: getOrCreateVisitorId() ?? undefined,
+    session_id: getOrCreateSessionId() ?? undefined,
+    utm_source: context.utm_source,
+    utm_medium: context.utm_medium,
+    utm_campaign: context.utm_campaign,
+    utm_term: context.utm_term,
+    utm_content: context.utm_content,
+    landing_page: context.landing_page,
+    referrer: context.referrer,
+  };
+}
+
+/**
+ * Kanal atıfını çözer ve ilk-dokunuşta sessionStorage'a saklar (tüm oturuma
+ * uygulanır — reklamdan gelen ziyaretçinin sonraki sayfalarında URL'de utm/gclid
+ * olmasa da kanal korunur).
+ *
+ * Google Ads oto-etiketleme UTM değil `gclid`/`gbraid`/`wbraid` ekler; bunları
+ * yakalayıp utm_source=google, utm_medium=cpc'ye eşleriz — böylece reklam trafiği
+ * ilk-taraf funnel'da "direkt" yerine "google/cpc" görünür.
+ */
+function resolveAttribution(url: URL): {
+  utm_source?: string; utm_medium?: string; utm_campaign?: string; utm_term?: string; utm_content?: string;
+  landing_page?: string; referrer?: string;
+} {
+  const KEY = "ft_attr";
+  const gclid =
+    url.searchParams.get("gclid") ||
+    url.searchParams.get("gbraid") ||
+    url.searchParams.get("wbraid");
+  const current = {
+    utm_source: url.searchParams.get("utm_source") || (gclid ? "google" : undefined),
+    utm_medium: url.searchParams.get("utm_medium") || (gclid ? "cpc" : undefined),
+    utm_campaign: url.searchParams.get("utm_campaign") || (gclid ? "google-ads" : undefined),
     utm_term: url.searchParams.get("utm_term") || undefined,
     utm_content: url.searchParams.get("utm_content") || undefined,
+    landing_page: url.href,
+    referrer: document.referrer || undefined,
   };
+  const hasCampaign = Boolean(
+    current.utm_source || current.utm_medium || current.utm_campaign ||
+      current.utm_term || current.utm_content,
+  );
+  try {
+    const saved = sessionStorage.getItem(KEY);
+    if (saved) {
+      const firstTouch = JSON.parse(saved);
+      // A new explicit campaign supersedes direct attribution, but never replaces
+      // its own original landing page during the rest of the checkout session.
+      if (hasCampaign && !firstTouch.utm_source) {
+        sessionStorage.setItem(KEY, JSON.stringify(current));
+        return current;
+      }
+      return firstTouch;
+    }
+    if (hasCampaign || current.landing_page) {
+      sessionStorage.setItem(KEY, JSON.stringify(current));
+      return current;
+    }
+  } catch {
+    /* sessionStorage yoksa yoksay */
+  }
+  return current;
 }
 
 /** Enqueue a single funnel event with first-party visitor and session context. */

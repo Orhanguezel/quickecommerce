@@ -265,6 +265,7 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
       closing_time: '',
       area_id: '',
       store_seller_id: '',
+      fulfillment_model: 'seller',
       store_types: [],
       time_type: '',
       amount: '',
@@ -294,6 +295,7 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
       'closing_time',
       'area_id',
       'store_seller_id',
+      'fulfillment_model',
       'store_types',
       'time_type',
       'amount',
@@ -318,6 +320,7 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
   // Minimal watches
   const watchedNameDefault = useWatch({ control, name: defaultNameField as any }) as string;
   const watchedSellerId = useWatch({ control, name: 'store_seller_id' as any }) as string;
+  const watchedFulfillmentModel = useWatch({ control, name: 'fulfillment_model' as any }) as string;
   const watchedStoreTypes = useWatch({ control, name: 'store_types' as any }) as string[];
   const watchedAreaId = useWatch({ control, name: 'area_id' as any }) as string;
   const watchedLongitude = useWatch({ control, name: 'longitude' as any });
@@ -552,6 +555,10 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
       shouldTouch: false,
       },
     );
+    setValueAny('fulfillment_model', editData?.fulfillment_model ?? 'seller', {
+      shouldDirty: false,
+      shouldTouch: false,
+    });
 
     if (editStoreTypes.length > 0) {
       setValueAny('store_types', editStoreTypes, { shouldDirty: false, shouldTouch: false });
@@ -829,8 +836,15 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
 
     if (!safeStr(latest[defaultNameField])) return toast.error('Please Select Store name ');
     if (!safeStr(latest.store_seller_id)) return toast.error('Please Select Seller ');
-    if (!safeStr(latest.phone)) return toast.error('Contact number is required');
-    if (!safeStr(latest.longitude) || !safeStr(latest.latitude)) return toast.error('Please select location on map');
+    if ((watchedFulfillmentModel || 'seller') === 'seller' && !safeStr(latest.phone)) {
+      return toast.error('Fiziksel satıcı için telefon zorunludur');
+    }
+    if (
+      (watchedFulfillmentModel || 'seller') === 'seller' &&
+      (!safeStr(latest.longitude) || !safeStr(latest.latitude))
+    ) {
+      return toast.error('Fiziksel satıcı için haritadan konum seçin');
+    }
 
     const rootName = safeStr(latest[defaultNameField]) || safeStr(latest?.[`name_${firstUILangId}`]);
     const rootMetaTitle =
@@ -1045,7 +1059,7 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
                   </TabsList>
 
                   {/* GLOBAL SELECTS */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 mt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 mt-4">
                     <div>
                       <p className="text-sm font-medium mb-1">{t('label.seller')}</p>
                       <Controller
@@ -1057,6 +1071,25 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
                             onSelect={(value) => field.onChange(toSelectValue(value))}
                             groups={SellerOptions}
                           />
+                        )}
+                      />
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium mb-1">Sipariş karşılama modeli</p>
+                      <Controller
+                        control={control}
+                        name="fulfillment_model"
+                        render={({ field }) => (
+                          <select
+                            className="app-input h-10 w-full rounded-md border bg-background px-3 text-sm"
+                            value={String(field.value || 'seller')}
+                            onChange={field.onChange}
+                          >
+                            <option value="seller">Bağımsız fiziksel satıcı</option>
+                            <option value="dropship">Dropshipping / merkezi operasyon</option>
+                            <option value="digital">Dijital hizmet / kargosuz</option>
+                          </select>
                         )}
                       />
                     </div>

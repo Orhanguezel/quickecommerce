@@ -101,6 +101,18 @@ export interface PlaceOrderInput {
   coupon_discount_amount_admin?: number;
   shipping_charge?: number;
   packages: CheckoutPackage[];
+  attribution?: {
+    visitor_id?: string;
+    session_id?: string;
+    cart_session_id?: string;
+    utm_source?: string;
+    utm_medium?: string;
+    utm_campaign?: string;
+    utm_term?: string;
+    utm_content?: string;
+    landing_page?: string;
+    referrer?: string;
+  };
 }
 
 export interface PlaceOrderResponse {

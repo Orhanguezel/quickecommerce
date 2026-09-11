@@ -23,6 +23,7 @@ import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { useAtom } from "jotai";
 import dynamic from "next/dynamic";
 import GoogleMapsLoader from "@/components/molecules/GoogleMapsLoader";
+import CustomLayout from "@/components/layout/CustomLayout";
 
 interface SiteInfo {
   com_site_title: string;
@@ -249,9 +250,12 @@ export default function SellerLayout({
         <LoaderOverlay isLoading={isLoading} />
         <Sidebar setIsLoading={setIsLoading} />
         <Navbar setIsLoading={setIsLoading} MeData={MeData} />
-        <div className="flex-1 flex flex-col justify-between w-full mx-auto">
-          {children}
-        </div>
+        {/* Sayfa cercevesi (sidebar bosluklu <main> + footer) BURADA.
+            Eskiden 266 sayfanin her biri kendi <CustomLayout>'unu
+            cizerdi; ayni cerceveyi rota bazli layout'ta bir kez cizmek
+            hem dogrusu hem de sayfa gecislerinde gereksiz yeniden
+            kurulumu onler. */}
+        <CustomLayout>{children}</CustomLayout>
       </div>
     </GoogleMapsLoader>
   );

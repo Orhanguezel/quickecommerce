@@ -9,7 +9,7 @@ fiyat/stok verisi **raketspor.com.tr** uzerindedir — Ticimax platformu.
 raketspor.com.tr Cloudflare arkasindadir; HTML sayfalari "Just a moment"
 JS challenge dondurur. Bu yuzden maraton ile ayni cozum kullanilir:
 detay sayfalari merkezi scraper-service uzerinden cekilir:
-  https://scraper.guezelwebdesign.com/api/v1/scrape (mode: stealthy)
+  http://127.0.0.1:8200/api/v1/scrape (mode: stealthy)
 
 Ticimax urun sayfalari JSON-LD `Product` semasi gomar (ad, sku, fiyat TRY,
 stok, gorseller) -> opencart_scraper.py'deki JSON-LD yardimcilari kullanilir.
@@ -20,7 +20,7 @@ Cikti semasi everlast/shopify ciktisiyla birebir aynidir -> `sync:source-prices`
 ve `import:products` degisiklik gerektirmeden calisir.
 
 Kullanim (SCRAPER_* env zorunlu; repo .env'inde tanimli):
-    SCRAPER_URL=https://scraper.guezelwebdesign.com \\
+    SCRAPER_URL=http://127.0.0.1:8200 \\
     SCRAPER_API_KEY=scraper-sportoonline-... \\
       python powertec_scraper.py [--limit 8] [--images]
 Cikti: data/source-products/raketspor_products.json

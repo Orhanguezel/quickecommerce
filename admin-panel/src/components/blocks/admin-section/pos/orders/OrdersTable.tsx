@@ -386,7 +386,7 @@ const OrdersTable = ({
                   (item: any) => `
                   <tr>
                     <td>${item.name}<br/>
-                      <small>${Object.entries(item.variant)
+                      <small>${Object.entries(item.variant || {})
                         .map(([k, v]) => `${k}: ${v}`)
                         .join(", ")}</small>
                     </td>

@@ -563,6 +563,135 @@ class SystemManagementController extends Controller
 
     }
 
+    /**
+     * Sadakat puani ayarlari.
+     *
+     * com_loyalty_enabled ve com_loyalty_redeem_enabled AYRI anahtarlardir:
+     * program kapatilirken once kazanim durur, birikmis puanlar duyurulan
+     * tarihe kadar bozdurulabilir kalir. Ikisini birden kapatmak musteriye
+     * verilmis bir sozu bozar.
+     */
+    public function loyaltySettings(Request $request)
+    {
+        $keys = [
+            'com_loyalty_enabled',
+            'com_loyalty_redeem_enabled',
+            'com_loyalty_earn_per_currency',
+            'com_loyalty_redeem_points_per_unit',
+            'com_loyalty_redeem_value',
+            'com_loyalty_min_redeem_points',
+            'com_loyalty_voucher_min_order',
+            'com_loyalty_voucher_valid_days',
+            'com_loyalty_review_bonus_with_image',
+            'com_loyalty_review_bonus_no_image',
+            'com_loyalty_review_max_per_order',
+            'com_loyalty_points_expire_days',
+            'com_loyalty_hold_days',
+            'com_review_invite_window_days',
+        ];
+
+        if ($request->isMethod('POST')) {
+            $validator = Validator::make($request->all(), [
+                'com_loyalty_enabled' => 'nullable|in:on,off',
+                'com_loyalty_redeem_enabled' => 'nullable|in:on,off',
+                'com_loyalty_earn_per_currency' => 'nullable|numeric|min:0|max:10',
+                'com_loyalty_redeem_points_per_unit' => 'nullable|integer|min:1',
+                'com_loyalty_redeem_value' => 'nullable|numeric|min:0.01',
+                'com_loyalty_min_redeem_points' => 'nullable|integer|min:1',
+                'com_loyalty_voucher_min_order' => 'nullable|numeric|min:0',
+                'com_loyalty_voucher_valid_days' => 'nullable|integer|min:1|max:3650',
+                'com_loyalty_review_bonus_with_image' => 'nullable|integer|min:0',
+                'com_loyalty_review_bonus_no_image' => 'nullable|integer|min:0',
+                'com_loyalty_review_max_per_order' => 'nullable|integer|min:1|max:50',
+                'com_loyalty_points_expire_days' => 'nullable|integer|min:1|max:3650',
+                // 0 = bekleme yok. Ust sinir 90 gun: daha uzunu puani fiilen
+                // kullanilamaz hale getirir.
+                'com_loyalty_hold_days' => 'nullable|integer|min:0|max:90',
+                'com_review_invite_window_days' => 'nullable|integer|min:1|max:90',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+
+            // Ekonomik akil saglamasi: kazanma ve harcama oranlari birlikte
+            // "ciro uzerinden yuzde kac geri verildigini" belirler. Tek bir
+            // alani yanlis girmek (orn. 1 TL = 100 puan) programi aninda
+            // surdurulemez hale getirir; bu yuzden sonuc oran kontrol edilir.
+            $loyalty = app(\App\Services\Loyalty\LoyaltyService::class);
+
+            $earn = (float) ($request->input('com_loyalty_earn_per_currency') ?? $loyalty->earnPerCurrency());
+            $perUnit = (float) ($request->input('com_loyalty_redeem_points_per_unit') ?? $loyalty->redeemPointsPerUnit());
+            $unitValue = (float) ($request->input('com_loyalty_redeem_value') ?? $loyalty->redeemValue());
+
+            if ($perUnit > 0) {
+                $givebackPct = ($unitValue / $perUnit) * $earn * 100;
+                $maxGiveback = (float) (com_option_get('com_loyalty_max_giveback_pct') ?: 20);
+
+                if ($givebackPct > $maxGiveback) {
+                    return response()->json([
+                        'errors' => [
+                            'com_loyalty_earn_per_currency' => [
+                                sprintf(
+                                    'Bu oranlarla ciro üzerinden %%%s geri verilir; üst sınır %%%s. '
+                                        . 'Kazanma oranını düşürün ya da puan/TL karşılığını değiştirin.',
+                                    number_format($givebackPct, 2),
+                                    number_format($maxGiveback, 2)
+                                ),
+                            ],
+                        ],
+                    ], 422);
+                }
+            }
+
+            foreach ($keys as $key) {
+                if ($request->has($key)) {
+                    com_option_update($key, (string) $request->input($key));
+                }
+            }
+
+            return $this->success(translate('messages.update_success', ['name' => 'Loyalty Settings']));
+        }
+
+        $data = [];
+        foreach ($keys as $key) {
+            $data[$key] = com_option_get($key);
+        }
+
+        // Yoneticinin oranin gercek maliyetini gormesi icin ozet.
+        $loyalty = app(\App\Services\Loyalty\LoyaltyService::class);
+        $outstanding = (int) \App\Models\LoyaltyPointTransaction::sum('points');
+        $pending = (int) \App\Models\LoyaltyPointTransaction::pending()->sum('points');
+
+        // Ortalama sepet ve siparis basina kalem sayisi, yoneticinin oranlari
+        // SOYUT degil KENDI verisiyle degerlendirebilmesi icin. "2500 puan
+        // gerekiyor" tek basina bir sey soylemez; "ortalama sepetiniz 2.473 TL,
+        // yani kabaca bir siparis" soyler.
+        $paid = \DB::table('order_masters')->where('payment_status', 'paid');
+        $avgOrder = (float) ((clone $paid)->avg('order_amount') ?? 0);
+        $orderCount = (int) \DB::table('orders')->count();
+        $itemsPerOrder = $orderCount > 0
+            ? round(\DB::table('order_details')->count() / $orderCount, 2)
+            : 0;
+
+        $data['summary'] = [
+            'outstanding_points' => $outstanding,
+            'outstanding_value' => $loyalty->pointsToCurrency($outstanding),
+            // Bekleyen puan: yazilmis ama iade penceresi kapanmadigi icin
+            // henuz kullanilamayan kisim. Acik yukumlulugun ne kadarinin
+            // hala geri alinabilir oldugunu gosterir.
+            'pending_points' => $pending,
+            'pending_value' => $loyalty->pointsToCurrency($pending),
+            'min_redeem_value' => $loyalty->pointsToCurrency($loyalty->minRedeemPoints()),
+            'hold_days' => $loyalty->holdDays(),
+            'avg_order_value' => round($avgOrder, 2),
+            'paid_orders' => (clone $paid)->count(),
+            'items_per_order' => $itemsPerOrder,
+        ];
+
+        return response()->json(['success' => true, 'data' => $data], 200);
+    }
+
   public function googleMapSettings(Request $request)
     {
         if ($request->isMethod('POST')) {

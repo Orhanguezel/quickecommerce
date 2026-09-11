@@ -1,4 +1,3 @@
-import CustomLayout from "@/components/layout/CustomLayout";
 import BundleForm from "@/components/screen/admin-section/bundles/BundleForm";
 
 interface Props {
@@ -8,8 +7,6 @@ interface Props {
 export default async function EditBundlePage({ params }: Props) {
   const { id } = await params;
   return (
-    <CustomLayout>
-      <BundleForm bundleId={Number(id)} />
-    </CustomLayout>
+    <BundleForm bundleId={Number(id)} />
   );
 }

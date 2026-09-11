@@ -15,6 +15,7 @@ class Review extends Model
         "reviewable_type",
         "customer_id",
         "review",
+        "images",
         "rating",
         "status",
         "like_count",

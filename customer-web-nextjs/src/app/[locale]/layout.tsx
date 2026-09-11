@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { NextIntlClientProvider, hasLocale } from 'next-intl';
-import { getMessages } from 'next-intl/server';
+import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import { QueryProvider } from '@/lib/query-provider';
@@ -21,9 +21,9 @@ import { CartSnapshotSync } from '@/components/cart/cart-snapshot-sync';
 import { ExperimentProvider } from '@/components/providers/experiment-provider';
 import { AnalyticsProvider } from '@/components/providers/analytics-provider';
 import { CookieBanner } from '@/components/cookie-banner';
-import { Geist } from 'next/font/google';
-import Script from 'next/script';
+import { AnalyticsScripts } from '@/components/providers/analytics-scripts';
 import { cleanContactPhone, DEFAULT_ORGANIZATION, SITE_URL } from '@/lib/seo';
+import type { ThemeResponse } from '@/modules/theme/theme.type';
 import '../globals.css';
 
 const API_URL = process.env.NEXT_PUBLIC_REST_API_ENDPOINT || 'https://sportoonline.com/api/v1';
@@ -67,14 +67,14 @@ const hexToHSL = (hex: string): string => {
   return `${h} ${s}% ${lVal}%`;
 };
 
-async function getThemeColors() {
+async function getTheme() {
   try {
     const res = await fetch(`${API_URL}/theme`, {
       next: { revalidate: 60 },
     });
     if (!res.ok) return null;
     const data = await res.json();
-    return data?.theme_data?.theme_style?.[0]?.colors?.[0] || null;
+    return data as ThemeResponse;
   } catch {
     return null;
   }
@@ -107,11 +107,6 @@ async function getMaintenancePageData(locale: string) {
     return null;
   }
 }
-
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
 
 const siteUrl = SITE_URL;
 
@@ -206,19 +201,30 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
   if (!hasLocale(routing.locales, locale)) {
     notFound();
   }
+  setRequestLocale(locale);
 
-  const [messages, settings, themeColors] = await Promise.all([
+  const [messages, settings, themeResponse] = await Promise.all([
     getMessages({ locale }),
     getSiteSettings(locale),
-    getThemeColors(),
+    getTheme(),
   ]);
+  const themeColors = themeResponse?.theme_data?.theme_style?.[0]?.colors?.[0] || null;
 
   const gaId = settings?.com_google_analytics_id || process.env.NEXT_PUBLIC_GA_ID || '';
   const gtmId = settings?.com_google_tag_manager_id || process.env.NEXT_PUBLIC_GTM_ID || '';
   const googleAdsConversionId = settings?.com_google_ads_conversion_id || process.env.NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_ID || '';
   const googleAdsPurchaseLabel = settings?.com_google_ads_purchase_label || process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL || '';
-  const gtagIds = Array.from(new Set([gaId].filter(Boolean)));
+  // GTM container already owns the GA tag. Loading the same GA measurement ID
+  // through gtag.js as well produces duplicate page_view events. When GTM is
+  // configured, direct gtag.js is only used for the Google Ads destination.
+  const gtagIds = Array.from(new Set([
+    ...(gtmId ? [] : [gaId]),
+    googleAdsConversionId,
+  ].filter(Boolean)));
   const primaryGtagId = gtagIds[0] || '';
+  // A GTM container already downloads the Google tag runtime. Queue Ads config
+  // on the shared dataLayer instead of downloading a second gtag.js copy.
+  const loadDirectGtagRuntime = Boolean(primaryGtagId && !gtmId);
   const metaPixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID || '';
 
   const isMaintenanceMode = settings?.com_maintenance_mode === 'on';
@@ -240,7 +246,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
     };
 
     return (
-      <div className={`${geistSans.variable} font-sans antialiased`}>
+      <div className="font-sans antialiased">
         <MaintenancePage data={maintenanceData} locale={locale} />
       </div>
     );
@@ -253,14 +259,24 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
       const primaryHSL = hexToHSL(themeColors.primary);
       const accentHSL = hexToHSL(themeColors.secondary || themeColors.primary);
       const primaryLightness = parseInt(primaryHSL.split('%')[1]);
-      const primaryFgColor = primaryLightness > 65 ? '222.2 47.4% 11.2%' : '210 40% 98%';
+      // Brand green was too light for both text-on-white and white-on-primary
+      // (WCAG AA). Preserve hue/saturation while capping its lightness.
+      const primaryParts = primaryHSL.match(/^([\d.]+)\s+([\d.]+)%\s+([\d.]+)%$/);
+      const accessiblePrimaryHSL =
+        primaryParts && Number(primaryParts[3]) > 29
+          ? `${primaryParts[1]} ${primaryParts[2]}% 29%`
+          : primaryHSL;
+      const accessiblePrimaryLightness = primaryParts
+        ? Math.min(Number(primaryParts[3]), 29)
+        : primaryLightness;
+      const primaryFgColor = accessiblePrimaryLightness > 65 ? '222.2 47.4% 11.2%' : '210 40% 98%';
 
       themeStyles = `
       :root {
-        --primary: ${primaryHSL};
+        --primary: ${accessiblePrimaryHSL};
         --primary-foreground: ${primaryFgColor};
         --accent: ${accentHSL};
-        --ring: ${primaryHSL};
+        --ring: ${accessiblePrimaryHSL};
       }
     `;
     } catch {
@@ -273,7 +289,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
       {themeStyles && (
         <style dangerouslySetInnerHTML={{ __html: themeStyles }} />
       )}
-      <div className={`${geistSans.variable} font-sans antialiased`}>
+      <div className="font-sans antialiased">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -312,60 +328,17 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
             }),
           }}
         />
-        {/* Google Tag Manager (noscript) */}
-        {gtmId && (
-          <noscript>
-            <iframe
-              src={`https://www.googletagmanager.com/ns.html?id=${gtmId}`}
-              height="0"
-              width="0"
-              style={{ display: 'none', visibility: 'hidden' }}
-            />
-          </noscript>
-        )}
-
-        {/* Google Tag Manager */}
-        {gtmId && (
-          <Script id="gtm-script" strategy="afterInteractive">
-            {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','${gtmId}');`}
-          </Script>
-        )}
-
-        {/* Google Analytics / Google Ads */}
-        {primaryGtagId && (
-          <>
-            <Script
-              src={`https://www.googletagmanager.com/gtag/js?id=${primaryGtagId}`}
-              strategy="afterInteractive"
-            />
-            <Script id="ga-script" strategy="afterInteractive">
-              {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
-function sportoonlineAnalyticsConsentGranted(){var cookie=(document.cookie||'')+';';var m=/(?:^|;\\s*)(sportoonline_cookie_consent|cookie_consent|gdpr_cookie_consent|CookieConsent)=([^;]*)/i.exec(cookie);var v=m&&m[2]?decodeURIComponent(m[2]).toLowerCase():'';if(v&&/decline|denied|reject|false|necessary/.test(v))return false;try{var stored=localStorage.getItem('sportoonline_cookie_consent')||localStorage.getItem('cookie_consent')||localStorage.getItem('gdpr_cookie_consent')||'';if(/decline|denied|reject|false|necessary/i.test(stored))return false;}catch(e){}return true;}
-gtag('consent','default',{analytics_storage:sportoonlineAnalyticsConsentGranted()?'granted':'denied',ad_storage:sportoonlineAnalyticsConsentGranted()?'granted':'denied',ad_user_data:sportoonlineAnalyticsConsentGranted()?'granted':'denied',ad_personalization:sportoonlineAnalyticsConsentGranted()?'granted':'denied'});
-gtag('js',new Date());
-${gtagIds.map((id: string) => `gtag('config','${id}');`).join('\n')}
-window.__GOOGLE_ADS_CONVERSION_ID__='${googleAdsConversionId}';
-window.__GOOGLE_ADS_PURCHASE_LABEL__='${googleAdsPurchaseLabel}';`}
-            </Script>
-          </>
-        )}
-        {metaPixelId && (
-          <Script id="meta-pixel" strategy="afterInteractive">
-            {`!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
-n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
-t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script',
-'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init','${metaPixelId}');
-fbq('track','PageView');`}
-          </Script>
-        )}
+        <AnalyticsScripts
+          gtmId={gtmId}
+          gtagIds={gtagIds}
+          primaryGtagId={primaryGtagId}
+          loadDirectGtagRuntime={loadDirectGtagRuntime}
+          googleAdsConversionId={googleAdsConversionId}
+          googleAdsPurchaseLabel={googleAdsPurchaseLabel}
+          metaPixelId={metaPixelId}
+        />
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <QueryProvider>
+          <QueryProvider initialTheme={themeResponse} locale={locale}>
             <NextThemesProvider attribute="class" defaultTheme="light" enableSystem={false}>
               <ThemeProvider>
                 <div className="flex min-h-screen flex-col">

@@ -1,4 +1,3 @@
-import CustomLayout from "@/components/layout/CustomLayout";
 import EditRole from "@/components/screen/admin-section/roles/EditRole";
 
 
@@ -7,9 +6,7 @@ const EditRolePage = async ({ params }: Props) => {
     const param = await params;
 
   return (
-    <CustomLayout>
-      <EditRole ID={param.id} />
-    </CustomLayout>
+    <EditRole ID={param.id} />
   );
 };
 export default EditRolePage;

@@ -1,4 +1,3 @@
-import CustomLayout from "@/components/layout/CustomLayout";
 import StoreDashboard from "@/components/screen/seller-section/store/StoreDashboard";
 
 
@@ -8,9 +7,7 @@ const StoreDashboardRoot = async ({ params }: Props) => {
 
   return (
     <>
-      <CustomLayout>
-        <StoreDashboard slug={param.slug} />
-      </CustomLayout>
+      <StoreDashboard slug={param.slug} />
     </>
   );
 };

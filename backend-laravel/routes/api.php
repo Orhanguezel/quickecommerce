@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\V1\Customer\CustomerProductQueryController;
 use App\Http\Controllers\Api\V1\Customer\PlaceOrderController;
 use App\Http\Controllers\Api\V1\DeliveryChargeCalculateController;
 use App\Http\Controllers\Api\V1\FrontendController;
+use App\Http\Controllers\Api\V1\CheckoutStockController;
 use App\Http\Controllers\Api\V1\IyzicoPaymentController;
 use App\Http\Controllers\Api\V1\PayTRPaymentController;
 use App\Http\Controllers\Api\V1\MenuManageController;
@@ -28,7 +29,6 @@ use App\Http\Controllers\Api\V1\StripePaymentController;
 use App\Http\Controllers\Api\V1\StripeWebhookController;
 use App\Http\Controllers\Api\V1\TaxInfoController;
 use App\Http\Controllers\Api\V1\UserController;
-use App\Http\Controllers\Api\V1\Webhooks\EinvoiceWebhookController;
 use App\Http\Controllers\Api\V1\Webhooks\GdeliverWebhookController;
 use App\Http\Middleware\ApiAuthMiddleware;
 use Illuminate\Support\Facades\Route;
@@ -62,6 +62,8 @@ Route::group(['prefix' => 'v1/'], function () {
         Route::group(['prefix' => 'auth/'], function () {
             Route::get('google', [UserController::class, 'redirectToGoogle']);
             Route::get('google/callback', [UserController::class, 'handleGoogleCallback']);
+            Route::post('google/admin/exchange', [UserController::class, 'exchangeAdminGoogleCode'])
+                ->middleware('throttle:10,1');
             Route::get('facebook', [UserController::class, 'redirectToFacebook']);
             Route::get('facebook/callback', [UserController::class, 'handleFacebookCallback']);
             Route::post('forget-password', [UserController::class, 'forgetPassword']);
@@ -71,8 +73,8 @@ Route::group(['prefix' => 'v1/'], function () {
 
         // Product Category
         Route::group(['prefix' => 'product-category/'], function () {
-            Route::get('list', [FrontendController::class, 'productCategoryList']);
-            Route::get('product', [FrontendController::class, 'categoryWiseProducts']);
+            Route::get('list', [FrontendController::class, 'productCategoryList'])->middleware('public.cache:3600');
+            Route::get('product', [FrontendController::class, 'categoryWiseProducts'])->middleware('public.cache:300');
         });
     });
 
@@ -85,20 +87,25 @@ Route::group(['prefix' => 'v1/'], function () {
 
     // public routes for frontend
     Route::middleware('detect.platform')->group(function () {
-        Route::get('/slider-list', [FrontendController::class, 'sliders']);
-        Route::match(['GET', 'POST'], '/product-list', [FrontendController::class, 'products']);
+        Route::get('/slider-list', [FrontendController::class, 'sliders'])->middleware('public.cache:3600');
+        // Sadakat kampanyasi: giris yapmamis ziyaretci de banner'i gorebilsin.
+        Route::get('/loyalty-campaign', [\App\Http\Controllers\Api\V1\Customer\CustomerLoyaltyController::class, 'campaign'])
+            ->middleware('public.cache:300');
+        Route::get('/sitemap/products', [FrontendController::class, 'sitemapProducts']);
+        Route::get('/sitemap/gone-products', [FrontendController::class, 'sitemapGoneProducts']);
+        Route::match(['GET', 'POST'], '/product-list', [FrontendController::class, 'products'])->middleware('public.cache:300');
         Route::get('/product/attribute-list', [FrontendController::class, 'productAttributes']);
         Route::get('/product/{product_slug}', [FrontendController::class, 'productDetails']);
-        Route::get('/new-arrivals', [FrontendController::class, 'newArrivals']);
-        Route::get('/best-selling-products', [FrontendController::class, 'bestSellingProducts']);
-        Route::get('/featured-products', [FrontendController::class, 'featuredProducts']);
+        Route::get('/new-arrivals', [FrontendController::class, 'newArrivals'])->middleware('public.cache:3600');
+        Route::get('/best-selling-products', [FrontendController::class, 'bestSellingProducts'])->middleware('public.cache:3600');
+        Route::get('/featured-products', [FrontendController::class, 'featuredProducts'])->middleware('public.cache:3600');
         Route::get('/week-best-products', [FrontendController::class, 'weekBestProducts']);
-        Route::get('/trending-products', [FrontendController::class, 'trendingProducts']);
-        Route::get('/popular-products', [FrontendController::class, 'popularProducts']);
+        Route::get('/trending-products', [FrontendController::class, 'trendingProducts'])->middleware('public.cache:3600');
+        Route::get('/popular-products', [FrontendController::class, 'popularProducts'])->middleware('public.cache:3600');
         Route::get('/recently-viewed-products', [FrontendController::class, 'recentlyViewedProducts']);
         Route::get('/top-deal-products', [FrontendController::class, 'topDeals']);
         Route::get('/top-rated-products', [FrontendController::class, 'topRatedProducts']);
-        Route::get('/banner-list', [FrontendController::class, 'banners']);
+        Route::get('/banner-list', [FrontendController::class, 'banners'])->middleware('public.cache:3600');
         Route::post('/subscribe', [SubscriberManageController::class, 'subscribe']);
         Route::post('/unsubscribe', [SubscriberManageController::class, 'unsubscribe']);
         Route::get('/area-list', [FrontendController::class, 'areas']);
@@ -110,10 +117,11 @@ Route::group(['prefix' => 'v1/'], function () {
         Route::get('/customer-list', [FrontendController::class, 'customers']);
         Route::get('/store-list', [FrontendController::class, 'stores']);
         Route::get('/store-list-dropdown', [FrontendController::class, 'storesDropdown']);
-        Route::get('/store-details/{slug}', [FrontendController::class, 'storeDetails']);
+        Route::get('/store-details/{slug}', [FrontendController::class, 'storeDetails'])->middleware('public.cache:3600');
         Route::get('/department-list', [FrontendController::class, 'departments']);
-        Route::get('/flash-deals', [FrontendController::class, 'flashDeals']);
-        Route::get('/flash-deal-products', [FrontendController::class, 'flashDealProducts'])->middleware('throttle:public-api');
+        Route::get('/flash-deals', [FrontendController::class, 'flashDeals'])->middleware('public.cache:3600');
+        Route::get('/flash-deal-products', [FrontendController::class, 'flashDealProducts'])
+            ->middleware(['throttle:public-api', 'public.cache:3600']);
         Route::get('/shipping-campaigns/active', [FrontendController::class, 'getActiveShippingCampaigns']);
         Route::get('/product-suggestion', [FrontendController::class, 'searchSuggestions']);
         Route::get('/keyword-suggestion', [FrontendController::class, 'keywordSuggestions']);
@@ -183,7 +191,13 @@ Route::group(['prefix' => 'v1/'], function () {
 
         // customer place order
         Route::group(['namespace' => 'Api\V1', 'middleware' => ['auth:api_customer', 'check.customer.account.status']], function () {
-            Route::post('orders/checkout', [PlaceOrderController::class, 'placeOrder']);
+            // release.checkout.hold: musterinin kendi terk ettigi odenmemis
+            // siparisinin tuttugu stok rezervini, dogrulama kurallari
+            // calismadan once geri verir (bkz. UnpaidOrderReleaseService).
+            Route::post('orders/checkout', [PlaceOrderController::class, 'placeOrder'])
+                ->middleware('release.checkout.hold');
+            // checkout-oncesi canli stok dogrulama (odeme oncesi pre-check)
+            Route::post('orders/verify-stock', [CheckoutStockController::class, 'verify']);
             // Kargo takip (müşteri)
             Route::get('orders/{orderId}/cargo', [CustomerCargoController::class, 'show']);
             // İade kargo bilgisi (müşteri)
@@ -212,7 +226,9 @@ Route::group(['prefix' => 'v1/'], function () {
 
     // Geliver kargo takip webhook (Geliver bu endpoint'i çağırır)
     Route::post('webhooks/geliver', [GdeliverWebhookController::class, 'handleWebhook']);
-    Route::post('webhooks/einvoice', [EinvoiceWebhookController::class, 'handle']);
+    // e-Fatura webhook'u, saglayici secilip EinvoiceWebhookController yazildiginda
+    // geri eklenecek. Sinif hic var olmadigi icin rota 500 uretiyor ve
+    // `artisan route:list` komutunu tamamen kiriyordu.
 });
 
 // Admin Currency Management Routes
@@ -250,7 +266,11 @@ Route::group(['prefix' => 'v1/admin', 'middleware' => ['auth:sanctum', ApiAuthMi
         Route::get('/recommendation-ctr', [\App\Http\Controllers\Api\V1\Admin\AdminFunnelAnalyticsController::class, 'recommendationCtr']);
         Route::get('/search', [\App\Http\Controllers\Api\V1\Admin\SearchAnalyticsController::class, 'index']);
         Route::get('/experiments', [\App\Http\Controllers\Api\V1\Admin\AdminFunnelAnalyticsController::class, 'experiments']);
+        Route::get('/commerce', [\App\Http\Controllers\Api\V1\Admin\AdminCommerceController::class, 'overview']);
     });
+
+    Route::patch('/commerce/products/{product}', [\App\Http\Controllers\Api\V1\Admin\AdminCommerceController::class, 'reviewProduct']);
+    Route::patch('/commerce/stores/{store}', [\App\Http\Controllers\Api\V1\Admin\AdminCommerceController::class, 'reviewStore']);
 
     Route::group(['prefix' => 'bundles'], function () {
         Route::get('/', [\App\Http\Controllers\Api\V1\Admin\AdminBundleController::class, 'index']);
@@ -266,4 +286,3 @@ Route::group(['prefix' => 'v1/admin', 'middleware' => ['auth:sanctum', ApiAuthMi
     });
 
 });
-

@@ -5,12 +5,14 @@ import { ShoppingBag } from "lucide-react";
 import { useCartStore } from "@/stores/cart-store";
 import { useTranslations } from "next-intl";
 import { usePrice } from "@/hooks/use-price";
+import { usePathname } from "next/navigation";
 
 export function FloatingCart() {
   const items = useCartStore((s) => s.items);
   const openDrawer = useCartStore((s) => s.openDrawer);
   const t = useTranslations("cart");
   const { formatPrice } = usePrice();
+  const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -19,6 +21,12 @@ export function FloatingCart() {
 
   const itemCount = mounted ? items.reduce((sum, i) => sum + i.quantity, 0) : 0;
   const priceTotal = mounted ? items.reduce((sum, i) => sum + i.price * i.quantity, 0) : 0;
+
+  // These pages already expose the cart/checkout controls. Keeping the floating
+  // button here covered prices, form hints and the primary mobile CTA.
+  if (/\/(sepet|odeme|giris)(\/|$)/.test(pathname)) {
+    return null;
+  }
 
   return (
     <button

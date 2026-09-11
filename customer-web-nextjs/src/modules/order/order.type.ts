@@ -13,6 +13,8 @@ export interface OrderDetail {
   store_id: number;
   product_id: number;
   product_name: string;
+  /** Urun sayfasina gidip degerlendirme yazabilmek icin (rota slug tabanli). */
+  product_slug?: string | null;
   product_image_url: string;
   product_sku: string;
   variant_details: Record<string, string> | null;
@@ -134,6 +136,23 @@ export interface OrderDetailResponse {
   order_tracking: OrderTracking[];
   order_payment_tracking: OrderTracking[];
   order_refund_tracking: OrderTracking[];
+}
+
+export interface PaymentSummary {
+  id: number;
+  payment_status: string;
+  payment_gateway: string;
+  value: number;
+  currency: string;
+  shipping: number;
+  coupon: string | null;
+  items: Array<{
+    item_id: string;
+    item_name: string;
+    item_variant?: string | null;
+    price: number;
+    quantity: number;
+  }>;
 }
 
 // --- Return Shipment ---

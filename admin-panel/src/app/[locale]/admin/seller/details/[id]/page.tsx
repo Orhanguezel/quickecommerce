@@ -1,4 +1,3 @@
-import CustomLayout from "@/components/layout/CustomLayout";
 import SellerDetails from "@/components/screen/admin-section/seller/SellerDetails";
 
 
@@ -7,9 +6,7 @@ const SellerDetailsPage = async ({ params }: Props) => {
     const param = await params;
   return (
     <>
-      <CustomLayout>
-        <SellerDetails ID={param.id} />
-      </CustomLayout>
+      <SellerDetails ID={param.id} />
     </>
   );
 };

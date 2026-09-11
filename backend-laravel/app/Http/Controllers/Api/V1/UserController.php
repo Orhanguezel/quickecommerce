@@ -16,6 +16,7 @@ use App\Models\SellerApplication;
 use App\Models\StoreSeller;
 use App\Models\User;
 use App\Repositories\UserRepository;
+use App\Services\Auth\AdminGoogleAuthService;
 use App\Services\MediaService;
 use Carbon\Carbon;
 use Exception;
@@ -35,11 +36,17 @@ class UserController extends Controller
 
     public $repository;
     protected $mediaService;
+    protected AdminGoogleAuthService $adminGoogleAuth;
 
-    public function __construct(UserRepository $repository, MediaService $mediaService)
+    public function __construct(
+        UserRepository $repository,
+        MediaService $mediaService,
+        AdminGoogleAuthService $adminGoogleAuth
+    )
     {
         $this->repository = $repository;
         $this->mediaService = $mediaService;
+        $this->adminGoogleAuth = $adminGoogleAuth;
     }
 
 
@@ -210,14 +217,27 @@ class UserController extends Controller
             return response()->json($validator->errors());
         }
         $role = $request->role ?? 'user'; // Default to 'user' if not provided
+
+        if ($role === 'admin') {
+            if (!$this->adminGoogleAuth->enabled()) {
+                abort(404);
+            }
+
+            $state = $this->adminGoogleAuth->begin((string) $request->query('locale', 'tr'));
+            $redirectUri = $this->adminGoogleRedirectUri();
+        } else {
+            $state = $role;
+            $redirectUri = com_option_get('com_google_client_callback_url');
+        }
+
         /** @var \Laravel\Socialite\Two\GoogleProvider */
         return Socialite::driver('google')
             ->scopes(['email', 'profile'])
             ->with([
                 'client_id' => com_option_get('com_google_app_id'),
-                'redirect_uri' => com_option_get('com_google_client_callback_url'),
+                'redirect_uri' => $redirectUri,
                 'prompt' => 'select_account',  // Forces Google to ask for account selection
-                'state' => $role
+                'state' => $state
             ])
             ->stateless()
             ->redirect();
@@ -226,22 +246,51 @@ class UserController extends Controller
 
     public function handleGoogleCallback(Request $request)
     {
-        $user = Socialite::driver('google')->with([
-            'client_id' => com_option_get('com_google_app_id'),
-            'client_secret' => com_option_get('com_google_client_secret'),
-            'redirect_uri' => com_option_get('com_google_client_callback_url'),
-        ]);
+        $state = (string) $request->input('state', '');
+        $adminStatePayload = null;
 
-        $user->stateless()->user();
-        $google_id = $user->user()->id;
-        $google_email = $user->user()->email;
-        $name = $user->user()->name;
+        if ($this->adminGoogleAuth->isAdminState($state)) {
+            $adminStatePayload = $this->adminGoogleAuth->consumeState($state);
+            $locale = $this->adminGoogleAuth->normalizeLocale(
+                (string) ($adminStatePayload['locale'] ?? 'tr')
+            );
+
+            if (!$adminStatePayload) {
+                return $this->redirectToAdminGoogleCallback($locale, ['error' => 'invalid_state']);
+            }
+        }
+
+        try {
+            $googleUser = Socialite::driver('google')->with([
+                'client_id' => com_option_get('com_google_app_id'),
+                'client_secret' => com_option_get('com_google_client_secret'),
+                'redirect_uri' => $adminStatePayload
+                    ? $this->adminGoogleRedirectUri()
+                    : com_option_get('com_google_client_callback_url'),
+            ])->stateless()->user();
+        } catch (\Throwable $exception) {
+            if ($adminStatePayload) {
+                return $this->redirectToAdminGoogleCallback($locale, ['error' => 'provider_failed']);
+            }
+
+            throw $exception;
+        }
+
+        if ($adminStatePayload) {
+            return $this->handleAdminGoogleCallback($adminStatePayload, $googleUser);
+        }
+
+        $google_id = $googleUser->getId();
+        $google_email = $googleUser->getEmail();
+        $name = $googleUser->getName();
         // Retrieve the role from the OAuth state parameter
-        $role = $request->input('state', 'user'); // Default to 'user'
+        $role = $state ?: 'user'; // Default to 'user'
         if ($role == 'customer') {
             $frontendUrl = config('app.frontend_url');
         } elseif ($role == 'seller') {
             $frontendUrl = config('app.frontend_url') . '/seller/dashboard';
+        } else {
+            $frontendUrl = config('app.frontend_url');
         }
         // Find or create a user in the database
         if ($role == 'customer') {
@@ -341,6 +390,87 @@ class UserController extends Controller
                     'activity_notification' => $newUser->activity_notification,
                 ]));
         }
+    }
+
+    private function handleAdminGoogleCallback(array $statePayload, $googleUser)
+    {
+        $locale = $this->adminGoogleAuth->normalizeLocale((string) ($statePayload['locale'] ?? 'tr'));
+
+        $googleEmail = strtolower(trim((string) $googleUser->getEmail()));
+        $emailVerified = filter_var(
+            data_get($googleUser->user, 'email_verified', false),
+            FILTER_VALIDATE_BOOLEAN
+        );
+
+        if (!$emailVerified) {
+            return $this->redirectToAdminGoogleCallback($locale, ['error' => 'email_not_verified']);
+        }
+
+        $admin = $this->adminGoogleAuth->findTargetAdmin($googleEmail);
+
+        if (!$admin) {
+            return $this->redirectToAdminGoogleCallback($locale, ['error' => 'not_authorized']);
+        }
+
+        $code = $this->adminGoogleAuth->createExchangeCode($admin, $googleEmail);
+
+        return $this->redirectToAdminGoogleCallback($locale, ['code' => $code]);
+    }
+
+    public function exchangeAdminGoogleCode(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'code' => 'required|string|size:80',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Google login code is invalid.',
+            ], 422);
+        }
+
+        $admin = $this->adminGoogleAuth->consumeExchangeCode((string) $request->input('code'));
+
+        if (!$admin) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Google login code expired or is not authorized.',
+            ], 401);
+        }
+
+        $token = $admin->createToken('admin_google_auth_token');
+        $accessToken = $token->accessToken;
+        $accessToken->expires_at = Carbon::now()->addMinutes(1440);
+        $accessToken->save();
+
+        return response()->json([
+            'status' => true,
+            'status_code' => 200,
+            'message' => __('messages.login_success'),
+            'token' => $token->plainTextToken,
+            'expires_at' => $accessToken->expires_at->format('Y-m-d H:i:s'),
+            'email_verified' => $admin->hasVerifiedEmail(),
+            'role' => $admin->getRoleNames()->first(),
+        ]);
+    }
+
+    private function redirectToAdminGoogleCallback(string $locale, array $query)
+    {
+        $callbackUrl = rtrim((string) config('app.admin_url'), '/')
+            . '/' . $this->adminGoogleAuth->normalizeLocale($locale)
+            . '/admin/google/callback';
+
+        return redirect()->away($callbackUrl . '?' . http_build_query($query));
+    }
+
+    private function adminGoogleRedirectUri(): string
+    {
+        $configuredRedirect = trim((string) config('admin_google_auth.redirect_uri', ''));
+
+        return $configuredRedirect !== ''
+            ? $configuredRedirect
+            : (string) com_option_get('com_google_client_callback_url');
     }
 
 

@@ -890,8 +890,8 @@ export default function UpdateStoreForm({ data }: any) {
               disabled={
                 Object.keys(watchedValues).length === 0 ||
                 watchedValues.name_df === '' ||
-                watchedValues?.longitude === '' ||
-                watchedValues?.latitude === '' ||
+                ((editData?.fulfillment_model ?? 'seller') === 'seller' &&
+                  (watchedValues?.longitude === '' || watchedValues?.latitude === '')) ||
                 errorMessage
               }
             >

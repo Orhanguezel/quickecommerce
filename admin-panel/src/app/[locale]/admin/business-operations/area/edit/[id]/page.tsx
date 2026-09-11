@@ -1,4 +1,3 @@
-import CustomLayout from "@/components/layout/CustomLayout";
 import EditArea from "@/components/screen/admin-section/business-operations/area/EditArea";
 
 
@@ -7,9 +6,7 @@ const EditAreaPage = async ({ params }: Props) => {
   const param = await params;
 
   return (
-    <CustomLayout>
-      <EditArea ID={param.id} />
-    </CustomLayout>
+    <EditArea ID={param.id} />
   );
 };
 export default EditAreaPage;

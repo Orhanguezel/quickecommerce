@@ -19,6 +19,7 @@ import { AuthFormProps } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Copy, Eye, EyeOff } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import { env } from "@/env.mjs";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -52,6 +53,7 @@ const SignInForm = ({
   const [rememberMe, setRememberMe] = useState(false);
   const [on, setOn] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleRedirecting, setIsGoogleRedirecting] = useState(false);
 
   useEffect(() => {
     setIsLoading(false);
@@ -143,6 +145,13 @@ const SignInForm = ({
   const handleCopyClick = () => {
     setValue("email", "admin@gmail.com");
     setValue("password", "12345678");
+  };
+
+  const handleGoogleAdminLogin = () => {
+    setIsGoogleRedirecting(true);
+    window.location.assign(
+      `${env.NEXT_PUBLIC_REST_API_ENDPOINT}/v1/auth/google?role=admin&locale=${localeMain}`
+    );
   };
   return (
     <>
@@ -344,6 +353,29 @@ const SignInForm = ({
                           <Loader color="text-white" size="small" />
                         ) : (
                           <span>{t("button.login")}</span>
+                        )}
+                      </Button>
+                      <div className="relative my-4">
+                        <div className="absolute inset-0 flex items-center">
+                          <span className="w-full border-t border-gray-200 dark:border-gray-700" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                          <span className="bg-white px-2 text-gray-500 dark:bg-[#1e293b] dark:text-gray-400">
+                            veya
+                          </span>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        className="w-full border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
+                        type="button"
+                        disabled={isPending || isGoogleRedirecting}
+                        onClick={handleGoogleAdminLogin}
+                      >
+                        {isGoogleRedirecting ? (
+                          <Loader size="small" />
+                        ) : (
+                          <span>Google ile admin girişi</span>
                         )}
                       </Button>
                       {/* Seller Login */}

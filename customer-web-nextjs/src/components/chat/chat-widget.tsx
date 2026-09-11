@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { X, Send, Trash2, Sparkles } from "lucide-react";
+import { Bot, X, Send, Trash2, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useChatWidgetStore } from "@/stores/chat-widget-store";
 import { useAiChatSendMutation } from "@/modules/ai-chat/ai-chat.service";
-import Image from "next/image";
 
 export function ChatWidget() {
   const t = useTranslations("chat_widget");
@@ -80,13 +79,7 @@ export function ChatWidget() {
             
             {/* Main button */}
             <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-card shadow-lg transition-transform group-hover:scale-110">
-              <Image
-                src="/assets/icons/support_ai.png"
-                alt="AI Support"
-                width={36}
-                height={36}
-                className="object-contain"
-              />
+              <Bot className="h-9 w-9 text-blue-600" aria-hidden="true" />
             </div>
 
             {/* Pulse animation */}
@@ -103,13 +96,7 @@ export function ChatWidget() {
             <div className="relative flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
-                  <Image
-                    src="/assets/icons/support_ai.png"
-                    alt="AI"
-                    width={24}
-                    height={24}
-                    className="object-contain"
-                  />
+                  <Bot className="h-6 w-6 text-white" aria-hidden="true" />
                 </div>
                 <div>
                   <h3 className="text-sm font-semibold text-white flex items-center gap-1.5">

@@ -101,6 +101,52 @@ class MediaService
         return null;
     }
 
+    /**
+     * Hazir bir UploadedFile'i media-uploader konvansiyonuyla diske + media tablosuna kaydeder.
+     * insert_media_image request bazli tek dosya bekler; bu metot (review gibi) coklu/dogrudan
+     * dosya yuklemeleri icin sahip (user) bilgisini disaridan alir.
+     *
+     * @param UploadedFile $image
+     * @return Media|null
+     */
+    public function store_uploaded_image(UploadedFile $image, $user_id, $user_type, $folder_type = 'default', $usage_type = null)
+    {
+        $base_path = 'uploads/media-uploader';
+        $folder_path = "{$base_path}/{$folder_type}";
+
+        if (!File::exists(storage_path("app/public/{$folder_path}"))) {
+            File::makeDirectory(storage_path("app/public/{$folder_path}"), 0755, true);
+        }
+
+        $image_dimension = getimagesize($image);
+        $image_width = $image_dimension[0];
+        $image_height = $image_dimension[1];
+        $image_dimension_for_db = $image_width . ' x ' . $image_height . ' pixels';
+        $image_size_for_db = $image->getSize();
+        $image_extension = $image->getClientOriginalExtension();
+        $image_name_with_ext = $image->getClientOriginalName();
+        $image_name = strtolower(Str::slug(pathinfo($image_name_with_ext, PATHINFO_FILENAME)));
+        // time()+random: ayni saniyede coklu yukleme cakismasini onler
+        $image_db = $image_name . '-' . time() . '-' . Str::random(6) . '.' . $image_extension;
+
+        Image::make($image)
+            ->resize($image_width, $image_height, function ($constraint) {
+                $constraint->aspectRatio();
+            })
+            ->save(storage_path("app/public/{$folder_path}/{$image_db}"));
+
+        return Media::create([
+            'name' => $image_name_with_ext,
+            'format' => strtolower($image_extension),
+            'file_size' => formatBytes($image_size_for_db),
+            'path' => "{$folder_path}/{$image_db}",
+            'dimensions' => $image_dimension_for_db,
+            'user_id' => $user_id,
+            'user_type' => $user_type,
+            'usage_type' => $usage_type,
+        ]);
+    }
+
     public function load_more_images($request)
     {
         // user type

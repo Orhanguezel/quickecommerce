@@ -304,7 +304,17 @@
     "verify_otp": "Kodu Doğrula",
     "otp_error": "OTP işlemi sırasında bir hata oluştu.",
     "otp_sent": "Kod gönderildi. E-postanızı kontrol edin.",
-    "agree_terms": "Kullanım koşullarını ve gizlilik politikasını kabul ediyorum"
+    "agree_terms": "Kullanım koşullarını ve gizlilik politikasını kabul ediyorum",
+    "verify_email_title": "E-posta adresinizi doğrulayın",
+    "verify_email_subtitle": "{email} adresine 6 haneli bir doğrulama kodu gönderdik. Kodu aşağıya girin.",
+    "verify_email_code": "Doğrulama kodu",
+    "verify_email_submit": "Doğrula",
+    "verify_email_resend": "Kodu tekrar gönder",
+    "verify_email_resend_in": "Tekrar göndermek için {seconds} sn",
+    "verify_email_sent": "Doğrulama kodu e-posta adresinize gönderildi.",
+    "verify_email_success": "E-posta adresiniz doğrulandı.",
+    "verify_email_spam_hint": "E-posta gelmediyse spam/gereksiz klasörünü kontrol edin.",
+    "verify_email_required": "Lütfen 6 haneli kodu girin."
   },
   "cart": {
     "your_cart": "Sepetiniz",
@@ -629,7 +639,9 @@
     "support_title": "Destek",
     "support_description": "Destek taleplerinizi yönetin",
     "become_seller_title": "Satıcı Ol",
-    "become_seller_description": "Sportoonline'da satıcı olun ve spor ürünlerinizi milyonlarca müşteriye ulaştırın"
+    "become_seller_description": "Sportoonline'da satıcı olun ve spor ürünlerinizi milyonlarca müşteriye ulaştırın",
+    "verify_email_title": "E-posta Doğrulama | Sportoonline",
+    "verify_email_description": "Hesabınızı kullanmaya başlamak için e-posta adresinizi doğrulayın."
   },
   "product_details": {
     "delivery_title": "Teslimat Başlığı",

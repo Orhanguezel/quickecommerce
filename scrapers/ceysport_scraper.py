@@ -19,11 +19,19 @@ Kullanim:
 Cikti: ceysport_products.json (repo'da data/source-products/ altina)
 """
 
+import argparse
 import json
+import os
+import subprocess
+import tempfile
 import re
 import sys
 import time
 from html import unescape
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+from urllib.parse import urlsplit
+from xml.etree import ElementTree
 
 import requests
 from bs4 import BeautifulSoup
@@ -74,30 +82,59 @@ def _clean_price(text):
         return None
 
 
-def _discover_urls(session):
-    """sitemap_index.xml -> product-sitemap*.xml -> /urun/ URL'leri (tekil)."""
-    try:
-        resp = session.get(SITEMAP_INDEX, timeout=60)
-        resp.raise_for_status()
-    except Exception as exc:  # noqa: BLE001
-        print(f"  Sitemap index HATASI: {exc}")
-        return []
-
-    product_maps = re.findall(
-        r"<loc>\s*(https://ceysport\.com/product-sitemap\d+\.xml)\s*</loc>",
-        resp.text,
-    )
-    urls = []
-    for sm in product_maps:
+def _fetch_text(session, url):
+    """Use curl after a blocked requests connection; never invoke a browser."""
+    parsed = urlsplit(url)
+    if parsed.scheme != "https" or parsed.hostname not in {"ceysport.com", "www.ceysport.com"}:
+        raise ValueError("Unexpected Ceysport URL")
+    if not getattr(session, "_ceysport_use_curl", False):
         try:
-            r = session.get(sm, timeout=60)
-            r.raise_for_status()
-        except Exception as exc:  # noqa: BLE001
-            print(f"    {sm} HATASI: {exc}")
-            continue
-        locs = re.findall(r"<loc>\s*([^<\s]+)\s*</loc>", r.text)
-        # Yalniz urun URL'leri (/urun/...) -> /magaza/ vb. elenir.
-        urls.extend(loc.strip() for loc in locs if "/urun/" in loc)
+            response = session.get(url, timeout=(10, 30))
+            if response.status_code in {404, 410}:
+                return None
+            response.raise_for_status()
+            return response.text
+        except requests.RequestException:
+            session._ceysport_use_curl = True
+    result = subprocess.run(
+        ["curl", "--fail", "--silent", "--show-error", "--location",
+         "--proto", "=https", "--proto-redir", "=https",
+         "--connect-timeout", "10", "--max-time", "40",
+         "--retry", "2", "--retry-delay", "2", "--write-out", "\n%{http_code}", url],
+        capture_output=True, text=True, timeout=135, check=False,
+    )
+    body, _, status = result.stdout.rpartition("\n")
+    if status in {"404", "410"}:
+        return None
+    if result.returncode or status != "200":
+        raise ValueError(f"Ceysport request failed: HTTP {status} ({url})")
+    if not body.strip():
+        raise ValueError("Empty Ceysport response")
+    return body
+
+
+def _sitemap_locs(text):
+    root = ElementTree.fromstring(text)
+    if root.tag.rsplit("}", 1)[-1] not in {"sitemapindex", "urlset"}:
+        raise ValueError("Response is not a sitemap")
+    return [el.text.strip() for el in root.iter()
+            if el.tag.rsplit("}", 1)[-1] == "loc" and el.text]
+
+
+def _discover_urls(session):
+    """Abort on any missing child sitemap instead of publishing a partial catalog."""
+    maps = _sitemap_locs(_fetch_text(session, SITEMAP_INDEX))
+    product_maps = [url for url in maps if re.fullmatch(
+        r"https://(?:www\.)?ceysport\.com/product-sitemap\d*\.xml", url)]
+    if not product_maps:
+        raise ValueError("No product sitemaps found")
+    urls = []
+    for sitemap in product_maps:
+        locs = _sitemap_locs(_fetch_text(session, sitemap))
+        product_urls = [url for url in locs if "/urun/" in url]
+        if not product_urls:
+            raise ValueError(f"Empty product sitemap: {sitemap}")
+        urls.extend(product_urls)
         time.sleep(0.3)
     return list(dict.fromkeys(urls))
 
@@ -163,27 +200,32 @@ def _parse_prices(soup):
     return (_clean_price(plain.get_text()) if plain else None), None
 
 
+def _jsonld_offer_price(jsonld):
+    """JSON-LD offers.price -> float. Sayfa basina TEK Product semasi oldugu icin
+    bu fiyat ana urune aittir (guvenilir). ceysport 2026-07'de JSON-LD'ye offers
+    ekledi; HTML .price ise WoodMart'ta ilgili/upsell urunlerin fiyatini kapabiliyor
+    (CPBP-10: 4450 yerine 3450 -> zararina satis). Yoksa None."""
+    offers = (jsonld or {}).get("offers")
+    if isinstance(offers, list):
+        offers = offers[0] if offers else {}
+    if isinstance(offers, dict):
+        return _clean_price(offers.get("price") or offers.get("lowPrice"))
+    return None
+
+
 def _parse_stock(soup):
-    """p.stock class'indan stok durumu (out-of-stock -> False)."""
-    st = soup.select_one("p.stock, .summary .stock")
+    """Only explicit stock evidence permits sales; missing stock is unavailable."""
+    st = soup.select_one(".summary .stock, p.stock")
     if st is None:
-        # Stok bilgisi yoksa varsayilan stokta (WooCommerce stok takibi kapali).
-        return True
-    classes = st.get("class") or []
-    if "out-of-stock" in classes:
         return False
-    return True
+    classes = st.get("class") or []
+    return "in-stock" in classes and "out-of-stock" not in classes
 
 
 def _parse_product(session, url):
-    try:
-        resp = session.get(url, timeout=30)
-        resp.raise_for_status()
-    except Exception as exc:  # noqa: BLE001
-        print(f"    HATA {url}: {exc}")
+    html = _fetch_text(session, url)
+    if html is None:
         return None
-
-    html = resp.text
     soup = BeautifulSoup(html, "html.parser")
     jsonld = _jsonld_product(html) or {}
 
@@ -195,9 +237,15 @@ def _parse_product(session, url):
     name = unescape(name)
     name = re.sub(r"\s*[-–]\s*CEYSPORT\s*$", "", name, flags=re.I).strip()
     if not name:
-        return None
+        raise ValueError(f"Product title missing: {url}")
 
-    original_price, discounted_price = _parse_prices(soup)
+    # FIYAT: JSON-LD offers.price birincil (guvenilir, ana urun) — HTML .price
+    # WoodMart'ta yanlis (ilgili urun) fiyat kapabiliyordu. offers yoksa HTML fallback.
+    jl_price = _jsonld_offer_price(jsonld)
+    if jl_price is not None:
+        original_price, discounted_price = jl_price, None
+    else:
+        original_price, discounted_price = _parse_prices(soup)
     in_stock = _parse_stock(soup)
 
     sku = str(jsonld.get("sku") or "").strip()
@@ -285,13 +333,18 @@ def _parse_product(session, url):
 
 
 def main():
-    limit = None
-    with_images = "--images" in sys.argv
-    for arg in sys.argv[1:]:
-        if arg.startswith("--limit="):
-            limit = int(arg.split("=", 1)[1])
-
-    output_file = resolve_output("ceysport_products.json")
+    parser = argparse.ArgumentParser(description="Ceysport catalog scraper")
+    parser.add_argument("--limit", type=int, default=0)
+    parser.add_argument("--images", action="store_true")
+    parser.add_argument("--output")
+    args = parser.parse_args()
+    limit = args.limit
+    with_images = args.images
+    if limit < 0:
+        parser.error("--limit must be non-negative")
+    if limit and not args.output:
+        parser.error("Limited runs require --output to protect the full catalog")
+    output_file = args.output or resolve_output("ceysport_products.json")
     image_dir = resolve_image_dir("ceysport_images")
 
     print(f"ceysport.com scraper (WooCommerce HTML): {BASE_URL}")
@@ -312,15 +365,20 @@ def main():
 
     products = []
     skipped = 0
-    for i, url in enumerate(urls, 1):
-        if i == 1 or i % 25 == 0:
-            print(f"  [{i}/{len(urls)}] ...")
-        prod = _parse_product(session, url)
-        if prod and prod["original_price"]:
-            products.append(prod)
-        else:
-            skipped += 1
+    # Discovery has already chosen the transport. curl subprocesses are isolated.
+    session._ceysport_use_curl = True
+    def fetch_product(url):
+        result = _parse_product(session, url)
         time.sleep(0.6)
+        return result
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        for i, prod in enumerate(pool.map(fetch_product, urls), 1):
+            if i == 1 or i % 25 == 0:
+                print(f"  [{i}/{len(urls)}] ...", flush=True)
+            if prod and prod["original_price"]:
+                products.append(prod)
+            else:
+                skipped += 1
 
     if with_images and image_dir:
         print("\nGorseller indiriliyor...")
@@ -332,8 +390,20 @@ def main():
                     downloaded.append({"remote_url": img_url, "local_path": local})
             prod["downloaded_images"] = downloaded
 
-    with open(output_file, "w", encoding="utf-8") as f:
-        json.dump(products, f, ensure_ascii=False, indent=2)
+    if not products:
+        raise ValueError("No priced products; previous output preserved")
+    target = Path(output_file)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8",
+                                         dir=target.parent, delete=False) as f:
+            temporary = f.name
+            json.dump(products, f, ensure_ascii=False, indent=2)
+        os.replace(temporary, target)
+    finally:
+        if temporary and os.path.exists(temporary):
+            os.unlink(temporary)
 
     in_stock = sum(1 for p in products if p.get("available"))
     print(

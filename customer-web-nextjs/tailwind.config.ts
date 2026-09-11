@@ -15,7 +15,7 @@ const config = {
       },
     },
     fontFamily: {
-      sans: ['var(--font-geist-sans)', 'system-ui', 'sans-serif'],
+      sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'],
     },
     extend: {
       colors: {

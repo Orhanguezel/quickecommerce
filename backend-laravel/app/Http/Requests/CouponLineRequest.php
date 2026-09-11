@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Validation\Rule;
 
 class CouponLineRequest extends FormRequest
 {
@@ -25,6 +26,16 @@ class CouponLineRequest extends FormRequest
     {
         return [
             'coupon_id' => 'required|exists:coupons,id',
+            // Bos birakilirsa controller rastgele kod uretir (create) ya da mevcut
+            // kodu korur (update). Dolu ise buyuk harfe cevrilip benzersizlik aranir.
+            'coupon_code' => [
+                'nullable',
+                'string',
+                'min:3',
+                'max:50',
+                'regex:/^[A-Z0-9._-]+$/',
+                Rule::unique('coupon_lines', 'coupon_code')->ignore($this->input('id')),
+            ],
             'customer_id' => 'nullable|exists:customers,id',
             'discount_type' => 'required|string|in:percentage,amount',
             'discount' => 'required|numeric|min:0',
@@ -40,6 +51,10 @@ class CouponLineRequest extends FormRequest
     {
         return [
             'coupon_id' => __('validation.required', ['attribute' => 'Coupon']),
+            'coupon_code.unique' => __('validation.unique', ['attribute' => 'Coupon Code']),
+            'coupon_code.regex' => __('validation.regex', ['attribute' => 'Coupon Code']),
+            'coupon_code.min' => __('validation.min.string', ['attribute' => 'Coupon Code', 'min' => 3]),
+            'coupon_code.max' => __('validation.max.string', ['attribute' => 'Coupon Code', 'max' => 50]),
             'coupon_id.exists' => __('validation.exists', ['attribute' => 'Coupon']),
             'customer_id.exists' => __('validation.exists', ['attribute' => 'Customer']),
             'discount_type.required' => __('validation.required', ['attribute' => 'Discount Type']),
@@ -58,6 +73,19 @@ class CouponLineRequest extends FormRequest
 
         ];
     }
+    /**
+     * Kupon kodunu dogrulamadan once normallestirir: bosluklar kirpilir, buyuk
+     * harfe cevrilir, bos string NULL'a doner. Normallestirme validasyondan ONCE
+     * olmali; aksi halde "hakan10" ile "HAKAN10" benzersizlik kontrolunu asar.
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('coupon_code')) {
+            $code = strtoupper(trim((string) $this->input('coupon_code')));
+            $this->merge(['coupon_code' => $code !== '' ? $code : null]);
+        }
+    }
+
     public function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json($validator->errors(), 422));

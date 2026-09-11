@@ -125,6 +125,18 @@ export const useBaseService = <DataType, InputType = unknown>(
           }
         }
 
+        // E-posta dogrulanmadan hesap paneli endpoint'leri 403 doner
+        // (backend: CheckEmailVerificationOption). Kullaniciyi dogrulama
+        // ekranina al; oradan cikamadan panele donmesin.
+        if (
+          error.response?.status === 403 &&
+          error.response?.data?.code === "email_not_verified" &&
+          !pathname?.includes("/eposta-dogrula")
+        ) {
+          router.push(`/${locale}/eposta-dogrula`);
+          return Promise.reject(error);
+        }
+
         return Promise.reject(error);
       }
     );

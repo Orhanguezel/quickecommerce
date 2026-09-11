@@ -30,6 +30,8 @@ class ReviewRequest extends FormRequest
             'reviewable_type' => 'required|string|in:product,delivery_man',
             'review' => 'required|string|max:1000',
             'rating' => 'required|numeric|between:1,5',
+            'images' => 'sometimes|array|max:5',
+            'images.*' => 'image|mimes:jpeg,jpg,png,webp|max:4096',
         ];
     }
 

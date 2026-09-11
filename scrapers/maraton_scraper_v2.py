@@ -4,14 +4,14 @@ Maraton Sportswear (maratonsw.com) Urun Scraper — V2 (Scrapling)
 
 Onceki versiyonun Playwright + headed Chrome ihtiyaci kalkti. Tum CF challenge
 + urun detay parse merkezi scraper-service uzerinden gider:
-  https://scraper.guezelwebdesign.com/api/v1/scrape (mode: stealthy)
+  http://127.0.0.1:8200/api/v1/scrape (mode: stealthy)
 
 VPS'te headless calisir, display gerektirmez. Cron icin uygun.
 
 Cikti: data/source-products/maraton_products.json  (sync:source-prices ile uyumlu schema)
 
 Kullanim:
-  SCRAPER_URL=https://scraper.guezelwebdesign.com \\
+  SCRAPER_URL=http://127.0.0.1:8200 \\
   SCRAPER_API_KEY=scraper-sportoonline-... \\
     python3 scrapers/maraton_scraper_v2.py [--limit 50]
 """

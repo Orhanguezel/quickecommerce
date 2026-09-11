@@ -26,6 +26,10 @@ class OrderDetailsResource extends JsonResource
             'area_id' => $this->area_id,
             'product_id' => $this->product_id,
             'product_name' => $this->product?->name,
+            // Musterinin siparisten urun sayfasina gidip degerlendirme
+            // yazabilmesi icin gerekli: rota slug tabanli
+            // (/urun/{slug}?review={order_id}).
+            'product_slug' => $this->product?->slug,
             'product_image_url' => ImageModifier::generateImageUrl($this->product?->image),
             'behaviour' => $this->behaviour, // service, digital, consumable, combo
             'product_sku' => $this->product_sku,

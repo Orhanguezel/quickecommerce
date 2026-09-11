@@ -32,7 +32,18 @@ DEFAULT_CATEGORY = "Teknoloji"
 # olabilir (locale slug DB ile uyusmaz -> id ile esleriz).
 PROD_ID_RE = re.compile(r"/shop/.+?-(\d+)(?:[/?#]|$)")
 LOCALE_RE = re.compile(r"^/[a-z]{2}/shop/", re.I)
-MAX_PAGES = 120
+# Guvenlik siniri. Dongunun asil durdurucusu asagidaki iki dogal kosul:
+# (1) sayfada urun karti yok, (2) sayfa yeni URL uretmiyor (Odoo son
+# sayfadan sonra ayni kartlari tekrarliyor). MAX_PAGES yalnizca sonsuz
+# donguye karsi emniyet supabi; katalogu KESMEMELI.
+#
+# 2026-08-29: deger 120 idi ve katalogu tam olarak 720 urunde (120x6)
+# kesiyordu. 120. sayfa hala +6 urun getiriyordu, yani dogal durdurucu hic
+# calismiyordu. Katalog ~290 sayfa (~1740 urun) ve veritabanindaki 1740
+# mapping ile birebir ortusuyor; 966 mapping bu yuzden HATALI olarak
+# "kaynakta bulunamadi" isaretlenmisti ve 430 urun eski stokla satista
+# kalmisti (yok satma riski).
+MAX_PAGES = 400
 
 
 def _canon_url(href):
