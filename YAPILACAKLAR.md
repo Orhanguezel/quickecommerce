@@ -4,7 +4,7 @@
 - [X] Admin durum güncellemesi aynı durumu yeniden kaydedemiyor, ilerlemiş siparişi önceki aşamaya döndüremiyor ve terminal siparişleri değiştiremiyor. Admin modalı yalnız geçerli ileri durumları gösteriyor.
 - [X] Geçici/ödenmemiş checkout durumu olan `pending` için müşteri durum e-postası admin ve seller akışlarında savunmalı olarak engellendi.
 - [X] Durum geçiş politikası için 9 test / 9 assertion geçti; admin production build geçti. Tam backend pakette 47 test geçti, 8 mevcut Wishlist testi yerel `pdo_sqlite` sürücüsü eksikliği nedeniyle çalışamadı.
-- PR: hazırlanıyor.
+- PR: https://github.com/Orhanguezel/quickecommerce/pull/17.
 
 ## 2026-09-09 — HeynuT / Yonex açıklama ve teknik özellik aktarımı
 
