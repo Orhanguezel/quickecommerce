@@ -163,6 +163,16 @@ class AdminOrderManageController extends Controller
             ], 404);
         }
 
+        // Ayni durumu yeniden kaydetmek veya siparisi geriye almak gercek bir
+        // durum degisikligi degildir. Eskiden admin modalinda mevcut durum
+        // tekrar onaylanabildigi icin, sonradan silinen odenmemis siparisler
+        // icin bile "Beklemede" e-postasi uretiliyordu.
+        if (! OrderStatusType::canTransition($order->status, $request->status)) {
+            return response()->json([
+                'message' => __('messages.order_status_not_changeable')
+            ], 422);
+        }
+
         $userId = auth('api')->id();
 
         // Handle cancellation
@@ -316,7 +326,8 @@ class AdminOrderManageController extends Controller
 
         // Kurye atama siparis durumunu degistirmez; musteriye mail gonderilmez
         // (bildirim servisi de bu tipte sadece kurye + saticiyi bilgilendirir).
-        $notifyCustomer = $type !== 'admin_order_assign_deliveryman';
+        $notifyCustomer = $type !== 'admin_order_assign_deliveryman'
+            && $status !== 'pending';
 
         $emailTemplates = EmailTemplate::whereIn('type', [
             $customerTemplateType,

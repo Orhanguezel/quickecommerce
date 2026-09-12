@@ -1,3 +1,12 @@
+## 2026-09-12 — Silinen sipariş için gecikmiş “Beklemede” e-postası
+
+- [X] WhatsApp ses kaydı çözümlendi ve Gmail teslimat hatası incelendi. Sipariş #229 artık canlı veride yok; ödeme tamamlanmayan sipariş temizleme akışı tarafından kaldırılmış.
+- [X] Admin durum güncellemesi aynı durumu yeniden kaydedemiyor, ilerlemiş siparişi önceki aşamaya döndüremiyor ve terminal siparişleri değiştiremiyor. Admin modalı yalnız geçerli ileri durumları gösteriyor.
+- [X] Geçici/ödenmemiş checkout durumu olan `pending` için müşteri durum e-postası admin ve seller akışlarında savunmalı olarak engellendi.
+- [X] Durum geçiş politikası için 9 test / 9 assertion geçti; admin production build geçti. Tam backend pakette 47 test geçti, 8 mevcut Wishlist testi yerel `pdo_sqlite` sürücüsü eksikliği nedeniyle çalışamadı.
+- [X] 2026-09-12 canlı deploy: hedef backend/admin dosyaları yedeklendi, Laravel cache ve queue yenilendi, admin production build + PM2 restart tamamlandı. Canlı geçiş kontrolü `pending→pending`/`processing→pending` engelli, `pending→confirmed` izinli; panel ve müşteri sitesi HTTP 200.
+- PR: https://github.com/Orhanguezel/quickecommerce/pull/17.
+
 ## 2026-09-09 — HeynuT / Yonex açıklama ve teknik özellik aktarımı
 
 - [X] Kök neden: ortak IdeaSoft parser yalnız JSON-LD description okuyordu; Ticimax kaynaklarında bu alan boş, içerik `divOnyazi` / `divTabOzellikler` / özel ürün sekmelerinde. 163 yeni ürün açıklamasız kaydedilmişti.

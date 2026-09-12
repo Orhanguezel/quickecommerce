@@ -287,6 +287,16 @@ class SellerStoreOrderController extends Controller
      */
     private function sendCustomerStatusEmail(Order $order): void
     {
+        // Pending, odeme tamamlanmadan olusan gecici checkout durumudur ve
+        // siparis temizleme isi tarafindan silinebilir. Musteriye eski/yaniltici
+        // bir "Beklemede" e-postasi gonderme.
+        if ($order->status === 'pending') {
+            Log::info('[order-status-email] seller pending status maili atlandi', [
+                'order_id' => $order->id,
+            ]);
+            return;
+        }
+
         $template = EmailTemplate::where('type', 'order-status-' . $order->status)
             ->where('status', 1)
             ->first();
