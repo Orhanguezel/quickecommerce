@@ -927,3 +927,10 @@ Sporcu besinleri ve ml/gr içerikli ürünler için weight filter — scraper up
   insert'i `notifiable_id` null patlamış. **Düzeltildi**:
   `OrderManageNotificationService::notifyStore` artık `store?->seller?->id`
   null ise bildirim oluşturmuyor. SMTP/mail gönderimi sağlıklı.
+## 2026-09-12 — Heyday ve Neptün mağazaları
+
+- [X] Heyday ve Neptün için ayrı, aktif dropshipping mağazaları açıldı: Heyday #78, Neptün #79. Resmi iletişim bilgileri, marka kayıtları ve mağaza logoları bağlandı.
+- [X] Heyday ikas kaynağından 2 ürün / 4 varyant (40 adet kaynak stok); Neptün resmi kataloğundan 19 ürün / 19 varyant aktarıldı. Neptün Zinc sepete eklenemediği için fail-closed olarak stok 0; müşteri kataloğunda 18 Neptün ürünü satılabilir.
+- [X] 32 ürün görseli kaynak hotlink yerine yerel Media kaydı olarak aktarıldı. Fiyat/stok dry-run sync: Heyday 4/4 değişmeyen, Neptün 18 değişmeyen + 1 stok 0, eksik/hata 0.
+- [X] İki kaynak günlük `run-all.sh` zincirine ve merkezi scraper sağlık kaydına eklendi. Ürün kalite kapısı iki katalogda da 0 hata / 0 uyarı; Python scraper testleri 19/19 geçti.
+- [X] Canlı masaüstü/mobil mağaza ve ürün detayı HTTP 200; ürün kartına tıklama, Heyday aroma seçenekleri, fiyat/görsel, boş sayfa, framework overlay ve console/page error kontrolleri geçti. PR: https://github.com/Orhanguezel/quickecommerce/pull/18 — canlı kaynak yedeği: `releases/20260912-164341-heyday-neptun/source-backup/`.
