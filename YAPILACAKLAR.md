@@ -4,6 +4,7 @@
 - [X] Serkan Öztürk'ün Kartix sipariş denemesi incelendi: ödeme sağlayıcısına ulaşmadan adres posta kodu doğrulamasında dört kez 422 aldığı, checkout'un hatayı kullanıcıya göstermediği doğrulandı. Posta kodu sınırı gerçek adres sağlayıcısı sonuçlarına uygun genişletildi ve API doğrulama mesajı formda görünür hale getirildi.
 - [X] AI sağlayıcı kredisi/kotası tükendiğinde canlı destek endpoint'inin 500 dönmesi engellendi; gerçek destek bildirimi durumuna göre güvenli yedek yanıt oluşturuluyor.
 - [X] 13 backend unit test / 16 assertion, değiştirilen PHP dosyalarında syntax kontrolü ve müşteri frontend TypeScript kontrolü geçti.
+- [X] Canlıya dosya bazlı yedekle yayımlandı; frontend production build ve PM2 restart geçti. Checkout/anasayfa HTTP 200, geniş posta kodu canlı doğrulamada geçerli, #228 teslimat geçmişi hâlâ tek kayıt. Serkan Bey'e kayıtlı adresinden sorunun düzeltildiği ve Kartix ürünü için yeniden deneyebileceği destek e-postası gönderildi. Yedek: `backups/checkout-delivery-fix-20260913-173827`.
 - PR: https://github.com/Orhanguezel/quickecommerce/pull/20.
 
 ## 2026-09-13 — Mobil ürün fiyat alanları ve bekleyen sipariş kontrolü
