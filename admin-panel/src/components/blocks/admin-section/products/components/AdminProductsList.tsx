@@ -191,8 +191,8 @@ const AdminProductsList = ({
 
     return (
       itemCombinations.length > 0 && (
-        <Card className="relative shadow p-1 rounded">
-          <div className="text-blue-500 bg-blue-50 dark:bg-gray-900 py-2 px-4 grid grid-cols-8 gap-2 items-center">
+        <Card className="relative min-w-[58rem] rounded p-1 shadow">
+          <div className="grid grid-cols-8 items-center gap-2 bg-blue-50 px-4 py-2 text-blue-500 dark:bg-gray-900">
             <p>{t("table_header.image")}</p>
             <p className="col-span-2">{t("table_header.variants")}</p>
             <p>{t("table_header.sku")}</p>
@@ -252,7 +252,8 @@ const AdminProductsList = ({
                     <Input
                       type="text"
                       inputMode="decimal"
-                      className="h-9 w-full min-w-[4.5rem]"
+                      aria-label={`${combination} ${t("table_header.price")}`}
+                      className="h-10 w-28 min-w-28 px-3 text-base"
                       value={fields.price}
                       onChange={(e) =>
                         setPriceInputs((prev) => ({
@@ -268,7 +269,8 @@ const AdminProductsList = ({
                     <Input
                       type="text"
                       inputMode="decimal"
-                      className="h-9 w-full min-w-[4.5rem]"
+                      aria-label={`${combination} ${t("table_header.special_price")}`}
+                      className="h-10 w-28 min-w-28 px-3 text-base"
                       value={fields.special}
                       placeholder="—"
                       onChange={(e) =>
@@ -332,9 +334,9 @@ const AdminProductsList = ({
   };
 
   return (
-    <div className="shadow rounded mt-4 overflow-y-auto custom-scrollbar">
-      <div className="overflow-x-auto sm:overflow-x-visible">
-        <table className="min-w-full table-auto overflow-x-auto">
+    <div className="mt-4 overflow-hidden rounded shadow">
+      <div className="custom-scrollbar w-full overflow-x-auto overscroll-x-contain pb-2">
+        <table className="w-full min-w-[74rem] table-auto">
           <thead className=" ">
             <tr className="bg-gray-50 dark:bg-[#374151] text-[#54697D] dark:text-white text-[14px] font-sm text-start px-4 py-2">
               <th className="text-start p-4 w-10">
@@ -346,17 +348,17 @@ const AdminProductsList = ({
               </th>
               <th className="text-start p-4"></th>
               <th className="text-start p-4">{t("table_header.sl")}</th>
-              <th className="text-start p-4">
+              <th className="min-w-64 p-4 text-start">
                 {t("table_header.product_info")}
               </th>
-              <th className="text-start p-4">{t("table_header.store")}</th>
-              <th className="text-start p-4">{t("table_header.price")}</th>
-              <th className="text-start p-4">{t("table_header.special_price")}</th>
+              <th className="min-w-44 p-4 text-start">{t("table_header.store")}</th>
+              <th className="min-w-36 p-4 text-start">{t("table_header.price")}</th>
+              <th className="min-w-36 p-4 text-start">{t("table_header.special_price")}</th>
               <th className="text-start p-4 w-[1%] whitespace-nowrap">
                 {t("button.save_changes")}
               </th>
-              <th className="text-start p-4">{t("table_header.status")}</th>
-              <th className="text-start p-4">{t("table_header.actions")}</th>
+              <th className="min-w-56 p-4 text-start">{t("table_header.status")}</th>
+              <th className="min-w-40 p-4 text-start">{t("table_header.actions")}</th>
             </tr>
           </thead>
           <tbody>
@@ -407,9 +409,9 @@ const AdminProductsList = ({
                         <td className="text-start p-4 ">
                           <span>{row?.sl}</span>
                         </td>
-                        <td className="text-start p-4">
-                          <div className="flex flex-col md:flex-row items-center gap-1 ">
-                            <div className="relative w-12 h-12">
+                        <td className="min-w-64 p-4 text-start">
+                          <div className="flex items-center gap-2">
+                            <div className="relative h-12 w-12 shrink-0">
                               {row?.image_url !== null ? (
                                 <Image
                                   loader={GlobalImageLoader}
@@ -442,7 +444,7 @@ const AdminProductsList = ({
                               rel="noopener noreferrer"
                             >
                               <div>
-                                <p className="text-blue-500 font-semibold text-md">
+                                <p className="break-words text-md font-semibold text-blue-500">
                                   {row.name}
                                 </p>
                                 {row?.is_sellable === false && (
@@ -454,8 +456,8 @@ const AdminProductsList = ({
                             </Link>
                           </div>
                         </td>
-                        <td className="text-start p-4 ">
-                          <div className="flex items-center gap-2">
+                        <td className="min-w-44 p-4 text-start">
+                          <div className="flex items-center gap-2 whitespace-nowrap">
                             <Link
                               className="text-blue-500 hover:underline dark:text-[#93c5fd] dark:hover:text-white"
                               href={
@@ -477,11 +479,12 @@ const AdminProductsList = ({
                         </td>
                         {singleVariant ? (
                           <>
-                            <td className="text-start p-4 align-top">
+                            <td className="min-w-36 p-4 text-start align-top">
                               <Input
                                 type="text"
                                 inputMode="decimal"
-                                className="h-9 w-full max-w-[7rem]"
+                                aria-label={`${row.name} ${t("table_header.price")}`}
+                                className="h-10 w-28 min-w-28 px-3 text-base"
                                 value={
                                   priceInputs[String(singleVariant.id)]?.price ??
                                   ""
@@ -500,11 +503,12 @@ const AdminProductsList = ({
                                 }
                               />
                             </td>
-                            <td className="text-start p-4 align-top">
+                            <td className="min-w-36 p-4 text-start align-top">
                               <Input
                                 type="text"
                                 inputMode="decimal"
-                                className="h-9 w-full max-w-[7rem]"
+                                aria-label={`${row.name} ${t("table_header.special_price")}`}
+                                className="h-10 w-28 min-w-28 px-3 text-base"
                                 placeholder="—"
                                 value={
                                   priceInputs[String(singleVariant.id)]
@@ -555,7 +559,7 @@ const AdminProductsList = ({
                             <td className="text-start p-4">—</td>
                           </>
                         )}
-                        <td className="text-start p-4 ">
+                        <td className="min-w-56 p-4 text-start">
                           <div className="flex items-center gap-2 flex-wrap">
                             <div className="w-24 capitalize">
                               <Badge
@@ -600,7 +604,7 @@ const AdminProductsList = ({
                             </div>
                           </div>
                         </td>
-                        <td className="text-start p-4 ">
+                        <td className="min-w-40 p-4 text-start">
                           <div className="flex items-center gap-2 ">
                             <CustomViewIcon
                               isLoading={detailsRowId === row.slug}
