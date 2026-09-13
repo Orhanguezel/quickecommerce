@@ -1,3 +1,11 @@
+## 2026-09-13 — Teslimat tekilleştirme ve checkout kurtarma
+
+- [X] Admin, kurye ve Geliver webhook teslimat yollarındaki eşzamanlı çift finansal işlem riski satır kilidi ve transaction ile giderildi; teslimatı ikinci kez tamamlayan yol cüzdan, kazanç, geçmiş veya sadakat kaydı oluşturmuyor.
+- [X] Serkan Öztürk'ün Kartix sipariş denemesi incelendi: ödeme sağlayıcısına ulaşmadan adres posta kodu doğrulamasında dört kez 422 aldığı, checkout'un hatayı kullanıcıya göstermediği doğrulandı. Posta kodu sınırı gerçek adres sağlayıcısı sonuçlarına uygun genişletildi ve API doğrulama mesajı formda görünür hale getirildi.
+- [X] AI sağlayıcı kredisi/kotası tükendiğinde canlı destek endpoint'inin 500 dönmesi engellendi; gerçek destek bildirimi durumuna göre güvenli yedek yanıt oluşturuluyor.
+- [X] 13 backend unit test / 16 assertion, değiştirilen PHP dosyalarında syntax kontrolü ve müşteri frontend TypeScript kontrolü geçti.
+- PR: https://github.com/Orhanguezel/quickecommerce/pull/20.
+
 ## 2026-09-13 — Mobil ürün fiyat alanları ve bekleyen sipariş kontrolü
 
 - [X] WhatsApp ekran görüntüsü ve iki ses kaydı incelendi. Admin ürün listesinde tablonun sütunları ekran genişliğine sıkıştırdığı, fiyat/indirimli fiyat alanlarının mobilde kullanılamayacak kadar daraldığı doğrulandı.
