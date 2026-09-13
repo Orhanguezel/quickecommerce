@@ -78,6 +78,29 @@ const gatewayIconMap: Record<string, typeof CreditCard> = {
   wallet: Wallet,
 };
 
+type ApiError = {
+  response?: {
+    data?: {
+      message?: string | Record<string, string[]>;
+      error?: string;
+    };
+  };
+};
+
+function addressApiError(error: unknown): string {
+  const data = (error as ApiError)?.response?.data;
+  const message = data?.message;
+
+  if (message && typeof message === "object") {
+    const errors = Object.values(message).flat().filter(Boolean);
+    if (errors.length) return errors.join(" ");
+  }
+
+  return (typeof message === "string" && message)
+    || data?.error
+    || "Adres kaydedilemedi. Lütfen işaretli alanları kontrol edip tekrar deneyin.";
+}
+
 const SUPPORTED_CHECKOUT_GATEWAYS = new Set([
   "cash_on_delivery",
   "iyzico",
@@ -364,6 +387,7 @@ export function CheckoutClient({ translations: t }: Props) {
       },
       {
         onSuccess: (data) => {
+          setAddressSearchError(null);
           setShowAddressForm(false);
           setAddressForm({
             type: "home",
@@ -381,6 +405,15 @@ export function CheckoutClient({ translations: t }: Props) {
           // Auto-select the newly created address
           const newId = data?.data?.id ?? data?.id;
           if (newId) setSelectedAddressId(newId);
+        },
+        onError: (error) => {
+          const message = addressApiError(error);
+          setAddressSearchError(message);
+          trackFunnelEvent({
+            event: "payment_failed",
+            block_type: "address_validation",
+            meta: { message },
+          });
         },
       }
     );
@@ -926,6 +959,7 @@ export function CheckoutClient({ translations: t }: Props) {
                       value={addressForm.postal_code}
                       inputMode="numeric"
                       autoComplete="postal-code"
+                      maxLength={32}
                       onChange={(e) =>
                         setAddressForm({
                           ...addressForm,

@@ -635,15 +635,29 @@ class DeliverymanManageRepository implements DeliverymanManageInterface
         }
 
         if ($status == 'delivered') {
-            if ($order->status === 'delivered') {
-                return 'already delivered';
-            }
-            if (!$order_is_accepted) {
-                return 'order_is_not_accepted';
-            }
-            $order->status = 'delivered';
-            $order->delivery_completed_at = Carbon::now();
-            $order->save();
+            return DB::transaction(function () use ($deliveryman, $order_id) {
+                // Admin ve Geliver webhook ile ayni anda teslimat gelirse
+                // yalnizca row-lock'i alan ilk istek finansal kayitlari yazar.
+                $order = Order::with('orderMaster.customer', 'orderMaster.orderAddress', 'store', 'deliveryman')
+                    ->lockForUpdate()
+                    ->find($order_id);
+
+                if (! $order || $order->status === 'delivered' || $order->delivery_completed_at !== null) {
+                    return 'already delivered';
+                }
+
+                $orderIsAccepted = OrderDeliveryHistory::where('order_id', $order_id)
+                    ->where('deliveryman_id', $deliveryman->id)
+                    ->where('status', 'accepted')
+                    ->exists();
+
+                if (! $orderIsAccepted) {
+                    return 'order_is_not_accepted';
+                }
+
+                $order->status = 'delivered';
+                $order->delivery_completed_at = Carbon::now();
+                $order->save();
 
             // Sadakat puani; yazilamamasi teslimati bozmasin.
             try {
@@ -655,11 +669,11 @@ class DeliverymanManageRepository implements DeliverymanManageInterface
                 ]);
             }
 
-            OrderDeliveryHistory::create([
-                'order_id' => $order_id,
-                'deliveryman_id' => $deliveryman->id,
-                'status' => $status,
-            ]);
+                OrderDeliveryHistory::create([
+                    'order_id' => $order_id,
+                    'deliveryman_id' => $deliveryman->id,
+                    'status' => 'delivered',
+                ]);
 
             if ($order->orderMaster->payment_gateway === 'cash_on_delivery') {
                 $order->orderMaster->payment_status = 'paid';
@@ -768,10 +782,10 @@ class DeliverymanManageRepository implements DeliverymanManageInterface
                     '@order_amount'    => $orderAmount,
                     '@earnings_amount' => amount_with_symbol_format($order->delivery_charge_admin),
                 ], $order->id, 'deliveryman');
-
-                return 'delivered';
             }
 
+                return 'delivered';
+            }, 5);
         }
     }
 

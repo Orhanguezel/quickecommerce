@@ -326,7 +326,22 @@ class GdeliverWebhookController extends Controller
      */
     private function handleDelivered(Order $order, CargoShipment $cargoShipment): void
     {
-        DB::transaction(function () use ($order) {
+        $processed = DB::transaction(function () use (&$order) {
+            // Admin/kurye ayni anda teslimata basmis olabilir. Siparis satiri
+            // tum finansal yan etkiler bitene kadar kilitli kalir; kilidi alan
+            // ikinci yol guncel durumu gorup hicbir sey yazmadan cikar.
+            $lockedOrder = Order::with(['orderMaster.customer', 'store', 'deliveryman', 'orderAddress'])
+                ->lockForUpdate()
+                ->find($order->id);
+
+            if (! $lockedOrder
+                || $lockedOrder->status === 'delivered'
+                || $lockedOrder->delivery_completed_at !== null) {
+                return false;
+            }
+
+            $order = $lockedOrder;
+
             $deliveryHistory = OrderDeliveryHistory::where('order_id', $order->id)
                 ->where('status', 'accepted')
                 ->whereNotIn('order_id', function ($query) {
@@ -406,7 +421,17 @@ class GdeliverWebhookController extends Controller
                 'activity_value' => 'delivered',
                 'reference'      => 'geliver_webhook',
             ]);
-        });
+
+            return true;
+        }, 5);
+
+        if (! $processed) {
+            Log::channel('geliver_webhook')->info('Delivery already finalized; duplicate webhook skipped', [
+                'order_id' => $order->id,
+                'shipment_id' => $cargoShipment->id,
+            ]);
+            return;
+        }
 
         // Sadakat puani (transaction disinda; puan yazilamamasi teslimati bozmasin)
         try {

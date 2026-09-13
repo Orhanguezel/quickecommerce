@@ -39,4 +39,18 @@ class AiChatGuardrailsTest extends TestCase
         $this->assertStringNotContainsString('ilettim', mb_strtolower($result));
         $this->assertStringContainsString('henüz destek bildirimi oluşturulmadı', $result);
     }
+
+    #[Test]
+    public function provider_failure_confirms_only_a_real_support_notification(): void
+    {
+        $method = new ReflectionMethod(AiChatService::class, 'providerFailureMessage');
+        $service = app(AiChatService::class);
+
+        $notified = $method->invoke($service, 'tr', true, true);
+        $notNotified = $method->invoke($service, 'tr', true, false);
+
+        $this->assertStringContainsString('destek ekibimize ulaştı', $notified);
+        $this->assertStringNotContainsString('destek ekibimize ulaştı', $notNotified);
+        $this->assertStringContainsString('geçici olarak', $notNotified);
+    }
 }
