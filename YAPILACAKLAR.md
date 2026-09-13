@@ -1,3 +1,12 @@
+## 2026-09-13 — Mobil ürün fiyat alanları ve bekleyen sipariş kontrolü
+
+- [X] WhatsApp ekran görüntüsü ve iki ses kaydı incelendi. Admin ürün listesinde tablonun sütunları ekran genişliğine sıkıştırdığı, fiyat/indirimli fiyat alanlarının mobilde kullanılamayacak kadar daraldığı doğrulandı.
+- [X] Ürün tablosuna güvenli minimum genişlik ve tüm ekran boyutlarında yatay kaydırma eklendi; ürün/mağaza/durum/işlem sütunları ile fiyat girişlerine dokunulabilir sabit minimum genişlik verildi. Fiyat alanlarına erişilebilir etiketler eklendi.
+- [X] Canlı sipariş #226 ve #227'nin ödeme kimliği yok; Iyzico sorgusu her ikisi için de ödeme bilgisi bulunamadığını doğruladı. Bunlar tamamlanmamış ödeme denemeleri, callback kaybı veya tahsil edilmiş ödeme değil. Altı saatlik ödenmemiş sipariş temizliği stok rezervlerini güvenle geri bırakacak.
+- [X] Sonraki sipariş #228 Iyzico tarafından 15:43'te doğrulandı ve ödeme durumu `paid`. Alt siparişin `pending` olması ödeme beklediği değil, yönetici onayı beklediği anlamına geliyor.
+- [X] Admin panel TypeScript kontrolü ve production build geçti; derlenen CSS'te 74rem tablo, 58rem varyant satırı minimum genişlikleri ve yatay taşma kontrolü doğrulandı.
+- [~] Yetkili admin oturumu gerektiren gerçek mobil görsel/dokunma kontrolü canlı deploy sonrasında yapılacak. PR: hazırlanıyor.
+
 ## 2026-09-12 — Silinen sipariş için gecikmiş “Beklemede” e-postası
 
 - [X] WhatsApp ses kaydı çözümlendi ve Gmail teslimat hatası incelendi. Sipariş #229 artık canlı veride yok; ödeme tamamlanmayan sipariş temizleme akışı tarafından kaldırılmış.
