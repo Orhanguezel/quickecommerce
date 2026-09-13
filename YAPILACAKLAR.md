@@ -5,7 +5,7 @@
 - [X] Canlı sipariş #226 ve #227'nin ödeme kimliği yok; Iyzico sorgusu her ikisi için de ödeme bilgisi bulunamadığını doğruladı. Bunlar tamamlanmamış ödeme denemeleri, callback kaybı veya tahsil edilmiş ödeme değil. Altı saatlik ödenmemiş sipariş temizliği stok rezervlerini güvenle geri bırakacak.
 - [X] Sonraki sipariş #228 Iyzico tarafından 15:43'te doğrulandı ve ödeme durumu `paid`. Alt siparişin `pending` olması ödeme beklediği değil, yönetici onayı beklediği anlamına geliyor.
 - [X] Admin panel TypeScript kontrolü ve production build geçti; derlenen CSS'te 74rem tablo, 58rem varyant satırı minimum genişlikleri ve yatay taşma kontrolü doğrulandı.
-- [~] Yetkili admin oturumu gerektiren gerçek mobil görsel/dokunma kontrolü canlı deploy sonrasında yapılacak. PR: hazırlanıyor.
+- [~] Yetkili admin oturumu gerektiren gerçek mobil görsel/dokunma kontrolü canlı deploy sonrasında yapılacak. PR: https://github.com/Orhanguezel/quickecommerce/pull/19.
 
 ## 2026-09-12 — Silinen sipariş için gecikmiş “Beklemede” e-postası
 
