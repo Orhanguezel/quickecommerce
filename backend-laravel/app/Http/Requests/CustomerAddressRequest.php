@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Support\Facades\Log;
 
 class CustomerAddressRequest extends FormRequest
 {
@@ -36,7 +37,10 @@ class CustomerAddressRequest extends FormRequest
             'road' => 'nullable|string|max:255',
             'house' => 'nullable|string|max:255',
             'floor' => 'nullable|string|max:255',
-            'postal_code' => 'nullable|string|max:10',
+            // Bazi Google Places sonuclari bosluk/bolge eki iceren uluslararasi
+            // posta kodu dondurebiliyor. DB alani 255; makul bir 32 karakter
+            // siniri checkout'un gereksiz yere 422 olmasini engeller.
+            'postal_code' => 'nullable|string|max:32',
             'is_default' => 'boolean',
             'status' => 'required|integer|in:0,1'
         ];
@@ -79,6 +83,13 @@ class CustomerAddressRequest extends FormRequest
 
     public function failedValidation(Validator $validator)
     {
+        Log::warning('[checkout-address] adres dogrulamasi basarisiz', [
+            'customer_id' => auth('api_customer')->id(),
+            'route' => optional($this->route())->getName(),
+            // Kisisel adres verisini loglama; yalnizca hatali alan adlari.
+            'fields' => array_keys($validator->errors()->toArray()),
+        ]);
+
         throw new HttpResponseException(response()->json(['message' => $validator->errors()], 422));
     }
 }

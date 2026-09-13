@@ -25,6 +25,7 @@ use App\Services\Loyalty\LoyaltyService;
 use App\Services\Order\OrderManageNotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
@@ -193,48 +194,76 @@ class AdminOrderManageController extends Controller
 
         // Handle delivery
         if ($request->status === 'delivered') {
-            $deliveryHistory = OrderDeliveryHistory::where('order_id', $order->id)
-                ->where('status', 'accepted')
-                ->whereNotIn('order_id', function ($query) {
-                    $query->select('order_id')
-                        ->from('order_delivery_histories')
-                        ->where('status', 'cancelled');
-                })->first();
+            // Ayni siparis admin, kurye ve Geliver webhook tarafindan ayni anda
+            // teslim edilmeye calisilabilir. Satiri kilitlemeden yapilan eski
+            // akista iki istek de eski durumu gorup cuzdan gelirini iki kez
+            // yazabiliyordu. Finansal yan etkilerin tamami ayni row-lock ve
+            // transaction icinde yalnizca bir kez calisir.
+            $deliveryResult = DB::transaction(function () use ($request, $userId) {
+                $lockedOrder = Order::with(['orderMaster.customer', 'store', 'orderAddress'])
+                    ->lockForUpdate()
+                    ->findOrFail($request->order_id);
 
-            // Wallet updates
-            $this->updateWallets($order, $deliveryHistory);
+                if ($lockedOrder->status === 'delivered' || $lockedOrder->delivery_completed_at !== null) {
+                    return null;
+                }
 
-            OrderDeliveryHistory::create([
-                'order_id' => $order->id,
-                'deliveryman_id' => $deliveryHistory ? $deliveryHistory->deliveryman_id : $userId,
-                'status' => 'delivered',
-            ]);
+                if (! OrderStatusType::canTransition($lockedOrder->status, 'delivered')) {
+                    return null;
+                }
 
-            if ($order->orderMaster->payment_gateway === 'cash_on_delivery') {
-                $order->orderMaster->update(['payment_status' => 'paid']);
+                $deliveryHistory = OrderDeliveryHistory::where('order_id', $lockedOrder->id)
+                    ->where('status', 'accepted')
+                    ->whereNotIn('order_id', function ($query) {
+                        $query->select('order_id')
+                            ->from('order_delivery_histories')
+                            ->where('status', 'cancelled');
+                    })->first();
 
-                OrderActivity::create([
-                    'order_id' => $order->id,
-                    'activity_from' => 'admin',
-                    'activity_type' => OrderActivityType::CASH_COLLECTION->value,
-                    'ref_id' => $deliveryHistory?->deliveryman_id ?? $userId,
-                    'activity_value' => $order->order_amount
+                $this->updateWallets($lockedOrder, $deliveryHistory);
+
+                OrderDeliveryHistory::create([
+                    'order_id' => $lockedOrder->id,
+                    'deliveryman_id' => $deliveryHistory ? $deliveryHistory->deliveryman_id : $userId,
+                    'status' => 'delivered',
                 ]);
+
+                if ($lockedOrder->orderMaster->payment_gateway === 'cash_on_delivery') {
+                    $lockedOrder->orderMaster->update(['payment_status' => 'paid']);
+                    $lockedOrder->payment_status = 'paid';
+
+                    OrderActivity::create([
+                        'order_id' => $lockedOrder->id,
+                        'activity_from' => 'admin',
+                        'activity_type' => OrderActivityType::CASH_COLLECTION->value,
+                        'ref_id' => $deliveryHistory?->deliveryman_id ?? $userId,
+                        'activity_value' => $lockedOrder->order_amount,
+                    ]);
+                }
+
+                $lockedOrder->delivery_completed_at = Carbon::now();
+                $lockedOrder->status = 'delivered';
+                $lockedOrder->save();
+
+                $this->awardLoyaltyPoints($lockedOrder);
+
+                return [$lockedOrder, $deliveryHistory];
+            }, 5);
+
+            if ($deliveryResult === null) {
+                return response()->json([
+                    'message' => __('messages.order_status_not_changeable')
+                ], 422);
             }
 
-            // Final update
-            $order->delivery_completed_at = Carbon::now();
-            $order->status = 'delivered';
-            $success = $order->save();
-
-            $this->awardLoyaltyPoints($order);
+            [$order, $deliveryHistory] = $deliveryResult;
 
             // Notification + Email
             $this->sendOrderDeliveredNotifications($order, $deliveryHistory, 'admin_order_status_delivery');
 
             return response()->json([
-                'message' => __($success ? 'messages.update_success' : 'messages.update_failed', ['name' => 'Order status'])
-            ], $success ? 200 : 500);
+                'message' => __('messages.update_success', ['name' => 'Order status'])
+            ]);
         }
 
         // Other status updates

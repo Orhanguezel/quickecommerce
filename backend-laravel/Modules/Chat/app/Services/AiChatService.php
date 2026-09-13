@@ -72,7 +72,25 @@ class AiChatService
 
         // Call AI provider
         $provider = com_option_get('com_ai_chat_active_provider') ?: 'groq';
-        $result = $this->callProvider($provider, $messages);
+        try {
+            $result = $this->callProvider($provider, $messages);
+        } catch (\Throwable $e) {
+            // Canli destek bildirimi AI saglayicisindan once olusturulur. API
+            // kredisi/kotasi bittiginde kullaniciyi 500 ile cevapsiz birakma;
+            // gercek bildirim durumuna uygun, uydurma icermeyen sabit yanit ver.
+            Log::warning('AI Chat provider unavailable; safe fallback returned', [
+                'provider' => $provider,
+                'conversation_id' => $conversation->id,
+                'support_notified' => $supportNotified,
+                'error' => $e->getMessage(),
+            ]);
+
+            $result = [
+                'content' => $this->providerFailureMessage($locale, $supportRequested, $supportNotified),
+                'tokens_used' => 0,
+            ];
+            $provider = 'fallback';
+        }
         $result['content'] = $this->sanitizeOperationalClaims($result['content'], $supportNotified);
 
         // Store assistant response
@@ -91,6 +109,26 @@ class AiChatService
             'support_requested' => $supportRequested,
             'support_notified' => $supportNotified,
         ];
+    }
+
+    private function providerFailureMessage(
+        string $locale,
+        bool $supportRequested,
+        bool $supportNotified
+    ): string {
+        if ($locale !== 'tr') {
+            if ($supportRequested && $supportNotified) {
+                return 'Your message has reached our support team. We will review the issue and contact you as soon as possible.';
+            }
+
+            return 'The assistant is temporarily unavailable. Please try again shortly.';
+        }
+
+        if ($supportRequested && $supportNotified) {
+            return 'Mesajınız destek ekibimize ulaştı. Sorunu inceleyip en kısa sürede sizinle iletişime geçeceğiz.';
+        }
+
+        return 'Asistan şu anda geçici olarak yanıt veremiyor. Lütfen kısa bir süre sonra tekrar deneyin.';
     }
 
     /**
