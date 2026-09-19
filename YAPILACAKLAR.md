@@ -2,7 +2,7 @@
 
 - [~] İki WhatsApp ses kaydı ve ekran görüntüsü incelendi. Ekranda 2 ürün satırı / 3 adet / 6.250 TL, ikinci tavada 2 adet ve “Son 1 adet” görünüyor. Canlı sepet snapshot'ı da 3 adet / 6.250 TL; önceki ödenmemiş #235 siparişi ise 2 satırda birer adet / 4.050 TL. Bu kayıtlar farklı zamanlara ait; iyzico ürün adedini değiştirmedi.
 - [~] Ürün kartı ve favorilerden sepete ekleme gerçek varyant stokunu miktar sınırına katmıyordu. Miktar sınırı sıkılaştırıldı; limit üstü mevcut sepet checkout'ta açık uyarıyla durduruluyor. `stock_is_exact=false` kaynaklarda sembolik “1” artık “Son 1 adet” kıtlık etiketi olarak gösterilmiyor. Backend stok 422 mesajı Türkçeleştirildi.
-- [~] Müşteri web üretim derlemesi ve PHP sözdizimi kontrolü geçti. Hedef dosya lint'i yalnız mevcut 9 hata / 1 uyarı nedeniyle başarısız. Canlı yayımlama ve gerçek sepet akışı doğrulaması bekliyor.
+- [~] Müşteri web üretim derlemesi ve PHP sözdizimi kontrolü geçti. Hedef dosya lint'i yalnız mevcut 9 hata / 1 uyarı nedeniyle başarısız. Canlıya hedefli dosya kopyasıyla yayımlandı; ürün kartındaki mevcut canlı görsel düzeni korundu. Yedek: `backups/cart-stock-20260919-215047`. PM2 restart sonrası ödeme, sepet ve iki ürün sayfası HTTP 200; gerçek müşteri sepet akışı doğrulaması bekliyor.
 - PR: https://github.com/Orhanguezel/quickecommerce/pull/22 (taslak; #21 üzerine).
 
 ## 2026-09-19 — iyzico ödeme başlatma ve checkout doğrulama
