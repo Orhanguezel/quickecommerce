@@ -1,6 +1,12 @@
+## 2026-09-19 — Sepette sembolik stok ve miktar sınırı
+
+- [~] İki WhatsApp ses kaydı ve ekran görüntüsü incelendi. Ekranda 2 ürün satırı / 3 adet / 6.250 TL, ikinci tavada 2 adet ve “Son 1 adet” görünüyor. Canlı sepet snapshot'ı da 3 adet / 6.250 TL; önceki ödenmemiş #235 siparişi ise 2 satırda birer adet / 4.050 TL. Bu kayıtlar farklı zamanlara ait; iyzico ürün adedini değiştirmedi.
+- [~] Ürün kartı ve favorilerden sepete ekleme gerçek varyant stokunu miktar sınırına katmıyordu. Miktar sınırı sıkılaştırıldı; limit üstü mevcut sepet checkout'ta açık uyarıyla durduruluyor. `stock_is_exact=false` kaynaklarda sembolik “1” artık “Son 1 adet” kıtlık etiketi olarak gösterilmiyor. Backend stok 422 mesajı Türkçeleştirildi.
+- [~] Müşteri web üretim derlemesi ve PHP sözdizimi kontrolü geçti. Hedef dosya lint'i yalnız mevcut 9 hata / 1 uyarı nedeniyle başarısız. Canlı yayımlama ve gerçek sepet akışı doğrulaması bekliyor.
+
 ## 2026-09-19 — iyzico ödeme başlatma ve checkout doğrulama
 
-- [~] Otel adresli müşterinin 21:02 UTC checkout isteği 422, 21:04 UTC checkout isteği 200 ve iyzico oturum isteği 422 döndü. Son kaydedilen sepet 4.250 TL, HOSGELDIN kuponu 200 TL ve ödenmemiş sipariş #235 4.050 TL; bildirilen 6.050 TL ile fark müşteriyle teyit edilecek. İlk 422'nin alan detayı sunucu logunda yok.
+- [~] Otel adresli müşterinin 21:02 UTC checkout isteği 422, 21:04 UTC checkout isteği 200 ve iyzico oturum isteği 422 döndü. O andaki sepet 4.250 TL, HOSGELDIN kuponu 200 TL ve ödenmemiş sipariş #235 4.050 TL idi; daha sonraki sepet 6.250 TL olarak güncellendi. İlk 422'nin alan detayı sunucu logunda yok.
 - [~] iyzico SDK'sı boş/geçersiz sağlayıcı yanıtını hata kodu olmadan döndürüyor. Canlı sunucudan api.iyzipay.com bağlantısında aralıklı TLS sıfırlanması gözlendi. Yalnız ödeme oturumu başlatmaya 3 denemelik kısa tekrar ve açık 503 mesajı eklendi; checkout formunda alan bazlı 422 hataları gösteriliyor.
 - [~] Backend iyzico testleri 8/8 geçti ve müşteri web üretim derlemesi geçti. Genel ESLint mevcut 83 hata nedeniyle başarısız; değiştirilen dosyadaki 8 hata mevcut satırlarda. Canlıya hedefli dosya kopyası ve yedekle yayımlandı (`backups/iyzico-checkout-20260919-213315`); PHP yenilendi, Next.js build + PM2 restart sonrası checkout/anasayfa HTTP 200, gateway API HTTP 200, dosya hash'leri eşleşiyor. Gerçek müşteri ödeme akışı doğrulaması bekliyor.
 - PR: https://github.com/Orhanguezel/quickecommerce/pull/21 (taslak; #20 üzerine).

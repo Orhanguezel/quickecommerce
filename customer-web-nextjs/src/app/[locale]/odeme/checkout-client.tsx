@@ -480,6 +480,15 @@ export function CheckoutClient({ translations: t }: Props) {
       return;
     }
 
+    const overLimitItem = items.find((item) => item.quantity > item.max_cart_qty);
+    if (overLimitItem) {
+      showNotice(
+        "Stok sınırı aşıldı",
+        `${overLimitItem.name} için en fazla ${overLimitItem.max_cart_qty} adet sipariş verilebilir. Lütfen sepetten adedi düşürün.`
+      );
+      return;
+    }
+
     const needsResolve = items.filter((i) => !i.variant_id || !i.store_id);
     let resolvedItems = [...items];
 

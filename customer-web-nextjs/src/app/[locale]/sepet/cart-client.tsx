@@ -185,10 +185,15 @@ export function CartClient({ translations: t }: Props) {
                         📦 Paket fırsatı
                       </span>
                     )}
-                    {item.max_cart_qty > 0 && item.max_cart_qty <= 5 && (
+                    {item.stock_is_exact && !!item.stock_quantity && item.stock_quantity <= 5 && (
                       <div className="mt-2">
-                        <StockUrgencyBadge stock={item.max_cart_qty} size="md" />
+                        <StockUrgencyBadge stock={item.stock_quantity} size="md" />
                       </div>
+                    )}
+                    {item.quantity > item.max_cart_qty && (
+                      <p className="mt-2 text-xs font-medium text-destructive">
+                        Bu üründen en fazla {item.max_cart_qty} adet sipariş verilebilir. Adedi düşürün.
+                      </p>
                     )}
                   </div>
 

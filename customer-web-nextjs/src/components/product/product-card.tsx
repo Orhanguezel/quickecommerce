@@ -90,6 +90,10 @@ export function ProductCard({
   // icin sayi gizlenir. Yuksek stokta sayi sizdirmamak icin esik.
   const STOCK_COUNT_MAX = 20;
   const stockCount = typeof product.stock === "number" ? product.stock : null;
+  const maxPurchasableQuantity = Math.max(
+    1,
+    Math.min(product.max_cart_qty || 99, stockCount && stockCount > 0 ? stockCount : 99)
+  );
   const showStockCount =
     !!product.stock_is_exact &&
     stockCount !== null &&
@@ -113,7 +117,9 @@ export function ProductCard({
       price: displayPrice,
       original_price: price ?? undefined,
       quantity: 1,
-      max_cart_qty: product.max_cart_qty || 99,
+      max_cart_qty: maxPurchasableQuantity,
+      stock_is_exact: !!product.stock_is_exact,
+      stock_quantity: stockCount ?? undefined,
     };
     addItem(cartItem);
     trackFunnelEvent({

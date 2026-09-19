@@ -93,7 +93,12 @@ export function WishlistClient({ translations: t }: Props) {
       price: pricing.displayPrice,
       original_price: pricing.originalPrice ?? undefined,
       quantity: 1,
-      max_cart_qty: product.max_cart_qty || 99,
+      max_cart_qty: Math.max(
+        1,
+        Math.min(product.max_cart_qty || 99, product.stock && product.stock > 0 ? product.stock : 99)
+      ),
+      stock_is_exact: !!product.stock_is_exact,
+      stock_quantity: product.stock ?? undefined,
     };
     addItem(cartItem);
   };
