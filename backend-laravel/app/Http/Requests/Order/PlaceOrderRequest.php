@@ -163,7 +163,7 @@ class PlaceOrderRequest extends FormRequest
                         }
 
                         if ($variant->stock_quantity < $value) {
-                            return $fail("Only {$variant->stock_quantity} units available for this variant.");
+                            return $fail("Bu üründen şu anda en fazla {$variant->stock_quantity} adet sipariş verilebilir.");
                         }
                     }
                 }
