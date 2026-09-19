@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Exceptions\IyzicoConnectionException;
 use App\Models\OrderMaster;
 use App\Services\CheckoutStockVerifier;
 use App\Services\IyzicoService;
@@ -215,6 +216,18 @@ class IyzicoPaymentController extends Controller
                     'order_master_id' => $orderMaster->id,
                 ],
             ]);
+        } catch (IyzicoConnectionException $e) {
+            Log::error('Iyzico checkout connection unavailable', [
+                'order_master_id' => $orderMaster->id,
+                'customer_id' => $customer->id,
+            ]);
+            $this->trackCheckoutFailure($orderMaster, 'iyzico_connection_unavailable', $request);
+
+            return response()->json([
+                'success' => false,
+                'code' => 'iyzico_connection_unavailable',
+                'message' => $e->getMessage(),
+            ], 503);
         } catch (\RuntimeException $e) {
             Log::warning('Iyzico checkout session validation failed', [
                 'order_master_id' => $orderMaster->id ?? null,

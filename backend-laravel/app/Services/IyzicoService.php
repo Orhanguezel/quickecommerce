@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\IyzicoConnectionException;
 use App\Models\SellerApplication;
 use Iyzipay\Model\Address;
 use Iyzipay\Model\BasketItem;
@@ -18,6 +19,7 @@ use Iyzipay\Options;
 use Iyzipay\Request\CreateCheckoutFormInitializeRequest;
 use Iyzipay\Request\CreateSubMerchantRequest;
 use Iyzipay\Request\RetrieveCheckoutFormRequest;
+use Illuminate\Support\Facades\Log;
 use Modules\PaymentGateways\app\Models\PaymentGateway;
 
 class IyzicoService
@@ -212,7 +214,39 @@ class IyzicoService
         $request->setBillingAddress($this->makeAddress($data['billing_address']));
         $request->setBasketItems($this->makeBasketItems($data['basket_items'] ?? []));
 
-        return CheckoutFormInitialize::create($request, $this->options());
+        $options = $this->options();
+
+        return $this->initializeCheckoutWithRetry(
+            fn () => CheckoutFormInitialize::create($request, $options),
+            (string) $data['conversation_id']
+        );
+    }
+
+    /** Retry only checkout initialization: a repeated initialization cannot charge a card. */
+    protected function initializeCheckoutWithRetry(callable $send, string $conversationId): CheckoutFormInitialize
+    {
+        for ($attempt = 1; $attempt <= 3; $attempt++) {
+            $result = $send();
+
+            // iyzipay-php maps both curl failures and non-JSON responses to a
+            // result without status. A structured rejection must not be retried.
+            if ($result->getStatus() !== null) {
+                return $result;
+            }
+
+            $rawResult = $result->getRawResult();
+            Log::warning('Iyzico checkout transport returned no valid response', [
+                'conversation_id' => $conversationId,
+                'attempt' => $attempt,
+                'response_bytes' => is_string($rawResult) ? strlen($rawResult) : 0,
+            ]);
+
+            if ($attempt < 3) {
+                usleep($attempt * 200_000);
+            }
+        }
+
+        throw new IyzicoConnectionException('Ödeme sağlayıcısına şu anda bağlanılamıyor. Lütfen kısa süre sonra tekrar deneyin.');
     }
 
     public function retrieveCheckoutForm(string $token, string $conversationId): CheckoutForm

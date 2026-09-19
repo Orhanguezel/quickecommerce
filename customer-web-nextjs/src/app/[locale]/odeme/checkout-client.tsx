@@ -83,6 +83,7 @@ type ApiError = {
     data?: {
       message?: string | Record<string, string[]>;
       error?: string;
+      errors?: Record<string, string[]>;
     };
   };
 };
@@ -99,6 +100,16 @@ function addressApiError(error: unknown): string {
   return (typeof message === "string" && message)
     || data?.error
     || "Adres kaydedilemedi. Lütfen işaretli alanları kontrol edip tekrar deneyin.";
+}
+
+function orderApiError(error: unknown, fallback: string): string {
+  const data = (error as ApiError)?.response?.data;
+  const fieldError = data?.errors && Object.values(data.errors).flat().find(Boolean);
+
+  if (fieldError) return fieldError;
+  return typeof data?.message === "string" && data.message
+    ? data.message
+    : fallback;
 }
 
 const SUPPORTED_CHECKOUT_GATEWAYS = new Set([
@@ -691,8 +702,7 @@ export function CheckoutClient({ translations: t }: Props) {
 
       {placeOrderMutation.isError && (
         <div className="mb-6 rounded-md bg-destructive/10 p-4 text-sm text-destructive">
-          {(placeOrderMutation.error as any)?.response?.data?.message ||
-            t.error}
+          {orderApiError(placeOrderMutation.error, t.error)}
         </div>
       )}
       {createIyzicoSessionMutation.isError && (
