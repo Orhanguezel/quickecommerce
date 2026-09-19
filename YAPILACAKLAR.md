@@ -3,6 +3,7 @@
 - [~] Otel adresli müşterinin 21:02 UTC checkout isteği 422, 21:04 UTC checkout isteği 200 ve iyzico oturum isteği 422 döndü. Son kaydedilen sepet 4.250 TL, HOSGELDIN kuponu 200 TL ve ödenmemiş sipariş #235 4.050 TL; bildirilen 6.050 TL ile fark müşteriyle teyit edilecek. İlk 422'nin alan detayı sunucu logunda yok.
 - [~] iyzico SDK'sı boş/geçersiz sağlayıcı yanıtını hata kodu olmadan döndürüyor. Canlı sunucudan api.iyzipay.com bağlantısında aralıklı TLS sıfırlanması gözlendi. Yalnız ödeme oturumu başlatmaya 3 denemelik kısa tekrar ve açık 503 mesajı eklendi; checkout formunda alan bazlı 422 hataları gösteriliyor.
 - [~] Backend iyzico testleri 8/8 geçti ve müşteri web üretim derlemesi geçti. Genel ESLint mevcut 83 hata nedeniyle başarısız; değiştirilen dosyadaki 8 hata mevcut satırlarda. Canlı yayımlama ve gerçek ödeme akışı doğrulaması bekliyor.
+- PR: https://github.com/Orhanguezel/quickecommerce/pull/21 (taslak; #20 üzerine).
 
 ## 2026-09-13 — Teslimat tekilleştirme ve checkout kurtarma
 
