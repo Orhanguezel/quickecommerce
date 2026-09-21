@@ -331,6 +331,91 @@ def _images_from_jsonld(value) -> list[str]:
     return out
 
 
+def _product_detail_model(html: str) -> dict | None:
+    """Decode Ticimax's embedded model without relying on a fragile regex."""
+    match = re.search(r"\bvar\s+productDetailModel\s*=\s*", html)
+    if not match:
+        return None
+    try:
+        model = json.JSONDecoder().raw_decode(html[match.end():])[0]
+    except (json.JSONDecodeError, TypeError, ValueError):
+        return None
+    return model if isinstance(model, dict) else None
+
+
+def _variants_from_product_model(model: dict) -> tuple[list[dict], list[dict]]:
+    """Return exact Ticimax variants and option metadata.
+
+    `products` contains the actual SKU/price/stock rows. `productVariantData`
+    contains one colour/size value per product row and links through `urunID`.
+    """
+    raw_variants = model.get("products")
+    option_rows = model.get("productVariantData") or []
+    if not isinstance(raw_variants, list) or len(raw_variants) <= 1 or not isinstance(option_rows, list):
+        return [], []
+
+    variants: list[dict] = []
+    option_names = []
+    for row in option_rows:
+        if not isinstance(row, dict):
+            continue
+        name = str(row.get("ekSecenekTipiTanim") or "Seçenek").strip()
+        if name not in option_names:
+            option_names.append(name)
+    # Ticimax may emit the same dimensions in a different order for individual
+    # combinations. Keep a stable order so option1 always means the same thing.
+    preferred_order = {"Renk": 0, "Beden": 1, "Numara": 2}
+    discovery_order = {name: index for index, name in enumerate(option_names)}
+    option_names.sort(key=lambda name: (preferred_order.get(name, 100), discovery_order[name]))
+    option_values: dict[str, list[str]] = {name: [] for name in option_names}
+    for raw in raw_variants:
+        if not isinstance(raw, dict) or raw.get("id") is None:
+            continue
+        selected = [row for row in option_rows
+                    if isinstance(row, dict) and row.get("urunID") == raw.get("id")]
+        if not selected:
+            # Ticimax may include a non-selectable parent record.
+            if raw.get("anaUrun"):
+                continue
+            raise ValueError("Ticimax variant option mapping is incomplete")
+
+        attributes: dict[str, str] = {}
+        for row in selected:
+            name = str(row.get("ekSecenekTipiTanim") or "Seçenek").strip()
+            value = str(row.get("tanim") or "").strip()
+            if not value or name in attributes:
+                continue
+            attributes[name] = value
+            if value not in option_values[name]:
+                option_values[name].append(value)
+        if not attributes or len(attributes) > 3:
+            raise ValueError("Ticimax variant has invalid option dimensions")
+        if "stokAdedi" not in raw or "aktif" not in raw:
+            raise ValueError("Ticimax variant stock evidence is missing")
+
+        original = round(float(raw.get("satisFiyati") or 0) + float(raw.get("satisKDV") or 0), 2)
+        discount = round(float(raw.get("indirimliFiyati") or 0) + float(raw.get("indirimliKDV") or 0), 2)
+        price = discount if 0 < discount < original else original
+        if price <= 0:
+            raise ValueError("Ticimax variant price is invalid")
+        stock = max(0, int(float(raw["stokAdedi"]))) if raw["aktif"] and model.get("productActive", True) else 0
+        labels = [attributes[name] for name in option_names if name in attributes]
+        variants.append({
+            "source_variant_id": str(raw["id"]),
+            "sku": str(raw.get("stokKodu") or raw.get("barkod") or f"VAR-{raw['id']}").strip(),
+            "barcode": str(raw.get("barkod") or "").strip(),
+            "title": " / ".join(labels),
+            "price": price,
+            "compare_at_price": original if price < original else None,
+            "available": stock > 0,
+            "stock_quantity": stock,
+            **{f"option{i + 1}": labels[i] if i < len(labels) else None for i in range(3)},
+        })
+
+    options = [{"name": name, "values": option_values[name]} for name in option_names]
+    return variants, options
+
+
 def parse_product(html: str, url: str, vendor: str, default_category: str) -> dict | None:
     """JSON-LD Product -> standart (everlast) sema. Yoksa None."""
     jsonld = _jsonld_product(html)
@@ -425,7 +510,7 @@ def parse_product(html: str, url: str, vendor: str, default_category: str) -> di
     slug = url.rstrip("/").rsplit("/", 1)[-1] or make_slug(name)
 
     variant_price = original_price if discounted_price is None else discounted_price
-    return {
+    result = {
         "name": name,
         "slug": slug,
         "url": url,
@@ -459,6 +544,30 @@ def parse_product(html: str, url: str, vendor: str, default_category: str) -> di
         "downloaded_images": [],
         "tags": [],
     }
+
+    model = _product_detail_model(html)
+    if model:
+        variants, options = _variants_from_product_model(model)
+        if variants:
+            selected = min((v for v in variants if v["available"]), key=lambda v: v["price"], default=None)
+            selected = selected or min(variants, key=lambda v: v["price"])
+            model_images = [image.get("bigImagePath") for image in (model.get("productImages") or [])
+                            if isinstance(image, dict) and image.get("active") and image.get("bigImagePath")]
+            result.update({
+                "source_product_id": str(model.get("productId") or ""),
+                "sku": selected["sku"],
+                "barcode": selected["barcode"],
+                "variants": variants,
+                "options": options,
+                "original_price": selected["compare_at_price"] or selected["price"],
+                "discounted_price": selected["price"] if selected["compare_at_price"] else None,
+                "available": any(v["available"] for v in variants),
+                "stock_quantity": sum(v["stock_quantity"] for v in variants),
+                "all_image_urls": list(dict.fromkeys(model_images or images)),
+            })
+            result["thumbnail_url"] = result["all_image_urls"][0] if result["all_image_urls"] else ""
+
+    return result
 
 
 def run(site_base: str, output_file: str, vendor: str, default_category: str,

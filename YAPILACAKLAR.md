@@ -1,3 +1,12 @@
+## 2026-09-21 — Ses kayıtları: Maskot ve eProtein varyant stabilizasyonu
+
+- [X] 14/21 Eylül ses kayıtları çözümlendi; #229 eski ödeme e-postası, Maskot mağazası, eProtein eldiven varyantları ve genel scraper health maddeleri tek raporda toplandı.
+- [X] Maskot #56 ve 45 soft-delete ürünün müşteriye kapalı olduğu doğrulandı; kaynak registry’de pasifleştirildi, günlük scraper’dan çıkarıldı, canlı mağaza URL’si 404.
+- [X] eProtein Ticimax `productDetailModel` varyantları gerçek SKU, barkod, KDV dahil fiyat, stok, renk ve beden ile ayrıştırılıyor. 49 yapısal varyant canlıya uygulandı; tekrar dry-run 49 unchanged / 0 işlem / 0 hata. #247 sipariş satırı 760,50 TL ve eski SKU ile değişmeden korundu.
+- [X] Health check 7 uyarıdan 2 gerçek takibe indirildi; karma Multiprice mağazasındaki 129 manuel varyant yanlış alarmı, Dekomum/Herbinatura doğrulanmış stok sinyali ve Maskot pasif kaynak uyarısı düzeltildi. Rapor: `docs/2026-09-21-ses-kayitlari-stabilizasyon-raporu.md`.
+- [X] Ortholand ürün #411 manuel yönetime geçirildi; fiyat/stok sunmayan katalog kaynağının 9 eski mapping’i yedekten sonra kaldırıldı. Ürün ve varyantlar korundu.
+- [X] Yonex uyarısı kapatıldı: tam kaynak kataloğunda bulunmayan 94 eski varyant kalıcı `missing_zeroed` durumuna alındı, stokları 0; aktif 110 varyant değişmedi. Son scraper health: 26 kaynak, 0 sorun.
+
 ## 2026-09-21 — iyzico tahsilat bütünlüğü ve mükerrer checkout olayı
 
 - [X] Beş WhatsApp ses kaydı çözümlendi; canlı Laravel/nginx logları, siparişler ve iyzico kayıtları eşleştirildi. Kök neden iyzico PHP SDK'sının aralıklı boş/geçersiz HTTP yanıtını tüm alanları `null` olan bir sonuç nesnesine çevirmesi ve callback'in bu belirsiz sonucu kesin ödeme reddi olarak kaydetmesiydi.

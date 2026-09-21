@@ -22,6 +22,7 @@ class ScrapersHealthCheck extends Command
 {
     protected $signature = 'scrapers:health-check
                             {--quiet-when-ok : Sorun yoksa Telegram\'a mesaj atma}
+                            {--no-alert : Telegram bildirimi gondermeden yalniz konsol raporu uret}
                             {--data-dir=/var/www/quikecommerce/data/source-products : JSON dosyalarinin oldugu dizin}
                             {--logs-dir=/var/www/quikecommerce/logs : Cron log dizini}';
 
@@ -173,6 +174,14 @@ class ScrapersHealthCheck extends Command
             ->leftJoin('product_source_mappings as m', 'm.product_variant_id', '=', 'pv.id')
             ->whereNull('m.product_variant_id')
             ->where('pv.stock_quantity', '>', 0)
+            // Multiprice gibi karma magazalarda manuel urunler de bulunur.
+            // Yalniz en az bir kaynak mapping'i olan urunun eksik varyantini
+            // risk say; magazadaki tamamen manuel urunleri uyarma.
+            ->whereExists(function ($q) {
+                $q->selectRaw('1')
+                    ->from('product_source_mappings as pm')
+                    ->whereColumn('pm.product_id', 'p.id');
+            })
             // Yalnizca kaynak-yonetimli magazalar: tamamen manuel magazalarda
             // (kendi stogunu tutanlar) mapping olmamasi normaldir.
             ->whereIn('s.id', function ($q) {
@@ -245,7 +254,11 @@ class ScrapersHealthCheck extends Command
             //
             // Yanlis alarmi onlemek icin iki kosul: yeterli urun sayisi ve
             // kaynagin gecmiste de hic 0 uretmemis olmasi.
-            if ($defOut === 0 && $total >= self::NEVER_OUT_OF_STOCK_MIN_PRODUCTS) {
+            $registrySource = \App\Services\ScraperSourceRegistry::find($source);
+            $stockSignalVerified = ($registrySource['stock_signal_verified'] ?? false) === true;
+            if ($defOut === 0
+                && $total >= self::NEVER_OUT_OF_STOCK_MIN_PRODUCTS
+                && ! $stockSignalVerified) {
                 $everZero = DB::table('product_source_mappings')
                     ->where('source_name', $source)
                     ->where('last_synced_stock', 0)
@@ -291,7 +304,7 @@ class ScrapersHealthCheck extends Command
 
         // Telegram
         if ($issueCount === 0) {
-            if (!$this->option('quiet-when-ok')) {
+            if (! $this->option('quiet-when-ok') && ! $this->option('no-alert')) {
                 ScraperAlerter::alert(
                     'Scraper saglik raporu — TEMIZ',
                     "Bugun {$sourceCount} kaynak kontrol edildi, sorun yok.",
@@ -302,11 +315,13 @@ class ScrapersHealthCheck extends Command
         }
 
         $level = $issueCount >= 5 ? ScraperAlerter::LEVEL_CRIT : ScraperAlerter::LEVEL_WARN;
-        ScraperAlerter::digest(
-            "Scraper saglik raporu — {$issueCount} sorun",
-            $issues,
-            $level
-        );
+        if (! $this->option('no-alert')) {
+            ScraperAlerter::digest(
+                "Scraper saglik raporu — {$issueCount} sorun",
+                $issues,
+                $level
+            );
+        }
 
         return self::SUCCESS;
     }
