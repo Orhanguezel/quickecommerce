@@ -5,7 +5,9 @@
 - [X] Admin onayında iyzico `5064` “önceden onaylanmıştır” yanıtı başarılı/idempotent sonuç kabul ediliyor. Aynı müşteriden eşzamanlı checkout istekleri backend kilidiyle tekilleştirildi; tarayıcıya da anlık çift gönderim kilidi eklendi.
 - [X] Callback üç denemede de sağlayıcı yanıtı alamazsa son 48 saatteki çözümlenmemiş iyzico siparişlerini beş dakikada bir yeniden doğrulayan mutabakat komutu eklendi; yalnız sağlayıcının kesin `SUCCESS` sonucu yerel siparişi `paid` yapıyor.
 - [X] Canlı olay incelemesi: #247 Saner Kaya 760,50 TL iyzico `SUCCESS` (`paymentId=4212190789`, transaction `3429075608`) olduğu halde yerelde `failed`; #237 Bekir Demirelli 387 TL iyzico `SUCCESS` (`paymentId=4210882766`) olduğu halde silinmiş. Bekir'in #238 siparişi de ayrıca 387 TL başarılı olduğundan toplam 774 TL tahsilat var; #237 mükerrer tahsilat iade/iptal kararı bekliyor.
-- [~] PHP unit 6 test / 11 assertion ve frontend TypeScript kontrolü geçti. Hedef frontend lint'i checkout dosyasındaki değişiklik öncesi mevcut 8 kural ihlali nedeniyle başarısız. Canlı deploy, #247/#238 DB uzlaştırması ve PR bağlantısı bu kayda eklenecek.
+- [X] PHP unit 6 test / 11 assertion, frontend TypeScript kontrolü ve production build geçti. Hedef frontend lint'i checkout dosyasındaki değişiklik öncesi mevcut 8 kural ihlali nedeniyle başarısız.
+- [X] Canlıya yayımlandı. #247 master/alt sipariş `paid` olarak uzlaştırıldı; #238 yerel iyzico onay zamanı eşitlendi. Uygulama yedeği `backups/iyzico-integrity-20260921-173710`, DB olay yedeği `storage/app/backups/iyzico-reconcile-20260921.json`. HTTP kontrolleri 200; mutabakat schedule'ı canlıda kayıtlı ve ilk çalıştırmada bekleyen kayıt yok.
+- [~] #237 mükerrer 387 TL tahsilat iyzico'da `SUCCESS` ve henüz onaysız (`transaction_status=1`); iptal/iade için kullanıcı onayı bekleniyor. PR: https://github.com/Orhanguezel/quickecommerce/pull/23 (taslak; #22 üzerine).
 
 ## 2026-09-19 — Sepette sembolik stok ve miktar sınırı
 
