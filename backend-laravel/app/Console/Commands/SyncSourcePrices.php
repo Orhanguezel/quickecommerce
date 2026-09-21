@@ -114,6 +114,7 @@ class SyncSourcePrices extends Command
             'unchanged' => 0,
             'missing' => 0,
             'missing_zeroed' => 0,
+            'variant_missing_zeroed' => 0,
             'invalid_price' => 0,
             'price_guard' => 0,
             'errors' => 0,
@@ -171,6 +172,7 @@ class SyncSourcePrices extends Command
                 ['Degismeyen', $stats['unchanged']],
                 ['Kaynakta bulunamayan', $stats['missing']],
                 ['Missing -> stok 0', $stats['missing_zeroed']],
+                ['Kaynak varyant kalkmis -> stok 0', $stats['variant_missing_zeroed']],
                 ['Gecersiz/0 fiyat (stok yine guncellendi)', $stats['invalid_price']],
                 ['Fiyat limiti (stok yine guncellendi)', $stats['price_guard']],
                 // 2026-07-28: Bu iki satir eksikti. syncMapping stok=0 urunlerde
@@ -184,6 +186,7 @@ class SyncSourcePrices extends Command
                 ['-- raporlanmayan (olmamali)', max(0, $stats['checked']
                     - ($this->apply ? $stats['updated'] : $stats['would_update'])
                     - $stats['unchanged'] - $stats['missing'] - $stats['missing_zeroed']
+                    - $stats['variant_missing_zeroed']
                     - $stats['invalid_price'] - $stats['price_guard'] - $stats['errors']
                     - ($stats['stock_zero_skip_price'] ?? 0) - ($stats['missing_transient'] ?? 0))],
             ]
@@ -204,12 +207,18 @@ class SyncSourcePrices extends Command
         if (!$sourceProduct) {
             // Kaynaktan kalkmis urun: satisi durdurmak icin stogu sifirla
             // (yalnizca scrape tam gorunuyorsa — bkz. safeToZeroMissing).
-            if ($this->safeToZeroMissing && (int) $variant->stock_quantity !== 0) {
-                if (!$this->apply) {
+            if ($this->safeToZeroMissing) {
+                if (! $this->apply) {
                     return 'missing_zeroed';
                 }
-                $variant->update(['stock_quantity' => 0]);
-                $this->markMapping($mapping, 'missing_zeroed', 'Source product not found; stock zeroed.');
+                if ((int) $variant->stock_quantity !== 0) {
+                    $variant->update(['stock_quantity' => 0]);
+                }
+                $this->markMapping(
+                    $mapping,
+                    'missing_zeroed',
+                    'Source product not found in a complete scrape; stock is zero.'
+                );
                 return 'missing_zeroed';
             }
             // 2026-07-17: Tek scrape'te kaybolma cogu zaman GECICI (urun sayfasinin
@@ -233,6 +242,22 @@ class SyncSourcePrices extends Command
         }
 
         $sourceVariant = $this->findSourceVariant($mapping, $sourceProduct);
+        if ($sourceVariant === null && $this->expectsSourceVariant($mapping, $sourceProduct)) {
+            // Urun kaynakta duruyor ancak bu beden/renk artik products[] icinde
+            // yok. Top-level urun stok toplamını eski varyanta yazmak oversell
+            // yaratir; siparis gecmisi icin satiri koruyup stogu kesin sifirla.
+            if ($this->apply && (int) $variant->stock_quantity !== 0) {
+                $variant->update(['stock_quantity' => 0]);
+            }
+            if ($this->apply) {
+                $this->markMapping(
+                    $mapping,
+                    'variant_missing_zeroed',
+                    'Source product exists but this source variant was removed; stock kept at zero.'
+                );
+            }
+            return 'variant_missing_zeroed';
+        }
         $incoming = $this->extractIncomingValues($sourceProduct, $sourceVariant);
 
         // 1) STOK — fiyattan BAGIMSIZ, her zaman degerlendirilir.
@@ -448,6 +473,19 @@ class SyncSourcePrices extends Command
         }
 
         return count($variants) === 1 ? Arr::first($variants) : null;
+    }
+
+    private function expectsSourceVariant(ProductSourceMapping $mapping, array $sourceProduct): bool
+    {
+        $variants = $sourceProduct['variants'] ?? [];
+        if (! is_array($variants) || count($variants) <= 1) {
+            return false;
+        }
+
+        return filled($mapping->source_variant_id)
+            || filled($mapping->source_variant_sku)
+            || filled($mapping->source_variant_barcode)
+            || filled($mapping->source_variant_title);
     }
 
     private function extractIncomingValues(array $sourceProduct, ?array $sourceVariant): array

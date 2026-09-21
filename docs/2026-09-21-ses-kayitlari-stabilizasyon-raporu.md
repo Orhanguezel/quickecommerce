@@ -100,11 +100,12 @@ Maskot kaldırıldığı halde registry ve cron aktifti. Dekomum ile Herbinatura
 - Mükerrer iptal kaydı: `storage/app/backups/iyzico-cancel-duplicate-237-20260921.json`
 - Müşteri e-posta kaydı: `storage/app/backups/customer-email-duplicate-cancel-238-20260921.json`
 - Son eProtein idempotence kontrolü: 10 ürün, 49 aktif yapısal varyant, 49 unchanged, 0 işlem, 0 hata.
-- Son scraper health: 26 kaynak, 2 gerçek takip uyarısı.
+- Son scraper health: 26 kaynak, 0 sorun.
 
-## Açık takip maddeleri
+## Kapatılan son takip maddeleri
 
-- [ ] **Ortholand:** Multiprice içinde 9 mapping `manual_reviewed`; son sync `2026-09-13 17:01:30`. Repo içinde aktif scraper/registry kaydı yok. Kaynağın emekliye ayrılıp ürünlerin manuel yönetilmesi veya entegrasyonun geri kurulması kararlaştırılmalı.
-- [ ] **raketspor_yonex:** 15 onaylı ürüne ait 69/291 mapping son kaynak JSON’da bulunmuyor. Tedarikçiden kalkmış ürünler ile slug değişen ürünler ayrılmalı; ardından stok kapatma veya mapping taşıma uygulanmalı.
+- [x] **Ortholand:** Kaynağın bir satış/stok servisi değil, fiyat ve stok sunmayan üretici kataloğu olduğu doğrulandı. Ürün #411 ve dokuz renk varyantı korunarak manuel yönetime geçirildi. Hiç sipariş satırı olmayan dokuz eski kaynak mapping’i yedekten sonra kaldırıldı; ürün sayfası canlıda 200.
+- [x] **raketspor_yonex:** Uyarının kaybolan ürünlerden çok, stokları zaten sıfırlanmış kayıtların `missing` / `missing_transient` arasında dönmesinden kaynaklandığı belirlendi. Tam katalog güvenlik kontrolü geçtiğinde kaynakta olmayan kayıtlar artık stok zaten 0 olsa da kalıcı `missing_zeroed` durumuna alınır. Canlı sonuç: 94 `missing_zeroed` ve stok 0, 87 kaynak stok 0, 110 güncel/stoklu; `missing=0`, hata 0.
+- [x] Son `scrapers:health-check --no-alert`: 26 kaynak, 0 sorun.
 
-Bu iki madde canlı veriyi topluca silme veya ürün kapatma kararı gerektirdiği için bu olay kapsamında otomatik değiştirilmedi. Sağlık raporu bunları görünür tutuyor.
+Ek geri dönüş yedeği: `storage/app/backups/remaining-sources-before-20260921.json` (300 mapping, 117 ürün, 300 varyant, 0 sipariş satırı). Uygulama dosya yedeği: `/var/www/quikecommerce/backups/remaining-sources-20260921`.
