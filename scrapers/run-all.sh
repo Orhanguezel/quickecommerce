@@ -204,7 +204,8 @@ run_scraper() {
   run_scraper yesilmarka     yesilmarka_scraper.py     yesilmarka_products.json
 
   # 2026-05 yeni kaynak magazalar: fiyat/stok guncelleme.
-  run_scraper maskotmeyvepresleri maskotmeyvepresleri_scraper.py maskotmeyvepresleri_products.json
+  # maskotmeyvepresleri 2026-09-21 KALDIRILDI (kullanici karari):
+  # store#56 + 45 urun soft-delete, registry passive. Yeniden calistirma.
   run_scraper provitanya          provitanya_scraper.py          provitanya_products.json
   run_scraper proteinmax          proteinmax_scraper.py          proteinmax_products.json
   run_scraper heynut              heynut_scraper.py              heynut_products.json
