@@ -65,6 +65,28 @@ class IdeaSoftVariantTests(unittest.TestCase):
         self.assertEqual(result["variants"][0]["title"], "Default Title")
         self.assertEqual(result["variants"][0]["price"], 845)
 
+    def test_dimension_order_is_stable_when_source_rows_change_order(self):
+        products = [
+            {"id": 10, "anaUrun": False, "aktif": True, "stokAdedi": 2,
+             "stokKodu": "BLUE-M", "satisFiyati": 100, "satisKDV": 10},
+            {"id": 11, "anaUrun": False, "aktif": True, "stokAdedi": 3,
+             "stokKodu": "RED-L", "satisFiyati": 100, "satisKDV": 10},
+        ]
+        attributes = [
+            {"urunID": 10, "ekSecenekTipiTanim": "Beden", "tanim": "M"},
+            {"urunID": 10, "ekSecenekTipiTanim": "Renk", "tanim": "Mavi"},
+            {"urunID": 11, "ekSecenekTipiTanim": "Renk", "tanim": "Kırmızı"},
+            {"urunID": 11, "ekSecenekTipiTanim": "Beden", "tanim": "L"},
+        ]
+        result = parse_product(product_html(products, attributes), "https://example.com/glove", "eProtein", "Spor")
+
+        self.assertEqual(result["options"], [
+            {"name": "Renk", "values": ["Mavi", "Kırmızı"]},
+            {"name": "Beden", "values": ["M", "L"]},
+        ])
+        self.assertEqual((result["variants"][0]["option1"], result["variants"][0]["option2"]), ("Mavi", "M"))
+        self.assertEqual((result["variants"][1]["option1"], result["variants"][1]["option2"]), ("Kırmızı", "L"))
+
     def test_incomplete_variant_mapping_is_rejected(self):
         products = [
             {"id": 10, "anaUrun": False, "aktif": True, "stokAdedi": 1,

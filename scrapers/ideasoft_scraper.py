@@ -355,7 +355,19 @@ def _variants_from_product_model(model: dict) -> tuple[list[dict], list[dict]]:
         return [], []
 
     variants: list[dict] = []
-    option_values: dict[str, list[str]] = {}
+    option_names = []
+    for row in option_rows:
+        if not isinstance(row, dict):
+            continue
+        name = str(row.get("ekSecenekTipiTanim") or "Seçenek").strip()
+        if name not in option_names:
+            option_names.append(name)
+    # Ticimax may emit the same dimensions in a different order for individual
+    # combinations. Keep a stable order so option1 always means the same thing.
+    preferred_order = {"Renk": 0, "Beden": 1, "Numara": 2}
+    discovery_order = {name: index for index, name in enumerate(option_names)}
+    option_names.sort(key=lambda name: (preferred_order.get(name, 100), discovery_order[name]))
+    option_values: dict[str, list[str]] = {name: [] for name in option_names}
     for raw in raw_variants:
         if not isinstance(raw, dict) or raw.get("id") is None:
             continue
@@ -374,7 +386,6 @@ def _variants_from_product_model(model: dict) -> tuple[list[dict], list[dict]]:
             if not value or name in attributes:
                 continue
             attributes[name] = value
-            option_values.setdefault(name, [])
             if value not in option_values[name]:
                 option_values[name].append(value)
         if not attributes or len(attributes) > 3:
@@ -388,7 +399,7 @@ def _variants_from_product_model(model: dict) -> tuple[list[dict], list[dict]]:
         if price <= 0:
             raise ValueError("Ticimax variant price is invalid")
         stock = max(0, int(float(raw["stokAdedi"]))) if raw["aktif"] and model.get("productActive", True) else 0
-        labels = list(attributes.values())
+        labels = [attributes[name] for name in option_names if name in attributes]
         variants.append({
             "source_variant_id": str(raw["id"]),
             "sku": str(raw.get("stokKodu") or raw.get("barkod") or f"VAR-{raw['id']}").strip(),
@@ -401,7 +412,7 @@ def _variants_from_product_model(model: dict) -> tuple[list[dict], list[dict]]:
             **{f"option{i + 1}": labels[i] if i < len(labels) else None for i in range(3)},
         })
 
-    options = [{"name": name, "values": values} for name, values in option_values.items()]
+    options = [{"name": name, "values": option_values[name]} for name in option_names]
     return variants, options
 
 
