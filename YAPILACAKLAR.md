@@ -1,3 +1,11 @@
+## 2026-09-21 — iyzico tahsilat bütünlüğü ve mükerrer checkout olayı
+
+- [X] Beş WhatsApp ses kaydı çözümlendi; canlı Laravel/nginx logları, siparişler ve iyzico kayıtları eşleştirildi. Kök neden iyzico PHP SDK'sının aralıklı boş/geçersiz HTTP yanıtını tüm alanları `null` olan bir sonuç nesnesine çevirmesi ve callback'in bu belirsiz sonucu kesin ödeme reddi olarak kaydetmesiydi.
+- [X] Checkout sonucu sorgulama ve ödeme onayı, yalnız boş taşıma yanıtında üç kez deneniyor; yapılandırılmış iyzico retleri tekrar edilmiyor. Üç denemede de yanıt alınamazsa sipariş `pending` kalıyor ve müşteri tekrar ödeme yapmaması için doğrulama ekranına yönlendiriliyor.
+- [X] Admin onayında iyzico `5064` “önceden onaylanmıştır” yanıtı başarılı/idempotent sonuç kabul ediliyor. Aynı müşteriden eşzamanlı checkout istekleri backend kilidiyle tekilleştirildi; tarayıcıya da anlık çift gönderim kilidi eklendi.
+- [X] Canlı olay incelemesi: #247 Saner Kaya 760,50 TL iyzico `SUCCESS` (`paymentId=4212190789`, transaction `3429075608`) olduğu halde yerelde `failed`; #237 Bekir Demirelli 387 TL iyzico `SUCCESS` (`paymentId=4210882766`) olduğu halde silinmiş. Bekir'in #238 siparişi de ayrıca 387 TL başarılı olduğundan toplam 774 TL tahsilat var; #237 mükerrer tahsilat iade/iptal kararı bekliyor.
+- [~] PHP unit 6 test / 11 assertion ve frontend TypeScript kontrolü geçti. Hedef frontend lint'i checkout dosyasındaki değişiklik öncesi mevcut 8 kural ihlali nedeniyle başarısız. Canlı deploy, #247/#238 DB uzlaştırması ve PR bağlantısı bu kayda eklenecek.
+
 ## 2026-09-19 — Sepette sembolik stok ve miktar sınırı
 
 - [~] İki WhatsApp ses kaydı ve ekran görüntüsü incelendi. Ekranda 2 ürün satırı / 3 adet / 6.250 TL, ikinci tavada 2 adet ve “Son 1 adet” görünüyor. Canlı sepet snapshot'ı da 3 adet / 6.250 TL; önceki ödenmemiş #235 siparişi ise 2 satırda birer adet / 4.050 TL. Bu kayıtlar farklı zamanlara ait; iyzico ürün adedini değiştirmedi.

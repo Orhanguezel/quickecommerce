@@ -262,6 +262,7 @@ export function CheckoutClient({ translations: t }: Props) {
 
   // GA4: begin_checkout (once per page load)
   const checkoutTrackedRef = useRef(false);
+  const checkoutSubmitLockRef = useRef(false);
   useEffect(() => {
     if (items.length === 0 || checkoutTrackedRef.current) return;
     checkoutTrackedRef.current = true;
@@ -489,6 +490,9 @@ export function CheckoutClient({ translations: t }: Props) {
       return;
     }
 
+    if (checkoutSubmitLockRef.current) return;
+    checkoutSubmitLockRef.current = true;
+
     const needsResolve = items.filter((i) => !i.variant_id || !i.store_id);
     let resolvedItems = [...items];
 
@@ -519,6 +523,7 @@ export function CheckoutClient({ translations: t }: Props) {
     // Final validation after resolution
     const stillMissing = resolvedItems.filter((i) => !i.variant_id || !i.store_id);
     if (stillMissing.length > 0) {
+      checkoutSubmitLockRef.current = false;
       showNotice(
         "Sepetiniz güncellenemedi",
         `Şu ürünler için güncel bilgi alınamadı: ${stillMissing
@@ -568,9 +573,11 @@ export function CheckoutClient({ translations: t }: Props) {
               "yapılmadı. Ürünü sepetinizden çıkarıp siparişinizi tamamlayabilirsiniz."
           );
         }
+        checkoutSubmitLockRef.current = false;
         return;
       }
     } catch {
+      checkoutSubmitLockRef.current = false;
       showNotice(
         "Stok kontrolü yapılamadı",
         "Stok doğrulama servisine şu anda ulaşılamıyor. Kartınızdan herhangi bir " +
@@ -620,6 +627,7 @@ export function CheckoutClient({ translations: t }: Props) {
       onSuccess: (data) => {
         const orderId = data.order_master?.id ?? data.orders?.[0]?.order_id;
         if (!orderId) {
+          checkoutSubmitLockRef.current = false;
           return;
         }
 
@@ -641,12 +649,16 @@ export function CheckoutClient({ translations: t }: Props) {
             onSuccess: (session) => {
               const checkoutUrl = session?.data?.checkout_url;
               if (!checkoutUrl) {
+                checkoutSubmitLockRef.current = false;
                 return;
               }
 
               setIsRedirecting(true);
               clearCart();
               window.location.href = checkoutUrl;
+            },
+            onError: () => {
+              checkoutSubmitLockRef.current = false;
             },
           });
           return;
@@ -657,6 +669,7 @@ export function CheckoutClient({ translations: t }: Props) {
             onSuccess: (session) => {
               const iframeUrl = (session?.data as any)?.iframe_url;
               if (!iframeUrl) {
+                checkoutSubmitLockRef.current = false;
                 return;
               }
 
@@ -664,12 +677,18 @@ export function CheckoutClient({ translations: t }: Props) {
               clearCart();
               window.location.href = iframeUrl;
             },
+            onError: () => {
+              checkoutSubmitLockRef.current = false;
+            },
           });
           return;
         }
 
         clearCart();
         router.push(`/${locale}/siparis-basarili?order=${orderId}`);
+      },
+      onError: () => {
+        checkoutSubmitLockRef.current = false;
       },
     });
   };

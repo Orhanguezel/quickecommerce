@@ -5,6 +5,8 @@ namespace Tests\Unit;
 use App\Exceptions\IyzicoConnectionException;
 use App\Services\IyzicoService;
 use Iyzipay\Model\CheckoutFormInitialize;
+use Iyzipay\Model\CheckoutForm;
+use Iyzipay\Model\Approval;
 use Tests\TestCase;
 
 class IyzicoCheckoutRetryTest extends TestCase
@@ -16,7 +18,44 @@ class IyzicoCheckoutRetryTest extends TestCase
             {
                 return $this->initializeCheckoutWithRetry($send, 'test-conversation');
             }
+
+            public function transportForTest(callable $send, string $operation): object
+            {
+                return $this->executeWithTransportRetry($send, $operation, 'test-conversation');
+            }
         };
+    }
+
+    public function test_checkout_retrieval_empty_response_is_retried(): void
+    {
+        $calls = 0;
+        $result = $this->service()->transportForTest(function () use (&$calls) {
+            $calls++;
+            $response = new CheckoutForm();
+            if ($calls === 3) {
+                $response->setStatus('success');
+                $response->setPaymentStatus('SUCCESS');
+            }
+            return $response;
+        }, 'checkout_retrieve');
+
+        $this->assertSame(3, $calls);
+        $this->assertSame('SUCCESS', $result->getPaymentStatus());
+    }
+
+    public function test_approval_structured_already_approved_response_is_not_retried(): void
+    {
+        $calls = 0;
+        $result = $this->service()->transportForTest(function () use (&$calls) {
+            $calls++;
+            $response = new Approval();
+            $response->setStatus('failure');
+            $response->setErrorCode('5064');
+            return $response;
+        }, 'payment_approval');
+
+        $this->assertSame(1, $calls);
+        $this->assertSame('5064', $result->getErrorCode());
     }
 
     public function test_empty_transport_response_is_retried(): void
