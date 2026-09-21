@@ -51,6 +51,10 @@ Schedule::command('payments:audit-integrity --days=2 --notify')
     ->timezone('Europe/Istanbul')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/payment-integrity-audit.log'));
+Schedule::command('payments:reconcile-iyzico --hours=48 --limit=100')
+    ->everyFiveMinutes()
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/iyzico-reconciliation.log'));
 // Teslim edilen siparisler icin urun degerlendirme daveti — sadece gunduz (11:00-19:00 TR)
 Schedule::command('orders:dispatch-review-requests')
     ->everyThirtyMinutes()

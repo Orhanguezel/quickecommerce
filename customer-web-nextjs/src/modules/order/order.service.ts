@@ -72,6 +72,8 @@ export function usePaymentSummaryQuery(orderMasterId: number | null) {
     queryKey: ["payment-summary", orderMasterId],
     enabled: !!orderMasterId,
     retry: false,
+    refetchInterval: (query) =>
+      query.state.data?.payment_status === "pending" ? 5000 : false,
     queryFn: async () => {
       const res = await getAxiosInstance().get<{ data: PaymentSummary }>(
         `${API_ENDPOINTS.ORDERS}/payment-summary/${orderMasterId}`

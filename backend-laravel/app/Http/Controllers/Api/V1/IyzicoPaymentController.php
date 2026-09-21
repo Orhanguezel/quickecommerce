@@ -668,6 +668,26 @@ class IyzicoPaymentController extends Controller
                     'error_code' => (string) $result->getErrorCode(),
                 ], 422)
                 : redirect()->to($cancelWithReason);
+        } catch (IyzicoConnectionException $e) {
+            // An empty/unparseable transport response says nothing about the
+            // card result. Keep the order pending so a later reconciliation
+            // can verify it; never turn uncertainty into a failed payment.
+            Log::warning('Iyzico callback verification deferred', [
+                'order_master_id' => $orderMasterId,
+                'message' => $e->getMessage(),
+            ]);
+
+            $pendingUrl = $successUrl
+                . (str_contains($successUrl, '?') ? '&' : '?')
+                . 'verification=pending';
+
+            return $request->expectsJson()
+                ? response()->json([
+                    'success' => false,
+                    'code' => 'payment_verification_pending',
+                    'message' => 'Ödemeniz alındı; banka sonucu doğrulanıyor. Sipariş durumunuz kısa süre içinde güncellenecek.',
+                ], 202)
+                : redirect()->to($pendingUrl);
         } catch (\Throwable $e) {
             Log::error('Iyzico callback exception', [
                 'order_master_id' => $orderMasterId,

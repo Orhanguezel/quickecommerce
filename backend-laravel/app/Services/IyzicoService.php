@@ -222,20 +222,25 @@ class IyzicoService
         );
     }
 
-    /** Retry only checkout initialization: a repeated initialization cannot charge a card. */
-    protected function initializeCheckoutWithRetry(callable $send, string $conversationId): CheckoutFormInitialize
+    /**
+     * Retry iyzico calls only when the SDK could not parse any provider response.
+     * A response with status=success/failure is authoritative and is never retried.
+     */
+    protected function executeWithTransportRetry(callable $send, string $operation, string $conversationId): object
     {
         for ($attempt = 1; $attempt <= 3; $attempt++) {
             $result = $send();
 
-            // iyzipay-php maps both curl failures and non-JSON responses to a
-            // result without status. A structured rejection must not be retried.
+            // iyzipay-php maps curl failures and non-JSON responses to a model
+            // whose status is null. Structured provider rejections have a
+            // status and must be returned to the caller immediately.
             if ($result->getStatus() !== null) {
                 return $result;
             }
 
             $rawResult = $result->getRawResult();
-            Log::warning('Iyzico checkout transport returned no valid response', [
+            Log::warning('Iyzico transport returned no valid response', [
+                'operation' => $operation,
                 'conversation_id' => $conversationId,
                 'attempt' => $attempt,
                 'response_bytes' => is_string($rawResult) ? strlen($rawResult) : 0,
@@ -246,7 +251,13 @@ class IyzicoService
             }
         }
 
-        throw new IyzicoConnectionException('Ödeme sağlayıcısına şu anda bağlanılamıyor. Lütfen kısa süre sonra tekrar deneyin.');
+        throw new IyzicoConnectionException('Ödeme sağlayıcısına şu anda bağlanılamıyor. Ödemenizin durumu otomatik olarak tekrar kontrol edilecektir.');
+    }
+
+    protected function initializeCheckoutWithRetry(callable $send, string $conversationId): CheckoutFormInitialize
+    {
+        /** @var CheckoutFormInitialize */
+        return $this->executeWithTransportRetry($send, 'checkout_initialize', $conversationId);
     }
 
     public function retrieveCheckoutForm(string $token, string $conversationId): CheckoutForm
@@ -256,7 +267,14 @@ class IyzicoService
         $request->setConversationId($conversationId);
         $request->setToken($token);
 
-        return CheckoutForm::retrieve($request, $this->options());
+        $options = $this->options();
+
+        /** @var CheckoutForm */
+        return $this->executeWithTransportRetry(
+            fn () => CheckoutForm::retrieve($request, $options),
+            'checkout_retrieve',
+            $conversationId
+        );
     }
 
     /**
@@ -410,7 +428,14 @@ class IyzicoService
         $request->setConversationId($conversationId);
         $request->setPaymentTransactionId($paymentTransactionId);
 
-        return \Iyzipay\Model\Approval::create($request, $this->options());
+        $options = $this->options();
+
+        /** @var \Iyzipay\Model\Approval */
+        return $this->executeWithTransportRetry(
+            fn () => \Iyzipay\Model\Approval::create($request, $options),
+            'payment_approval',
+            $conversationId
+        );
     }
 
     /**

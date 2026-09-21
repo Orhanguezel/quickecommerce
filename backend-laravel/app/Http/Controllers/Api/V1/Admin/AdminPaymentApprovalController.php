@@ -140,6 +140,10 @@ class AdminPaymentApprovalController extends Controller
         // donerse: iyzico tarafindan zaten iade/iptal — DB'yi refunded isaretle.
         $results = ['approved' => [], 'failed' => []];
         $refundedCodes = ['5249', '5088'];
+        // Approval request may have reached iyzico even when its HTTP response
+        // was lost. A retry then returns 5064 (already approved), which is the
+        // desired idempotent end state.
+        $alreadyApprovedCodes = ['5064'];
         $isRefundedOnIyzico = false;
         foreach ($transactionIds as $i => $tid) {
             try {
@@ -149,6 +153,15 @@ class AdminPaymentApprovalController extends Controller
                     $results['approved'][] = $tid;
                 } else {
                     $errCode = (string) ($approval->getErrorCode() ?? '');
+                    if (in_array($errCode, $alreadyApprovedCodes, true)) {
+                        $results['approved'][] = $tid;
+                        Log::info('Iyzico transaction was already approved', [
+                            'order_master_id' => $orderMaster->id,
+                            'tid' => $tid,
+                            'error_code' => $errCode,
+                        ]);
+                        continue;
+                    }
                     if (in_array($errCode, $refundedCodes, true)) {
                         $isRefundedOnIyzico = true;
                     }
