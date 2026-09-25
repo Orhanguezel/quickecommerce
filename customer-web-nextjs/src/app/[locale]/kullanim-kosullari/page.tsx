@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { buildPageTitle, buildMetaDescription } from "@/lib/seo";
+import { buildPageTitle, buildMetaDescription, localizedAlternates } from "@/lib/seo";
 import { getTranslations } from "next-intl/server";
 import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: pageDescription,
     alternates: {
       canonical: `/${locale}/kullanim-kosullari`,
-      languages: { tr: `/tr/kullanim-kosullari`, en: `/en/kullanim-kosullari` },
+      languages: localizedAlternates("/kullanim-kosullari"),
     },
   };
 }

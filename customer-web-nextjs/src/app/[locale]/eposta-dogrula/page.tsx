@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { localizedAlternates } from "@/lib/seo";
 import { getTranslations } from "next-intl/server";
 import { VerifyEmailClient } from "./verify-email-client";
 
@@ -17,7 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     robots: { index: false, follow: false },
     alternates: {
       canonical: `/${locale}/eposta-dogrula`,
-      languages: { tr: `/tr/eposta-dogrula`, en: `/en/eposta-dogrula` },
+      languages: localizedAlternates("/eposta-dogrula"),
     },
   };
 }

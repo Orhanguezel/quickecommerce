@@ -117,17 +117,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly" as const,
     },
     {
-      path: "/iade-politikasi",
-      priority: 0.2,
-      changeFrequency: "monthly" as const,
-    },
-    {
       path: "/kargo-politikasi",
-      priority: 0.2,
-      changeFrequency: "monthly" as const,
-    },
-    {
-      path: "/kargo-teslimat",
       priority: 0.2,
       changeFrequency: "monthly" as const,
     },

@@ -25,8 +25,8 @@ Core vertical: sports products, sports nutrition, fitness, running, outdoor, and
 - About: ${SITE_URL}/tr/hakkimizda
 - Contact: ${SITE_URL}/tr/iletisim
 - Privacy: ${SITE_URL}/tr/gizlilik-politikasi
-- Returns: ${SITE_URL}/tr/iade-politikasi
-- Shipping: ${SITE_URL}/tr/kargo-teslimat
+- Returns: ${SITE_URL}/tr/iade-degisim
+- Shipping: ${SITE_URL}/tr/kargo-politikasi
 
 ## Content Clusters
 

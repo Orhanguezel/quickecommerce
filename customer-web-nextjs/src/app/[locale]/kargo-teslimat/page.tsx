@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildPageTitle, SITE_NAME, localizedAlternates } from "@/lib/seo";
 import { getTranslations } from "next-intl/server";
 import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
@@ -23,11 +24,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const data = await getPageContent("kargo-politikasi", locale);
 
   return {
-    title: data?.meta_title || t("shipping_policy_title"),
+    // absolute: DB meta_title marka ekini zaten tasiyor; layout sablonu ikinci kez ekliyordu.
+    title: { absolute: buildPageTitle([data?.meta_title, t("shipping_policy_title")], SITE_NAME) },
     description: data?.meta_description || t("shipping_policy_description"),
     alternates: {
       canonical: `/${locale}/kargo-teslimat`,
-      languages: { tr: `/tr/kargo-teslimat`, en: `/en/kargo-teslimat` },
+      languages: localizedAlternates("/kargo-teslimat"),
     },
   };
 }

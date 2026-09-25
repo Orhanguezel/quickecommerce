@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { localizedAlternates } from "@/lib/seo";
 import { getTranslations } from "next-intl/server";
 import { LoginClient } from "./login-client";
 
@@ -15,7 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: t("login_description"),
     alternates: {
       canonical: `/${locale}/giris`,
-      languages: { tr: `/tr/giris`, en: `/en/giris` },
+      languages: localizedAlternates("/giris"),
     },
   };
 }

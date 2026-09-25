@@ -64,6 +64,19 @@ const nextConfig: NextConfig = {
         destination: "/tr/urun/:slug",
         permanent: true,
       },
+      // Ayni icerigi yayinlayan kopya politika adresleri (GSC 2026-09-25:
+      // "kullanici tarafindan secilen standart sayfa olmadan kopya"). DB'deki
+      // sayfa kayitlari iade-degisim ve kargo-politikasi slug'lariyla duruyor.
+      {
+        source: "/:locale/iade-politikasi",
+        destination: "/:locale/iade-degisim",
+        permanent: true,
+      },
+      {
+        source: "/:locale/kargo-teslimat",
+        destination: "/:locale/kargo-politikasi",
+        permanent: true,
+      },
     ];
   },
   async rewrites() {

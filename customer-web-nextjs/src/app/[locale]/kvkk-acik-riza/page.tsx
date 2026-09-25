@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import { ContentPageClient } from "@/components/common/content-page-client";
-import { localizedAlternates } from "@/lib/seo";
+import { localizedAlternates, buildPageTitle, SITE_NAME } from "@/lib/seo";
 import { pageContentOrFallback, policyContent } from "../policy-content";
 
 interface Props {
@@ -24,7 +24,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const data = await getPageContent("kvkk-acik-riza", locale);
 
   return {
-    title: data?.meta_title || "KVKK Açık Rıza Beyanı",
+    // absolute: DB meta_title marka ekini zaten tasiyor; layout sablonu ikinci kez ekliyordu.
+    title: { absolute: buildPageTitle([data?.meta_title, "KVKK Açık Rıza Beyanı"], SITE_NAME) },
     description:
       data?.meta_description ||
       "Sportoonline KVKK kapsamında açık rıza beyanı",

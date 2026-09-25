@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildPageTitle, SITE_NAME, localizedAlternates } from "@/lib/seo";
 import { getTranslations } from "next-intl/server";
 import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
@@ -35,13 +36,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const data = await getPageContent(locale);
 
   return {
-    title: data?.meta_title || TITLE,
+    // absolute: DB meta_title marka ekini zaten tasiyor; layout sablonu ikinci kez ekliyordu.
+    title: { absolute: buildPageTitle([data?.meta_title, TITLE], SITE_NAME) },
     description:
       data?.meta_description ||
       "Sportoonline puan programı: değerlendirme yazın, puan kazanın, indirim çekine dönüştürün.",
     alternates: {
       canonical: `/${locale}/puan-programi`,
-      languages: { tr: `/tr/puan-programi`, en: `/en/puan-programi` },
+      languages: localizedAlternates("/puan-programi"),
     },
   };
 }

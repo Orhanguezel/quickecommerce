@@ -21,6 +21,9 @@ class ProductBrandPublicResource extends JsonResource
          return [
              'value' => $this->id,
              'label' => $locales['brand_name']['value'] ?? $this->brand_name,
+             // /marka/{slug} sayfasi markayi slug ile cozer; alan yokken hicbir
+             // marka bulunamiyor ve tum marka sayfalari bos donuyordu.
+             'slug' => $this->brand_slug,
          ];
      }
 }

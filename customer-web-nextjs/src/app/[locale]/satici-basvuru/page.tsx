@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { localizedAlternates } from "@/lib/seo";
 import { getTranslations } from "next-intl/server";
 import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
@@ -34,7 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: data?.meta_description || t("become_seller_description") || "Sportoonline'da satıcı olun ve spor ürünlerinizi milyonlarca müşteriye ulaştırın",
     alternates: {
       canonical: `/${locale}/satici-basvuru`,
-      languages: { tr: `/tr/satici-basvuru`, en: `/en/satici-basvuru` },
+      languages: localizedAlternates("/satici-basvuru"),
     },
   };
 }

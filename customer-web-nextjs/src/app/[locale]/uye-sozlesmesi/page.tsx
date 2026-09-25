@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildPageTitle, SITE_NAME, localizedAlternates } from "@/lib/seo";
 import { getTranslations } from "next-intl/server";
 import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
@@ -22,16 +23,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const data = await getPageContent("uye-sozlesmesi", locale);
 
   return {
-    title: data?.meta_title || "Üye Sözleşmesi",
+    // absolute: DB meta_title marka ekini zaten tasiyor; layout sablonu ikinci kez ekliyordu.
+    title: { absolute: buildPageTitle([data?.meta_title, "Üye Sözleşmesi"], SITE_NAME) },
     description:
       data?.meta_description ||
       "Sportoonline üye sözleşmesi ve mesafeli satış koşulları",
     alternates: {
       canonical: `/${locale}/uye-sozlesmesi`,
-      languages: {
-        tr: `/tr/uye-sozlesmesi`,
-        en: `/en/uye-sozlesmesi`,
-      },
+      languages: localizedAlternates("/uye-sozlesmesi"),
     },
   };
 }

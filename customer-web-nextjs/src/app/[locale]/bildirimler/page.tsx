@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { localizedAlternates } from "@/lib/seo";
 import { getTranslations } from "next-intl/server";
 import { NotificationClient } from "./notification-client";
 
@@ -15,7 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     robots: { index: false },
     alternates: {
       canonical: `/${locale}/bildirimler`,
-      languages: { tr: `/tr/bildirimler`, en: `/en/bildirimler` },
+      languages: localizedAlternates("/bildirimler"),
     },
   };
 }

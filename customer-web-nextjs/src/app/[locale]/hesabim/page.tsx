@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { localizedAlternates } from "@/lib/seo";
 import { getTranslations } from "next-intl/server";
 import { AccountClient } from "./account-client";
 
@@ -15,7 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     robots: { index: false },
     alternates: {
       canonical: `/${locale}/hesabim`,
-      languages: { tr: `/tr/hesabim`, en: `/en/hesabim` },
+      languages: localizedAlternates("/hesabim"),
     },
   };
 }

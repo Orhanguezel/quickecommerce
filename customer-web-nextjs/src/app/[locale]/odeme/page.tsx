@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { localizedAlternates } from "@/lib/seo";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { CheckoutClient } from "./checkout-client";
@@ -16,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     robots: { index: false },
     alternates: {
       canonical: `/${locale}/odeme`,
-      languages: { tr: `/tr/odeme`, en: `/en/odeme` },
+      languages: localizedAlternates("/odeme"),
     },
   };
 }

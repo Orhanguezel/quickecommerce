@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { localizedAlternates } from "@/lib/seo";
 import { getTranslations } from "next-intl/server";
 import { RegisterClient } from "./register-client";
 
@@ -15,7 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: t("register_description"),
     alternates: {
       canonical: `/${locale}/kayit`,
-      languages: { tr: `/tr/kayit`, en: `/en/kayit` },
+      languages: localizedAlternates("/kayit"),
     },
   };
 }

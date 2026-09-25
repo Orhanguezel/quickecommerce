@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { localizedAlternates } from "@/lib/seo";
 import { getTranslations } from "next-intl/server";
 import { WishlistClient } from "./wishlist-client";
 
@@ -15,7 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     robots: { index: false },
     alternates: {
       canonical: `/${locale}/favorilerim`,
-      languages: { tr: `/tr/favorilerim`, en: `/en/favorilerim` },
+      languages: localizedAlternates("/favorilerim"),
     },
   };
 }

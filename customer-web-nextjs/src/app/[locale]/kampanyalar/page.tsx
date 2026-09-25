@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { buildPageTitle, buildMetaDescription } from "@/lib/seo";
+import { buildPageTitle, buildMetaDescription, localizedAlternates } from "@/lib/seo";
 import { getTranslations } from "next-intl/server";
 import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
@@ -64,7 +64,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: buildMetaDescription([t("campaigns_description")]),
     alternates: {
       canonical: `/${locale}/kampanyalar`,
-      languages: { tr: "/tr/kampanyalar", en: "/en/kampanyalar" },
+      languages: localizedAlternates("/kampanyalar"),
     },
   };
 }

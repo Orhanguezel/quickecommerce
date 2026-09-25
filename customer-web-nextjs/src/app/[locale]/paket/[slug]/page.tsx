@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { localizedAlternates } from "@/lib/seo";
 import { BundleDetailClient } from "./bundle-detail-client";
 
 interface Props {
@@ -6,9 +7,14 @@ interface Props {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
+  const { locale, slug } = await params;
   return {
     title: `Paket — ${slug}`,
+    // Layout varsayilani (301 donen site koku) miras kalmasin.
+    alternates: {
+      canonical: `/${locale}/paket/${slug}`,
+      languages: localizedAlternates(`/paket/${slug}`),
+    },
   };
 }
 

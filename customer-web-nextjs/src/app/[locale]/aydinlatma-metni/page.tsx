@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import { ContentPageClient } from "@/components/common/content-page-client";
-import { localizedAlternates } from "@/lib/seo";
+import { localizedAlternates, buildPageTitle, SITE_NAME } from "@/lib/seo";
 import { pageContentOrFallback, policyContent } from "../policy-content";
 
 interface Props {
@@ -24,7 +24,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const data = await getPageContent("aydinlatma-metni", locale);
 
   return {
-    title: data?.meta_title || "Aydınlatma Metni",
+    // absolute: DB meta_title marka ekini zaten tasiyor; layout sablonu ikinci kez ekliyordu.
+    title: { absolute: buildPageTitle([data?.meta_title, "Aydınlatma Metni"], SITE_NAME) },
     description:
       data?.meta_description ||
       "Sportoonline kişisel veri işleme ve aydınlatma metni",

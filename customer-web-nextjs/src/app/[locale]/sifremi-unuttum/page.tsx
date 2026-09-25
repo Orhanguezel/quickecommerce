@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { localizedAlternates } from "@/lib/seo";
 import { getTranslations } from "next-intl/server";
 import { ForgotPasswordClient } from "./forgot-password-client";
 
@@ -15,7 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: t("forgot_password_description"),
     alternates: {
       canonical: `/${locale}/sifremi-unuttum`,
-      languages: { tr: `/tr/sifremi-unuttum`, en: `/en/sifremi-unuttum` },
+      languages: localizedAlternates("/sifremi-unuttum"),
     },
   };
 }

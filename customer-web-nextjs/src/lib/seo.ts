@@ -137,6 +137,10 @@ export function absoluteUrl(path = ""): string {
   return `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 /**
  * SEO basligini 30-60 karakter araliginda tutar.
  *
@@ -152,15 +156,20 @@ export function buildPageTitle(
   minLength = 30
 ): string {
   const suffix = siteName ? ` | ${siteName}` : "";
+  // DB'deki meta_title marka ekini farkli ayiricilarla tasiyabiliyor
+  // ("Aydinlatma Metni - Sportoonline"); once soyulur, sonra tek bicimde eklenir.
+  // Aksi halde "... - Sportoonline | Sportoonline" cikiyordu (GSC 2026-09-25).
+  const brandSuffix = siteName
+    ? new RegExp(`\\s*[|\\-–—]\\s*${escapeRegExp(siteName)}\\s*$`, "i")
+    : null;
   const cleaned = candidates
     .map((value) => value?.trim())
+    .map((value) => (value && brandSuffix ? value.replace(brandSuffix, "").trim() : value))
     .filter((value): value is string => Boolean(value));
 
   const ordered: string[] = [];
   for (const value of cleaned) {
-    // Baslik zaten marka ekini tasiyorsa ikinci kez eklemeyiz.
-    const hasSuffix = suffix && value.toLowerCase().endsWith(suffix.trim().toLowerCase());
-    if (!hasSuffix && suffix) ordered.push(`${value}${suffix}`);
+    if (suffix) ordered.push(`${value}${suffix}`);
     ordered.push(value);
   }
 
