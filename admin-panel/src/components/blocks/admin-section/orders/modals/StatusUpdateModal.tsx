@@ -24,12 +24,37 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
     { label: t("common.cancelled"), value: "cancelled" },
     { label: t("common.delivered"), value: "delivered" },
   ];
+  const statusFlow = [
+    "pending",
+    "confirmed",
+    "processing",
+    "pickup",
+    "shipped",
+    "delivered",
+  ];
+  const currentStatusIndex = statusFlow.indexOf(row?.status);
+  const filteredStatusList = StatusList.filter((item) => {
+    if (row?.status === "cancelled" || row?.status === "delivered") {
+      return false;
+    }
+
+    if (item.value === "cancelled") {
+      return true;
+    }
+
+    if (item.value === "pending") {
+      return false;
+    }
+
+    const candidateIndex = statusFlow.indexOf(item.value);
+    return currentStatusIndex === -1 || candidateIndex > currentStatusIndex;
+  });
   const { mutate: updateStoreStatus } = useOrdersStatusUpdate();
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSelectOpen, setIsSelectOpen] = useState(false);
 
-  const [selectStatus, setSelectStatus] = useState<string>(row?.status);
+  const [selectStatus, setSelectStatus] = useState<string>("");
   const handleStatus = (value: string) => {
     const newSelectStatus = String(value);
     if (value === "none") {
@@ -68,11 +93,17 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
     <AppModal
       trigger={trigger}
       actionButtonLabel={t("button.confirm")}
+      disable={!selectStatus || filteredStatusList.length === 0}
       IsLoading={loading}
       onSave={handleSave}
       customClass="!transform-none inset-x-4 mx-auto max-w-md top-[8vh] max-h-[84vh] overflow-y-auto"
       isOpen={isModalOpen} // Bind modal open state
-      onOpenChange={setIsModalOpen}
+      onOpenChange={(open) => {
+        setIsModalOpen(open);
+        if (open) {
+          setSelectStatus("");
+        }
+      }}
       smallModal
     >
       <div className="text-start ">
@@ -89,7 +120,7 @@ const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
             placeholder={t("place_holder.select_status")}
             value={String(selectStatus)}
             onSelect={handleStatus}
-            groups={StatusList}
+            groups={filteredStatusList}
             hideNone
             onOpenChange={setIsSelectOpen}
           />

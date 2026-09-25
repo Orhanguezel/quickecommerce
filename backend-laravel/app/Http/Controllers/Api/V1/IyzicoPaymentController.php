@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Exceptions\IyzicoConnectionException;
 use App\Models\OrderMaster;
 use App\Services\CheckoutStockVerifier;
 use App\Services\IyzicoService;
@@ -215,6 +216,18 @@ class IyzicoPaymentController extends Controller
                     'order_master_id' => $orderMaster->id,
                 ],
             ]);
+        } catch (IyzicoConnectionException $e) {
+            Log::error('Iyzico checkout connection unavailable', [
+                'order_master_id' => $orderMaster->id,
+                'customer_id' => $customer->id,
+            ]);
+            $this->trackCheckoutFailure($orderMaster, 'iyzico_connection_unavailable', $request);
+
+            return response()->json([
+                'success' => false,
+                'code' => 'iyzico_connection_unavailable',
+                'message' => $e->getMessage(),
+            ], 503);
         } catch (\RuntimeException $e) {
             Log::warning('Iyzico checkout session validation failed', [
                 'order_master_id' => $orderMaster->id ?? null,
@@ -655,6 +668,26 @@ class IyzicoPaymentController extends Controller
                     'error_code' => (string) $result->getErrorCode(),
                 ], 422)
                 : redirect()->to($cancelWithReason);
+        } catch (IyzicoConnectionException $e) {
+            // An empty/unparseable transport response says nothing about the
+            // card result. Keep the order pending so a later reconciliation
+            // can verify it; never turn uncertainty into a failed payment.
+            Log::warning('Iyzico callback verification deferred', [
+                'order_master_id' => $orderMasterId,
+                'message' => $e->getMessage(),
+            ]);
+
+            $pendingUrl = $successUrl
+                . (str_contains($successUrl, '?') ? '&' : '?')
+                . 'verification=pending';
+
+            return $request->expectsJson()
+                ? response()->json([
+                    'success' => false,
+                    'code' => 'payment_verification_pending',
+                    'message' => 'Ödemeniz alındı; banka sonucu doğrulanıyor. Sipariş durumunuz kısa süre içinde güncellenecek.',
+                ], 202)
+                : redirect()->to($pendingUrl);
         } catch (\Throwable $e) {
             Log::error('Iyzico callback exception', [
                 'order_master_id' => $orderMasterId,

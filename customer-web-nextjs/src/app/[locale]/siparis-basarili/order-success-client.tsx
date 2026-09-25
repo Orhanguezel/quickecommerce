@@ -5,7 +5,7 @@ import { Link } from "@/i18n/routing";
 import { ROUTES } from "@/config/routes";
 import { Button } from "@/components/ui/button";
 import { ReviewRewardBanner } from "@/components/product/review-reward-banner";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Loader2, XCircle } from "lucide-react";
 import { useCartRecoverMutation } from "@/modules/cart/abandoned-cart.service";
 import { getCartSessionId } from "@/hooks/use-cart-snapshot-sync";
 import { usePaymentSummaryQuery } from "@/modules/order/order.service";
@@ -29,6 +29,7 @@ export function OrderSuccessClient({ orderId, translations: t }: Props) {
   const numericOrderId = /^\d+$/.test(orderId) ? Number(orderId) : null;
   const { data: paymentSummary } = usePaymentSummaryQuery(numericOrderId);
   const conversionHandledRef = useRef(false);
+  const paymentStatus = paymentSummary?.payment_status;
 
   useEffect(() => {
     if (!numericOrderId || paymentSummary?.payment_status !== "paid") return;
@@ -106,9 +107,29 @@ export function OrderSuccessClient({ orderId, translations: t }: Props) {
   return (
     <div className="container mx-auto flex min-h-[60vh] items-center justify-center px-4 py-16">
       <div className="w-full max-w-md text-center">
-        <CheckCircle className="mx-auto mb-6 h-20 w-20 text-green-500" />
-        <h1 className="mb-3 text-2xl font-bold">{t.order_success}</h1>
-        <p className="mb-4 text-muted-foreground">{t.order_success_message}</p>
+        {paymentStatus === "paid" ? (
+          <>
+            <CheckCircle className="mx-auto mb-6 h-20 w-20 text-green-500" />
+            <h1 className="mb-3 text-2xl font-bold">{t.order_success}</h1>
+            <p className="mb-4 text-muted-foreground">{t.order_success_message}</p>
+          </>
+        ) : paymentStatus === "failed" ? (
+          <>
+            <XCircle className="mx-auto mb-6 h-20 w-20 text-red-500" />
+            <h1 className="mb-3 text-2xl font-bold">Ödeme tamamlanamadı</h1>
+            <p className="mb-4 text-muted-foreground">
+              Kartınızdan çekim görüyorsanız lütfen tekrar ödeme yapmayın; sipariş numaranızla bizimle iletişime geçin.
+            </p>
+          </>
+        ) : (
+          <>
+            <Loader2 className="mx-auto mb-6 h-20 w-20 animate-spin text-amber-500" />
+            <h1 className="mb-3 text-2xl font-bold">Ödemeniz doğrulanıyor</h1>
+            <p className="mb-4 text-muted-foreground">
+              Banka sonucu bekleniyor. Lütfen tekrar ödeme yapmayın; bu sayfa otomatik olarak güncellenecek.
+            </p>
+          </>
+        )}
 
         {orderId && (
           <div className="mb-6 rounded-lg bg-muted/50 p-4">

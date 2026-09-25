@@ -14,6 +14,8 @@ export interface CartItem {
   original_price?: number;
   quantity: number;
   max_cart_qty: number;
+  stock_is_exact?: boolean;
+  stock_quantity?: number;
   variant_label?: string;
   /** When set, this item was added as part of a bundle. The bundle-aware
    *  subtotal calculation in cart-subtotal.ts groups by this ID and applies
@@ -60,13 +62,25 @@ export const useCartStore = create<CartState>()(
             (i) => getCartKey(i) === key
           );
           if (existing) {
+            const maxQuantity = Math.min(
+              existing.max_cart_qty || 99,
+              item.max_cart_qty || 99
+            );
             const newQty = Math.min(
               existing.quantity + item.quantity,
-              item.max_cart_qty || 99
+              maxQuantity
             );
             return {
               items: state.items.map((i) =>
-                getCartKey(i) === key ? { ...i, quantity: newQty } : i
+                getCartKey(i) === key
+                  ? {
+                      ...i,
+                      quantity: newQty,
+                      max_cart_qty: maxQuantity,
+                      stock_is_exact: item.stock_is_exact ?? i.stock_is_exact,
+                      stock_quantity: item.stock_quantity ?? i.stock_quantity,
+                    }
+                  : i
               ),
             };
           }
