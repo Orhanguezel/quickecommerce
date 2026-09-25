@@ -164,6 +164,9 @@ export interface ProductDetailResponse {
   data: ProductDetail;
   canonical_slug?: string | null;
   locales?: string[];
+  /** false: pasif urun veya kapali/askida magaza — sayfa acik, `noindex, follow`. Alan yoksa (eski backend) indekslenebilir sayilir. */
+  indexable?: boolean;
+  unsellable_reason?: "inactive" | "store_closed" | "out_of_stock" | null;
   related_products: Product[];
 }
 

@@ -204,12 +204,13 @@ Sahip: **Kod** (Codex uygular), **Kullanıcı** (panel/DNS/iş kararı), **GSC**
 
 ### P0 — İndeks ve yasal
 
-- [ ] **S1. Satışta olmayan ürün sayfaları için indeks politikası** (Kod — backend + web)
-  - [ ] Ürün `status != approved` → 410 (admin pasifi herkese açık olmamalı); gone listesine ekle
-  - [ ] Mağazası kalıcı kapalı (`stores.status` 0/2) → 410 veya aynı kategoriye 301
-  - [ ] Geçici stoksuz (mağaza açık): ilk 30 gün 200 + `OutOfStock` + "benzer ürünler"; **30+ gün `noindex, follow`**; 90+ gün 410
-  - [ ] Ürün API yanıtına `sellability` + `unsellable_since` alanı; `urun/[slug]/page.tsx` `robots`'u buna göre üretsin
-  - [ ] Kabul: 75 örneklik pasif set tekrar taranınca 0 adet "200 + index + Tükendi"
+- [ ] **S1. Satışta olmayan ürün sayfaları için indeks politikası** (Kod — backend + web) — **1. adım kodda (dal `seo/indeks-politikasi-sayfalama`), deploy bekliyor**
+  - [x] Pasif ürün (`status != approved`) → sayfa açık, **`noindex, follow`**. 410 BİLEREK seçilmedi: 2026-08-18 kararı (tedarikçisi geçici çekilen ürün `inactive` oluyor, 404/410 indeksi kalıcı düşürüyordu). Ürün tekrar onaylanınca kendiliğinden indekslenebilir olur.
+  - [x] Mağazası kapalı/askıda (`stores.status != 1` veya `sales_suspended_at`) → `noindex, follow`
+  - [x] Ürün API yanıtına `indexable` + `unsellable_reason` (`inactive` / `store_closed` / `out_of_stock`); `urun/[slug]/page.tsx` robots'u buna göre üretir. Alan yoksa (eski backend) eski davranış — deploy sırası serbest.
+  - [ ] Geçici stoksuz (onaylı ürün, mağaza açık): bugün **indekste kalıyor** (`OutOfStock`). 30/90 gün kademesi `unsellable_since` kolonu ister (migration) — sonraki adım.
+  - [ ] Kalıcı kapalı mağazalar (Linktech, Rova, Dekomum, eProtein) için 410/301 — mağaza kararına bağlı (S12)
+  - [ ] Kabul: 75 örneklik pasif set tekrar taranınca 0 adet "200 + index + Tükendi" (deploy sonrası)
 - [ ] **S2. Mesafeli Satış Sözleşmesi içeriğini düzelt** (Kullanıcı: metin / Kod: sayfa kaynağı) — yasal zorunluluk
 - [ ] **S3. Marka vaadini düzelt** (Kod + Kullanıcı)
   - [ ] Ana sayfa meta açıklamasından Nike/Adidas/Puma'yı çıkar, gerçekten satılan markaları yaz
@@ -223,9 +224,10 @@ Sahip: **Kod** (Codex uygular), **Kullanıcı** (panel/DNS/iş kararı), **GSC**
 
 ### P1 — İçerik kalitesi ve tarama
 
-- [ ] **S7. Sayfalama** (Kod)
-  - [ ] `?page=N` sayfaları kendine canonical versin (sayfa 1'e değil)
-  - [ ] Kategori ve mağaza sayfalarına SSR sayfalama linkleri (sonsuz kaydırma kalabilir, `<a href="?page=2">` HTML'de olsun)
+- [x] **S7. Sayfalama** (Kod) — dal `seo/indeks-politikasi-sayfalama`, deploy bekliyor
+  - [x] `?page=N` sayfaları kendine canonical veriyor (kategori, `/urunler`, mağaza); filtre/sıralama varyantları temel yola bağlı kalıyor — `paginatedCanonical()` (`lib/seo.ts`)
+  - [x] Kategori sayfasına SSR sayfalama linkleri (`rel=prev/next`, 7'lik pencere); sonsuz kaydırma korunuyor. Mağaza ve `/urunler`'de linkler zaten vardı.
+  - [x] Yan hata: `?page=N` açılınca sonsuz kaydırma sayfayı "1" sanıp N'i tekrar çekiyordu — başlangıç sayfası artık SSR'dan geliyor
 - [ ] **S8. İnce ürün açıklamaları** (Kod + içerik)
   - [ ] 2.068 ürün (<150 kr) ve 25 "açıklama = ad" ürünü için yapılandırılmış açıklama şablonu: özellik tablosu, kullanım, içerik/ölçü, kime uygun
   - [ ] Önceliği trafik/sipariş verisine göre sırala (ilk 500)

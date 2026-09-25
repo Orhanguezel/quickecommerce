@@ -211,7 +211,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         ])
       ),
     },
-    robots: isLocalized ? undefined : { index: false, follow: true },
+    // Pasif urun / kapali magaza: sayfa kullaniciya acik kalir ama indeks
+    // adayi olmaz; follow ile icindeki linkler taranmaya devam eder.
+    robots:
+      isLocalized && res.indexable !== false
+        ? undefined
+        : { index: false, follow: true },
     other: price
       ? {
           "product:price:amount": String(price),
