@@ -69,9 +69,10 @@ interface CategoryPageClientProps {
   subcategories: Category[];
   brands: FilterBrand[];
   stores?: FilterStore[];
-  totalPages?: number; // SSR'dan gelir ama infinite scroll kullanmiyor
+  totalPages?: number;
   totalProducts: number;
-  currentPage?: number; // SSR'dan gelir ama infinite scroll kullanmiyor
+  /** SSR'in getirdigi sayfa (?page=N); sonsuz kaydirma buradan devam eder. */
+  currentPage?: number;
   perPage: number;
   filterCategoryIds: string[];
   currentSort?: string;
@@ -120,7 +121,9 @@ export function CategoryPageClient({
   subcategories,
   brands,
   stores = [],
+  totalPages = 1,
   totalProducts,
+  currentPage = 1,
   perPage,
   filterCategoryIds,
   currentSort,
@@ -130,6 +133,34 @@ export function CategoryPageClient({
   const router = useRouter();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const basePath = `/kategori/${categorySlug}`;
+
+  const lastPage = Math.max(1, totalPages, Math.ceil(totalProducts / perPage));
+
+  // Sonsuz kaydirma JS ister; Googlebot ve JS'siz ziyaretci kategorinin 21.
+  // urununden sonrasina yalniz bu linklerle ulasir (GSC 2026-09-25: kategori
+  // SSR'i 20 urun basiyordu, sayfalama linki yoktu).
+  function buildPageHref(page: number) {
+    const params = new URLSearchParams();
+    currentFilters.brand_id?.forEach((id) => params.append("brand_id", id));
+    currentFilters.category_id?.forEach((id) => params.append("category_id", id));
+    currentFilters.store_id?.forEach((id) => params.append("store_id", id));
+    if (currentFilters.min_price) params.set("min_price", currentFilters.min_price);
+    if (currentFilters.max_price) params.set("max_price", currentFilters.max_price);
+    if (currentFilters.min_rating) params.set("min_rating", currentFilters.min_rating);
+    if (currentFilters.has_discount) params.set("has_discount", currentFilters.has_discount);
+    if (currentFilters.weight_min) params.set("weight_min", currentFilters.weight_min);
+    if (currentFilters.weight_max) params.set("weight_max", currentFilters.weight_max);
+    if (currentSort) params.set("sort", currentSort);
+    if (page > 1) params.set("page", String(page));
+    const query = params.toString();
+    return `${basePath}${query ? `?${query}` : ""}`;
+  }
+
+  const pageWindowStart = Math.max(1, Math.min(currentPage - 3, lastPage - 6));
+  const pageNumbers = Array.from(
+    { length: Math.min(7, lastPage) },
+    (_, i) => pageWindowStart + i
+  );
 
   // Infinite scroll: SSR ilk sayfayı verir, client devamını paginated fetch eder
   const { getAxiosInstance } = useBaseService<ProductListPage>(API_ENDPOINTS.PRODUCTS);
@@ -152,6 +183,7 @@ export function CategoryPageClient({
     currentFilters.weight_min ?? "",
     currentFilters.weight_max ?? "",
     currentSort ?? "",
+    String(currentPage),
   ];
 
   const productsQuery = useInfiniteQuery({
@@ -174,10 +206,10 @@ export function CategoryPageClient({
       const res = await getAxiosInstance().get(endpoint);
       return res.data as unknown as ProductListPage;
     },
-    initialPageParam: 1,
-    getNextPageParam: (lastPage) => {
-      const current = lastPage?.meta?.current_page ?? lastPage?.current_page ?? 0;
-      const last = lastPage?.meta?.last_page ?? lastPage?.last_page ?? 0;
+    initialPageParam: currentPage,
+    getNextPageParam: (loaded) => {
+      const current = loaded?.meta?.current_page ?? loaded?.current_page ?? 0;
+      const last = loaded?.meta?.last_page ?? loaded?.last_page ?? 0;
       return current && last && current < last ? current + 1 : undefined;
     },
     initialData:
@@ -186,17 +218,17 @@ export function CategoryPageClient({
             pages: [
               {
                 data: products,
-                current_page: 1,
-                last_page: Math.max(1, Math.ceil(totalProducts / perPage)),
+                current_page: currentPage,
+                last_page: lastPage,
                 per_page: perPage,
                 total: totalProducts,
                 meta: {
-                  current_page: 1,
-                  last_page: Math.max(1, Math.ceil(totalProducts / perPage)),
+                  current_page: currentPage,
+                  last_page: lastPage,
                 },
               },
             ],
-            pageParams: [1],
+            pageParams: [currentPage],
           }
         : undefined,
     staleTime: 5 * 60 * 1000,
@@ -559,6 +591,46 @@ export function CategoryPageClient({
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 )}
               </div>
+
+              {lastPage > 1 && (
+                <nav
+                  aria-label={t.products}
+                  className="mt-4 flex flex-wrap items-center justify-center gap-2 text-sm"
+                >
+                  {currentPage > 1 && (
+                    <Link
+                      href={buildPageHref(currentPage - 1)}
+                      rel="prev"
+                      className="rounded-md border px-3 py-1.5 transition-colors hover:bg-muted"
+                    >
+                      {t.previous}
+                    </Link>
+                  )}
+                  {pageNumbers.map((page) => (
+                    <Link
+                      key={page}
+                      href={buildPageHref(page)}
+                      aria-current={page === currentPage ? "page" : undefined}
+                      className={
+                        page === currentPage
+                          ? "rounded-md border border-primary bg-primary px-3 py-1.5 text-primary-foreground"
+                          : "rounded-md border px-3 py-1.5 transition-colors hover:bg-muted"
+                      }
+                    >
+                      {page}
+                    </Link>
+                  ))}
+                  {currentPage < lastPage && (
+                    <Link
+                      href={buildPageHref(currentPage + 1)}
+                      rel="next"
+                      className="rounded-md border px-3 py-1.5 transition-colors hover:bg-muted"
+                    >
+                      {t.next}
+                    </Link>
+                  )}
+                </nav>
+              )}
             </>
           ) : (
             <div className="flex flex-col items-center justify-center rounded-xl border bg-background py-24 text-center shadow-sm">

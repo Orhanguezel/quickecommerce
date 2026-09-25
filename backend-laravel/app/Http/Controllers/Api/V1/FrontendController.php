@@ -1909,6 +1909,14 @@ class FrontendController extends Controller
             ], 404);
         }
 
+        // Indeks politikasi (GSC 2026-09-25: ~7.000 satista olmayan urun 200 +
+        // index "Tukendi" donuyordu, "Tarandi - dizine eklenmedi" 1.720).
+        // Sayfa acik kalir (2026-08-18 karari: 404 indeks kaybettiriyordu) ama
+        // pasif urun ve kapali/askida magaza urunu `noindex, follow` alir; urun
+        // tekrar satisa girince kendiliginden indekslenebilir olur. Onayli urunun
+        // gecici stok bitisi (magaza acik) indekste kalir — OutOfStock JSON-LD.
+        $unsellableReason = $this->productUnsellableReason($product);
+
         // Satista olmayan bir urun hicbir yerinde satin alinabilir gorunmemeli.
         // Stok sifirlanmasi yalnizca bu yanit icin gecerli, kaydedilmez: frontend
         // "Stokta Yok" gosterir, sepete ekle kapanir, JSON-LD OutOfStock doner.
@@ -1971,8 +1979,30 @@ class FrontendController extends Controller
             'data' => new ProductDetailsPublicResource($product),
             'canonical_slug' => $product->slug !== $product_slug ? $product->slug : null,
             'locales' => $availableLocales,
+            'indexable' => !in_array($unsellableReason, ['inactive', 'store_closed'], true),
+            'unsellable_reason' => $unsellableReason,
             'related_products' => RelatedProductPublicResource::collection($product->relatedProductsWithCategoryFallback())
         ], 200);
+    }
+
+    /**
+     * Urun neden satilamiyor: null = satilabilir, 'inactive' = admin/tedarikci
+     * pasifi, 'store_closed' = magaza kapali veya satisi askida,
+     * 'out_of_stock' = onayli urun + acik magaza, gecerli varyant yok.
+     * Kurallar Product::scopePubliclySellable ile ayni sirayi izler.
+     */
+    private function productUnsellableReason(Product $product): ?string
+    {
+        if ($product->status !== 'approved') {
+            return 'inactive';
+        }
+
+        $store = $product->store;
+        if (!$store || (int) $store->status !== 1 || $store->sales_suspended_at !== null) {
+            return 'store_closed';
+        }
+
+        return $product->hasSellableVariants() ? null : 'out_of_stock';
     }
 
     public function recentlyViewedProducts(Request $request)

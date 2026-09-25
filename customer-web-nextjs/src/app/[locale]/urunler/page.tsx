@@ -4,6 +4,7 @@ import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { Product } from "@/modules/product/product.type";
 import { ProductsPageClient } from "./products-client";
+import { paginatedCanonical } from "@/lib/seo";
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -148,15 +149,17 @@ async function getProductsData(
 
 export async function generateMetadata({
   params,
+  searchParams,
 }: Props): Promise<Metadata> {
   const { locale } = await params;
+  const sp = await searchParams;
   const t = await getTranslations({ locale, namespace: "seo" });
 
   return {
     title: t("products_title"),
     description: t("home_description"),
     alternates: {
-      canonical: `/${locale}/urunler`,
+      canonical: paginatedCanonical(`/${locale}/urunler`, sp),
     },
   };
 }

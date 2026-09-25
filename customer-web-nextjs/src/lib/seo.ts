@@ -131,6 +131,29 @@ export function localizedAlternates(path = "") {
   };
 }
 
+/**
+ * Sayfalanmis liste icin canonical yolu.
+ *
+ * 2+. sayfa kendine isaret eder: her sayfa farkli urunleri listeler ve
+ * canonical'i 1. sayfaya baglamak Google'a "bu sayfa kopya" der — iceride
+ * listelenen urun linkleri daha az takip edilir (GSC 2026-09-25: 751
+ * "alternatif sayfa"). Filtre ve siralama varyantlari ise gercekten kopya
+ * oldugu icin temel yola baglanmaya devam eder.
+ */
+export function paginatedCanonical(
+  path: string,
+  searchParams: Record<string, string | string[] | undefined>
+): string {
+  const hasOtherParams = Object.entries(searchParams).some(([key, value]) => {
+    if (key === "page") return false;
+    return Array.isArray(value) ? value.some(Boolean) : Boolean(value);
+  });
+  if (hasOtherParams) return path;
+
+  const page = Number(searchParams.page);
+  return Number.isInteger(page) && page > 1 ? `${path}?page=${page}` : path;
+}
+
 export function absoluteUrl(path = ""): string {
   if (!path) return SITE_URL;
   if (/^https?:\/\//i.test(path)) return path;

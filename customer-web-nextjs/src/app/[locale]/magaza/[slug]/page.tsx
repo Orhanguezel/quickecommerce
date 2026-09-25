@@ -6,7 +6,7 @@ import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { StoreDetail } from "@/modules/store/store.type";
 import type { Product } from "@/modules/product/product.type";
 import { StoreDetailClient } from "./store-detail-client";
-import { localizedAlternates, SITE_URL } from "@/lib/seo";
+import { localizedAlternates, paginatedCanonical, SITE_URL } from "@/lib/seo";
 
 interface Props {
   params: Promise<{ locale: string; slug: string }>;
@@ -198,8 +198,9 @@ async function getStoreProducts(
   };
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
+  const sp = await searchParams;
   const store = await getStoreDetail(slug, locale);
   const t = await getTranslations({ locale, namespace: "seo" });
 
@@ -224,7 +225,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       ...(store.logo_url ? { images: [{ url: store.logo_url }] } : {}),
     },
     alternates: {
-      canonical: `/${locale}/magaza/${slug}`,
+      canonical: paginatedCanonical(`/${locale}/magaza/${slug}`, sp),
       languages: localizedAlternates(`/magaza/${slug}`),
     },
   };

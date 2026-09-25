@@ -10,7 +10,7 @@ import {
   withSubtreeProductCounts,
 } from "@/modules/site/category-utils";
 import { CategoryPageClient } from "./category-client";
-import { absoluteUrl, localizedAlternates, SITE_URL } from "@/lib/seo";
+import { absoluteUrl, localizedAlternates, paginatedCanonical, SITE_URL } from "@/lib/seo";
 
 interface Props {
   params: Promise<{ locale: string; slug: string }>;
@@ -219,6 +219,7 @@ export async function generateMetadata({
   const name = data.categoryName;
   const title = t("category_title", { name });
   const description = t("category_description", { name });
+  const canonical = paginatedCanonical(`/${locale}/kategori/${slug}`, sp);
 
   return {
     title,
@@ -227,12 +228,12 @@ export async function generateMetadata({
       title,
       description,
       type: "website",
-      url: absoluteUrl(`/${locale}/kategori/${slug}`),
+      url: absoluteUrl(canonical),
       locale: locale === "tr" ? "tr_TR" : "en_US",
       siteName: "Sporto Online",
     },
     alternates: {
-      canonical: `/${locale}/kategori/${slug}`,
+      canonical,
       languages: localizedAlternates(`/kategori/${slug}`),
     },
   };
