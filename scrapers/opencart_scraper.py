@@ -300,6 +300,32 @@ def _html_stock_status(soup, raw_html=None):
     return None
 
 
+
+# Yorum/degerlendirme formu aciklama degildir. proteinmax'te urun aciklamasi
+# hic yok ve ".tab-content" yalniz yorum kutusunu tasiyor; bu blok 548 urunde
+# "YORUMLARI INCELE ... Adiniz: Yorumunuz: GONDER" metni olarak aciklamaya
+# yaziliyordu (2026-09-26).
+_REVIEW_BLOCK_SELECTORS = (
+    "#review", "#reviews", "#yorumyap", "#tab-review", "#form-review",
+    ".box-heading_homem", ".baslik_alt_title", ".baslik_alt_cizgi", "form",
+)
+_REVIEW_MARKERS = ("YORUMLARI İNCELE", "Yorum Yap", "Adınız:", "Yorumunuz:")
+
+
+def _description_element(soup):
+    """Aciklama blogunu dondurur; yorum formunu ayiklar, geriye metin kalmazsa None."""
+    for selector in ("#tab-description", "#product-description", ".tab-content"):
+        el = soup.select_one(selector)
+        if not el:
+            continue
+        for junk in el.select(",".join(_REVIEW_BLOCK_SELECTORS)):
+            junk.decompose()
+        text = " ".join(el.get_text(" ", strip=True).split())
+        if not text or any(marker in text for marker in _REVIEW_MARKERS):
+            continue
+        return el
+    return None
+
 def _parse_product(session, url, vendor, default_category):
     try:
         resp = session.get(url, timeout=25)
@@ -386,7 +412,7 @@ def _parse_product(session, url, vendor, default_category):
     images = list(dict.fromkeys(_normalize_image_url(img) for img in images if img))
 
     desc_html = jsonld.get("description") or ""
-    desc_el = soup.select_one("#tab-description, #product-description, .tab-content")
+    desc_el = _description_element(soup)
     if desc_el:
         desc_html = str(desc_el)
     desc_html = resolve_relative_urls(clean_description_html(desc_html), url)
