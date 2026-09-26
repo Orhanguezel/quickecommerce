@@ -11,14 +11,7 @@ import type { BannerGroupedResponse } from "@/modules/banner/banner.type";
 import type { PublicCoupon } from "@/modules/coupon/coupon.type";
 import { ProductDetailClient } from "./product-detail-client";
 import { ProductFaq, buildProductFaq, buildProductFaqJsonLd } from "./product-faq";
-import {
-  absoluteUrl,
-  buildPageTitle,
-  buildProductDescription,
-  priceValidUntil,
-  stripHtml,
-  truncateText,
-} from "@/lib/seo";
+import { absoluteUrl, buildPageTitle, buildProductDescription, priceValidUntil, stripHtml, truncateText, SITE_NAME } from "@/lib/seo";
 
 interface Props {
   params: Promise<{ locale: string; slug: string }>;
@@ -197,7 +190,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "website",
       url: absoluteUrl(`/${canonicalLocale}/urun/${canonicalSlug}`),
       locale: canonicalLocale === "tr" ? "tr_TR" : "en_US",
-      siteName: "Sporto Online",
+      siteName: SITE_NAME,
       images: product.meta_image_url || product.image_url
         ? [{ url: encodeImageUrl(product.meta_image_url || product.image_url), width: 800, height: 800, alt: product.name }]
         : undefined,

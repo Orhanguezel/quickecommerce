@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { localizedAlternates, pageOgImages } from "@/lib/seo";
+import { localizedAlternates, pageOgImages, SITE_NAME } from "@/lib/seo";
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { fetchAPI } from "@/lib/api-server";
@@ -93,7 +93,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
       description,
       type: "website",
       locale: locale === "tr" ? "tr_TR" : "en_US",
-      siteName: "Sporto Online",
+      siteName: SITE_NAME,
       images: pageOgImages(name),
     },
     alternates: {

@@ -5,7 +5,7 @@ import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { BlogDetailResponse } from "@/modules/blog/blog.type";
 import { BlogDetailClient } from "./blog-detail-client";
-import { DEFAULT_ORGANIZATION, localizedAlternates, SITE_URL, stripHtml, toIsoDate, truncateText } from "@/lib/seo";
+import { DEFAULT_ORGANIZATION, localizedAlternates, SITE_URL, stripHtml, toIsoDate, truncateText, SITE_NAME } from "@/lib/seo";
 import { getEnginEserAuthor } from "@/lib/authors";
 
 interface Props {
@@ -49,7 +49,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "article",
       url: `${SITE_URL}/${locale}/blog/${slug}`,
       locale: locale === "tr" ? "tr_TR" : "en_US",
-      siteName: "Sporto Online",
+      siteName: SITE_NAME,
       publishedTime,
       ...(blog.image_url ? { images: [{ url: blog.image_url }] } : {}),
     },

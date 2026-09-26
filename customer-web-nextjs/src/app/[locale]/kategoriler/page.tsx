@@ -9,7 +9,7 @@ import {
   withSubtreeProductCounts,
 } from "@/modules/site/category-utils";
 import { CategoriesPageClient } from "./categories-client";
-import { localizedAlternates } from "@/lib/seo";
+import { localizedAlternates, SITE_NAME } from "@/lib/seo";
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       type: "website",
       locale: locale === "tr" ? "tr_TR" : "en_US",
-      siteName: "Sporto Online",
+      siteName: SITE_NAME,
     },
     alternates: {
       canonical: `/${locale}/kategoriler`,

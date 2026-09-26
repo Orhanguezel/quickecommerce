@@ -228,7 +228,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
       description,
       type: "website",
       locale: locale === "tr" ? "tr_TR" : "en_US",
-      siteName: "Sporto Online",
+      siteName: SITE_NAME,
       images: store.logo_url
         ? [{ url: store.logo_url }]
         : store.meta_image_url

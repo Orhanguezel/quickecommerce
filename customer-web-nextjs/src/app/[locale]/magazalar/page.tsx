@@ -4,7 +4,7 @@ import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { Store, StoreType } from "@/modules/store/store.type";
 import { StoreListClient } from "./store-list-client";
-import { SITE_URL, buildMetaDescription, buildPageTitle, localizedAlternates, pageOgImages, absoluteUrl } from "@/lib/seo";
+import { SITE_URL, buildMetaDescription, buildPageTitle, localizedAlternates, pageOgImages, absoluteUrl, SITE_NAME } from "@/lib/seo";
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -60,7 +60,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "website",
       url: absoluteUrl(`/${locale}/magazalar`),
       locale: locale === "tr" ? "tr_TR" : "en_US",
-      siteName: "Sporto Online",
+      siteName: SITE_NAME,
       images: pageOgImages(title),
     },
     alternates: {

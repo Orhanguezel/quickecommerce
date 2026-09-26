@@ -22,7 +22,7 @@ import { ExperimentProvider } from '@/components/providers/experiment-provider';
 import { AnalyticsProvider } from '@/components/providers/analytics-provider';
 import { CookieBanner } from '@/components/cookie-banner';
 import { AnalyticsScripts } from '@/components/providers/analytics-scripts';
-import { cleanContactPhone, DEFAULT_ORGANIZATION, SITE_URL } from '@/lib/seo';
+import { cleanContactPhone, DEFAULT_ORGANIZATION, SITE_URL, SITE_NAME } from "@/lib/seo";
 import type { ThemeResponse } from '@/modules/theme/theme.type';
 import '../globals.css';
 
@@ -128,7 +128,7 @@ export async function generateMetadata({ params }: LayoutProps): Promise<Metadat
   if (!hasLocale(routing.locales, locale)) return {};
   const settings = await getSiteSettings(locale);
 
-  const siteName = settings?.com_site_title || 'Sporto Online';
+  const siteName = settings?.com_site_title || SITE_NAME;
   const metaTitle = settings?.com_meta_title || siteName;
   const description = settings?.com_meta_description || settings?.com_site_subtitle || 'Online alışveriş platformu';
   const keywords = settings?.com_meta_tags || undefined;
@@ -241,7 +241,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
       com_maintenance_start_date: maintenancePage?.com_maintenance_start_date || null,
       com_maintenance_end_date: maintenancePage?.com_maintenance_end_date || null,
       com_maintenance_image: maintenancePage?.com_maintenance_image || null,
-      site_title: settings?.com_site_title || 'Sporto Online',
+      site_title: settings?.com_site_title || SITE_NAME,
       site_logo: settings?.com_site_logo || null,
       site_email: settings?.com_site_email || '',
       site_phone: settings?.com_site_contact_number || '',

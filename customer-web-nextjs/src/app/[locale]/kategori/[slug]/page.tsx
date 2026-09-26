@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
@@ -11,7 +11,7 @@ import {
   withSubtreeProductCounts,
 } from "@/modules/site/category-utils";
 import { CategoryPageClient } from "./category-client";
-import { absoluteUrl, localizedAlternates, paginatedCanonical, SITE_URL, pageOgImages } from "@/lib/seo";
+import { absoluteUrl, localizedAlternates, paginatedCanonical, SITE_URL, pageOgImages, SITE_NAME } from "@/lib/seo";
 
 import { normalizeBrandList } from "@/lib/brand-list";
 interface Props {
@@ -68,6 +68,34 @@ function decodeCategorySlug(slug: string) {
   }
 }
 
+/**
+ * Eski import'lardan kalan bozuk kategori slug'lari ("raket-sporlari-gt-badminton",
+ * birlesik noktali "i̇zole-protein-494") temizlendi. Eski adres geldiginde
+ * normalize edilmis esi bulunup kalici olarak yeni slug'a yonlendirilir.
+ */
+function normalizeCategorySlug(slug: string): string {
+  return slug
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/-gt-/g, "-")
+    .replace(/-gt$/, "");
+}
+
+function findLegacyCategory(categories: Category[], requested: string): Category | null {
+  const candidates = [normalizeCategorySlug(requested)];
+  const withoutIdSuffix = candidates[0].replace(/-\d+$/, "");
+  if (withoutIdSuffix !== candidates[0]) candidates.push(withoutIdSuffix);
+
+  for (const candidate of candidates) {
+    const match = categories.find(
+      (c) => c.category_slug && normalizeCategorySlug(c.category_slug) === candidate
+    );
+    if (match) return match;
+  }
+  return null;
+}
+
 function getChildren(categories: Category[], parentId: number) {
   return categories.filter((category) => Number(category.parent_id) === Number(parentId));
 }
@@ -90,15 +118,17 @@ async function findCategoryContext(slug: string, locale: string) {
       locale
     );
     const categories = withSubtreeProductCounts((res?.data ?? []) as Category[]);
+    const exact = categories.find((c) => c.category_slug === decodedSlug) ?? null;
     return {
-      category: categories.find((c) => c.category_slug === decodedSlug) ?? null,
+      category: exact,
+      legacy: exact ? null : findLegacyCategory(categories, decodedSlug),
       categories,
       failed: false,
     };
   } catch {
     // API gecici olarak erisilemezse kategori "yok" sayilmamali: 404, Google'in
     // gercek bir kategoriyi indeksten dusurmesine yol acar.
-    return { category: null, categories: [] as Category[], failed: true };
+    return { category: null, legacy: null, categories: [] as Category[], failed: true };
   }
 }
 
@@ -113,7 +143,11 @@ async function getCategoryData(
   maxPrice?: string,
   minRating?: string
 ) {
-  const { category, categories, failed } = await findCategoryContext(slug, locale);
+  const { category, legacy, categories, failed } = await findCategoryContext(slug, locale);
+
+  if (!category && legacy?.category_slug) {
+    permanentRedirect(`/${locale}/kategori/${encodeURIComponent(legacy.category_slug)}`);
+  }
 
   if (!category) {
     const decodedSlug = decodeCategorySlug(slug);
@@ -239,7 +273,7 @@ export async function generateMetadata({
       type: "website",
       url: absoluteUrl(canonical),
       locale: locale === "tr" ? "tr_TR" : "en_US",
-      siteName: "Sporto Online",
+      siteName: SITE_NAME,
       images: pageOgImages(name),
     },
     alternates: {
