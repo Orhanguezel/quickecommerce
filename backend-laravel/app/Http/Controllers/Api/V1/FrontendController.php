@@ -1979,7 +1979,7 @@ class FrontendController extends Controller
             'data' => new ProductDetailsPublicResource($product),
             'canonical_slug' => $product->slug !== $product_slug ? $product->slug : null,
             'locales' => $availableLocales,
-            'indexable' => !in_array($unsellableReason, ['inactive', 'store_closed'], true),
+            'indexable' => $this->productIndexable($product, $unsellableReason),
             'unsellable_reason' => $unsellableReason,
             'related_products' => RelatedProductPublicResource::collection($product->relatedProductsWithCategoryFallback())
         ], 200);
@@ -2003,6 +2003,28 @@ class FrontendController extends Controller
         }
 
         return $product->hasSellableVariants() ? null : 'out_of_stock';
+    }
+
+    /** Stoksuz urunun indekste kalacagi sure; sonra noindex, follow. */
+    private const OUT_OF_STOCK_INDEX_GRACE_DAYS = 30;
+
+    /**
+     * Pasif urun ve kapali magaza: hemen noindex. Onayli urunun stok bitisi:
+     * ilk 30 gun indekste (gecici stoksuzluk; OutOfStock JSON-LD), sonra noindex.
+     * unsellable_since products:track-sellability ile saatlik dolar; bos ise
+     * (kolon yok / henuz isaretlenmedi) urun indekste kalir.
+     */
+    private function productIndexable(Product $product, ?string $unsellableReason): bool
+    {
+        if (in_array($unsellableReason, ['inactive', 'store_closed'], true)) {
+            return false;
+        }
+        if ($unsellableReason !== 'out_of_stock' || empty($product->unsellable_since)) {
+            return true;
+        }
+
+        return \Illuminate\Support\Carbon::parse($product->unsellable_since)
+            ->gt(now()->subDays(self::OUT_OF_STOCK_INDEX_GRACE_DAYS));
     }
 
     public function recentlyViewedProducts(Request $request)

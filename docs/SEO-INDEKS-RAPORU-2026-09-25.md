@@ -208,7 +208,7 @@ Sahip: **Kod** (Codex uygular), **Kullanıcı** (panel/DNS/iş kararı), **GSC**
   - [x] Pasif ürün (`status != approved`) → sayfa açık, **`noindex, follow`**. 410 BİLEREK seçilmedi: 2026-08-18 kararı (tedarikçisi geçici çekilen ürün `inactive` oluyor, 404/410 indeksi kalıcı düşürüyordu). Ürün tekrar onaylanınca kendiliğinden indekslenebilir olur.
   - [x] Mağazası kapalı/askıda (`stores.status != 1` veya `sales_suspended_at`) → `noindex, follow`
   - [x] Ürün API yanıtına `indexable` + `unsellable_reason` (`inactive` / `store_closed` / `out_of_stock`); `urun/[slug]/page.tsx` robots'u buna göre üretir. Alan yoksa (eski backend) eski davranış — deploy sırası serbest.
-  - [ ] Geçici stoksuz (onaylı ürün, mağaza açık): bugün **indekste kalıyor** (`OutOfStock`). 30/90 gün kademesi `unsellable_since` kolonu ister (migration) — sonraki adım.
+  - [x] Geçici stoksuz (onaylı ürün, mağaza açık): **ilk 30 gün indekste** (`OutOfStock`), **30+ gün `noindex, follow`**. `products.unsellable_since` + saatlik `products:track-sellability --apply` (`updated_at`'e dokunmaz). 90+ gün 410 BİLEREK yok — ürün geri gelebilir, noindex yeterli ve geri alınabilir.
   - [ ] Kalıcı kapalı mağazalar (Linktech, Rova, Dekomum, eProtein) için 410/301 — mağaza kararına bağlı (S12)
   - [ ] Kabul: 75 örneklik pasif set tekrar taranınca 0 adet "200 + index + Tükendi" (deploy sonrası)
 - [ ] **S2. Mesafeli Satış Sözleşmesi içeriğini düzelt** (Kullanıcı: metin / Kod: sayfa kaynağı) — yasal zorunluluk
