@@ -48,7 +48,9 @@ async function getBrandProducts(slug: string, locale: string, page: number, sort
     const res = await fetchAPI<any>(
       API_ENDPOINTS.PRODUCTS,
       {
-        "brand_id[]": brand.id,
+        // brand-list kimligi `value` alaninda doner; `id` undefined olunca filtre
+        // hic gonderilmiyor ve her marka sayfasi tum katalogu listeliyordu.
+        "brand_id[]": brand.value,
         per_page: 20,
         page,
         ...(sort ? { sort } : {}),
