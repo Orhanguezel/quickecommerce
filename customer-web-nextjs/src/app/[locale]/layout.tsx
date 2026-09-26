@@ -159,8 +159,8 @@ export async function generateMetadata({ params }: LayoutProps): Promise<Metadat
       siteName,
       title: ogTitle,
       description: ogDescription,
-      locale: locale === 'en' ? 'en_US' : 'tr_TR',
-      alternateLocale: locale === 'en' ? 'tr_TR' : 'en_US',
+      // "en" locale 2026-07-27'de kaldirildi; alternateLocale var olmayan dile isaret ediyordu.
+      locale: 'tr_TR',
       ...(ogImage ? { images: [{ url: ogImage }] } : {}),
     },
     twitter: {
