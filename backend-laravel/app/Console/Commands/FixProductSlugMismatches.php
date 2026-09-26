@@ -68,7 +68,9 @@ class FixProductSlugMismatches extends Command
         $this->warn(count($mismatches) . ' products have name/slug mismatches.');
         $this->newLine();
 
-        $taken = Product::withTrashed()->pluck('slug')->all();
+        // Global scope (magaza abonelik filtresi) disarida kalan urunlerin
+        // slug'larini gizliyordu; carpisma kontrolu tum satirlari gormeli.
+        $taken = Product::withoutGlobalScopes()->withTrashed()->pluck('slug')->all();
         try {
             $taken = array_merge($taken, ProductSlugRedirect::pluck('old_slug')->all());
         } catch (\Illuminate\Database\QueryException) {
@@ -121,7 +123,7 @@ class FixProductSlugMismatches extends Command
                     ['old_slug' => $p['old']],
                     ['product_id' => $p['id']]
                 );
-                Product::withTrashed()->where('id', $p['id'])->update(['slug' => $p['new']]);
+                Product::withoutGlobalScopes()->withTrashed()->where('id', $p['id'])->update(['slug' => $p['new']]);
             });
             $bar->advance();
         }
