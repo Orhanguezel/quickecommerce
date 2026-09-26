@@ -8,6 +8,7 @@ import type { Store, StoreType } from "@/modules/store/store.type";
 
 interface StoreListTranslations {
   stores: string;
+  intro?: string;
   store_count: string;
   featured: string;
   products: string;
@@ -72,7 +73,12 @@ export function StoreListClient({
       <div className="mb-6 flex items-center justify-between rounded-xl border bg-card p-5">
         <div className="flex items-center gap-3">
           <ShoppingBag className="h-6 w-6 text-foreground" />
-          <h1 className="text-xl font-bold text-foreground">{t.stores}</h1>
+          <div>
+            <h1 className="text-xl font-bold text-foreground">{t.stores}</h1>
+            {t.intro ? (
+              <p className="mt-1 text-sm text-muted-foreground">{t.intro}</p>
+            ) : null}
+          </div>
         </div>
 
         {/* Store Type Dropdown */}

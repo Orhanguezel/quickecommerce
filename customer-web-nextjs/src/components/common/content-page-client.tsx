@@ -1,12 +1,27 @@
 "use client";
 
-import { Link } from "@/i18n/routing";
+import { Link, usePathname } from "@/i18n/routing";
 import { ChevronRight } from "lucide-react";
 
 interface Breadcrumb {
   label: string;
   href?: string;
 }
+
+// Yasal/politika sayfalari ana icerikte yalniz ana sayfaya link veriyordu
+// (Tanitio 2026-09-25: ic link 71.8/100). Kullanicinin siradaki sorusu
+// genellikle bu sayfalardan biridir; ayni zamanda taranabilir ic link saglar.
+const RELATED_PAGES: Array<{ href: string; label: string }> = [
+  { href: "/iade-degisim", label: "İade ve Değişim" },
+  { href: "/kargo-politikasi", label: "Kargo ve Teslimat" },
+  { href: "/mesafeli-satis-sozlesmesi", label: "Mesafeli Satış Sözleşmesi" },
+  { href: "/uye-sozlesmesi", label: "Üye Sözleşmesi" },
+  { href: "/gizlilik-politikasi", label: "Gizlilik Politikası" },
+  { href: "/kullanim-kosullari", label: "Kullanım Koşulları" },
+  { href: "/aydinlatma-metni", label: "KVKK Aydınlatma Metni" },
+  { href: "/iletisim", label: "İletişim" },
+  { href: "/kategoriler", label: "Tüm Kategoriler" },
+];
 
 interface ContentPageClientProps {
   title: string;
@@ -20,6 +35,8 @@ export function ContentPageClient({
   breadcrumbs,
 }: ContentPageClientProps) {
   const htmlContent = typeof content === "string" ? content : null;
+  const pathname = usePathname();
+  const related = RELATED_PAGES.filter((page) => page.href !== pathname);
 
   return (
     <div className="container py-6">
@@ -51,6 +68,19 @@ export function ContentPageClient({
           <p>Bu sayfa henüz hazırlanıyor.</p>
         </div>
       )}
+
+      <nav aria-label="İlgili sayfalar" className="mt-10 border-t pt-6">
+        <h2 className="mb-3 text-base font-semibold">İlgili sayfalar</h2>
+        <ul className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+          {related.map((page) => (
+            <li key={page.href}>
+              <Link href={page.href} className="text-primary hover:underline">
+                {page.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </div>
   );
 }

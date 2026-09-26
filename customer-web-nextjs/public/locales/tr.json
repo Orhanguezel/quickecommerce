@@ -248,7 +248,7 @@
   },
   "coupon": {
     "coupons": "Kuponlar",
-    "coupons_subtitle": "Aktif kuponlar ve indirim kodları",
+    "coupons_subtitle": "Aktif kuponlar ve indirim kodları: sporcu besinleri, fitness ekipmanı, spor giyim ve ayakkabıda geçerli güncel kupon kodları.",
     "code": "Kupon Kodu",
     "copy": "Kopyala",
     "copied": "Kopyalandı",
@@ -260,7 +260,7 @@
   },
   "campaigns": {
     "title": "Kampanyalar",
-    "subtitle": "Aktif fırsatları ve süreli indirimleri keşfedin",
+    "subtitle": "Kampanyalar ve fırsat ürünleri: spor giyim, sporcu besinleri, fitness ekipmanı ve outdoor ürünlerinde süreli indirimler ve flash satışlar.",
     "no_campaigns": "Şu anda aktif kampanya bulunmuyor."
   },
   "auth": {

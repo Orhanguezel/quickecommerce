@@ -27,7 +27,8 @@ class FixProductSlugMismatches extends Command
 {
     protected $signature = 'products:fix-slug-mismatches
                             {--dry-run : Show planned changes without writing}
-                            {--limit=0 : Max products to fix (0 = no limit)}';
+                            {--limit=0 : Max products to fix (0 = no limit)}
+                            {--non-ascii : Also fix slugs containing characters outside a-z, 0-9 and "-"}';
 
     protected $description = 'Detect products whose slug has no overlap with their name and regenerate the slug from the name';
 
@@ -38,16 +39,22 @@ class FixProductSlugMismatches extends Command
 
         $this->info('Scanning products table for slug/name mismatches...');
 
+        // GSC 2026-09-25: eski scraper importlarindan kalan 120 satilabilir urunde
+        // "İ", "ı", buyuk harf ve birlesik nokta iceren slug vardi; bu adresler
+        // cift-encode ve 404 riskini tasiyor.
+        $includeNonAscii = (bool) $this->option('non-ascii');
+
         $mismatches = [];
         Product::withoutGlobalScopes()
             ->whereNull('deleted_at')
             ->where('status', 'approved')
             ->select('id', 'name', 'slug')
-            ->chunk(500, function ($chunk) use (&$mismatches, $quality) {
+            ->chunk(500, function ($chunk) use (&$mismatches, $quality, $includeNonAscii) {
                 foreach ($chunk as $p) {
                     $name = trim((string) $p->name);
                     $slug = trim((string) $p->slug);
-                    if ($name !== '' && $slug !== '' && ! $quality->slugMatchesName($name, $slug)) {
+                    $nonAscii = $includeNonAscii && preg_match('/[^a-z0-9-]/', $slug) === 1;
+                    if ($name !== '' && $slug !== '' && ($nonAscii || ! $quality->slugMatchesName($name, $slug))) {
                         $mismatches[] = $p;
                     }
                 }

@@ -15,6 +15,11 @@ interface Props {
   params: Promise<{ locale: string }>;
 }
 
+// Yalniz generateStaticParams'taki diller: /sitemap.html, /sitemap.txt gibi
+// botlarin denedigi kok yollar [locale]'e eslesip ISR sayfasini calisma aninda
+// dinamige zorluyor ve 404 yerine 500 donuyordu (GSC "Sunucu hatasi (5xx)").
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return [{ locale: "tr" }];
 }

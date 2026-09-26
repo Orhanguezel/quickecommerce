@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-import { SITE_NAME } from "@/lib/seo";
+import { SITE_NAME, SITE_URL } from "@/lib/seo";
 
 /**
  * Sayfa basligindan 1200x630 paylasim gorseli uretir: /tr/og-image?title=...
@@ -70,7 +70,8 @@ export async function GET(request: Request) {
           ) : null}
         </div>
         <div style={{ display: "flex", fontSize: 26, opacity: 0.75 }}>
-          {new URL(request.url).host}
+          {/* request.url proxy arkasinda ic adresi (localhost:3003) verir. */}
+          {new URL(SITE_URL).host}
         </div>
       </div>
     ),

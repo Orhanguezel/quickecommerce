@@ -123,6 +123,9 @@ interface LayoutProps {
 
 export async function generateMetadata({ params }: LayoutProps): Promise<Metadata> {
   const { locale } = await params;
+  // Gecersiz dil segmenti (orn. /sitemap.txt) icin ayar/ceviri cekilmez;
+  // layout govdesi notFound() dondurur.
+  if (!hasLocale(routing.locales, locale)) return {};
   const settings = await getSiteSettings(locale);
 
   const siteName = settings?.com_site_title || 'Sporto Online';

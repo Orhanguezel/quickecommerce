@@ -1,11 +1,11 @@
 export const ENGIN_ESER_AUTHOR = {
   name: "Engin Eser",
-  titleTr: "Sportoonline spor ekipmanlari ve e-ticaret icerik yazari",
+  titleTr: "Sportoonline spor ekipmanları ve e-ticaret içerik yazarı",
   titleEn: "Sportoonline sports equipment and e-commerce content author",
   path: "/yazar/engin-eser",
   image: null as string | null,
   bioTr:
-    "Engin Eser, Sportoonline'da spor ekipmanlari, sporcu beslenmesi, kosu, fitness ve online alisveris rehberleri hazirlar. Iceriklerde urun secimi, kullanim senaryolari ve tuketici kararlarini sade, kaynakli ve pratik bir dille aktarmaya odaklanir.",
+    "Engin Eser, Sportoonline'da spor ekipmanları, sporcu beslenmesi, koşu, fitness ve online alışveriş rehberleri hazırlar. İçeriklerde ürün seçimi, kullanım senaryoları ve tüketici kararlarını sade, kaynaklı ve pratik bir dille aktarmaya odaklanır.",
   bioEn:
     "Engin Eser writes Sportoonline guides on sports equipment, sports nutrition, running, fitness, and online shopping. His content focuses on product selection, usage scenarios, and practical buying decisions.",
   sameAs: [

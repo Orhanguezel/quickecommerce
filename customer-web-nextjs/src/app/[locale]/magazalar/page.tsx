@@ -77,6 +77,7 @@ export default async function StoresPage({ params, searchParams }: Props) {
   const storeType = sp.type;
 
   const data = await getStoresData(locale, page, storeType);
+  const seoT = await getTranslations({ locale, namespace: "seo" });
   const t = await getTranslations({ locale, namespace: "common" });
   const storeT = await getTranslations({ locale, namespace: "store" });
 
@@ -133,6 +134,7 @@ export default async function StoresPage({ params, searchParams }: Props) {
         currentType={data.normalizedType}
         translations={{
           stores: storeT("stores"),
+          intro: seoT("stores_description"),
           store_count: storeT("store_count"),
           featured: storeT("featured"),
           products: t("products"),

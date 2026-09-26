@@ -6,7 +6,7 @@ import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { StoreDetail } from "@/modules/store/store.type";
 import type { Product } from "@/modules/product/product.type";
 import { StoreDetailClient } from "./store-detail-client";
-import { localizedAlternates, paginatedCanonical, SITE_URL, buildPageTitle, buildMetaDescription, SITE_NAME } from "@/lib/seo";
+import { localizedAlternates, paginatedCanonical, SITE_URL, buildPageTitle, buildMetaDescription, SITE_NAME, pageOgImages } from "@/lib/seo";
 
 import { normalizeBrandList } from "@/lib/brand-list";
 interface Props {
@@ -229,8 +229,11 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
       type: "website",
       locale: locale === "tr" ? "tr_TR" : "en_US",
       siteName: "Sporto Online",
-      ...(store.meta_image_url ? { images: [{ url: store.meta_image_url }] } : {}),
-      ...(store.logo_url ? { images: [{ url: store.logo_url }] } : {}),
+      images: store.logo_url
+        ? [{ url: store.logo_url }]
+        : store.meta_image_url
+          ? [{ url: store.meta_image_url }]
+          : pageOgImages(store.name, "Mağaza"),
     },
     alternates: {
       canonical: paginatedCanonical(`/${locale}/magaza/${slug}`, sp),
