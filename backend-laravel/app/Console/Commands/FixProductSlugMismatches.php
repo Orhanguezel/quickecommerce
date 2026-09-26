@@ -146,11 +146,25 @@ class FixProductSlugMismatches extends Command
 
         $candidate = $base;
         $i = 2;
-        while (isset($takenSet[$candidate])) {
+        // Bellek ici kume yetmez: products.slug unique indeksi aksan-duyarsiz
+        // collation kullanir ("dogal" == "doğal"). Carpisma DB'ye sorulur.
+        while (isset($takenSet[$candidate]) || $this->slugTakenInDb($candidate, $ownId)) {
             $candidate = $base . '-' . $i;
             $i++;
             if ($i > 999) break;
         }
         return $candidate;
+    }
+
+    private function slugTakenInDb(string $slug, int $ownId): bool
+    {
+        return Product::withoutGlobalScopes()
+            ->where('slug', $slug)
+            ->where('id', '!=', $ownId)
+            ->exists()
+            || ProductSlugRedirect::query()
+                ->where('old_slug', $slug)
+                ->where('product_id', '!=', $ownId)
+                ->exists();
     }
 }
