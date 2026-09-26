@@ -321,19 +321,25 @@ Detayli rapor, kanitlar ve alt maddeler: `docs/SEO-INDEKS-RAPORU-2026-09-25.md`.
 Ozet: 11.753 dizinde / 3.736 dizin disi (artiyor), gosterim Haziran'dan beri -%32.
 Ana neden: satista olmayan 6.962 urun sayfasi 200 + indekslenebilir "Tukendi" donuyor.
 
-### 34. [ ] P0 — Satista olmayan urunlere indeks politikasi (pasif urun 410, kapali magaza 410/301, 30+ gun stoksuz noindex) — #32 ile birlikte ele alinacak
-### 35. [ ] P0 — Mesafeli Satis Sozlesmesi sayfasi Uye Sozlesmesi metnini gosteriyor (yasal)
-### 36. [ ] P0 — Ana sayfa meta'sinda satilmayan Nike/Adidas/Puma + 0 urunlu /tr/marka/* sayfalari indekslenebilir
-### 37. [ ] P0 — Kopya politika sayfalari: iade-degisim = iade-politikasi, kargo-politikasi = kargo-teslimat (301 ile birlestir)
-### 38. [ ] P0 — /tr/paket canonical'i 301 donen koke isaret ediyor
-### 39. [ ] P0 — 6 sayfada basliga "| Sportoonline" iki kez ekleniyor
-### 40. [ ] P1 — Sayfalama: ?page=N self-canonical + kategori/magaza sayfalarina SSR sayfalama linki
-### 41. [ ] P1 — 2.068 ince (<150 kr) ve 1.573 kopya urun aciklamasi
-### 42. [ ] P1 — Kategori agaci: kopya kategoriler, "-gt-" slug'lar, sitemap'te yalniz 7 kategori, konu disi kategoriler
-### 43. [ ] P1 — Maraton magazasi karari (oneri: pasife al) + 120 ASCII disi urun slug'i
-### 44. [ ] P2 — og:image, ince statik sayfalar, anahtar kelime tutarliligi, magaza basliklari, E-E-A-T, blog guncelligi
-### 45. [ ] P3 — SPF/DMARC (DNS), alan adi yenileme (2027-03-03), ana sayfa HTML 650 KB, 5xx izleme
+### 34. [x] P0 — Satista olmayan urunlere indeks politikasi (pasif urun 410, kapali magaza 410/301, 30+ gun stoksuz noindex) — #32 ile birlikte ele alinacak
+### 35. [~] P0 — Mesafeli Satis Sozlesmesi sayfasi Uye Sozlesmesi metnini gosteriyor (yasal)
+### 36. [x] P0 — Ana sayfa meta'sinda satilmayan Nike/Adidas/Puma + 0 urunlu /tr/marka/* sayfalari indekslenebilir
+### 37. [x] P0 — Kopya politika sayfalari: iade-degisim = iade-politikasi, kargo-politikasi = kargo-teslimat (301 ile birlestir)
+### 38. [x] P0 — /tr/paket canonical'i 301 donen koke isaret ediyor
+### 39. [x] P0 — 6 sayfada basliga "| Sportoonline" iki kez ekleniyor
+### 40. [x] P1 — Sayfalama: ?page=N self-canonical + kategori/magaza sayfalarina SSR sayfalama linki
+### 41. [~] P1 — 2.068 ince (<150 kr) ve 1.573 kopya urun aciklamasi
+### 42. [~] P1 — Kategori agaci: kopya kategoriler, "-gt-" slug'lar, sitemap'te yalniz 7 kategori, konu disi kategoriler
+### 43. [~] P1 — Maraton magazasi karari (oneri: pasife al) + 120 ASCII disi urun slug'i
+### 44. [x] P2 — og:image, ince statik sayfalar, anahtar kelime tutarliligi, magaza basliklari, E-E-A-T, blog guncelligi
+### 45. [~] P3 — SPF/DMARC (DNS), alan adi yenileme (2027-03-03), ana sayfa HTML 650 KB, 5xx izleme
 ### 46. [ ] GSC — 404/alternatif kovalari icin dogrulamayi tekrar baslatma; P0 canliya ciktiktan sonra "Tarandi" dogrulamasi + sitemap yeniden gonder
+
+Durum 2026-09-26: [x] canlida ve dogrulandi, [~] kod tarafi bitti / kullanici veya icerik isi kaldi.
+Ayrinti: docs/SEO-INDEKS-RAPORU-2026-09-25.md "Durum 2026-09-26" bolumu; ince icerik is listesi docs/seo-ince-icerik-20260926.csv.
+Kullaniciya kalanlar: mesafeli satis tam metni, hakkimizda marka iddialari, kopya/konu disi kategori karari,
+Maraton ve kapali magazalar, 'engin eser' magaza adi, SPF/DMARC, alan adi yenileme, GSC dogrulama + sitemap gonderimi,
+1 bekleyen yorumun onayi, urun aciklamasi yazimi.
 
 ## Tekrarlayan maddeler birlestirildi
 

@@ -204,62 +204,48 @@ Sahip: **Kod** (Codex uygular), **Kullanıcı** (panel/DNS/iş kararı), **GSC**
 
 ### P0 — İndeks ve yasal
 
-- [ ] **S1. Satışta olmayan ürün sayfaları için indeks politikası** (Kod — backend + web) — **1. adım kodda (dal `seo/indeks-politikasi-sayfalama`), deploy bekliyor**
-  - [x] Pasif ürün (`status != approved`) → sayfa açık, **`noindex, follow`**. 410 BİLEREK seçilmedi: 2026-08-18 kararı (tedarikçisi geçici çekilen ürün `inactive` oluyor, 404/410 indeksi kalıcı düşürüyordu). Ürün tekrar onaylanınca kendiliğinden indekslenebilir olur.
-  - [x] Mağazası kapalı/askıda (`stores.status != 1` veya `sales_suspended_at`) → `noindex, follow`
-  - [x] Ürün API yanıtına `indexable` + `unsellable_reason` (`inactive` / `store_closed` / `out_of_stock`); `urun/[slug]/page.tsx` robots'u buna göre üretir. Alan yoksa (eski backend) eski davranış — deploy sırası serbest.
-  - [x] Geçici stoksuz (onaylı ürün, mağaza açık): **ilk 30 gün indekste** (`OutOfStock`), **30+ gün `noindex, follow`**. `products.unsellable_since` + saatlik `products:track-sellability --apply` (`updated_at`'e dokunmaz). 90+ gün 410 BİLEREK yok — ürün geri gelebilir, noindex yeterli ve geri alınabilir.
-  - [ ] Kalıcı kapalı mağazalar (Linktech, Rova, Dekomum, eProtein) için 410/301 — mağaza kararına bağlı (S12)
-  - [ ] Kabul: 75 örneklik pasif set tekrar taranınca 0 adet "200 + index + Tükendi" (deploy sonrası)
-- [ ] **S2. Mesafeli Satış Sözleşmesi içeriğini düzelt** (Kullanıcı: metin / Kod: sayfa kaynağı) — yasal zorunluluk
-- [ ] **S3. Marka vaadini düzelt** (Kod + Kullanıcı)
-  - [ ] Ana sayfa meta açıklamasından Nike/Adidas/Puma'yı çıkar, gerçekten satılan markaları yaz
-  - [ ] 0 ürünlü `/tr/marka/*` → 404 (veya `noindex`); marka başlığını büyük harfle başlat
-- [ ] **S4. Kopya sayfaları birleştir** (Kod)
-  - [ ] `iade-politikasi` → `iade-degisim` 301 (veya tersi; hangisi indeksliyse o kalsın)
-  - [ ] `kargo-teslimat` → `kargo-politikasi` 301
-  - [ ] Sitemap'ten yönlenen kopyaları çıkar
-- [ ] **S5. `/tr/paket` (ve `paket/[slug]`) kendi canonical'ını üretsin** (Kod)
-- [ ] **S6. Çift "| Sportoonline" başlıklarını düzelt** — 6 sayfa, `title: { absolute }` + `buildPageTitle` (Kod)
+> **Durum 2026-09-26:** aşağıdaki [x] maddeler canlıda ve canlıda doğrulandı
+> (`seo-p0-2026-09-25` dalı, VPS `vps-canli-2026-09-25` fast-forward).
+> [ ] kalanlar kullanıcı kararı, içerik üretimi veya dış sistem (DNS, GSC) işi.
 
-### P1 — İçerik kalitesi ve tarama
-
-- [x] **S7. Sayfalama** (Kod) — dal `seo/indeks-politikasi-sayfalama`, deploy bekliyor
-  - [x] `?page=N` sayfaları kendine canonical veriyor (kategori, `/urunler`, mağaza); filtre/sıralama varyantları temel yola bağlı kalıyor — `paginatedCanonical()` (`lib/seo.ts`)
-  - [x] Kategori sayfasına SSR sayfalama linkleri (`rel=prev/next`, 7'lik pencere); sonsuz kaydırma korunuyor. Mağaza ve `/urunler`'de linkler zaten vardı.
-  - [x] Yan hata: `?page=N` açılınca sonsuz kaydırma sayfayı "1" sanıp N'i tekrar çekiyordu — başlangıç sayfası artık SSR'dan geliyor
-- [ ] **S8. İnce ürün açıklamaları** (Kod + içerik)
-  - [ ] 2.068 ürün (<150 kr) ve 25 "açıklama = ad" ürünü için yapılandırılmış açıklama şablonu: özellik tablosu, kullanım, içerik/ölçü, kime uygun
-  - [ ] Önceliği trafik/sipariş verisine göre sırala (ilk 500)
-  - [ ] Kalite kapısı: `ProductSeoQuality` yeni ürün importunda <150 kr açıklamayı işaretlesin
-- [ ] **S9. Kopya açıklamalar** — 1.573 ürün: varyant kopyalarını tek ürün + varyant yapısına topla veya farkı (adet/gramaj) açıklamaya işle (Kod)
-- [ ] **S10. Kategori ağacı temizliği** (Kullanıcı karar + Kod)
-  - [ ] Kopya kategorileri birleştir + 301 (tek-kullanim/-liklar, vitamin-mineral/-ler/vitaminler, sporcu-besinleri/spor-beslenmesi, çorap grupları)
-  - [ ] `-gt-`, ID ekli ve birleşik noktalı slug'ları temiz slug'a 301
-  - [ ] Boş kategorilere `noindex`; dolu kategorilerin tamamını sitemap'e ekle (bugün 7)
-- [ ] **S11. Konu dışı ürün/kategori kararı** (Kullanıcı): gıda/ev/oyun/yazılım kategorileri ya kaldırılır ya da ayrı bir bölümde `noindex` tutulur
-- [ ] **S12. Maraton mağazası** (Kullanıcı — CLAUDE.md'de bekleyen karar): öneri **A** — mağazayı pasife al, ürünler S1 kuralıyla 410; ana sayfadaki linki kaldır
-- [ ] **S13. 120 ASCII dışı ürün slug'ı** → `ProductSlugRedirect` ile 308 (Kod)
-
-### P2 — Sayfa içi ve güven
-
-- [ ] **S14. og:image** — blog, yazar, mağazalar, hakkımızda, iletişim için sayfa başına görsel; mağazalar sayfasında og:url de eksik (Kod)
-- [ ] **S15. İnce statik sayfalar** — iletişim (50 kelime), kampanyalar, kuponlar, yasal sayfalar: ilgili bölümlere iç link + kısa açıklayıcı metin (Kod + içerik)
-- [ ] **S16. Anahtar kelime tutarlılığı** — kampanyalar (15), mağazalar (14), iletişim (22), kuponlar (29), ana sayfa (31): başlıktaki terimleri gövdeye taşı
-- [ ] **S17. Mağaza sayfa başlıkları** → "{Mağaza} Ürünleri ve Fiyatları | Sportoonline" (Kod)
-- [ ] **S18. E-E-A-T** — blog yazılarında yazar kutusu + güncelleme tarihi; ana sayfada doğrulanmış müşteri yorumu; SSS bölümü; dış otorite kaynağı
-- [ ] **S19. Satıcı adı** — "engin eser" mağazasını marka adıyla yeniden adlandır (Kullanıcı)
-- [ ] **S20. sameAs'tan kişisel LinkedIn profilini çıkar** (Kod/ayar)
-- [ ] **S21. İletişim sayfası** — 2 adsız linke `aria-label`, `https://sportoonline.com/` linkini `/tr` yap
-- [ ] **S22. Blog** — 2024 tarihli yazıyı güncelle; aylık en az 2 yeni rehber (kategori kümeleri: protein, kreatin, koşu, kamp)
-
-### P3 — Performans ve altyapı
-
-- [ ] **S23.** Ana sayfa HTML 650 KB / 1.748 DOM / 20 JS dosyası — flash satış bloğunda SSR edilen ürün sayısını azalt, inline style'ları sınıfa taşı
-- [ ] **S24.** SPF + DMARC DNS kaydı (Kullanıcı — dnsenable.com): `v=spf1 -all`, `_dmarc` `v=DMARC1; p=reject; …` (Eylül 12'den beri bekliyor)
-- [ ] **S25.** Alan adı 2027-03-03'te bitiyor (158 gün) — otomatik yenileme açık mı kontrol et, mümkünse çok yıllık yenile (Kullanıcı)
-- [ ] **S26.** `/magaza` ve `/kategori` kök yollarını `/tr/magazalar` ve `/tr/kategoriler`'e 301
-- [ ] **S27.** 5xx izleme — paralel taramada geçici zaman aşımı görüldü; nginx/PM2 loglarında 25 Eyl civarı 5xx ara
+- [x] **S1. Satışta olmayan ürün sayfaları için indeks politikası**
+  - [x] Pasif ürün ve kapalı/askıdaki mağaza ürünü → sayfa açık, `noindex, follow` (410 bilerek yok: 2026-08-18 kararı)
+  - [x] Onaylı ürün geçici stoksuz → ilk 30 gün indekste, sonra `noindex, follow` (`products.unsellable_since` + saatlik `products:track-sellability --apply`; migration canlıda çalıştırıldı, 6.961 ürün işaretlendi)
+  - [ ] Kalıcı kapalı mağazalar (Linktech, Rova, Dekomum, eProtein) için 410/301 — mağaza kararına bağlı (kullanıcı)
+  - **Düzeltme:** raporun ilk hâlinde "pasif ürün herkese açık = iş kuralı hatası" yazıyordu; 2026-08-18'de bilinçli verilmiş karar (tedarikçisi geçici çekilemeyen ürün `inactive`).
+- [~] **S2. Mesafeli Satış Sözleşmesi** — kod düzeltildi: sayfa artık Üye Sözleşmesi kaydını değil kendi slug'ını çekiyor, DB'de kayıt olmadığı için koddaki kısa mesafeli satış metni gösteriliyor. **Kalan (kullanıcı):** admin panelde `mesafeli-satis-sozlesmesi` slug'ı ile tam yasal metni yayınla.
+- [x] **S3. Marka vaadi**
+  - [x] Ana sayfa `com_meta_description` (ayar + tr/en çevirileri) Nike/Adidas/Puma'sız metinle değişti; eski değerler `storage/app/com_meta_description*_20260926*` yedeğinde
+  - [x] Marka sayfaları hiç çalışmıyordu (brand-list `limit` alıyor, slug dönmüyordu; sayfa `brand.id` okuyordu) → düzeltildi. Bilinmeyen marka 404, ürünsüz marka `noindex`
+  - [ ] Hakkımızda sayfası hâlâ "Nike, Adidas, Puma, Optimum Nutrition, MyProtein" ve "30 yıllık deneyim" diyor — işletme beyanı, kullanıcı düzeltmeli
+- [x] **S4. Kopya sayfalar** — `iade-politikasi` → `iade-degisim`, `kargo-teslimat` → `kargo-politikasi` 308; sitemap ve llms-full.txt temizlendi
+- [x] **S5. Canonical** — `/tr/paket` ve `paket/[slug]` kendi canonical'ı; layout'un varsayılan (301 dönen kök) canonical'ı tamamen kaldırıldı
+- [x] **S6. Çift marka eki** — `buildPageTitle` her ayırıcıyı (| - –) tanıyor; 9 sayfa
+- [x] **S7. Sayfalama** — `?page=N` self-canonical, kategori SSR sayfalama linkleri
+- [~] **S8. İnce ürün açıklamaları** — önceliklendirilmiş iş listesi çıkarıldı: `docs/seo-ince-icerik-20260926.csv` (3.692 ürün: 1.717 ince, 383 boş, 1.592 kopya, 44 ad=açıklama). **Kalan (içerik):** açıklama yazımı. Not: `product_views` son 90 günde boş, sıralama sipariş sayısına dayanıyor.
+- [~] **S9. Kopya açıklamalar** — en büyük kaynak bir scraper hatasıydı: ProteinMax'te 548 ürünün açıklaması tedarikçinin **yorum formu metniydi**. Scraper düzeltildi (`opencart_scraper._description_element`), DB'deki 548 kayıt yedeklenip temizlendi (`storage/app/proteinmax-review-junk-backup-20260926.json`). Kalan kopyalar varyant ürünleri (Superstacy, Norfolk, Cresta) — içerik işi.
+- [~] **S10. Kategori ağacı**
+  - [x] 20 bozuk slug (`-gt-`, birleşik noktalı İ, id eki) temizlendi; eski adresler kategori sayfasındaki normalize eşleşmeyle 308 (`storage/app/category-slug-rename-20260926.json`)
+  - [x] Bilinmeyen kategori slug'ı 200+index → 404; ürünsüz kategori `noindex`
+  - [x] Sitemap 7 → 133 kategori (alt ağaç ürün sayısıyla), 23 marka
+  - [ ] Kopya kategorileri birleştirme (tek-kullanim/-liklar, vitamin-mineral/-ler/vitaminler, sporcu-besinleri/spor-beslenmesi) — ürün taşıma kararı kullanıcıda
+- [ ] **S11. Konu dışı kategoriler** (yazılım, bal-pekmez, tavla, okey…) — kullanıcı kararı; not: artık dolu oldukları için sitemap'teler
+- [~] **S12. Maraton** — mağaza 0 satılabilir ürünle otomatik `noindex`; ana sayfadaki "300+ ürün" slaytı (slider #44) pasife alındı. **Kalan (kullanıcı):** mağazayı pasife alma kararı
+- [x] **S13. ASCII dışı ürün slug'ları** — `products:fix-slug-mismatches --non-ascii` ile 97 ürün (Türkçe karakter, "0.65" noktalı); eski adresler 308. Komuttaki iki hata da düzeltildi (global scope, aksan-duyarsız collation çakışması)
+- [x] **S14. og:image** — `/tr/og-image?title=` ile sayfa başlığından 1200x630 görsel; blog, yazar, mağazalar (+og:url), hakkımızda, iletişim, kategori, marka, logosuz mağazalar. `og:site_name` her yerde tek ad
+- [x] **S15. İnce statik sayfalar** — yasal/politika sayfalarına "İlgili sayfalar" iç link bloğu
+- [x] **S16. Anahtar kelime tutarlılığı** — mağazalar sayfasına görünür giriş metni, kampanya ve kupon alt başlıkları başlık kavramlarını taşıyor
+- [x] **S17. Mağaza başlıkları** — "{Mağaza} Ürünleri ve Fiyatları | Sportoonline", 70+ kr açıklama, ürünsüz mağaza `noindex`
+- [~] **S18. E-E-A-T** — blog yazılarında yazar + tarih zaten vardı; yazar unvanı/biyografisi Türkçe karakterlerle düzeltildi. **Bekleyen:** ana sayfa müşteri yorumu bölümü — yalnız 1 onaylı yorum var (1 onay bekliyor), uydurma yorum konmaz
+- [ ] **S19. Satıcı adı** "engin eser" — kullanıcı
+- [x] **S20. sameAs** — kişisel LinkedIn profili çıkarıldı
+- [x] **S21. İletişim** — sosyal ikonlara `aria-label`, `tel:` E.164, site linki yeni sekmede açılmıyor
+- [ ] **S22. Blog içerik güncellemesi** — içerik işi
+- [ ] **S23. Ana sayfa HTML boyutu** — bilinçli ertelendi: 410 KB'ın çoğu satır içi SVG ikon (134 KB) ve `srcset` (133 KB); gzip ile ~80 KB, CrUX LCP 1,37 sn / CLS 0,06 iyi. Görsel yapılandırması değişikliği görünüm riski taşıyor
+- [ ] **S24. SPF + DMARC** — kullanıcı (DNS)
+- [ ] **S25. Alan adı yenileme** (2027-03-03) — kullanıcı
+- [x] **S26. Bölüm kök adresleri** — `/tr/magaza|kategori|urun|marka|yazar` 404 → 308
+- [x] **S27. 5xx** — kaynak bulundu: `/sitemap.txt`, `/sitemap.html`, `/sitemap-index.xml`, `/sitemap-products.xml` gibi bot denemeleri `[locale]`'e eşleşip 500 dönüyordu; artık 404. Diğer 5xx'ler tekil (admin export, AI chat)
 
 ### GSC işlemleri
 
