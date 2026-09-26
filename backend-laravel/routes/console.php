@@ -67,6 +67,8 @@ Schedule::command('orders:dispatch-replenishment-reminders --days=30 --limit=200
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/replenishment-reminders.log'));
 Schedule::command('products:compute-velocity')->dailyAt('04:00')->withoutOverlapping();
+// Stoksuz urun 30 gun sonra noindex (urun detay API'si); baslangic zamani burada tutulur.
+Schedule::command('products:track-sellability --apply')->hourlyAt(50)->withoutOverlapping();
 Schedule::command('products:prune-stale --months=' . env('PRODUCT_STALE_RETENTION_MONTHS', 6) . ' --force')
     ->weeklyOn(0, '03:00')
     ->timezone('Europe/Istanbul')
