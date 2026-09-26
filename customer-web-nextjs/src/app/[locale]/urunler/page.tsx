@@ -4,6 +4,7 @@ import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { Product } from "@/modules/product/product.type";
 import { ProductsPageClient } from "./products-client";
+import { normalizeBrandList } from "@/lib/brand-list";
 import { paginatedCanonical } from "@/lib/seo";
 
 interface Props {
@@ -85,7 +86,7 @@ async function getProductsData(
       locale
     ),
     fetchAPI<any>(API_ENDPOINTS.CATEGORIES, { per_page: 100, all: "true", language: locale }, locale),
-    fetchAPI<any>(API_ENDPOINTS.BRANDS, { per_page: 100 }, locale),
+    fetchAPI<unknown>(API_ENDPOINTS.BRANDS, { with_products: 1 }, locale),
     fetchAPI<ProductAttribute[]>(API_ENDPOINTS.PRODUCT_ATTRIBUTES, { language: locale }, locale),
   ]);
 
@@ -128,10 +129,8 @@ async function getProductsData(
       categories.push(parent, ...renderableChildren);
     }
   }
-  const brands =
-    brandsRes.status === "fulfilled"
-      ? ((brandsRes.value?.data ?? []) as Brand[])
-      : [];
+  const brands: Brand[] =
+    brandsRes.status === "fulfilled" ? normalizeBrandList(brandsRes.value) : [];
   const attributesRaw = attributesRes.status === "fulfilled" ? attributesRes.value : [];
   const attributes = (Array.isArray(attributesRaw) ? attributesRaw : ((attributesRaw as any)?.data ?? [])) as ProductAttribute[];
 

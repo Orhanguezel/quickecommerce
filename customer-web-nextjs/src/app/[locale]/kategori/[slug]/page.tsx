@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
@@ -10,8 +11,9 @@ import {
   withSubtreeProductCounts,
 } from "@/modules/site/category-utils";
 import { CategoryPageClient } from "./category-client";
-import { absoluteUrl, localizedAlternates, paginatedCanonical, SITE_URL } from "@/lib/seo";
+import { absoluteUrl, localizedAlternates, paginatedCanonical, SITE_URL, pageOgImages } from "@/lib/seo";
 
+import { normalizeBrandList } from "@/lib/brand-list";
 interface Props {
   params: Promise<{ locale: string; slug: string }>;
   searchParams: Promise<{
@@ -54,10 +56,6 @@ interface ProductListResponse {
   total?: number;
 }
 
-interface BrandListResponse {
-  data?: Brand[];
-}
-
 interface StoreListResponse {
   data?: { id: number; name: string }[];
 }
@@ -95,9 +93,12 @@ async function findCategoryContext(slug: string, locale: string) {
     return {
       category: categories.find((c) => c.category_slug === decodedSlug) ?? null,
       categories,
+      failed: false,
     };
   } catch {
-    return { category: null, categories: [] as Category[] };
+    // API gecici olarak erisilemezse kategori "yok" sayilmamali: 404, Google'in
+    // gercek bir kategoriyi indeksten dusurmesine yol acar.
+    return { category: null, categories: [] as Category[], failed: true };
   }
 }
 
@@ -112,7 +113,7 @@ async function getCategoryData(
   maxPrice?: string,
   minRating?: string
 ) {
-  const { category, categories } = await findCategoryContext(slug, locale);
+  const { category, categories, failed } = await findCategoryContext(slug, locale);
 
   if (!category) {
     const decodedSlug = decodeCategorySlug(slug);
@@ -128,6 +129,7 @@ async function getCategoryData(
       stores: [] as { id: number; name: string }[],
       filterCategoryIds: [] as string[],
       found: false,
+      failed,
     };
   }
 
@@ -169,7 +171,13 @@ async function getCategoryData(
         productParams,
         locale
       ),
-      fetchAPI<BrandListResponse>(API_ENDPOINTS.BRANDS, { per_page: 100 }, locale),
+      fetchAPI<unknown>(
+        `${API_ENDPOINTS.BRANDS}?${new URLSearchParams(
+          filterCategoryIds.map((id) => ["category_id[]", id])
+        ).toString()}`,
+        { with_products: 1 },
+        locale
+      ),
       fetchAPI<StoreListResponse>(API_ENDPOINTS.STORES, { per_page: 100 }, locale),
     ]);
 
@@ -200,10 +208,11 @@ async function getCategoryData(
       productsData?.meta?.per_page ?? productsData?.per_page ?? 20,
     categoryName: category.category_name,
     subcategories,
-    brands: (brandsData?.data ?? []) as Brand[],
+    brands: normalizeBrandList(brandsData) as Brand[],
     stores: (storesData?.data ?? []) as { id: number; name: string }[],
     filterCategoryIds,
     found: true,
+    failed: false,
   };
 }
 
@@ -231,11 +240,17 @@ export async function generateMetadata({
       url: absoluteUrl(canonical),
       locale: locale === "tr" ? "tr_TR" : "en_US",
       siteName: "Sporto Online",
+      images: pageOgImages(name),
     },
     alternates: {
       canonical,
       languages: localizedAlternates(`/kategori/${slug}`),
     },
+    // Urunu olmayan kategori soft-404'tur; urun gelince kendiliginden acilir.
+    robots:
+      data.found && data.totalProducts > 0
+        ? undefined
+        : { index: false, follow: true },
   };
 }
 
@@ -271,6 +286,12 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     sp.max_price,
     sp.min_rating
   );
+  // Katalogda olmayan kategori adresi 200 donmemeli; eskiden slug'dan
+  // uydurulan bir baslikla bos ve indekslenebilir sayfa uretiliyordu.
+  if (!data.found) {
+    if (data.failed) throw new Error(`category lookup failed: ${slug}`);
+    notFound();
+  }
 
   const t = await getTranslations({ locale, namespace: "common" });
   const catT = await getTranslations({ locale, namespace: "category" });

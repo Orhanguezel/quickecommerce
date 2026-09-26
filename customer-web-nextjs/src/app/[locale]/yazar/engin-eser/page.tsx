@@ -2,12 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import { getEnginEserAuthor } from "@/lib/authors";
-import {
-  DEFAULT_ORGANIZATION,
-  SITE_URL,
-  buildMetaDescription,
-  localizedAlternates,
-} from "@/lib/seo";
+import { DEFAULT_ORGANIZATION, SITE_URL, buildMetaDescription, localizedAlternates, pageOgImages } from "@/lib/seo";
 import { User } from "lucide-react";
 
 interface Props {
@@ -38,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "profile",
       url: author.localizedUrl,
       siteName: DEFAULT_ORGANIZATION.name,
-      ...(author.image ? { images: [{ url: author.image }] } : {}),
+      images: author.image ? [{ url: author.image }] : pageOgImages(author.name, "Yazar profili"),
     },
   };
 }

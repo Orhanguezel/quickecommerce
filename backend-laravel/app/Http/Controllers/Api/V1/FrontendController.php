@@ -2483,6 +2483,13 @@ class FrontendController extends Controller
     public
     function brands(Request $request)
     {
+        // Liste sayfalarindaki marka filtresi icin: yalniz satilabilir urunu olan
+        // markalar, urun sayisiyla, istege gore kategori (alt agac dahil) veya
+        // magaza kapsaminda. Parametresiz cagri eski davranisi korur.
+        if ($request->boolean('with_products')) {
+            return $this->brandsWithProducts($request);
+        }
+
         // If request has limit
         $limit = $request->limit ?? 10;
         // If request has language
@@ -2515,6 +2522,53 @@ class FrontendController extends Controller
 
         // Return a collection of ProductBrandResource (including the image)
         return response()->json(ProductBrandPublicResource::collection($brands));
+    }
+
+    private function brandsWithProducts(Request $request): JsonResponse
+    {
+        $categoryIds = is_array($request->category_id)
+            ? $this->expandCategoryIds($request->category_id)
+            : [];
+        $storeId = $request->integer('store_id') ?: null;
+        $limit = min(max($request->integer('limit') ?: 50, 1), 200);
+
+        $cacheKey = 'catalog:brand-filter:v1:' . md5(json_encode([$categoryIds, $storeId, $limit]));
+
+        $items = Cache::remember($cacheKey, now()->addHour(), function () use ($categoryIds, $storeId, $limit) {
+            $counts = Product::query()
+                ->publiclySellable()
+                ->whereNotNull('products.brand_id')
+                ->when($categoryIds, fn ($q) => $q->whereIn('products.category_id', $categoryIds))
+                ->when($storeId, fn ($q) => $q->where('products.store_id', $storeId))
+                ->select('products.brand_id', DB::raw('COUNT(*) as product_count'))
+                ->groupBy('products.brand_id')
+                ->orderByDesc('product_count')
+                ->limit($limit)
+                ->pluck('product_count', 'brand_id');
+
+            if ($counts->isEmpty()) {
+                return [];
+            }
+
+            $brands = ProductBrand::query()
+                ->whereIn('id', $counts->keys())
+                ->where('status', 1)
+                ->get(['id', 'brand_name', 'brand_slug'])
+                ->keyBy('id');
+
+            return $counts
+                ->map(fn ($count, $brandId) => $brands->has($brandId) ? [
+                    'value' => (int) $brandId,
+                    'label' => $brands[$brandId]->brand_name,
+                    'slug' => $brands[$brandId]->brand_slug,
+                    'product_count' => (int) $count,
+                ] : null)
+                ->filter()
+                ->values()
+                ->all();
+        });
+
+        return response()->json($items);
     }
 
     public

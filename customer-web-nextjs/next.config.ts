@@ -77,6 +77,33 @@ const nextConfig: NextConfig = {
         destination: "/:locale/kargo-politikasi",
         permanent: true,
       },
+      // Bolum kok adresleri 404 donuyordu (Tanitio: "/magaza/ ve /kategori/
+      // bolum kok sayfasi yok"). Liste sayfalari zaten var; oraya yonlendirilir.
+      {
+        source: "/:locale(tr)/magaza",
+        destination: "/:locale/magazalar",
+        permanent: true,
+      },
+      {
+        source: "/:locale(tr)/kategori",
+        destination: "/:locale/kategoriler",
+        permanent: true,
+      },
+      {
+        source: "/:locale(tr)/urun",
+        destination: "/:locale/urunler",
+        permanent: true,
+      },
+      {
+        source: "/:locale(tr)/marka",
+        destination: "/:locale/urunler",
+        permanent: true,
+      },
+      {
+        source: "/:locale(tr)/yazar",
+        destination: "/:locale/blog",
+        permanent: true,
+      },
     ];
   },
   async rewrites() {

@@ -31,10 +31,11 @@ export const DEFAULT_ORGANIZATION = {
     postalCode: "",
     addressCountry: "TR",
   },
+  // Kisisel LinkedIn profili (linkedin.com/in/...) kurum varligiyla eslesmez;
+  // yalniz sirket sayfasi tutulur (Tanitio 2026-09-25).
   sameAs: [
     "https://www.instagram.com/sportoonline",
     "https://www.facebook.com/sportoonline",
-    "https://www.linkedin.com/in/sporto-online-965632409/",
     "https://www.linkedin.com/company/sportoonline",
     "https://www.youtube.com/@sportoonline6835",
     "https://www.sikayetvar.com/sportoonline",
@@ -265,4 +266,15 @@ export function buildProductDescription(input: {
   const head = parts.join(" · ");
   const tail = `${input.siteName} güvencesiyle: güncel fiyat, stok durumu, hızlı kargo ve kolay iade.`;
   return truncateText(`${head} — ${tail}`, max);
+}
+
+/**
+ * Sayfaya ozel paylasim gorseli (bkz. app/[locale]/og-image/route.tsx). Sayfa kendi
+ * openGraph blogunu verdiginde layout'taki gorsel dusuyordu; bu yardimci
+ * her sayfaya basligini tasiyan ayri bir kart verir.
+ */
+export function pageOgImages(title: string, subtitle?: string) {
+  const params = new URLSearchParams({ title });
+  if (subtitle) params.set("subtitle", subtitle);
+  return [{ url: absoluteUrl(`/tr/og-image?${params.toString()}`), width: 1200, height: 630, alt: title }];
 }

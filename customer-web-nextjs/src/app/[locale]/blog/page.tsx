@@ -4,17 +4,7 @@ import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { BlogPost } from "@/modules/blog/blog.type";
 import { BlogListClient } from "./blog-list-client";
-import {
-  DEFAULT_ORGANIZATION,
-  SITE_URL,
-  absoluteUrl,
-  buildMetaDescription,
-  buildPageTitle,
-  localizedAlternates,
-  stripHtml,
-  toIsoDate,
-  truncateText,
-} from "@/lib/seo";
+import { DEFAULT_ORGANIZATION, SITE_URL, absoluteUrl, buildMetaDescription, buildPageTitle, localizedAlternates, stripHtml, toIsoDate, truncateText, pageOgImages } from "@/lib/seo";
 import { getEnginEserAuthor } from "@/lib/authors";
 
 interface Props {
@@ -76,6 +66,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url: absoluteUrl(`/${locale}/blog`),
       locale: locale === "tr" ? "tr_TR" : "en_US",
       siteName: "Sporto Online",
+      images: pageOgImages(title),
     },
     alternates: {
       canonical: `/${locale}/blog`,

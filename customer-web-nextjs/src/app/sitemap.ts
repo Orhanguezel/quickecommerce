@@ -4,6 +4,7 @@ import type { MetadataRoute } from "next";
 import axios from "axios";
 import {
   isDisplayableProductCategory,
+  withSubtreeProductCounts,
 } from "@/modules/site/category-utils";
 import type { Category } from "@/modules/site/site.type";
 import { SITE_URL, toIsoDate } from "@/lib/seo";
@@ -55,13 +56,17 @@ function encodeSlug(slug: string): string {
   }
 }
 
-async function fetchSlugs(endpoint: string): Promise<SitemapItem[]> {
+async function fetchSlugs(
+  endpoint: string,
+  extraParams: Record<string, string | number> = {}
+): Promise<SitemapItem[]> {
   try {
     const res = await axios.get(`${BASE_URL}${endpoint}`, {
-      params: { per_page: 1000, language: "tr" },
+      params: { per_page: 1000, language: "tr", ...extraParams },
       timeout: 60000,
     });
-    const items = res.data?.data ?? [];
+    // brand-list duz dizi doner; digerleri { data: [...] }.
+    const items = Array.isArray(res.data) ? res.data : res.data?.data ?? [];
     return items
       .map((item: Record<string, unknown>) => normalizeSitemapItem(item))
       .filter(Boolean) as SitemapItem[];
@@ -73,10 +78,13 @@ async function fetchSlugs(endpoint: string): Promise<SitemapItem[]> {
 async function fetchCategorySlugs(): Promise<SitemapItem[]> {
   try {
     const res = await axios.get(`${BASE_URL}/product-category/list`, {
-      params: { per_page: 1000, language: "tr" },
+      // all=true olmadan yalniz ust seviye (7) kategori geliyordu; 670 kategorinin
+      // alt agacinda urunu olanlar sitemap disinda kaliyordu (GSC 2026-09-25).
+      params: { per_page: 1000, language: "tr", all: "true" },
       timeout: 60000,
     });
-    const items = (res.data?.data ?? []) as SitemapRawItem[];
+    const raw = (res.data?.data ?? []) as Category[];
+    const items = withSubtreeProductCounts(raw) as unknown as SitemapRawItem[];
 
     return items
       .filter((item) => isDisplayableProductCategory(item as unknown as Category))
@@ -152,7 +160,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [categorySlugs, brandSlugs, blogSlugs, storeSlugs] =
     await Promise.all([
       fetchCategorySlugs(),
-      fetchSlugs("/brand-list"),
+      fetchSlugs("/brand-list", { with_products: 1, limit: 200 }),
       fetchSlugs("/blogs"),
       fetchSlugs("/store-list"),
     ]);

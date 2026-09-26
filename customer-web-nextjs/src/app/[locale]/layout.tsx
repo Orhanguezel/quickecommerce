@@ -132,7 +132,6 @@ export async function generateMetadata({ params }: LayoutProps): Promise<Metadat
   const ogTitle = settings?.com_og_title || metaTitle;
   const ogDescription = settings?.com_og_description || description;
   const ogImage = settings?.com_og_image || settings?.com_site_logo || undefined;
-  const canonicalUrl = settings?.com_canonical_url || siteUrl;
   const author = settings?.com_meta_author || undefined;
   const robots = settings?.com_meta_robots || 'index,follow';
   const publisher = settings?.com_meta_publisher || undefined;
@@ -149,9 +148,9 @@ export async function generateMetadata({ params }: LayoutProps): Promise<Metadat
     authors: author ? [{ name: author }] : undefined,
     robots,
     metadataBase: new URL(siteUrl),
-    alternates: {
-      canonical: canonicalUrl,
-    },
+    // Varsayilan canonical bilerek YOK: kendi canonical'ini vermeyen her sayfa
+    // site kokunu (301 -> /tr) miras aliyor ve Google onu ana sayfanin kopyasi
+    // sayiyordu (/tr/paket, GSC 2026-09-25). Canonical'siz sayfa kendine isaret eder.
     openGraph: {
       type: 'website',
       siteName,

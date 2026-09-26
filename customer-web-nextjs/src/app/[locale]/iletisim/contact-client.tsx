@@ -85,6 +85,24 @@ function SocialIcon({ icon }: { icon: string }) {
   return <Globe className={cls} />;
 }
 
+/** "0555 090 70 70" -> "+905550907070": bosluklu tel: adresi bazi cihazlarda aramiyor. */
+function telHref(phone: string): string {
+  const digits = phone.replace(/[^\d+]/g, "");
+  if (digits.startsWith("+")) return digits;
+  if (digits.startsWith("0")) return `+90${digits.slice(1)}`;
+  return digits;
+}
+
+/** Yalniz ikon iceren sosyal linkler icin erisilebilir ad (Tanitio: adsiz link). */
+function socialLabel(item: ContactSocialLink): string {
+  try {
+    const host = new URL(item.url).hostname.replace(/^www\./, "");
+    return host.split(".")[0].replace(/^./, (c) => c.toUpperCase());
+  } catch {
+    return item.icon || "Sosyal medya";
+  }
+}
+
 export function ContactPageClient({
   formSection,
   detailsSection,
@@ -200,7 +218,7 @@ export function ContactPageClient({
               <div>
                 <p className="mb-2 text-xl font-medium leading-none text-foreground">{t.phone}</p>
                 <a
-                  href={`tel:${detailsSection.phone}`}
+                  href={`tel:${telHref(detailsSection.phone)}`}
                   className="flex items-center gap-3 text-base text-foreground hover:text-primary"
                 >
                   <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary">
@@ -231,8 +249,6 @@ export function ContactPageClient({
                 <p className="mb-2 text-xl font-medium leading-none text-foreground">{t.website}</p>
                 <a
                   href={detailsSection.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="flex items-center gap-3 break-all text-base text-foreground hover:text-primary"
                 >
                   <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary">
@@ -253,6 +269,7 @@ export function ContactPageClient({
                       href={item.url}
                       target="_blank"
                       rel="noopener noreferrer"
+                      aria-label={socialLabel(item)}
                       className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary transition-colors hover:bg-primary/90"
                     >
                       <SocialIcon icon={item.icon} />

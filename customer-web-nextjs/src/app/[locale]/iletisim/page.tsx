@@ -3,15 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import { ContactPageClient } from "./contact-client";
-import {
-  DEFAULT_ORGANIZATION,
-  SITE_URL,
-  absoluteUrl,
-  buildMetaDescription,
-  buildPageTitle,
-  cleanContactPhone,
-  localizedAlternates,
-} from "@/lib/seo";
+import { DEFAULT_ORGANIZATION, SITE_URL, absoluteUrl, buildMetaDescription, buildPageTitle, cleanContactPhone, localizedAlternates, pageOgImages } from "@/lib/seo";
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -138,6 +130,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url: absoluteUrl(`/${locale}/iletisim`),
       locale: locale === "tr" ? "tr_TR" : "en_US",
       siteName: "Sporto Online",
+      images: pageOgImages(pageTitle),
     },
     alternates: {
       canonical: `/${locale}/iletisim`,

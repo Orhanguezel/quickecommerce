@@ -6,8 +6,9 @@ import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { StoreDetail } from "@/modules/store/store.type";
 import type { Product } from "@/modules/product/product.type";
 import { StoreDetailClient } from "./store-detail-client";
-import { localizedAlternates, paginatedCanonical, SITE_URL } from "@/lib/seo";
+import { localizedAlternates, paginatedCanonical, SITE_URL, buildPageTitle, buildMetaDescription, SITE_NAME } from "@/lib/seo";
 
+import { normalizeBrandList } from "@/lib/brand-list";
 interface Props {
   params: Promise<{ locale: string; slug: string }>;
   searchParams: Promise<{
@@ -122,9 +123,9 @@ async function getStoreProducts(
         { per_page: 100, all: "true", language: locale, store_id: storeId },
         locale
       ),
-      fetchAPI<{ data: Brand[] }>(
+      fetchAPI<unknown>(
         API_ENDPOINTS.BRANDS,
-        { per_page: 100, store_id: storeId },
+        { with_products: 1, store_id: storeId },
         locale
       ),
       fetchAPI<ProductAttribute[] | { data: ProductAttribute[] }>(
@@ -176,8 +177,8 @@ async function getStoreProducts(
     }
   }
 
-  const brands =
-    brandsRes.status === "fulfilled" ? (brandsRes.value?.data ?? []) : [];
+  const brands: Brand[] =
+    brandsRes.status === "fulfilled" ? normalizeBrandList(brandsRes.value) : [];
   const attributesRaw =
     attributesRes.status === "fulfilled" ? attributesRes.value : [];
   const attributes = (
@@ -208,12 +209,19 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     return { title: "Store Not Found" };
   }
 
-  const title = store.meta_title || t("store_title", { name: store.name });
-  const description =
-    store.meta_description || t("store_description", { name: store.name });
+  // Magaza adi tek basina 18-24 karakterlik ince baslik uretiyordu (Tanitio
+  // 2026-09-25); buildPageTitle kisa DB degerini atlayip ceviri basligina duser.
+  const title = buildPageTitle(
+    [store.meta_title, t("store_title", { name: store.name })],
+    SITE_NAME
+  );
+  const description = buildMetaDescription([
+    store.meta_description,
+    t("store_description", { name: store.name }),
+  ]);
 
   return {
-    title,
+    title: { absolute: title },
     description,
     openGraph: {
       title,
@@ -228,6 +236,11 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
       canonical: paginatedCanonical(`/${locale}/magaza/${slug}`, sp),
       languages: localizedAlternates(`/magaza/${slug}`),
     },
+    // Satilabilir urunu kalmamis magaza (orn. kapanan tedarikci) indekse girmez.
+    robots:
+      Number(store.total_product ?? 0) > 0
+        ? undefined
+        : { index: false, follow: true },
   };
 }
 
