@@ -13,6 +13,12 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   async redirects() {
     return [
+      // Derin analiz 2026-09-29: kapatilan kopya kategoriler (gercek 301).
+      { source: "/:locale(tr|en)/kategori/tek-kullanim", destination: "/:locale/kategori/spor-beslenmesi", statusCode: 301 },
+      { source: "/:locale(tr|en)/kategori/tek-kullanimliklar", destination: "/:locale/kategori/spor-beslenmesi", statusCode: 301 },
+      { source: "/:locale(tr|en)/kategori/spor-outdoor", destination: "/:locale/kategori/fitness-egzersiz", statusCode: 301 },
+      { source: "/:locale(tr|en)/kategori/diger-ekipmanlar", destination: "/:locale/kategori/spor-aletleri", statusCode: 301 },
+      { source: "/:locale(tr|en)/kategori/spor-ekipmani", destination: "/:locale/kategori/spor-aletleri", statusCode: 301 },
       {
         source: "/:path*",
         has: [{ type: "host", value: "www.sportoonline.com" }],

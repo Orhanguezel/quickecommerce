@@ -1,0 +1,578 @@
+=== FIX 03 blog temizligi (DRY-RUN) MIN_PRODUCTS=0 ===
+-- terim -> kategori (alt agac satilabilir urun) --
+  whey protein         -> whey-protein                       5 DEGISTIR
+  isolate              -> izole-protein                      2 DEGISTIR
+  kreatin              -> kreatin                            8 DEGISTIR
+  protein bar          -> protein-bar                        0 DEGISTIR
+  enerji jeli          -> karbonhidrat-ve-jel                1 DEGISTIR
+  egzersiz matı       -> yoga-pilates                       6 DEGISTIR
+  yoga matı           -> yoga-pilates                       6 DEGISTIR
+  pilates topu         -> yoga-pilates                       6 DEGISTIR
+  dumbbell             -> agirliklar-dambillar               0 DEGISTIR
+  atlama ipi           -> okul-dostu-urunler-atlama-ipleri   1 DEGISTIR
+  koşu çorabı       -> spor-corabi                        42 DEGISTIR
+  termos               -> mataralar-termoslar                1 DEGISTIR
+  uyku tulumu          -> uyku-tulumlari                     0 DEGISTIR
+  kamp çadırı       -> cadirlar                           0 DEGISTIR
+  trekking çantası   -> sirt-cantalari                     0 DEGISTIR
+  fitness ekipmanı    -> fitness-egzersiz                   750 DEGISTIR
+  bisiklet eldiveni    -> bisiklet                           0 DEGISTIR
+  yüzücü gözlüğü -> yuzucu-gozlugu                     1 DEGISTIR
+  yüzme bonesi        -> yuzucu-gozlugu                     1 DEGISTIR
+  yüzme tahtası      -> yuzucu-gozlugu                     1 DEGISTIR
+  diz desteği         -> bileklik-dizlik-koruyucular        0 DEGISTIR
+-- sablon basliklar (kac yazidan silinecek) --
+  Kimler İçin Uygun?                     9
+  Sık Yapılan Hatalar                    9
+  Sık Sorulan Sorular                     9
+  Pratik Uygulama Planı                   6
+  Alışveriş ve Kullanım Kontrol Listesi 6
+  Ne Zaman Güncelleme Yapılmalı?        6
+  Editoryal Değerlendirme                 5
+  Takip, Ölçüm ve Karar Verme           5
+  Detaylı Rehber Planı                   9
+  Uygulama Adımları                      9
+  Alışverişte Dikkat Edilecekler        9
+  Haftalık Kullanım Önerisi             9
+  Uygulama Senaryoları                    9
+  Bakım, Saklama ve Uzun Ömür           9
+  Karar Matrisi                            9
+  Son Kontrol Listesi                      9
+  Editoryal Not                            9
+
+[46] evde-yapabileceginiz-10-etkili-egzersiz (blogs#46 base) 11312 -> 8242 bayt
+   - ikinci Kisa cevap paragrafi silindi
+   - sablon bolum silindi: Pratik Uygulama Planı
+   - sablon bolum silindi: Alışveriş ve Kullanım Kontrol Listesi
+   - sablon bolum silindi: Ne Zaman Güncelleme Yapılmalı?
+   - link: egzersiz matı -> /tr/kategori/yoga-pilates x2
+   - link KORUNDU (eslesme yok/yetersiz urun): direnç bandı x2
+   - link: dumbbell -> /tr/kategori/agirliklar-dambillar x2
+   - link: atlama ipi -> /tr/kategori/okul-dostu-urunler-atlama-ipleri x2
+
+[46] evde-yapabileceginiz-10-etkili-egzersiz (translations#18753 df) 1048 -> 1048 bayt
+
+[46] evde-yapabileceginiz-10-etkili-egzersiz (translations#18758 tr) 11312 -> 8242 bayt
+   - ikinci Kisa cevap paragrafi silindi
+   - sablon bolum silindi: Pratik Uygulama Planı
+   - sablon bolum silindi: Alışveriş ve Kullanım Kontrol Listesi
+   - sablon bolum silindi: Ne Zaman Güncelleme Yapılmalı?
+   - link: egzersiz matı -> /tr/kategori/yoga-pilates x2
+   - link KORUNDU (eslesme yok/yetersiz urun): direnç bandı x2
+   - link: dumbbell -> /tr/kategori/agirliklar-dambillar x2
+   - link: atlama ipi -> /tr/kategori/okul-dostu-urunler-atlama-ipleri x2
+
+[46] evde-yapabileceginiz-10-etkili-egzersiz (translations#18763 en) 954 -> 954 bayt
+
+[47] kas-kutlesi-artirmak-icin-5-altin-kural (blogs#47 base) 11576 -> 6553 bayt
+   - ikinci Kisa cevap paragrafi silindi
+   - sablon bolum silindi: Pratik Uygulama Planı
+   - sablon bolum silindi: Alışveriş ve Kullanım Kontrol Listesi
+   - sablon bolum silindi: Ne Zaman Güncelleme Yapılmalı?
+   - sablon bolum silindi: Editoryal Değerlendirme
+   - sablon bolum silindi: Takip, Ölçüm ve Karar Verme
+   - link: whey protein -> /tr/kategori/whey-protein x2
+   - link: kreatin -> /tr/kategori/kreatin x2
+   - link: dumbbell -> /tr/kategori/agirliklar-dambillar x2
+   - link KORUNDU (eslesme yok/yetersiz urun): direnç bandı
+   - link KORUNDU (eslesme yok/yetersiz urun): shaker x2
+
+[47] kas-kutlesi-artirmak-icin-5-altin-kural (translations#18778 en) 1014 -> 1014 bayt
+
+[47] kas-kutlesi-artirmak-icin-5-altin-kural (translations#38702 tr) 11576 -> 6553 bayt
+   - ikinci Kisa cevap paragrafi silindi
+   - sablon bolum silindi: Pratik Uygulama Planı
+   - sablon bolum silindi: Alışveriş ve Kullanım Kontrol Listesi
+   - sablon bolum silindi: Ne Zaman Güncelleme Yapılmalı?
+   - sablon bolum silindi: Editoryal Değerlendirme
+   - sablon bolum silindi: Takip, Ölçüm ve Karar Verme
+   - link: whey protein -> /tr/kategori/whey-protein x2
+   - link: kreatin -> /tr/kategori/kreatin x2
+   - link: dumbbell -> /tr/kategori/agirliklar-dambillar x2
+   - link KORUNDU (eslesme yok/yetersiz urun): direnç bandı
+   - link KORUNDU (eslesme yok/yetersiz urun): shaker x2
+
+[48] sporcular-icin-en-iyi-10-protein-kaynagi (blogs#48 base) 12516 -> 7394 bayt
+   - ikinci Kisa cevap paragrafi silindi
+   - sablon bolum silindi: Pratik Uygulama Planı
+   - sablon bolum silindi: Alışveriş ve Kullanım Kontrol Listesi
+   - sablon bolum silindi: Ne Zaman Güncelleme Yapılmalı?
+   - sablon bolum silindi: Editoryal Değerlendirme
+   - sablon bolum silindi: Takip, Ölçüm ve Karar Verme
+   - link: whey protein -> /tr/kategori/whey-protein x2
+   - link: protein bar -> /tr/kategori/protein-bar x2
+   - link KORUNDU (eslesme yok/yetersiz urun): shaker x2
+
+[48] sporcular-icin-en-iyi-10-protein-kaynagi (translations#18783 df) 935 -> 935 bayt
+
+[48] sporcular-icin-en-iyi-10-protein-kaynagi (translations#18788 tr) 12516 -> 7394 bayt
+   - ikinci Kisa cevap paragrafi silindi
+   - sablon bolum silindi: Pratik Uygulama Planı
+   - sablon bolum silindi: Alışveriş ve Kullanım Kontrol Listesi
+   - sablon bolum silindi: Ne Zaman Güncelleme Yapılmalı?
+   - sablon bolum silindi: Editoryal Değerlendirme
+   - sablon bolum silindi: Takip, Ölçüm ve Karar Verme
+   - link: whey protein -> /tr/kategori/whey-protein x2
+   - link: protein bar -> /tr/kategori/protein-bar x2
+   - link KORUNDU (eslesme yok/yetersiz urun): shaker x2
+
+[48] sporcular-icin-en-iyi-10-protein-kaynagi (translations#18793 en) 897 -> 897 bayt
+
+[49] antrenman-oncesi-ve-sonrasi-ne-yemeli (blogs#49 base) 11444 -> 2307 bayt
+   - sablon bolum silindi: Detaylı Rehber Planı
+   - sablon bolum silindi: Kimler İçin Uygun?
+   - sablon bolum silindi: Uygulama Adımları
+   - sablon bolum silindi: Alışverişte Dikkat Edilecekler
+   - sablon bolum silindi: Sık Yapılan Hatalar
+   - sablon bolum silindi: Haftalık Kullanım Önerisi
+   - sablon bolum silindi: Uygulama Senaryoları
+   - sablon bolum silindi: Bakım, Saklama ve Uzun Ömür
+   - sablon bolum silindi: Karar Matrisi
+   - sablon bolum silindi: Sık Sorulan Sorular
+   - sablon bolum silindi: Son Kontrol Listesi
+   - sablon bolum silindi: Editoryal Not
+   - link: protein bar -> /tr/kategori/protein-bar
+   - link: whey protein -> /tr/kategori/whey-protein
+   - link KORUNDU (eslesme yok/yetersiz urun): shaker
+   - link: enerji jeli -> /tr/kategori/karbonhidrat-ve-jel
+
+[49] antrenman-oncesi-ve-sonrasi-ne-yemeli (translations#18798 df) 892 -> 892 bayt
+
+[49] antrenman-oncesi-ve-sonrasi-ne-yemeli (translations#18803 tr) 11444 -> 2307 bayt
+   - sablon bolum silindi: Detaylı Rehber Planı
+   - sablon bolum silindi: Kimler İçin Uygun?
+   - sablon bolum silindi: Uygulama Adımları
+   - sablon bolum silindi: Alışverişte Dikkat Edilecekler
+   - sablon bolum silindi: Sık Yapılan Hatalar
+   - sablon bolum silindi: Haftalık Kullanım Önerisi
+   - sablon bolum silindi: Uygulama Senaryoları
+   - sablon bolum silindi: Bakım, Saklama ve Uzun Ömür
+   - sablon bolum silindi: Karar Matrisi
+   - sablon bolum silindi: Sık Sorulan Sorular
+   - sablon bolum silindi: Son Kontrol Listesi
+   - sablon bolum silindi: Editoryal Not
+   - link: protein bar -> /tr/kategori/protein-bar
+   - link: whey protein -> /tr/kategori/whey-protein
+   - link KORUNDU (eslesme yok/yetersiz urun): shaker
+   - link: enerji jeli -> /tr/kategori/karbonhidrat-ve-jel
+
+[49] antrenman-oncesi-ve-sonrasi-ne-yemeli (translations#18808 en) 825 -> 825 bayt
+
+[50] ilk-maratonunuza-nasil-hazirlanirsiniz (blogs#50 base) 12838 -> 7808 bayt
+   - ikinci Kisa cevap paragrafi silindi
+   - sablon bolum silindi: Pratik Uygulama Planı
+   - sablon bolum silindi: Alışveriş ve Kullanım Kontrol Listesi
+   - sablon bolum silindi: Ne Zaman Güncelleme Yapılmalı?
+   - sablon bolum silindi: Editoryal Değerlendirme
+   - sablon bolum silindi: Takip, Ölçüm ve Karar Verme
+   - link KORUNDU (eslesme yok/yetersiz urun): koşu ayakkabısı x2
+   - link KORUNDU (eslesme yok/yetersiz urun): spor saat x2
+   - link: koşu çorabı -> /tr/kategori/spor-corabi x2
+   - link: enerji jeli -> /tr/kategori/karbonhidrat-ve-jel x2
+
+[50] ilk-maratonunuza-nasil-hazirlanirsiniz (translations#18813 df) 984 -> 984 bayt
+
+[50] ilk-maratonunuza-nasil-hazirlanirsiniz (translations#18818 tr) 12838 -> 7808 bayt
+   - ikinci Kisa cevap paragrafi silindi
+   - sablon bolum silindi: Pratik Uygulama Planı
+   - sablon bolum silindi: Alışveriş ve Kullanım Kontrol Listesi
+   - sablon bolum silindi: Ne Zaman Güncelleme Yapılmalı?
+   - sablon bolum silindi: Editoryal Değerlendirme
+   - sablon bolum silindi: Takip, Ölçüm ve Karar Verme
+   - link KORUNDU (eslesme yok/yetersiz urun): koşu ayakkabısı x2
+   - link KORUNDU (eslesme yok/yetersiz urun): spor saat x2
+   - link: koşu çorabı -> /tr/kategori/spor-corabi x2
+   - link: enerji jeli -> /tr/kategori/karbonhidrat-ve-jel x2
+
+[50] ilk-maratonunuza-nasil-hazirlanirsiniz (translations#18823 en) 917 -> 917 bayt
+
+[51] dogru-kosu-ayakkabisi-nasil-secilir (blogs#51 base) 11976 -> 6924 bayt
+   - ikinci Kisa cevap paragrafi silindi
+   - sablon bolum silindi: Pratik Uygulama Planı
+   - sablon bolum silindi: Alışveriş ve Kullanım Kontrol Listesi
+   - sablon bolum silindi: Ne Zaman Güncelleme Yapılmalı?
+   - sablon bolum silindi: Editoryal Değerlendirme
+   - sablon bolum silindi: Takip, Ölçüm ve Karar Verme
+   - link KORUNDU (eslesme yok/yetersiz urun): koşu ayakkabısı x2
+   - link KORUNDU (eslesme yok/yetersiz urun): trail ayakkabı x2
+   - link: koşu çorabı -> /tr/kategori/spor-corabi x2
+   - link KORUNDU (eslesme yok/yetersiz urun): spor saat
+
+[51] dogru-kosu-ayakkabisi-nasil-secilir (translations#18828 df) 962 -> 962 bayt
+
+[51] dogru-kosu-ayakkabisi-nasil-secilir (translations#18833 tr) 11976 -> 6924 bayt
+   - ikinci Kisa cevap paragrafi silindi
+   - sablon bolum silindi: Pratik Uygulama Planı
+   - sablon bolum silindi: Alışveriş ve Kullanım Kontrol Listesi
+   - sablon bolum silindi: Ne Zaman Güncelleme Yapılmalı?
+   - sablon bolum silindi: Editoryal Değerlendirme
+   - sablon bolum silindi: Takip, Ölçüm ve Karar Verme
+   - link KORUNDU (eslesme yok/yetersiz urun): koşu ayakkabısı x2
+   - link KORUNDU (eslesme yok/yetersiz urun): trail ayakkabı x2
+   - link: koşu çorabı -> /tr/kategori/spor-corabi x2
+   - link KORUNDU (eslesme yok/yetersiz urun): spor saat
+
+[51] dogru-kosu-ayakkabisi-nasil-secilir (translations#18838 en) 908 -> 908 bayt
+
+[52] trekking-icin-ekipman-listesi (blogs#52 base) 11591 -> 2443 bayt
+   - sablon bolum silindi: Detaylı Rehber Planı
+   - sablon bolum silindi: Kimler İçin Uygun?
+   - sablon bolum silindi: Uygulama Adımları
+   - sablon bolum silindi: Alışverişte Dikkat Edilecekler
+   - sablon bolum silindi: Sık Yapılan Hatalar
+   - sablon bolum silindi: Haftalık Kullanım Önerisi
+   - sablon bolum silindi: Uygulama Senaryoları
+   - sablon bolum silindi: Bakım, Saklama ve Uzun Ömür
+   - sablon bolum silindi: Karar Matrisi
+   - sablon bolum silindi: Sık Sorulan Sorular
+   - sablon bolum silindi: Son Kontrol Listesi
+   - sablon bolum silindi: Editoryal Not
+   - link: trekking çantası -> /tr/kategori/sirt-cantalari
+   - link KORUNDU (eslesme yok/yetersiz urun): outdoor ayakkabı
+   - link: termos -> /tr/kategori/mataralar-termoslar
+   - link KORUNDU (eslesme yok/yetersiz urun): kafa lambası
+
+[52] trekking-icin-ekipman-listesi (translations#18843 df) 957 -> 957 bayt
+
+[52] trekking-icin-ekipman-listesi (translations#18848 tr) 11591 -> 2443 bayt
+   - sablon bolum silindi: Detaylı Rehber Planı
+   - sablon bolum silindi: Kimler İçin Uygun?
+   - sablon bolum silindi: Uygulama Adımları
+   - sablon bolum silindi: Alışverişte Dikkat Edilecekler
+   - sablon bolum silindi: Sık Yapılan Hatalar
+   - sablon bolum silindi: Haftalık Kullanım Önerisi
+   - sablon bolum silindi: Uygulama Senaryoları
+   - sablon bolum silindi: Bakım, Saklama ve Uzun Ömür
+   - sablon bolum silindi: Karar Matrisi
+   - sablon bolum silindi: Sık Sorulan Sorular
+   - sablon bolum silindi: Son Kontrol Listesi
+   - sablon bolum silindi: Editoryal Not
+   - link: trekking çantası -> /tr/kategori/sirt-cantalari
+   - link KORUNDU (eslesme yok/yetersiz urun): outdoor ayakkabı
+   - link: termos -> /tr/kategori/mataralar-termoslar
+   - link KORUNDU (eslesme yok/yetersiz urun): kafa lambası
+
+[52] trekking-icin-ekipman-listesi (translations#18853 en) 871 -> 871 bayt
+
+[53] kamp-cadiri-secim-rehberi (blogs#53 base) 11484 -> 2346 bayt
+   - sablon bolum silindi: Detaylı Rehber Planı
+   - sablon bolum silindi: Kimler İçin Uygun?
+   - sablon bolum silindi: Uygulama Adımları
+   - sablon bolum silindi: Alışverişte Dikkat Edilecekler
+   - sablon bolum silindi: Sık Yapılan Hatalar
+   - sablon bolum silindi: Haftalık Kullanım Önerisi
+   - sablon bolum silindi: Uygulama Senaryoları
+   - sablon bolum silindi: Bakım, Saklama ve Uzun Ömür
+   - sablon bolum silindi: Karar Matrisi
+   - sablon bolum silindi: Sık Sorulan Sorular
+   - sablon bolum silindi: Son Kontrol Listesi
+   - sablon bolum silindi: Editoryal Not
+   - link: kamp çadırı -> /tr/kategori/cadirlar
+   - link: uyku tulumu -> /tr/kategori/uyku-tulumlari
+   - link KORUNDU (eslesme yok/yetersiz urun): mat
+   - link KORUNDU (eslesme yok/yetersiz urun): kamp ocağı
+
+[53] kamp-cadiri-secim-rehberi (translations#18858 df) 908 -> 908 bayt
+
+[53] kamp-cadiri-secim-rehberi (translations#18863 tr) 11484 -> 2346 bayt
+   - sablon bolum silindi: Detaylı Rehber Planı
+   - sablon bolum silindi: Kimler İçin Uygun?
+   - sablon bolum silindi: Uygulama Adımları
+   - sablon bolum silindi: Alışverişte Dikkat Edilecekler
+   - sablon bolum silindi: Sık Yapılan Hatalar
+   - sablon bolum silindi: Haftalık Kullanım Önerisi
+   - sablon bolum silindi: Uygulama Senaryoları
+   - sablon bolum silindi: Bakım, Saklama ve Uzun Ömür
+   - sablon bolum silindi: Karar Matrisi
+   - sablon bolum silindi: Sık Sorulan Sorular
+   - sablon bolum silindi: Son Kontrol Listesi
+   - sablon bolum silindi: Editoryal Not
+   - link: kamp çadırı -> /tr/kategori/cadirlar
+   - link: uyku tulumu -> /tr/kategori/uyku-tulumlari
+   - link KORUNDU (eslesme yok/yetersiz urun): mat
+   - link KORUNDU (eslesme yok/yetersiz urun): kamp ocağı
+
+[53] kamp-cadiri-secim-rehberi (translations#18868 en) 868 -> 868 bayt
+
+[54] yol-bisikleti-mi-dag-bisikleti-mi (blogs#54 base) 11441 -> 2316 bayt
+   - sablon bolum silindi: Detaylı Rehber Planı
+   - sablon bolum silindi: Kimler İçin Uygun?
+   - sablon bolum silindi: Uygulama Adımları
+   - sablon bolum silindi: Alışverişte Dikkat Edilecekler
+   - sablon bolum silindi: Sık Yapılan Hatalar
+   - sablon bolum silindi: Haftalık Kullanım Önerisi
+   - sablon bolum silindi: Uygulama Senaryoları
+   - sablon bolum silindi: Bakım, Saklama ve Uzun Ömür
+   - sablon bolum silindi: Karar Matrisi
+   - sablon bolum silindi: Sık Sorulan Sorular
+   - sablon bolum silindi: Son Kontrol Listesi
+   - sablon bolum silindi: Editoryal Not
+   - link KORUNDU (eslesme yok/yetersiz urun): bisiklet kaskı
+   - link: bisiklet eldiveni -> /tr/kategori/bisiklet
+   - link KORUNDU (eslesme yok/yetersiz urun): bisiklet aydınlatma
+
+[54] yol-bisikleti-mi-dag-bisikleti-mi (translations#18873 df) 1000 -> 1000 bayt
+
+[54] yol-bisikleti-mi-dag-bisikleti-mi (translations#18878 tr) 11441 -> 2316 bayt
+   - sablon bolum silindi: Detaylı Rehber Planı
+   - sablon bolum silindi: Kimler İçin Uygun?
+   - sablon bolum silindi: Uygulama Adımları
+   - sablon bolum silindi: Alışverişte Dikkat Edilecekler
+   - sablon bolum silindi: Sık Yapılan Hatalar
+   - sablon bolum silindi: Haftalık Kullanım Önerisi
+   - sablon bolum silindi: Uygulama Senaryoları
+   - sablon bolum silindi: Bakım, Saklama ve Uzun Ömür
+   - sablon bolum silindi: Karar Matrisi
+   - sablon bolum silindi: Sık Sorulan Sorular
+   - sablon bolum silindi: Son Kontrol Listesi
+   - sablon bolum silindi: Editoryal Not
+   - link KORUNDU (eslesme yok/yetersiz urun): bisiklet kaskı
+   - link: bisiklet eldiveni -> /tr/kategori/bisiklet
+   - link KORUNDU (eslesme yok/yetersiz urun): bisiklet aydınlatma
+
+[54] yol-bisikleti-mi-dag-bisikleti-mi (translations#18883 en) 915 -> 915 bayt
+
+[55] yeni-baslayanlar-icin-yoga-5-temel-poz (blogs#55 base) 11472 -> 2337 bayt
+   - sablon bolum silindi: Detaylı Rehber Planı
+   - sablon bolum silindi: Kimler İçin Uygun?
+   - sablon bolum silindi: Uygulama Adımları
+   - sablon bolum silindi: Alışverişte Dikkat Edilecekler
+   - sablon bolum silindi: Sık Yapılan Hatalar
+   - sablon bolum silindi: Haftalık Kullanım Önerisi
+   - sablon bolum silindi: Uygulama Senaryoları
+   - sablon bolum silindi: Bakım, Saklama ve Uzun Ömür
+   - sablon bolum silindi: Karar Matrisi
+   - sablon bolum silindi: Sık Sorulan Sorular
+   - sablon bolum silindi: Son Kontrol Listesi
+   - sablon bolum silindi: Editoryal Not
+   - link: yoga matı -> /tr/kategori/yoga-pilates
+   - link: pilates topu -> /tr/kategori/yoga-pilates
+   - link KORUNDU (eslesme yok/yetersiz urun): esneme bandı
+
+[55] yeni-baslayanlar-icin-yoga-5-temel-poz (translations#18888 df) 987 -> 987 bayt
+
+[55] yeni-baslayanlar-icin-yoga-5-temel-poz (translations#18893 tr) 11472 -> 2337 bayt
+   - sablon bolum silindi: Detaylı Rehber Planı
+   - sablon bolum silindi: Kimler İçin Uygun?
+   - sablon bolum silindi: Uygulama Adımları
+   - sablon bolum silindi: Alışverişte Dikkat Edilecekler
+   - sablon bolum silindi: Sık Yapılan Hatalar
+   - sablon bolum silindi: Haftalık Kullanım Önerisi
+   - sablon bolum silindi: Uygulama Senaryoları
+   - sablon bolum silindi: Bakım, Saklama ve Uzun Ömür
+   - sablon bolum silindi: Karar Matrisi
+   - sablon bolum silindi: Sık Sorulan Sorular
+   - sablon bolum silindi: Son Kontrol Listesi
+   - sablon bolum silindi: Editoryal Not
+   - link: yoga matı -> /tr/kategori/yoga-pilates
+   - link: pilates topu -> /tr/kategori/yoga-pilates
+   - link KORUNDU (eslesme yok/yetersiz urun): esneme bandı
+
+[55] yeni-baslayanlar-icin-yoga-5-temel-poz (translations#18898 en) 911 -> 911 bayt
+
+[56] 2024-en-iyi-akilli-saatler-karsilastirma (blogs#56 base) 11501 -> 2341 bayt
+   - sablon bolum silindi: Detaylı Rehber Planı
+   - sablon bolum silindi: Kimler İçin Uygun?
+   - sablon bolum silindi: Uygulama Adımları
+   - sablon bolum silindi: Alışverişte Dikkat Edilecekler
+   - sablon bolum silindi: Sık Yapılan Hatalar
+   - sablon bolum silindi: Haftalık Kullanım Önerisi
+   - sablon bolum silindi: Uygulama Senaryoları
+   - sablon bolum silindi: Bakım, Saklama ve Uzun Ömür
+   - sablon bolum silindi: Karar Matrisi
+   - sablon bolum silindi: Sık Sorulan Sorular
+   - sablon bolum silindi: Son Kontrol Listesi
+   - sablon bolum silindi: Editoryal Not
+   - link KORUNDU (eslesme yok/yetersiz urun): spor saat
+   - link KORUNDU (eslesme yok/yetersiz urun): akıllı saat
+   - link KORUNDU (eslesme yok/yetersiz urun): koşu ekipmanı
+
+[56] 2024-en-iyi-akilli-saatler-karsilastirma (translations#18903 df) 922 -> 922 bayt
+
+[56] 2024-en-iyi-akilli-saatler-karsilastirma (translations#18908 tr) 11501 -> 2341 bayt
+   - sablon bolum silindi: Detaylı Rehber Planı
+   - sablon bolum silindi: Kimler İçin Uygun?
+   - sablon bolum silindi: Uygulama Adımları
+   - sablon bolum silindi: Alışverişte Dikkat Edilecekler
+   - sablon bolum silindi: Sık Yapılan Hatalar
+   - sablon bolum silindi: Haftalık Kullanım Önerisi
+   - sablon bolum silindi: Uygulama Senaryoları
+   - sablon bolum silindi: Bakım, Saklama ve Uzun Ömür
+   - sablon bolum silindi: Karar Matrisi
+   - sablon bolum silindi: Sık Sorulan Sorular
+   - sablon bolum silindi: Son Kontrol Listesi
+   - sablon bolum silindi: Editoryal Not
+   - link KORUNDU (eslesme yok/yetersiz urun): spor saat
+   - link KORUNDU (eslesme yok/yetersiz urun): akıllı saat
+   - link KORUNDU (eslesme yok/yetersiz urun): koşu ekipmanı
+
+[56] 2024-en-iyi-akilli-saatler-karsilastirma (translations#18913 en) 864 -> 864 bayt
+
+[57] whey-protein-markalari-karsilastirmasi (blogs#57 base) 11609 -> 6529 bayt
+   - ikinci Kisa cevap paragrafi silindi
+   - sablon bolum silindi: Pratik Uygulama Planı
+   - sablon bolum silindi: Alışveriş ve Kullanım Kontrol Listesi
+   - sablon bolum silindi: Ne Zaman Güncelleme Yapılmalı?
+   - sablon bolum silindi: Editoryal Değerlendirme
+   - sablon bolum silindi: Takip, Ölçüm ve Karar Verme
+   - link: whey protein -> /tr/kategori/whey-protein x2
+   - link: isolate -> /tr/kategori/izole-protein x2
+   - link KORUNDU (eslesme yok/yetersiz urun): shaker x2
+   - link: protein bar -> /tr/kategori/protein-bar
+
+[57] whey-protein-markalari-karsilastirmasi (translations#18918 df) 972 -> 972 bayt
+
+[57] whey-protein-markalari-karsilastirmasi (translations#18923 tr) 11609 -> 6529 bayt
+   - ikinci Kisa cevap paragrafi silindi
+   - sablon bolum silindi: Pratik Uygulama Planı
+   - sablon bolum silindi: Alışveriş ve Kullanım Kontrol Listesi
+   - sablon bolum silindi: Ne Zaman Güncelleme Yapılmalı?
+   - sablon bolum silindi: Editoryal Değerlendirme
+   - sablon bolum silindi: Takip, Ölçüm ve Karar Verme
+   - link: whey protein -> /tr/kategori/whey-protein x2
+   - link: isolate -> /tr/kategori/izole-protein x2
+   - link KORUNDU (eslesme yok/yetersiz urun): shaker x2
+   - link: protein bar -> /tr/kategori/protein-bar
+
+[57] whey-protein-markalari-karsilastirmasi (translations#18928 en) 888 -> 888 bayt
+
+[58] 100-kilo-veren-adam-ahmetin-hikayesi (blogs#58 base) 11511 -> 2464 bayt
+   - sablon bolum silindi: Detaylı Rehber Planı
+   - sablon bolum silindi: Kimler İçin Uygun?
+   - sablon bolum silindi: Uygulama Adımları
+   - sablon bolum silindi: Alışverişte Dikkat Edilecekler
+   - sablon bolum silindi: Sık Yapılan Hatalar
+   - sablon bolum silindi: Haftalık Kullanım Önerisi
+   - sablon bolum silindi: Uygulama Senaryoları
+   - sablon bolum silindi: Bakım, Saklama ve Uzun Ömür
+   - sablon bolum silindi: Karar Matrisi
+   - sablon bolum silindi: Sık Sorulan Sorular
+   - sablon bolum silindi: Son Kontrol Listesi
+   - sablon bolum silindi: Editoryal Not
+   - link KORUNDU (eslesme yok/yetersiz urun): yürüyüş ayakkabısı
+   - link: fitness ekipmanı -> /tr/kategori/fitness-egzersiz
+   - link KORUNDU (eslesme yok/yetersiz urun): spor saat
+   - ornek anlatim notu eklendi
+
+[58] 100-kilo-veren-adam-ahmetin-hikayesi (translations#18933 df) 963 -> 1060 bayt
+   - ornek anlatim notu eklendi
+
+[58] 100-kilo-veren-adam-ahmetin-hikayesi (translations#18938 tr) 11511 -> 2464 bayt
+   - sablon bolum silindi: Detaylı Rehber Planı
+   - sablon bolum silindi: Kimler İçin Uygun?
+   - sablon bolum silindi: Uygulama Adımları
+   - sablon bolum silindi: Alışverişte Dikkat Edilecekler
+   - sablon bolum silindi: Sık Yapılan Hatalar
+   - sablon bolum silindi: Haftalık Kullanım Önerisi
+   - sablon bolum silindi: Uygulama Senaryoları
+   - sablon bolum silindi: Bakım, Saklama ve Uzun Ömür
+   - sablon bolum silindi: Karar Matrisi
+   - sablon bolum silindi: Sık Sorulan Sorular
+   - sablon bolum silindi: Son Kontrol Listesi
+   - sablon bolum silindi: Editoryal Not
+   - link KORUNDU (eslesme yok/yetersiz urun): yürüyüş ayakkabısı
+   - link: fitness ekipmanı -> /tr/kategori/fitness-egzersiz
+   - link KORUNDU (eslesme yok/yetersiz urun): spor saat
+   - ornek anlatim notu eklendi
+
+[58] 100-kilo-veren-adam-ahmetin-hikayesi (translations#18943 en) 938 -> 1038 bayt
+   - ornek anlatim notu eklendi
+
+[59] kosucu-dizi-nedenleri-ve-tedavisi (blogs#59 base) 11493 -> 2652 bayt
+   - sablon bolum silindi: Detaylı Rehber Planı
+   - sablon bolum silindi: Kimler İçin Uygun?
+   - sablon bolum silindi: Uygulama Adımları
+   - sablon bolum silindi: Alışverişte Dikkat Edilecekler
+   - sablon bolum silindi: Sık Yapılan Hatalar
+   - sablon bolum silindi: Haftalık Kullanım Önerisi
+   - sablon bolum silindi: Uygulama Senaryoları
+   - sablon bolum silindi: Bakım, Saklama ve Uzun Ömür
+   - sablon bolum silindi: Karar Matrisi
+   - sablon bolum silindi: Sık Sorulan Sorular
+   - sablon bolum silindi: Son Kontrol Listesi
+   - sablon bolum silindi: Editoryal Not
+   - link KORUNDU (eslesme yok/yetersiz urun): koşu ayakkabısı
+   - link: diz desteği -> /tr/kategori/bileklik-dizlik-koruyucular
+   - link KORUNDU (eslesme yok/yetersiz urun): foam roller
+   - tibbi uyari eklendi
+
+[59] kosucu-dizi-nedenleri-ve-tedavisi (translations#18948 df) 1028 -> 1303 bayt
+   - tibbi uyari eklendi
+
+[59] kosucu-dizi-nedenleri-ve-tedavisi (translations#18953 tr) 11493 -> 2652 bayt
+   - sablon bolum silindi: Detaylı Rehber Planı
+   - sablon bolum silindi: Kimler İçin Uygun?
+   - sablon bolum silindi: Uygulama Adımları
+   - sablon bolum silindi: Alışverişte Dikkat Edilecekler
+   - sablon bolum silindi: Sık Yapılan Hatalar
+   - sablon bolum silindi: Haftalık Kullanım Önerisi
+   - sablon bolum silindi: Uygulama Senaryoları
+   - sablon bolum silindi: Bakım, Saklama ve Uzun Ömür
+   - sablon bolum silindi: Karar Matrisi
+   - sablon bolum silindi: Sık Sorulan Sorular
+   - sablon bolum silindi: Son Kontrol Listesi
+   - sablon bolum silindi: Editoryal Not
+   - link KORUNDU (eslesme yok/yetersiz urun): koşu ayakkabısı
+   - link: diz desteği -> /tr/kategori/bileklik-dizlik-koruyucular
+   - link KORUNDU (eslesme yok/yetersiz urun): foam roller
+   - tibbi uyari eklendi
+
+[59] kosucu-dizi-nedenleri-ve-tedavisi (translations#18958 en) 932 -> 1194 bayt
+   - tibbi uyari eklendi
+
+[60] serbest-stil-yuzme-teknigi-adim-adim-rehber (blogs#60 base) 11658 -> 2493 bayt
+   - sablon bolum silindi: Detaylı Rehber Planı
+   - sablon bolum silindi: Kimler İçin Uygun?
+   - sablon bolum silindi: Uygulama Adımları
+   - sablon bolum silindi: Alışverişte Dikkat Edilecekler
+   - sablon bolum silindi: Sık Yapılan Hatalar
+   - sablon bolum silindi: Haftalık Kullanım Önerisi
+   - sablon bolum silindi: Uygulama Senaryoları
+   - sablon bolum silindi: Bakım, Saklama ve Uzun Ömür
+   - sablon bolum silindi: Karar Matrisi
+   - sablon bolum silindi: Sık Sorulan Sorular
+   - sablon bolum silindi: Son Kontrol Listesi
+   - sablon bolum silindi: Editoryal Not
+   - link: yüzücü gözlüğü -> /tr/kategori/yuzucu-gozlugu
+   - link: yüzme bonesi -> /tr/kategori/yuzucu-gozlugu
+   - link: yüzme tahtası -> /tr/kategori/yuzucu-gozlugu
+
+[60] serbest-stil-yuzme-teknigi-adim-adim-rehber (translations#18963 df) 1086 -> 1086 bayt
+
+[60] serbest-stil-yuzme-teknigi-adim-adim-rehber (translations#18968 tr) 11658 -> 2493 bayt
+   - sablon bolum silindi: Detaylı Rehber Planı
+   - sablon bolum silindi: Kimler İçin Uygun?
+   - sablon bolum silindi: Uygulama Adımları
+   - sablon bolum silindi: Alışverişte Dikkat Edilecekler
+   - sablon bolum silindi: Sık Yapılan Hatalar
+   - sablon bolum silindi: Haftalık Kullanım Önerisi
+   - sablon bolum silindi: Uygulama Senaryoları
+   - sablon bolum silindi: Bakım, Saklama ve Uzun Ömür
+   - sablon bolum silindi: Karar Matrisi
+   - sablon bolum silindi: Sık Sorulan Sorular
+   - sablon bolum silindi: Son Kontrol Listesi
+   - sablon bolum silindi: Editoryal Not
+   - link: yüzücü gözlüğü -> /tr/kategori/yuzucu-gozlugu
+   - link: yüzme bonesi -> /tr/kategori/yuzucu-gozlugu
+   - link: yüzme tahtası -> /tr/kategori/yuzucu-gozlugu
+
+[60] serbest-stil-yuzme-teknigi-adim-adim-rehber (translations#18973 en) 1055 -> 1055 bayt
+
+-- kosucu-dizi: tedavi/iddia iceren cumleler (DEGISTIRILMEDI, incele) --
+   * Ağrı devam ediyorsa koşuya ara vermek, yükü azaltmak ve fizyoterapi değerlendirmesi almak güvenli yaklaşımdır.
+   * Tedavi
+   * İlk aşamada RICE protokolü (Dinlenme, Buz, Kompresyon, Elevasyon).
+   * Ardından fizik tedavi ve güçlendirme egzersizleri.
+   * Önleme
+   * Kuadriseps ve kalça kaslarını güçlendirin.
+   * Ne Zaman Doktora Gitmeli?
+   * Ağrı 2 haftadan uzun sürerse, şişlik varsa veya hareket kısıtlılığı oluşursa mutlaka doktora başvurun.
+   * Koşucu Dizi: Nedenleri ve Tedavisi konusunu değerlendirirken sadece kısa bir öneri listesine bakmak yeterli değildir.
+   * Bu içerik, konuya yeni başlayanlar kadar seçimlerini iyileştirmek isteyen deneyimli kullanıcılar için de hazırlanmıştır.
+   * Yanlış ürün veya plan seçimini azaltır
+   * Aşırı yüklenmeyi önler
+   * Gerçekçi cevap, gereksiz harcamaları ve motivasyon kaybını azaltır.
+   * Kronik rahatsızlığınız, sakatlık geçmişiniz veya özel bir sağlık koşulunuz varsa hekiminize, fizyoterapistinize ya da diyetisyeninize danışmanız önerilir.
+
+Degisecek kayit: 34
+DRY-RUN: DB degismedi. Uygulamak icin DRY=0.

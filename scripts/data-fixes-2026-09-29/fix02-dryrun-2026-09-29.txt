@@ -1,0 +1,227 @@
+=== FIX 02 kategori birlestirme (DRY-RUN) ===
+Tasinacak urun: 199
+  1088:apparel -> giyim                                   18
+  1088:bike_glove -> bisiklet                             3
+  1088:bottle -> mataralar-termoslar                      1
+  1088:cardio -> kardiyo-ekipmanlari                      2
+  1088:crossfit -> crossfit                               7
+  1088:fallback -> fitness-egzersiz                       58
+  1088:towel -> havlu                                     6
+  1088:weights -> agirliklar-dambillar                    48
+  1088:yoga_pilates -> yoga-pilates                       32
+  explicit -> bandaj                                      1
+  explicit -> boks-torbasi                                1
+  explicit -> dovus-sporlari                              6
+  explicit -> guc-ve-performans                           2
+  explicit -> lapa                                        2
+  explicit -> okul-dostu-urunler-atlama-ipleri            1
+  explicit -> sivi-karnitin-l-carnitine                   2
+  explicit -> spor-aletleri                               6
+  explicit -> uyku-tulumlari                              1
+  explicit -> whey-protein                                2
+Kapanacak kategoriler:
+  [732] tek-kullanim status=1 -> 0 | tasima sonrasi kalan urun=0 aktif cocuk=0
+  [734] tek-kullanimliklar status=1 -> 0 | tasima sonrasi kalan urun=0 aktif cocuk=0
+  [686] diger-ekipmanlar status=1 -> 0 | tasima sonrasi kalan urun=0 aktif cocuk=0
+  [697] spor-ekipmani status=1 -> 0 | tasima sonrasi kalan urun=0 aktif cocuk=0
+  [1088] spor-outdoor status=1 -> 0 | tasima sonrasi kalan urun=0 aktif cocuk=0
+MOVE	3292	732	493	explicit	Muscle Pump Wpc Instant Whey Kurabiye 30 Gr
+MOVE	3406	732	493	explicit	Muscle Pump Wpc Instant Whey Çilek 30 Gr
+MOVE	3302	734	733	explicit	Muscle Pump No Fat Thermo L-Carnitine Ananas 100 mL x 20 Shot
+MOVE	3303	734	733	explicit	Muscle Pump No Fat Thermo L-Carnitine Karpuz 100 mL x 20 Shot
+MOVE	3330	734	518	explicit	Muscle Pump Pre-Venom Powder Ananas 17 Gr
+MOVE	3333	734	518	explicit	Muscle Pump Pre-Venom Powder Ananas 20 Saşe
+MOVE	1773	686	801	explicit	Everlast Ayarlanabilir Siyah El Yayı
+MOVE	1830	686	817	explicit	Everlast Evergel Mouth Guard Mavi/Beyaz Dişlik
+MOVE	1831	686	817	explicit	Everlast Evergel Mouth Guard Yeşil/Beyaz Dişlik
+MOVE	1875	686	817	explicit	Everlast Double Mouth Guard Dişlik
+MOVE	1876	686	817	explicit	Everlast Everhield Single Mouth Guard Dişlik Siyah/Kırmızı
+MOVE	1877	686	817	explicit	Everlast Everhield Double Mouth Guard Dişlik Gri
+MOVE	1878	686	817	explicit	Everlast Everhield Double Mouth Guard Dişlik Siyah/Kırmızı
+MOVE	1879	686	699	explicit	Everlast Powerlock R Focus Lapa Siyah/Gri
+MOVE	2015	686	699	explicit	Everlast Core Paddle
+MOVE	2026	686	684	explicit	Everlast Evergel Hand Wraps Siyah/Pembe El Sargısı
+MOVE	1833	697	702	explicit	Everlast Elite Nevater 100 LB Boks Torbası
+MOVE	2033	686	814	explicit	Everlast Atlama İpi 335 cm
+MOVE	6404	375	801	explicit	10 Adet Tatami Minderi 100x100 cm 13 mm YEŞİL
+MOVE	6405	375	801	explicit	Tatami Minderi 100x100 cm 13 mm KIRMIZI
+MOVE	6406	375	801	explicit	10 Adet Tatami Minderi 100x100 cm 13 mm KIRMIZI
+MOVE	15505	375	801	explicit	Tatami Minderi 100x100 26 mm A Kalite Çift Taraflı
+MOVE	15507	375	801	explicit	Kendinden Yapışkanlı Duvar Koruma Minderi 1.20 Cm Boy
+MOVE	195	375	380	explicit	CAMPOUT Kış Konforu Uyku Tulumu
+MOVE	885	1088	373	1088:fallback	XTR Fitness T-Bar Rowing Sabitleyici Aparat
+MOVE	893	1088	373	1088:fallback	Bona Bosu Ball Denge Topu
+MOVE	894	1088	373	1088:fallback	Avec Profesyonel Bosu Ball Denge Topu
+MOVE	895	1088	390	1088:bike_glove	Boodun Profesyonel Luminous Bisiklet Eldiveni
+MOVE	896	1088	390	1088:bike_glove	Boodun Profesyonel Mtb Bisiklet Eldiveni
+MOVE	898	1088	390	1088:bike_glove	Boodun Profesyonel Bisiklet Eldiveni
+MOVE	899	1088	375	1088:yoga_pilates	Boodun Profesyonel Fitness ve Yoga Eldiveni
+MOVE	900	1088	373	1088:fallback	Boodun Profesyonel Fitness Eldiveni
+MOVE	904	1088	375	1088:yoga_pilates	JOINFIT PRO Anti-Burst Yoga ve Pilates Topu 75 Cm Koyu Gri
+MOVE	905	1088	373	1088:fallback	JOINFIT PRO Muscle Relaxation Foam Roller
+MOVE	14189	1088	707	1088:towel	Eprotein Fitness-Antrenman Havlusu Saks Mavi
+MOVE	14213	1088	707	1088:towel	Eprotein Fitness Antrenman Havlusu Kırmızı
+MOVE	14214	1088	707	1088:towel	Eprotein Fitness Antrenman Havlusu Siyah Kırmızı Logolu
+MOVE	14215	1088	707	1088:towel	Eprotein Fitness Antrenman Havlusu Siyah
+MOVE	14216	1088	707	1088:towel	Eprotein Fitness Antrenman Havlusu Turkuvaz
+MOVE	14222	1088	373	1088:fallback	Grenade Shaker 600 ml
+MOVE	14223	1088	662	1088:apparel	Sci-Mx Atlet
+MOVE	14228	1088	373	1088:fallback	Eprotein Lifting Straps Ağırlık Kayışı
+MOVE	14229	1088	662	1088:apparel	Sci-Mx Sportwear Sweat Kapüşonlu
+MOVE	14230	1088	373	1088:fallback	Hardline ince Bileklik Go Hard Or Go Home
+MOVE	14240	1088	662	1088:apparel	Full Power Gym Spor Atlet
+MOVE	14274	1088	662	1088:apparel	Full Power Gym Alt Eşofman Siyah
+MOVE	14275	1088	662	1088:apparel	Full Power Gym Alt Eşofman Lacivert
+MOVE	14278	1088	662	1088:apparel	Full Power Gym Alt Eşofman Beyaz Siyah Çizgili
+MOVE	14279	1088	662	1088:apparel	Full Power Gym Alt Eşofman Siyah Beyaz Çizgili
+MOVE	14294	1088	662	1088:apparel	Full Power Gym Ragtop Spor Tişört Beyaz Siyah Çizgili
+MOVE	14295	1088	662	1088:apparel	Full Power Gym Ragtop  Tişört Siyah
+MOVE	14300	1088	662	1088:apparel	Full Power Gym Ragtop Tişört Antrasit
+MOVE	14311	1088	662	1088:apparel	Full Power Gym Fileli Atlet Kırmızı
+MOVE	14312	1088	662	1088:apparel	Full Power Gym Fileli Atlet Beyaz
+MOVE	14313	1088	662	1088:apparel	Full Power Gym Fileli Atlet Hardal Sarısı
+MOVE	14330	1088	373	1088:fallback	AmazonBasics Direnç Lastiği ve Egzersiz Bandı Kırmızı
+MOVE	14335	1088	707	1088:towel	Cellucor Fitness Antrenman Havlusu Siyah
+MOVE	14337	1088	375	1088:yoga_pilates	Tusi Yoga Matı ve Pilates Minderi Kilim Desenli Mavi 6 mm
+MOVE	14338	1088	375	1088:yoga_pilates	Tusi Yoga Matı ve Pilates Minderi Kilim Desenli Mor
+MOVE	14339	1088	375	1088:yoga_pilates	Tusi Yoga Matı ve Pilates Minderi Pembe Düş
+MOVE	14340	1088	375	1088:yoga_pilates	Tusi Yoga Matı ve Pilates Minderi Cennet Çiçeği
+MOVE	14341	1088	375	1088:yoga_pilates	Tusi Yoga Matı ve Pilates Minderi Cennet Gezintisi
+MOVE	14342	1088	375	1088:yoga_pilates	Tusi Yoga Matı ve Pilates Minderi Egzotik Bahçe
+MOVE	14343	1088	375	1088:yoga_pilates	Tusi Yoga Matı ve Pilates Minderi Nilüfer Çiçeği
+MOVE	14344	1088	375	1088:yoga_pilates	Tusi Yoga Matı ve Pilates Minderi Aşk Barış Neşe
+MOVE	14345	1088	375	1088:yoga_pilates	Tusi Yoga Matı ve Pilates Minderi Geyik Desen
+MOVE	14347	1088	375	1088:yoga_pilates	Tusi Yoga Matı ve Pilates Minderi Mavi Gezinti
+MOVE	14348	1088	375	1088:yoga_pilates	Tusi Yoga Matı ve Pilates Minderi Mavi Düş
+MOVE	14349	1088	375	1088:yoga_pilates	Tusi Yoga Matı ve Egzersiz Minderi Kızılderili
+MOVE	14350	1088	375	1088:yoga_pilates	Tusi Yoga Matı ve Pilates Minderi Pragmatizm
+MOVE	14351	1088	375	1088:yoga_pilates	Tusi Yoga Matı ve Pilates Minderi Yıldız Desen
+MOVE	14352	1088	375	1088:yoga_pilates	Tusi Yoga Matı ve Pilates Minderi Mandala Desen
+MOVE	14356	1088	373	1088:fallback	Avec Fıstık Masaj Topu 3'lü Set
+MOVE	14358	1088	373	1088:fallback	Simo Şarjlı ve Titreşimli Profesyonel Masaj Aleti Siyah
+MOVE	14359	1088	373	1088:fallback	Simo Şarjlı ve Titreşimli Profesyonel Masaj Aleti
+MOVE	14360	1088	374	1088:weights	Avec Profesyonel Halter Seti ve Ağırlık Barı 20 Kg Sarı
+MOVE	14361	1088	374	1088:weights	Avec Profesyonel Halter Seti ve Ağırlık Barı 20 Kg Kırmızı
+MOVE	14362	1088	373	1088:fallback	Powerband Direnç Lastiği ve Egzersiz Bandı Sarı X-Light
+MOVE	14363	1088	373	1088:fallback	Powerband Direnç Lastiği ve Egzersiz Bandı Kırmızı Light
+MOVE	14364	1088	373	1088:fallback	Powerband Direnç Lastiği ve Egzersiz Bandı Siyah Medium
+MOVE	14365	1088	373	1088:fallback	Powerband Direnç Lastiği ve Egzersiz Bandı Mor X-Heavy
+MOVE	14366	1088	373	1088:fallback	Powerband Direnç Lastiği ve Egzersiz Bandı Yeşil Heavy
+MOVE	14367	1088	373	1088:fallback	Powerband Direnç Lastiği ve Egzersiz Bandı Lacivert Strong
+MOVE	14368	1088	373	1088:fallback	Xtr Fitness Profesyonel Dizlik Kırmızı Siyah
+MOVE	14383	1088	373	1088:fallback	Powerband Direnç Lastiği ve Egzersiz Bandı Hafif Direnç Seti 3 Adet
+MOVE	14384	1088	373	1088:fallback	Powerband Direnç Lastiği ve Egzersiz Bandı Yüksek Direnç Seti 3 Adet
+MOVE	14385	1088	375	1088:yoga_pilates	Tusi Yoga Matı ve Pilates Minderi Kilim Desenli Yeşil
+MOVE	14393	1088	373	1088:fallback	Boodun Profesyonel Fitness Ağırlık Eldiveni
+MOVE	14394	1088	373	1088:fallback	Boodun Profesyonel Fitness Eldiveni
+MOVE	14395	1088	805	1088:crossfit	Boodun Siyah Profesyonel Fitness ve Crossfit Eldiveni
+MOVE	14396	1088	373	1088:fallback	XTR Fitness Ayarlanabilir Step Tahtası
+MOVE	14397	1088	373	1088:fallback	Avec Profesyonel Ayarlanabilir Bench Sehpası
+MOVE	14398	1088	373	1088:fallback	XTR Fitness Tutunmalı Trambolin 106 cm
+MOVE	14399	1088	374	1088:weights	Avec Ayarlanabilir Dambıl Standı
+MOVE	14401	1088	373	1088:fallback	XTR Fitness Bilek Koruyucusu
+MOVE	14408	1088	373	1088:fallback	XTR Fitness Ağırlık Kemeri Siyah
+MOVE	14409	1088	373	1088:fallback	Xtr Fitness Rowing Bar Mideye Çekiş Aparatı Krom
+MOVE	14411	1088	373	1088:fallback	XTR Fitness Triceps Halatı Tek Kol
+MOVE	14414	1088	373	1088:fallback	XTR Fitness V Bar Triceps Aparatı
+MOVE	14415	1088	373	1088:fallback	XTR Fitness Lat Pull Dar Çekiş Aparatı
+MOVE	14422	1088	373	1088:fallback	Hardline Nutrition Pill Box Tabletlik
+MOVE	14471	1088	373	1088:fallback	XTR Fitness Triceps Halatı
+MOVE	14473	1088	662	1088:apparel	Grenade Kısa Kollu T-Shirt
+MOVE	14474	1088	374	1088:weights	XTR Fitness Dambıl Rack Standı (Ağırlıksız)
+MOVE	14475	1088	374	1088:weights	XTR Fitness Dambıl Rack Standı ve Ağırlık Seti
+MOVE	14477	1088	374	1088:weights	XTR Fitness Vinyl Neoprene Dambıl 1 Kg X 2 Adet
+MOVE	14478	1088	374	1088:weights	XTR Fitness Vinyl Neoprene Dambıl 2 Kg X 2 Adet
+MOVE	14479	1088	374	1088:weights	XTR Fitness Vinyl Neoprene Dambıl 3 Kg X 2 Adet
+MOVE	14480	1088	374	1088:weights	XTR Fitness Vinyl Neoprene Dambıl 4 Kg X 2 Adet
+MOVE	14481	1088	374	1088:weights	XTR Fitness Vinyl Neoprene Dambıl 5 Kg X 2 Adet
+MOVE	14482	1088	375	1088:yoga_pilates	XTR Fitness Yoga Matı Premium Gold Series 5 mm
+MOVE	14483	1088	805	1088:crossfit	XTR Fitness Crossfit Halatı 9m 38mm
+MOVE	14505	1088	373	1088:fallback	Powerband Direnç Lastiği X-Light Pembe
+MOVE	14506	1088	377	1088:cardio	Lofoo Sport HW3017 6095 Spin Bike
+MOVE	14507	1088	374	1088:weights	XTR Fitness Olimpik Z Bar 120 Cm Rulmanlı
+MOVE	14508	1088	374	1088:weights	XTR Fitness Profesyonel Olimpik Bar 220 Cm  Rulmanlı
+MOVE	14509	1088	805	1088:crossfit	XTR Fitness Crossfit Halatı Kılıf Korumalı 9m 38mm
+MOVE	14514	1088	375	1088:yoga_pilates	Avec Pilates Mini Ball 25 Cm
+MOVE	14523	1088	377	1088:cardio	Lofoo Sport HW3021 9066 Spin Bike
+MOVE	14526	1088	373	1088:fallback	Powerband Direnç Lastiği ve Egzersiz Bandı Pembe
+MOVE	14535	1088	373	1088:fallback	Powerhand Profesyonel Ağırlık Sehpası
+MOVE	14542	1088	374	1088:weights	XTR Fitness Olimpik Bar Holder Rack Standı 6'lı
+MOVE	14550	1088	662	1088:apparel	Full Power Gym Combat Atlet Kırmızı
+MOVE	14551	1088	662	1088:apparel	Full Power Gym Ragtop Tişört Yeşil
+MOVE	14564	1088	374	1088:weights	XTR Fitness Pro Series El ve Ayak Bilek Ağırlığı 500 gr X 2 Adet
+MOVE	14565	1088	374	1088:weights	XTR Fitness Pro Series El ve Ayak Bilek Ağırlığı 1 Kg X 2 Adet
+MOVE	14566	1088	374	1088:weights	XTR Fitness Pro Series El ve Ayak Bilek Ağırlığı 1500 Gr X 2 Adet
+MOVE	14567	1088	805	1088:crossfit	XTR Fitness Crossfit Halatı Kılıf Korumalı 12m 38mm
+MOVE	14568	1088	375	1088:yoga_pilates	İyogasports Yoga Kemeri Turuncu
+MOVE	14569	1088	375	1088:yoga_pilates	İyogasports Yoga Kemeri Gri
+MOVE	14570	1088	375	1088:yoga_pilates	İyogasports Yoga Kemeri Mavi
+MOVE	14571	1088	662	1088:apparel	Full Power Gym Rag Top Olympia  Serisi Gri
+MOVE	14581	1088	375	1088:yoga_pilates	XTR Fitness Yoga ve Pilates Çorabı
+MOVE	14582	1088	375	1088:yoga_pilates	XTR Fitness Pilates ve Aerobik Bandı 3' lü Set
+MOVE	14590	1088	373	1088:fallback	Olimp Shaker Slim Fit Series Sarı 500 ML
+MOVE	14602	1088	373	1088:fallback	Joinfit Pro Step Tahtası 3 Kademeli
+MOVE	14607	1088	374	1088:weights	Joinfit Pro Dambıl Rack Standı
+MOVE	14608	1088	373	1088:fallback	Joinfit Pro Triceps Halatı
+MOVE	14609	1088	373	1088:fallback	Joinfit Pro Tek El Çekiş Aparatı 2 Adet
+MOVE	14612	1088	374	1088:weights	Joinfit Neoprene Dambıl Gri 3 kg X 2 Adet
+MOVE	14614	1088	805	1088:crossfit	Joinfit Pro Body Power Bungee Cord 355 Cm
+MOVE	14615	1088	375	1088:yoga_pilates	JOINFIT Aerobik ve Direnç Bandı 4'lü Set
+MOVE	14616	1088	805	1088:crossfit	JOINFIT PRO Mini Hurdle Engel Seti 6 Kademe
+MOVE	14628	1088	375	1088:yoga_pilates	Joinfit Pro Yoga Matı High Density (HD) 5 mm
+MOVE	14629	1088	375	1088:yoga_pilates	JOINFIT PRO Doğal Kauçuk Yoga Mat 4.5 MM
+MOVE	14632	1088	375	1088:yoga_pilates	JOINFIT PRO Anti-Burst Yoga ve Pilates Topu 55 Cm  Siyah
+MOVE	14635	1088	373	1088:fallback	Joinfit Bileklik Wrist Straps 2 adet
+MOVE	14636	1088	373	1088:fallback	JOINFIT Katlanabilir Tutunmalı Trambolin 127X113 cm
+MOVE	14637	1088	373	1088:fallback	JOINFIT Direnç Lastiği ve Egzersiz Bandı Pembe-Gri XX-Light
+MOVE	14638	1088	373	1088:fallback	JOINFIT Direnç Lastiği ve Egzersiz Bandı Sarı-Gri X-Light
+MOVE	14639	1088	373	1088:fallback	JOINFIT Direnç Lastiği ve Egzersiz Bandı Mavi-Gri Light
+MOVE	14640	1088	373	1088:fallback	JOINFIT Direnç Lastiği ve Egzersiz Bandı Yeşil-Gri Medium
+MOVE	14641	1088	373	1088:fallback	JOINFIT Direnç Lastiği ve Egzersiz Bandı Turuncu-Gri Heavy
+MOVE	14642	1088	373	1088:fallback	JOINFIT Direnç Lastiği ve Egzersiz Bandı Kırmızı-Gri X-Heavy
+MOVE	14643	1088	373	1088:fallback	JOINFIT Direnç Lastiği ve Egzersiz Bandı Siyah-Gri XX-Heavy
+MOVE	14644	1088	805	1088:crossfit	JOINFIT Pro Crosfit Halatı 9M 38MM Kılıf Korumalı
+MOVE	14645	1088	373	1088:fallback	JOINFIT PRO Ağırlık Kemeri
+MOVE	14646	1088	374	1088:weights	JOINFIT Pro El ve Ayak Bilek Ağırlığı 250 Gr X 2 Adet
+MOVE	14647	1088	374	1088:weights	JOINFIT Pro El ve Ayak Bilek Ağırlığı 500 gr X 2 Adet
+MOVE	14648	1088	374	1088:weights	JOINFIT Pro El ve Ayak Bilek Ağırlığı 750 Gr X 2 Adet
+MOVE	14649	1088	374	1088:weights	JOINFIT Neoprene Dambıl Kırmızı 0,5 kg  X 2 Adet
+MOVE	14650	1088	374	1088:weights	JOINFIT Neoprene Dambıl Sarı 0,75 kg X 2 Adet
+MOVE	14651	1088	374	1088:weights	JOINFIT Ayarlanabilir Dambıl Seti 24 Kg
+MOVE	14652	1088	373	1088:fallback	JOINFIT Postür Düzeltme ve Bel Destekleme Ağırlık Kemeri
+MOVE	14653	1088	373	1088:fallback	JOINFIT Termal Zayıflama Kemeri
+MOVE	14655	1088	373	1088:fallback	JOINFIT Fitness ve Ağırlık Eldiveni Pembe
+MOVE	14659	1088	375	1088:yoga_pilates	XTR Fitness Kısa Yoga ve Pilates Çorabı
+MOVE	14660	1088	375	1088:yoga_pilates	XTR Fitness Kısa Yoga ve Pilates Çorabı 3'lü Set
+MOVE	14662	1088	373	1088:fallback	Xtreme Fitness Kırmızı Siyah Dizlik
+MOVE	14674	1088	373	1088:fallback	JNX Sports The Curse Skull Shaker 700 ml
+MOVE	14691	1088	381	1088:bottle	Applied Nutrition Lifestyle Suluk 1 Litre
+MOVE	15513	1088	374	1088:weights	XTR Fitness Pro Series Dambıl 7,5 kg
+MOVE	15514	1088	375	1088:yoga_pilates	JOINFIT Pro Hip Aerobik ve Egzersiz Bandı Siyah 3 Adet
+MOVE	15516	1088	374	1088:weights	XTR Fitness Pro Series Dambıl 2,5 kg
+MOVE	15517	1088	374	1088:weights	XTR Fitness Pro Series Olimpik Plaka 20 Kg
+MOVE	15520	1088	374	1088:weights	XTR Fitness Pro Series Dambıl 17,5 kg
+MOVE	15521	1088	374	1088:weights	XTR Fitness Pro Series Dambıl 20 kg
+MOVE	15522	1088	374	1088:weights	XTR Fitness Pro Series Dambıl 5 kg
+MOVE	15523	1088	374	1088:weights	XTR Fitness Pro Series Olimpik Plaka 2.5 Kg
+MOVE	15524	1088	373	1088:fallback	JOINFIT Fitness ve Ağırlık Eldiveni Gri
+MOVE	15527	1088	374	1088:weights	XTR Fitness Pro Series Olimpik Plaka 5 Kg
+MOVE	15528	1088	374	1088:weights	XTR Fitness Pro Series Dambıl 15 kg
+MOVE	15530	1088	374	1088:weights	XTR Fitness Pro Series Olimpik Plaka 10 Kg
+MOVE	15531	1088	374	1088:weights	XTR Fitness Pro Series Dambıl 10 kg
+MOVE	15532	1088	374	1088:weights	XTR Fitness Pro Series Dambıl 12,5 kg
+MOVE	15533	1088	374	1088:weights	XTR Fitness Z Barbell (Sabit) 20 Kg
+MOVE	15534	1088	374	1088:weights	XTR Fitness Z Barbell (Sabit) 15 Kg
+MOVE	15535	1088	374	1088:weights	XTR Fitness Barbell Düz (Sabit) 10 Kg
+MOVE	15536	1088	374	1088:weights	XTR Fitness Barbell Düz (Sabit) 30 Kg
+MOVE	15537	1088	374	1088:weights	XTR Fitness Barbell Düz (Sabit) 25 Kg
+MOVE	15538	1088	374	1088:weights	XTR Fitness Z Barbell (Sabit) 30 Kg
+MOVE	15539	1088	374	1088:weights	XTR Fitness Barbell Rack Standı Ağırlıksız
+MOVE	15540	1088	374	1088:weights	XTR Fitness Z Barbell (Sabit) 10 Kg
+MOVE	15541	1088	374	1088:weights	XTR Fitness Barbell Rack Standı Komple Set
+MOVE	15542	1088	374	1088:weights	XTR Fitness Barbell Düz (Sabit) 15 Kg
+MOVE	15543	1088	662	1088:apparel	Olympia Joe Weider Weekend Rag Top Beyaz
+MOVE	15544	1088	374	1088:weights	XTR Fitness Z Barbell (Sabit) 25 Kg
+MOVE	15545	1088	374	1088:weights	XTR Fitness Barbell Düz (Sabit) 20 Kg
+MOVE	15549	1088	373	1088:fallback	Kauçuk Zemin Kaplama (FİYAT BİLGİSİ ALINIZ)
+DRY-RUN: DB degismedi. Uygulamak icin DRY=0.

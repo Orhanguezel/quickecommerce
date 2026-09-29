@@ -221,6 +221,9 @@ run_scraper() {
   # 2026-07-27 parser microdata availability ile fail-closed hale getirildi;
   # store#61 aktif oldugu icin kaynagi gunluk stok/fiyat zincirine geri al.
   run_scraper herbinatura         herbinatura_scraper.py         herbinatura_products.json
+  # 2026-09-29: westnutrition (West Nutrition + Herbina, sadece takviye
+  # kategorisi). Stok adedi + varyant bazli stok dogrulandi, fail-closed.
+  run_scraper westnutrition       westnutrition_scraper.py       westnutrition_products.json
   run_scraper rovabatarya         rovabatarya_scraper.py         rovabatarya_products.json
   run_scraper eyb                 eyb_scraper.py                 eyb_products.json
   run_scraper linktech            linktech_scraper.py            linktech_products.json

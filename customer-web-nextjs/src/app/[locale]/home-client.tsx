@@ -194,38 +194,31 @@ function normalizeHomeBlockOrder(blocks: HomeLayoutBlock[]): HomeLayoutBlock[] {
   return normalizeRecentlyViewedAfterFlash(normalizeHeroCategoryOrder(blocks));
 }
 
+// Flash kampanya kartlari kalici /kampanyalar sayfasina gider. Eskiden
+// `/urunler?flash_sale_id=N` uretiliyordu: kampanya bitince bos kalan,
+// indekslenebilir parametreli URL (derin analiz 2026-09-29). Kartin kendi
+// button_url'si baska kalici bir sayfayi (kategori/marka) gosteriyorsa o korunur.
 function getFlashDealProductsHref(deal: FlashDeal): string {
-  const fallback = `/urunler?flash_sale_id=${deal.id}`;
+  const fallback = "/kampanyalar";
   const rawUrl = deal.button_url?.trim();
-
   if (!rawUrl) return fallback;
 
-  const appendFlashSaleId = (pathWithQuery: string) => {
-    const [path, query = ""] = pathWithQuery.split("?");
-    const normalizedPath = path.replace(/^\/(tr|en)(?=\/)/, "") || "/urunler";
-
-    if (normalizedPath !== "/urunler") {
-      return pathWithQuery;
-    }
-
-    const params = new URLSearchParams(query);
-    params.set("flash_sale_id", String(deal.id));
-    return `${normalizedPath}?${params.toString()}`;
-  };
-
+  let pathWithQuery = rawUrl;
   if (/^https?:\/\//i.test(rawUrl)) {
     try {
       const url = new URL(rawUrl);
-      if (url.hostname === "sportoonline.com" || url.hostname === "www.sportoonline.com") {
-        return appendFlashSaleId(`${url.pathname}${url.search}`);
+      if (url.hostname !== "sportoonline.com" && url.hostname !== "www.sportoonline.com") {
+        return rawUrl;
       }
+      pathWithQuery = `${url.pathname}${url.search}`;
     } catch {
       return fallback;
     }
-    return rawUrl;
   }
 
-  return appendFlashSaleId(rawUrl);
+  const path = pathWithQuery.split("?")[0].replace(/^\/(tr|en)(?=\/|$)/, "") || "/";
+  if (path === "/" || path === "/urunler" || path === "/ara") return fallback;
+  return pathWithQuery;
 }
 
 export function HomePageClient({ data, translations: t }: HomePageClientProps) {

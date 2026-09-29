@@ -1,0 +1,9 @@
+=== FIX 04 ana sayfa linkleri (DRY-RUN) ===
+  banners#33 "Sağlık Desteği Artık Çok Kolay": redirect_url https://sportoonline.com/tr/ara?q=whey -> https://sportoonline.com/tr/kategori/whey-protein (urun=5)
+  banners#35 "Premium Seçimler": redirect_url https://sportoonline.com/tr/ara?q=yonex -> https://sportoonline.com/tr/marka/yonex (urun=117)
+  sliders#40 "Güvenli Spor Alanları İçin": button_url,redirect_url https://sportoonline.com/tr/ara?q=tatami -> https://sportoonline.com/tr/kategori/spor-aletleri (urun=641)
+  sliders#45 "Her Anında Sana Eşlik Eder..": button_url,redirect_url https://sportoonline.com/tr/ara?q=sigg -> https://sportoonline.com/tr/marka/sigg (urun=136)
+  sliders#46 "Premium Seçimler": button_url,redirect_url https://sportoonline.com/tr/ara?q=pilates%20yoga -> https://sportoonline.com/tr/kategori/yoga-pilates (urun=6)
+  banners#32 (q=biotech): net kalici hedef yok, dokunulmadi.
+Degisecek kayit: 5
+DRY-RUN: DB degismedi. Uygulamak icin DRY=0.

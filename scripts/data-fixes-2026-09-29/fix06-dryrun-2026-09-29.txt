@@ -1,0 +1,4 @@
+=== FIX 06 Maraton magazasi (DRY-RUN) ===
+stores#47 Maraton Sportswear slug=maraton-sportswear status=1
+urunler: {"inactive":317} stoklu varyant=0
+DRY-RUN: status 1 -> 0 yapilacak. Uygulamak icin DRY=0.

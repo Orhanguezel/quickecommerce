@@ -14,7 +14,8 @@ return [
     'neptun' => ['fallback_category_id' => 367],
     'heynut' => ['fallback_category_id' => 544, 'mappings' => ['kuruyemisler' => 582, 'hindistan-cevizi-yagi' => 585, 'bal-pekmez' => 586]],
     'raketspor_yonex' => ['fallback_category_id' => 387, 'mappings' => ['spor-giyim' => 393, 'badminton' => 818, 'tenis-aksesuarlari' => 810]],
-    'eprotein' => ['fallback_category_id' => 1088],
+    // 1088 (tek-kullanim ailesi) derin analiz 2026-09-29'da kapatildi -> 367.
+    'eprotein' => ['fallback_category_id' => 367],
     'animaljoy' => ['fallback_category_id' => 367],
     'everlast' => ['fallback_category_id' => 393],
     'swan' => ['fallback_category_id' => 393],
@@ -34,6 +35,19 @@ return [
     'proteinmax' => ['fallback_category_id' => 367],
     'linktech' => ['fallback_category_id' => 824],
     'herbinatura' => ['fallback_category_id' => 367],
+    // 790 Takviye Edici Gida; sporcu besini alt kategorileri 711 Sporcu Besinleri.
+    'westnutrition' => [
+        'fallback_category_id' => 790,
+        'mappings' => [
+            'bcaa-amino-asit' => 711,
+            'kreatin' => 711,
+            'l-karnitin' => 711,
+            'gainer' => 711,
+            'mass-gainer' => 711,
+            'pre-workout' => 711,
+            'supplement-paketleri' => 711,
+        ],
+    ],
     'dropick' => ['fallback_category_id' => 384],
     'speedwa' => ['fallback_category_id' => 373],
     'ceysport' => ['fallback_category_id' => 373],
