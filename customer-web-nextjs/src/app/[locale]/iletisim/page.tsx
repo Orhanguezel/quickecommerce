@@ -4,6 +4,7 @@ import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import { ContactPageClient } from "./contact-client";
 import { DEFAULT_ORGANIZATION, SITE_URL, absoluteUrl, buildMetaDescription, buildPageTitle, cleanContactPhone, localizedAlternates, pageOgImages, SITE_NAME } from "@/lib/seo";
+import { ShoppingAssurance } from "@/components/common/shopping-assurance";
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -258,6 +259,7 @@ export default async function ContactPage({ params }: Props) {
           send_message: tPages("form_send_message"),
         }}
       />
+      <ShoppingAssurance locale={locale} />
     </>
   );
 }

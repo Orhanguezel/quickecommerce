@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { fetchAPI } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import { CouponsPageClient } from "./coupons-client";
+import { ShoppingAssurance } from "@/components/common/shopping-assurance";
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -65,26 +66,29 @@ export default async function CouponsPage({ params, searchParams }: Props) {
   const couponT = await getTranslations({ locale, namespace: "coupon" });
 
   return (
-    <CouponsPageClient
-      coupons={data.coupons}
-      totalPages={data.totalPages}
-      currentPage={page}
-      translations={{
-        coupons: couponT("coupons"),
-        coupons_subtitle: couponT("coupons_subtitle"),
-        code: couponT("code"),
-        copy: couponT("copy"),
-        copied: couponT("copied"),
-        min_order: couponT("min_order"),
-        max_discount: couponT("max_discount"),
-        valid_until: couponT("valid_until"),
-        off: couponT("off"),
-        no_coupons: couponT("no_coupons"),
-        previous: t("previous"),
-        next: t("next"),
-        home: t("home"),
-        currency: t("currency"),
-      }}
-    />
+    <>
+      <CouponsPageClient
+        coupons={data.coupons}
+        totalPages={data.totalPages}
+        currentPage={page}
+        translations={{
+          coupons: couponT("coupons"),
+          coupons_subtitle: couponT("coupons_subtitle"),
+          code: couponT("code"),
+          copy: couponT("copy"),
+          copied: couponT("copied"),
+          min_order: couponT("min_order"),
+          max_discount: couponT("max_discount"),
+          valid_until: couponT("valid_until"),
+          off: couponT("off"),
+          no_coupons: couponT("no_coupons"),
+          previous: t("previous"),
+          next: t("next"),
+          home: t("home"),
+          currency: t("currency"),
+        }}
+      />
+      <ShoppingAssurance locale={locale} />
+    </>
   );
 }

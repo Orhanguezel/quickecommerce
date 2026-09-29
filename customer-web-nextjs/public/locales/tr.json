@@ -702,5 +702,18 @@
     "frequently_bought_together": "Sıkça Birlikte Alınanlar",
     "category_popular": "Bu Kategoride Popüler",
     "wishlist_triggered": "Favorilerinden Seni Bekleyenler"
+  },
+  "assurance": {
+    "title": "Güvenli alışveriş ve iade",
+    "returns_title": "14 gün içinde iade",
+    "returns_text": "Kullanılmamış ürünlerde teslimattan itibaren 14 gün içinde iade veya değişim talebi oluşturabilirsiniz; hijyen ve mevzuat istisnaları iade politikasında açıklanır.",
+    "payment_title": "Güvenli ödeme",
+    "payment_text": "Kart bilgileriniz lisanslı ödeme kuruluşunun güvenli ödeme sayfasında işlenir; sitede saklanmaz.",
+    "shipping_title": "Kargo ve teslimat",
+    "shipping_text": "Siparişler ödeme onayından sonra genellikle 1-3 iş günü içinde kargoya verilir; teslimat bölgeye göre 2-7 iş günü sürer.",
+    "shipping_free": "{amount} TL ve üzeri siparişlerde kargo ücretsizdir.",
+    "returns_link": "İade politikası",
+    "shipping_link": "Kargo politikası",
+    "contract_link": "Mesafeli satış sözleşmesi"
   }
 }

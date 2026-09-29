@@ -6,6 +6,7 @@ import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { FlashDeal } from "@/modules/flash-deal/flash-deal.type";
 import type { ShippingCampaign } from "@/modules/shipping-campaign/shipping-campaign.type";
 import { CampaignsPageClient } from "./campaigns-client";
+import { ShoppingAssurance } from "@/components/common/shopping-assurance";
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -83,19 +84,22 @@ export default async function CampaignsPage({ params, searchParams }: Props) {
   const campaignsT = await getTranslations({ locale, namespace: "campaigns" });
 
   return (
-    <CampaignsPageClient
-      campaigns={data.campaigns}
-      shippingCampaigns={shippingCampaigns}
-      currentPage={page}
-      totalPages={data.totalPages}
-      translations={{
-        home: commonT("home"),
-        previous: commonT("previous"),
-        next: commonT("next"),
-        title: campaignsT("title"),
-        subtitle: campaignsT("subtitle"),
-        no_campaigns: campaignsT("no_campaigns"),
-      }}
-    />
+    <>
+      <CampaignsPageClient
+        campaigns={data.campaigns}
+        shippingCampaigns={shippingCampaigns}
+        currentPage={page}
+        totalPages={data.totalPages}
+        translations={{
+          home: commonT("home"),
+          previous: commonT("previous"),
+          next: commonT("next"),
+          title: campaignsT("title"),
+          subtitle: campaignsT("subtitle"),
+          no_campaigns: campaignsT("no_campaigns"),
+        }}
+      />
+      <ShoppingAssurance locale={locale} />
+    </>
   );
 }

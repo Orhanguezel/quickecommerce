@@ -7,6 +7,7 @@ import type { BlogDetailResponse } from "@/modules/blog/blog.type";
 import { BlogDetailClient } from "./blog-detail-client";
 import { DEFAULT_ORGANIZATION, localizedAlternates, SITE_URL, stripHtml, toIsoDate, truncateText, SITE_NAME } from "@/lib/seo";
 import { getEnginEserAuthor } from "@/lib/authors";
+import { ShoppingAssurance } from "@/components/common/shopping-assurance";
 
 interface Props {
   params: Promise<{ locale: string; slug: string }>;
@@ -171,6 +172,7 @@ export default async function BlogDetailPage({ params }: Props) {
           home: t("home"),
         }}
       />
+      <ShoppingAssurance locale={locale} />
     </>
   );
 }
