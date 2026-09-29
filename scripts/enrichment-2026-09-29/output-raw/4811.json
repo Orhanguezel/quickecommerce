@@ -1,0 +1,59 @@
+{
+  "id": 4811,
+  "slug": "smartone-iphone-11-batarya-pil",
+  "current_name": "Smartone iPhone 11 Yüksek Kapasiteli Batarya Pil 3500 mAh",
+  "identity": {
+    "brand": "SmartOne",
+    "model": "iPhone 11 uyumlu yedek batarya",
+    "variant": "3500 mAh, yüksek kapasiteli",
+    "gtin": "",
+    "mpn": "SM-IP11"
+  },
+  "match_confidence": "high",
+  "match_evidence": "Tedarikçi sayfası (rovabatarya.com, source_url) aynı ürün adını, 'Üretici: SmartOne' ve 'Ürün Kodu: SM-IP11' bilgisini gösteriyor; JSON-LD brand=SmartOne, sku=SM-IP11. Canlı Sportoonline sayfası başlığı aynı.",
+  "description_html": "<p>SmartOne markalı bu yedek batarya, Apple iPhone 11 için üretilmiş yüksek kapasiteli bir değişim pilidir. Ürün adında belirtilen kapasite 3500 mAh olup, eskiyen ya da şarjı çabuk biten bataryanın yerine takılmak üzere tasarlanmıştır.</p><h3>Öne Çıkan Özellikler</h3><ul><li>Uyumlu model: iPhone 11</li><li>Kapasite (ürün adında belirtilen): 3500 mAh</li><li>Tedarikçi, bataryanın orijinal pile göre daha yüksek kapasiteli olduğunu belirtiyor</li><li>Yüksek akım, düşük akım, yüksek ısı ve kısa devreye karşı koruma devresi</li><li>Çift katmanlı devre yapısı</li><li>Tedarikçi beyanına göre istikrarlı pil hücresine sahip ve kalite testlerinden geçmiş</li></ul><h3>Garanti</h3><ul><li>Tedarikçi beyanına göre 12 ay ya da 350 şarj döngüsü (hangisi önce dolarsa) garanti kapsamındadır.</li></ul><h3>Montaj ve Kullanım Notları</h3><ul><li>Batarya değişimi cihazın açılmasını gerektirir; işlemin deneyimli bir teknik servis tarafından yapılması önerilir.</li><li>Montajdan önce telefon modelinizin ürün adındaki modelle aynı olduğunu kontrol edin.</li><li>Garanti süresi ve şartları tedarikçinin beyanına dayanır.</li></ul>",
+  "specifications": [
+    {
+      "name": "Marka / Üretici",
+      "value": "SmartOne",
+      "source": "https://www.rovabatarya.com/smartone-iphone-11-batarya-pil"
+    },
+    {
+      "name": "Ürün Kodu",
+      "value": "SM-IP11",
+      "source": "https://www.rovabatarya.com/smartone-iphone-11-batarya-pil"
+    },
+    {
+      "name": "Uyumlu Model",
+      "value": "Apple iPhone 11",
+      "source": "https://www.rovabatarya.com/smartone-iphone-11-batarya-pil"
+    },
+    {
+      "name": "Kapasite",
+      "value": "3500 mAh (ürün adında)",
+      "source": "https://www.rovabatarya.com/smartone-iphone-11-batarya-pil"
+    },
+    {
+      "name": "Ürün Cinsi",
+      "value": "Batarya / Pil",
+      "source": "https://www.rovabatarya.com/smartone-iphone-11-batarya-pil"
+    },
+    {
+      "name": "Koruma Devreleri",
+      "value": "Yüksek/düşük akım, yüksek ısı, kısa devre",
+      "source": "https://www.rovabatarya.com/smartone-iphone-11-batarya-pil"
+    },
+    {
+      "name": "Garanti",
+      "value": "12 ay veya 350 şarj döngüsü (tedarikçi beyanı)",
+      "source": "https://www.rovabatarya.com/smartone-iphone-11-batarya-pil"
+    }
+  ],
+  "sources": [
+    "https://www.rovabatarya.com/smartone-iphone-11-batarya-pil",
+    "https://sportoonline.com/tr/urun/smartone-iphone-11-batarya-pil"
+  ],
+  "conflicts": "Tedarikçi metni '%30 daha fazla kapasite' diyor; ürün adındaki 3500 mAh ile bu oran doğrulanamadı (orijinal kapasite resmî olarak yayınlanmadığından). '%30' iddiası açıklamaya alınmadı.",
+  "notes": "Voltaj ve pil kimyası (Li-ion/Li-Po) tedarikçi sayfasında yok, eklenmedi. Garanti yalnız tedarikçi beyanı. Marka alanı boş; 'SmartOne' önerilir.",
+  "suggested_brand": "SmartOne"
+}

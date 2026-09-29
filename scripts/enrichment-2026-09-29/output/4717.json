@@ -1,0 +1,64 @@
+{
+  "id": 4717,
+  "slug": "btl-tens-6-portatif-elektrostimulator-cihazi",
+  "current_name": "BTL Tens 6 Portatif Elektrostimülatör Cihazı",
+  "identity": {
+    "brand": "BTL",
+    "model": "TENS 6",
+    "variant": "Portatif 4 kanallı elektrostimülatör",
+    "gtin": "",
+    "mpn": ""
+  },
+  "match_confidence": "high",
+  "match_evidence": "Ürünün kendi tedarikçi sayfası aynı modeli (TENS 6) ve teknik tabloyu veriyor; bağımsız Türk satıcı (eformed) 4 bağımsız kanal, 2+2, Kotz akımı, 10 kullanıcı ve dahili batarya bilgisini doğruluyor. Üretici (btlnet.com) sayfası bulunamadı.",
+  "description_html": "<p><strong>BTL TENS 6</strong>, TENS ve EMS başta olmak üzere farklı akım tiplerini sunan, şarj edilebilir dahili bataryalı 4 kanallı portatif bir elektrostimülatördür. Menüde Türkçe dil seçeneği bulunur.</p><h3>Öne Çıkan Özellikler</h3><ul><li><strong>4 kanal</strong>, her kanalın akım şiddeti ayrı ayarlanır; kanal başına 120 mA.</li><li><strong>2+2 modu:</strong> iki kanaldan bir akım, diğer iki kanaldan farklı bir akım aynı anda verilebilir.</li><li>Hazır programların birçoğunda elektrot yerleşim bölgesi ekranda gösterilir.</li><li>TENS ve EMS akımları için kullanıcı tanımlı program oluşturma ve kaydetme.</li><li>Program grupları: sporcu sağlığı, fitness, medikal akımlar (mikroakım, denerve, iyontoforez, rehabilitasyon vb.), enterferansiyel, elektroterapi, Kotz, NEMS.</li><li>Son 10 program ve Favoriler menüsüyle hızlı erişim.</li><li><strong>10 kullanıcı profili:</strong> farklı kullanıcıların ayar ve parametreleri ayrı saklanır.</li><li>Otomatik tuş kilidi; ekranda akım tipi, süre ve kanal bazında şiddet takibi.</li></ul><h3>Teknik Özellikler</h3><table><tr><th>Özellik</th><th>Değer</th></tr><tr><td>Kanal sayısı</td><td>4</td></tr><tr><td>Frekans</td><td>0,3–150 Hz</td></tr><tr><td>Atım genişliği</td><td>30–1000 µs</td></tr><tr><td>Akım</td><td>120 mA (her kanalda)</td></tr><tr><td>2+2 modu</td><td>Var</td></tr><tr><td>Kullanıcı sayısı</td><td>10</td></tr><tr><td>Güç</td><td>Şarj edilebilir dahili batarya</td></tr></table><h3>Uyarı</h3><p>Kullanmadan önce kullanım kılavuzunu okuyun; tıbbi durumlarda hekime veya fizyoterapiste danışın.</p>",
+  "specifications": [
+    {
+      "name": "Kanal Sayısı",
+      "value": "4 (bağımsız şiddet ayarı)",
+      "source": "https://compexturkiye.com/urunler/genel/btl-tens-6-portatif-elektrostimulator-cihazi/"
+    },
+    {
+      "name": "Frekans",
+      "value": "0,3–150 Hz",
+      "source": "https://compexturkiye.com/urunler/genel/btl-tens-6-portatif-elektrostimulator-cihazi/"
+    },
+    {
+      "name": "Atım Genişliği",
+      "value": "30–1000 µs",
+      "source": "https://compexturkiye.com/urunler/genel/btl-tens-6-portatif-elektrostimulator-cihazi/"
+    },
+    {
+      "name": "Akım",
+      "value": "120 mA / kanal",
+      "source": "https://compexturkiye.com/urunler/genel/btl-tens-6-portatif-elektrostimulator-cihazi/"
+    },
+    {
+      "name": "2+2 Modu",
+      "value": "Var",
+      "source": "https://compexturkiye.com/urunler/genel/btl-tens-6-portatif-elektrostimulator-cihazi/"
+    },
+    {
+      "name": "Kullanıcı Sayısı",
+      "value": "10",
+      "source": "https://compexturkiye.com/urunler/genel/btl-tens-6-portatif-elektrostimulator-cihazi/"
+    },
+    {
+      "name": "Güç Kaynağı",
+      "value": "Şarj edilebilir dahili batarya",
+      "source": "https://compexturkiye.com/urunler/genel/btl-tens-6-portatif-elektrostimulator-cihazi/"
+    },
+    {
+      "name": "Dil",
+      "value": "Türkçe menü seçeneği",
+      "source": "https://compexturkiye.com/urunler/genel/btl-tens-6-portatif-elektrostimulator-cihazi/"
+    }
+  ],
+  "sources": [
+    "https://compexturkiye.com/urunler/genel/btl-tens-6-portatif-elektrostimulator-cihazi/",
+    "https://www.eformed.com.tr/btl-tens-6-portatif-tens-ems-cihazi"
+  ],
+  "conflicts": "Program sayısı: tedarikçi 83 (ürün adında ve grup toplamında), eformed ve arama özetleri 161 hazır program diyor.",
+  "notes": "Toplam program sayısı kaynaklar arasında çeliştiği için yazılmadı. Ölçü, ağırlık ve kutu içeriği hiçbir kaynakta yok.",
+  "suggested_brand": "BTL"
+}

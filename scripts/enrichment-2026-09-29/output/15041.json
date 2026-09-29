@@ -1,0 +1,84 @@
+{
+ "id": 15041,
+ "slug": "gain-bolic-6000-karbonhidrat-tozu-1000gr",
+ "current_name": "Olimp Gain Bolic 6000 Karbonhidrat Tozu 1000gr",
+ "identity": {
+  "brand": "Olimp Sport Nutrition",
+  "model": "Gain Bolic 6000",
+  "variant": "1000 g, Çikolata",
+  "gtin": "",
+  "mpn": ""
+ },
+ "match_confidence": "high",
+ "match_evidence": "Olimp Sport Nutrition resmî UK sitesinde 'Gain Bolic 6000® – 1000 g' ürün sayfası (aromalar: muz, cookies cream, çikolata, çilek, vanilya) içindekiler, besin değerleri ve kullanım bilgisini veriyor. Aroma Sportoonline SKU'sundan ('Olimp Gain Bolic 6000 - 1000 gr Çikolata').",
+ "description_html": "<p>Olimp Gain Bolic 6000, karbonhidrat-protein karışımı toz formda bir gıda takviyesidir. Karbonhidrat karışımı maltodekstrin ve dekstrozdan, protein karışımı peynir altı suyu protein konsantresi, misel kazein ve ultrafiltre yumurta proteininden oluşur; kreatin monohidrat ve taurin içerir. Şeker ve tatlandırıcı içerir. Bu ürün 1000 g ambalaj, çikolata aromalıdır.</p><h3>Öne Çıkan Özellikler</h3><ul><li>Porsiyon: 100 g (2 ölçek); 1000 g ambalajda 10 porsiyon.</li><li>Karışım oranı: %80 karbonhidrat karışımı, %15,5 protein karışımı.</li><li>Porsiyon başına 1500 mg kreatin monohidrat ve 500 mg taurin.</li></ul><h3>Besin Değerleri</h3><table><tr><th>Değer</th><th>100 g (1 porsiyon)</th></tr><tr><td>Enerji</td><td>1597 kJ / 376 kcal</td></tr><tr><td>Yağ</td><td>1,8 g</td></tr><tr><td>– Doymuş yağ</td><td>1,0 g</td></tr><tr><td>Karbonhidrat</td><td>75 g</td></tr><tr><td>– Şekerler</td><td>32 g</td></tr><tr><td>Lif</td><td>0 g</td></tr><tr><td>Protein</td><td>15 g</td></tr><tr><td>Tuz</td><td>0,43 g</td></tr><tr><td>Kreatin monohidrat</td><td>1500 mg (kreatin 1320 mg)</td></tr><tr><td>Taurin</td><td>500 mg</td></tr></table><h3>Kullanım</h3><ul><li>Günde 1–2 porsiyon; öğün aralarında ve/veya antrenmandan yaklaşık 1 saat önce ve/veya sonra.</li><li>1 porsiyonu (100 g = 2 ölçek) 170 ml suya ekleyin; tat yoğunluğuna göre 100–200 ml su kullanılabilir. Hazırladıktan hemen sonra tüketin.</li></ul><h3>Alerjen ve Uyarılar</h3><ul><li>Süt, yumurta ve soya içerir. Üretim tesisinde süt, yumurta, soya, sert kabuklu yemişler, yer fıstığı, gluten içeren tahıllar, balık, kabuklular ve yumuşakçalar işlenmektedir.</li><li>Çocuklar, gençler ve diyabet hastaları için uygun değildir.</li><li>Önerilen günlük dozu aşmayın. Gıda takviyeleri çeşitli ve dengeli beslenmenin yerine kullanılamaz.</li><li>Çocukların ulaşamayacağı yerde, açılmamış halde kuru ve serin ortamda saklayın.</li></ul>",
+ "specifications": [
+  {
+   "name": "Marka",
+   "value": "Olimp Sport Nutrition",
+   "source": "https://olimpsport.co.uk/products/gain-bolic-6000-1000-g/"
+  },
+  {
+   "name": "Net Miktar",
+   "value": "1000 g",
+   "source": "https://olimpsport.co.uk/products/gain-bolic-6000-1000-g/"
+  },
+  {
+   "name": "Aroma",
+   "value": "Çikolata",
+   "source": "https://sportoonline.com/tr/urun/gain-bolic-6000-karbonhidrat-tozu-1000gr"
+  },
+  {
+   "name": "Porsiyon",
+   "value": "100 g (2 ölçek)",
+   "source": "https://olimpsport.co.uk/products/gain-bolic-6000-1000-g/"
+  },
+  {
+   "name": "Porsiyon Sayısı",
+   "value": "10",
+   "source": "https://olimpsport.co.uk/products/gain-bolic-6000-1000-g/"
+  },
+  {
+   "name": "Enerji (100 g)",
+   "value": "1597 kJ / 376 kcal",
+   "source": "https://olimpsport.co.uk/products/gain-bolic-6000-1000-g/"
+  },
+  {
+   "name": "Karbonhidrat (100 g)",
+   "value": "75 g (şekerler 32 g)",
+   "source": "https://olimpsport.co.uk/products/gain-bolic-6000-1000-g/"
+  },
+  {
+   "name": "Protein (100 g)",
+   "value": "15 g",
+   "source": "https://olimpsport.co.uk/products/gain-bolic-6000-1000-g/"
+  },
+  {
+   "name": "Yağ (100 g)",
+   "value": "1,8 g (doymuş 1,0 g)",
+   "source": "https://olimpsport.co.uk/products/gain-bolic-6000-1000-g/"
+  },
+  {
+   "name": "Kreatin Monohidrat (100 g)",
+   "value": "1500 mg",
+   "source": "https://olimpsport.co.uk/products/gain-bolic-6000-1000-g/"
+  },
+  {
+   "name": "Alerjenler",
+   "value": "Süt, yumurta, soya",
+   "source": "https://olimpsport.co.uk/products/gain-bolic-6000-1000-g/"
+  },
+  {
+   "name": "Üretici",
+   "value": "Olimp Laboratories Sp. z o.o., Dębica, Polonya",
+   "source": "https://olimpsport.co.uk/products/gain-bolic-6000-1000-g/"
+  }
+ ],
+ "sources": [
+  "https://olimpsport.co.uk/products/gain-bolic-6000-1000-g/",
+  "https://proteinavm.com/gain-bolic-6000-karbonhidrat-tozu-1000gr"
+ ],
+ "conflicts": "Mevcut Sportoonline açıklaması sağlık/performans iddiaları içeriyor ('kas gelişimini ve büyümesini destekleyen', 'performans artışı sağlar', 'anabolik özelliklerini destekler ve hızlandırır', 'hızlı kas gelişimi ve güç artışı') — kural gereği kaldırılmalı. Mevcut metin 'laktoz içermez' diyor; üretici içeriğinde süt kaynaklı whey konsantresi ve misel kazein var ve resmî sayfada laktoz beyanı yok — bu ifade doğrulanamadı, kaldırılması önerilir. Bazı perakendeciler tuzu 0,42 g ve taurini 50 mg yazıyor; üretici 0,43 g ve 500 mg — üretici esas alındı.",
+ "notes": "Porsiyon sayısı 1000 g / 100 g hesabı (üretici etiketi 100 g porsiyon). Besin değerleri resmî sayfada aroma bağımsız tek tablo olarak veriliyor; Türkiye ithalat etiketi görülemedi. Tedarikçi proteinavm.com Cloudflare nedeniyle okunamadı. Üreticinin 'kas kütlesi' ve 'kas fonksiyonu' onaylı beyanları bilinçli olarak eklenmedi. brand alanı boş; 'Olimp' atanmalı. GTIN bulunamadı.",
+ "suggested_brand": "Olimp"
+}

@@ -1,0 +1,22 @@
+{
+ "id": 15505,
+ "slug": "tatami-minderi-100x100-26-mm-a-kalite-cift-tarafli",
+ "current_name": "Tatami Minderi 100x100 26 mm A Kalite Çift Taraflı",
+ "identity": {
+  "brand": "",
+  "model": "",
+  "variant": "100x100 cm, 26 mm, çift taraflı",
+  "gtin": "",
+  "mpn": ""
+ },
+ "match_confidence": "low",
+ "match_evidence": "source_url yok; tedarikçi (multiprice mağazası) sayfası belirlenemedi. Canlı Sportoonline sayfası yalnız mevcut açıklamayı gösteriyor.",
+ "description_html": "",
+ "specifications": [],
+ "sources": [
+  "https://sportoonline.com/tr/urun/tatami-minderi-100x100-26-mm-a-kalite-cift-tarafli"
+ ],
+ "conflicts": "",
+ "notes": "Markasız jenerik ürün ve source_url yok; kurallar gereği başka markanın benzer tatamisinden değer taşınmadı. Mevcut açıklamadaki 100x100 cm, 26 mm, çift taraflı bilgisi korunmalı; malzeme (EVA?), yoğunluk ve paket adedi kaynakta yok. Tedarikçi linki eklenirse yeniden işlenebilir.",
+ "suggested_brand": ""
+}

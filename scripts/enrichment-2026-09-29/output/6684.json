@@ -1,0 +1,23 @@
+{
+  "id": 6684,
+  "slug": "dart-koruma-cemberi",
+  "current_name": "Dart Koruma Çemberi",
+  "identity": {
+    "brand": "",
+    "model": "Dart Koruma Çemberi",
+    "variant": "4 renk seçeneği",
+    "gtin": "",
+    "mpn": "SURROUND-100"
+  },
+  "match_confidence": "low",
+  "match_evidence": "Tedarikçi sayfası (ceysport.com, source_url) aynı ürün adı ve stok kodu SURROUND-100'ü gösteriyor, ancak yalnız 'Dart duvar koruyucu, 4 farklı renk seçeneği' bilgisi var. Görselde Avessa marka dart tahtası ve 'KING' baskılı çember görünüyor; çemberin markası/modeli metinle doğrulanamadı, 'SURROUND-100' kodu web aramasında eşleşmedi.",
+  "description_html": "",
+  "specifications": [],
+  "sources": [
+    "https://ceysport.com/urun/dart-koruma-cemberi/",
+    "https://sportoonline.com/tr/urun/dart-koruma-cemberi"
+  ],
+  "conflicts": "",
+  "notes": "Teknik veri (malzeme, iç/dış çap, uyumlu tahta ölçüsü, ağırlık, montaj şekli) tedarikçide yok; jenerik ürün kuralı gereği başka markanın çemberinden değer taşınmadı. 120 kelimelik açıklama uydurma dolgusuz yazılamayacağından boş bırakıldı. Satıcıdan (Ceysport) malzeme, çap, uyumlu tahta ölçüsü ve marka bilgisi istenmeli; görseldeki Avessa ürünü olup olmadığı teyit edilmeli.",
+  "suggested_brand": ""
+}

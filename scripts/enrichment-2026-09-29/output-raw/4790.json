@@ -1,0 +1,59 @@
+{
+  "id": 4790,
+  "slug": "nu-tek-pro-mt2201-stim-rehab2-vac-pro-2-kanalli-elektroterapi-vakum-cihazi",
+  "current_name": "Nu-Tek Pro MT2201 Stim Rehab2 Vac Pro  2 Kanallı Elektroterapi + Vakum  Cihazı",
+  "identity": {
+    "brand": "Nu-Tek",
+    "model": "StimRehab² Vac MT2201",
+    "variant": "Elektroterapi + vakum (MT2200.Pro + VAM200.Pro)",
+    "gtin": "",
+    "mpn": ""
+  },
+  "match_confidence": "high",
+  "match_evidence": "Üretici sayfası (nutekmedical.com) MT2201 kodunu ve tedarikçi sayfasındaki maddeleri (7\" dokunmatik ekran, 2 kanal, 60 kişisel / 96 önerilen protokol, opsiyonel pil, 2 kanallı vakum) birebir veriyor.",
+  "description_html": "<p><strong>Nu-Tek StimRehab² Vac MT2201</strong>, 2 bağımsız elektroterapi kanalını vakum modülüyle birleştiren klinik tip bir elektroterapi cihazıdır. Üretici referansı MT2200.Pro + VAM200.Pro olarak geçer; vakum kapları özel bir elektrot türü olarak kullanılır.</p><h3>Öne Çıkan Özellikler</h3><ul><li><strong>7 inç tam renkli, yüksek çözünürlüklü dokunmatik ekran.</strong></li><li><strong>2 bağımsız elektroterapi kanalı</strong>; farklı elektrik stimülasyon dalga formları.</li><li><strong>2 kanallı vakum desteği</strong>; seçilen her kanal ayrı kontrol edilir.</li><li><strong>96 önerilen protokol</strong> yol gösterici olarak hazır gelir.</li><li>En fazla <strong>60 kişisel protokol</strong> kaydedilebilir.</li><li>Kompakt ve hafif gövde; opsiyonel pil modülü.</li><li>İki elektroterapi kanalı ve vakum kanalları aynı seansta birlikte kullanılabilir; böylece iki farklı bölgeye eşzamanlı uygulama yapılabilir.</li></ul><p>Ölçü, ağırlık ve standart aksesuar listesi üretici sayfasında yer almadığı için burada verilmemiştir; ayrıntılar için cihazın kullanım kılavuzuna başvurun.</p><h3>Uyarı</h3><p>Kullanmadan önce kullanım kılavuzunu okuyun; tıbbi durumlarda hekime veya fizyoterapiste danışın.</p>",
+  "specifications": [
+    {
+      "name": "Model",
+      "value": "StimRehab² Vac MT2201 (MT2200.Pro + VAM200.Pro)",
+      "source": "http://www.nutekmedical.com/Products/409.html"
+    },
+    {
+      "name": "Ekran",
+      "value": "7\" tam renkli dokunmatik",
+      "source": "http://www.nutekmedical.com/Products/409.html"
+    },
+    {
+      "name": "Elektroterapi Kanalı",
+      "value": "2 bağımsız",
+      "source": "http://www.nutekmedical.com/Products/409.html"
+    },
+    {
+      "name": "Vakum Kanalı",
+      "value": "2",
+      "source": "http://www.nutekmedical.com/Products/409.html"
+    },
+    {
+      "name": "Önerilen Protokol",
+      "value": "96",
+      "source": "http://www.nutekmedical.com/Products/409.html"
+    },
+    {
+      "name": "Kişisel Protokol",
+      "value": "En fazla 60",
+      "source": "http://www.nutekmedical.com/Products/409.html"
+    },
+    {
+      "name": "Güç",
+      "value": "Şebeke; opsiyonel pil modülü",
+      "source": "http://www.nutekmedical.com/Products/409.html"
+    }
+  ],
+  "sources": [
+    "http://www.nutekmedical.com/Products/409.html",
+    "https://compexturkiye.com/urunler/genel/nu-tek-pro-mt2201-stim-rehab2-vac-pro-2-kanalli-elektroterapi-vakum-cihazi/"
+  ],
+  "conflicts": "Üretici sayfasında bir yerde 'dört kanallı vakum modülü', madde listesinde '2 kanallı vakum' geçiyor; madde listesi (ve tedarikçi) esas alındı. Bir İngiliz perakendeci 5\" ekran yazıyor; üretici 7\" diyor.",
+  "notes": "Ürün adındaki 'Vac Pro' üretici sayfasında 'StimRehab² Vac' olarak geçiyor; model kodu MT2201 aynı.",
+  "suggested_brand": "Nu-Tek"
+}

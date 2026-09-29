@@ -1,0 +1,24 @@
+{
+  "id": 4750,
+  "slug": "doctor-life-lf900-lenf-odem-cihazi-bacak-mansonu-aksesuari",
+  "current_name": "Doctor Life Bacak Manşonu Lenf Ödem Cihazı  Aksesuarı",
+  "identity": {
+    "brand": "Doctor Life",
+    "model": "LF900 bacak manşonu",
+    "variant": "",
+    "gtin": "",
+    "mpn": ""
+  },
+  "match_confidence": "low",
+  "match_evidence": "Tedarikçi sayfası yalnız 'LF900, 4MAX, LX7, LX9 Lenf Ödem Cihazı Aksesuarı – Bacak Manşonu' başlığı ve bir beden tablosu görseli içeriyor. Beden (L/XL/XXL), hücre/oda sayısı ve konnektör tipi belirtilmemiş; üretici sitesinde bu dört cihazla ortak uyumlu tek bir manşon doğrulanamadı.",
+  "description_html": "",
+  "specifications": [],
+  "sources": [
+    "https://compexturkiye.com/urunler/genel/doctor-life-lf900-lenf-odem-cihazi-bacak-mansonu-aksesuari/",
+    "https://www.doctorlife.shop/",
+    "https://meridiusmedical.com/shop/electrical-devices/compression-devices/lymphatic-drainage-machines/dr-life-lf900-compression-machine/"
+  ],
+  "conflicts": "",
+  "notes": "Satılan bedenin ve manşonun oda sayısının (LX7/LX9/LF900 arası fark olabilir) tedarikçiden teyidi gerekli. Mevcut açıklamada teknik veri yok.",
+  "suggested_brand": "Doctor Life"
+}

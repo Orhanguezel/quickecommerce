@@ -1,0 +1,79 @@
+{
+  "id": 4760,
+  "slug": "cefar-rehab-x2-kas-rehabilitasyon-tens-nmes-kombine-cihazi",
+  "current_name": "Cefar Rehab X2 Kas Rehabilitasyon TENS-NMES Kombine Cihazı",
+  "identity": {
+    "brand": "Cefar",
+    "model": "Rehab X2",
+    "variant": "2 kanallı TENS/NMES",
+    "gtin": "",
+    "mpn": ""
+  },
+  "match_confidence": "high",
+  "match_evidence": "Üretici kullanım kılavuzundaki 'Technical Data' tablosu (2 kanal, 0–99,5 mA, 27+3 program, 400 µs, 120 Hz, 120x50x30 mm, ~180 g) tedarikçi sayfasıyla birebir aynı.",
+  "description_html": "<p><strong>Cefar Rehab X2</strong>, TENS ve NMES (kas stimülasyonu) programlarını tek cihazda sunan 2 kanallı, cep boyutunda bir elektrostimülatördür. İki kanal eşzamanlı çalışır; seçilen program her iki kanala uygulanır.</p><h3>Öne Çıkan Özellikler</h3><ul><li><strong>27 hazır program + 3 kişisel program hafızası</strong>; sürekli veya kesikli stimülasyon ayarlanabilir.</li><li><strong>CEFAR Easy Touch:</strong> akım şiddetini kullanıcıya göre otomatik ayarlama.</li><li><strong>CEFAR Flow TENS:</strong> iki kanal ve dört elektrotla geniş alanlara uygulanan alternatif modüle darbe süresi programı.</li><li>Kesikli programlarda kasılma zamanını belirlemek için elle kontrol anahtarı.</li><li>1–99 dakika zamanlayıcı, program durdurma ve program kilidi.</li><li>Kullanım takibi: program bazında ve toplam kullanım süresi kaydı.</li><li>Arıza algılandığında çalışmayı otomatik durduran öz denetim sistemi.</li></ul><h3>Teknik Özellikler</h3><table><tr><th>Özellik</th><th>Değer</th></tr><tr><td>Kanal</td><td>2 (bağımsız değil)</td></tr><tr><td>Akım / kanal</td><td>0–99,5 mA</td></tr><tr><td>Dalga formu</td><td>Simetrik bifazik, %100 kompanse</td></tr><tr><td>Stimülasyon şekilleri</td><td>Konvansiyonel, burst, modüle frekans/darbe süresi, karışık frekans, CEFAR Flow TENS, aralıklı</td></tr><tr><td>Maks. darbe süresi / frekans</td><td>400 µs / 120 Hz</td></tr><tr><td>Güç</td><td>2 x 1,5 V AA pil veya 2 x 1,2 V AA şarjlı pil</td></tr><tr><td>Ölçü / ağırlık</td><td>120 x 50 x 30 mm / yaklaşık 180 g</td></tr></table><h3>Uyarı</h3><p>Kullanmadan önce kullanım kılavuzunu okuyun; tıbbi durumlarda hekime veya fizyoterapiste danışın.</p>",
+  "specifications": [
+    {
+      "name": "Kanal Sayısı",
+      "value": "2 (eşzamanlı, bağımsız değil)",
+      "source": "https://www.physiosupplies.eu/media/PDF/Handleiding_Cefar_RehabX2.pdf"
+    },
+    {
+      "name": "Stimülasyon Akımı",
+      "value": "0–99,5 mA / kanal",
+      "source": "https://www.physiosupplies.eu/media/PDF/Handleiding_Cefar_RehabX2.pdf"
+    },
+    {
+      "name": "Sabit Akım",
+      "value": "1000 ohm dirence kadar",
+      "source": "https://www.physiosupplies.eu/media/PDF/Handleiding_Cefar_RehabX2.pdf"
+    },
+    {
+      "name": "Dalga Formu",
+      "value": "Simetrik bifazik, %100 kompanse",
+      "source": "https://www.physiosupplies.eu/media/PDF/Handleiding_Cefar_RehabX2.pdf"
+    },
+    {
+      "name": "Program",
+      "value": "27 hazır + 3 kişisel",
+      "source": "https://www.physiosupplies.eu/media/PDF/Handleiding_Cefar_RehabX2.pdf"
+    },
+    {
+      "name": "Maks. Darbe Süresi",
+      "value": "400 µs",
+      "source": "https://www.physiosupplies.eu/media/PDF/Handleiding_Cefar_RehabX2.pdf"
+    },
+    {
+      "name": "Maks. Frekans",
+      "value": "120 Hz",
+      "source": "https://www.physiosupplies.eu/media/PDF/Handleiding_Cefar_RehabX2.pdf"
+    },
+    {
+      "name": "Zamanlayıcı",
+      "value": "1–99 dk / kapalı",
+      "source": "https://www.physiosupplies.eu/media/PDF/Handleiding_Cefar_RehabX2.pdf"
+    },
+    {
+      "name": "Güç Kaynağı",
+      "value": "2 x 1,5 V AA veya 2 x 1,2 V AA şarjlı pil",
+      "source": "https://www.physiosupplies.eu/media/PDF/Handleiding_Cefar_RehabX2.pdf"
+    },
+    {
+      "name": "Ölçü",
+      "value": "120 x 50 x 30 mm",
+      "source": "https://www.physiosupplies.eu/media/PDF/Handleiding_Cefar_RehabX2.pdf"
+    },
+    {
+      "name": "Ağırlık",
+      "value": "Yaklaşık 180 g",
+      "source": "https://www.physiosupplies.eu/media/PDF/Handleiding_Cefar_RehabX2.pdf"
+    }
+  ],
+  "sources": [
+    "https://www.physiosupplies.eu/media/PDF/Handleiding_Cefar_RehabX2.pdf",
+    "https://compexturkiye.com/urunler/cefar-compex-fiyatlari-ve-satisi/cefar-rehab-x2-kas-rehabilitasyon-tens-nmes-kombine-cihazi/"
+  ],
+  "conflicts": "",
+  "notes": "Kılavuzda şarjlı pillerin ayrı bir şarj cihazında şarj edildiği belirtiliyor. 'Botoks' ve endikasyon ifadeleri eklenmedi.",
+  "suggested_brand": "Cefar"
+}

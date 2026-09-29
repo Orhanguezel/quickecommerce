@@ -1,0 +1,85 @@
+{
+  "id": 13698,
+  "slug": "troika-multitasking-kalemgms",
+  "current_name": "Troika Çok İşlevli Kalem, Gümüş",
+  "identity": {
+    "brand": "Troika",
+    "model": "CONSTRUCTION ENDLESS",
+    "variant": "Gümüş (Silver)",
+    "gtin": "4024023167218",
+    "mpn": "PEN20/SI"
+  },
+  "match_confidence": "high",
+  "match_evidence": "troika.de resmî ürün sayfası CONSTRUCTION ENDLESS, SKU PEN20/SI, barkod 4024023167218, renk Silver; tedarikçi EYB aynı barkod ve 'TRO PEN20-SI' kodunu gösteriyor.",
+  "description_html": "<p>Troika CONSTRUCTION ENDLESS, açma gerektirmeyen \"sonsuz\" HB yazı ucuna sahip çok işlevli bir kurşun kalemdir. Klasik CONSTRUCTION tasarımını izleyen altıgen gövdesinde cetvel ve mimari ölçekler bulunur; bu yüzden eskiz, çizim ve ölçü almayı bir arada gerektiren işler için pratik bir yazı aracıdır. Üretici, kalemi özellikle illüstratörler, sanatçılar ve eskiz yapmayı sevenler için öneriyor.</p><h3>Öne Çıkan Özellikler</h3><ul><li>HB sertlikte, silinebilir yazı ucu</li><li>Üreticiye göre 20 km'ye kadar yazım uzunluğu</li><li>Kalemtıraş gerektirmez; uç gerektiğinde değiştirilebilir</li><li>Gövde üzerinde santimetre/inç cetveli</li><li>1:20 ve 1:50 mimari ölçekler</li><li>Mat alüminyum ve metal gövde, gümüş renk</li></ul><h3>Teknik Bilgiler</h3><ul><li>Ölçü: 14,7 × 1,0 × 1,0 cm</li><li>Ağırlık: 16 g</li><li>Yedek uç kodu (tedarikçi bilgisi): 99Z131</li></ul><h3>Kullanım</h3><ul><li>Uç aşındığında yedek uçla değiştirilerek gövde uzun süre kullanılabilir.</li><li>Yazılan iz silgiyle silinebilir.</li></ul>",
+  "specifications": [
+    {
+      "name": "Marka",
+      "value": "Troika",
+      "source": "https://troika.de/en/products/construction-endless-pen20-si"
+    },
+    {
+      "name": "Model",
+      "value": "CONSTRUCTION ENDLESS",
+      "source": "https://troika.de/en/products/construction-endless-pen20-si"
+    },
+    {
+      "name": "Üretici Kodu",
+      "value": "PEN20/SI",
+      "source": "https://troika.de/en/products/construction-endless-pen20-si"
+    },
+    {
+      "name": "Barkod (GTIN)",
+      "value": "4024023167218",
+      "source": "https://troika.de/en/products/construction-endless-pen20-si"
+    },
+    {
+      "name": "Renk",
+      "value": "Gümüş (Silver)",
+      "source": "https://troika.de/en/products/construction-endless-pen20-si"
+    },
+    {
+      "name": "Yazı Ucu",
+      "value": "HB, silinebilir, değiştirilebilir",
+      "source": "https://troika.de/en/products/construction-endless-pen20-si"
+    },
+    {
+      "name": "Yazım Uzunluğu",
+      "value": "20 km'ye kadar",
+      "source": "https://troika.de/en/products/construction-endless-pen20-si"
+    },
+    {
+      "name": "Ölçekler",
+      "value": "cm/inç cetveli, 1:20 ve 1:50",
+      "source": "https://troika.de/en/products/construction-endless-pen20-si"
+    },
+    {
+      "name": "Malzeme",
+      "value": "Alüminyum, metal (mat)",
+      "source": "https://troika.de/en/products/construction-endless-pen20-si"
+    },
+    {
+      "name": "Ölçü (U×G×Y)",
+      "value": "14,7 × 1,0 × 1,0 cm",
+      "source": "https://troika.de/en/products/construction-endless-pen20-si"
+    },
+    {
+      "name": "Ağırlık",
+      "value": "16 g",
+      "source": "https://troika.de/en/products/construction-endless-pen20-si"
+    },
+    {
+      "name": "Yedek Uç",
+      "value": "99Z131",
+      "source": "https://www.eyb.com.tr/troika-multitasking-kalemgms"
+    }
+  ],
+  "sources": [
+    "https://troika.de/en/products/construction-endless-pen20-si",
+    "https://www.eyb.com.tr/troika-multitasking-kalemgms",
+    "https://sportoonline.com/tr/urun/troika-multitasking-kalemgms"
+  ],
+  "conflicts": "",
+  "notes": "Mevcut açıklama doğru; korunup genişletildi. Yedek uç kodu 99Z131 yalnız EYB (tedarikçi) sayfasında, üretici sayfasında görülmedi. EYB'nin '0.005 mm uç aşınması' ifadesi üreticide doğrulanmadığından eklenmedi. Ürün adı önerisi: 'Troika CONSTRUCTION ENDLESS Çok İşlevli Kalem, Gümüş'.",
+  "suggested_brand": "Troika"
+}

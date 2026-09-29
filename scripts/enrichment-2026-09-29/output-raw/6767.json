@@ -1,0 +1,59 @@
+{
+ "id": 6767,
+ "slug": "duvara-monte-multi-fonksiyonel-dips-barfiks-istasyonu-c-017",
+ "current_name": "Duvara Monte Multi Fonksiyonel Dips-Barfiks İstasyonu C-017",
+ "identity": {
+  "brand": "",
+  "model": "C-017",
+  "variant": "81x97x55 cm",
+  "gtin": "",
+  "mpn": "C-017"
+ },
+ "match_confidence": "high",
+ "match_evidence": "Tedarikçi sayfası aynı model kodu C-017 (stok kodu C-017) ve aynı ölçü 81x97x55 cm.",
+ "description_html": "<p>C-017, duvara sabitlenen çok fonksiyonlu bir barfiks ve dips istasyonudur. 81x97x55 cm ölçüsü ve çelik gövdesiyle küçük odalarda, ev spor alanlarında ve stüdyolarda yer kaplamadan vücut ağırlığı antrenmanı yapmayı sağlar.</p><h3>Teknik Özellikler</h3><ul><li><strong>Ölçü:</strong> 81 x 97 x 55 cm</li><li><strong>Malzeme:</strong> 2,5 mm et kalınlığında çelik profil</li><li><strong>Kaplama:</strong> Elektrostatik toz boya</li><li><strong>Destek pedleri:</strong> Minderli sırt ve kol pedleri</li><li><strong>Montaj:</strong> Duvara sabitlenen kompakt gövde</li></ul><h3>Neler Yapılabilir</h3><ul><li><strong>Barfiks:</strong> Üst bardaki tutamaklarla çekiş hareketleri (sırt, kol, core).</li><li><strong>Dips:</strong> Alt tutamaklarla dips hareketi (göğüs, triceps, omuz).</li><li><strong>Diz çekme:</strong> Sırt ve kol pedlerine yaslanarak karın çalışmaları.</li></ul><h3>Montaj Uyarısı</h3><p>İstasyon tüm yükü duvar bağlantısıyla taşır. Yalnız dolu (beton/tuğla) taşıyıcı duvara, duvar tipine uygun dübel ve cıvatalarla monte edin; alçıpan veya boşluklu duvara monte etmeyin. Maksimum taşıma kapasitesi tedarikçi tarafından belirtilmemiştir.</p>",
+ "specifications": [
+  {
+   "name": "Model",
+   "value": "C-017",
+   "source": "https://ceysport.com/urun/duvara-monte-multi-fonksiyonel-dips-barfiks-istasyonu-c-017/"
+  },
+  {
+   "name": "Ölçü",
+   "value": "81 x 97 x 55 cm",
+   "source": "https://ceysport.com/urun/duvara-monte-multi-fonksiyonel-dips-barfiks-istasyonu-c-017/"
+  },
+  {
+   "name": "Malzeme",
+   "value": "Çelik profil, 2,5 mm et kalınlığı",
+   "source": "https://ceysport.com/urun/duvara-monte-multi-fonksiyonel-dips-barfiks-istasyonu-c-017/"
+  },
+  {
+   "name": "Kaplama",
+   "value": "Elektrostatik toz boya",
+   "source": "https://ceysport.com/urun/duvara-monte-multi-fonksiyonel-dips-barfiks-istasyonu-c-017/"
+  },
+  {
+   "name": "Pedler",
+   "value": "Minderli sırt ve kol pedleri",
+   "source": "https://ceysport.com/urun/duvara-monte-multi-fonksiyonel-dips-barfiks-istasyonu-c-017/"
+  },
+  {
+   "name": "Montaj",
+   "value": "Duvara monte",
+   "source": "https://ceysport.com/urun/duvara-monte-multi-fonksiyonel-dips-barfiks-istasyonu-c-017/"
+  },
+  {
+   "name": "Fonksiyonlar",
+   "value": "Barfiks, dips",
+   "source": "https://ceysport.com/urun/duvara-monte-multi-fonksiyonel-dips-barfiks-istasyonu-c-017/"
+  }
+ ],
+ "sources": [
+  "https://ceysport.com/urun/duvara-monte-multi-fonksiyonel-dips-barfiks-istasyonu-c-017/",
+  "https://ceysport.com/wp-json/wc/store/v1/products?slug=duvara-monte-multi-fonksiyonel-dips-barfiks-istasyonu-c-017"
+ ],
+ "conflicts": "",
+ "notes": "Maksimum taşıma kapasitesi, ağırlık ve montaj seti içeriği tedarikçide yok; web'de C-017 koduyla başka kaynak bulunamadı. Benzer ürünlerdeki '200 kg' değeri taşınmadı. 'Diz çekme' kullanımı ürün görselindeki sırt/kol pedlerinden türetildi. Marka belirtilmemiş.",
+ "suggested_brand": ""
+}

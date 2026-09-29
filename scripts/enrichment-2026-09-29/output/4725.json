@@ -1,0 +1,23 @@
+{
+  "id": 4725,
+  "slug": "chattanooga-us-baslik-kablosu",
+  "current_name": "Chattanooga US Başlık Kablosu-Ultrason Kablosu",
+  "identity": {
+    "brand": "Chattanooga",
+    "model": "",
+    "variant": "Ultrason başlık kablosu",
+    "gtin": "",
+    "mpn": ""
+  },
+  "match_confidence": "low",
+  "match_evidence": "Tedarikçi sayfası yalnız 'Chattanooga US Başlık Kablosu / Ultrason Kablosu' diyor; parça numarası, uyumlu cihaz serisi (Intelect Legend XT, Transport, Intelect 2 vb.) ve konnektör tipi yok. Chattanooga'nın farklı serileri için farklı kablolar (ör. CW27351) bulunduğundan eşleşme kurulamadı.",
+  "description_html": "",
+  "specifications": [],
+  "sources": [
+    "https://compexturkiye.com/urunler/chattanooga-compex/chattanooga-us-baslik-kablosu/",
+    "https://www.chattanoogarehab.com/us/10-cm2-intelect-ultrasound-applicator-27384"
+  ],
+  "conflicts": "",
+  "notes": "Parça numarası ve uyumlu cihaz modeli tedarikçiden istenmeli; bu olmadan uyumluluk yazmak yanlış satışa yol açar.",
+  "suggested_brand": "Chattanooga"
+}

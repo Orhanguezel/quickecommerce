@@ -1,0 +1,80 @@
+{
+  "id": 4744,
+  "slug": "everyway-ev-906a-dijital-tens-ems-4-kanalli-kas-stimulatoru",
+  "current_name": "Everyway EV-906A Dijital Tens Ems 4 Kanallı Kas Stimülatörü Adaptörlü",
+  "identity": {
+    "brand": "Everyway",
+    "model": "EV-906A",
+    "variant": "Adaptörlü set",
+    "gtin": "",
+    "mpn": ""
+  },
+  "match_confidence": "high",
+  "match_evidence": "Tedarikçi sayfası ile EV-906A kullanım kılavuzunun teknik tablosu (kanal, akım, voltaj, dalga formu, ölçü, frekans, darbe genişliği, modlar) birebir örtüşüyor; üretici sitesi 4 kanal / 8 elektrot bilgisini doğruluyor.",
+  "description_html": "<p><strong>Everyway EV-906A</strong>, TENS ve EMS (NMES) modlarını bir arada sunan 4 kanallı dijital, taşınabilir bir elektrostimülatördür. Birbirinden bağımsız dört çıkış kanalı sayesinde aynı anda 2, 4, 6 veya 8 elektrot kullanılabilir.</p><h3>Öne Çıkan Özellikler</h3><ul><li><strong>8 ayarlanabilir mod:</strong> 5 TENS modu (B – Burst, N – Normal, M – Modülasyon, SD1, SD2) ve 3 EMS modu (C – Sabit, S – Senkron, A – Alternatif).</li><li><strong>24 hazır TENS/EMS programı</strong> (P modu).</li><li>1–100 mA arasında 100 kademeli şiddet ayarı; tuşlar yanlışlıkla basmaya karşı kapakla korunur.</li><li><strong>İki ayrı zamanlayıcı</strong> (CH1-CH2 ve CH3-CH4): 1–60 dakika veya sürekli; süre bitince otomatik kapanma.</li><li>60 seans kaydı, toplam 999 saate kadar kullanım kaydı; düşük pil uyarısı.</li><li>Şiddet, mod, ayar ve süreyi gösteren 6,1 x 4,4 cm LCD ekran.</li></ul><h3>Teknik Özellikler</h3><table><tr><th>Özellik</th><th>Değer</th></tr><tr><td>Çıkış</td><td>0–100 mA (500 ohm yükte), 0–50 V</td></tr><tr><td>Dalga formu</td><td>Asimetrik bifazik kare darbe</td></tr><tr><td>Frekans</td><td>2–150 Hz (1 Hz adım)</td></tr><tr><td>Darbe genişliği</td><td>50–300 µs (10 µs adım)</td></tr><tr><td>Açık / kapalı / rampa süresi</td><td>2–90 sn / 0–90 sn / 1–8 sn</td></tr></table><h3>Kutu İçeriği</h3><ul><li>EV-906A cihaz ve taşıma çantası</li><li>Cihaz adaptörü</li><li>4 adet elektrot kablosu</li><li>2 paket (8 adet) TENS elektrodu</li><li>4 adet pil</li><li>Türkçe ve İngilizce kullanım kılavuzu</li></ul><h3>Uyarı</h3><p>Kullanmadan önce kullanım kılavuzunu okuyun; tıbbi durumlarda hekime veya fizyoterapiste danışın.</p>",
+  "specifications": [
+    {
+      "name": "Kanal Sayısı",
+      "value": "4 bağımsız kanal (en fazla 8 elektrot)",
+      "source": "https://everyway-medical.com/ProdDevice?productid=EV906"
+    },
+    {
+      "name": "Çıkış Akımı",
+      "value": "0–100 mA (500 ohm yük)",
+      "source": "https://tensmachineuk.com/manuals/downloads/manual_2025-01-29-15-15-55_679a462b38664.pdf"
+    },
+    {
+      "name": "Çıkış Voltajı",
+      "value": "0–50 V (500 ohm yük)",
+      "source": "https://tensmachineuk.com/manuals/downloads/manual_2025-01-29-15-15-55_679a462b38664.pdf"
+    },
+    {
+      "name": "Dalga Formu",
+      "value": "Asimetrik bifazik kare darbe",
+      "source": "https://tensmachineuk.com/manuals/downloads/manual_2025-01-29-15-15-55_679a462b38664.pdf"
+    },
+    {
+      "name": "Frekans",
+      "value": "2–150 Hz",
+      "source": "https://tensmachineuk.com/manuals/downloads/manual_2025-01-29-15-15-55_679a462b38664.pdf"
+    },
+    {
+      "name": "Darbe Genişliği",
+      "value": "50–300 µs",
+      "source": "https://tensmachineuk.com/manuals/downloads/manual_2025-01-29-15-15-55_679a462b38664.pdf"
+    },
+    {
+      "name": "Modlar",
+      "value": "5 TENS + 3 EMS",
+      "source": "https://tensmachineuk.com/manuals/downloads/manual_2025-01-29-15-15-55_679a462b38664.pdf"
+    },
+    {
+      "name": "Hazır Program",
+      "value": "24",
+      "source": "https://compexturkiye.com/urunler/genel/everyway-ev-906a-dijital-tens-ems-4-kanalli-kas-stimulatoru/"
+    },
+    {
+      "name": "Zamanlayıcı",
+      "value": "2 bağımsız, 1–60 dk veya sürekli",
+      "source": "https://compexturkiye.com/urunler/genel/everyway-ev-906a-dijital-tens-ems-4-kanalli-kas-stimulatoru/"
+    },
+    {
+      "name": "Güç Kaynağı",
+      "value": "4 x 1,5 V AA pil; adaptör dahil",
+      "source": "https://compexturkiye.com/urunler/genel/everyway-ev-906a-dijital-tens-ems-4-kanalli-kas-stimulatoru/"
+    },
+    {
+      "name": "Ölçü",
+      "value": "13,8 x 7,8 x 2,8 cm",
+      "source": "https://tensmachineuk.com/manuals/downloads/manual_2025-01-29-15-15-55_679a462b38664.pdf"
+    }
+  ],
+  "sources": [
+    "https://compexturkiye.com/urunler/genel/everyway-ev-906a-dijital-tens-ems-4-kanalli-kas-stimulatoru/",
+    "https://tensmachineuk.com/manuals/downloads/manual_2025-01-29-15-15-55_679a462b38664.pdf",
+    "https://everyway-medical.com/ProdDevice?productid=EV906"
+  ],
+  "conflicts": "Ağırlık: tedarikçi 425 g, EV-906A (Med-fit) kılavuzu 276 g (pil dahil) diyor; yazılmadı.",
+  "notes": "Kılavuz İngiltere distribütörüne (Med-fit) ait, teknik tablo EV-906 serisi için. Endikasyon ifadeleri eklenmedi.",
+  "suggested_brand": "Everyway"
+}

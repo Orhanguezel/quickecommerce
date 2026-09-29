@@ -1,0 +1,46 @@
+{
+  "id": 4759,
+  "slug": "globus-tens-cihazi-kablosu-ve-btl-tens-3-kablosu-1-adet",
+  "current_name": "Globus Tens Cihazı Kablosu  ve  BTL Tens 3 Kablosu; 1 adet",
+  "identity": {
+    "brand": "Globus",
+    "model": "",
+    "variant": "Elektrot kablosu, 1 adet",
+    "gtin": "",
+    "mpn": ""
+  },
+  "match_confidence": "medium",
+  "match_evidence": "Yalnız ürünün kendi tedarikçi sayfası uyumlu model listesini veriyor. Genesy 600/1500/300 ve Premium 400 için ortak kablo, bağımsız yedek parça satıcısında (fiasmed) de görülüyor. Duo Tens ve Genesy S2 için Globus kılavuzu ve satıcılar farklı (gri, yuvarlak konnektörlü) kablo gösteriyor; bu iki model listeden çıkarıldı.",
+  "description_html": "<p>Globus TENS/EMS cihazlarında kullanılan <strong>orijinal Globus elektrot bağlantı kablosu</strong>dur; fiyat tek kablo içindir. Cihaz ile elektrotlar arasındaki bağlantıyı sağlar ve yıpranmış kabloların yenilenmesinde kullanılır.</p><h3>Uyumlu Cihazlar (tedarikçiye göre)</h3><ul><li>Globus Genesy 600</li><li>Globus Genesy 1500</li><li>Globus Genesy 3000</li><li>Globus Genesy 3000 Rehab</li><li>Globus Genesy 300</li><li>Globus Premium 400</li><li>BTL TENS 3</li></ul><h3>Bilmeniz Gerekenler</h3><ul><li><strong>Globus Duo Tens ve Genesy S2</strong> kullanıcıları: bu modeller farklı bağlantılı kablo kullanıyor olabilir; sipariş öncesi satıcıyla teyit edin.</li><li>Ürün yalnız kablodur; elektrot, şarj cihazı veya başka aksesuar içermez.</li><li>Birden fazla kanal kullanıyorsanız her kanal için ayrı kablo gerekir.</li><li>Kablonun cihaz tarafındaki konnektörünün cihazınızın çıkış soketine uyduğunu, mevcut kablonuzla karşılaştırarak kontrol edin.</li><li>Hasarlı kablolar yalnızca orijinal parçayla değiştirilmelidir.</li></ul><h3>Uyarı</h3><p>Kullanmadan önce kullanım kılavuzunu okuyun; tıbbi durumlarda hekime veya fizyoterapiste danışın.</p>",
+  "specifications": [
+    {
+      "name": "Ürün Tipi",
+      "value": "TENS/EMS elektrot bağlantı kablosu",
+      "source": "https://compexturkiye.com/urunler/genel/globus-tens-cihazi-kablosu-ve-btl-tens-3-kablosu-1-adet/"
+    },
+    {
+      "name": "Adet",
+      "value": "1",
+      "source": "https://compexturkiye.com/urunler/genel/globus-tens-cihazi-kablosu-ve-btl-tens-3-kablosu-1-adet/"
+    },
+    {
+      "name": "Orijinallik",
+      "value": "Orijinal Globus",
+      "source": "https://compexturkiye.com/urunler/genel/globus-tens-cihazi-kablosu-ve-btl-tens-3-kablosu-1-adet/"
+    },
+    {
+      "name": "Uyumlu Modeller",
+      "value": "Globus Genesy 600, 1500, 3000, 3000 Rehab, 300; Premium 400; BTL TENS 3",
+      "source": "https://compexturkiye.com/urunler/genel/globus-tens-cihazi-kablosu-ve-btl-tens-3-kablosu-1-adet/"
+    }
+  ],
+  "sources": [
+    "https://compexturkiye.com/urunler/genel/globus-tens-cihazi-kablosu-ve-btl-tens-3-kablosu-1-adet/",
+    "https://int.fiasmed.com/globus-spare-cables-b267/",
+    "https://www.globuscorporation.com/wp-content/uploads/2025/08/Manuale-EliteS2-Genesy-S2-Duo-Tens_MULTI_Rev-5-del-16.10.2023.pdf",
+    "https://www.wellstore.it/accessori-elettrostimolatori-globus-cavo-ricambio-grigio-2-ch"
+  ],
+  "conflicts": "Tedarikçi Duo Tens ve Genesy S2'yi de uyumlu sayıyor; Globus Elite SII/Genesy SII/Duo Tens kılavuzu bu cihazların kendi 2 renkli kablolarıyla geldiğini, İtalyan satıcılar da bunlar için ayrı gri yuvarlak konnektörlü kablo sattığını gösteriyor. Ürün adındaki 'BTL Tens 3' tedarikçiden.",
+  "notes": "Konnektör tipi ve kablo uzunluğu kaynakta yok.",
+  "suggested_brand": "Globus"
+}

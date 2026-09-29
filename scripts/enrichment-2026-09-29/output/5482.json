@@ -1,0 +1,64 @@
+{
+  "id": 5482,
+  "slug": "prd-protein-ocean-l-citrulline-300-gr-st00047",
+  "current_name": "Protein Ocean L-Citrulline 300 Gr",
+  "identity": {
+    "brand": "ProteinOcean",
+    "model": "L-Citrulline",
+    "variant": "300 g, aromasız",
+    "gtin": "8682696191013",
+    "mpn": "6191013"
+  },
+  "match_confidence": "high",
+  "match_evidence": "Sportoonline ürün görseli 'proteinocn L-CITRULLINE NET WT. 300 g' kutusu; üretici proteinocean.com/citrulline sayfasında aynı ürünün 300 g (300 servis) varyantı, SKU 6191013, barkod 8682696191013. Tedarikçi (BodyFit) sayfası artık ana sayfaya yönleniyor.",
+  "description_html": "<p>ProteinOcean L-Citrulline, yalnızca L-sitrülin içeren toz formda bir takviye edici gıdadır. Ürün 300 g kutuda, aromasız olarak sunulur ve paket 300 servis içerir.</p><p>Sitrülin, proteinlerin yapısına katılmayan (protein olmayan) bir amino asittir. Üretici ürünü 'L-Sitrülin İçeren Takviye Edici Gıda' olarak tanımlar; formülde aroma, tatlandırıcı veya dolgu maddesi bulunmaz.</p><h3>Öne Çıkan Özellikler</h3><ul><li>Tek bileşen: L-sitrülin (%100)</li><li>Servis ölçüsü yaklaşık 1 g (1/3 ölçek)</li><li>300 g ambalajda 300 servis</li><li>Tarım ve Orman Bakanlığı takviye edici gıda onay numarası: 020424-01.04.2024</li><li>Antrenman öncesi karışımlarına eklenebilir</li><li>Ürün Ankara'da Proteinocean Gıda A.Ş. tarafından üretilir</li></ul><h3>İçindekiler</h3><p>L-sitrülin.</p><h3>Kullanım</h3><p>1/3 ölçek (yaklaşık 1 g) ürünü 50 ml su ile karıştırın; dilerseniz başka gıdalarla karıştırarak da tüketebilirsiniz. Üretici antrenman öncesinde kullanılabileceğini belirtir.</p><h3>Üretici</h3><p>Proteinocean Gıda A.Ş., Ostim OSB, Yenimahalle / Ankara. İşletme kayıt no: TR-06-K-039212.</p>",
+  "specifications": [
+    {
+      "name": "Marka",
+      "value": "ProteinOcean",
+      "source": "https://proteinocean.com/citrulline"
+    },
+    {
+      "name": "İçerik",
+      "value": "L-Sitrülin (%100)",
+      "source": "https://proteinocean.com/citrulline"
+    },
+    {
+      "name": "Net Miktar",
+      "value": "300 g",
+      "source": "https://proteinocean.com/citrulline"
+    },
+    {
+      "name": "Servis Sayısı",
+      "value": "300",
+      "source": "https://proteinocean.com/citrulline"
+    },
+    {
+      "name": "Servis Ölçüsü",
+      "value": "1/3 ölçek (yaklaşık 1 g)",
+      "source": "https://proteinocean.com/citrulline"
+    },
+    {
+      "name": "Hazırlama",
+      "value": "50 ml su ile",
+      "source": "https://proteinocean.com/citrulline"
+    },
+    {
+      "name": "Takviye Edici Gıda Onay No",
+      "value": "020424-01.04.2024",
+      "source": "https://proteinocean.com/citrulline"
+    },
+    {
+      "name": "Barkod",
+      "value": "8682696191013",
+      "source": "https://proteinocean.com/citrulline"
+    }
+  ],
+  "sources": [
+    "https://proteinocean.com/citrulline",
+    "https://bodyfitshop.com.tr/performansguc/guc-ve-performans/prd-protein-ocean-l-citrulline-300-gr-st00047"
+  ],
+  "conflicts": "Mevcut Sportoonline açıklaması (BodyFit kaynaklı) sitrülin MALAT ürününe ait bilgileri içeriyor: 'İÇİNDEKİLER Sitrülin Malat', '1/2 ölçek (yaklaşık 1.5 g) 100 ml su', '1.5 g'da 1000 mg sitrülin', '*Citrulline Malate ürünü... topaklanabilir'. Görsel ve ad L-Citrulline (saf sitrülin) ürününü gösteriyor; üretici verisi (1 g / 50 ml, içerik yalnız L-sitrülin) esas alındı. Ayrıca mevcut metinde 'kan damarları genişler, kas gelişimi hızlanır' gibi yasak sağlık iddiaları var; tamamen kaldırılmalı.",
+  "notes": "source_url (bodyfitshop) ürün kaldırılmış, ana sayfaya yönleniyor — tedarikçide stok durumu kontrol edilmeli. Mağaza markası boş, ProteinOcean atanmalı.",
+  "suggested_brand": "ProteinOcean"
+}

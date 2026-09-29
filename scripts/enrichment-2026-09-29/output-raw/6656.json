@@ -1,0 +1,62 @@
+{
+ "id": 6656,
+ "slug": "olimpik-kaucuk-kaplama-plaka-125-kg",
+ "current_name": "Olimpik Kauçuk Kaplama Plaka 1,25 KG",
+ "identity": {
+  "brand": "Avessa",
+  "model": "MB-12111",
+  "variant": "1,25 kg, sarı",
+  "gtin": "",
+  "mpn": "MB-12111"
+ },
+ "match_confidence": "high",
+ "match_evidence": "Tedarikçi sayfasında stok kodu MB-12111 ve görselde 'avessa' logolu, '1.25 KG' yazılı sarı plaka; Trendyol, n11, Teknosa, Çiçeksepeti listelemeleri 'Avessa 1,25 Kg Olimpik Kauçuk Kaplama Plaka MB-12111' adını veriyor.",
+ "description_html": "<p>Avessa 1,25 kg olimpik kauçuk kaplama plaka, olimpik barlarla kullanılan hafif bir ağırlık plakasıdır. Küçük artışlarla yüklemeyi ilerletmek, ısınma setleri ve teknik çalışmalar için tercih edilir.</p><h3>Öne Çıkan Özellikler</h3><ul><li><strong>Ağırlık:</strong> 1,25 kg</li><li><strong>Tip:</strong> Olimpik plaka (olimpik bar ile kullanım)</li><li><strong>Kaplama:</strong> Kauçuk; zeminde kaymayı azaltır ve metal-zemin temasını önler.</li><li><strong>Tutma boşlukları:</strong> Üç adet tutma yuvası sayesinde plaka kolay kavranır ve taşınır (ürün görseli).</li><li><strong>Renk:</strong> Sarı (ürün görseli)</li></ul><h3>Kullanım Alanları</h3><ul><li>Olimpik bar ile squat, bench press, deadlift gibi çalışmalarda yük ayarı</li><li>Plaka ile yapılan fonksiyonel egzersizler</li><li>Ev ve salon kullanımı</li></ul><h3>Kullanım Önerisi</h3><p>Plakaları barda mutlaka bar klipsi veya kilitle sabitleyin. Satış birimi ve adedi için ürün sayfasındaki seçenekleri kontrol edin.</p><p>Hafif ağırlığı sayesinde yeni başlayanların yüklemeyi yavaşça artırmasına ve deneyimli sporcuların ince ayar yapmasına imkân tanır; diğer olimpik plakalarla birlikte kullanılabilir.</p>",
+ "specifications": [
+  {
+   "name": "Marka",
+   "value": "Avessa",
+   "source": "https://www.trendyol.com/avessa/1-25-kg-olimpik-kaucuk-kaplama-plaka-mb-12111-p-920577239"
+  },
+  {
+   "name": "Model Kodu",
+   "value": "MB-12111",
+   "source": "https://ceysport.com/urun/olimpik-kaucuk-kaplama-plaka-125-kg/"
+  },
+  {
+   "name": "Ağırlık",
+   "value": "1,25 kg",
+   "source": "https://ceysport.com/urun/olimpik-kaucuk-kaplama-plaka-125-kg/"
+  },
+  {
+   "name": "Tip",
+   "value": "Olimpik plaka",
+   "source": "https://ceysport.com/urun/olimpik-kaucuk-kaplama-plaka-125-kg/"
+  },
+  {
+   "name": "Malzeme",
+   "value": "Kauçuk kaplama",
+   "source": "https://ceysport.com/urun/olimpik-kaucuk-kaplama-plaka-125-kg/"
+  },
+  {
+   "name": "Renk",
+   "value": "Sarı",
+   "source": "https://ceysport.com/urun/olimpik-kaucuk-kaplama-plaka-125-kg/"
+  },
+  {
+   "name": "Tutma Yuvası",
+   "value": "3 adet (görsel)",
+   "source": "https://ceysport.com/urun/olimpik-kaucuk-kaplama-plaka-125-kg/"
+  }
+ ],
+ "sources": [
+  "https://ceysport.com/urun/olimpik-kaucuk-kaplama-plaka-125-kg/",
+  "https://ceysport.com/wp-json/wc/store/v1/products?slug=olimpik-kaucuk-kaplama-plaka-125-kg",
+  "https://www.trendyol.com/avessa/1-25-kg-olimpik-kaucuk-kaplama-plaka-mb-12111-p-920577239",
+  "https://www.n11.com/urun/avessa-125-kg-olimpik-kaucuk-kaplama-plaka-mb-12111-72592402",
+  "https://www.ciceksepeti.com/alsepeteavm-mb-12111-avessa-1-25-kg-olimpik-plaka-kaucuk-kaplama-kcm9630733"
+ ],
+ "conflicts": "MB-12111 kodu bazı perakendecilerde 25 kg plakalar için de kullanılıyor; kod bir seri koduna benziyor, varyant 1,25 kg ağırlık ve görselle doğrulandı.",
+ "notes": "Marka alanı boş; tedarikçi görselindeki logo ve MB-12111 kodu Avessa'yı gösteriyor. Delik çapı (50 mm) arama özetinde geçti ama erişilebilir bir sayfada doğrulanamadı, yazılmadı. Avessa resmî sitesine erişilemedi.",
+ "suggested_brand": "Avessa"
+}

@@ -1,0 +1,60 @@
+{
+  "id": 4663,
+  "slug": "compex-dura-stick-5x5cm-42215-citcitli-tens-elektrot-pedi",
+  "current_name": "Compex Dura Stick  Snap 5x5cm Çıtçıtlı Yapışkan Tens Elektrot Pedi",
+  "identity": {
+    "brand": "Compex",
+    "model": "Dura-Stick Plus Snap 42215",
+    "variant": "5 x 5 cm, 4 adet",
+    "gtin": "",
+    "mpn": ""
+  },
+  "match_confidence": "high",
+  "match_evidence": "Tedarikçi sayfası ürün kodu 42215, 5x5 cm, 4 adet ve çıtçıt (snap) bağlantıyı veriyor; bağımsız perakendeciler aynı ürünü (Dura-Stick Plus Snap 5x5 cm, 4'lü) aynı ömür bilgisiyle listeliyor.",
+  "description_html": "<p><strong>Compex Dura-Stick Plus 5 x 5 cm çıtçıtlı (snap) elektrot</strong>, Compex kas stimülasyon cihazlarıyla kullanılan, tekrar kullanılabilir kendinden yapışkanlı kare elektrot pedidir. Pakette 4 adet bulunur.</p><h3>Öne Çıkan Özellikler</h3><ul><li><strong>Ölçü:</strong> 5 x 5 cm kare yüzey.</li><li><strong>Bağlantı:</strong> tek çıtçıt (snap); kablo, tek bastırmayla takılır.</li><li>Gümüş baskılı iletken katman.</li><li>Temiz ve kuru ciltte yaklaşık 30–40 kullanım boyunca yapışkanlığını korur.</li><li>Orijinal Compex ürünü; ürün kodu 42215.</li></ul><h3>Uyumluluk</h3><p>Tedarikçiye göre yalnız <strong>Compex marka cihazların siyah renkli çıtçıtlı elektrot kablolarıyla</strong> uyumludur. Cihazınız Compex marka değilse ya da kablonuz pim (fiş) tipindeyse bu elektrot uygun değildir.</p><h3>Kutu İçeriği</h3><ul><li>4 adet 5 x 5 cm Dura-Stick Plus snap elektrot</li></ul><p>Kişisel hijyen ürünü olduğundan ambalajı açıldıktan sonra iade ve değişim kabul edilmez.</p><h3>Uyarı</h3><p>Kullanmadan önce kullanım kılavuzunu okuyun; tıbbi durumlarda hekime veya fizyoterapiste danışın.</p>",
+  "specifications": [
+    {
+      "name": "Ürün Kodu",
+      "value": "42215",
+      "source": "https://compexturkiye.com/urunler/compex-aksesuar-ve-yedek-parca/compex-dura-stick-5x5cm-42215-citcitli-tens-elektrot-pedi/"
+    },
+    {
+      "name": "Ölçü",
+      "value": "5 x 5 cm, kare",
+      "source": "https://compexturkiye.com/urunler/compex-aksesuar-ve-yedek-parca/compex-dura-stick-5x5cm-42215-citcitli-tens-elektrot-pedi/"
+    },
+    {
+      "name": "Adet",
+      "value": "4 adet / paket",
+      "source": "https://compexturkiye.com/urunler/compex-aksesuar-ve-yedek-parca/compex-dura-stick-5x5cm-42215-citcitli-tens-elektrot-pedi/"
+    },
+    {
+      "name": "Bağlantı Tipi",
+      "value": "Çıtçıt (snap)",
+      "source": "https://compexturkiye.com/urunler/compex-aksesuar-ve-yedek-parca/compex-dura-stick-5x5cm-42215-citcitli-tens-elektrot-pedi/"
+    },
+    {
+      "name": "İletken",
+      "value": "Gümüş baskılı",
+      "source": "https://compexturkiye.com/urunler/compex-aksesuar-ve-yedek-parca/compex-dura-stick-5x5cm-42215-citcitli-tens-elektrot-pedi/"
+    },
+    {
+      "name": "Kullanım Ömrü",
+      "value": "Yaklaşık 30–40 kullanım",
+      "source": "https://compexturkiye.com/urunler/compex-aksesuar-ve-yedek-parca/compex-dura-stick-5x5cm-42215-citcitli-tens-elektrot-pedi/"
+    },
+    {
+      "name": "Uyumluluk",
+      "value": "Compex siyah çıtçıtlı kablolar",
+      "source": "https://compexturkiye.com/urunler/compex-aksesuar-ve-yedek-parca/compex-dura-stick-5x5cm-42215-citcitli-tens-elektrot-pedi/"
+    }
+  ],
+  "sources": [
+    "https://compexturkiye.com/urunler/compex-aksesuar-ve-yedek-parca/compex-dura-stick-5x5cm-42215-citcitli-tens-elektrot-pedi/",
+    "https://physiotherapyequipment.co.uk/products/5cm-x-5cm-dura-stick-plus-compex-electrodes",
+    "https://physiostore.ca/dura-stick-plus-compex-snap-electrodes-2-x-2-set-of-4/"
+  ],
+  "conflicts": "",
+  "notes": "GTIN hiçbir kaynakta açıkça yok; boş bırakıldı.",
+  "suggested_brand": "Compex"
+}

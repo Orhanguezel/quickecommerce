@@ -1,0 +1,58 @@
+{
+  "id": 15589,
+  "slug": "citrulline-malate",
+  "current_name": "CITRULLINE MALATE",
+  "identity": {
+    "brand": "Animal Joy",
+    "model": "Citrulline Malate",
+    "variant": "150 g, aromasız",
+    "gtin": "8697431131872",
+    "mpn": "ET007-0189"
+  },
+  "match_confidence": "high",
+  "match_evidence": "Üretici Animal Joy sitesinde (source_url) aynı ürün adı, tek varyant 'Boyut: 150G', SKU ET007-0189; Sportoonline JSON-LD sku'su da ET007-0189. Barkod üretici varyant verisinde 8697431131872.",
+  "description_html": "<p>Animal Joy Citrulline Malate, L-sitrülin amino asidinin malik asitle birleştirildiği sitrülin malat formunda bir toz takviyedir. Ürün 150 g kutuda sunulur ve her serviste 1000 mg L-sitrülin ile 500 mg malik asit bulunur.</p><p>Sitrülin malat, L-sitrülin ile malik asidin bir araya getirildiği bir bileşik formudur. Bu üründe 1,5 g'lık bir servisin 1 g'ı L-sitrülin, 0,5 g'ı malik asittir.</p><h3>Öne Çıkan Özellikler</h3><ul><li>Sitrülin malat formu (L-sitrülin + malik asit)</li><li>Servis ölçüsü 1,5 g</li><li>Servis başına 1000 mg L-sitrülin ve 500 mg malik asit</li><li>Toz form; tek başına ya da antrenman öncesi karışımlara eklenerek kullanılabilir</li><li>Net miktar 150 g</li></ul><h3>İçerik Değerleri (1 servis, 1,5 g)</h3><table><tr><th>Bileşen</th><th>Miktar</th></tr><tr><td>L-Sitrülin</td><td>1000 mg</td></tr><tr><td>Malik asit</td><td>500 mg</td></tr></table><h3>Kullanım Notu</h3><p>Üretici, ürünün tek başına veya antrenman öncesi kullanılan karışımlara eklenerek tüketilebileceğini belirtir. Ölçü olarak 1,5 g'lık servis esas alınır; günlük kullanım miktarı için ambalaj etiketindeki talimat izlenmelidir.</p>",
+  "specifications": [
+    {
+      "name": "Marka",
+      "value": "Animal Joy",
+      "source": "https://animaljoy.com.tr/citrulline-malate"
+    },
+    {
+      "name": "Form",
+      "value": "Sitrülin malat (toz)",
+      "source": "https://animaljoy.com.tr/citrulline-malate"
+    },
+    {
+      "name": "Net Miktar",
+      "value": "150 g",
+      "source": "https://animaljoy.com.tr/citrulline-malate"
+    },
+    {
+      "name": "Servis Ölçüsü",
+      "value": "1,5 g",
+      "source": "https://animaljoy.com.tr/citrulline-malate"
+    },
+    {
+      "name": "L-Sitrülin (1 servis)",
+      "value": "1000 mg",
+      "source": "https://animaljoy.com.tr/citrulline-malate"
+    },
+    {
+      "name": "Malik Asit (1 servis)",
+      "value": "500 mg",
+      "source": "https://animaljoy.com.tr/citrulline-malate"
+    },
+    {
+      "name": "Barkod",
+      "value": "8697431131872",
+      "source": "https://animaljoy.com.tr/citrulline-malate"
+    }
+  ],
+  "sources": [
+    "https://animaljoy.com.tr/citrulline-malate"
+  ],
+  "conflicts": "Üretici metni ve mevcut açıklama 'nitrik oksit metabolizması', 'kan akışı', 'dayanıklılık' gibi fizyolojik/performans ifadeleri içeriyor; kural gereği kullanılmadı.",
+  "notes": "Üretici sayfasında içindekiler listesi, kullanım talimatı ve servis sayısı ayrıca yok; eklenmedi. Mağaza markası boş, Animal Joy atanmalı.",
+  "suggested_brand": "Animal Joy"
+}

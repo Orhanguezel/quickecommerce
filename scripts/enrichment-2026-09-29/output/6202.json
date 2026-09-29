@@ -1,0 +1,54 @@
+{
+ "id": 6202,
+ "slug": "40-kg-ayarlanabilir-dambil-seti",
+ "current_name": "40 KG Ayarlanabilir Dambıl Seti",
+ "identity": {
+  "brand": "",
+  "model": "DMB-40",
+  "variant": "40 kg",
+  "gtin": "",
+  "mpn": "DMB-40"
+ },
+ "match_confidence": "high",
+ "match_evidence": "Tedarikçi sayfası aynı ad ve stok kodu DMB-40; mevcut Sportoonline açıklaması tedarikçi metniyle aynı. Tedarikçi görsellerinde 36 – 38 – 40 değerli ayar kadranı görülüyor.",
+ "description_html": "<p>40 KG Ayarlanabilir Dambıl Seti, ağırlığı dambıl ucundaki ayar kadranıyla seçilen, tablalı bir ayarlanabilir dambıldır. Tek ekipmanla farklı ağırlıklarda çalışmak isteyen, orta ve ileri seviye kuvvet antrenmanı yapan kullanıcılar için uygundur.</p><h3>Öne Çıkan Özellikler</h3><ul><li><strong>Maksimum ağırlık:</strong> 40 kg ayarlanabilir kapasite.</li><li><strong>Saklama tablası:</strong> Dambıl, seçilmeyen plakaları tutan tablaya oturur.</li><li><strong>Tutma barı:</strong> Kaymaz ve ergonomik tutuş.</li><li><strong>Kullanım:</strong> Kol, omuz, göğüs, sırt ve bacak egzersizleri.</li></ul><h3>Kullanım Alanları</h3><ul><li>Evde fitness ve kuvvet antrenmanları</li><li>Fonksiyonel ve serbest ağırlık çalışmaları</li><li>Bireysel ve profesyonel spor salonları</li></ul><h3>Kullanım Önerisi</h3><p>Ağırlık değişimini yalnız dambıl tablaya tam oturmuşken yapın. Mekanizmalı ayarlanabilir dambılları yere bırakmayın veya düşürmeyin; ürün üzerindeki uyarı da bunu belirtir.</p><p>Tek setle farklı ağırlıklarda çok sayıda hareket yapılabildiği için ayrı ayrı dambıl çiftleri almaya gerek kalmaz ve antrenman alanında daha az yer kaplar.</p>",
+ "specifications": [
+  {
+   "name": "Maksimum Ağırlık",
+   "value": "40 kg",
+   "source": "https://ceysport.com/urun/40-kg-ayarlanabilir-dambil-seti/"
+  },
+  {
+   "name": "Ayar Sistemi",
+   "value": "Döner kadranlı (tabla üzerinde seçim)",
+   "source": "https://ceysport.com/urun/40-kg-ayarlanabilir-dambil-seti/"
+  },
+  {
+   "name": "Tutma Barı",
+   "value": "Kaymaz, ergonomik",
+   "source": "https://ceysport.com/urun/40-kg-ayarlanabilir-dambil-seti/"
+  },
+  {
+   "name": "Aksesuar",
+   "value": "Saklama tablası",
+   "source": "https://ceysport.com/urun/40-kg-ayarlanabilir-dambil-seti/"
+  },
+  {
+   "name": "Kullanım Alanı",
+   "value": "Ev ve salon",
+   "source": "https://ceysport.com/urun/40-kg-ayarlanabilir-dambil-seti/"
+  },
+  {
+   "name": "Stok Kodu",
+   "value": "DMB-40",
+   "source": "https://ceysport.com/urun/40-kg-ayarlanabilir-dambil-seti/"
+  }
+ ],
+ "sources": [
+  "https://ceysport.com/urun/40-kg-ayarlanabilir-dambil-seti/",
+  "https://ceysport.com/wp-json/wc/store/v1/products?slug=40-kg-ayarlanabilir-dambil-seti"
+ ],
+ "conflicts": "",
+ "notes": "24 kg varyantıyla aynı yapı kullanıldı, değerler 40 kg sayfasından. Tek/çift adet, en düşük ağırlık, tam kademe listesi, ölçü ve malzeme tedarikçi sayfasında yok; tahmin edilmedi. Marka belirtilmemiş.",
+ "suggested_brand": ""
+}

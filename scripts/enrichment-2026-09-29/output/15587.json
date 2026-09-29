@@ -1,0 +1,73 @@
+{
+  "id": 15587,
+  "slug": "whey-egg-white-protein",
+  "current_name": "WHEY+EGG WHITE PROTEIN",
+  "identity": {
+    "brand": "Animal Joy",
+    "model": "Whey+Egg White Protein",
+    "variant": "450 g (15 servis), Karamel aroma",
+    "gtin": "8697431130387",
+    "mpn": "ET007-0018"
+  },
+  "match_confidence": "high",
+  "match_evidence": "Üretici Animal Joy sitesinde (source_url) aynı ürün adı, tek varyant '450 Gr - 15 Servis / Karamel', SKU ET007-0018; Sportoonline JSON-LD sku'su da ET007-0018. Barkod üretici varyant verisinde 8697431130387.",
+  "description_html": "<p>Animal Joy Whey+Egg White Protein, peynir altı suyu proteini konsantresi ile yumurta akı tozunun birlikte kullanıldığı karışım bir protein tozudur. Ürün 450 g ambalajda, 15 servis olarak ve karamel aromalı sunulur.</p><h3>Öne Çıkan Özellikler</h3><ul><li>İki protein kaynağı: whey protein konsantresi ve yumurta akı tozu</li><li>Servis başına 23,8 g protein, 104 kcal</li><li>Servis başına 1,6 g karbonhidrat, 1,1 g şeker, 1,6 g yağ</li><li>Tatlandırıcı olarak sukraloz (E955), kıvam artırıcı olarak ksantan gam (E415) içerir</li></ul><h3>Besin Değerleri (1 servis)</h3><table><tr><th>Besin Öğesi</th><th>Miktar</th></tr><tr><td>Enerji</td><td>104 kcal / 438 kJ</td></tr><tr><td>Yağ</td><td>1,6 g</td></tr><tr><td>Doymuş Yağ</td><td>0,3 g</td></tr><tr><td>Karbonhidrat</td><td>1,6 g</td></tr><tr><td>Şekerler</td><td>1,1 g</td></tr><tr><td>Protein</td><td>23,8 g</td></tr><tr><td>Tuz</td><td>0,15 g</td></tr></table><h3>İçindekiler</h3><p>Whey protein konsantresi, yumurta akı tozu, karamel aroması, kıvam artırıcı (ksantan gam E415), tatlandırıcı (sukraloz E955).</p><h3>Alerjen Bilgisi</h3><ul><li>Süt (peynir altı suyu) ve yumurta içerir.</li></ul>",
+  "specifications": [
+    {
+      "name": "Marka",
+      "value": "Animal Joy",
+      "source": "https://animaljoy.com.tr/wheyegg-white-protein"
+    },
+    {
+      "name": "Net Miktar",
+      "value": "450 g",
+      "source": "https://animaljoy.com.tr/wheyegg-white-protein"
+    },
+    {
+      "name": "Servis Sayısı",
+      "value": "15",
+      "source": "https://animaljoy.com.tr/wheyegg-white-protein"
+    },
+    {
+      "name": "Aroma",
+      "value": "Karamel",
+      "source": "https://animaljoy.com.tr/wheyegg-white-protein"
+    },
+    {
+      "name": "Protein (1 servis)",
+      "value": "23,8 g",
+      "source": "https://animaljoy.com.tr/wheyegg-white-protein"
+    },
+    {
+      "name": "Enerji (1 servis)",
+      "value": "104 kcal / 438 kJ",
+      "source": "https://animaljoy.com.tr/wheyegg-white-protein"
+    },
+    {
+      "name": "Protein Kaynağı",
+      "value": "Whey protein konsantresi + yumurta akı tozu",
+      "source": "https://animaljoy.com.tr/wheyegg-white-protein"
+    },
+    {
+      "name": "Tatlandırıcı",
+      "value": "Sukraloz (E955)",
+      "source": "https://animaljoy.com.tr/wheyegg-white-protein"
+    },
+    {
+      "name": "Alerjenler",
+      "value": "Süt, yumurta",
+      "source": "https://animaljoy.com.tr/wheyegg-white-protein"
+    },
+    {
+      "name": "Barkod",
+      "value": "8697431130387",
+      "source": "https://animaljoy.com.tr/wheyegg-white-protein"
+    }
+  ],
+  "sources": [
+    "https://animaljoy.com.tr/wheyegg-white-protein"
+  ],
+  "conflicts": "Mevcut açıklamadaki 'Türkiye'de ilk kez', 'üstün performans', 'sınırları zorluyor' ifadeleri doğrulanamaz tanıtım/performans iddiasıdır; yeni metinde kullanılmadı.",
+  "notes": "Üretici sayfası servis gramajını ayrıca yazmıyor (450 g / 15 servis). Kullanım talimatı bu ürün sayfasında yok, eklenmedi. Mağaza markası boş, Animal Joy atanmalı.",
+  "suggested_brand": "Animal Joy"
+}

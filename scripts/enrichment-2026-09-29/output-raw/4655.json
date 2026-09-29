@@ -1,0 +1,79 @@
+{
+  "id": 4655,
+  "slug": "compex-physio-nmestens-fizik-tedavi-rehabilitasyon-cihazi",
+  "current_name": "Chattanooga Compex Physio NMES/Tens Fizik Tedavi Rehabilitasyon Cihazı",
+  "identity": {
+    "brand": "Chattanooga",
+    "model": "Physio",
+    "variant": "4 kanallı klinik elektrostimülatör",
+    "gtin": "",
+    "mpn": ""
+  },
+  "match_confidence": "high",
+  "match_evidence": "Tedarikçi sayfası (compexturkiye) ve bağımsız distribütör (medunivers.ch) aynı model için 4 kanal, 120 mA, 30–1000 µs, 1–150 Hz, 138x95x33 mm, 300 g değerlerini veriyor.",
+  "description_html": "<p><strong>Chattanooga Physio</strong>, klinik kullanım için tasarlanmış 4 kanallı, TENS ve NMES akımlarını tek gövdede toplayan taşınabilir bir elektroterapi cihazıdır. Standart akımların yanında tam program yapılandırması, denerve kas stimülasyonu ve düz (galvanik) akım uygulamalarını da destekler. Program menüsünde Türkçe dil seçeneği bulunur.</p><h3>Öne Çıkan Özellikler</h3><ul><li><strong>4 bağımsız kanal</strong>; kanal başına en fazla 120 mA darbe şiddeti, 1300 ohm'a kadar sabit akım.</li><li><strong>2+2 modu:</strong> 1–2. kanallara bir program, 3–4. kanallara farklı bir program atanabilir.</li><li><strong>Muscle Intelligence (Mi) teknolojisi:</strong> Mi-Scan, Mi-TENS, Mi-Range ve Mi-Action fonksiyonları.</li><li><strong>Tetikleme fonksiyonu:</strong> stimülasyon, istemli kas kasılmasıyla başlatılabilir.</li><li><strong>Kısmi denervasyon için otomatik rampa hesaplama</strong> ve SKIP ile faz atlama.</li><li>Kişiye özel program oluşturma ve kaydetme; elektrot yerleşimi için motor nokta kalemi.</li><li><strong>Dalga formları:</strong> %100 kompanse simetrik bifazik, monofazik kare/üçgen darbe ve galvanik/düz akım.</li><li>Şarj edilebilir NiMH pil (4,8 V, 2000 mAh); tam şarj en fazla 2,5 saat.</li></ul><h3>Teknik Özellikler</h3><table><tr><th>Özellik</th><th>Değer</th></tr><tr><td>Kanal sayısı</td><td>4</td></tr><tr><td>Maks. darbe şiddeti</td><td>120 mA</td></tr><tr><td>Darbe genişliği</td><td>30–1000 µs</td></tr><tr><td>Frekans</td><td>1–150 Hz</td></tr><tr><td>Ölçü</td><td>138 x 95 x 33 mm</td></tr><tr><td>Ağırlık</td><td>300 g (pil dahil)</td></tr><tr><td>Sınıf / Koruma</td><td>MDD Sınıf IIa, IP22, Tip BF uygulanan parça</td></tr></table><h3>Uyarı</h3><p>Kullanmadan önce kullanım kılavuzunu okuyun; tıbbi durumlarda hekime veya fizyoterapiste danışın.</p>",
+  "specifications": [
+    {
+      "name": "Kanal Sayısı",
+      "value": "4 (bağımsız, 2+2 modu)",
+      "source": "https://compexturkiye.com/urunler/chattanooga-compex/compex-physio-nmestens-fizik-tedavi-rehabilitasyon-cihazi/"
+    },
+    {
+      "name": "Maks. Darbe Şiddeti",
+      "value": "120 mA / kanal",
+      "source": "https://medunivers.ch/en/electrostimulation/5510-chattanooga-physio.html"
+    },
+    {
+      "name": "Sabit Akım",
+      "value": "1300 ohm/kanal dirence kadar",
+      "source": "https://compexturkiye.com/urunler/chattanooga-compex/compex-physio-nmestens-fizik-tedavi-rehabilitasyon-cihazi/"
+    },
+    {
+      "name": "Darbe Genişliği",
+      "value": "30–1000 µs",
+      "source": "https://medunivers.ch/en/electrostimulation/5510-chattanooga-physio.html"
+    },
+    {
+      "name": "Frekans",
+      "value": "1–150 Hz",
+      "source": "https://medunivers.ch/en/electrostimulation/5510-chattanooga-physio.html"
+    },
+    {
+      "name": "Dalga Formu",
+      "value": "Simetrik bifazik (%100 kompanse), monofazik kare/üçgen, galvanik",
+      "source": "https://compexturkiye.com/urunler/chattanooga-compex/compex-physio-nmestens-fizik-tedavi-rehabilitasyon-cihazi/"
+    },
+    {
+      "name": "Pil",
+      "value": "NiMH 4,8 V 2000 mAh, şarj süresi en fazla 2,5 saat",
+      "source": "https://compexturkiye.com/urunler/chattanooga-compex/compex-physio-nmestens-fizik-tedavi-rehabilitasyon-cihazi/"
+    },
+    {
+      "name": "Ölçü",
+      "value": "138 x 95 x 33 mm",
+      "source": "https://medunivers.ch/en/electrostimulation/5510-chattanooga-physio.html"
+    },
+    {
+      "name": "Ağırlık",
+      "value": "300 g (pil dahil)",
+      "source": "https://compexturkiye.com/urunler/chattanooga-compex/compex-physio-nmestens-fizik-tedavi-rehabilitasyon-cihazi/"
+    },
+    {
+      "name": "Tıbbi Cihaz Sınıfı",
+      "value": "MDD Sınıf IIa",
+      "source": "https://compexturkiye.com/urunler/chattanooga-compex/compex-physio-nmestens-fizik-tedavi-rehabilitasyon-cihazi/"
+    },
+    {
+      "name": "Koruma Sınıfı",
+      "value": "IP22, Tip BF",
+      "source": "https://compexturkiye.com/urunler/chattanooga-compex/compex-physio-nmestens-fizik-tedavi-rehabilitasyon-cihazi/"
+    }
+  ],
+  "sources": [
+    "https://compexturkiye.com/urunler/chattanooga-compex/compex-physio-nmestens-fizik-tedavi-rehabilitasyon-cihazi/",
+    "https://medunivers.ch/en/electrostimulation/5510-chattanooga-physio.html"
+  ],
+  "conflicts": "Bazı perakendeciler darbe genişliğini 30–400 µs veriyor; tedarikçi ve medunivers 30–1000 µs diyor (ikincisi kullanıldı). Tedarikçinin 'kutu içeriği' başlığı 'Chattanooga Theta' diyor ve Mi kablo adedi sayfada çelişkili (4 / x2); kutu içeriği bu nedenle eklenmedi. Program sayısı kaynaklarda tutarsız (63 / 74); yazılmadı.",
+  "notes": "Mevcut açıklamadaki endikasyon listesi (ağrı, ödem, atrofi vb.) kural gereği çıkarıldı.",
+  "suggested_brand": "Chattanooga"
+}

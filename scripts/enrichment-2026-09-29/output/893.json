@@ -1,0 +1,40 @@
+{
+ "id": 893,
+ "slug": "bona-bosu-ball-denge-topu",
+ "current_name": "Bona Bosu Ball Denge Topu",
+ "identity": {
+  "brand": "Bona",
+  "model": "",
+  "variant": "63 cm",
+  "gtin": "",
+  "mpn": ""
+ },
+ "match_confidence": "medium",
+ "match_evidence": "Tedarikçi sayfası (eprotein) 403 ile erişilemedi. idefix 'Bona Bosu Ball Denge Topu' sayfası 63 cm çap, PVC + ABS, 5,6 kg veriyor; Hepsiburada listeleme başlığı 'Bona Bosu Ball Pilates Denge Topu 63 cm'. Çap iki bağımsız kaynakta aynı.",
+ "description_html": "<p>Bona Bosu Ball Denge Topu, bir yüzü şişirilebilir yarım küre, diğer yüzü düz sert platform olan bir denge antrenman aletidir. Yarım küre üstteyken dengesiz bir basma yüzeyi, platform üstteyken ise şınav ve plank gibi hareketler için zorlayıcı bir destek sunar. Pilates, yoga, fonksiyonel antrenman ve denge çalışmalarında kullanılır.</p><h3>Öne Çıkan Özellikler</h3><ul><li><strong>Çap:</strong> 63 cm</li><li><strong>İki yönlü kullanım:</strong> Kubbe yukarıda denge ve core çalışmaları; platform yukarıda şınav, plank ve dağcı hareketleri.</li></ul><h3>Kullanım Alanları</h3><ul><li>Pilates ve yoga seansları</li><li>Denge ve koordinasyon çalışmaları</li><li>Squat, lunge, plank gibi vücut ağırlığı hareketlerinin zorlaştırılması</li><li>Ev, stüdyo ve salon kullanımı</li></ul><h3>Kullanım Önerisi</h3><p>İlk kullanımda kubbeyi aşırı şişirmeyin; sert olmayan, hafif esneyen bir kıvam hem güvenli hem de kontrol edilebilir bir yüzey sağlar. Kaymayan düz bir zeminde kullanın ve yeni başlıyorsanız bir tutunma noktası yakınında çalışın.</p>",
+ "specifications": [
+  {
+   "name": "Marka",
+   "value": "Bona",
+   "source": "https://www.idefix.com/bona-bosu-ball-denge-topu-p-10372283"
+  },
+  {
+   "name": "Çap",
+   "value": "63 cm",
+   "source": "https://www.idefix.com/bona-bosu-ball-denge-topu-p-10372283"
+  },
+  {
+   "name": "Tip",
+   "value": "Yarım küre denge platformu",
+   "source": "https://sportoonline.com/tr/urun/bona-bosu-ball-denge-topu"
+  }
+ ],
+ "sources": [
+  "https://www.idefix.com/bona-bosu-ball-denge-topu-p-10372283",
+  "https://www.hepsiburada.com/bona-bosu-ball-pilates-denge-topu-63-cm-pm-HBC00001B8Z0Z",
+  "https://sportoonline.com/tr/urun/bona-bosu-ball-denge-topu"
+ ],
+ "conflicts": "Bir arama özetinde Bona bosu için 61 cm çap geçti (Trendyol kaynaklı olabilir, sayfa 403 verdi, doğrulanamadı); idefix ve Hepsiburada başlığı 63 cm diyor.",
+ "notes": "source_url (eprotein.com.tr) 403 döndü; Trendyol, n11, Çiçeksepeti, Hepsiburada detay sayfaları da 403. Malzeme ve ağırlık tek perakendeciden (idefix) — admin yayından önce isterse bu iki satırı çıkarabilir. Pompa dahil mi, maksimum taşıma kapasitesi ve yükseklik doğrulanamadı; yazılmadı. Benzer bosu'lardaki 275 kg değeri taşınmadı.",
+ "suggested_brand": "Bona"
+}

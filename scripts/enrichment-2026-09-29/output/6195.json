@@ -1,0 +1,59 @@
+{
+ "id": 6195,
+ "slug": "20-kg-cantali-dambil-seti-ayarlanabilir-tasinabilir",
+ "current_name": "20 KG Çantalı Dambıl Seti – Ayarlanabilir & Taşınabilir",
+ "identity": {
+  "brand": "",
+  "model": "CSPS-02",
+  "variant": "20 kg, çantalı",
+  "gtin": "",
+  "mpn": "CSPS-02"
+ },
+ "match_confidence": "high",
+ "match_evidence": "Tedarikçi sayfası (source_url) aynı ürün adı, stok kodu CSPS-02 ve 20 kg toplam ağırlık; Sportoonline'daki mevcut açıklama tedarikçi metniyle birebir aynı.",
+ "description_html": "<p>20 kg toplam ağırlığa sahip bu dambıl seti, diskleri ekleyip çıkararak ağırlığı ayarlamanıza izin verir. Set, ev antrenmanları, küçük salonlar ve kişisel antrenör çalışmaları için kompakt bir serbest ağırlık çözümü olarak hazırlanmıştır ve bir taşıma çantası ile birlikte gelir.</p><h3>Öne Çıkan Özellikler</h3><ul><li><strong>Toplam ağırlık:</strong> 20 kg; farklı ağırlıktaki diskler takılıp çıkarılarak kademeli ayar yapılır.</li><li><strong>Kavrama:</strong> Tırtıklı yüzeyli barlar elin kaymasını azaltır.</li><li><strong>Kilit sistemi:</strong> Diskler sıkıştırma kilitleriyle bar üzerinde sabitlenir.</li><li><strong>Taşınabilirlik:</strong> Tüm parçalar sete özel taşıma çantasında saklanır ve taşınır.</li><li><strong>Kullanım:</strong> Kol, omuz, göğüs ve sırt egzersizlerinde farklı seviyelere uyarlanabilir.</li></ul><h3>Kullanım Alanları</h3><ul><li>Evde kuvvet ve kondisyon antrenmanı</li><li>Fitness salonları ve PT stüdyoları</li><li>Seyahat ya da farklı mekânlarda antrenman</li></ul><h3>Kutu İçeriği</h3><ul><li>Ayarlanabilir dambıl barları</li><li>Farklı ağırlıklarda diskler</li><li>Sıkıştırma kilitleri</li><li>Taşıma çantası</li></ul><h3>Kullanım Önerisi</h3><p>Her antrenmandan önce sıkıştırma kilitlerinin tam sıkıldığını kontrol edin. Disk sayısı ve her diskin ağırlığı tedarikçi tarafından ayrıca belirtilmemiştir; ağırlık dağılımını teslimatta kutu içeriğinden kontrol edebilirsiniz.</p>",
+ "specifications": [
+  {
+   "name": "Toplam Ağırlık",
+   "value": "20 kg",
+   "source": "https://ceysport.com/urun/20-kg-cantali-dambil-seti-ayarlanabilir-tasinabilir/"
+  },
+  {
+   "name": "Ayar Şekli",
+   "value": "Disk ekleyip çıkararak",
+   "source": "https://ceysport.com/urun/20-kg-cantali-dambil-seti-ayarlanabilir-tasinabilir/"
+  },
+  {
+   "name": "Bar Yüzeyi",
+   "value": "Kaymaz, tırtıklı",
+   "source": "https://ceysport.com/urun/20-kg-cantali-dambil-seti-ayarlanabilir-tasinabilir/"
+  },
+  {
+   "name": "Disk Sabitleme",
+   "value": "Sıkıştırma kilitleri",
+   "source": "https://ceysport.com/urun/20-kg-cantali-dambil-seti-ayarlanabilir-tasinabilir/"
+  },
+  {
+   "name": "Taşıma",
+   "value": "Sete özel taşıma çantası",
+   "source": "https://ceysport.com/urun/20-kg-cantali-dambil-seti-ayarlanabilir-tasinabilir/"
+  },
+  {
+   "name": "Kullanım Alanı",
+   "value": "Ev, salon, PT antrenmanları",
+   "source": "https://ceysport.com/urun/20-kg-cantali-dambil-seti-ayarlanabilir-tasinabilir/"
+  },
+  {
+   "name": "Stok Kodu",
+   "value": "CSPS-02",
+   "source": "https://ceysport.com/urun/20-kg-cantali-dambil-seti-ayarlanabilir-tasinabilir/"
+  }
+ ],
+ "sources": [
+  "https://ceysport.com/urun/20-kg-cantali-dambil-seti-ayarlanabilir-tasinabilir/",
+  "https://ceysport.com/wp-json/wc/store/v1/products?slug=20-kg-cantali-dambil-seti-ayarlanabilir-tasinabilir"
+ ],
+ "conflicts": "Tedarikçi metni çantayı 'kalın polyester branda taşıma çantası' ve diskleri 'zemine zarar vermeyen' olarak tanımlıyor; tedarikçinin ürün görselinde ise sert plastik taşıma kutusu ve gri metal görünümlü diskler var. Çanta tipi ve disk malzemesi açıklamaya yazılmadı.",
+ "notes": "Marka belirtilmemiş jenerik ürün. Disk adedi/ağırlık dağılımı, bar uzunluğu ve çapı tedarikçi sayfasında yok; tahmin edilmedi.",
+ "suggested_brand": ""
+}

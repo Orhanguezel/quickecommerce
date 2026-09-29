@@ -1,0 +1,61 @@
+{
+  "id": 5177,
+  "slug": "rova-xiaomi-mi-13-batarya-pil-4500-mah",
+  "current_name": "Rova Xiaomi Mi 13 BP4G Batarya Pil 4500 mAh",
+  "identity": {
+    "brand": "Rova",
+    "model": "Xiaomi 13 uyumlu BP4G yedek batarya",
+    "variant": "4500 mAh",
+    "gtin": "",
+    "mpn": "MI13"
+  },
+  "match_confidence": "medium",
+  "match_evidence": "Tedarikçi sayfası (source_url) başlıkta 'Rova Xiaomi Mi 13 BP4G Batarya Pil 4500 mAh', Ürün Kodu MI13, Marka Xiaomi, Model MI 13 gösteriyor. Ancak aynı sayfanın 'Batarya Özellikleri' tablosu Mi 11 Lite / 4250 mAh yazıyor (kopya hata). BP4G kodunun Xiaomi 13 (2211133C/2211133G) bataryası olduğu birden fazla parça tedarikçisinde doğrulandı.",
+  "description_html": "<p>Rova markalı bu yedek batarya, Xiaomi 13 (Mi 13) telefonlar için BP4G kodlu değişim pilidir. Ürün adında belirtilen kapasite 4500 mAh olup, tedarikçi bataryanın orijinal kapasiteye sahip olduğunu belirtmektedir.</p><h3>Öne Çıkan Özellikler</h3><ul><li>Uyumlu model: Xiaomi 13 (Mi 13)</li><li>Batarya kodu: BP4G</li><li>Kapasite (ürün adında belirtilen): 4500 mAh</li><li>Yüksek akım, düşük akım, yüksek ısı ve kısa devreye karşı koruma devresi</li><li>Çift katmanlı devre yapısı</li><li>Tedarikçi beyanına göre kalite testlerinden geçmiş, istikrarlı pil hücresi</li></ul><h3>Garanti</h3><ul><li>Tedarikçi beyanına göre 12 ay ya da 350 şarj döngüsü garanti kapsamındadır.</li></ul><h3>Montaj ve Kullanım Notları</h3><ul><li>Batarya değişimi cihazın açılmasını gerektirir; işlemin deneyimli bir teknik servis tarafından yapılması önerilir.</li><li>Montajdan önce telefon modelinizin ürün adındaki modelle aynı olduğunu kontrol edin.</li><li>Garanti süresi ve şartları tedarikçinin beyanına dayanır.</li></ul>",
+  "specifications": [
+    {
+      "name": "Marka / Üretici",
+      "value": "Rova",
+      "source": "https://www.rovabatarya.com/rova-xiaomi-mi-13-batarya-pil-4500-mah"
+    },
+    {
+      "name": "Ürün Kodu",
+      "value": "MI13",
+      "source": "https://www.rovabatarya.com/rova-xiaomi-mi-13-batarya-pil-4500-mah"
+    },
+    {
+      "name": "Uyumlu Model",
+      "value": "Xiaomi 13 (Mi 13)",
+      "source": "https://www.rovabatarya.com/rova-xiaomi-mi-13-batarya-pil-4500-mah"
+    },
+    {
+      "name": "Batarya Kodu",
+      "value": "BP4G",
+      "source": "https://www.rovabatarya.com/rova-xiaomi-mi-13-batarya-pil-4500-mah"
+    },
+    {
+      "name": "Kapasite",
+      "value": "4500 mAh (ürün adında)",
+      "source": "https://www.rovabatarya.com/rova-xiaomi-mi-13-batarya-pil-4500-mah"
+    },
+    {
+      "name": "Ürün Cinsi",
+      "value": "Batarya / Pil",
+      "source": "https://www.rovabatarya.com/rova-xiaomi-mi-13-batarya-pil-4500-mah"
+    },
+    {
+      "name": "Garanti",
+      "value": "12 ay veya 350 şarj döngüsü (tedarikçi beyanı)",
+      "source": "https://www.rovabatarya.com/rova-xiaomi-mi-13-batarya-pil-4500-mah"
+    }
+  ],
+  "sources": [
+    "https://www.rovabatarya.com/rova-xiaomi-mi-13-batarya-pil-4500-mah",
+    "https://rounded.com/xiaomi-13-2211133c-battery-bp4g-4500mah-46020000ea1g.html",
+    "https://www.5g-m.com/en/xiaomi-13-2211133c-2211133g/37442-battery-bp4g-4500mah-xiaomi-13-no-logo.html",
+    "https://sportoonline.com/tr/urun/rova-xiaomi-mi-13-batarya-pil-4500-mah"
+  ],
+  "conflicts": "Tedarikçi özellik tablosu 'Uyumlu Model: Mi 11 Lite, Kapasite: 4250 mAh' diyor; başlık, ürün kodu ve model alanı Xiaomi 13 / 4500 mAh. Mevcut Sportoonline specs'i de bu hatalı tabloyu (Mi 11 Lite, 4250 mAh) taşıyor — düzeltilmeli. BP4G kodu Xiaomi 13 ile uyumlu, Mi 11 Lite ile değil.",
+  "notes": "Tablo çelişkisi nedeniyle medium. Voltaj/pil kimyası Rova tarafından verilmemiş, orijinal parça değerleri Rova ürününe taşınmadı. Görsellerden biri 'tamir seti' içeriyor ama kutu içeriği metinle belirtilmediğinden eklenmedi.",
+  "suggested_brand": "Rova"
+}

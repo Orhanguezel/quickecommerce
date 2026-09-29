@@ -1,0 +1,70 @@
+{
+  "id": 5957,
+  "slug": "prd-flava-multi-vitamin-60-kapsul-flv-017",
+  "current_name": "Flava Multi Vitamin 60 Kapsül",
+  "identity": {
+    "brand": "Flava",
+    "model": "Multivitamin",
+    "variant": "60 kapsül (30 servis)",
+    "gtin": "8682696620063",
+    "mpn": "6620063"
+  },
+  "match_confidence": "high",
+  "match_evidence": "Flava, Proteinocean Gıda A.Ş.'nin markası; proteinocean.com/multivitamin sayfasında '1 KUTU (30 servis)', 2 kapsül porsiyon, barkod 8682696620063. İçindekiler listesi ve 2 kapsüldeki değerler tedarikçi BodyFit sayfasıyla birebir aynı.",
+  "description_html": "<p>Flava Multivitamin, vitamin ve minerallerin yanında koenzim Q10, lutein, rutin, likopen, inositol ve kolin içeren bitkisel kapsüllü bir takviye edici gıdadır. Kutuda 60 kapsül bulunur; porsiyon 2 kapsül olduğundan paket 30 servistir.</p><h3>Öne Çıkan Özellikler</h3><ul><li>A, B grubu (B1, B2, B3, B5, B6, B12, folik asit, biotin), C, D3, E ve K vitaminleri</li><li>Kalsiyum, magnezyum, demir, çinko, manganez, bakır, krom, iyot, molibden, selenyum</li><li>Kapsül kabuğu hidroksipropil metil selülozdan</li><li>Takviye edici gıda onay numarası: 011939-17.11.2021</li></ul><h3>Besin Değerleri (1 porsiyon = 2 kapsül)</h3><table><tr><th>Bileşen</th><th>2 kapsül</th><th>%BRD</th></tr><tr><td>Kalsiyum</td><td>150 mg</td><td>%19</td></tr><tr><td>C Vitamini</td><td>80 mg</td><td>%100</td></tr><tr><td>Magnezyum</td><td>75 mg</td><td>%20</td></tr><tr><td>B3 Vitamini</td><td>20 mg NE</td><td>%125</td></tr><tr><td>E Vitamini</td><td>20 mg α-TE</td><td>%167</td></tr><tr><td>İnositol</td><td>20 mg</td><td>-</td></tr><tr><td>Demir</td><td>16 mg</td><td>%114</td></tr><tr><td>Çinko</td><td>10 mg</td><td>%100</td></tr><tr><td>Kolin</td><td>10 mg</td><td>-</td></tr><tr><td>B5 Vitamini</td><td>10 mg</td><td>%167</td></tr><tr><td>Koenzim Q10</td><td>6 mg</td><td>-</td></tr><tr><td>Rutin</td><td>5 mg</td><td>-</td></tr><tr><td>B6 Vitamini</td><td>4 mg</td><td>%286</td></tr><tr><td>B1 Vitamini</td><td>4 mg</td><td>%364</td></tr><tr><td>B2 Vitamini</td><td>3 mg</td><td>%214</td></tr><tr><td>Manganez</td><td>2 mg</td><td>%100</td></tr><tr><td>Lutein</td><td>2 mg</td><td>-</td></tr><tr><td>A Vitamini</td><td>1000 µg RE</td><td>%125</td></tr><tr><td>Bakır</td><td>1000 µg</td><td>%100</td></tr><tr><td>Folik Asit</td><td>600 µg</td><td>%300</td></tr><tr><td>Likopen</td><td>500 µg</td><td>-</td></tr><tr><td>Biotin</td><td>300 µg</td><td>%600</td></tr><tr><td>Krom</td><td>200 µg</td><td>%500</td></tr><tr><td>İyot</td><td>150 µg</td><td>%100</td></tr><tr><td>K Vitamini</td><td>120 µg</td><td>%160</td></tr><tr><td>Molibden</td><td>75 µg</td><td>%150</td></tr><tr><td>Selenyum</td><td>70 µg</td><td>%127</td></tr><tr><td>D3 Vitamini (Kolekalsiferol)</td><td>25 µg</td><td>%500</td></tr><tr><td>B12 Vitamini</td><td>5 µg</td><td>%200</td></tr></table><p>BRD: Beslenme Referans Değeri.</p><h3>Kullanım</h3><p>11 yaş ve üzeri için günde 2 kapsül, bol su ile; öğünlerle birlikte veya tok karnına kullanılması önerilir.</p>",
+  "specifications": [
+    {
+      "name": "Marka",
+      "value": "Flava (Proteinocean Gıda A.Ş.)",
+      "source": "https://proteinocean.com/multivitamin"
+    },
+    {
+      "name": "Form",
+      "value": "Kapsül (HPMC)",
+      "source": "https://proteinocean.com/multivitamin"
+    },
+    {
+      "name": "Kapsül Sayısı",
+      "value": "60",
+      "source": "https://bodyfitshop.com.tr/vitaminler/kompleks-vitaminler/prd-flava-multi-vitamin-60-kapsul-flv-017"
+    },
+    {
+      "name": "Porsiyon",
+      "value": "2 kapsül",
+      "source": "https://proteinocean.com/multivitamin"
+    },
+    {
+      "name": "Servis Sayısı",
+      "value": "30",
+      "source": "https://proteinocean.com/multivitamin"
+    },
+    {
+      "name": "Günlük Kullanım",
+      "value": "11 yaş ve üzeri için günde 2 kapsül",
+      "source": "https://proteinocean.com/multivitamin"
+    },
+    {
+      "name": "Takviye Edici Gıda Onay No",
+      "value": "011939-17.11.2021",
+      "source": "https://proteinocean.com/multivitamin"
+    },
+    {
+      "name": "Menşei",
+      "value": "Türkiye",
+      "source": "https://bodyfitshop.com.tr/vitaminler/kompleks-vitaminler/prd-flava-multi-vitamin-60-kapsul-flv-017"
+    },
+    {
+      "name": "Barkod",
+      "value": "8682696620063",
+      "source": "https://proteinocean.com/multivitamin"
+    }
+  ],
+  "sources": [
+    "https://proteinocean.com/multivitamin",
+    "https://bodyfitshop.com.tr/vitaminler/kompleks-vitaminler/prd-flava-multi-vitamin-60-kapsul-flv-017",
+    "https://www.ozelbeslenme.com/products/flava-multivitamin-60-kapsul"
+  ],
+  "conflicts": "Mevcut Sportoonline açıklaması (BodyFit kaynaklı) kendi içinde çelişkili: 'SERVİS SAYISI: 60 Servis', 'PORSİYON BÜYÜKLÜĞÜ: 2 Tablet', 'SERVİS NET MİKTAR: 30 Tablet', 'Yetişkinler için günde 1 tablet'. Üretici: kapsül formu, 2 kapsül porsiyon, 30 servis, günde 2 kapsül. Ayrıca 'Günlük vitamin ve mineral ihtiyacını karşılar' ifadesi yeni metinde kullanılmadı.",
+  "notes": "Üreticinin sağlık beyanları listesi kural gereği alınmadı. Mağaza markası boş, Flava atanmalı.",
+  "suggested_brand": "Flava"
+}

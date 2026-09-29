@@ -1,0 +1,58 @@
+{
+ "id": 6471,
+ "slug": "basketbol-pas-trambolini-bas-022",
+ "current_name": "BASKETBOL PAS TRAMBOLİNİ BAS-022",
+ "identity": {
+  "brand": "",
+  "model": "BAS-022",
+  "variant": "108 x 98,5 x 98,5 cm",
+  "gtin": "",
+  "mpn": "BAS-022"
+ },
+ "match_confidence": "high",
+ "match_evidence": "Ürünün kendi tedarikçi sayfası (ceysport.com) aynı ad ve stok kodu BAS-022 gösteriyor; teknik bilgiler yalnız bu sayfadan alındı.",
+ "description_html": "<p>BAS-022 basketbol pas trambolini, gelen topu oyuncuya geri yansıtarak pas alma ve karşılama çalışmalarının tek başına ya da takım halinde yapılabilmesini sağlayan bir antrenman ekipmanıdır. Basketbol sahaları, spor salonları ve okullarda kullanım için tasarlanmıştır.</p><h3>Öne Çıkan Özellikler</h3><ul><li><strong>Ölçüler:</strong> 108 cm x 98,5 cm x 98,5 cm.</li><li><strong>Gövde:</strong> Çelik gövde, elektrostatik toz boya kaplama.</li><li><strong>File:</strong> Profesyonel file sistemi ile topu geri yansıtır.</li><li><strong>Ayarlanabilir açı:</strong> Açısı değiştirilebildiği için top farklı hız ve yönlerde geri döner; böylece farklı pas tipleri çalışılabilir.</li><li><strong>Taşıma:</strong> Alt kısımdaki tekerlekler sayesinde saha içinde kolayca yer değiştirir.</li></ul><h3>Kullanım Alanları</h3><ul><li>Pas alma ve pas verme tekrarları</li><li>Refleks ve top karşılama çalışmaları</li><li>Kulüp, okul ve salon antrenmanları</li></ul><p>Pas partneri gerektirmeden tekrar sayısını artırmaya imkân verdiği için bireysel çalışmalarda da kullanılabilir. Tekerlekli alt yapısı sayesinde antrenman sonrasında saha kenarına kolayca çekilebilir.</p>",
+ "specifications": [
+  {
+   "name": "Stok Kodu",
+   "value": "BAS-022",
+   "source": "https://ceysport.com/urun/basketbol-pas-trambolini-bas-022/"
+  },
+  {
+   "name": "Ölçüler",
+   "value": "108 x 98,5 x 98,5 cm",
+   "source": "https://ceysport.com/urun/basketbol-pas-trambolini-bas-022/"
+  },
+  {
+   "name": "Gövde Malzemesi",
+   "value": "Çelik",
+   "source": "https://ceysport.com/urun/basketbol-pas-trambolini-bas-022/"
+  },
+  {
+   "name": "Yüzey Kaplama",
+   "value": "Elektrostatik toz boya",
+   "source": "https://ceysport.com/urun/basketbol-pas-trambolini-bas-022/"
+  },
+  {
+   "name": "File",
+   "value": "Profesyonel file sistemi",
+   "source": "https://ceysport.com/urun/basketbol-pas-trambolini-bas-022/"
+  },
+  {
+   "name": "Açı Ayarı",
+   "value": "Var",
+   "source": "https://ceysport.com/urun/basketbol-pas-trambolini-bas-022/"
+  },
+  {
+   "name": "Tekerlek",
+   "value": "Var (alt kısımda, taşıma için)",
+   "source": "https://ceysport.com/urun/basketbol-pas-trambolini-bas-022/"
+  }
+ ],
+ "sources": [
+  "https://ceysport.com/urun/basketbol-pas-trambolini-bas-022/"
+ ],
+ "conflicts": "",
+ "notes": "Marka tedarikçi sayfasında belirtilmiyor; jenerik ürün olarak ele alındı, başka markanın benzer ürününden değer taşınmadı. Ağırlık, file malzemesi ve açı aralığı kaynakta yok, eklenmedi. Mevcut açıklama doğru ama kısa ('smaç antrenmanlarını daha gerçekçi yapması' ifadesi tedarikçiden); yeni metin genişletilmiş hali.",
+ "suggested_brand": ""
+}

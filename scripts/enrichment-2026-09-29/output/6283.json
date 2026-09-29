@@ -1,0 +1,59 @@
+{
+ "id": 6283,
+ "slug": "pilastik-kettlebell-12-kg",
+ "current_name": "Pilastik Kettlebell 12 Kg",
+ "identity": {
+  "brand": "",
+  "model": "KETTLE-100-12",
+  "variant": "12 kg, siyah",
+  "gtin": "",
+  "mpn": "KETTLE-100-12"
+ },
+ "match_confidence": "high",
+ "match_evidence": "Tedarikçi sayfası aynı ad, stok kodu KETTLE-100-12, açıklamada 'Ağırlık: 12 kg'; görselde gövdede '12 KG' yazısı.",
+ "description_html": "<p>12 kg plastik gövdeli kettlebell; evde, salonda veya açık alanda swing, squat, press ve lunge gibi hareketler için kullanılan tek parça bir serbest ağırlıktır. Plastik dış yüzeyi, yere temas anında zemini metal kettlebelllere göre daha az zorlar.</p><h3>Öne Çıkan Özellikler</h3><ul><li><strong>Ağırlık:</strong> 12 kg</li><li><strong>Malzeme:</strong> Plastik gövde, çelik dolgu (tedarikçi beyanı)</li><li><strong>Sap:</strong> Ergonomik, kolay kavranan tutma kolu</li><li><strong>Zemin dostu yüzey:</strong> Düşme anında zemine zarar verme riskini azaltır</li><li><strong>Renk:</strong> Siyah (tedarikçiye göre stok durumuna bağlı olarak değişebilir)</li></ul><h3>Kullanım Alanları</h3><ul><li>Kettlebell swing, goblet squat, press ve lunge</li><li>Fitness, crossfit, kondisyon ve kuvvet antrenmanları</li><li>Ev tipi ve salon kullanımı</li></ul><h3>Kullanım Önerisi</h3><p>Swing gibi dinamik hareketlerden önce sapın kuru olduğundan emin olun, etrafınızda yeterli boş alan bırakın ve ağırlığı kontrollü şekilde yere indirin.</p>",
+ "specifications": [
+  {
+   "name": "Ağırlık",
+   "value": "12 kg",
+   "source": "https://ceysport.com/urun/pilastik-kettlebell-12-kg/"
+  },
+  {
+   "name": "Gövde Malzemesi",
+   "value": "Plastik",
+   "source": "https://ceysport.com/urun/pilastik-kettlebell-12-kg/"
+  },
+  {
+   "name": "Dolgu",
+   "value": "Çelik (tedarikçi beyanı)",
+   "source": "https://ceysport.com/urun/pilastik-kettlebell-12-kg/"
+  },
+  {
+   "name": "Sap",
+   "value": "Ergonomik tutma kolu",
+   "source": "https://ceysport.com/urun/pilastik-kettlebell-12-kg/"
+  },
+  {
+   "name": "Renk",
+   "value": "Siyah (stoka göre değişebilir)",
+   "source": "https://ceysport.com/urun/pilastik-kettlebell-12-kg/"
+  },
+  {
+   "name": "Kullanım",
+   "value": "Ev ve profesyonel",
+   "source": "https://ceysport.com/urun/pilastik-kettlebell-12-kg/"
+  },
+  {
+   "name": "Stok Kodu",
+   "value": "KETTLE-100-12",
+   "source": "https://ceysport.com/urun/pilastik-kettlebell-12-kg/"
+  }
+ ],
+ "sources": [
+  "https://ceysport.com/urun/pilastik-kettlebell-12-kg/",
+  "https://ceysport.com/wp-json/wc/store/v1/products?slug=pilastik-kettlebell-12-kg"
+ ],
+ "conflicts": "Mevcut Sportoonline açıklaması yalnız 'Öne Çıkan Özellikler:' başlığından ibaret (içerik eksik aktarılmış).",
+ "notes": "Ürün adındaki 'Pilastik' yazım hatası; 'Plastik Kettlebell 12 Kg' önerilir. Ölçüler (yükseklik, sap genişliği) kaynakta yok. Marka yok.",
+ "suggested_brand": ""
+}

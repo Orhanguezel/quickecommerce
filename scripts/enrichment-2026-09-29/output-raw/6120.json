@@ -1,0 +1,65 @@
+{
+  "id": 6120,
+  "slug": "prd-nutraxin-magnesium-complexvitamin-b6-60-tablet-nut-004",
+  "current_name": "Nutraxin Magnesium Complex+Vitamin B6 60 Tablet",
+  "identity": {
+    "brand": "Nutraxin",
+    "model": "Magnesium Complex + Vitamin B6",
+    "variant": "60 tablet",
+    "gtin": "",
+    "mpn": ""
+  },
+  "match_confidence": "high",
+  "match_evidence": "Üretici nutraxin.com.tr Magnesium Complex sayfasındaki tablet başına değerler (125 mg magnezyum; 215 mg sitrat, 275 mg bisglisinat, 200 mg malat, 250 mg taurat; 10 mg B6) tedarikçi BodyFit sayfası ve Sportoonline açıklamasıyla birebir aynı; 60 tablet ambalaj tedarikçi ve perakendecilerde aynı.",
+  "description_html": "<p>Nutraxin Magnesium Complex, dört farklı magnezyum bileşiğini (sitrat, bisglisinat, malat, taurat) B6 vitaminiyle bir araya getiren tablet formunda bir takviye edici gıdadır. Her tablet 125 mg elementel magnezyum ve 10 mg B6 vitamini sağlar; kutuda 60 tablet bulunur.</p><h3>Öne Çıkan Özellikler</h3><ul><li>4 magnezyum formu: magnezyum sitrat, bisglisinat, malat ve taurat</li><li>Tablet başına 125 mg elementel magnezyum (%34 BRD)</li><li>Tablet başına 10 mg B6 vitamini</li><li>Şeker, tuz, nişasta, maya, soya, mısır, gluten ve süt ürünleri içermez (üretici beyanı)</li><li>Sentetik koruyucu ve tatlandırıcı kullanılmamıştır; vejetaryenlere uygundur (üretici beyanı)</li></ul><h3>İçerik (1 tablet)</h3><table><tr><th>Bileşen</th><th>Miktar</th></tr><tr><td>Magnezyum (elementel)</td><td>125 mg</td></tr><tr><td>Magnezyum sitrat</td><td>215 mg</td></tr><tr><td>Magnezyum bisglisinat</td><td>275 mg</td></tr><tr><td>Magnezyum malat</td><td>200 mg</td></tr><tr><td>Magnezyum taurat</td><td>250 mg</td></tr><tr><td>B6 vitamini</td><td>10 mg</td></tr></table><h3>Diğer İçerikler</h3><p>Mikrokristalin selüloz, temel metakrilat kopolimeri, polivinil alkol, polietilen glikol, yağ asitlerinin magnezyum tuzları, silikon dioksit.</p><h3>Kullanım</h3><p>Yetişkinler için takviye edici gıda olarak günde 1 tabletin bol su ile kullanılması önerilir.</p>",
+  "specifications": [
+    {
+      "name": "Marka",
+      "value": "Nutraxin",
+      "source": "https://nutraxin.com.tr/urunlerimiz/vitamin-ve-mineral/magnesium-complex"
+    },
+    {
+      "name": "Form",
+      "value": "Tablet",
+      "source": "https://nutraxin.com.tr/urunlerimiz/vitamin-ve-mineral/magnesium-complex"
+    },
+    {
+      "name": "Tablet Sayısı",
+      "value": "60",
+      "source": "https://bodyfitshop.com.tr/vitaminler/kompleks-vitaminler/prd-nutraxin-magnesium-complexvitamin-b6-60-tablet-nut-004"
+    },
+    {
+      "name": "Elementel Magnezyum (1 tablet)",
+      "value": "125 mg (%34 BRD)",
+      "source": "https://nutraxin.com.tr/urunlerimiz/vitamin-ve-mineral/magnesium-complex"
+    },
+    {
+      "name": "Magnezyum Formları",
+      "value": "Sitrat, bisglisinat, malat, taurat",
+      "source": "https://nutraxin.com.tr/urunlerimiz/vitamin-ve-mineral/magnesium-complex"
+    },
+    {
+      "name": "B6 Vitamini (1 tablet)",
+      "value": "10 mg",
+      "source": "https://nutraxin.com.tr/urunlerimiz/vitamin-ve-mineral/magnesium-complex"
+    },
+    {
+      "name": "Günlük Kullanım",
+      "value": "Yetişkinler için günde 1 tablet, bol su ile",
+      "source": "https://nutraxin.com.tr/urunlerimiz/vitamin-ve-mineral/magnesium-complex"
+    },
+    {
+      "name": "Uygunluk",
+      "value": "Vejetaryen; gluten ve süt ürünü içermez (üretici beyanı)",
+      "source": "https://nutraxin.com.tr/urunlerimiz/vitamin-ve-mineral/magnesium-complex"
+    }
+  ],
+  "sources": [
+    "https://nutraxin.com.tr/urunlerimiz/vitamin-ve-mineral/magnesium-complex",
+    "https://bodyfitshop.com.tr/vitaminler/kompleks-vitaminler/prd-nutraxin-magnesium-complexvitamin-b6-60-tablet-nut-004",
+    "https://www.dermokozmetika.com.tr/nutraxin-vitals-magnesium-complex-vitamin-b6-takviye-edici-gida-60-tablet"
+  ],
+  "conflicts": "Üretici tablosunda B6 için %BRD '734' yazıyor (10 mg / 1,4 mg ≈ %714 olmalı; muhtemel yazım hatası) — B6 %BRD yazılmadı. Mevcut Sportoonline açıklamasındaki magnezyumla ilgili sağlık beyanları (yorgunluk, kas fonksiyonu, kemik, diş vb.) kural gereği yeni metne alınmadı; kaldırılmalı.",
+  "notes": "Barkod üretici sayfasında yok, boş bırakıldı. Mağaza markası boş, Nutraxin atanmalı.",
+  "suggested_brand": "Nutraxin"
+}

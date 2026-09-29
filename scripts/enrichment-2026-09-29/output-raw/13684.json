@@ -1,0 +1,69 @@
+{
+ "id": 13684,
+ "slug": "carson-mm-618-mini-might-6x18-monocular-durbun",
+ "current_name": "Carson MM-618 MiniMight™ 6x18mm Cep Dürbünü",
+ "identity": {
+  "brand": "Carson",
+  "model": "MiniMight MM-618",
+  "variant": "6x18 mm tek göz (monoküler)",
+  "gtin": "750668006844",
+  "mpn": "MM-618"
+ },
+ "match_confidence": "high",
+ "match_evidence": "carson.com/product/mm-618-en: SKU/MPN MM-618, 'Mini Might 6x18mm Pocket Monocular', gtin 750668006844; tedarikçi EYB sayfası aynı ürün kodu (CR MM-618) ve aynı barkodu gösteriyor.",
+ "description_html": "<p>Carson MiniMight MM-618, 6x büyütme ve 18 mm objektif çapına sahip, cebe sığan tek gözlü (monoküler) bir dürbündür. Karabina klipsi sayesinde çantaya veya kemere takılabilir; doğa yürüyüşü, kamp, kuş ve yaban hayatı gözlemi, spor müsabakaları, konser ve seyahatte uzaktaki ayrıntıları yakınlaştırmak için pratik bir seçenektir.</p><h3>Öne Çıkan Özellikler</h3><ul><li><strong>Büyütme ve objektif:</strong> 6x18 mm.</li><li><strong>Prizma:</strong> Roof (çatı) prizma, K9 cam; prizma kaplaması alüminyum.</li><li><strong>Mercek kaplaması:</strong> Tam kaplamalı (fully coated) optik.</li><li><strong>Kompakt gövde:</strong> Cebe veya sırt çantasına kolayca sığar.</li><li>Diyoptri ayarı ve gaz dolgusu bulunmaz.</li></ul><h3>Kutu İçeriği</h3><ul><li>MM-618 MiniMight monoküler</li><li>Yumuşak taşıma kılıfı</li><li>Karabina klipsi</li><li>Lens temizleme bezi</li></ul><h3>Kimler İçin</h3><p>Tek gözle kullanıldığı için çift gözlü dürbüne göre daha küçük ve hafif bir alternatif arayanlar; yürüyüşte, kampta, stadyumda veya seyahatte yanında sürekli bir optik taşımak isteyenler için uygundur. Kutudan çıkan kılıf ve lens bezi, merceklerin taşıma sırasında korunmasına ve temiz tutulmasına yardımcı olur.</p>",
+ "specifications": [
+  {
+   "name": "Model Kodu",
+   "value": "MM-618",
+   "source": "https://www.carson.com/product/mm-618-en"
+  },
+  {
+   "name": "Büyütme",
+   "value": "6x",
+   "source": "https://www.carson.com/product/mm-618-en"
+  },
+  {
+   "name": "Objektif Çapı",
+   "value": "18 mm",
+   "source": "https://www.carson.com/product/mm-618-en"
+  },
+  {
+   "name": "Prizma Sistemi",
+   "value": "Roof (çatı)",
+   "source": "https://www.carson.com/product/mm-618-en"
+  },
+  {
+   "name": "Prizma Camı",
+   "value": "K9",
+   "source": "https://www.carson.com/product/mm-618-en"
+  },
+  {
+   "name": "Mercek Kaplaması",
+   "value": "Tam kaplamalı (fully coated)",
+   "source": "https://www.carson.com/product/mm-618-en"
+  },
+  {
+   "name": "Diyoptri Ayarı",
+   "value": "Yok",
+   "source": "https://www.carson.com/product/mm-618-en"
+  },
+  {
+   "name": "Kutu İçeriği",
+   "value": "Yumuşak kılıf, karabina klipsi, lens bezi",
+   "source": "https://www.carson.com/product/mm-618-en"
+  },
+  {
+   "name": "UPC",
+   "value": "750668006844",
+   "source": "https://www.carson.com/product/mm-618-en"
+  }
+ ],
+ "sources": [
+  "https://www.carson.com/product/mm-618-en",
+  "https://www.eyb.com.tr/carson-mm-618-mini-might-6x18-monocular-durbun"
+ ],
+ "conflicts": "Mevcut Sportoonline/EYB açıklaması ve carson.com'un İngilizce madde metinleri '8x büyütme' diyor; ürün adı (6x18mm) ve carson.com teknik alanı (magnification = 6) ile diğer dillerdeki açıklamalar 6x diyor — 6x kullanıldı, mevcut metindeki '8x' düzeltilmeli. Görüş alanı, yakın odak, ağırlık ve ölçü çelişkili: carson.com teknik alanları 426 ft/1000 yd, 8.1°, yakın odak 16.4 ft, ağırlık 0.143 (birim belirsiz) verirken perakendeciler (Adorama/CampSaver arama özetleri) 471 ft/1000 yd, 9.0°, 10 ft, 3.2 oz, 3.1 x 1.2 x 1.1 inç veriyor. Bu değerler güvenilir biçimde doğrulanamadığı için eklenmedi.",
+ "notes": "Yakın odak, görüş alanı, ağırlık ve ölçü alanları bilinçli boş bırakıldı. Mevcut açıklamadaki 'askeri gözetleme, taktiksel kullanım' ifadeleri üreticinin İngilizce metninden, yeni metinde kullanılmadı.",
+ "suggested_brand": "Carson"
+}

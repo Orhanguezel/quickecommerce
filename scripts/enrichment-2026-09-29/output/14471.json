@@ -1,0 +1,56 @@
+{
+  "id": 14471,
+  "slug": "xtr-fitness-triceps-halati",
+  "current_name": "XTR Fitness Triceps Halatı",
+  "identity": {
+    "brand": "XTR Fitness",
+    "model": "Triceps Halatı",
+    "variant": "70 cm, 28 mm",
+    "gtin": "",
+    "mpn": ""
+  },
+  "match_confidence": "medium",
+  "match_evidence": "Tedarikçi sayfası (eprotein) Cloudflare nedeniyle canlı açılamadı; değerler Sportoonline'daki tedarikçi kaynaklı açıklamadan (Marka XTR Fitness, Plastik + Çelik, 70 cm, 28 mm) ve Trendyol'daki XTR Fitness mağaza ilanı başlığından ('Triceps Halatı 28mm 70 Cm') çapraz doğrulandı. Üreticinin resmî sitesi bulunamadı.",
+  "description_html": "<p>XTR Fitness Triceps Halatı, kablo istasyonlarına ve makara sistemlerine takılarak kullanılan örgü halat bir tutma aparatıdır. 70 cm uzunluğunda ve 28 mm kalınlığındadır; halat plastik, bağlantı başlığı çeliktir. Halat, iki elle ayrı ayrı tutulabildiği için hareket boyunca bilek açısının serbestçe değişmesine olanak tanır.</p><h3>Öne Çıkan Özellikler</h3><ul><li>Uzunluk 70 cm, halat kalınlığı 28 mm</li><li>Malzeme: plastik örgü halat + çelik bağlantı başlığı</li><li>Halatın iki ucunda elin kaymasını önleyen plastik topuzlar bulunur</li><li>Orta kısımdaki metal başlık sayesinde kablo makinesinin karabina/kancasına takılır</li><li>Triceps pushdown, face pull, halatla biceps curl gibi kablo hareketlerinde kullanılabilir</li><li>Ev tipi çok amaçlı istasyonlarda ve salon kablo makinelerinde kullanıma uygundur</li></ul><h3>Kutu İçeriği</h3><ul><li>1 adet triceps halatı</li></ul><h3>Kullanım Notu</h3><p>Her kullanımdan önce başlık bağlantısını ve halatın örgüsünü kontrol edin; aşınma veya gevşeme varsa kullanmayın. Kablo makinesine karabina ile güvenli şekilde bağlandığından emin olun.</p>",
+  "specifications": [
+    {
+      "name": "Marka",
+      "value": "XTR Fitness",
+      "source": "https://www.eprotein.com.tr/xtr-fitness-triceps-halati"
+    },
+    {
+      "name": "Ürün Tipi",
+      "value": "Triceps halatı (kablo istasyonu aparatı)",
+      "source": "https://www.eprotein.com.tr/xtr-fitness-triceps-halati"
+    },
+    {
+      "name": "Uzunluk",
+      "value": "70 cm",
+      "source": "https://www.trendyol.com/xtr-fitness/triceps-halati-siyah-28mm-70-cm-p-315490860"
+    },
+    {
+      "name": "Kalınlık",
+      "value": "28 mm",
+      "source": "https://www.trendyol.com/xtr-fitness/triceps-halati-siyah-28mm-70-cm-p-315490860"
+    },
+    {
+      "name": "Malzeme",
+      "value": "Plastik + Çelik",
+      "source": "https://www.eprotein.com.tr/xtr-fitness-triceps-halati"
+    },
+    {
+      "name": "Uç Yapısı",
+      "value": "İki uçta sabit plastik topuz",
+      "source": "https://sportoonline.com/tr/urun/xtr-fitness-triceps-halati"
+    }
+  ],
+  "sources": [
+    "https://www.eprotein.com.tr/xtr-fitness-triceps-halati",
+    "https://www.trendyol.com/xtr-fitness/triceps-halati-siyah-28mm-70-cm-p-315490860",
+    "https://www.hepsiburada.com/xtr-fitness-triceps-halati-kirmizi-siyah-pm-HB0000133MS1",
+    "https://sportoonline.com/tr/urun/xtr-fitness-triceps-halati"
+  ],
+  "conflicts": "Mevcut açıklamada 'oldukça etkili', 'yüksek kaliteli' gibi doğrulanamaz övgüler var; yeni metinde kullanılmadı. Renk: Sportoonline görseli kırmızı-siyah örgü, Trendyol ilanı 'Siyah' — renk özelliğe yazılmadı.",
+  "notes": "Uç topuzları ve metal başlık ürün görselinden ve arama özetinden (krom kaplı 360° döner başlık ifadesi — ham metin doğrulanamadığı için '360°/krom' yazılmadı). Maksimum yük kapasitesi hiçbir kaynakta yok. Mağaza markası boş, XTR Fitness atanmalı.",
+  "suggested_brand": "XTR Fitness"
+}

@@ -1,0 +1,73 @@
+{
+  "id": 15594,
+  "slug": "grubit-protein-bar",
+  "current_name": "GRUBIT PROTEIN BAR",
+  "identity": {
+    "brand": "Animal Joy",
+    "model": "GRUBIT Protein Bar",
+    "variant": "6'lı karışık paket (6 × 50 g, 6 farklı aroma)",
+    "gtin": "8697431137690",
+    "mpn": "ET007-0211"
+  },
+  "match_confidence": "high",
+  "match_evidence": "Üretici Animal Joy'un kendi sitesinde (source_url) aynı ürün adı, aynı SKU (ET007-0211) ve aynı varyant (Aroma: Karışık Paket, Adet: 6'lı Paket); Sportoonline JSON-LD sku'su da ET007-0211. Barkod 8697431137690 üretici sayfasındaki varyant barkodu ve JSON-LD mpn alanında.",
+  "description_html": "<p>GRUBIT Protein Bar, Animal Joy'un yumurta akı proteini ağırlıklı protein barıdır. Bu paket, altı farklı aromadan birer adet olmak üzere toplam 6 adet 50 g bar içerir. Tarifte dört ayrı protein kaynağı (yumurta proteini, peynir altı suyu proteini, süt proteini, bezelye proteini) ile hidrolize sığır kolajeni birlikte kullanılır; çıtırlık için pirinç patlağı yerine bezelye protein patlağı tercih edilmiştir.</p><h3>Öne Çıkan Özellikler</h3><ul><li>Her bar 50 g; bar başına yaklaşık 20 g protein (aromaya göre 20,0–20,2 g)</li><li>Bar başına enerji 152–159 kcal, şeker 0,8–1,3 g</li><li>Tatlandırıcı olarak maltitol kullanılır; çikolatalı aromalarda şeker ilavesiz bitter çikolata bulunur</li><li>Meyveli aromalarda dondurularak kurutulmuş meyve tozu yer alır</li></ul><h3>Paket İçeriği</h3><ul><li>1 × Çilek &amp; Matcha</li><li>1 × Tuzlu Fıstık Karamel</li><li>1 × Çikolata Parçalı Kurabiye</li><li>1 × Brownie</li><li>1 × Muz</li><li>1 × Yaban Mersini</li></ul><h3>Besin Değerleri (1 bar, 50 g)</h3><table><tr><th>Aroma</th><th>Enerji</th><th>Yağ</th><th>Doymuş Yağ</th><th>Karbonhidrat</th><th>Şekerler</th><th>Protein</th><th>Lif</th></tr><tr><td>Çikolata Parçalı Kurabiye</td><td>159 kcal</td><td>2,8 g</td><td>0,9 g</td><td>19,5 g</td><td>0,8 g</td><td>20,0 g</td><td>0,8 g</td></tr><tr><td>Çilek &amp; Matcha</td><td>157 kcal</td><td>2,4 g</td><td>0,7 g</td><td>18,5 g</td><td>1,2 g</td><td>20,1 g</td><td>0,9 g</td></tr><tr><td>Brownie</td><td>159 kcal</td><td>2,9 g</td><td>0,9 g</td><td>19,5 g</td><td>0,8 g</td><td>20,0 g</td><td>0,9 g</td></tr><tr><td>Tuzlu Fıstık Karamel</td><td>159 kcal</td><td>2,9 g</td><td>0,9 g</td><td>19,0 g</td><td>0,8 g</td><td>20,0 g</td><td>0,8 g</td></tr><tr><td>Yaban Mersini</td><td>159 kcal</td><td>1,0 g</td><td>0,7 g</td><td>20,7 g</td><td>1,3 g</td><td>20,1 g</td><td>0,1 g</td></tr><tr><td>Muz</td><td>152 kcal</td><td>1,6 g</td><td>1,1 g</td><td>20,3 g</td><td>1,3 g</td><td>20,2 g</td><td>0,2 g</td></tr></table><h3>Alerjen Bilgisi</h3><ul><li>İçindekiler listesinde yumurta ve süt ürünleri (peynir altı suyu proteini, süt proteini) bulunur.</li><li>Kurabiye, Brownie ve Tuzlu Fıstık Karamel aromalarında yer fıstığı ezmesi; Çilek &amp; Matcha aromasında kaju ezmesi bulunur.</li><li>Kolajen kaynağı sığırdır.</li></ul>",
+  "specifications": [
+    {
+      "name": "Marka",
+      "value": "Animal Joy",
+      "source": "https://animaljoy.com.tr/grubit-protein-bar"
+    },
+    {
+      "name": "Ürün Serisi",
+      "value": "GRUBIT Protein Bar",
+      "source": "https://animaljoy.com.tr/grubit-protein-bar"
+    },
+    {
+      "name": "Paket",
+      "value": "6 adet bar (6 farklı aroma, her aromadan 1 adet)",
+      "source": "https://animaljoy.com.tr/grubit-protein-bar"
+    },
+    {
+      "name": "Bar Ağırlığı",
+      "value": "50 g",
+      "source": "https://animaljoy.com.tr/grubit-protein-bar"
+    },
+    {
+      "name": "Protein (1 bar)",
+      "value": "20,0–20,2 g (aromaya göre)",
+      "source": "https://animaljoy.com.tr/grubit-protein-bar"
+    },
+    {
+      "name": "Enerji (1 bar)",
+      "value": "152–159 kcal (aromaya göre)",
+      "source": "https://animaljoy.com.tr/grubit-protein-bar"
+    },
+    {
+      "name": "Şekerler (1 bar)",
+      "value": "0,8–1,3 g (aromaya göre)",
+      "source": "https://animaljoy.com.tr/grubit-protein-bar"
+    },
+    {
+      "name": "Tatlandırıcı",
+      "value": "Maltitol",
+      "source": "https://animaljoy.com.tr/grubit-protein-bar"
+    },
+    {
+      "name": "Alerjenler",
+      "value": "Yumurta, süt; bazı aromalarda yer fıstığı veya kaju",
+      "source": "https://animaljoy.com.tr/grubit-protein-bar"
+    },
+    {
+      "name": "Barkod",
+      "value": "8697431137690",
+      "source": "https://animaljoy.com.tr/grubit-protein-bar"
+    }
+  ],
+  "sources": [
+    "https://animaljoy.com.tr/grubit-protein-bar"
+  ],
+  "conflicts": "Mevcut Sportoonline açıklamasında 'kaslara kolay ulaşabilen', 'yüksek biyoyararlanım' gibi fizyolojik iddialar var; kural gereği yeni metinde kullanılmadı.",
+  "notes": "Marka: 'GRUBIT' ürün serisi adı; üretici sayfasında brand = Animal Joy. Mağaza markası boş, Animal Joy olarak atanmalı. Net toplam ağırlık üretici sayfasında ayrıca yazmıyor (6 × 50 g).",
+  "suggested_brand": "Animal Joy"
+}

@@ -1,0 +1,66 @@
+{
+  "id": 9405,
+  "slug": "batiste-kuru-sampuan-original-200-ml",
+  "current_name": "Batiste Kuru Şampuan Original  200 ml",
+  "identity": {
+    "brand": "Batiste",
+    "model": "Dry Shampoo Original",
+    "variant": "200 ml, Original koku",
+    "gtin": "",
+    "mpn": ""
+  },
+  "match_confidence": "high",
+  "match_evidence": "Batiste resmî sitesi (batistehair.com.au) 'Batiste Original Dry Shampoo' ürününü 350/200/50 ml boyutlarıyla listeliyor; tedarikçi (provitanya.com, source_url) 'Marka: Batiste, Gramaj: 200 ml' gösteriyor.",
+  "description_html": "<p>Batiste Kuru Şampuan Original, saçı suyla yıkamadan tazelemek için kullanılan aerosol bir kuru şampuandır. 200 ml ambalajdaki bu ürün, markanın klasik 'Original' kokusuna sahiptir ve pirinç nişastası içeren formülüyle saç diplerine püskürtülerek kullanılır.</p><h3>Öne Çıkan Özellikler</h3><ul><li>Suya gerek olmadan, yıkamalar arasında kullanıma yönelik kuru şampuan</li><li>Pirinç nişastası (Oryza Sativa Starch) içeren formül</li><li>Original koku: üreticiye göre portakal ve bergamot ağırlıklı, gül, zambak, lavanta ve pudralı misk notalarıyla dengelenmiş temiz bir koku</li><li>Sprey (aerosol) ambalaj, 200 ml</li></ul><h3>Kullanım</h3><ul><li>Kullanmadan önce birkaç saniye çalkalayın.</li><li>Saçı bölümlere ayırın ve yaklaşık 30 cm mesafeden saç diplerine püskürtün.</li><li>Parmak uçlarınızla saç diplerine masaj yapın, ardından tarayın veya fırçalayın.</li></ul><h3>Uyarılar</h3><ul><li>Aşırı yanıcı aerosol; basınçlı kap, ısıtılırsa patlayabilir.</li><li>Isı, sıcak yüzey, kıvılcım ve açık alevden uzak tutun; alev üzerine püskürtmeyin.</li><li>Kullanımdan sonra bile delmeyin veya yakmayın; güneş ışığından ve 50 °C üzerindeki sıcaklıklardan koruyun.</li></ul>",
+  "specifications": [
+    {
+      "name": "Marka",
+      "value": "Batiste",
+      "source": "https://www.provitanya.com/batiste-kuru-sampuan-original-200-ml"
+    },
+    {
+      "name": "Ürün",
+      "value": "Kuru Şampuan (Dry Shampoo) Original",
+      "source": "https://batistehair.com.au/batiste-original-dry-shampoo/"
+    },
+    {
+      "name": "Hacim",
+      "value": "200 ml",
+      "source": "https://www.provitanya.com/batiste-kuru-sampuan-original-200-ml"
+    },
+    {
+      "name": "Form",
+      "value": "Aerosol sprey",
+      "source": "https://batistehair.com.au/batiste-original-dry-shampoo/"
+    },
+    {
+      "name": "Koku",
+      "value": "Original",
+      "source": "https://batistehair.com.au/batiste-original-dry-shampoo/"
+    },
+    {
+      "name": "Ana Bileşen",
+      "value": "Pirinç nişastası (Oryza Sativa Starch)",
+      "source": "https://batistehair.com.au/batiste-original-dry-shampoo/"
+    },
+    {
+      "name": "Kullanım Mesafesi",
+      "value": "30 cm",
+      "source": "https://batistehair.com.au/batiste-original-dry-shampoo/"
+    },
+    {
+      "name": "Saklama",
+      "value": "50 °C üzerindeki sıcaklıklardan ve güneşten koruyun",
+      "source": "https://batistehair.com.au/batiste-original-dry-shampoo/"
+    }
+  ],
+  "sources": [
+    "https://batistehair.com.au/batiste-original-dry-shampoo/",
+    "https://www.batistehair.com/products/dry-shampoo/fragrance-original",
+    "https://www.provitanya.com/batiste-kuru-sampuan-original-200-ml",
+    "https://sportoonline.com/tr/urun/batiste-kuru-sampuan-original-200-ml"
+  ],
+  "conflicts": "Resmî Batiste siteleri bölgeye göre farklı içerik listeleri veriyor (ABD sitesi keratin içeren ve HFC-152a'lı sürümler, Avustralya sitesi farklı parfüm bileşenleri); üretici '2023'te formüller değişebilir' diyor. Türkiye'de satılan partinin tam INCI listesi doğrulanamadığından içerik listesi eklenmedi.",
+  "notes": "Mevcut açıklama yalnız fiyat/teslimat şablonu (kaldırılmalı). GTIN/barkod doğrulanmadı, boş. Kozmetik fayda iddiası (hacim, yağ emme vb.) eklenmedi. Üreticinin kullanım yönergesinde mesafe '30 cm' olarak verildiği için 'yaklaşık' ifadesi yönerge metni olarak kullanıldı. Marka alanı boş; 'Batiste' önerilir.",
+  "suggested_brand": "Batiste"
+}

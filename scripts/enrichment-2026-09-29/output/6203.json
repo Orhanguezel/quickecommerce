@@ -1,0 +1,55 @@
+{
+ "id": 6203,
+ "slug": "24-kg-ayarlanabilir-dambil-seti",
+ "current_name": "24 KG Ayarlanabilir Dambıl Seti",
+ "identity": {
+  "brand": "",
+  "model": "DMB-24",
+  "variant": "24 kg",
+  "gtin": "",
+  "mpn": "DMB-24"
+ },
+ "match_confidence": "high",
+ "match_evidence": "Tedarikçi sayfası aynı ad ve stok kodu DMB-24; Sportoonline canlı sayfasında da SKU DMB-24 ve aynı açıklama. Tedarikçi görsellerinde üst değeri 24 olan ayar kadranı görülüyor.",
+ "description_html": "<p>24 KG Ayarlanabilir Dambıl Seti, ağırlığı ayar kadranıyla seçilen, stantlı (tabla üzerinde duran) bir ayarlanabilir dambıldır. Ayrı plaka takıp çıkarmadan farklı ağırlıklara geçiş yapılmasını sağlar; evde ve salonda kuvvet çalışmaları için tasarlanmıştır.</p><h3>Öne Çıkan Özellikler</h3><ul><li><strong>Maksimum ağırlık:</strong> 24 kg ayarlanabilir kapasite.</li><li><strong>Saklama tablası:</strong> Dambıl, kullanılmayan plakaları tutan tablaya oturur.</li><li><strong>Tutma barı:</strong> Kaymaz ve ergonomik tutuş.</li><li><strong>Kullanım:</strong> Kol, omuz, göğüs, sırt ve bacak egzersizleri.</li></ul><h3>Kullanım Alanları</h3><ul><li>Evde fitness ve kuvvet antrenmanları</li><li>Fonksiyonel ve serbest ağırlık çalışmaları</li><li>Bireysel ve profesyonel spor salonları</li></ul><h3>Kullanım Önerisi</h3><p>Ağırlığı yalnız dambıl tablasına tam oturmuşken değiştirin. Ayarlanabilir mekanizmalı dambılları yere bırakmayın veya düşürmeyin; ürün görselindeki uyarı da bunu belirtir.</p>",
+ "specifications": [
+  {
+   "name": "Maksimum Ağırlık",
+   "value": "24 kg",
+   "source": "https://ceysport.com/urun/24-kg-ayarlanabilir-dambil-seti/"
+  },
+  {
+   "name": "Ayar Sistemi",
+   "value": "Döner kadranlı (tabla üzerinde seçim)",
+   "source": "https://ceysport.com/urun/24-kg-ayarlanabilir-dambil-seti/"
+  },
+  {
+   "name": "Tutma Barı",
+   "value": "Kaymaz, ergonomik",
+   "source": "https://ceysport.com/urun/24-kg-ayarlanabilir-dambil-seti/"
+  },
+  {
+   "name": "Aksesuar",
+   "value": "Saklama tablası",
+   "source": "https://ceysport.com/urun/24-kg-ayarlanabilir-dambil-seti/"
+  },
+  {
+   "name": "Kullanım Alanı",
+   "value": "Ev ve salon",
+   "source": "https://ceysport.com/urun/24-kg-ayarlanabilir-dambil-seti/"
+  },
+  {
+   "name": "Stok Kodu",
+   "value": "DMB-24",
+   "source": "https://ceysport.com/urun/24-kg-ayarlanabilir-dambil-seti/"
+  }
+ ],
+ "sources": [
+  "https://ceysport.com/urun/24-kg-ayarlanabilir-dambil-seti/",
+  "https://ceysport.com/wp-json/wc/store/v1/products?slug=24-kg-ayarlanabilir-dambil-seti",
+  "https://sportoonline.com/tr/urun/24-kg-ayarlanabilir-dambil-seti"
+ ],
+ "conflicts": "",
+ "notes": "Tedarikçi, 24 kg'ın tek dambıl mı yoksa çift toplamı mı olduğunu ve setin tek mi çift mi geldiğini yazmıyor; kadran 24'e kadar gösterdiği için tek dambıl maksimumu olduğu düşünülüyor ama açıklamaya adet yazılmadı. Kademe listesi yalnız görselde okunan değerler; tam kademe listesi, ölçü ve malzeme kaynakta yok. Marka belirtilmemiş.",
+ "suggested_brand": ""
+}

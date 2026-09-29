@@ -1,0 +1,59 @@
+{
+  "id": 4836,
+  "slug": "rova-wfx-iphone-13-batarya-pil-3630-mah",
+  "current_name": "Rova WFX iPhone 13 Batarya Pil 3630 mAh",
+  "identity": {
+    "brand": "Rova",
+    "model": "WFX iPhone 13 uyumlu yedek batarya",
+    "variant": "3630 mAh (ürün adında)",
+    "gtin": "",
+    "mpn": "IPH13"
+  },
+  "match_confidence": "medium",
+  "match_evidence": "Tedarikçi sayfası (source_url) 'Rova WFX iPhone 13 Batarya Pil 3630 mAh', Ürün Kodu IPH13, Marka Apple, Model iPhone 13 gösteriyor. Ancak aynı sayfanın özellik tablosu 3227 mAh, açıklaması '%30 daha fazla kapasite' diyor; ürün görselleri iPhone 12 dosya adlı.",
+  "description_html": "<p>Rova WFX, Apple iPhone 13 için üretilmiş bir yedek (değişim) bataryadır. Tedarikçi, WFX serisi bataryaların değişimden sonra telefonda uyarı mesajı vermediğini ve Ayarlar'daki değişen parçalar bölümünde '2. el orijinal parça' olarak göründüğünü belirtmektedir.</p><h3>Öne Çıkan Özellikler</h3><ul><li>Uyumlu model: iPhone 13</li><li>WFX serisi: tedarikçiye göre değişim sonrası uyarı mesajı göstermez</li><li>Kapasite: ürün adında 3630 mAh olarak belirtiliyor (tedarikçi tablosuyla çelişki için aşağıya bakın)</li><li>Yüksek akım, düşük akım, yüksek ısı ve kısa devreye karşı koruma devresi</li><li>Çift katmanlı devre yapısı</li><li>Tedarikçi beyanına göre kalite testlerinden geçmiş, istikrarlı pil hücresi</li></ul><h3>Garanti</h3><ul><li>Tedarikçi beyanına göre 12 ay ya da 350 şarj döngüsü garanti kapsamındadır.</li></ul><h3>Montaj ve Kullanım Notları</h3><ul><li>Batarya değişimi cihazın açılmasını gerektirir; işlemin deneyimli bir teknik servis tarafından yapılması önerilir.</li><li>Montajdan önce telefon modelinizin ürün adındaki modelle aynı olduğunu kontrol edin.</li><li>Garanti süresi ve şartları tedarikçinin beyanına dayanır.</li></ul>",
+  "specifications": [
+    {
+      "name": "Marka / Üretici",
+      "value": "Rova",
+      "source": "https://www.rovabatarya.com/rova-wfx-iphone-13-batarya-pil-3630-mah"
+    },
+    {
+      "name": "Seri",
+      "value": "WFX",
+      "source": "https://www.rovabatarya.com/rova-wfx-iphone-13-batarya-pil-3630-mah"
+    },
+    {
+      "name": "Ürün Kodu",
+      "value": "IPH13",
+      "source": "https://www.rovabatarya.com/rova-wfx-iphone-13-batarya-pil-3630-mah"
+    },
+    {
+      "name": "Uyumlu Model",
+      "value": "Apple iPhone 13",
+      "source": "https://www.rovabatarya.com/rova-wfx-iphone-13-batarya-pil-3630-mah"
+    },
+    {
+      "name": "Kapasite",
+      "value": "3630 mAh (ürün adında; tedarikçi tablosunda 3227 mAh)",
+      "source": "https://www.rovabatarya.com/rova-wfx-iphone-13-batarya-pil-3630-mah"
+    },
+    {
+      "name": "Değişim Sonrası Durum",
+      "value": "Uyarı vermez; değişen parçalarda '2. el orijinal parça' görünür (tedarikçi beyanı)",
+      "source": "https://www.rovabatarya.com/rova-wfx-iphone-13-batarya-pil-3630-mah"
+    },
+    {
+      "name": "Garanti",
+      "value": "12 ay veya 350 şarj döngüsü (tedarikçi beyanı)",
+      "source": "https://www.rovabatarya.com/rova-wfx-iphone-13-batarya-pil-3630-mah"
+    }
+  ],
+  "sources": [
+    "https://www.rovabatarya.com/rova-wfx-iphone-13-batarya-pil-3630-mah",
+    "https://sportoonline.com/tr/urun/rova-wfx-iphone-13-batarya-pil-3630-mah"
+  ],
+  "conflicts": "Kapasite: başlık 3630 mAh, tedarikçi özellik tablosu 3227 mAh (orijinal iPhone 13 kapasitesine denk), açıklama '%30 daha fazla kapasite' (3227 mAh'ın %30 fazlası ~4195 mAh olur; 3630 ile uyuşmuyor). '%30' iddiası açıklamaya alınmadı. Mevcut Sportoonline specs'inde 'Kapasite: 3227 mAh' var — başlıkla çelişiyor, tedarikçiye sorulmalı. Görseller iPhone 12 dosya adlı.",
+  "notes": "Kapasite çelişkisi nedeniyle medium; nihai kapasite değeri tedarikçiden teyit edilmeden yayınlanmamalı. Voltaj/pil kimyası verilmemiş.",
+  "suggested_brand": "Rova"
+}

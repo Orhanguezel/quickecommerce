@@ -1,0 +1,24 @@
+{
+  "id": 4769,
+  "slug": "globus-tens-sarj-aleti-premium-400-genesy-600-genesy1500-duo-tens-elite-150",
+  "current_name": "Globus Tens Şarj Aleti Adaptör",
+  "identity": {
+    "brand": "",
+    "model": "",
+    "variant": "Globus/BTL uyumlu muadil şarj adaptörü",
+    "gtin": "",
+    "mpn": ""
+  },
+  "match_confidence": "low",
+  "match_evidence": "Tedarikçi ürünü 'muadil uyumlu' (orijinal Globus değil) olarak tanımlıyor ve çıkış voltajı/akımı vermiyor. Tek adaptörün hem 4 kanallı Genesy/Premium hem de Duo Tens'e uyduğu iddiası doğrulanamadı: Globus kılavuzuna göre Duo Tens/Elite SII şarj cihazı 5,8 V 200 mA; 4 kanallı modeller için satılan adaptörler 9 V olarak listeleniyor.",
+  "description_html": "",
+  "specifications": [],
+  "sources": [
+    "https://compexturkiye.com/urunler/compex-aksesuar-ve-yedek-parca/globus-tens-sarj-aleti-premium-400-genesy-600-genesy1500-duo-tens-elite-150/",
+    "https://www.globuscorporation.com/wp-content/uploads/2025/08/Manuale-EliteS2-Genesy-S2-Duo-Tens_MULTI_Rev-5-del-16.10.2023.pdf",
+    "https://www.amazon.it/TOP-CHARGEUR-Caricabatteria-Alimentatore-Elettrostimolatore/dp/B09SMYR9DM"
+  ],
+  "conflicts": "Duo Tens (5,8 V / 200 mA, üretici kılavuzu) ile 4 kanallı modeller (perakendede 9 V) farklı şarj değerleri kullanıyor; tek muadil adaptörün hepsine uyması şüpheli.",
+  "notes": "Adaptörün çıkış değerleri tedarikçiden alınmadan açıklama yazılmamalı. Marka 'Globus' olarak yazılmamalı; ürün muadil. Globus kılavuzu orijinal olmayan şarj cihazı kullanımının garantiyi etkileyebileceğini belirtiyor.",
+  "suggested_brand": ""
+}

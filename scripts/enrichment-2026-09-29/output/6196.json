@@ -1,0 +1,64 @@
+{
+ "id": 6196,
+ "slug": "10-adet-tatami-minderi-100x100-cm-26-mm-siyah-gri",
+ "current_name": "10 Adet Tatami Minderi 100x100 cm 26 mm SİYAH - GRİ",
+ "identity": {
+  "brand": "",
+  "model": "TT-009-1",
+  "variant": "100x100 cm, 26 mm, Siyah-Gri, 10 adet",
+  "gtin": "",
+  "mpn": "TT-009-1"
+ },
+ "match_confidence": "high",
+ "match_evidence": "Tedarikçi sayfası aynı ad, stok kodu TT-009-1, özellik tablosunda Renk: SİYAH – GRİ, Ölçü: 100x100x26 mm.",
+ "description_html": "<p>Bu set, dövüş sanatları, fitness, yoga ve diğer zemin egzersizleri için 100 x 100 cm ölçülü, 26 mm kalınlıklı yapboz kenarlı tatami minderlerinden oluşur. Siyah-gri renkteki minderler birleştirilerek istenen büyüklükte bir antrenman zemini kurulur.</p><h3>Öne Çıkan Özellikler</h3><ul><li><strong>Ölçü:</strong> Her minder 100 x 100 cm, 26 mm kalınlık.</li><li><strong>İç yapı:</strong> Yüksek yoğunluklu, darbe emici EVA köpük.</li><li><strong>Üst yüzey:</strong> Kalın polyester branda kaplama; su geçirmez, koku yapmaz, kaymaz.</li><li><strong>Birleştirme:</strong> Yapboz tipi kenarlar; kolay kurulum ve söküm.</li><li><strong>Ses yalıtımı:</strong> Antrenman sırasında çevreye yayılan sesi azaltır.</li><li><strong>Temizlik:</strong> Hijyenik yüzey, kolay silinir.</li></ul><h3>Kullanım Alanları</h3><ul><li>Dövüş sporları salonları</li><li>Fitness, yoga ve pilates alanları</li><li>Ev spor odaları ve çocuk oyun alanları</li></ul><h3>Paket İçeriği</h3><p>Ürün adına göre paket 10 adet minderden oluşur. Tedarikçi açıklamasındaki \"1 adet\" ifadesi nedeniyle siparişten önce adet bilgisini ürün sayfasından teyit edin.</p>",
+ "specifications": [
+  {
+   "name": "Ölçü (her minder)",
+   "value": "100 x 100 cm",
+   "source": "https://ceysport.com/urun/10-adet-tatami-minderi-100x100-cm-26-mm-siyah-gri/"
+  },
+  {
+   "name": "Kalınlık",
+   "value": "26 mm",
+   "source": "https://ceysport.com/urun/10-adet-tatami-minderi-100x100-cm-26-mm-siyah-gri/"
+  },
+  {
+   "name": "Renk",
+   "value": "Siyah – Gri",
+   "source": "https://ceysport.com/urun/10-adet-tatami-minderi-100x100-cm-26-mm-siyah-gri/"
+  },
+  {
+   "name": "İç Malzeme",
+   "value": "Yüksek yoğunluklu EVA köpük",
+   "source": "https://ceysport.com/urun/10-adet-tatami-minderi-100x100-cm-26-mm-siyah-gri/"
+  },
+  {
+   "name": "Üst Yüzey",
+   "value": "Kalın polyester branda kaplama",
+   "source": "https://ceysport.com/urun/10-adet-tatami-minderi-100x100-cm-26-mm-siyah-gri/"
+  },
+  {
+   "name": "Bağlantı",
+   "value": "Yapboz tipi kenar",
+   "source": "https://ceysport.com/urun/10-adet-tatami-minderi-100x100-cm-26-mm-siyah-gri/"
+  },
+  {
+   "name": "Yüzey Özelliği",
+   "value": "Su geçirmez, koku yapmaz, kaymaz",
+   "source": "https://ceysport.com/urun/10-adet-tatami-minderi-100x100-cm-26-mm-siyah-gri/"
+  },
+  {
+   "name": "Stok Kodu",
+   "value": "TT-009-1",
+   "source": "https://ceysport.com/urun/10-adet-tatami-minderi-100x100-cm-26-mm-siyah-gri/"
+  }
+ ],
+ "sources": [
+  "https://ceysport.com/urun/10-adet-tatami-minderi-100x100-cm-26-mm-siyah-gri/",
+  "https://ceysport.com/wp-json/wc/store/v1/products?slug=10-adet-tatami-minderi-100x100-cm-26-mm-siyah-gri"
+ ],
+ "conflicts": "Ürün adı '10 Adet' derken tedarikçi açıklamasının teknik bölümünde 'Set İçeriği: 1 adet tatami minder' yazıyor (muhtemelen tekli üründen kopya metin). Paket adedi admin tarafından teyit edilmeli. Yoğunluk (kg/m³) sayısal olarak verilmemiş.",
+ "notes": "Çift taraflı kullanım tedarikçide belirtilmemiş, yazılmadı. Jenerik ürün, marka yok.",
+ "suggested_brand": ""
+}

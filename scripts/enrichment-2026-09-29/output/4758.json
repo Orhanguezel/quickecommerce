@@ -1,0 +1,44 @@
+{
+  "id": 4758,
+  "slug": "globus-tens-cihazi-ve-btl-tens-3-kablo-seti-orjinal",
+  "current_name": "Globus Tens Cihazı ve BTL Tens 3 Kablo Seti Orjinal",
+  "identity": {
+    "brand": "Globus",
+    "model": "",
+    "variant": "Elektrot kablo seti",
+    "gtin": "",
+    "mpn": ""
+  },
+  "match_confidence": "medium",
+  "match_evidence": "Yalnız ürünün kendi tedarikçi sayfası uyumlu model listesini veriyor; Globus resmî aksesuar sayfasında bu setin kodu/adedi bulunamadı. Bağımsız İtalyan yedek parça satıcıları (fiasmed) Genesy 600/1500/300, Premium 400, Activa 700 ve spor serisi için ortak kablo gösteriyor.",
+  "description_html": "<p>Globus 4 kanallı TENS/EMS cihazlarında kullanılan <strong>orijinal Globus elektrot bağlantı kablosu seti</strong>dir. Cihaz ile elektrotlar arasındaki bağlantıyı sağlar; yıpranmış veya hasarlı kabloların yenilenmesi için kullanılır.</p><h3>Uyumlu Cihazlar (tedarikçiye göre)</h3><ul><li>Globus Genesy 600</li><li>Globus Genesy 1500</li><li>Globus Genesy 3000</li><li>Globus Genesy 3000 Rehab</li><li>Globus Activa 700</li><li>Globus Premium 400</li><li>Globus Triathlon Pro</li><li>Globus Runner Pro</li><li>Globus Elite 150</li><li>BTL TENS-3</li><li>BTL TENS-6</li><li>BTL TENS-15</li></ul><p>Tedarikçinin açıklamasına göre BTL TENS-3, TENS-6 ve TENS-15 modelleri Globus ile aynı tesiste üretilir ve aynı kabloyu kullanır.</p><h3>Bilmeniz Gerekenler</h3><ul><li>Setteki kablo adedi kaynakta belirtilmemiştir; sipariş öncesi satıcıya teyit ettirin.</li><li>Cihazınızın modeli listede yoksa uyumluluğu cihaz kılavuzundan kontrol edin.</li><li>Hasarlı kablolar yalnızca orijinal parçayla değiştirilmelidir.</li></ul><h3>Uyarı</h3><p>Kullanmadan önce kullanım kılavuzunu okuyun; tıbbi durumlarda hekime veya fizyoterapiste danışın.</p>",
+  "specifications": [
+    {
+      "name": "Ürün Tipi",
+      "value": "TENS/EMS elektrot bağlantı kablosu seti",
+      "source": "https://compexturkiye.com/urunler/genel/globus-tens-cihazi-ve-btl-tens-3-kablo-seti-orjinal/"
+    },
+    {
+      "name": "Orijinallik",
+      "value": "Orijinal Globus",
+      "source": "https://compexturkiye.com/urunler/genel/globus-tens-cihazi-ve-btl-tens-3-kablo-seti-orjinal/"
+    },
+    {
+      "name": "Uyumlu Globus Modelleri",
+      "value": "Genesy 600, 1500, 3000, 3000 Rehab; Activa 700; Premium 400; Triathlon Pro; Runner Pro; Elite 150",
+      "source": "https://compexturkiye.com/urunler/genel/globus-tens-cihazi-ve-btl-tens-3-kablo-seti-orjinal/"
+    },
+    {
+      "name": "Uyumlu BTL Modelleri",
+      "value": "TENS-3, TENS-6, TENS-15",
+      "source": "https://compexturkiye.com/urunler/genel/globus-tens-cihazi-ve-btl-tens-3-kablo-seti-orjinal/"
+    }
+  ],
+  "sources": [
+    "https://compexturkiye.com/urunler/genel/globus-tens-cihazi-ve-btl-tens-3-kablo-seti-orjinal/",
+    "https://int.fiasmed.com/globus-spare-cables-b267/"
+  ],
+  "conflicts": "Tedarikçinin tek kablo ürününde (id 4759) uyumluluk listesi farklı (Genesy 300, Genesy S2, Duo Tens var; Genesy 3000, Activa 700, spor modelleri yok).",
+  "notes": "Set içindeki kablo adedi ve konnektör tipi bilinmiyor; kaynağa sorulmalı. 'Ağrı tedavisinde etkili' ifadesi çıkarıldı.",
+  "suggested_brand": "Globus"
+}

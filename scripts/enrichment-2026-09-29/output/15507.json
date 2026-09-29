@@ -1,0 +1,22 @@
+{
+ "id": 15507,
+ "slug": "kendinden-yapiskanli-duvar-koruma-minderi-120-cm-boy",
+ "current_name": "Kendinden Yapışkanlı Duvar Koruma Minderi 1.20 Cm Boy",
+ "identity": {
+  "brand": "",
+  "model": "",
+  "variant": "",
+  "gtin": "",
+  "mpn": ""
+ },
+ "match_confidence": "low",
+ "match_evidence": "source_url yok; tedarikçi sayfası belirlenemedi.",
+ "description_html": "",
+ "specifications": [],
+ "sources": [
+  "https://sportoonline.com/tr/urun/kendinden-yapiskanli-duvar-koruma-minderi-120-cm-boy"
+ ],
+ "conflicts": "Ürün adı '1.20 Cm Boy' (muhtemelen 1,20 m boy/yükseklik) derken mevcut açıklama '1.20 cm kalınlığında' diyor; ölçü birimi ve anlamı çelişkili. Genişlik ve kalınlık bilinmiyor.",
+ "notes": "Markasız jenerik ürün, source_url yok; doğrulanamayan ölçü yazılmadı. Admin tedarikçiden boy/en/kalınlık teyidi almalı; ad muhtemelen '120 cm Boy' olarak düzeltilmeli.",
+ "suggested_brand": ""
+}

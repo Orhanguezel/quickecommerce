@@ -1,0 +1,69 @@
+{
+  "id": 6271,
+  "slug": "isvec-duvari-cok-fonksiyonlu-duvar-tipi-antrenman-istasyonu",
+  "current_name": "İsveç Duvarı – Çok Fonksiyonlu Duvar Tipi Antrenman İstasyonu",
+  "identity": {
+    "brand": "Ceysport",
+    "model": "İsveç Duvarı – Çok Fonksiyonlu Duvar Tipi Antrenman İstasyonu",
+    "variant": "70 × 241 cm",
+    "gtin": "",
+    "mpn": "C-127"
+  },
+  "match_confidence": "high",
+  "match_evidence": "Ürünün kendi tedarikçi sayfası (ceysport.com, source_url) aynı ürün adını ve stok kodu C-127'yi gösteriyor; görsel dosyası 'C-127-ISVEC-DUVARI'.",
+  "description_html": "<p>Bu İsveç duvarı, barfiks, dip, mekik ve vücut ağırlığıyla yapılan egzersizleri tek bir duvar ünitesinde toplayan çok fonksiyonlu bir antrenman istasyonudur. Ev, kişisel antrenör (PT) stüdyosu ve butik spor salonları için tasarlanmıştır; kompakt yapısıyla sınırlı alanda kullanılabilir. Tüm vücut antrenmanlarını tek bir köşede toplamak isteyenler için pratik bir çözümdür.</p><h3>Öne Çıkan Özellikler</h3><ul><li>Çelik konstrüksiyon, duvara monte gövde</li><li>Barfiks kolu</li><li>Dip tutamakları</li><li>Ayarlanabilir mekik sehpası</li><li>Çizilme ve paslanmaya karşı elektrostatik toz boya kaplama</li><li>Barfiks, dip, mekik ve vücut ağırlığı egzersizleri için tek sistem</li></ul><h3>Ölçüler</h3><table><tr><th>Ölçü</th><th>Değer</th></tr><tr><td>Genişlik</td><td>70 cm</td></tr><tr><td>Yükseklik</td><td>241 cm</td></tr><tr><td>Önden derinlik</td><td>174 cm</td></tr></table><p>Ölçüler tedarikçinin teknik çizimine göre verilmiştir.</p><h3>Kurulum Notu</h3><ul><li>Ünite duvara monte edilerek kullanılır; kurulumun taşıyıcı bir duvara, uygun bağlantı elemanlarıyla yapılması gerekir.</li><li>Montaj için tavan yüksekliğinin ünite yüksekliğine uygun olduğunu kontrol edin.</li></ul>",
+  "specifications": [
+    {
+      "name": "Stok Kodu",
+      "value": "C-127",
+      "source": "https://ceysport.com/urun/isvec-duvari-cok-fonksiyonlu-duvar-tipi-antrenman-istasyonu/"
+    },
+    {
+      "name": "Tip",
+      "value": "Duvara monte çok fonksiyonlu antrenman istasyonu",
+      "source": "https://ceysport.com/urun/isvec-duvari-cok-fonksiyonlu-duvar-tipi-antrenman-istasyonu/"
+    },
+    {
+      "name": "Gövde Malzemesi",
+      "value": "Çelik",
+      "source": "https://ceysport.com/urun/isvec-duvari-cok-fonksiyonlu-duvar-tipi-antrenman-istasyonu/"
+    },
+    {
+      "name": "Kaplama",
+      "value": "Elektrostatik toz boya",
+      "source": "https://ceysport.com/urun/isvec-duvari-cok-fonksiyonlu-duvar-tipi-antrenman-istasyonu/"
+    },
+    {
+      "name": "Aparatlar",
+      "value": "Barfiks kolu, dip tutamakları, ayarlanabilir sehpa",
+      "source": "https://ceysport.com/urun/isvec-duvari-cok-fonksiyonlu-duvar-tipi-antrenman-istasyonu/"
+    },
+    {
+      "name": "Genişlik",
+      "value": "70 cm",
+      "source": "https://ceysport.com/urun/isvec-duvari-cok-fonksiyonlu-duvar-tipi-antrenman-istasyonu/"
+    },
+    {
+      "name": "Yükseklik",
+      "value": "241 cm",
+      "source": "https://ceysport.com/urun/isvec-duvari-cok-fonksiyonlu-duvar-tipi-antrenman-istasyonu/"
+    },
+    {
+      "name": "Önden Derinlik",
+      "value": "174 cm",
+      "source": "https://ceysport.com/urun/isvec-duvari-cok-fonksiyonlu-duvar-tipi-antrenman-istasyonu/"
+    },
+    {
+      "name": "Kullanım Alanı",
+      "value": "Ev, PT stüdyosu, butik spor salonu",
+      "source": "https://ceysport.com/urun/isvec-duvari-cok-fonksiyonlu-duvar-tipi-antrenman-istasyonu/"
+    }
+  ],
+  "sources": [
+    "https://ceysport.com/urun/isvec-duvari-cok-fonksiyonlu-duvar-tipi-antrenman-istasyonu/",
+    "https://sportoonline.com/tr/urun/isvec-duvari-cok-fonksiyonlu-duvar-tipi-antrenman-istasyonu"
+  ],
+  "conflicts": "",
+  "notes": "Maksimum taşıma kapasitesi, ağırlık ve boru ölçüsü tedarikçide yok. Mevcut Sportoonline açıklaması yalnız 'Öne Çıkan Özellikler:' başlığından ibaret (boş). Marka önerisi: tedarikçi ürün markası olarak Ceysport'u gösteriyor gibi; kesin marka etiketi yok — suggested_brand 'Ceysport' temkinli öneridir.",
+  "suggested_brand": "Ceysport"
+}

@@ -1,0 +1,75 @@
+{
+ "id": 15771,
+ "slug": "yonex-yy25-ba22512-cocuk-sirt-cantasi-mercan-turuncu-14735",
+ "current_name": "YONEX YY25 BA22512 ÇOCUK SIRT ÇANTASI MERCAN TURUNCU",
+ "identity": {
+  "brand": "Yonex",
+  "model": "Junior Backpack BA22512",
+  "variant": "Coral Orange (mercan turuncu), 15 L",
+  "gtin": "",
+  "mpn": "BA22512"
+ },
+ "match_confidence": "high",
+ "match_evidence": "yonex.com/ba22512 resmî sayfası: JUNIOR BACKPACK, Item Code BA22512, renkler Gray/Black, Coral Orange, Ocean Blue, ölçü 29 x 18 x 43 cm (15 L). Ürün adındaki kod ve renk (Mercan Turuncu = Coral Orange) birebir.",
+ "description_html": "<p>Yonex Junior Backpack BA22512, genç tenis ve badminton oyuncuları için tasarlanmış 15 litrelik sırt çantasıdır. Bu ürün Coral Orange (mercan turuncu) renk seçeneğidir; kompakt gövdesiyle antrenmana, maça veya okula giderken raket ve kişisel eşyaları bir arada taşımaya uygundur.</p><h3>Öne Çıkan Özellikler</h3><ul><li><strong>Ölçü ve hacim:</strong> 29 x 18 x 43 cm (U x G x Y), 15 L.</li><li><strong>Raket bölmesi:</strong> Raketi diğer eşyalardan ayrı tutan raket saklama bölmesi.</li><li><strong>Cepler:</strong> İç cep ve yan tarafta su şişesi cebi.</li><li><strong>Göğüs kemeri:</strong> Omuz askılarını sabitleyerek taşımayı dengeler.</li><li><strong>Reflektör:</strong> Düşük ışıkta görünürlüğe katkı sağlayan yansıtıcı detay.</li><li><strong>YKK fermuar.</strong></li><li><strong>Malzeme:</strong> Polyester.</li></ul><h3>Renk Seçenekleri</h3><p>Model; Gray/Black, Coral Orange ve Ocean Blue renklerinde üretilir. Bu sayfadaki ürün Coral Orange renktir.</p><h3>Kimler İçin</h3><p>Yetişkin boy raket çantalarına göre daha küçük gövdesi sayesinde çocuk ve genç sporcuların sırtında dengeli durur. Raket, su şişesi ve kıyafet gibi temel eşyaları tek çantada toplamak isteyen junior tenis ve badminton oyuncuları için tasarlanmıştır.</p>",
+ "specifications": [
+  {
+   "name": "Model Kodu",
+   "value": "BA22512",
+   "source": "https://www.yonex.com/ba22512"
+  },
+  {
+   "name": "Renk",
+   "value": "Coral Orange (mercan turuncu)",
+   "source": "https://www.yonex.com/ba22512"
+  },
+  {
+   "name": "Ölçüler (UxGxY)",
+   "value": "29 x 18 x 43 cm",
+   "source": "https://www.yonex.com/ba22512"
+  },
+  {
+   "name": "Hacim",
+   "value": "15 L",
+   "source": "https://www.yonex.com/ba22512"
+  },
+  {
+   "name": "Malzeme",
+   "value": "Polyester",
+   "source": "https://www.racket-company.com/en/yonex-ba22512ex-junior-backpack.html"
+  },
+  {
+   "name": "Raket Bölmesi",
+   "value": "Var",
+   "source": "https://maxsports.ca/products/yonex-junior-backpack-ba22512"
+  },
+  {
+   "name": "Cepler",
+   "value": "İç cep, su şişesi cebi",
+   "source": "https://maxsports.ca/products/yonex-junior-backpack-ba22512"
+  },
+  {
+   "name": "Göğüs Kemeri",
+   "value": "Var",
+   "source": "https://www.yonex.com/ba22512"
+  },
+  {
+   "name": "Reflektör",
+   "value": "Var",
+   "source": "https://www.yonex.com/ba22512"
+  },
+  {
+   "name": "Fermuar",
+   "value": "YKK",
+   "source": "https://www.yonex.com/ba22512"
+  }
+ ],
+ "sources": [
+  "https://www.yonex.com/ba22512",
+  "https://maxsports.ca/products/yonex-junior-backpack-ba22512",
+  "https://www.racket-company.com/en/yonex-ba22512ex-junior-backpack.html"
+ ],
+ "conflicts": "Mevcut Sportoonline açıklamasında model kodu 'BA22412' ve ölçü '29 x 19 x 42 cm' yazıyor; üretici sayfası BA22512 ve 29 x 18 x 43 cm veriyor — üretici esas alındı, mevcut açıklamadaki kod/ölçü düzeltilmeli. Mevcut metin 'Badminton meraklıları için' diyor, kategori Tenis Aksesuarları; ürün her iki spora uygun olarak yazıldı. Bazı perakendeciler 'ayakkabı bölmesi' veya '2 junior raket kapasitesi' yazıyor, kaynaklar tutarsız olduğu için eklenmedi.",
+ "notes": "Malzeme (polyester) ve raket bölmesi/iç cep üretici sayfasında yok; racket-company.com ve maxsports.ca ile mevcut Sportoonline metni ('%100 Polyester') üzerinden eklendi. Göğüs kemeri, reflektör, su şişesi cebi, YKK fermuar üretici sayfasının teknoloji listesinde. source_url yok (store multiprice). GTIN bulunamadı.",
+ "suggested_brand": "Yonex"
+}

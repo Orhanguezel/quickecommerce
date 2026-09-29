@@ -1,0 +1,24 @@
+{
+  "id": 15393,
+  "slug": "kartix-glukozamin-kompleksi-60-tablet",
+  "current_name": "Kartix Glucosamine Complex Collagen 90 Kapsül",
+  "identity": {
+    "brand": "Kartix",
+    "model": "Glucosamine Complex",
+    "variant": "BELİRSİZ: 60 tablet mi 90 kapsül mü?",
+    "gtin": "",
+    "mpn": ""
+  },
+  "match_confidence": "low",
+  "match_evidence": "Sportoonline kaydı kendi içinde çelişkili: slug '60-tablet', ürün adı '90 Kapsül', sayfa başlığı '90 Tablet', açıklama '90 tabletlik', ürün görseli ise '60 Tablet' kutusu. Üretici RC Farma iki ayrı ürün satıyor ve formülleri farklı.",
+  "description_html": "",
+  "specifications": [],
+  "sources": [
+    "https://rcfarma.com/urun-Kartix-Glucosamine-Complex-60-Tablet",
+    "https://rcfarma.com/urun-Kartix-Glucosamine-Complex-90-Kapsul",
+    "https://www.dermoeczanem.com/kartix-glucosamine-complex-90-kapsul"
+  ],
+  "conflicts": "RC Farma 60 Tablet (2 tablet): glukozamin sülfat 1500 mg, kondroitin sülfat 300 mg, MSM 300 mg, Boswellia 250 mg, hyaluronik asit 50 mg, tip II kolajen 40 mg, manganez sülfat 2 mg; günde 2 tablet. 90 Kapsül (3 kapsül, perakende kaynağı): Boswellia 300 mg, hyaluronik asit 51 mg, manganez yok; günde 3 kapsül. Mevcut Sportoonline açıklamasında 'eklem ağrısı ve iltihaplanması ile mücadele' gibi yasak sağlık iddiaları ve 'individuals' gibi çeviri hatası var; kaldırılmalı.",
+  "notes": "Hangi ürünün satıldığı (store: multiprice, source_url yok) netleşmeden içerik yazılmadı. Karar verilince: görsel 60 tablet ise rcfarma 60 Tablet sayfası (resmî) kullanılabilir; 90 kapsül ise rcfarma 90 kapsül sayfası artık içerik göstermiyor, dermoeczanem barkodu 8699216520253. Ad/slug/görsel de aynı varyanta göre düzeltilmeli.",
+  "suggested_brand": "Kartix"
+}

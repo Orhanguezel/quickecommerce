@@ -1,0 +1,60 @@
+{
+ "id": 9404,
+ "slug": "batiste-kuru-sampuan-original-50-ml",
+ "current_name": "Batiste Kuru Şampuan Original  50 ml",
+ "identity": {
+  "brand": "Batiste",
+  "model": "Dry Shampoo Original",
+  "variant": "50 ml, Original koku",
+  "gtin": "",
+  "mpn": ""
+ },
+ "match_confidence": "medium",
+ "match_evidence": "Tedarikçi Provitanya sayfası marka Batiste, ürün 'Kuru Şampuan Original 50 ml' gösteriyor ama açıklama/etiket içermiyor. Üretici sitesi (batistehair.com, ABD) Original kokuyu anlatıyor fakat 50 ml boyutu listelemiyor (ABD boyutları oz cinsinden); 50 ml içerik bilgisi İngiltere eczanesi medino.com ile çapraz doğrulandı.",
+ "description_html": "<p>Batiste Original, saçı su kullanmadan tazelemek için kullanılan aerosol kuru şampuandır. 50 ml boyutu çanta, spor çantası veya seyahat için uygun küçük ambalajdır. Formülün temelinde pirinç nişastası (Oryza Sativa starch) bulunur.</p><h3>Öne Çıkan Özellikler</h3><ul><li><strong>Form:</strong> Basınçlı sprey (aerosol) kuru şampuan.</li><li><strong>Hacim:</strong> 50 ml.</li><li><strong>Koku:</strong> Original — üreticinin tarifine göre portakal ve bergamot notaları, gül, zambak, lavanta ve pudralı misk dokunuşlarıyla temiz, sabunsu bir koku.</li><li><strong>Ana bileşen:</strong> Pirinç nişastası; ürün sülfat içermez.</li></ul><h3>Kullanım</h3><ul><li>Kullanmadan önce ve püskürtmeler arasında kutuyu iyice çalkalayın; bu, beyaz kalıntıyı azaltmaya yardımcı olur.</li><li>Saçı bölümlere ayırın, kutuyu yaklaşık 30 cm uzakta tutarak saç diplerine püskürtün; ense kısmını da unutmayın.</li><li>Parmak uçlarınızla saça yedirin ve yaklaşık bir dakika bekleyin.</li><li>Ardından tarayın ya da fırçalayın ve saçınızı şekillendirin.</li></ul><h3>Uyarılar</h3><ul><li>Ürün basınçlı aerosol kaptır; ambalaj üzerindeki güvenlik uyarılarına uyun.</li><li>Koyu renkli saçlarda geçici beyaz kalıntı görülebilir; iyice yedirip fırçalayarak giderilebilir.</li><li>Güncel içerik listesi için ürün ambalajındaki etiketi esas alın.</li></ul>",
+ "specifications": [
+  {
+   "name": "Marka",
+   "value": "Batiste",
+   "source": "https://www.provitanya.com/batiste-kuru-sampuan-original-50-ml"
+  },
+  {
+   "name": "Hacim",
+   "value": "50 ml",
+   "source": "https://www.provitanya.com/batiste-kuru-sampuan-original-50-ml"
+  },
+  {
+   "name": "Ürün Tipi",
+   "value": "Aerosol kuru şampuan",
+   "source": "https://www.medino.com/product/batiste-dry-shampoo-original-50ml"
+  },
+  {
+   "name": "Koku",
+   "value": "Original (portakal, bergamot, gül, zambak, lavanta, misk notaları)",
+   "source": "https://www.batistehair.com/products/dry-shampoo/fragrance-original"
+  },
+  {
+   "name": "Ana Bileşen",
+   "value": "Pirinç nişastası (Oryza Sativa starch)",
+   "source": "https://www.batistehair.com/products/dry-shampoo/fragrance-original"
+  },
+  {
+   "name": "Sülfat",
+   "value": "İçermez",
+   "source": "https://www.batistehair.com/products/dry-shampoo/fragrance-original"
+  },
+  {
+   "name": "Kullanım Mesafesi",
+   "value": "Yaklaşık 30 cm (12 inç)",
+   "source": "https://www.batistehair.com/products/dry-shampoo/fragrance-original"
+  }
+ ],
+ "sources": [
+  "https://www.provitanya.com/batiste-kuru-sampuan-original-50-ml",
+  "https://www.batistehair.com/products/dry-shampoo/fragrance-original",
+  "https://www.medino.com/product/batiste-dry-shampoo-original-50ml"
+ ],
+ "conflicts": "İçerik listesi bölgeye göre değişiyor: batistehair.com (ABD) formülünde 'Cocoyl Hydrolyzed Keratin' var ve bazı boyutlarda itici gaz Hydrofluorocarbon 152a; İngiltere/AB 50 ml ürününde (medino) itici gaz Butane/Isobutane/Propane ve keratin yok. Türkiye'de satılan kutunun hangi formül olduğu doğrulanamadığı için tam INCI listesi ve keratin iddiası eklenmedi.",
+ "notes": "Mevcut açıklama yalnız SEO kalıbı ('en iyi fiyatla satın al...') — tamamen değiştirilmeli (fiyat/kampanya dili kural dışı). brand alanı boş; 'Batiste' atanmalı. GTIN: resmî kaynakta 50 ml için barkod görülmedi, boş bırakıldı. Kozmetik etki iddiası (yağ alma süresi vb.) bilinçli olarak eklenmedi.",
+ "suggested_brand": "Batiste"
+}

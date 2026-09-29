@@ -1,0 +1,74 @@
+{
+  "id": 15504,
+  "slug": "esbit-majoris-paslanmaz-celik-yemek-termosu-060-l",
+  "current_name": "Esbit Majoris Paslanmaz Çelik Yemek Termosu 0,60 L",
+  "identity": {
+    "brand": "Esbit",
+    "model": "MAJORIS Food Jug",
+    "variant": "0,6 L, Paslanmaz Çelik (Stainless Steel) renk",
+    "gtin": "",
+    "mpn": "FJ600TL-S"
+  },
+  "match_confidence": "high",
+  "match_evidence": "esbit.de resmî ürün sayfası MAJORIS yemek termosunu 0,6 L varyantı ve Stainless Steel rengi için SKU FJ600TL-S-2 ile gösteriyor; Sportoonline ürün görselinin dosya adı 'fj600tl-s' (aynı model + renk kodu).",
+  "description_html": "<p>Esbit MAJORIS, yemekleri yolda sıcak ya da soğuk taşımak için tasarlanmış çift cidarlı paslanmaz çelik yemek termosudur. Bu ürün 0,6 litrelik varyanttır; çorba, makarna gibi sıcak yemekler kadar müsli ve salata için de kullanılabilir.</p><h3>Öne Çıkan Özellikler</h3><ul><li>18/8 paslanmaz çelikten çift cidarlı gövde</li><li>Basınç tahliye düğmeli, üreticiye göre %100 sızdırmaz kapak</li><li>Dış kapak kâse olarak kullanılabilir</li><li>79 mm geniş ağız: kolay doldurma, doğrudan yeme ve temizlik</li><li>Gövde altında koruyucu taban pedi</li></ul><h3>Isı Koruma (0,6 L, üretici ölçümü)</h3><table><tr><th>Süre</th><th>İçerik sıcaklığı</th></tr><tr><td>6 saat sonra</td><td>~65 °C</td></tr><tr><td>12 saat sonra</td><td>~50 °C</td></tr><tr><td>24 saat sonra</td><td>~30 °C</td></tr></table><p>Ölçüm koşulu: yaklaşık 98 °C su ile doldurma, ortam sıcaklığı 20 °C ± 2 °C.</p><h3>Kullanım Uyarıları</h3><ul><li>Gazlı içecek doldurmayın; aşırı basınç yaralanmaya yol açabilir.</li><li>Sıcak içerikte haşlanma riskine karşı kapağı açmadan önce basınç tahliye düğmesine basın ve kapağı yavaşça açın.</li><li>Dik konumda saklayın ve taşıyın.</li></ul>",
+  "specifications": [
+    {
+      "name": "Marka",
+      "value": "Esbit",
+      "source": "https://esbit.de/en/products/majoris-food-jug-with-bowl"
+    },
+    {
+      "name": "Seri",
+      "value": "MAJORIS",
+      "source": "https://esbit.de/en/products/majoris-food-jug-with-bowl"
+    },
+    {
+      "name": "Üretici Kodu",
+      "value": "FJ600TL-S (resmî sitede güncel SKU: FJ600TL-S-2)",
+      "source": "https://esbit.de/en/products/majoris-food-jug-with-bowl"
+    },
+    {
+      "name": "Hacim",
+      "value": "0,6 L",
+      "source": "https://esbit.de/en/products/majoris-food-jug-with-bowl"
+    },
+    {
+      "name": "Malzeme",
+      "value": "18/8 paslanmaz çelik, çift cidarlı",
+      "source": "https://esbit.de/en/products/majoris-food-jug-with-bowl"
+    },
+    {
+      "name": "Ağız Çapı",
+      "value": "79 mm",
+      "source": "https://esbit.de/en/products/majoris-food-jug-with-bowl"
+    },
+    {
+      "name": "Ağırlık",
+      "value": "ca. 0,52 kg (üretici)",
+      "source": "https://esbit.de/en/products/majoris-food-jug-with-bowl"
+    },
+    {
+      "name": "Paket Ölçüsü (U×G×Y)",
+      "value": "ca. 10,8 × 10,8 × 15,7 cm (üretici)",
+      "source": "https://esbit.de/en/products/majoris-food-jug-with-bowl"
+    },
+    {
+      "name": "Isı Koruma 6 / 12 / 24 saat",
+      "value": "~65 / ~50 / ~30 °C (98 °C doldurma, 20 °C ortam)",
+      "source": "https://esbit.de/en/products/majoris-food-jug-with-bowl"
+    },
+    {
+      "name": "Kapak",
+      "value": "Basınç tahliye düğmeli, kâse olarak kullanılabilir dış kapak",
+      "source": "https://esbit.de/en/products/majoris-food-jug-with-bowl"
+    }
+  ],
+  "sources": [
+    "https://esbit.de/en/products/majoris-food-jug-with-bowl",
+    "https://sportoonline.com/tr/urun/esbit-majoris-paslanmaz-celik-yemek-termosu-060-l"
+  ],
+  "conflicts": "Bir arama özetinde 24 saat değeri ~35 °C geçti; resmî esbit.de tablosu 0,6 L için ~30 °C veriyor — üretici değeri kullanıldı. 800 ml / 1000 ml değerleri (daha yüksek) karıştırılmadı.",
+  "notes": "GTIN resmî sitede FJ600TL-S-2 için 4260149877253; Sportoonline stoğunun '-2' revizyonu olduğu kesin olmadığından gtin boş bırakıldı. Ölçü resmî sitede 'pack size' (ambalaj) olarak verilmiş. Bulaşık makinesi uygunluğu resmî sayfada yazmadığından eklenmedi. Soğuk tutma süresi üretici tarafından sayısal verilmemiş.",
+  "suggested_brand": "Esbit"
+}

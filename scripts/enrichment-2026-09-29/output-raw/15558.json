@@ -1,0 +1,73 @@
+{
+  "id": 15558,
+  "slug": "cream-of-rice",
+  "current_name": "CREAM OF RICE",
+  "identity": {
+    "brand": "Animal Joy",
+    "model": "Cream Of Rice (Pirinç Unu Kreması)",
+    "variant": "750 g, Çikolata aroma",
+    "gtin": "8697431131025",
+    "mpn": "ET007-0024"
+  },
+  "match_confidence": "high",
+  "match_evidence": "Üretici Animal Joy sitesinde (source_url) aynı ürün; Sportoonline JSON-LD sku'su ET007-0024, üretici sayfasında 750 Gr / Çikolata varyantının SKU'su. Barkod 8697431131025 bu varyanta ait.",
+  "description_html": "<p>Animal Joy Cream Of Rice, mikronize beyaz pirinç unundan hazırlanan, aromalı bir pirinç unu kremasıdır. Karbonhidrat ağırlıklı bir gıdadır; ara öğünlerde veya öğünlere ek olarak tüketilebilir. Bu ürün 750 g ambalajda, çikolata aromalıdır.</p><h3>Öne Çıkan Özellikler</h3><ul><li>1 servis 50 g; paket toplam 15 servis</li><li>Servis başına 38,4 g karbonhidrat, 176 kcal</li><li>Servis başına 0 g şeker (tatlandırıcı olarak sukraloz kullanılır)</li><li>Kısa içerik listesi: pirinç unu, aroma verici, tatlandırıcı</li></ul><h3>Besin Değerleri (1 servis, 50 g)</h3><table><tr><th>Besin Öğesi</th><th>Miktar</th></tr><tr><td>Enerji</td><td>176 kcal / 746 kJ</td></tr><tr><td>Yağ</td><td>0,4 g</td></tr><tr><td>Doymuş Yağ</td><td>0,1 g</td></tr><tr><td>Karbonhidrat</td><td>38,4 g</td></tr><tr><td>Şekerler</td><td>0 g</td></tr><tr><td>Protein</td><td>4,7 g</td></tr><tr><td>Tuz</td><td>0,1 g</td></tr></table><h3>İçindekiler</h3><p>Mikronize pirinç unu, aroma verici, tatlandırıcı (sukraloz E955).</p><h3>Aroma Seçenekleri</h3><p>Üretici Cream Of Rice'ı çikolata, çilek, bisküvi ve elma &amp; tarçın aromalarıyla üretir; besin değerleri ve içerik listesi tüm aromalarda aynıdır. Bu ürün çikolata aromalı 750 g ambalajdır.</p>",
+  "specifications": [
+    {
+      "name": "Marka",
+      "value": "Animal Joy",
+      "source": "https://animaljoy.com.tr/rice-cream"
+    },
+    {
+      "name": "Ürün Tipi",
+      "value": "Pirinç unu kreması (toz)",
+      "source": "https://animaljoy.com.tr/rice-cream"
+    },
+    {
+      "name": "Net Miktar",
+      "value": "750 g",
+      "source": "https://animaljoy.com.tr/rice-cream"
+    },
+    {
+      "name": "Aroma",
+      "value": "Çikolata",
+      "source": "https://animaljoy.com.tr/rice-cream"
+    },
+    {
+      "name": "Servis Ölçüsü",
+      "value": "50 g",
+      "source": "https://animaljoy.com.tr/rice-cream"
+    },
+    {
+      "name": "Servis Sayısı",
+      "value": "15",
+      "source": "https://animaljoy.com.tr/rice-cream"
+    },
+    {
+      "name": "Karbonhidrat (1 servis)",
+      "value": "38,4 g",
+      "source": "https://animaljoy.com.tr/rice-cream"
+    },
+    {
+      "name": "Enerji (1 servis)",
+      "value": "176 kcal / 746 kJ",
+      "source": "https://animaljoy.com.tr/rice-cream"
+    },
+    {
+      "name": "Tatlandırıcı",
+      "value": "Sukraloz (E955)",
+      "source": "https://animaljoy.com.tr/rice-cream"
+    },
+    {
+      "name": "Barkod",
+      "value": "8697431131025",
+      "source": "https://animaljoy.com.tr/rice-cream"
+    }
+  ],
+  "sources": [
+    "https://animaljoy.com.tr/rice-cream"
+  ],
+  "conflicts": "",
+  "notes": "Üretici sayfasında Çilek, Bisküvi, Elma & Tarçın aromaları da var; besin değerleri ve içerik tüm aromalarda aynı yazılmış. Sportoonline tek varyant (SKU ET007-0024 = Çikolata) olarak listeliyor; başka aroma gönderiliyorsa aroma ve barkod satırı güncellenmeli. Mevcut açıklamadaki 'sindirimi kolay' ifadesi yeni metinde kullanılmadı. Mağaza markası boş, Animal Joy atanmalı.",
+  "suggested_brand": "Animal Joy"
+}

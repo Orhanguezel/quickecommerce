@@ -1,0 +1,69 @@
+{
+  "id": 15602,
+  "slug": "nutrend-creatine-monohydrate-300-gr-kreatin",
+  "current_name": "Nutrend Creatine Monohydrate 300 gr Kreatin",
+  "identity": {
+    "brand": "Nutrend",
+    "model": "Creatine Monohydrate",
+    "variant": "300 g, aromasız (No Flavour) — Creapure olmayan sürüm",
+    "gtin": "8594073174949",
+    "mpn": ""
+  },
+  "match_confidence": "high",
+  "match_evidence": "Sportoonline görseli Nutrend 'CREATINE MONOHYDRATE 300 g, 3,5 g' mavi kutu (Creapure logosu yok); üretici nutrend.eu sayfası aynı ürün 300 g No Flavour, JSON-LD gtin13 8594073174949.",
+  "description_html": "<p>Nutrend Creatine Monohydrate, katkısız kreatin monohidrattan oluşan aromasız bir toz takviye edici gıdadır. Ürün 300 g kutuda sunulur; bir servis 3,5 g olup 3 g saf kreatin içerir.</p><h3>Öne Çıkan Özellikler</h3><ul><li>Tek bileşen: kreatin monohidrat</li><li>Servis başına 3,5 g kreatin monohidrat = 3 g saf kreatin</li><li>Parçacık boyutu 74 µm</li><li>Hayvansal içerik içermez, vegan beslenmeye uygun (üretici beyanı)</li><li>Koruyucu içermez</li></ul><h3>Besin Değerleri</h3><table><tr><th></th><th>100 g</th><th>1 servis (3,5 g)</th></tr><tr><td>Kreatin monohidrat</td><td>100 g</td><td>3,5 g</td></tr><tr><td>bunun saf kreatin kısmı</td><td>88 g</td><td>3 g</td></tr></table><h3>Kullanım</h3><p>3,5 g (yaklaşık ¾ ölçek) ürünü bir içeceğe karıştırın; günde en fazla bir kez. Üretici karbonhidratlı bir içecekle birlikte tüketilmesini ve yüksek dozda kafeinle birlikte kullanılmamasını önerir. Önerilen miktarı aşmayın.</p><h3>Uyarılar ve Saklama</h3><ul><li>Takviye edici gıdadır, çeşitli beslenmenin yerine geçmez.</li><li>Çocuklar, hamile ve emziren kadınlar için uygun değildir; çocukların ulaşamayacağı yerde saklayın.</li><li>Ambalajdaki nem çekici poşet tüketim için değildir.</li><li>Isı, don ve nemden koruyun; açıldıktan sonra 25 °C'yi aşmayan ortamda saklayıp 6 ay içinde tüketin.</li></ul>",
+  "specifications": [
+    {
+      "name": "Marka",
+      "value": "Nutrend",
+      "source": "https://www.nutrend.eu/product/creatine-monohydrate-112/300-g-no-flavour"
+    },
+    {
+      "name": "İçerik",
+      "value": "Kreatin monohidrat",
+      "source": "https://www.nutrend.eu/product/creatine-monohydrate-112/300-g-no-flavour"
+    },
+    {
+      "name": "Net Miktar",
+      "value": "300 g",
+      "source": "https://www.nutrend.eu/product/creatine-monohydrate-112/300-g-no-flavour"
+    },
+    {
+      "name": "Aroma",
+      "value": "Aromasız",
+      "source": "https://www.nutrend.eu/product/creatine-monohydrate-112/300-g-no-flavour"
+    },
+    {
+      "name": "Servis Ölçüsü",
+      "value": "3,5 g (yaklaşık ¾ ölçek)",
+      "source": "https://www.nutrend.eu/product/creatine-monohydrate-112/300-g-no-flavour"
+    },
+    {
+      "name": "Saf Kreatin (1 servis)",
+      "value": "3 g",
+      "source": "https://www.nutrend.eu/product/creatine-monohydrate-112/300-g-no-flavour"
+    },
+    {
+      "name": "Parçacık Boyutu",
+      "value": "74 µm",
+      "source": "https://www.nutrend.eu/product/creatine-monohydrate-112/300-g-no-flavour"
+    },
+    {
+      "name": "Vegan",
+      "value": "Evet (üretici beyanı)",
+      "source": "https://www.nutrend.eu/product/creatine-monohydrate-112/300-g-no-flavour"
+    },
+    {
+      "name": "Barkod (EAN)",
+      "value": "8594073174949",
+      "source": "https://www.nutrend.eu/product/creatine-monohydrate-112/300-g-no-flavour"
+    }
+  ],
+  "sources": [
+    "https://www.nutrend.eu/product/creatine-monohydrate-112/300-g-no-flavour",
+    "https://www.supplementler.com/urun/nutrend-creatine-monohydrate-300-gr-20394"
+  ],
+  "conflicts": "Türkiye'de bazı satıcılar 'Nutrend Creatine Monohydrate Creapure 300 gr' adıyla ayrı bir ürün listeliyor (parçacık boyutu <500 µm, Creapure hammadde). Sportoonline görseli Creapure olmayan sürümü gösteriyor; bu nedenle Creapure ibaresi kullanılmadı. Tedarikçi farklı sürüm gönderiyorsa barkod ve parçacık boyutu satırı değişir.",
+  "notes": "source_url yok (store: multiprice); eşleşme ürün görseli + üretici sayfasıyla yapıldı. Servis sayısı üretici web sayfasında yazmıyor, eklenmedi. Mağaza markası boş, Nutrend atanmalı.",
+  "suggested_brand": "Nutrend"
+}

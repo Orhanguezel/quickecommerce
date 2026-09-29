@@ -1,0 +1,79 @@
+{
+ "id": 12026,
+ "slug": "victorinox-0823126-pioneer-x-alox-caki",
+ "current_name": "Victorinox 0.8231.26 Pioneer X, Alox Çakı",
+ "identity": {
+  "brand": "Victorinox",
+  "model": "Pioneer X Alox",
+  "variant": "0.8231.26, gümüş/gri Alox, 93 mm",
+  "gtin": "7611160054982",
+  "mpn": "0.8231.26"
+ },
+ "match_confidence": "high",
+ "match_evidence": "victorinox.com ürün sayfası: Pioneer X Alox, kod 0.8231.26, GTIN 7611160054982; tedarikçi EYB sayfası aynı ürün kodu (VT 0.8231.26) ve aynı barkodu gösteriyor.",
+ "description_html": "<p>Victorinox Pioneer X Alox (0.8231.26), 93 mm uzunluğunda, 9 fonksiyonlu İsviçre çakısıdır. Pioneer serisinde makas içeren ilk modeldir; eloksallı alüminyum (Alox) kabzası ince ve sağlam bir gövde sunar. Günlük kullanım ve doğa aktiviteleri için pratik bir çok amaçlı araçtır.</p><h3>Fonksiyonlar (9)</h3><ul><li>Büyük bıçak</li><li>Konserve açacağı ile 3 mm tornavida</li><li>Şişe açacağı ile 7 mm tornavida ve kablo sıyırıcı</li><li>Delgi / zımba (reamer)</li><li>Makas</li><li>Anahtarlık halkası</li></ul><h3>Öne Çıkan Özellikler</h3><ul><li><strong>Kabza:</strong> Alox (eloksallı alüminyum), gri/gümüş renk.</li><li><strong>Ölçüler:</strong> 93 mm uzunluk, 24 mm genişlik, 15 mm yükseklik.</li><li><strong>Ağırlık:</strong> 94 g.</li><li>Bıçak kilitli değildir ve tek elle açılır tipte değildir.</li><li>İsviçre'de üretilmiştir.</li><li>Üretici, malzeme ve işçilik hatalarına karşı ömür boyu garanti belirtir.</li></ul><p>Makas ve kablo sıyırıcıyı aynı gövdede toplaması, Pioneer X'i hem ev ve ofiste küçük işler hem de kamp ve yürüyüşte anahtarlığa takılı taşınabilecek bir araç haline getirir.</p>",
+ "specifications": [
+  {
+   "name": "Model Kodu",
+   "value": "0.8231.26",
+   "source": "https://www.victorinox.com/en-CH/Products/Swiss-Army-Knife%E2%84%A2-and-Tools/Essentials/Pioneer-X-Alox/p/0.8231.26"
+  },
+  {
+   "name": "Fonksiyon Sayısı",
+   "value": "9",
+   "source": "https://www.victorinox.com/en-CH/Products/Swiss-Army-Knife%E2%84%A2-and-Tools/Essentials/Pioneer-X-Alox/p/0.8231.26"
+  },
+  {
+   "name": "Uzunluk",
+   "value": "93 mm",
+   "source": "https://www.victorinox.com/en-CH/Products/Swiss-Army-Knife%E2%84%A2-and-Tools/Essentials/Pioneer-X-Alox/p/0.8231.26"
+  },
+  {
+   "name": "Genişlik",
+   "value": "24 mm",
+   "source": "https://www.victorinox.com/en-CH/Products/Swiss-Army-Knife%E2%84%A2-and-Tools/Essentials/Pioneer-X-Alox/p/0.8231.26"
+  },
+  {
+   "name": "Yükseklik",
+   "value": "15 mm",
+   "source": "https://www.victorinox.com/en-CH/Products/Swiss-Army-Knife%E2%84%A2-and-Tools/Essentials/Pioneer-X-Alox/p/0.8231.26"
+  },
+  {
+   "name": "Ağırlık",
+   "value": "94 g",
+   "source": "https://www.victorinox.com/en-CH/Products/Swiss-Army-Knife%E2%84%A2-and-Tools/Essentials/Pioneer-X-Alox/p/0.8231.26"
+  },
+  {
+   "name": "Kabza Malzemesi",
+   "value": "Alox (eloksallı alüminyum)",
+   "source": "https://www.victorinox.com/en-CH/Products/Swiss-Army-Knife%E2%84%A2-and-Tools/Essentials/Pioneer-X-Alox/p/0.8231.26"
+  },
+  {
+   "name": "Renk",
+   "value": "Gri / gümüş",
+   "source": "https://www.victorinox.com/en-CH/Products/Swiss-Army-Knife%E2%84%A2-and-Tools/Essentials/Pioneer-X-Alox/p/0.8231.26"
+  },
+  {
+   "name": "Kilitli Bıçak",
+   "value": "Hayır",
+   "source": "https://www.victorinox.com/en-CH/Products/Swiss-Army-Knife%E2%84%A2-and-Tools/Essentials/Pioneer-X-Alox/p/0.8231.26"
+  },
+  {
+   "name": "Üretim Yeri",
+   "value": "İsviçre",
+   "source": "https://www.victorinox.com/en-CH/Products/Swiss-Army-Knife%E2%84%A2-and-Tools/Essentials/Pioneer-X-Alox/p/0.8231.26"
+  },
+  {
+   "name": "Garanti",
+   "value": "Ömür boyu (malzeme ve işçilik hatalarına karşı)",
+   "source": "https://www.victorinox.com/en-CH/Products/Swiss-Army-Knife%E2%84%A2-and-Tools/Essentials/Pioneer-X-Alox/p/0.8231.26"
+  }
+ ],
+ "sources": [
+  "https://www.victorinox.com/en-CH/Products/Swiss-Army-Knife%E2%84%A2-and-Tools/Essentials/Pioneer-X-Alox/p/0.8231.26",
+  "https://www.eyb.com.tr/victorinox-0823126-pioneer-x-alox-caki"
+ ],
+ "conflicts": "Mevcut Sportoonline/EYB metninde '8-tornavida 5mm' yazıyor; üretici 3 mm ve 7 mm tornavida veriyor — üretici esas alındı, mevcut metindeki 5 mm düzeltilmeli. EYB ağırlığı 94.5 gr, üretici 94 g — üretici değeri kullanıldı.",
+ "notes": "0.8231.L24/L25/L26 limitli üretim renkleri farklı ürünlerdir, değer alınmadı. GTIN üretici sayfasındaki schema.org gtin13 alanından.",
+ "suggested_brand": "Victorinox"
+}

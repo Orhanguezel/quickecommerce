@@ -1,0 +1,85 @@
+{
+ "id": 12370,
+ "slug": "sigg-873550-thermo-flask-gemstone-ibt-selenite-05-lt-matara",
+ "current_name": "Sigg 8735.50 Gemstone IBT 0.5L Termos, Çelik",
+ "identity": {
+  "brand": "SIGG",
+  "model": "Gemstone IBT 8735.50",
+  "variant": "0,5 L, Selenite (gümüş)",
+  "gtin": "7610465873557",
+  "mpn": "8735.50"
+ },
+ "match_confidence": "high",
+ "match_evidence": "sigg.com Gemstone IBT ürün sayfasının Selenite / 0.5 L varyantı SKU 8735.50, EAN 7610465873557 gösteriyor; tedarikçi EYB sayfası aynı ürün kodu (SIGG 8735.50) ve aynı barkodu veriyor.",
+ "description_html": "<p>SIGG Gemstone IBT 8735.50, Selenite renkte 0,5 litrelik çift cidarlı paslanmaz çelik termostur. Vakum yalıtımlı gövdesiyle yürüyüş, bisiklet, kano gibi açık hava etkinliklerinde ve günlük kullanımda içeceğin sıcaklığını uzun süre korumak için tasarlanmıştır.</p><h3>Öne Çıkan Özellikler</h3><ul><li><strong>Isı koruma:</strong> Üretici verisine göre 12 saate kadar sıcak, 20 saate kadar soğuk tutar.</li><li><strong>Gövde:</strong> Çift cidarlı vakum yalıtımlı paslanmaz çelik; Gemstone serisinde şişenin iç yüzeyinde yalıtımı destekleyen bakır kaplama bulunur.</li><li><strong>Dış yüzey:</strong> Dış yüzeydeki oluklar gövdenin yapısal dayanımını artırır ve kavramayı kolaylaştırır.</li><li><strong>Kapak:</strong> Vidalı kapak aynı zamanda içim bardağı olarak kullanılabilir; ürün sızdırmaz yapıdadır.</li><li>Gazlı içeceklerle kullanıma uygundur.</li><li>Kullanılan tüm malzemeler BPA içermez.</li><li>Ölçüler: 238 mm yükseklik, 68 mm çap; ağırlık 305 g.</li><li>Yedek parça olarak Gemstone IBT vidalı kapak (8804.10) ve Gemstone conta (8833.80) sunulur.</li></ul><h3>Kullanım ve Bakım</h3><ul><li>Yalnızca elde yıkanmalıdır; bulaşık makinesine uygun değildir.</li><li>Kapağı ayrı durulayıp kurumaya bırakmak ve yıprandığında contayı yenilemek sızdırmazlığın korunmasına yardımcı olur.</li></ul><p>Tasarım ve mühendislik İsviçre'de yapılmış olup üretim yeri Çin'dir.</p>",
+ "specifications": [
+  {
+   "name": "Model Kodu",
+   "value": "8735.50",
+   "source": "https://sigg.com/en-us/products/thermo-flask-gemstone-ibt?variant=49804110365018"
+  },
+  {
+   "name": "Hacim",
+   "value": "0,5 L (17 oz)",
+   "source": "https://sigg.com/en-us/products/thermo-flask-gemstone-ibt?variant=49804110365018"
+  },
+  {
+   "name": "Renk",
+   "value": "Selenite (gümüş)",
+   "source": "https://sigg.com/en-us/products/thermo-flask-gemstone-ibt?variant=49804110365018"
+  },
+  {
+   "name": "Isı Koruma",
+   "value": "12 saat sıcak / 20 saat soğuk",
+   "source": "https://sigg.com/en-us/products/thermo-flask-gemstone-ibt?variant=49804110365018"
+  },
+  {
+   "name": "Malzeme",
+   "value": "Paslanmaz çelik, çift cidarlı vakum yalıtım, iç bakır kaplama",
+   "source": "https://sigg.com/en-us/products/thermo-flask-gemstone-ibt?variant=49804110365018"
+  },
+  {
+   "name": "Ağırlık",
+   "value": "305 g",
+   "source": "https://sigg.com/en-us/products/thermo-flask-gemstone-ibt?variant=49804110365018"
+  },
+  {
+   "name": "Ölçüler",
+   "value": "Yükseklik 238 mm, çap 68 mm",
+   "source": "https://sigg.com/en-us/products/thermo-flask-gemstone-ibt?variant=49804110365018"
+  },
+  {
+   "name": "Kapak",
+   "value": "Bardak olarak kullanılabilen vidalı kapak (yedek parça 8804.10)",
+   "source": "https://sigg.com/en-us/products/thermo-flask-gemstone-ibt?variant=49804110365018"
+  },
+  {
+   "name": "Temizlik",
+   "value": "Yalnızca elde yıkama",
+   "source": "https://sigg.com/en-us/products/thermo-flask-gemstone-ibt?variant=49804110365018"
+  },
+  {
+   "name": "Gazlı İçecek",
+   "value": "Uygun",
+   "source": "https://sigg.com/en-us/products/thermo-flask-gemstone-ibt?variant=49804110365018"
+  },
+  {
+   "name": "BPA",
+   "value": "Tüm malzemeler BPA içermez",
+   "source": "https://sigg.com/en-us/products/thermo-flask-gemstone-ibt?variant=49804110365018"
+  },
+  {
+   "name": "Üretim Yeri",
+   "value": "Çin",
+   "source": "https://sigg.com/en-us/products/thermo-flask-gemstone-ibt?variant=49804110365018"
+  }
+ ],
+ "sources": [
+  "https://sigg.com/en-us/products/thermo-flask-gemstone-ibt?variant=49804110365018",
+  "https://sigg.com/en-us/products/thermo-flask-gemstone-ibt.js",
+  "https://www.eyb.com.tr/sigg-873550-thermo-flask-gemstone-ibt-selenite-05-lt-matara"
+ ],
+ "conflicts": "Mevcut Sportoonline açıklamasında ChatGPT kalıntısı ':contentReference[oaicite:N]{index=N}' ifadeleri var (tedarikçi EYB metninden taşınmış) — temizlenmeli. sigg.com ana sayfası varsayılan olarak Obsidian 0.5 L (8735.40, EAN 7610465873540) gösteriyor; Selenite 0.5 L varyantı ayrı: 8735.50 / 7610465873557. Değerler (ağırlık, ölçü, ısı koruma) iki renk için aynı.",
+ "notes": "Ölçü/ağırlık 0,75 L (360 g) veya 1,1 L (510 g) sürümlerden değil, 0,5 L Selenite varyant sayfasından alındı.",
+ "suggested_brand": "SIGG"
+}

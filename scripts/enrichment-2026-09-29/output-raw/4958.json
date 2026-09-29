@@ -1,0 +1,59 @@
+{
+  "id": 4958,
+  "slug": "samsung-s22-batarya-pil",
+  "current_name": "Rova Samsung S22 Batarya Pil 3700 mAh",
+  "identity": {
+    "brand": "Rova",
+    "model": "Samsung Galaxy S22 uyumlu yedek batarya",
+    "variant": "3700 mAh",
+    "gtin": "",
+    "mpn": "S22"
+  },
+  "match_confidence": "high",
+  "match_evidence": "Tedarikçi sayfası (source_url) başlık, Ürün Kodu S22, Marka Samsung, Model S22 ve özellik tablosunda Kapasite 3700 mAh ile tutarlı; mevcut Sportoonline specs'i aynı.",
+  "description_html": "<p>Rova markalı bu yedek batarya, Samsung Galaxy S22 için üretilmiş bir değişim pilidir. Tedarikçi, 3700 mAh kapasiteli bataryanın orijinal kapasiteye sahip olduğunu ve cihazla tam uyumlu çalıştığını belirtmektedir. Eskiyen veya kapasitesi düşen bataryanın yerine takılmak üzere tasarlanmıştır.</p><h3>Öne Çıkan Özellikler</h3><ul><li>Uyumlu model: Samsung Galaxy S22</li><li>Kapasite: 3700 mAh</li><li>Yüksek akım, düşük akım, yüksek ısı ve kısa devreye karşı koruma devresi</li><li>Çift katmanlı devre yapısı</li><li>Tedarikçi beyanına göre kalite testlerinden geçmiş, istikrarlı pil hücresi</li></ul><h3>Garanti</h3><ul><li>Tedarikçi beyanına göre 12 ay ya da 350 şarj döngüsü garanti kapsamındadır.</li></ul><h3>Montaj ve Kullanım Notları</h3><ul><li>Batarya değişimi cihazın açılmasını gerektirir; işlemin deneyimli bir teknik servis tarafından yapılması önerilir.</li><li>Montajdan önce telefon modelinizin ürün adındaki modelle aynı olduğunu kontrol edin.</li><li>Garanti süresi ve şartları tedarikçinin beyanına dayanır.</li></ul>",
+  "specifications": [
+    {
+      "name": "Marka / Üretici",
+      "value": "Rova",
+      "source": "https://www.rovabatarya.com/samsung-s22-batarya-pil"
+    },
+    {
+      "name": "Ürün Kodu",
+      "value": "S22",
+      "source": "https://www.rovabatarya.com/samsung-s22-batarya-pil"
+    },
+    {
+      "name": "Uyumlu Marka",
+      "value": "Samsung",
+      "source": "https://www.rovabatarya.com/samsung-s22-batarya-pil"
+    },
+    {
+      "name": "Uyumlu Model",
+      "value": "Galaxy S22",
+      "source": "https://www.rovabatarya.com/samsung-s22-batarya-pil"
+    },
+    {
+      "name": "Kapasite",
+      "value": "3700 mAh",
+      "source": "https://www.rovabatarya.com/samsung-s22-batarya-pil"
+    },
+    {
+      "name": "Ürün Cinsi",
+      "value": "Batarya / Pil",
+      "source": "https://www.rovabatarya.com/samsung-s22-batarya-pil"
+    },
+    {
+      "name": "Garanti",
+      "value": "12 ay veya 350 şarj döngüsü (tedarikçi beyanı)",
+      "source": "https://www.rovabatarya.com/samsung-s22-batarya-pil"
+    }
+  ],
+  "sources": [
+    "https://www.rovabatarya.com/samsung-s22-batarya-pil",
+    "https://sportoonline.com/tr/urun/samsung-s22-batarya-pil"
+  ],
+  "conflicts": "",
+  "notes": "Voltaj/pil kimyası ve Samsung parça kodu tedarikçide yok, eklenmedi. Garanti yalnız tedarikçi beyanı.",
+  "suggested_brand": "Rova"
+}
