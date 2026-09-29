@@ -362,6 +362,13 @@ class Product extends Model
 
 
     //  FlashSaleProduct
+    /**
+     * Urunun SU AN gecerli flash sale'i. Vitrin (isInFlashDeal) ile ayni kural:
+     * status=1 ve start_time <= now <= end_time. Filtresiz hali urunun ilk bagli
+     * kampanyasini (orn. pasif #31) donduruyor, siparis ve feed indirimsiz fiyat
+     * hesapliyor, satin alma limiti yanlis kampanyadan dusuluyordu (derin analiz
+     * 2026-09-29: tatami sayfada 405, sipariste/feed'de 450).
+     */
     public function flashSale()
     {
         return $this->hasOneThrough(
@@ -371,7 +378,11 @@ class Product extends Model
             'id',
             'id',
             'flash_sale_id'
-        );
+        )
+            ->where('flash_sales.status', 1)
+            ->where('flash_sales.start_time', '<=', now())
+            ->where('flash_sales.end_time', '>=', now())
+            ->orderByDesc('flash_sales.end_time');
     }
 
     public function flashSaleProduct()

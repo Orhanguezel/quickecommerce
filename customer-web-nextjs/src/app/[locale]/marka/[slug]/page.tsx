@@ -26,8 +26,10 @@ async function findBrandBySlug(slug: string, locale: string) {
     const res = await fetchAPI<any>(API_ENDPOINTS.BRANDS, { limit: 1000 }, locale);
     const brands = (Array.isArray(res) ? res : res?.data ?? []) as Brand[];
     return brands.find((b) => b.slug === slug) ?? null;
-  } catch {
-    return null;
+  } catch (err) {
+    // Marka listesi alinamadi: "marka yok" (404) degil, gecici hata.
+    console.error(JSON.stringify({ event: "brand_list_fetch_failed", slug, err: String(err) }));
+    throw err;
   }
 }
 

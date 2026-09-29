@@ -38,7 +38,8 @@ export const DEFAULT_ORGANIZATION = {
     "https://www.facebook.com/sportoonline",
     "https://www.linkedin.com/company/sportoonline",
     "https://www.youtube.com/@sportoonline6835",
-    "https://www.sikayetvar.com/sportoonline",
+    // sikayetvar sayfasi kurumun resmi profili degil, ucuncu taraf sikayet
+    // listesidir; varlik kimligi olarak yayinlanmaz (derin analiz 2026-09-29).
   ],
 };
 

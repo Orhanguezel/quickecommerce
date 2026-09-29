@@ -51,7 +51,7 @@ export default async function EnginEserAuthorPage({ params }: Props) {
     ...(author.image ? { image: author.image } : {}),
     jobTitle: author.title,
     description: author.bio,
-    sameAs: author.sameAs,
+    ...(author.sameAs.length ? { sameAs: author.sameAs } : {}),
     worksFor: {
       "@type": "Organization",
       name: DEFAULT_ORGANIZATION.name,

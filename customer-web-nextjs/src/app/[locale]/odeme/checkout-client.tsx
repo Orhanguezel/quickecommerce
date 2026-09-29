@@ -53,6 +53,7 @@ import {
 import Image from "next/image";
 import { analyticsConsentGranted, trackBeginCheckout, trackAddPaymentInfo, trackAddShippingInfo } from "@/lib/gtm";
 import { getFunnelAttributionContext, trackFunnelEvent } from "@/lib/funnel-tracker";
+import { getGaClientIdWithConsent } from "@/lib/ga-client-id";
 import {
   MapPin,
   Plus,
@@ -618,7 +619,10 @@ export function CheckoutClient({ translations: t }: Props) {
       });
     }
 
-    const orderData: PlaceOrderInput = {
+    // GA4 client id yalniz analitik cerez izni varsa gider (sunucu tarafi
+    // GA4 purchase/refund icin). Izin yoksa alan hic gonderilmez.
+    const gaClientId = getGaClientIdWithConsent();
+    const orderData: PlaceOrderInput & { ga_client_id?: string } = {
       shipping_address_id: selectedAddressId ?? undefined,
       currency_code: selectedCurrencyCode || "TRY",
       payment_gateway: paymentMethod,
@@ -632,6 +636,7 @@ export function CheckoutClient({ translations: t }: Props) {
         ...getFunnelAttributionContext(),
         cart_session_id: getCartSessionId() ?? undefined,
       },
+      ...(gaClientId ? { ga_client_id: gaClientId } : {}),
     };
 
     placeOrderMutation.mutate(orderData, {

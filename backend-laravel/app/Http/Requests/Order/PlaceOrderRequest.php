@@ -53,6 +53,10 @@ class PlaceOrderRequest extends FormRequest
             'attribution.landing_page' => 'nullable|string|max:2000',
             'attribution.referrer' => 'nullable|string|max:2000',
 
+            // GA4 client id ("<a>.<b>", `_ga` cerezinden). Frontend YALNIZ
+            // analitik cerez izni varsa gonderir; sunucu tarafi GA4 purchase/refund icin.
+            'ga_client_id' => ['nullable', 'string', 'max:64', 'regex:/^\d{1,20}\.\d{1,20}$/'],
+
             // Shipping Address Validation (required only for logged-in users)
             'shipping_address_id' => 'nullable|exists:customer_addresses,id',
 

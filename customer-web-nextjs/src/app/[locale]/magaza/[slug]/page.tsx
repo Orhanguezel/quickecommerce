@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { fetchAPI } from "@/lib/api-server";
+import { fetchAPI, isMissingResourceError } from "@/lib/api-server";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { StoreDetail } from "@/modules/store/store.type";
 import type { Product } from "@/modules/product/product.type";
@@ -71,8 +71,9 @@ async function getStoreDetail(slug: string, locale: string) {
       locale
     );
     return res?.data ?? null;
-  } catch {
-    return null;
+  } catch (err) {
+    if (isMissingResourceError(err)) return null;
+    throw err;
   }
 }
 

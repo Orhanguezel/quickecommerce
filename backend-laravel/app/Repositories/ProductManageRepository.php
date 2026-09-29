@@ -114,6 +114,15 @@ class ProductManageRepository implements ProductManageInterface
                 ->whereDoesntHave('variants', fn ($query) => $query->publiclySellable());
         }
 
+        // Aciklamasi bos ya da HTML temizlendikten sonra ~100 karakterin altinda
+        // kalan urunler (derin analiz 2026-09-29: 50 urunluk ornekte 7'si).
+        if ($reportType === 'thin_description') {
+            $product->where(function ($query) {
+                $query->whereNull('products.description')
+                    ->orWhereRaw("CHAR_LENGTH(TRIM(REGEXP_REPLACE(products.description, '<[^>]*>', ''))) < 100");
+            });
+        }
+
         // Apply sorting and pagination
         return $product->with('variants')
             ->orderBy($sortField ?? 'id', $sort ?? 'asc')

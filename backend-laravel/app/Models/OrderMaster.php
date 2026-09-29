@@ -22,6 +22,7 @@ class OrderMaster extends Model
         'utm_content',
         'landing_page',
         'referrer',
+        'ga_client_id',
         'area_id',
         'shipping_address_id',
         'coupon_code',
@@ -51,6 +52,8 @@ class OrderMaster extends Model
     protected $casts = [
         'iyzico_approved_at' => 'datetime',
         'is_test' => 'boolean',
+        'ga4_purchase_sent_at' => 'datetime',
+        'ga4_refund_sent_at' => 'datetime',
     ];
 
     public function orderAddress()

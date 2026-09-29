@@ -36,6 +36,7 @@ const Products = () => {
     { label: t("report.unsellable_products"), value: "unsellable" },
     { label: t("report.stock_with_no_price"), value: "stock_with_no_price" },
     { label: t("report.pending_unsellable_products"), value: "pending_unsellable" },
+    { label: t("report.thin_description"), value: "thin_description" },
   ];
 
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

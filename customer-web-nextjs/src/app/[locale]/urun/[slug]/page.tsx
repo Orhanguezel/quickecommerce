@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { notFound, permanentRedirect } from "next/navigation";
 import { cache } from "react";
-import { fetchAPI } from "@/lib/api-server";
+import { fetchAPI, isMissingResourceError } from "@/lib/api-server";
 import { encodeImageUrl } from "@/lib/image-url";
 import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { ProductDetailResponse } from "@/modules/product/product.type";
@@ -129,8 +129,10 @@ async function getProductDetail(slug: string, locale: string) {
       locale
     );
     return res;
-  } catch {
-    return null;
+  } catch (err) {
+    // Yalniz gercekten olmayan urun 404; gecici API hatasi hata sayfasi (5xx).
+    if (isMissingResourceError(err)) return null;
+    throw err;
   }
 }
 
@@ -264,19 +266,45 @@ export default async function ProductDetailPage({ params }: Props) {
   const availableStock =
     product.stock != null ? Number(product.stock) : variantStock;
   const hasReviews = Number(product.review_count || 0) > 0 && parseFloat(product.rating) > 0;
-  const gtin = findSpecificationValue(product.specifications, [
+  const rawGtin = findSpecificationValue(product.specifications, [
     /^gtin$/i,
     /^ean$/i,
     /^upc$/i,
     /barkod/i,
     /barcode/i,
   ]);
+  // Gecersiz barkod yayinlamaktansa hic yayinlamamak: GTIN 8/12/13/14 hane.
+  const gtinDigits = rawGtin?.replace(/\s+/g, "");
+  const gtin = gtinDigits && /^(\d{8}|\d{12,14})$/.test(gtinDigits) ? gtinDigits : undefined;
   const mpn = findSpecificationValue(product.specifications, [
+    // Yalniz acik uretici parca kodu alanlari; "Model" gibi serbest alanlar
+    // ("Erkek", "Klasik") MPN diye yayinlanmamali.
     /^mpn$/i,
-    /model/i,
-    /uretici kodu/i,
-    /üretici kodu/i,
+    /^model (kodu|no|numarası|numarasi)$/i,
+    /^(uretici|üretici) (kodu|parça kodu|parca kodu)$/i,
   ]);
+
+  // Kargo ucreti sepete ve adrese gore hesaplanir; dogrulanabilir tek sabit
+  // bilgi aktif "X TL uzeri kargo bedava" kampanyasidir. Urun tek basina esigi
+  // geciyorsa 0 TL kargo + kargo politikasindaki sureler; aksi halde uydurma
+  // ucret basmak yerine alan hic eklenmez. Iade: 14 gun (iade politikasi).
+  const freeShippingThreshold = shippingCampaigns
+    .map((campaign) => Number(campaign.min_order_value))
+    .filter((value) => Number.isFinite(value) && value >= 0)
+    .sort((a, b) => a - b)[0];
+  const shippingDetails =
+    price != null && freeShippingThreshold != null && rawPrice != null && rawPrice >= freeShippingThreshold
+      ? {
+          "@type": "OfferShippingDetails",
+          shippingRate: { "@type": "MonetaryAmount", value: 0, currency: seoCurrency.code },
+          shippingDestination: { "@type": "DefinedRegion", addressCountry: "TR" },
+          deliveryTime: {
+            "@type": "ShippingDeliveryTime",
+            handlingTime: { "@type": "QuantitativeValue", minValue: 1, maxValue: 3, unitCode: "DAY" },
+            transitTime: { "@type": "QuantitativeValue", minValue: 2, maxValue: 7, unitCode: "DAY" },
+          },
+        }
+      : null;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -310,6 +338,14 @@ export default async function ProductDetailPage({ params }: Props) {
           ? "https://schema.org/InStock"
           : "https://schema.org/OutOfStock",
       itemCondition: "https://schema.org/NewCondition",
+      ...(shippingDetails ? { shippingDetails } : {}),
+      hasMerchantReturnPolicy: {
+        "@type": "MerchantReturnPolicy",
+        applicableCountry: "TR",
+        returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+        merchantReturnDays: 14,
+        returnMethod: "https://schema.org/ReturnByMail",
+      },
       seller: product.store
         ? { "@type": "Organization", name: product.store.name }
         : undefined,
@@ -401,6 +437,7 @@ export default async function ProductDetailPage({ params }: Props) {
           add_to_wishlist: t("add_to_wishlist"),
           remove_from_wishlist: t("remove_from_wishlist"),
           in_stock: t("in_stock"),
+          stock_supplier_note: t("stock_supplier_note"),
           out_of_stock: t("out_of_stock"),
           preorder: t("preorder"),
           preorder_note: t("preorder_note"),

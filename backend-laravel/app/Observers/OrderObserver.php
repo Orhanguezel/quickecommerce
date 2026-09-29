@@ -54,9 +54,14 @@ class OrderObserver
             // Dogru durum maili: AdminOrderManageController /
             // SellerStoreOrderController -> order-status-{status}.
         }
-        // If the order is refunded or cancelled then restore the product quantity
-        if ($order->isDirty('refund_status') && $order->refund_status === 'refunded' ||
-            $order->isDirty('status') && $order->status === 'cancelled') {
+        // If the order is refunded or cancelled then restore the product quantity.
+        // Iptal aninda stok zaten geri verildiyse (status once 'cancelled' olmus),
+        // sonradan iade talebinin 'refunded' yapilmasi stogu IKINCI kez artirmaz.
+        // (Odenmis siparis iptali artik otomatik iade talebi aciyor.)
+        $cancelledNow = $order->isDirty('status') && $order->status === 'cancelled';
+        $refundedNow = $order->isDirty('refund_status') && $order->refund_status === 'refunded'
+            && $order->getOriginal('status') !== 'cancelled';
+        if ($refundedNow || $cancelledNow) {
             // Teslimatta verilmis sadakat puanini geri al. Idempotent:
             // benzersiz indeks ayni siparis icin ikinci revoke'u engeller.
             try {

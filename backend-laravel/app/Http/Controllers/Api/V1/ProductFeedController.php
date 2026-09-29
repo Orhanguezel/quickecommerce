@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Api\V1\Controller;
-use App\Models\FlashSale;
 use App\Models\Media;
 use App\Models\Product;
 use App\Models\ProductBrand;
+use App\Services\Product\ProductPriceResolver;
 use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -143,7 +143,7 @@ class ProductFeedController extends Controller
             // yerine yazilmaz (Merchant'ta 2.738 kayit "Sportoonline" markali
             // gidiyordu — derin analiz 2026-09-29).
             $brandName = $this->resolveBrandName($product, $brandLookup);
-            $flashSale = $this->activeFlashSale($product);
+            $flashSale = ProductPriceResolver::activeFlashSale($product->flashSale);
 
             // Description — Google Merchant zorunlu alan. Bossa feed'den exclude et.
             // >5000 karakter ise truncate.
@@ -173,10 +173,7 @@ class ProductFeedController extends Controller
                     continue;
                 }
 
-                // Gercek fiyat: special_price > 0 ise o, degilse price
-                $effectivePrice = ((float) $variant->special_price > 0)
-                    ? (float) $variant->special_price
-                    : (float) $variant->price;
+                $effectivePrice = ProductPriceResolver::basePrice($variant->price, $variant->special_price);
 
                 if ($effectivePrice <= 0) {
                     continue;
@@ -185,7 +182,7 @@ class ProductFeedController extends Controller
                 // Fiyat — sitede gorunen ve sipariste tahsil edilen fiyatla ayni
                 // kural: special_price, ustune aktif flash sale indirimi
                 // (OrderService ile ayni formul).
-                $finalPrice = $effectivePrice - $this->flashSaleDiscount($flashSale, $effectivePrice);
+                $finalPrice = ProductPriceResolver::finalPrice($variant->price, $variant->special_price, $flashSale);
                 $price = number_format((float) $variant->price, 2, '.', '');
                 $specialPrice = ($finalPrice > 0 && $finalPrice < (float) $variant->price)
                     ? number_format($finalPrice, 2, '.', '')
@@ -218,7 +215,10 @@ class ProductFeedController extends Controller
                     $galleryIds = explode(',', $product->gallery_images);
                     foreach (array_slice($galleryIds, 0, 5) as $imgId) {
                         $galleryUrl = $this->resolveImageUrl(trim($imgId), $mediaMap);
-                        if ($galleryUrl !== '') {
+                        // Ek gorseller de ana gorselle ayni filtreden gecer: urun
+                        // alanina duz yazilmis dis URL'ler (orn. compexturkiye,
+                        // Cloudflare challenge -> 403) Google'a kirik gorsel olarak gidiyordu.
+                        if ($galleryUrl !== '' && ($feedType !== 'google' || ($this->hasMerchantSafeImageUrl($galleryUrl) && $this->isOwnHostUrl($galleryUrl, $siteUrl)))) {
                             $xml .= "      <g:additional_image_link><![CDATA[" . $galleryUrl . "]]></g:additional_image_link>\n";
                         }
                     }
@@ -383,38 +383,6 @@ class ProductFeedController extends Controller
         }
 
         return '';
-    }
-
-    private function activeFlashSale(Product $product): ?FlashSale
-    {
-        $flashSale = $product->flashSale;
-        if (!$flashSale || (int) $flashSale->status !== 1) {
-            return null;
-        }
-        if ($flashSale->start_time && now()->lt($flashSale->start_time)) {
-            return null;
-        }
-        if (!$flashSale->end_time || now()->gt($flashSale->end_time)) {
-            return null;
-        }
-        if ($flashSale->purchase_limit !== null && (int) $flashSale->purchase_limit <= 0) {
-            return null;
-        }
-
-        return $flashSale;
-    }
-
-    private function flashSaleDiscount(?FlashSale $flashSale, float $basePrice): float
-    {
-        if (!$flashSale || (float) $flashSale->discount_amount <= 0) {
-            return 0.0;
-        }
-
-        $discount = $flashSale->discount_type === 'percentage'
-            ? $basePrice * (float) $flashSale->discount_amount / 100
-            : (float) $flashSale->discount_amount;
-
-        return min($discount, $basePrice);
     }
 
     private function hasMerchantSafeDescription(string $description): bool
@@ -608,6 +576,14 @@ class ProductFeedController extends Controller
         $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
 
         return in_array($extension, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true);
+    }
+
+    private function isOwnHostUrl(string $url, string $siteUrl): bool
+    {
+        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+        $own = strtolower((string) parse_url($siteUrl, PHP_URL_HOST));
+
+        return $host !== '' && ($host === $own || $host === 'www.' . $own || 'www.' . $host === $own);
     }
 
     private function xmlEscape(string $value): string

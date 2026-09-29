@@ -1952,6 +1952,7 @@
     "total_refund_amount": "Total Refund Amount",
     "unsellable_products": "Unsellable Products",
     "stock_with_no_price": "Stock In, Price Missing",
+    "thin_description": "Empty / Thin Description (<100 chars)",
     "pending_unsellable_products": "Pending Unsellable Products",
     "totals": "Totals"
   },

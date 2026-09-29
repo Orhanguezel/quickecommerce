@@ -50,6 +50,14 @@ return [
         'default_sender_address_id' => env('GELIVER_SENDER_ADDRESS_ID'),
     ],
 
+    // GA4 Measurement Protocol (sunucu tarafi purchase/refund). Ikisi de bos
+    // ise servis no-op calisir; fallback deger YOK.
+    'ga4' => [
+        'measurement_id' => env('GA4_MEASUREMENT_ID'),
+        'api_secret' => env('GA4_API_SECRET'),
+        'timeout' => 5,
+    ],
+
     'local_scraper' => [
         'url'     => env('LOCAL_SCRAPER_URL', 'http://127.0.0.1:8200'),
         'api_key' => env('LOCAL_SCRAPER_API_KEY', ''),

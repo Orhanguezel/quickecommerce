@@ -178,6 +178,7 @@ class OrderService
                 'utm_content' => data_get($data, 'attribution.utm_content'),
                 'landing_page' => data_get($data, 'attribution.landing_page'),
                 'referrer' => data_get($data, 'attribution.referrer'),
+                'ga_client_id' => $data['ga_client_id'] ?? null,
                 'area_id' => 0, // main zone id
                 'shipping_address_id' => 0,
                 'coupon_code' => $coupon_data['success'] === false ? null : $data['coupon_code'] ?? null,

@@ -621,6 +621,9 @@ class IyzicoPaymentController extends Controller
                 $orderMaster->save();
                 $orderMaster->orders()->update(['payment_status' => 'paid']);
 
+                // Sunucu tarafi GA4 purchase (yalniz izinli ga_client_id varsa; kuyrukta).
+                \App\Services\Analytics\Ga4MeasurementProtocol::queuePurchase($orderMaster);
+
                 // 2026-06-05: Post-order stok teyit jobu — 30 dk sonra canli
                 // scraper ile dogrula. Bool-only kaynaklar (provitanya, proteinmax)
                 // gun icinde stok bitirebilir; bu noktada otomatik iptal+iade.

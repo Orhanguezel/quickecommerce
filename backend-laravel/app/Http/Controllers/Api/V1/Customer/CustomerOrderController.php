@@ -199,6 +199,11 @@ class CustomerOrderController extends Controller
         $order->status = 'cancelled';
         $success = $order->save();
 
+        // Odenmis alt siparis iptali: iade talebi ac (odeme saglayicisina gitmez).
+        if ($success) {
+            app(\App\Services\Order\PaidOrderCancellationService::class)->flagForRefund($order, 'customer');
+        }
+
         // notification send
         $this->orderManageNotificationService->createOrderNotification($order->id, 'customer_order_status_cancelled');
 

@@ -429,6 +429,9 @@ class PayTRPaymentController extends Controller
 
             $orderMaster->orders()->update(['payment_status' => 'paid']);
 
+            // Sunucu tarafi GA4 purchase (yalniz izinli ga_client_id varsa; kuyrukta).
+            \App\Services\Analytics\Ga4MeasurementProtocol::queuePurchase($orderMaster);
+
             Log::info('PayTR payment verified', [
                 'order_master_id' => $orderMaster->id,
                 'merchant_oid' => $merchantOid,

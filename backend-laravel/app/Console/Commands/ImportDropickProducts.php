@@ -16,6 +16,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Intervention\Image\Facades\Image;
 
@@ -516,7 +517,14 @@ class ImportDropickProducts extends Command
             return null;
         }
 
-        $ext = pathinfo($absPath, PATHINFO_EXTENSION) ?: 'jpg';
+        // Uzanti icerikten (bkz. importImageFromUrl); tanimsizsa eski davranis.
+        $ext = match (@getimagesize($absPath)['mime'] ?? null) {
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/gif' => 'gif',
+            'image/webp' => 'webp',
+            default => pathinfo($absPath, PATHINFO_EXTENSION) ?: 'jpg',
+        };
         $filename = Str::slug($slug) . '-' . $index . '-' . time() . '.' . $ext;
         $destPath = $this->imageBasePath . '/' . $filename;
 
@@ -563,13 +571,22 @@ class ImportDropickProducts extends Command
             }
 
             if (!$response) {
-                return $normalizedUrl;
+                return $this->unresolvedImage($normalizedUrl, $index, 'download_failed');
             }
 
-            // Uzantiyi URL'den bul
-            $urlPath = parse_url($normalizedUrl, PHP_URL_PATH);
-            $ext = pathinfo($urlPath, PATHINFO_EXTENSION) ?: 'jpg';
-            $ext = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $ext) ?: 'jpg');
+            // Uzanti URL'den DEGIL, icerikten: `.ashx` gibi uzantilar nginx'te
+            // application/octet-stream sunuluyor ve Merchant feed'i eliyordu.
+            $sniffed = @getimagesizefromstring($response);
+            $ext = match ($sniffed['mime'] ?? null) {
+                'image/jpeg' => 'jpg',
+                'image/png' => 'png',
+                'image/gif' => 'gif',
+                'image/webp' => 'webp',
+                default => null,
+            };
+            if ($ext === null) {
+                return $this->unresolvedImage($normalizedUrl, $index, 'not_an_image');
+            }
             $filename = Str::slug($slug) . '-' . $index . '-' . time() . '.' . $ext;
             $destPath = $this->imageBasePath . '/' . $filename;
 
@@ -579,7 +596,7 @@ class ImportDropickProducts extends Command
             $imgSize = @getimagesize($destPath);
             if (!$imgSize) {
                 @unlink($destPath);
-                return $normalizedUrl;
+                return $this->unresolvedImage($normalizedUrl, $index, 'not_an_image');
             }
             $dimensions = $imgSize[0] . ' x ' . $imgSize[1] . ' pixels';
 
@@ -597,8 +614,28 @@ class ImportDropickProducts extends Command
             ])->id;
         } catch (\Throwable $e) {
             $this->warn("Gorsel indirilemedi: {$url} - {$e->getMessage()}");
-            return $this->normalizeImageUrl($url);
+            return $this->unresolvedImage($this->normalizeImageUrl($url), $index, 'exception');
         }
+    }
+
+    /**
+     * Indirilemeyen gorsel. Ana gorsel (index 0) icin eski davranis korunur:
+     * URL yazilir, urun gorselsiz kalmaz (media:localize-external sonradan
+     * yerellestirir). Galeri gorseli ise dis host'a hot-link olarak YAZILMAZ —
+     * Cloudflare korumali kaynaklarda (compexturkiye) bu URL'ler ziyaretciye de
+     * Googlebot'a da 403 donuyordu.
+     */
+    private function unresolvedImage(string $url, int $index, string $reason): ?string
+    {
+        Log::warning('import_image_unresolved', [
+            'event' => 'import_image_unresolved',
+            'reason' => $reason,
+            'host' => parse_url($url, PHP_URL_HOST),
+            'index' => $index,
+            'kept_as_url' => $index === 0,
+        ]);
+
+        return $index === 0 ? $url : null;
     }
 
     private function normalizeImageUrl(string $url): string

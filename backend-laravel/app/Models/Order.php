@@ -52,6 +52,7 @@ class Order extends Model
         'promised_ship_at' => 'datetime',
         'shipped_at' => 'datetime',
         'sla_breached_at' => 'datetime',
+        'ga4_refund_sent_at' => 'datetime',
     ];
 
     public function orderMaster()

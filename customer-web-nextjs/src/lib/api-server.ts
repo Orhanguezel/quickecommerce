@@ -70,3 +70,12 @@ export async function fetchAPI<T>(
   }
   return (await res.json()) as T;
 }
+
+/**
+ * fetchAPI hatasi kaynagin gercekten olmadigini mi (404/410) yoksa gecici bir
+ * sorunu mu (timeout, 5xx) gosteriyor? Gecici hatayi notFound()'a cevirmek
+ * Google'a kalici "yok" sinyali verir; o durumda hata yeniden firlatilmali.
+ */
+export function isMissingResourceError(err: unknown): boolean {
+  return err instanceof Error && /HTTP (404|410)\b/.test(err.message);
+}

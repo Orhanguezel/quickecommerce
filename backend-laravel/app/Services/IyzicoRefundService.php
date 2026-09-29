@@ -329,6 +329,15 @@ class IyzicoRefundService
             }
         }
 
+        // GA4 refund (Measurement Protocol, kuyrukta, idempotent). Bu akis ham
+        // query builder kullandigi icin Eloquent hook'lari tetiklenmez.
+        foreach ($orderIds as $oid) {
+            $order = \App\Models\Order::find($oid);
+            if ($order) {
+                \App\Services\Analytics\Ga4MeasurementProtocol::queueRefund($order);
+            }
+        }
+
         // Iade DB'ye yazildi -> musteriye bilgilendirme e-postasi. Yalnizca bu calismada
         // YENI iade edilen sub-order'lar icin gonderilir; job retry'inde order_refunds
         // zaten var oldugu icin $newlyRefunded bos kalir ve mukerrer mail gitmez.

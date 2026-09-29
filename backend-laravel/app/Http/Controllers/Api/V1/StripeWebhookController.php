@@ -64,6 +64,9 @@ class StripeWebhookController extends Controller
                     // update child orders payment_status
                     $orderMaster->orders()->update(['payment_status' => 'paid']);
 
+                    // Sunucu tarafi GA4 purchase (yalniz izinli ga_client_id varsa; kuyrukta).
+                    \App\Services\Analytics\Ga4MeasurementProtocol::queuePurchase($orderMaster);
+
                     // run any post-payment logic you have (notifications, inventory finalization)
                     // dispatch job or call existing internal services
                 }

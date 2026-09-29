@@ -179,7 +179,15 @@ class OrderRefundRepository implements OrderRefundInterface
         }
 
         $order->refund_status = 'refunded';
-        return $order->save(); //  this triggers the observer
+        $saved = $order->save(); //  this triggers the observer
+
+        // Iade edilen alt siparisin geliri GA4'ten geri alinir (idempotent;
+        // iptal aninda zaten gonderildiyse tekrar gitmez).
+        if ($saved) {
+            \App\Services\Analytics\Ga4MeasurementProtocol::queueRefund($order);
+        }
+
+        return $saved;
     }
 
 

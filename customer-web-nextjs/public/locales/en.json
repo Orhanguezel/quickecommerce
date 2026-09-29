@@ -106,6 +106,7 @@
     "add_to_wishlist": "Add to Wishlist",
     "remove_from_wishlist": "Remove from Wishlist",
     "in_stock": "In Stock",
+    "stock_supplier_note": "Stock is synced daily from the supplier and re-confirmed after ordering; if sold out, your payment is refunded.",
     "out_of_stock": "Out of Stock",
     "preorder": "Pre-order",
     "preorder_note": "Supply-time product — your order is sourced from the supplier within 3-5 business days.",

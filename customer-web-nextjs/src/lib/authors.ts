@@ -8,12 +8,10 @@ export const ENGIN_ESER_AUTHOR = {
     "Engin Eser, Sportoonline'da spor ekipmanları, sporcu beslenmesi, koşu, fitness ve online alışveriş rehberleri hazırlar. İçeriklerde ürün seçimi, kullanım senaryoları ve tüketici kararlarını sade, kaynaklı ve pratik bir dille aktarmaya odaklanır.",
   bioEn:
     "Engin Eser writes Sportoonline guides on sports equipment, sports nutrition, running, fitness, and online shopping. His content focuses on product selection, usage scenarios, and practical buying decisions.",
-  sameAs: [
-    "https://sportoonline.com",
-    "https://www.linkedin.com/company/sportoonline",
-    "https://www.youtube.com/@sportoonline6835",
-    "https://www.wikidata.org/wiki/User:Sportoonline",
-  ],
+  // Person icin yalniz kisinin kendi dogrulanabilir profilleri. Site koku,
+  // sirket sayfalari ve Wikidata *kullanici* sayfasi (User:, Q-ogesi degil)
+  // kisi kimligi degildir; gercek kisisel profil eklenene kadar bos.
+  sameAs: [] as string[],
 } as const;
 
 export function getEnginEserAuthor(locale: string) {

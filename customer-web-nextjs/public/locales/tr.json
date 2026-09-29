@@ -106,6 +106,7 @@
     "add_to_wishlist": "Favorilere Ekle",
     "remove_from_wishlist": "Favorilerden Çıkar",
     "in_stock": "Stokta",
+    "stock_supplier_note": "Stok bilgisi tedarikçiden günlük alınır ve siparişten sonra yeniden teyit edilir; ürün tükenmişse ödemeniz iade edilir.",
     "out_of_stock": "Stokta Yok",
     "preorder": "Ön Sipariş",
     "preorder_note": "Tedarik süreli ürün — siparişiniz tedarikçiden 3-5 iş günü içinde sağlanır.",

@@ -74,6 +74,7 @@ interface ProductDetailTranslations {
   add_to_wishlist: string;
   remove_from_wishlist: string;
   in_stock: string;
+  stock_supplier_note: string;
   out_of_stock: string;
   preorder: string;
   preorder_note: string;
@@ -333,6 +334,41 @@ function DeliveryOptions({
   );
 }
 
+function bannerTarget(url: string | undefined): { kind: string; value: string } | null {
+  if (!url) return null;
+  let parsed: URL;
+  try {
+    parsed = new URL(url, "https://placeholder.local");
+  } catch {
+    return null;
+  }
+  const path = decodeURIComponent(parsed.pathname).replace(/^\/(tr|en)(?=\/)/, "");
+  const match = path.match(/^\/(kategori|marka)\/([^/]+)/);
+  if (match) return { kind: match[1], value: match[2].toLocaleLowerCase("tr-TR") };
+  const query = parsed.searchParams.get("q") || parsed.searchParams.get("search");
+  if (/^\/(ara|urunler)$/.test(path) && query) {
+    return { kind: "search", value: query.toLocaleLowerCase("tr-TR").trim() };
+  }
+  return null;
+}
+
+function isBannerRelevantToProduct(
+  url: string | undefined,
+  product: { name: string; category?: { category_slug?: string } | null; brand?: { label?: string } | null }
+): boolean {
+  const target = bannerTarget(url);
+  if (!target) return false;
+  if (target.kind === "kategori") {
+    return product.category?.category_slug?.toLocaleLowerCase("tr-TR") === target.value;
+  }
+  if (target.kind === "marka") {
+    const brand = product.brand?.label?.toLocaleLowerCase("tr-TR").replace(/\s+/g, "-");
+    return !!brand && brand === target.value;
+  }
+  const haystack = `${product.name} ${product.brand?.label ?? ""}`.toLocaleLowerCase("tr-TR");
+  return target.value.length >= 3 && haystack.includes(target.value);
+}
+
 export function ProductDetailClient({
   product,
   relatedProducts,
@@ -590,14 +626,19 @@ export function ProductDetailClient({
     );
   }, [shippingCampaigns, displayPrice]);
 
-  // Collect all banners into a flat list for product page display
+  // Urun sayfasinda yalniz bu urunle ilgili bannerlar: hedefi urunun
+  // kategorisi/markasi olan ya da arama terimi urun adinda gecenler. Eskiden
+  // ilk 3 site banneri her urunde cikiyordu — el yayinda "%100 Emilim"
+  // takviye reklami, satin alma bolumunde "Online Magazani Bugun Ac" satici
+  // cagrisi (derin analiz 2026-09-29).
   const applicableBanners = useMemo(() => {
     if (!banners) return [];
     return Object.values(banners)
       .flat()
       .filter((b): b is Banner => b != null && b.status === 1)
+      .filter((b) => isBannerRelevantToProduct(b.redirect_url, product))
       .slice(0, 3);
-  }, [banners]);
+  }, [banners, product]);
 
   const variantOptions = useMemo(() => {
     return (product.variants ?? []).map((variant) => {
@@ -1050,7 +1091,9 @@ export function ProductDetailClient({
                 ))}
               </div>
               <span className="text-sm text-muted-foreground">
-                {product.rating || "0.0"} ({product.review_count} {t.reviews})
+                {Number(product.review_count || 0) > 0 && parseFloat(product.rating || "0") > 0
+                  ? `${product.rating} (${product.review_count} ${t.reviews})`
+                  : t.no_reviews}
               </span>
               <span className="text-muted-foreground/40">|</span>
               <button
@@ -1131,6 +1174,11 @@ export function ProductDetailClient({
                   : t.in_stock
                 : t.out_of_stock}
             </div>
+            {/* Miktari bilinmeyen (bool) kaynaklarda stok sabah taramasindan gelir;
+               siparisten sonra tedarikcide yeniden teyit edilir (PostOrderStockCheckJob). */}
+            {inStock && !product.stock_is_exact && (
+              <p className="mt-1.5 text-xs text-muted-foreground">{t.stock_supplier_note}</p>
+            )}
           </div>
 
           <div className="mt-4 space-y-3 border-y py-4">

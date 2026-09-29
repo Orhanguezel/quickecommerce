@@ -184,6 +184,11 @@ class AdminOrderManageController extends Controller
             $order->status = 'cancelled';
             $success = $order->save();
 
+            // Odenmis alt siparis iptali: iade talebi ac (odeme saglayicisina gitmez).
+            if ($success) {
+                app(\App\Services\Order\PaidOrderCancellationService::class)->flagForRefund($order, 'admin');
+            }
+
             // Notification + Email
             $this->sendOrderDeliveredNotifications($order, null, 'admin_order_status_cancelled');
 
@@ -568,6 +573,8 @@ class AdminOrderManageController extends Controller
             $order->status = 'cancelled';
             $success = $order->save();
             if ($success) {
+                // Odenmis alt siparis iptali: iade talebi ac (odeme saglayicisina gitmez).
+                app(\App\Services\Order\PaidOrderCancellationService::class)->flagForRefund($order, 'admin');
                 return response()->json([
                     'message' => __('messages.order_cancel_successful')
                 ], 200);
