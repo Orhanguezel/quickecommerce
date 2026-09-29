@@ -115,10 +115,14 @@ export function toIsoDate(value?: string | null): string | undefined {
   return `${year}-${month}-${day.padStart(2, "0")}T00:00:00.000Z`;
 }
 
-export function priceValidUntil(days = 90): string {
-  const date = new Date();
-  date.setDate(date.getDate() + days);
-  return date.toISOString().slice(0, 10);
+/**
+ * Listeleme sayfalarinda ?page degeri gecersiz ya da son sayfanin otesindeyse
+ * true. 1. sayfa bos olsa bile gecerlidir (bos liste ayri ele alinir).
+ */
+export function isPageOutOfRange(page: number, totalPages: number): boolean {
+  if (!Number.isInteger(page) || page < 1) return true;
+  if (page === 1) return false;
+  return page > Math.max(1, totalPages || 0);
 }
 
 export function localizedAlternates(path = "") {

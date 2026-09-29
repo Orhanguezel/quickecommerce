@@ -43,7 +43,11 @@ class StorePublicListResource extends JsonResource
             'closing_time' => $this->closing_time,
             'veg_status' => $this->veg_status,
             'off_day' => $this->off_day,
-            'rating' => $this->rating
+            'rating' => $this->rating,
+            // Magaza detayindaki total_product ile ayni tanim (publiclySellable).
+            'total_product' => isset($this->sellable_product_count)
+                ? (int) $this->sellable_product_count
+                : null,
         ];
     }
 }

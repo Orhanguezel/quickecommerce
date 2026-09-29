@@ -5,7 +5,8 @@ import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { Product } from "@/modules/product/product.type";
 import { ProductsPageClient } from "./products-client";
 import { normalizeBrandList } from "@/lib/brand-list";
-import { paginatedCanonical } from "@/lib/seo";
+import { notFound } from "next/navigation";
+import { isPageOutOfRange, paginatedCanonical } from "@/lib/seo";
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -138,6 +139,7 @@ async function getProductsData(
     products,
     totalPages,
     totalProducts,
+    productsOk: productsRes.status === "fulfilled",
     currentPage: currentPageFromApi,
     perPage,
     categories,
@@ -160,6 +162,9 @@ export async function generateMetadata({
     alternates: {
       canonical: paginatedCanonical(`/${locale}/urunler`, sp),
     },
+    // Serbest metin aramasi /ara gibi indeks adayi degil; blog linkleri
+    // `?search=` kullandigi icin sonsuz ince sayfa uretiyordu.
+    robots: sp.search ? { index: false, follow: true } : undefined,
   };
 }
 
@@ -192,6 +197,8 @@ export default async function ProductsPage({ params, searchParams }: Props) {
     sp.search,
     sp.flash_sale_id
   );
+  // Son sayfanin otesi (orn. ?page=9999) 200 + index donmemeli.
+  if (data.productsOk && isPageOutOfRange(page, data.totalPages)) notFound();
 
   const t = await getTranslations({ locale, namespace: "products_page" });
   const commonT = await getTranslations({ locale, namespace: "common" });

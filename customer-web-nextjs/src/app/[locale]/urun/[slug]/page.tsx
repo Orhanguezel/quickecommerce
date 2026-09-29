@@ -9,12 +9,23 @@ import type { ProductDetailResponse } from "@/modules/product/product.type";
 import type { ShippingCampaign } from "@/modules/shipping-campaign/shipping-campaign.type";
 import type { BannerGroupedResponse } from "@/modules/banner/banner.type";
 import type { PublicCoupon } from "@/modules/coupon/coupon.type";
+import { resolveProductPricing } from "@/lib/product-pricing";
 import { ProductDetailClient } from "./product-detail-client";
 import { ProductFaq, buildProductFaq, buildProductFaqJsonLd } from "./product-faq";
-import { absoluteUrl, buildPageTitle, buildProductDescription, priceValidUntil, stripHtml, truncateText, SITE_NAME } from "@/lib/seo";
+import { absoluteUrl, buildPageTitle, buildProductDescription, stripHtml, truncateText, SITE_NAME } from "@/lib/seo";
 
 interface Props {
   params: Promise<{ locale: string; slug: string }>;
+}
+
+// Meta, Product JSON-LD ve SSS, sayfada gorunen fiyatla ayni cozucuyu
+// kullanir. Once ham `special_price || price` okunuyordu; flash sale
+// indirimi disarida kaldigi icin ornegin Argivit'te gorunen 765 TL iken
+// Google'a 850 TL gidiyordu (derin analiz 2026-09-29, P0).
+function resolveSeoPrice(
+  product: Parameters<typeof resolveProductPricing>[0]
+): number | null {
+  return resolveProductPricing(product).displayPrice ?? null;
 }
 
 interface CurrencyListItem {
@@ -153,11 +164,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const availableLocales = ["tr"];
   const isLocalized = availableLocales.includes(locale);
   const canonicalLocale = isLocalized ? locale : "tr";
-  const rawPrice = product.special_price
-    ? Number(product.special_price)
-    : product.price
-      ? Number(product.price)
-      : null;
+  const rawPrice = resolveSeoPrice(product);
   const seoCurrency = await getSeoCurrencyCodeAndRates(locale);
   const price = convertPriceFromDefault(
     rawPrice,
@@ -243,11 +250,7 @@ export default async function ProductDetailPage({ params }: Props) {
   const relatedProducts = res.related_products ?? [];
   const t = await getTranslations({ locale, namespace: "product" });
 
-  const rawPrice = product.special_price
-    ? Number(product.special_price)
-    : product.price
-      ? Number(product.price)
-      : null;
+  const rawPrice = resolveSeoPrice(product);
   const seoCurrency = await getSeoCurrencyCodeAndRates(locale);
   const price = convertPriceFromDefault(
     rawPrice,
@@ -297,7 +300,11 @@ export default async function ProductDetailPage({ params }: Props) {
       url: `https://sportoonline.com/${locale}/urun/${slug}`,
       priceCurrency: seoCurrency.code,
       ...(price != null ? { price } : {}),
-      priceValidUntil: priceValidUntil(),
+      // Yalniz gercek kampanya bitisi varsa; her gun kayan "bugun+90"
+      // tarihi dogrulanmis bir gecerlilik bilgisi degildi.
+      ...(product.flash_sale?.end_time
+        ? { priceValidUntil: product.flash_sale.end_time.slice(0, 10) }
+        : {}),
       availability:
         availableStock > 0
           ? "https://schema.org/InStock"

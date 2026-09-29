@@ -16,6 +16,7 @@ interface SitemapItem {
   slug: string;
   updatedAt?: string;
   locales?: string[];
+  productCount?: number;
 }
 
 type SitemapRawItem = Record<string, unknown>;
@@ -41,7 +42,10 @@ function normalizeSitemapItem(item: SitemapRawItem): SitemapItem | null {
     ? item.locales.filter((locale): locale is string => typeof locale === "string")
     : undefined;
 
-  return { slug, updatedAt, locales };
+  const productCount =
+    typeof item.total_product === "number" ? item.total_product : undefined;
+
+  return { slug, updatedAt, locales, productCount };
 }
 
 function normalizeLastModified(value: string | undefined): string | undefined {
@@ -221,8 +225,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  // Stores
-  for (const item of storeSlugs) {
+  // Stores — satilabilir urunu olmayan magaza sayfada noindex; sitemap'te de
+  // olmamali (derin analiz 2026-09-29: 10 bos magaza sitemap'teydi).
+  // Sayac gelmezse (eski API) magaza listede kalir.
+  for (const item of storeSlugs.filter((store) => store.productCount !== 0)) {
     const slug = encodeSlug(item.slug);
     for (const locale of locales) {
       dynamicEntries.push({

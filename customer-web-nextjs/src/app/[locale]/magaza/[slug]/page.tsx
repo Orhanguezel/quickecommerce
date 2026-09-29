@@ -6,7 +6,7 @@ import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { StoreDetail } from "@/modules/store/store.type";
 import type { Product } from "@/modules/product/product.type";
 import { StoreDetailClient } from "./store-detail-client";
-import { localizedAlternates, paginatedCanonical, SITE_URL, buildPageTitle, buildMetaDescription, SITE_NAME, pageOgImages } from "@/lib/seo";
+import { isPageOutOfRange, localizedAlternates, paginatedCanonical, SITE_URL, buildPageTitle, buildMetaDescription, SITE_NAME, pageOgImages } from "@/lib/seo";
 
 import { normalizeBrandList } from "@/lib/brand-list";
 interface Props {
@@ -191,6 +191,7 @@ async function getStoreProducts(
     products,
     totalPages,
     totalProducts,
+    productsOk: productsRes.status === "fulfilled",
     currentPage: currentPageFromApi,
     perPage,
     categories,
@@ -289,6 +290,7 @@ export default async function StoreDetailPage({ params, searchParams }: Props) {
     sp.min_rating,
     sp.search
   );
+  if (productsData.productsOk && isPageOutOfRange(page, productsData.totalPages)) notFound();
 
   const from =
     productsData.totalProducts === 0

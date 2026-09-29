@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { localizedAlternates, pageOgImages, SITE_NAME } from "@/lib/seo";
+import { isPageOutOfRange, localizedAlternates, pageOgImages, SITE_NAME } from "@/lib/seo";
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { fetchAPI } from "@/lib/api-server";
@@ -64,14 +64,13 @@ async function getBrandProducts(slug: string, locale: string, page: number, sort
       totalProducts: res?.meta?.total ?? res?.total ?? 0,
       brandName: brand.label,
     };
-  } catch {
-    return {
-      found: true,
-      products: [] as Product[],
-      totalPages: 0,
-      totalProducts: 0,
-      brandName: brand.label,
-    };
+  } catch (err) {
+    // Gecici API hatasi "urunu olmayan marka" sayilmamali: eskiden 0 urun +
+    // noindex donuyordu. Hata sayfasi (5xx) Google icin gecici sinyaldir.
+    console.error(
+      JSON.stringify({ event: "brand_products_fetch_failed", slug, page, err: String(err) })
+    );
+    throw new Error(`brand products fetch failed: ${slug}`);
   }
 }
 
@@ -116,6 +115,7 @@ export default async function BrandPage({ params, searchParams }: Props) {
   // Katalogda olmayan marka adresi 200 donmemeli; eskiden slug'dan uydurulan
   // bir baslikla ("nike Urunleri") bos sayfa uretiliyordu.
   if (!data.found) notFound();
+  if (isPageOutOfRange(page, data.totalPages)) notFound();
   const t = await getTranslations({ locale, namespace: "common" });
 
   const breadcrumbJsonLd = {

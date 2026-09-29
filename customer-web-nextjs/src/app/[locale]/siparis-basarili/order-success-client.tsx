@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@/i18n/routing";
 import { ROUTES } from "@/config/routes";
 import { Button } from "@/components/ui/button";
@@ -28,7 +28,8 @@ export function OrderSuccessClient({ orderId, translations: t }: Props) {
   const recover = useCartRecoverMutation();
   const numericOrderId = /^\d+$/.test(orderId) ? Number(orderId) : null;
   const { data: paymentSummary } = usePaymentSummaryQuery(numericOrderId);
-  const conversionHandledRef = useRef(false);
+  const funnelHandledRef = useRef(false);
+  const purchaseSentRef = useRef(false);
   const paymentStatus = paymentSummary?.payment_status;
 
   useEffect(() => {
@@ -41,68 +42,82 @@ export function OrderSuccessClient({ orderId, translations: t }: Props) {
     });
   }, [numericOrderId, paymentSummary?.payment_status]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Cerez izni bu sayfada sonradan verilirse purchase yine gonderilebilsin.
+  // Eskiden ilk paid yanitinda ref kilitleniyor, izin gelse de effect bir
+  // daha calismiyordu (derin analiz 2026-09-29: 19 paid siparisin 6'si GA4'te).
+  const [consentVersion, setConsentVersion] = useState(0);
+  useEffect(() => {
+    const onConsent = () => setConsentVersion((v) => v + 1);
+    window.addEventListener("sportoonline:cookie-consent", onConsent);
+    return () => window.removeEventListener("sportoonline:cookie-consent", onConsent);
+  }, []);
+
   useEffect(() => {
     if (
-      conversionHandledRef.current ||
+      funnelHandledRef.current ||
       !paymentSummary ||
       paymentSummary.payment_status !== "paid"
     ) {
       return;
     }
-    conversionHandledRef.current = true;
+    funnelHandledRef.current = true;
 
     const funnelKey = `sportoonline_funnel_purchase:${paymentSummary.id}`;
-    const gaKey = `sportoonline_ga_purchase:${paymentSummary.id}`;
-    const analyticsItems = paymentSummary.items.map((item) => ({
-      item_id: item.item_id,
-      item_name: item.item_name,
-      ...(item.item_variant ? { item_variant: item.item_variant } : {}),
-      price: item.price,
-      quantity: item.quantity,
-    }));
-
+    const event = {
+      event: "payment_success" as const,
+      order_id: paymentSummary.id,
+      amount: paymentSummary.value,
+      meta: { payment_method: paymentSummary.payment_gateway },
+    };
     try {
       if (!localStorage.getItem(funnelKey)) {
-        trackFunnelEvent({
-          event: "payment_success",
-          order_id: paymentSummary.id,
-          amount: paymentSummary.value,
-          meta: { payment_method: paymentSummary.payment_gateway },
-        });
+        trackFunnelEvent(event);
         localStorage.setItem(funnelKey, "1");
-      }
-
-      if (analyticsConsentGranted() && !localStorage.getItem(gaKey)) {
-        trackPurchase(
-          String(paymentSummary.id),
-          analyticsItems,
-          paymentSummary.value,
-          paymentSummary.currency,
-          paymentSummary.shipping,
-          paymentSummary.coupon ?? undefined,
-        );
-        localStorage.setItem(gaKey, "1");
       }
     } catch {
       // Storage-disabled browsers still get one event for this mounted page.
-      trackFunnelEvent({
-        event: "payment_success",
-        order_id: paymentSummary.id,
-        amount: paymentSummary.value,
-        meta: { payment_method: paymentSummary.payment_gateway },
-      });
-      if (analyticsConsentGranted()) {
-        trackPurchase(
-          String(paymentSummary.id),
-          analyticsItems,
-          paymentSummary.value,
-          paymentSummary.currency,
-          paymentSummary.shipping,
-          paymentSummary.coupon ?? undefined,
-        );
-      }
+      trackFunnelEvent(event);
     }
   }, [paymentSummary]);
+
+  useEffect(() => {
+    if (
+      purchaseSentRef.current ||
+      !paymentSummary ||
+      paymentSummary.payment_status !== "paid" ||
+      !analyticsConsentGranted()
+    ) {
+      return;
+    }
+
+    const gaKey = `sportoonline_ga_purchase:${paymentSummary.id}`;
+    const sendPurchase = () =>
+      trackPurchase(
+        String(paymentSummary.id),
+        paymentSummary.items.map((item) => ({
+          item_id: item.item_id,
+          item_name: item.item_name,
+          ...(item.item_variant ? { item_variant: item.item_variant } : {}),
+          price: item.price,
+          quantity: item.quantity,
+        })),
+        paymentSummary.value,
+        paymentSummary.currency,
+        paymentSummary.shipping,
+        paymentSummary.coupon ?? undefined,
+      );
+
+    // Ref yalniz event gercekten gonderildiginde kilitlenir.
+    purchaseSentRef.current = true;
+    try {
+      if (!localStorage.getItem(gaKey)) {
+        sendPurchase();
+        localStorage.setItem(gaKey, "1");
+      }
+    } catch {
+      sendPurchase();
+    }
+  }, [paymentSummary, consentVersion]);
 
   return (
     <div className="container mx-auto flex min-h-[60vh] items-center justify-center px-4 py-16">

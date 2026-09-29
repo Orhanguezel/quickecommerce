@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Api\V1\Controller;
+use App\Models\FlashSale;
 use App\Models\Media;
 use App\Models\Product;
+use App\Models\ProductBrand;
 use Illuminate\Http\Response;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 
 class ProductFeedController extends Controller
@@ -93,8 +96,11 @@ class ProductFeedController extends Controller
                 'category.parent.parent.parent.parent',
                 'brand',
                 'store',
+                'flashSale',
             ])
             ->get();
+
+        $brandLookup = $this->buildBrandLookup();
 
         // N+1 onleme: tum gerekli Media kayitlarini tek sorguda topla.
         // com_option_get_id_wise_url her cagri da Media::find yapardi -> binlerce
@@ -105,9 +111,10 @@ class ProductFeedController extends Controller
         $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
         $xml .= '<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">' . "\n";
         $xml .= "  <channel>\n";
-        $xml .= "    <title>Sportoonline " . ($feedType === 'google' ? 'Google Merchant' : 'Cimri') . " Product Feed</title>\n";
+        $feedName = $this->xmlEscape((string) config('app.name'));
+        $xml .= "    <title>" . $feedName . " " . ($feedType === 'google' ? 'Google Merchant' : 'Cimri') . " Product Feed</title>\n";
         $xml .= "    <link>" . $this->xmlEscape($siteUrl) . "</link>\n";
-        $xml .= "    <description>Sportoonline " . ($feedType === 'google' ? 'Google Merchant' : 'price comparison') . " product feed</description>\n";
+        $xml .= "    <description>" . $feedName . " " . ($feedType === 'google' ? 'Google Merchant' : 'price comparison') . " product feed</description>\n";
 
         foreach ($products as $product) {
             // Urun URL
@@ -131,9 +138,12 @@ class ProductFeedController extends Controller
                 continue;
             }
 
-            // Marka — Google g:brand zorunlu sayilir. Bos ise bilinen marka adini
-            // urun adindan cikarmaya calisir, son care site adini kullanir.
-            $brandName = $this->resolveBrandName($product);
+            // Marka — urunun kendi markasi, yoksa urun adinin basindaki kayitli
+            // marka adi. Hicbiri yoksa bos kalir: pazaryeri adi uretici markasi
+            // yerine yazilmaz (Merchant'ta 2.738 kayit "Sportoonline" markali
+            // gidiyordu — derin analiz 2026-09-29).
+            $brandName = $this->resolveBrandName($product, $brandLookup);
+            $flashSale = $this->activeFlashSale($product);
 
             // Description — Google Merchant zorunlu alan. Bossa feed'den exclude et.
             // >5000 karakter ise truncate.
@@ -172,10 +182,13 @@ class ProductFeedController extends Controller
                     continue;
                 }
 
-                // Fiyat
+                // Fiyat — sitede gorunen ve sipariste tahsil edilen fiyatla ayni
+                // kural: special_price, ustune aktif flash sale indirimi
+                // (OrderService ile ayni formul).
+                $finalPrice = $effectivePrice - $this->flashSaleDiscount($flashSale, $effectivePrice);
                 $price = number_format((float) $variant->price, 2, '.', '');
-                $specialPrice = ($variant->special_price && (float) $variant->special_price > 0)
-                    ? number_format((float) $variant->special_price, 2, '.', '')
+                $specialPrice = ($finalPrice > 0 && $finalPrice < (float) $variant->price)
+                    ? number_format($finalPrice, 2, '.', '')
                     : null;
 
                 // Stok durumu
@@ -215,20 +228,29 @@ class ProductFeedController extends Controller
                 $xml .= "      <g:availability>" . $stockStatus . "</g:availability>\n";
 
                 // Fiyat — Google Feed TRY para birimiyle fiyat bekler
-                if ($specialPrice && $specialPrice < $price) {
+                if ($specialPrice !== null) {
                     $xml .= "      <g:price>" . $price . " TRY</g:price>\n";
                     $xml .= "      <g:sale_price>" . $specialPrice . " TRY</g:sale_price>\n";
+                    if ($flashSale && $flashSale->start_time && $flashSale->end_time) {
+                        $xml .= "      <g:sale_price_effective_date>"
+                            . Carbon::parse($flashSale->start_time)->toIso8601String() . '/'
+                            . Carbon::parse($flashSale->end_time)->toIso8601String()
+                            . "</g:sale_price_effective_date>\n";
+                    }
                 } else {
                     $xml .= "      <g:price>" . $price . " TRY</g:price>\n";
                 }
 
                 $xml .= "      <g:product_type><![CDATA[" . $categoryPath . "]]></g:product_type>\n";
 
-                // brandName her zaman dolu (default "Sportoonline")
-                $xml .= "      <g:brand><![CDATA[" . $brandName . "]]></g:brand>\n";
-
-                if ($variant->sku) {
-                    $xml .= "      <g:mpn>" . $this->xmlEscape($variant->sku) . "</g:mpn>\n";
+                if ($brandName !== '') {
+                    $xml .= "      <g:brand><![CDATA[" . $brandName . "]]></g:brand>\n";
+                    if ($variant->sku) {
+                        $xml .= "      <g:mpn>" . $this->xmlEscape($variant->sku) . "</g:mpn>\n";
+                    }
+                } elseif ($feedType === 'google') {
+                    // Marka ve GTIN yok: uydurma tanimlayici yerine acikca beyan.
+                    $xml .= "      <g:identifier_exists>no</g:identifier_exists>\n";
                 }
 
                 $xml .= "    </item>\n";
@@ -305,14 +327,47 @@ class ProductFeedController extends Controller
         return implode(' ', $values);
     }
 
-    private function resolveBrandName(Product $product): string
+    /**
+     * Kayitli marka adlari, uzundan kisaya ("Muscle Pump" "Muscle"dan once
+     * eslessin). Anahtar kucuk harf, deger gorunen ad.
+     *
+     * @return array<string, string>
+     */
+    private function buildBrandLookup(): array
+    {
+        $lookup = [];
+        foreach (ProductBrand::query()->whereNotNull('brand_name')->pluck('brand_name') as $name) {
+            $name = trim((string) $name);
+            if (mb_strlen($name) >= 3) {
+                $lookup[mb_strtolower($name)] = $name;
+            }
+        }
+        uksort($lookup, fn ($a, $b) => mb_strlen($b) <=> mb_strlen($a));
+
+        return $lookup;
+    }
+
+    /**
+     * @param array<string, string> $brandLookup
+     */
+    private function resolveBrandName(Product $product, array $brandLookup): string
     {
         $brandName = trim((string) $product->brand?->brand_name);
         if ($brandName !== '') {
             return $brandName;
         }
 
-        $haystack = mb_strtolower($product->name . ' ' . $product->slug);
+        // Yalniz urun adinin BASINDAKI kayitli marka — ad icinde gecen her
+        // kelimeyi marka saymak yanlis eslesme uretir.
+        $name = mb_strtolower(trim((string) $product->name));
+        foreach ($brandLookup as $needle => $label) {
+            if (str_starts_with($name, $needle . ' ') || $name === $needle) {
+                return $label;
+            }
+        }
+
+        // Tedarikci adlarinda markanin ad icinde/slug'da gectigi bilinen kaynaklar.
+        $haystack = $name . ' ' . mb_strtolower((string) $product->slug);
         $knownBrands = [
             'xpro nutrition' => 'Xpro Nutrition',
             'yeşilmarka' => 'YEŞİLMARKA',
@@ -321,14 +376,45 @@ class ProductFeedController extends Controller
             'torq nutrition' => 'Torq Nutrition',
             'torq' => 'Torq Nutrition',
         ];
-
         foreach ($knownBrands as $needle => $label) {
             if (str_contains($haystack, $needle)) {
                 return $label;
             }
         }
 
-        return 'Sportoonline';
+        return '';
+    }
+
+    private function activeFlashSale(Product $product): ?FlashSale
+    {
+        $flashSale = $product->flashSale;
+        if (!$flashSale || (int) $flashSale->status !== 1) {
+            return null;
+        }
+        if ($flashSale->start_time && now()->lt($flashSale->start_time)) {
+            return null;
+        }
+        if (!$flashSale->end_time || now()->gt($flashSale->end_time)) {
+            return null;
+        }
+        if ($flashSale->purchase_limit !== null && (int) $flashSale->purchase_limit <= 0) {
+            return null;
+        }
+
+        return $flashSale;
+    }
+
+    private function flashSaleDiscount(?FlashSale $flashSale, float $basePrice): float
+    {
+        if (!$flashSale || (float) $flashSale->discount_amount <= 0) {
+            return 0.0;
+        }
+
+        $discount = $flashSale->discount_type === 'percentage'
+            ? $basePrice * (float) $flashSale->discount_amount / 100
+            : (float) $flashSale->discount_amount;
+
+        return min($discount, $basePrice);
     }
 
     private function hasMerchantSafeDescription(string $description): bool

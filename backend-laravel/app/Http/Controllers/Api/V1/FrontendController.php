@@ -283,7 +283,8 @@ class FrontendController extends Controller
         // Limit
         if ($request->filled('limit')) {
             $stores = $query
-                ->with(['area', 'seller', 'related_translations', 'products'])
+                ->with(['area', 'seller', 'related_translations'])
+                ->withCount(['products as sellable_product_count' => fn ($q) => $q->publiclySellable()])
                 ->where('status', 1)
                 ->whereNull('deleted_at')
                 ->limit($request->limit)
@@ -300,7 +301,10 @@ class FrontendController extends Controller
         // Pagination
         $perPage = max(1, min(100, (int) $request->get('per_page', 10)));
         $stores = $query
-            ->with(['area', 'seller', 'related_translations', 'products'])
+            // Tum urunleri eager-load etmek yerine yalniz satilabilir urun sayisi:
+            // sitemap bos magazalari (noindex) disarida birakmak icin kullanir.
+            ->with(['area', 'seller', 'related_translations'])
+            ->withCount(['products as sellable_product_count' => fn ($q) => $q->publiclySellable()])
             ->where('status', 1)
             ->where('deleted_at', null)
             ->paginate($perPage);

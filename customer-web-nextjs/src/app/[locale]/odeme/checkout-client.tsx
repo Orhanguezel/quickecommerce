@@ -51,7 +51,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Image from "next/image";
-import { trackBeginCheckout, trackAddPaymentInfo, trackAddShippingInfo } from "@/lib/gtm";
+import { analyticsConsentGranted, trackBeginCheckout, trackAddPaymentInfo, trackAddShippingInfo } from "@/lib/gtm";
 import { getFunnelAttributionContext, trackFunnelEvent } from "@/lib/funnel-tracker";
 import {
   MapPin,
@@ -309,7 +309,7 @@ export function CheckoutClient({ translations: t }: Props) {
       amount: shippingAmount,
       meta: { shipping_tier: "home_delivery", city: selectedAddress?.city_name || addressForm.city_name },
     });
-  }, [selectedAddressId, selectedAddressMissingLocation, showAddressForm, isAddressFormComplete]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedAddressId, selectedAddressMissingLocation, showAddressForm, isAddressFormComplete, items.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const paymentInfoSentRef = useRef(false);
   useEffect(() => {
@@ -318,25 +318,36 @@ export function CheckoutClient({ translations: t }: Props) {
       event: "payment_selected",
       meta: { payment_method: paymentMethod },
     });
-    // GA4 add_payment_info — funnel'da begin_checkout -> add_payment_info ->
-    // purchase basamagi tam olsun. items/value begin_checkout ile ayni kaynak
-    // (sepet). Tek sefer (ref guard): yontem degistirilse de tekrar atilmaz.
-    if (!paymentInfoSentRef.current && items.length > 0) {
-      paymentInfoSentRef.current = true;
-      trackAddPaymentInfo(
-        items.map((i) => ({
-          item_id: String(i.product_id),
-          item_name: i.name,
-          item_variant: i.variant_label,
-          price: i.price,
-          quantity: i.quantity,
-        })),
-        subtotal,
-        selectedCurrencyCode || 'TRY',
-        paymentMethod,
-      );
+  }, [paymentMethod]);
+
+  // GA4 add_payment_info — funnel'da begin_checkout -> add_payment_info ->
+  // purchase basamagi tam olsun. items/value begin_checkout ile ayni kaynak
+  // (sepet). Tek sefer (ref guard): yontem degistirilse de tekrar atilmaz.
+  // Sepet yontem seciminden SONRA dolarsa ya da izin sonradan verilirse de
+  // gonderilsin diye items.length'i dinler; ref yalniz gonderimde kilitlenir.
+  useEffect(() => {
+    if (
+      !paymentMethod ||
+      paymentInfoSentRef.current ||
+      items.length === 0 ||
+      !analyticsConsentGranted()
+    ) {
+      return;
     }
-  }, [paymentMethod]); // eslint-disable-line react-hooks/exhaustive-deps
+    paymentInfoSentRef.current = true;
+    trackAddPaymentInfo(
+      items.map((i) => ({
+        item_id: String(i.product_id),
+        item_name: i.name,
+        item_variant: i.variant_label,
+        price: i.price,
+        quantity: i.quantity,
+      })),
+      subtotal,
+      selectedCurrencyCode || 'TRY',
+      paymentMethod,
+    );
+  }, [paymentMethod, items.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Payment failed redirect
   if (paymentStatus === "failed") {

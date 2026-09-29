@@ -157,6 +157,7 @@ export interface FlashSaleInfo {
   discount_type: string;
   discount_amount: number;
   purchase_limit: number;
+  end_time?: string | null;
 }
 
 export interface ProductDetailResponse {

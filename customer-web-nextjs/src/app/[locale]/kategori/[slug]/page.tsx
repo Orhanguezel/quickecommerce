@@ -11,7 +11,7 @@ import {
   withSubtreeProductCounts,
 } from "@/modules/site/category-utils";
 import { CategoryPageClient } from "./category-client";
-import { absoluteUrl, localizedAlternates, paginatedCanonical, SITE_URL, pageOgImages, SITE_NAME } from "@/lib/seo";
+import { absoluteUrl, isPageOutOfRange, localizedAlternates, paginatedCanonical, SITE_URL, pageOgImages, SITE_NAME } from "@/lib/seo";
 
 import { normalizeBrandList } from "@/lib/brand-list";
 interface Props {
@@ -198,13 +198,10 @@ async function getCategoryData(
   if (maxPrice) productParams.max_price = maxPrice;
   if (minRating) productParams.min_rating = minRating;
 
+  const productsEndpoint = `${API_ENDPOINTS.PRODUCTS}?${extraParams.toString()}`;
   const [productsRes, brandsRes, storesRes] =
     await Promise.allSettled([
-      fetchAPI<ProductListResponse>(
-        `${API_ENDPOINTS.PRODUCTS}?${extraParams.toString()}`,
-        productParams,
-        locale
-      ),
+      fetchAPI<ProductListResponse>(productsEndpoint, productParams, locale),
       fetchAPI<unknown>(
         `${API_ENDPOINTS.BRANDS}?${new URLSearchParams(
           filterCategoryIds.map((id) => ["category_id[]", id])
@@ -215,8 +212,47 @@ async function getCategoryData(
       fetchAPI<StoreListResponse>(API_ENDPOINTS.STORES, { per_page: 100 }, locale),
     ]);
 
-  const productsData =
+  // Urun listesi alinamadiysa bu "bos kategori" DEGILDIR. Eskiden rejected
+  // sonuc products=[] / total=0 modeline dusuyor, dolu kategori gecici bir
+  // API hatasinda 200 + noindex donuyordu (derin analiz 2026-09-29: voleybol
+  // dizlikler, dovus sporlari). Bir kez yeniden dene; yine olmazsa hata firlat —
+  // Google gecici 5xx'i noindex gibi kalici sinyal saymaz.
+  let productsData: ProductListResponse | null =
     productsRes.status === "fulfilled" ? productsRes.value : null;
+  if (!productsData) {
+    try {
+      productsData = await fetchAPI<ProductListResponse>(
+        productsEndpoint,
+        productParams,
+        locale,
+        0
+      );
+    } catch (err) {
+      console.error(
+        JSON.stringify({
+          event: "category_products_fetch_failed",
+          slug: category.category_slug,
+          page,
+          err: String(err),
+          first: productsRes.status === "rejected" ? String(productsRes.reason) : null,
+        })
+      );
+      throw new Error(`category products fetch failed: ${category.category_slug}`);
+    }
+  }
+  const listedTotal = productsData?.meta?.total ?? productsData?.total ?? 0;
+  const countedTotal = Number(category.product_count ?? 0);
+  if (listedTotal === 0 && countedTotal > 0 && !brandIds?.length && !minPrice && !maxPrice && !minRating) {
+    // Kategori sayaci urun var derken liste bos: 24 saatlik izleme icin iz birak.
+    console.warn(
+      JSON.stringify({
+        event: "category_products_count_mismatch",
+        slug: category.category_slug,
+        counted: countedTotal,
+        listed: 0,
+      })
+    );
+  }
   const brandsData =
     brandsRes.status === "fulfilled" ? brandsRes.value : null;
   const storesData =
@@ -326,6 +362,8 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     if (data.failed) throw new Error(`category lookup failed: ${slug}`);
     notFound();
   }
+  // Son sayfanin otesi 200 + "Gosterilen 199961 - 7 / 7" uretiyordu.
+  if (isPageOutOfRange(page, data.totalPages)) notFound();
 
   const t = await getTranslations({ locale, namespace: "common" });
   const catT = await getTranslations({ locale, namespace: "category" });
