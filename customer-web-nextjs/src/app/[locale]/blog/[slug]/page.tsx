@@ -6,7 +6,6 @@ import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { BlogDetailResponse } from "@/modules/blog/blog.type";
 import { BlogDetailClient } from "./blog-detail-client";
 import { DEFAULT_ORGANIZATION, localizedAlternates, SITE_URL, stripHtml, toIsoDate, truncateText } from "@/lib/seo";
-import { getEnginEserAuthor } from "@/lib/authors";
 
 interface Props {
   params: Promise<{ locale: string; slug: string }>;
@@ -72,7 +71,7 @@ export default async function BlogDetailPage({ params }: Props) {
   const t = await getTranslations({ locale, namespace: "common" });
   const blogT = await getTranslations({ locale, namespace: "blog" });
   const publishedDate = toIsoDate(blog.created_at);
-  const author = getEnginEserAuthor(locale);
+  const author = blog.author;
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -104,20 +103,16 @@ export default async function BlogDetailPage({ params }: Props) {
     headline: blog.title,
     ...(blog.image_url ? { image: blog.image_url } : {}),
     ...(publishedDate ? { datePublished: publishedDate, dateModified: publishedDate } : {}),
-    author: {
+    author: author ? {
       "@type": "Person",
       name: author.name,
-      url: author.localizedUrl,
-      ...(author.image ? { image: author.image } : {}),
-      jobTitle: author.title,
-      description: author.bio,
-      sameAs: author.sameAs,
-      affiliation: {
-        "@type": "Organization",
-        name: DEFAULT_ORGANIZATION.name,
-        url: SITE_URL,
-      },
-    },
+      url: `${SITE_URL}/${locale}/yazar/${author.slug}`,
+      ...(author.image_url ? { image: author.image_url } : {}),
+      ...(author.title ? { jobTitle: author.title } : {}),
+      ...(author.bio ? { description: stripHtml(author.bio ?? "") } : {}),
+      sameAs: [author.linkedin_url, author.twitter_url, author.facebook_url, author.instagram_url, author.website_url].filter(Boolean),
+      affiliation: { "@type": "Organization", name: DEFAULT_ORGANIZATION.name, url: SITE_URL },
+    } : { "@type": "Organization", name: DEFAULT_ORGANIZATION.name, url: SITE_URL },
     description: blog.meta_description || truncateText(stripHtml(blog.description), 240),
     publisher: {
       "@type": "Organization",
@@ -142,7 +137,7 @@ export default async function BlogDetailPage({ params }: Props) {
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd).replace(/</g, "\\u003c") }}
       />
       <BlogDetailClient
         blog={blog}
@@ -151,7 +146,6 @@ export default async function BlogDetailPage({ params }: Props) {
         relatedPosts={data.related_posts}
         comments={data.blog_comments}
         totalComments={data.total_comments}
-        locale={locale}
         translations={{
           blog: blogT("blog"),
           details: blogT("details"),

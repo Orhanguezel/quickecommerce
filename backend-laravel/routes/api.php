@@ -169,6 +169,7 @@ Route::group(['prefix' => 'v1/'], function () {
         // blog routes
         Route::get('/blogs', [FrontendBlogController::class, 'blogs']);
         Route::get('/blog/{slug}', [FrontendBlogController::class, 'blogDetails']);
+        Route::get('/author/{slug}', [FrontendBlogController::class, 'authorDetails']);
         Route::get('/blog-page-settings', [FrontendBlogController::class, 'BlogPageSettings']);
 
         // pages settings routes

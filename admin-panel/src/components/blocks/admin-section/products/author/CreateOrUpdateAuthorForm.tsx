@@ -52,6 +52,7 @@ import { setRefetch } from '@/redux/slices/refetchSlice';
 import { format, parse } from 'date-fns';
 import { Info } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { toast } from 'react-toastify';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 
@@ -104,6 +105,7 @@ export default function CreateOrUpdateAuthorForm({ data }: any) {
       // i18n flat fields will be created by RHF dynamically via register()
       // globals
       born_date: '',
+      title: '', email: '', linkedin_url: '', twitter_url: '', facebook_url: '', instagram_url: '', website_url: '',
       death_date: '',
       // optional legacy
       bio: '',
@@ -167,6 +169,10 @@ export default function CreateOrUpdateAuthorForm({ data }: any) {
       shouldDirty: false,
       shouldTouch: false,
       shouldValidate: false,
+    });
+
+    (['title', 'email', 'linkedin_url', 'twitter_url', 'facebook_url', 'instagram_url', 'website_url'] as const).forEach((key) => {
+      setValueAny(key, editData?.[key] ?? '', { shouldDirty: false, shouldValidate: false });
     });
 
     // root bio (legacy root field) -> put into first language bio as default
@@ -269,22 +275,46 @@ export default function CreateOrUpdateAuthorForm({ data }: any) {
   // -----------------------------
   // Image handlers (GLOBAL)
   // -----------------------------
-  const handleSaveLogo = (images: UploadedImage[]) => {
-    setLastSelectedLogo(images?.[0] ?? null);
-
-    const dimensions = images?.[0]?.dimensions ?? '';
-    const [width, height] = String(dimensions)
-      .split(' x ')
-      .map((dim) => parseInt(dim.trim(), 10));
-
-    const aspectRatio = width && height ? width / height : 0;
-    if (Math.abs(aspectRatio - 1) < 0.01) {
-      setLogoErrorMessage('');
-      return true;
+  const handleSaveLogo = async (images: UploadedImage[]): Promise<boolean> => {
+    const rejectImage = (message: string) => {
+      setLogoErrorMessage(message);
+      toast.error(message);
+      return false;
+    };
+    const candidate = images?.[0];
+    if (!candidate?.image_id) {
+      return rejectImage('Görsel seçilemedi. Lütfen yeniden deneyin.');
     }
 
-    setLogoErrorMessage('Image must have a 1:1 aspect ratio.');
-    return false;
+    const [declaredWidth, declaredHeight] = String(candidate.dimensions ?? '')
+      .split(' x ')
+      .map((dim) => parseInt(dim.trim(), 10));
+    let width = declaredWidth;
+    let height = declaredHeight;
+
+    if (!width || !height) {
+      const url = candidate.img_url || candidate.url;
+      if (!url) {
+        return rejectImage('Görsel ölçüleri okunamadı. Lütfen yeniden yükleyin.');
+      }
+      try {
+        const preview = new window.Image();
+        preview.src = url;
+        await preview.decode();
+        width = preview.naturalWidth;
+        height = preview.naturalHeight;
+      } catch {
+        return rejectImage('Görsel açılamadı. Lütfen başka bir görsel seçin.');
+      }
+    }
+
+    if (width !== height) {
+      return rejectImage('Profil görseli kare (1:1) olmalıdır.');
+    }
+
+    setLastSelectedLogo(candidate);
+    setLogoErrorMessage('');
+    return true;
   };
 
   const removeLogo = () => {
@@ -340,6 +370,9 @@ export default function CreateOrUpdateAuthorForm({ data }: any) {
     const defaultData: any = {
       name: rootName,
       bio: rootBio, // root bio still exists in API (backward friendly)
+      title: v?.title, email: v?.email, linkedin_url: v?.linkedin_url,
+      twitter_url: v?.twitter_url, facebook_url: v?.facebook_url,
+      instagram_url: v?.instagram_url, website_url: v?.website_url,
       born_date: v?.born_date,
       death_date: v?.death_date,
       name_df: v?.name_df,
@@ -527,6 +560,26 @@ export default function CreateOrUpdateAuthorForm({ data }: any) {
             </Card>
           </div>
         ) : null}
+
+        <Card className="mt-4">
+          <CardContent className="p-4 md:p-6">
+            <h2 className="mb-3 font-semibold">Yazar profili ve iletişim</h2>
+            <div className="grid gap-4 md:grid-cols-2">
+              {([
+                ['title', 'Ünvan / uzmanlık'], ['email', 'E-posta'],
+                ['linkedin_url', 'LinkedIn URL'], ['twitter_url', 'X / Twitter URL'],
+                ['facebook_url', 'Facebook URL'], ['instagram_url', 'Instagram URL'],
+                ['website_url', 'Web sitesi URL'],
+              ] as const).map(([key, label]) => (
+                <label key={key} className="text-sm font-medium">
+                  {label}
+                  <Input {...register(key)} className="mt-1" />
+                  {errors[key]?.message && <span className="text-red-600">{String(errors[key]?.message)}</span>}
+                </label>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
         {viewMode === 'json' ? (
           <Card className="mt-4">

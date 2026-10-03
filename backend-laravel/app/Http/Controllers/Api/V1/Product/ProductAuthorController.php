@@ -66,6 +66,7 @@ class ProductAuthorController extends Controller
         $slug = MultilangSlug::makeSlug(ProductAuthor::class, $request->name, 'slug');
         $request['slug'] = $slug;
         $request['created_by'] = auth('api')->id();
+        $request['status'] = 1;
         $author = $this->authorRepo->store($request->all());
         createOrUpdateTranslation($request, $author, 'App\Models\ProductAuthor', $this->authorRepo->translationKeys());
         if ($author) {

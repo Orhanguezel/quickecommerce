@@ -6,7 +6,6 @@ import Image from "next/image";
 import { ChevronRight, FileText, Search, SlidersHorizontal } from "lucide-react";
 import type { BlogPost } from "@/modules/blog/blog.type";
 import { useThemeConfig } from "@/modules/theme/use-theme-config";
-import { ENGIN_ESER_AUTHOR } from "@/lib/authors";
 
 interface BlogListTranslations {
   blog: string;
@@ -260,7 +259,7 @@ function BlogCard({ post }: { post: BlogPost }) {
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
           <span>{post.created_at}</span>
           <span aria-hidden="true">/</span>
-          <span>{ENGIN_ESER_AUTHOR.name}</span>
+          <span>{post.author?.name ?? "Sportoonline"}</span>
         </div>
       </div>
     </Link>
