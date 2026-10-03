@@ -20,7 +20,7 @@ const baseSchema = {
   description_df: z
     .string()
     .min(2, "Description must be at least 2 characters long"),
-  author: z.string().optional(),
+  author_id: z.string().min(1, "Yazar seçin"),
   category_id: z.string().min(1, "Category is required"),
   status: z.string().min(1, "Status is required"),
   visibility: z.string().optional(),

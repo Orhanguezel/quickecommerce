@@ -20,6 +20,13 @@ const baseSchema = {
 
   // global fields
   born_date: z.string().optional(),
+  title: z.string().optional(),
+  email: z.union([z.literal(""), z.string().email()]).optional(),
+  linkedin_url: z.union([z.literal(""), z.string().url()]).optional(),
+  twitter_url: z.union([z.literal(""), z.string().url()]).optional(),
+  facebook_url: z.union([z.literal(""), z.string().url()]).optional(),
+  instagram_url: z.union([z.literal(""), z.string().url()]).optional(),
+  website_url: z.union([z.literal(""), z.string().url()]).optional(),
   death_date: z.string().optional(),
 };
 

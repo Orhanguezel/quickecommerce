@@ -62,7 +62,7 @@ export const useAuthorRequestMutation = () => {
 export const useAuthorsQuery = (options: Partial<AuthorQueryOptions>) => {
   const { findAll } = useAuthorListService();
   const { data, isPending, error, refetch, isFetching } = useQuery({
-    queryKey: [API_ENDPOINTS.AUTHOR_LIST],
+    queryKey: [API_ENDPOINTS.AUTHOR_LIST, options],
     queryFn: () => findAll(options),
     ...options,
   });

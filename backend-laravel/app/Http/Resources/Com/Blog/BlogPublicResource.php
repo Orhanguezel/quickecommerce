@@ -22,6 +22,7 @@ class BlogPublicResource extends JsonResource
         $translation = $this->related_translations->where('language', $language);
         return [
             "id" => $this->id,
+            "author" => $this->author && $this->author->status ? new AuthorPublicResource($this->author) : null,
             "category" => $this->category?->name,
             "title" => !empty($translation) && $translation->where('key', 'title')->first()
                 ? $translation->where('key', 'title')->first()->value

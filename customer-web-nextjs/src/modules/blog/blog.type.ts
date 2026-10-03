@@ -1,4 +1,19 @@
+export interface BlogAuthor {
+  name: string;
+  slug: string;
+  title: string | null;
+  bio: string | null;
+  image_url: string | null;
+  email?: string | null;
+  linkedin_url: string | null;
+  twitter_url: string | null;
+  facebook_url: string | null;
+  instagram_url: string | null;
+  website_url: string | null;
+}
+
 export interface BlogPost {
+  author: BlogAuthor | null;
   id: number;
   category: string | null;
   title: string;

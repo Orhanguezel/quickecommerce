@@ -104,6 +104,7 @@ export default function CreateOrUpdateAuthorForm({ data }: any) {
       // i18n flat fields will be created by RHF dynamically via register()
       // globals
       born_date: '',
+      title: '', email: '', linkedin_url: '', twitter_url: '', facebook_url: '', instagram_url: '', website_url: '',
       death_date: '',
       // optional legacy
       bio: '',
@@ -167,6 +168,10 @@ export default function CreateOrUpdateAuthorForm({ data }: any) {
       shouldDirty: false,
       shouldTouch: false,
       shouldValidate: false,
+    });
+
+    (['title', 'email', 'linkedin_url', 'twitter_url', 'facebook_url', 'instagram_url', 'website_url'] as const).forEach((key) => {
+      setValueAny(key, editData?.[key] ?? '', { shouldDirty: false, shouldValidate: false });
     });
 
     // root bio (legacy root field) -> put into first language bio as default
@@ -340,6 +345,9 @@ export default function CreateOrUpdateAuthorForm({ data }: any) {
     const defaultData: any = {
       name: rootName,
       bio: rootBio, // root bio still exists in API (backward friendly)
+      title: v?.title, email: v?.email, linkedin_url: v?.linkedin_url,
+      twitter_url: v?.twitter_url, facebook_url: v?.facebook_url,
+      instagram_url: v?.instagram_url, website_url: v?.website_url,
       born_date: v?.born_date,
       death_date: v?.death_date,
       name_df: v?.name_df,
@@ -527,6 +535,26 @@ export default function CreateOrUpdateAuthorForm({ data }: any) {
             </Card>
           </div>
         ) : null}
+
+        <Card className="mt-4">
+          <CardContent className="p-4 md:p-6">
+            <h2 className="mb-3 font-semibold">Yazar profili ve iletişim</h2>
+            <div className="grid gap-4 md:grid-cols-2">
+              {([
+                ['title', 'Ünvan / uzmanlık'], ['email', 'E-posta'],
+                ['linkedin_url', 'LinkedIn URL'], ['twitter_url', 'X / Twitter URL'],
+                ['facebook_url', 'Facebook URL'], ['instagram_url', 'Instagram URL'],
+                ['website_url', 'Web sitesi URL'],
+              ] as const).map(([key, label]) => (
+                <label key={key} className="text-sm font-medium">
+                  {label}
+                  <Input {...register(key)} className="mt-1" />
+                  {errors[key]?.message && <span className="text-red-600">{String(errors[key]?.message)}</span>}
+                </label>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
         {viewMode === 'json' ? (
           <Card className="mt-4">

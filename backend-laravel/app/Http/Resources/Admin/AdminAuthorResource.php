@@ -32,6 +32,8 @@ class AdminAuthorResource extends JsonResource
             "bio" => !empty($translation) && $translation->where('key', 'bio')->first()
                 ? $translation->where('key', 'bio')->first()->value
                 : $this->bio, // If language is empty or not provided attribute
+            "title" => $this->title,
+            "email" => $this->email,
             "born_date" => $this->born_date,
             "death_date" => $this->death_date,
             "status" => $this->status,

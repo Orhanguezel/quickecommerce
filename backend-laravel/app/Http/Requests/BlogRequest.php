@@ -26,6 +26,7 @@ class BlogRequest extends FormRequest
         $isUpdate = !empty($this->id); // If $this->id exists, it's an update
         return [
             'admin_id' => 'nullable|exists:users,id',
+            'author_id' => 'required|exists:product_authors,id',
             'category_id' => 'nullable|exists:blog_categories,id',
             'title' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:blogs,slug,' . $this->id,
