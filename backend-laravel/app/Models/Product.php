@@ -406,6 +406,10 @@ class Product extends Model
                 'discount_type' => $flashSaleProduct->flashSale->discount_type,
                 'discount_amount' => shouldRound() ? round($flashSaleProduct->flashSale->discount_amount) : round($flashSaleProduct->flashSale->discount_amount, 2),
                 'purchase_limit' => $flashSaleProduct->flashSale->purchase_limit,
+                // Offer.validFrom (Google merchant listing: indirimli fiyatin baslangici).
+                'start_time' => $flashSaleProduct->flashSale->start_time
+                    ? \Illuminate\Support\Carbon::parse($flashSaleProduct->flashSale->start_time)->toIso8601String()
+                    : null,
                 // Vitrin SEO'su (Offer.priceValidUntil) ve feed sale_price
                 // gecerlilik araligi gercek kampanya bitisini kullanir.
                 'end_time' => $flashSaleProduct->flashSale->end_time

@@ -106,6 +106,7 @@ class ProductFeedController extends Controller
         // com_option_get_id_wise_url her cagri da Media::find yapardi -> binlerce
         // sorgu. Burada batch fetch + in-memory lookup map kullaniyoruz.
         $mediaMap = $this->buildMediaMap($products, $feedType);
+        $gtinMap = \App\Support\Gtin::forProducts($products->pluck('id')->all());
         $categoryPathCache = [];
 
         $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
@@ -243,12 +244,17 @@ class ProductFeedController extends Controller
 
                 $xml .= "      <g:product_type><![CDATA[" . $categoryPath . "]]></g:product_type>\n";
 
+                $gtin = \App\Support\Gtin::pick($gtinMap, $product->id, $variant->id);
+                if ($gtin) {
+                    $xml .= "      <g:gtin>" . $gtin . "</g:gtin>\n";
+                }
+
                 if ($brandName !== '') {
                     $xml .= "      <g:brand><![CDATA[" . $brandName . "]]></g:brand>\n";
                     if ($variant->sku) {
                         $xml .= "      <g:mpn>" . $this->xmlEscape($variant->sku) . "</g:mpn>\n";
                     }
-                } elseif ($feedType === 'google') {
+                } elseif ($feedType === 'google' && ! $gtin) {
                     // Marka ve GTIN yok: uydurma tanimlayici yerine acikca beyan.
                     $xml .= "      <g:identifier_exists>no</g:identifier_exists>\n";
                 }

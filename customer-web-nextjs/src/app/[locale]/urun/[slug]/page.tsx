@@ -251,6 +251,7 @@ export default async function ProductDetailPage({ params }: Props) {
   const product = res.data;
   const relatedProducts = res.related_products ?? [];
   const t = await getTranslations({ locale, namespace: "product" });
+  const siteName = await getSiteName(locale);
 
   const rawPrice = resolveSeoPrice(product);
   const seoCurrency = await getSeoCurrencyCodeAndRates(locale);
@@ -266,7 +267,8 @@ export default async function ProductDetailPage({ params }: Props) {
   const availableStock =
     product.stock != null ? Number(product.stock) : variantStock;
   const hasReviews = Number(product.review_count || 0) > 0 && parseFloat(product.rating) > 0;
-  const rawGtin = findSpecificationValue(product.specifications, [
+  // Once backend'in kaynak eslemesinden dogruladigi barkod, yoksa ozellik tablosu.
+  const rawGtin = product.gtin || findSpecificationValue(product.specifications, [
     /^gtin$/i,
     /^ean$/i,
     /^upc$/i,
@@ -310,13 +312,25 @@ export default async function ProductDetailPage({ params }: Props) {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
-    description: truncateText(stripHtml(product.description), 1000),
+    // Aciklamasi bos urunde (GSC "description eksik") meta aciklamayla ayni
+    // olgusal ozet: ad, marka, kategori.
+    description:
+      truncateText(stripHtml(product.description), 1000) ||
+      buildProductDescription({
+        metaDescription: product.meta_description,
+        description: product.description,
+        name: product.name,
+        brand: product.brand?.label,
+        category: product.category?.category_name,
+        siteName: siteName || product.name,
+      }),
     image: Array.isArray(product.gallery_images_urls)
       ? product.gallery_images_urls
       : product.gallery_images_urls
         ? String(product.gallery_images_urls).split(",").map((url) => url.trim()).filter(Boolean)
         : [product.image_url],
-    sku: product.variants?.[0]?.sku || String(product.id),
+    // Google: sku bosluk iceremez ("VT 7.7400.22G" gecersiz sayiliyordu).
+    sku: product.variants?.[0]?.sku?.replace(/\s+/g, "") || String(product.id),
     ...(gtin ? { gtin } : {}),
     ...(mpn ? { mpn } : {}),
     brand: product.brand
@@ -333,6 +347,7 @@ export default async function ProductDetailPage({ params }: Props) {
       ...(product.flash_sale?.end_time
         ? { priceValidUntil: product.flash_sale.end_time.slice(0, 10) }
         : {}),
+      ...(product.flash_sale?.start_time ? { validFrom: product.flash_sale.start_time } : {}),
       availability:
         availableStock > 0
           ? "https://schema.org/InStock"

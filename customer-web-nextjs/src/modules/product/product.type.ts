@@ -94,6 +94,7 @@ export interface ProductDetail {
     name: string;
   } | null;
   store: ProductStore | null;
+  gtin?: string | null;
   authorized_seller?: {
     scope: "store" | "brand";
     brand_name: string | null;
@@ -162,6 +163,7 @@ export interface FlashSaleInfo {
   discount_type: string;
   discount_amount: number;
   purchase_limit: number;
+  start_time?: string | null;
   end_time?: string | null;
 }
 
