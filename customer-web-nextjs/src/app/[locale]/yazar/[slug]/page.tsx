@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const author = data.author;
   const path = `/yazar/${author.slug}`;
   return {
-    title: `${author.name} | Sportoonline`,
+    title: author.name,
     description: buildMetaDescription([stripHtml(author.bio ?? "")]),
     alternates: { canonical: `/${locale}${path}`, languages: localizedAlternates(path) },
     openGraph: {

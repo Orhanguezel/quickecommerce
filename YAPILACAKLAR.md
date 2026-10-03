@@ -844,4 +844,4 @@ Sporcu besinleri ve ml/gr içerikli ürünler için weight filter — scraper up
 
 ## Blog yazarı profilleri ve eşleştirme (Codex 2026-10-03)
 
-- [~] Ürün yazarı kaydını blog yazısına `author_id` ile bağlama, mevcut Engin Eser atfını migration ile taşıma, yazar menüsünü Blog > Blogs altına alma ve profil/sosyal alanlarını ekleme. Kod ve SQLite migration testi hazır; PR: eklenecek. Canlı migration, deploy ve tarayıcı kabulü henüz yapılmadı.
+- [X] Ürün yazarı kaydını blog yazısına `author_id` ile bağlama, mevcut Engin Eser atfını migration ile taşıma, yazar menüsünü Blog > Blogs altına alma ve profil/sosyal alanlarını ekleme. PR: https://github.com/Orhanguezel/quickecommerce/pull/25. Canlı deploy: `f04b3e6c` (2026-10-03); 15/15 blog yazısı Engin Eser profiline bağlandı, yazar API'si ve canlı profil/yazı sayfaları doğrulandı. Admin paneli oturum gerektirdiğinden menünün görsel kabulü giriş yapılmış hesapta ayrıca kontrol edilecek.
