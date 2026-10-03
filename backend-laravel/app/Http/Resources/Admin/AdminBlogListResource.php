@@ -26,7 +26,8 @@ class AdminBlogListResource extends JsonResource
             'status' => $this->status ? "Published" : "Draft",
             'schedule_date' => $this->schedule_date->format('Y-m-d'),
             'tags' => $this->tag_name,
-            'author' => $this->author
+            'author' => $this->author?->name,
+            'author_id' => $this->author_id
         ];
     }
 

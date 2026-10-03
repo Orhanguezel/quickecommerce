@@ -39,6 +39,7 @@ import {
 import { TagsInput } from "@/components/ui/tags-input";
 
 import GlobalImageLoader from "@/lib/imageLoader";
+import { useAuthorsQuery } from "@/modules/admin-section/author/author.action";
 import { useBlogCategoriesFetchQuery } from "@/modules/admin-section/blog/blog-category/blog-category.action";
 import {
   useBlogPostStoreMutation,
@@ -171,7 +172,7 @@ const BlogPostForm = ({ data }: any) => {
       category_id: editData?.category_id != null ? String(editData.category_id) : "",
       visibility: editData?.visibility != null ? String(editData.visibility) : "",
       start_date: editData?.schedule_date ? String(editData.schedule_date).split("T")[0] : "",
-      author: editData?.author ?? "",
+      author_id: String(editData?.author_id ?? ""),
       tag_name: [],
 
       // df (schema contract!)
@@ -198,7 +199,7 @@ const BlogPostForm = ({ data }: any) => {
     control,
     getValues,
     setValueAny,
-    extraWatchNames: ["status", "category_id", "visibility", "start_date", "tag_name", "author"],
+    extraWatchNames: ["status", "category_id", "visibility", "start_date", "tag_name", "author_id"],
     dfSync: {
       enabled: true,
       pairs: [
@@ -256,6 +257,8 @@ const BlogPostForm = ({ data }: any) => {
     status: 1,
   });
   const categories = useMemo(() => ((blogcategories as any) || []) as any[], [blogcategories]);
+  const { author: authorsResponse } = useAuthorsQuery({ limit: 500, language: locale });
+  const authors = ((authorsResponse as any)?.data ?? []) as Array<{ id: number; name: string; status: number }>;
 
   // -----------------------------
   // JSON -> form (normalize keywords)
@@ -360,7 +363,7 @@ const BlogPostForm = ({ data }: any) => {
     setValueAny("category_id", editData?.category_id != null ? String(editData.category_id) : "", { shouldDirty: false, shouldTouch: false, shouldValidate: false });
     setValueAny("visibility", editData?.visibility != null ? String(editData.visibility) : "", { shouldDirty: false, shouldTouch: false, shouldValidate: false });
     setValueAny("status", editData?.status != null ? String(editData.status) : "", { shouldDirty: false, shouldTouch: false, shouldValidate: false });
-    setValueAny("author", editData?.author ?? "", { shouldDirty: false, shouldTouch: false, shouldValidate: false });
+    setValueAny("author_id", String(editData?.author_id ?? ""), { shouldDirty: false, shouldTouch: false, shouldValidate: false });
 
     const schedule = editData?.schedule_date ?? editData?.start_date ?? "";
     if (schedule) {
@@ -472,7 +475,7 @@ const BlogPostForm = ({ data }: any) => {
       meta_keywords_df: rootKeywordsArr,
 
       category_id: values.category_id,
-      author: values.author,
+      author_id: values.author_id,
       visibility: values.visibility,
       status: values.status,
       schedule_date: values.start_date ? moment(values.start_date).format("YYYY-MM-DD") : "",
@@ -689,6 +692,15 @@ const BlogPostForm = ({ data }: any) => {
                     {uiLangs.map((lang) => (
                       <TabsContent key={lang.id} value={lang.id} className="space-y-2">
                         <div className="space-y-4">
+                  <label className="block text-sm font-medium">Yazar
+                    <select {...register("author_id")} className="app-input mt-1 w-full" required>
+                      <option value="">Yazar seçin</option>
+                      {authors.filter((author) => author.status === 1 || String(author.id) === String(editData?.author_id)).map((author) => (
+                        <option key={author.id} value={String(author.id)}>{author.name}</option>
+                      ))}
+                    </select>
+                    {errors.author_id?.message && <span className="text-red-600">{String(errors.author_id.message)}</span>}
+                  </label>
                           <div>
                             <p className="text-sm font-medium mb-1 flex items-center gap-2">
                               <span>

@@ -10,6 +10,8 @@ use App\Http\Resources\Com\Blog\BlogDetailsPublicResource;
 use App\Http\Resources\Com\Blog\BlogPublicResource;
 use App\Http\Resources\Com\Pagination\PaginationResource;
 use App\Models\SettingOption;
+use App\Models\ProductAuthor;
+use App\Http\Resources\Com\Blog\AuthorPublicResource;
 use Illuminate\Http\Request;
 use Modules\Blog\app\Models\Blog;
 use Modules\Blog\app\Models\BlogCategory;
@@ -20,7 +22,7 @@ class FrontendBlogController extends Controller
 {
     public function blogs(Request $request)
     {
-        $blogsQuery = Blog::with(['category', 'related_translations'])
+        $blogsQuery = Blog::with(['category', 'author.related_translations', 'related_translations'])
             ->where(function ($query) {
                 $query->where('status', 1)
                     ->where(function ($q) {
@@ -64,7 +66,7 @@ class FrontendBlogController extends Controller
 
     public function blogDetails(Request $request)
     {
-        $blog = Blog::with('category')
+        $blog = Blog::with(['category', 'author.related_translations'])
             ->where('slug', $request->slug)
             ->first();
         if (!$blog) {
@@ -113,7 +115,7 @@ class FrontendBlogController extends Controller
             ->get();
 
         // popular posts
-        $popular_posts = Blog::with('category')
+        $popular_posts = Blog::with(['category', 'author.related_translations'])
             ->where('status', 1)
             ->where(function ($q) {
                 $q->whereDate('schedule_date', '<=', now())
@@ -124,7 +126,7 @@ class FrontendBlogController extends Controller
             ->get();
 
         // related posts
-        $related_posts = $blog->relatedBlogs()->get();
+        $related_posts = $blog->relatedBlogs()->with('author.related_translations')->get();
 
         // If no related posts found, fetch fallback blogs
         if ($related_posts->isEmpty()) {
@@ -170,6 +172,22 @@ class FrontendBlogController extends Controller
             'blog_comments' => BlogCommentResource::collection($blog_comments),
             'total_comments' => $blog_comments->count()
         ], 200);
+    }
+
+    public function authorDetails(Request $request)
+    {
+        $author = ProductAuthor::where('slug', $request->slug)->where('status', 1)->firstOrFail();
+        $author->load('related_translations');
+        $posts = Blog::with(['category', 'author.related_translations', 'related_translations'])
+            ->where('author_id', $author->id)->where('status', 1)
+            ->where('visibility', 'public')
+            ->where(fn ($q) => $q->whereDate('schedule_date', '<=', now())->orWhereNull('schedule_date'))
+            ->latest()->paginate(12);
+        return response()->json([
+            'author' => new AuthorPublicResource($author),
+            'posts' => BlogPublicResource::collection($posts),
+            'meta' => new PaginationResource($posts),
+        ]);
     }
 
     public function BlogPageSettings(Request $request)

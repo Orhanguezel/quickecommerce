@@ -712,3 +712,7 @@ Sporcu besinleri ve ml/gr içerikli ürünler için weight filter — scraper up
   insert'i `notifiable_id` null patlamış. **Düzeltildi**:
   `OrderManageNotificationService::notifyStore` artık `store?->seller?->id`
   null ise bildirim oluşturmuyor. SMTP/mail gönderimi sağlıklı.
+
+## Blog yazarı profilleri ve eşleştirme (Codex 2026-10-03)
+
+- [~] Ürün yazarı kaydını blog yazısına `author_id` ile bağlama, mevcut Engin Eser atfını migration ile taşıma, yazar menüsünü Blog > Blogs altına alma ve profil/sosyal alanlarını ekleme. Kod ve SQLite migration testi hazır; PR: eklenecek. Canlı migration, deploy ve tarayıcı kabulü henüz yapılmadı.

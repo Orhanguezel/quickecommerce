@@ -18,7 +18,6 @@ import type {
 } from "@/modules/blog/blog.type";
 import { useAuthStore } from "@/stores/auth-store";
 import { useBaseService } from "@/lib/base-service";
-import { ENGIN_ESER_AUTHOR, getEnginEserAuthor } from "@/lib/authors";
 
 interface BlogDetailTranslations {
   blog: string;
@@ -46,7 +45,6 @@ interface BlogDetailClientProps {
   relatedPosts: BlogPost[];
   comments: BlogComment[];
   totalComments: number;
-  locale: string;
   translations: BlogDetailTranslations;
 }
 
@@ -100,10 +98,9 @@ export function BlogDetailClient({
   relatedPosts,
   comments,
   totalComments,
-  locale,
   translations: t,
 }: BlogDetailClientProps) {
-  const author = getEnginEserAuthor(locale);
+  const author = blog.author;
   const tags =
     blog.tag_name
       ?.split(",")
@@ -214,10 +211,10 @@ export function BlogDetailClient({
           )}
 
           <div className="mb-7 flex gap-3 rounded-md border bg-background p-4 text-sm text-muted-foreground shadow-sm">
-            {author.image ? (
+            {author?.image_url ? (
               <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full bg-muted">
                 <Image
-                  src={author.image}
+                  src={author.image_url}
                   alt={author.name}
                   fill
                   className="object-cover"
@@ -230,14 +227,14 @@ export function BlogDetailClient({
               </div>
             )}
             <div className="min-w-0">
-              <Link
-                href={author.path}
+              {author ? <Link
+                href={`/yazar/${author.slug}`}
                 className="font-medium text-foreground underline-offset-2 hover:underline"
               >
                 {t.home === "Ana Sayfa" ? "Yazar: " : "Author: "}
                 {author.name}
-              </Link>
-              <p className="mt-1">{author.title}</p>
+              </Link> : <span className="font-medium">Sportoonline</span>}
+              {author?.title && <p className="mt-1">{author.title}</p>}
               <p className="mt-1">
                 {t.home === "Ana Sayfa"
                   ? "Bu içerik bilgilendirme amaçlıdır. Egzersiz, beslenme veya takviye kararlarında kişisel sağlık durumunuz için uzman görüşü alın. Ürün karşılaştırmalarında Sportoonline üzerinde satılan ürünlere yer verilebilir."
@@ -467,7 +464,7 @@ function RelatedPostCard({ post }: { post: BlogPost }) {
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
           <span>{post.created_at}</span>
           <span aria-hidden="true">/</span>
-          <span>{ENGIN_ESER_AUTHOR.name}</span>
+          <span>{post.author?.name ?? "Sportoonline"}</span>
         </div>
       </div>
     </Link>
