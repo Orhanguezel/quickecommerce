@@ -25,6 +25,7 @@ class ProductAuthorRequest extends FormRequest
     {
         return [
             "name" => "required",
+            "profile_image" => "nullable|integer|exists:media,id",
             "born_date" => "nullable|date_format:Y-m-d",
             "email" => "nullable|email|max:255",
             "title" => "nullable|string|max:255",
