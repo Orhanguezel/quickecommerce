@@ -5,7 +5,6 @@ import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { BlogPost } from "@/modules/blog/blog.type";
 import { BlogListClient } from "./blog-list-client";
 import { DEFAULT_ORGANIZATION, SITE_URL, absoluteUrl, buildMetaDescription, buildPageTitle, localizedAlternates, stripHtml, toIsoDate, truncateText, pageOgImages, SITE_NAME } from "@/lib/seo";
-import { getEnginEserAuthor } from "@/lib/authors";
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -101,7 +100,6 @@ export default async function BlogPage({ params, searchParams }: Props) {
       },
     ],
   };
-  const author = getEnginEserAuthor(locale);
   const blogListJsonLd = {
     "@context": "https://schema.org",
     "@type": "Blog",
@@ -124,8 +122,8 @@ export default async function BlogPage({ params, searchParams }: Props) {
       ...(toIsoDate(post.created_at) ? { datePublished: toIsoDate(post.created_at) } : {}),
       author: {
         "@type": "Person",
-        name: author.name,
-        url: author.localizedUrl,
+        name: post.author?.name ?? DEFAULT_ORGANIZATION.name,
+        ...(post.author?.slug ? { url: `${SITE_URL}/${locale}/yazar/${post.author.slug}` } : {}),
       },
       description: post.meta_description || truncateText(stripHtml(post.description), 180),
     })),
@@ -150,7 +148,7 @@ export default async function BlogPage({ params, searchParams }: Props) {
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogListJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogListJsonLd).replace(/</g, "\\u003c") }}
       />
       <script
         type="application/ld+json"

@@ -17,6 +17,7 @@ class ProductAuthor extends Model
         "name",
         "slug",
         "bio",
+        "title", "email", "linkedin_url", "twitter_url", "facebook_url", "instagram_url", "website_url",
         "born_date",
         "death_date",
         "status",

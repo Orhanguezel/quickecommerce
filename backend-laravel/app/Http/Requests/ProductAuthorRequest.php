@@ -25,7 +25,14 @@ class ProductAuthorRequest extends FormRequest
     {
         return [
             "name" => "required",
-            "born_date" => "required|date_format:Y-m-d",
+            "born_date" => "nullable|date_format:Y-m-d",
+            "email" => "nullable|email|max:255",
+            "title" => "nullable|string|max:255",
+            "linkedin_url" => "nullable|url:http,https|max:255",
+            "twitter_url" => "nullable|url:http,https|max:255",
+            "facebook_url" => "nullable|url:http,https|max:255",
+            "instagram_url" => "nullable|url:http,https|max:255",
+            "website_url" => "nullable|url:http,https|max:255",
             "death_date"=> "nullable|date_format:Y-m-d",
         ];
     }

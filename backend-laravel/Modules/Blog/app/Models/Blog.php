@@ -13,6 +13,7 @@ class Blog extends Model
     use DeleteTranslations;
     protected $fillable = [
         'admin_id',
+        'author_id',
         'category_id',
         'title',
         'slug',
@@ -47,6 +48,11 @@ class Blog extends Model
     public function category()
     {
         return $this->belongsTo(BlogCategory::class, 'category_id');
+    }
+
+    public function author()
+    {
+        return $this->belongsTo(\App\Models\ProductAuthor::class, 'author_id');
     }
 
     public function admin()
