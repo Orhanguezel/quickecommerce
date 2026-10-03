@@ -161,7 +161,10 @@
     "copy_link": "Linki Kopyala",
     "featured": "Öne Çıkan",
     "coupon_code": "Kupon Kodu",
-    "apply_coupon": "Kuponu Uygula"
+    "apply_coupon": "Kuponu Uygula",
+    "authorized_seller": "Yetkili Satıcı",
+    "authorized_brand_seller": "{brand} Yetkili Satıcısı",
+    "authorized_seller_hint": "Bu mağazanın yetki belgesi platformumuz tarafından doğrulandı."
   },
   "category": {
     "all_categories": "Tüm Kategoriler",

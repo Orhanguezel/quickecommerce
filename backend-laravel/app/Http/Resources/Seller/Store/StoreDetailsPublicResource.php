@@ -5,6 +5,7 @@ namespace App\Http\Resources\Seller\Store;
 use App\Actions\ImageModifier;
 use App\Http\Resources\Com\Seller\SellerDetailsPublicResource;
 use App\Http\Resources\Product\NewArrivalPublicResource;
+use App\Models\StoreBrandAuthorization;
 use App\Models\StoreType;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -23,6 +24,8 @@ class StoreDetailsPublicResource extends JsonResource
         // Get the translation for the requested language
         $translation = $this->related_translations->where('language', $language);
         $store_type_info = StoreType::where('type', $this->store_type)->first();
+        $authorizations = StoreBrandAuthorization::query()
+            ->active()->with('brand:id,brand_name')->where('store_id', $this->id)->get();
         return [
             'id' => $this->id,
             'area' => $this->area->name ?? null,
@@ -52,6 +55,10 @@ class StoreDetailsPublicResource extends JsonResource
                 ? $translation->where('key', 'address')->first()?->value
                 : $this->address,
             'is_featured' => $this->is_featured,
+            // Magaza geneli yetki (brand_id NULL) ve markaya ozel yetkili oldugu markalar.
+            'authorized_seller' => $authorizations->contains(fn ($a) => $a->brand_id === null),
+            'authorized_brands' => $authorizations->whereNotNull('brand_id')
+                ->map(fn ($a) => $a->brand?->brand_name)->filter()->unique()->values(),
             'opening_time' => $this->opening_time,
             'closing_time' => $this->closing_time,
             'started_from' => $this->created_at->format('M d, Y'),

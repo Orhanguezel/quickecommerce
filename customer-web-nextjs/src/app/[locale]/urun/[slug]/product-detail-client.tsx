@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import Image from "next/image";
 import { Link, useRouter } from "@/i18n/routing";
 import { useSearchParams } from "next/navigation";
+import { AuthorizedSellerBadge } from "@/components/product/authorized-seller-badge";
 import { ReviewDialog } from "@/components/product/review-dialog";
 import { ReviewRewardBanner } from "@/components/product/review-reward-banner";
 import {
@@ -104,6 +105,8 @@ interface ProductDetailTranslations {
   no: string;
   options: string;
   visit_store: string;
+  authorized_seller: string;
+  authorized_seller_hint: string;
   buy_now: string;
   share_connect: string;
   days: string;
@@ -1695,6 +1698,11 @@ export function ProductDetailClient({
                 </div>
                 <div>
                   <p className="font-semibold text-primary">{product.store.name}</p>
+                  {t.authorized_seller && (
+                    <div className="mt-1">
+                      <AuthorizedSellerBadge label={t.authorized_seller} hint={t.authorized_seller_hint} />
+                    </div>
+                  )}
                   <div className="mt-1 flex items-center gap-1">
                     {Array.from({ length: 5 }).map((_, i) => (
                       <Star

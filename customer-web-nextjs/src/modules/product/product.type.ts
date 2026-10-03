@@ -94,6 +94,11 @@ export interface ProductDetail {
     name: string;
   } | null;
   store: ProductStore | null;
+  authorized_seller?: {
+    scope: "store" | "brand";
+    brand_name: string | null;
+    valid_to: string | null;
+  } | null;
   variants: ProductVariant[];
   reviews: ProductReview[];
   specifications: ProductSpecification[];

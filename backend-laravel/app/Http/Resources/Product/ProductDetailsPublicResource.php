@@ -34,6 +34,8 @@ class ProductDetailsPublicResource extends JsonResource
             'store' => new ProductStorePublicResource($this->store),
             'category' => new ProductCategoryPublicResource($this->category),
             'brand' => new ProductBrandPublicResource($this->brand),
+            // Admin onayli magaza/marka yetkisi; yoksa null (rozet gosterilmez).
+            'authorized_seller' => \App\Models\StoreBrandAuthorization::activeForProduct($this->store_id, $this->brand_id)?->toBadge(),
             'unit' => new ProductUnitPublicResource($this->unit),
             'unit_name' => $this->unit?->name,
             'tag' => $this->tag,

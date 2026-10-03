@@ -55,6 +55,8 @@ export interface StoreDetail {
   latitude?: string | number | null;
   longitude?: string | number | null;
   is_featured: number;
+  authorized_seller?: boolean;
+  authorized_brands?: string[];
   opening_time: string | null;
   closing_time: string | null;
   started_from: string | null;

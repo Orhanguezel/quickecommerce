@@ -25,7 +25,7 @@ class CommerceReadinessService
             ],
             default => [
                 'logo' => filled($store->logo),
-                'address' => filled($store->address),
+                'address' => $this->hasRealAddress($store->address),
                 'email' => filled($store->email),
                 'phone' => filled($store->phone),
                 'tax_identity' => filled($store->tax_number),
@@ -39,6 +39,16 @@ class CommerceReadinessService
         }
 
         return ['score' => $score, 'checks' => $checks, 'fulfillment_model' => $model];
+    }
+
+    // Kayit formu adres bulunamayinca "Address not found" yaziyordu; bu metin
+    // dolu sayilip adres kontrolunu gecmemeli.
+    private function hasRealAddress(?string $address): bool
+    {
+        $address = trim((string) $address);
+
+        return mb_strlen($address) >= 10
+            && ! in_array(mb_strtolower($address), ['address not found', 'adres bulunamadı', 'adres bulunamadi'], true);
     }
 
     public function refreshProduct(Product $product, bool $persist = true): array

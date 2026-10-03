@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\V1\Admin\AdminSellerManageController;
 use App\Http\Controllers\Api\V1\Admin\AdminSitemapController;
 use App\Http\Controllers\Api\V1\Admin\AdminStoreManageController;
 use App\Http\Controllers\Api\V1\Admin\StoreGeliverSenderAddressController;
+use App\Http\Controllers\Api\V1\Admin\StoreBrandAuthorizationController;
 use App\Http\Controllers\Api\V1\Admin\AdminStoreNoticeController;
 use App\Http\Controllers\Api\V1\Admin\AdminStoreTypeManageController;
 use App\Http\Controllers\Api\V1\Admin\AdminSupportTicketManageController;
@@ -169,12 +170,15 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => ['auth:sanctum']], functi
                 Route::get('seller-stores', [AdminStoreManageController::class, 'listSellerStores']);
                 Route::get('details/{id}', [AdminStoreManageController::class, 'getStoreById']);
                 Route::get('{id}/geliver-sender-address', [StoreGeliverSenderAddressController::class, 'show']);
+                Route::get('{id}/brand-authorizations', [StoreBrandAuthorizationController::class, 'index']);
             });
             // Store Add Routes
             Route::group(['middleware' => ['permission:' . PermissionKey::ADMIN_STORE_ADD->value]], function () {
                 Route::post('add', [AdminStoreManageController::class, 'createStore']);
                 Route::post('update', [AdminStoreManageController::class, 'updateStore']);
                 Route::post('{id}/geliver-sender-address', [StoreGeliverSenderAddressController::class, 'store']);
+                Route::post('{id}/brand-authorizations', [StoreBrandAuthorizationController::class, 'store']);
+                Route::delete('{id}/brand-authorizations/{authorizationId}', [StoreBrandAuthorizationController::class, 'destroy']);
                 Route::patch('change-status', [AdminStoreManageController::class, 'changeStoreStatus']);
                 Route::delete('remove/{id}', [AdminStoreManageController::class, 'deleteStore']);
                 Route::get('deleted-records', [AdminStoreManageController::class, 'deletedStoreRecords']);

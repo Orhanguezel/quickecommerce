@@ -345,6 +345,10 @@ export default async function ProductDetailPage({ params }: Props) {
         returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
         merchantReturnDays: 14,
         returnMethod: "https://schema.org/ReturnByMail",
+        // Iade kargo kodu platform tarafindan (Geliver) acilir, geri odemeden
+        // kesinti yapilmaz; Search Console "returnFees eksik" uyarisi.
+        returnFees: "https://schema.org/FreeReturn",
+        refundType: "https://schema.org/FullRefund",
       },
       seller: product.store
         ? { "@type": "Organization", name: product.store.name }
@@ -467,6 +471,12 @@ export default async function ProductDetailPage({ params }: Props) {
           no: t("no"),
           options: t("options"),
           visit_store: t("visit_store"),
+          authorized_seller: product.authorized_seller
+            ? product.authorized_seller.scope === "brand" && product.authorized_seller.brand_name
+              ? t("authorized_brand_seller", { brand: product.authorized_seller.brand_name })
+              : t("authorized_seller")
+            : "",
+          authorized_seller_hint: t("authorized_seller_hint"),
           buy_now: t("buy_now"),
           share_connect: t("share_connect"),
           days: t("days"),

@@ -424,6 +424,13 @@ export default async function StoreDetailPage({ params, searchParams }: Props) {
           no_products: storeT("no_products"),
           home: t("home"),
           add_to_cart: productT("add_to_cart"),
+          authorized_badges: [
+            ...(store.authorized_seller ? [productT("authorized_seller")] : []),
+            ...(store.authorized_brands ?? []).map((brand) =>
+              productT("authorized_brand_seller", { brand }),
+            ),
+          ],
+          authorized_seller_hint: productT("authorized_seller_hint"),
           // Filter + sort + pagination
           showing: productsT("showing", {
             from,

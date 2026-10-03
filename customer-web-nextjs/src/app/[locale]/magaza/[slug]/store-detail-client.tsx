@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import type { StoreDetail } from "@/modules/store/store.type";
 import type { Product } from "@/modules/product/product.type";
+import { AuthorizedSellerBadge } from "@/components/product/authorized-seller-badge";
 import { ProductCard } from "@/components/product/product-card";
 import {
   FilterSidebar,
@@ -27,6 +28,8 @@ import {
 } from "@/components/product/filter-sidebar";
 
 interface StoreDetailTranslations {
+  authorized_badges: string[];
+  authorized_seller_hint: string;
   stores: string;
   details: string;
   all_products: string;
@@ -262,6 +265,19 @@ export function StoreDetailClient({
               <h1 className="text-xl font-bold text-white sm:text-2xl lg:text-3xl">
                 {store.name}
               </h1>
+
+              {t.authorized_badges.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {t.authorized_badges.map((label) => (
+                    <AuthorizedSellerBadge
+                      key={label}
+                      label={label}
+                      hint={t.authorized_seller_hint}
+                      variant="onDark"
+                    />
+                  ))}
+                </div>
+              )}
 
               <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-white/80">
                 {store.phone && (
