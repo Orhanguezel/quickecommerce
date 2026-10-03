@@ -109,6 +109,17 @@ class EnforceStoreReadiness extends Command
                 );
             }
         }
+        // Satici uyarisi yalniz satici paneline dusuyordu; Kendini Sev 2026-08-25'te
+        // askiya alindi ve 5 hafta kimse fark etmedi. Askiya alma admin'e de bildirilir.
+        if ($suspendIds->isNotEmpty()) {
+            AdminNotifier::notifyPrimarySiteAdmin(
+                'Mağaza satışı askıya alındı',
+                'Profil skoru %80 altında kaldığı için satışı durdurulan mağazalar: '
+                    . $stores->whereIn('id', $suspendIds)->pluck('name')->join(', ')
+                    . '. Ürünleri aramada ve mağaza sayfasında görünmez.',
+                ['type' => 'store_readiness_suspended', 'store_ids' => $suspendIds->values()->all()],
+            );
+        }
         Cache::forever('public-catalog:version', (string) hrtime(true));
         return self::SUCCESS;
     }
