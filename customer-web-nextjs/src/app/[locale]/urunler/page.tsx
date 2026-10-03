@@ -5,7 +5,8 @@ import { API_ENDPOINTS } from "@/endpoints/api-endpoints";
 import type { Product } from "@/modules/product/product.type";
 import { ProductsPageClient } from "./products-client";
 import { normalizeBrandList } from "@/lib/brand-list";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import type { FlashDeal } from "@/modules/flash-deal/flash-deal.type";
 import { isPageOutOfRange, paginatedCanonical } from "@/lib/seo";
 
 interface Props {
@@ -163,14 +164,24 @@ export async function generateMetadata({
       canonical: paginatedCanonical(`/${locale}/urunler`, sp),
     },
     // Serbest metin aramasi /ara gibi indeks adayi degil; blog linkleri
-    // `?search=` kullandigi icin sonsuz ince sayfa uretiyordu.
-    robots: sp.search ? { index: false, follow: true } : undefined,
+    // `?search=` kullandigi icin sonsuz ince sayfa uretiyordu. Flash kampanya
+    // filtresi de gecici: kampanya bitince bos kalan URL indekslenmemeli.
+    robots: sp.search || sp.flash_sale_id ? { index: false, follow: true } : undefined,
   };
 }
 
 export default async function ProductsPage({ params, searchParams }: Props) {
   const { locale } = await params;
   const sp = await searchParams;
+
+  // Flash kampanya sayfasi: baslik kampanyanin adi. Kampanya bitmis/pasifse
+  // bos liste yerine tum kampanyalar sayfasina yonlenir.
+  let flashDeal: FlashDeal | undefined;
+  if (sp.flash_sale_id) {
+    const deals = await fetchAPI<{ data?: FlashDeal[] }>(API_ENDPOINTS.FLASH_DEALS, {}, locale).catch(() => null);
+    flashDeal = deals?.data?.find((deal) => String(deal.id) === String(sp.flash_sale_id));
+    if (deals && !flashDeal) redirect(`/${locale}/kampanyalar`);
+  }
 
   const page = Number(sp.page) || 1;
   const sort = sp.sort;
@@ -231,7 +242,7 @@ export default async function ProductsPage({ params, searchParams }: Props) {
         values: a.attribute_values?.map((v) => ({ id: v.value, label: v.label })) ?? [],
       }))}
       translations={{
-        title: t("title"),
+        title: flashDeal?.title || t("title"),
         showing: t("showing", { from, to, total: data.totalProducts }),
         filter_options: t("filter_options"),
         reset_filter: t("reset_filter"),

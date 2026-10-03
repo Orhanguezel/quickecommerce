@@ -3,6 +3,7 @@
 import { Link } from "@/i18n/routing";
 import { ChevronRight, Megaphone } from "lucide-react";
 import type { FlashDeal } from "@/modules/flash-deal/flash-deal.type";
+import { getFlashDealProductsHref } from "@/modules/flash-deal/flash-deal-href";
 import type { ShippingCampaign } from "@/modules/shipping-campaign/shipping-campaign.type";
 import { CountdownTimer } from "@/components/home/countdown-timer";
 
@@ -37,40 +38,6 @@ function getDiscountLabel(campaign: FlashDeal): string {
 
   const fixed = Number.isInteger(amount) ? String(amount) : amount.toFixed(2);
   return `${fixed} TL INDIRIM`;
-}
-
-function getFlashDealProductsHref(campaign: FlashDeal): string {
-  const fallback = `/urunler?flash_sale_id=${campaign.id}`;
-  const rawUrl = campaign.button_url?.trim();
-
-  if (!rawUrl) return fallback;
-
-  const appendFlashSaleId = (pathWithQuery: string) => {
-    const [path, query = ""] = pathWithQuery.split("?");
-    const normalizedPath = path.replace(/^\/(tr|en)(?=\/)/, "") || "/urunler";
-
-    if (normalizedPath !== "/urunler") {
-      return pathWithQuery;
-    }
-
-    const params = new URLSearchParams(query);
-    params.set("flash_sale_id", String(campaign.id));
-    return `${normalizedPath}?${params.toString()}`;
-  };
-
-  if (/^https?:\/\//i.test(rawUrl)) {
-    try {
-      const url = new URL(rawUrl);
-      if (url.hostname === "sportoonline.com" || url.hostname === "www.sportoonline.com") {
-        return appendFlashSaleId(`${url.pathname}${url.search}`);
-      }
-    } catch {
-      return fallback;
-    }
-    return rawUrl;
-  }
-
-  return appendFlashSaleId(rawUrl);
 }
 
 function CampaignAction({

@@ -186,6 +186,7 @@ export function ProductsPageClient({
 
         {/* Right Content */}
         <div className="flex-1 min-w-0">
+          <h1 className="mb-4 text-2xl font-bold tracking-tight">{t.title}</h1>
           {/* Top bar */}
           <div className="mb-6 flex flex-col gap-3 rounded-xl border bg-background px-5 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">

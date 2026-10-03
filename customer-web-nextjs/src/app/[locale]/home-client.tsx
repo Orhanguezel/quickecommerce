@@ -3,6 +3,7 @@
 import type { Product, Slider } from "@/modules/product/product.type";
 import type { Category } from "@/modules/site/site.type";
 import type { FlashDeal } from "@/modules/flash-deal/flash-deal.type";
+import { getFlashDealProductsHref } from "@/modules/flash-deal/flash-deal-href";
 import type { Banner } from "@/modules/banner/banner.type";
 import type { BlogPost } from "@/modules/blog/blog.type";
 import { HeroSlider } from "@/components/home/hero-slider";
@@ -192,33 +193,6 @@ function normalizeRecentlyViewedAfterFlash(blocks: HomeLayoutBlock[]): HomeLayou
 
 function normalizeHomeBlockOrder(blocks: HomeLayoutBlock[]): HomeLayoutBlock[] {
   return normalizeRecentlyViewedAfterFlash(normalizeHeroCategoryOrder(blocks));
-}
-
-// Flash kampanya kartlari kalici /kampanyalar sayfasina gider. Eskiden
-// `/urunler?flash_sale_id=N` uretiliyordu: kampanya bitince bos kalan,
-// indekslenebilir parametreli URL (derin analiz 2026-09-29). Kartin kendi
-// button_url'si baska kalici bir sayfayi (kategori/marka) gosteriyorsa o korunur.
-function getFlashDealProductsHref(deal: FlashDeal): string {
-  const fallback = "/kampanyalar";
-  const rawUrl = deal.button_url?.trim();
-  if (!rawUrl) return fallback;
-
-  let pathWithQuery = rawUrl;
-  if (/^https?:\/\//i.test(rawUrl)) {
-    try {
-      const url = new URL(rawUrl);
-      if (url.hostname !== "sportoonline.com" && url.hostname !== "www.sportoonline.com") {
-        return rawUrl;
-      }
-      pathWithQuery = `${url.pathname}${url.search}`;
-    } catch {
-      return fallback;
-    }
-  }
-
-  const path = pathWithQuery.split("?")[0].replace(/^\/(tr|en)(?=\/|$)/, "") || "/";
-  if (path === "/" || path === "/urunler" || path === "/ara") return fallback;
-  return pathWithQuery;
 }
 
 export function HomePageClient({ data, translations: t }: HomePageClientProps) {

@@ -6,6 +6,7 @@ import { Link } from "@/i18n/routing";
 import { Zap } from "lucide-react";
 import { CountdownTimer } from "./countdown-timer";
 import type { FlashDeal } from "@/modules/flash-deal/flash-deal.type";
+import { getFlashDealProductsHref } from "@/modules/flash-deal/flash-deal-href";
 
 interface FlashSaleSectionProps {
   flashDeals: FlashDeal[];
@@ -168,8 +169,8 @@ export function FlashSaleSection({ flashDeals, title, subtitle }: FlashSaleSecti
                         labelColor={deal.title_color}
                       />
 
-                      {deal.button_text && deal.button_url && (
-                        <Link href={deal.button_url}>
+                      {deal.button_text && (
+                        <Link href={getFlashDealProductsHref(deal)}>
                           <span
                             className="inline-block rounded-lg px-4 py-2 text-sm font-semibold tracking-wide shadow-lg transition-all duration-200 hover:shadow-xl hover:brightness-110 sm:px-5 sm:py-2.5"
                             style={{
