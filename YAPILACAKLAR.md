@@ -1,5 +1,14 @@
 # Sportoonline — Yapılacaklar (Sonraki Oturum)
 
+## Kupon ve flaş kampanya birleşimi (2026-10-05)
+
+- [X] Geçmiş ödenmiş 23 siparişte ürün indirimi + kupon birleşimi görüldü; kupon toplamı 3.011,84 TL (4 flaş siparişinde 244,00 TL). `AYRILMA5` geri kazanım amaçlı olduğundan bu birleşim kullanıcı kararıyla geçerli; tutar zarar olarak raporlanmaz.
+- [X] Sepette etkin flaş kampanyalı veya özel fiyatlı ürün varsa diğer kuponlar önizleme, müşteri siparişi ve POS siparişinde 422 ile reddedilir. `AYRILMA5` açık istisnadır.
+- [X] Kupon önizlemesi, istemcinin gönderdiği tutar yerine ürün/varyant fiyatını sunucuda hesaplıyor; sepet değişirse ekrandaki kupon düşüyor.
+- [ ] Eski Flutter müşteri uygulaması kupon önizlemesine yalnız `sub_total` gönderiyor. Mobil sürüm ürün/varyant listesini gönderene kadar eski önizleme kabul edilir; sipariş API'si `AYRILMA5` dışındaki birleşimleri yine reddeder.
+- [X] Backend ve müşteri web canlı dağıtıldı: [PR #27](https://github.com/Orhanguezel/quickecommerce/pull/27). `AYRILMA5` + indirimli ürün önizlemesi 200, 65,25 TL kupon ve 1.239,75 TL sonuç; başka kupon için aynı sepette kural engelliyor. Mevcut ödenmiş siparişler değiştirilmez.
+- [ ] Gerçek kullanıcı oturumunda checkout kupon uyarısı ve POS ödeme öncesi 422 tarayıcı kabul testi.
+
 > Oluşturma: 2026-05-15. Önceki oturumda tamamlananlar: Gmail SMTP, Firebase push,
 > 5 günlük trafik raporu + ayrı nginx log, Geliver Türkçe il/ilçe fix + #113,
 > Google Places API, admin sipariş detayı/fatura adres + isim + temiz format.

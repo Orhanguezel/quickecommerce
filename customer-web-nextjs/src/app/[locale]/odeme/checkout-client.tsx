@@ -158,11 +158,18 @@ export function CheckoutClient({ translations: t }: Props) {
   const showNotice = (title: string, message: string) => setNotice({ title, message });
   const [paymentMethod, setPaymentMethod] = useState<string>("");
   const [couponCode, setCouponCode] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState<{
+  const [selectedCoupon, setSelectedCoupon] = useState<{
     code: string;
     discount: number;
     title: string;
+    cartFingerprint: string;
   } | null>(null);
+  const cartFingerprint = items.map((item) =>
+    `${item.product_id}:${item.variant_id ?? ""}:${item.quantity}:${item.price}`
+  ).join("|");
+  const appliedCoupon = selectedCoupon?.cartFingerprint === cartFingerprint
+    ? selectedCoupon
+    : null;
   const [orderNotes, setOrderNotes] = useState("");
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [addressSearchError, setAddressSearchError] = useState<string | null>(null);
@@ -445,18 +452,27 @@ export function CheckoutClient({ translations: t }: Props) {
 
   const handleApplyCoupon = () => {
     if (!couponCode.trim()) return;
+    if (items.some((item) => !item.variant_id)) {
+      showNotice(t.error, "Sepetteki ürün bilgileri eksik. Sayfayı yenileyip tekrar deneyin.");
+      return;
+    }
     couponMutation.mutate(
       {
         coupon_code: couponCode.trim(),
         currency_code: selectedCurrencyCode || "TRY",
-        sub_total: subtotal,
+        packages: [{ items: items.map((item) => ({
+          product_id: item.product_id,
+          variant_id: item.variant_id!,
+          quantity: item.quantity,
+        })) }],
       },
       {
         onSuccess: (data) => {
-          setAppliedCoupon({
+          setSelectedCoupon({
             code: data.coupon.code,
             discount: data.coupon.discounted_amount,
             title: data.coupon.title,
+            cartFingerprint,
           });
           trackFunnelEvent({
             event: "coupon_apply",

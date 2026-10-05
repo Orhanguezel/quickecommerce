@@ -16,4 +16,10 @@ return [
     'once_per_customer_codes' => [
         'AYRILMA5',
     ],
+
+    // Geri kazanım mesajıyla verilen bu kupon, indirimli ürünlerde de geçerlidir.
+    // Diğer kuponlar ürün/flaş indirimiyle birleşmez.
+    'combine_with_product_discounts_codes' => [
+        'AYRILMA5',
+    ],
 ];

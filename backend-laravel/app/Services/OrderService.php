@@ -13,6 +13,7 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\SystemCommission;
 use App\Services\Order\OrderManageNotificationService;
+use App\Services\Order\CouponCombinationPolicy;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Subscription\app\Models\StoreSubscription;
@@ -35,6 +36,10 @@ class OrderService
             $shouldRound = shouldRound();
             //  check authenticated
             if (!$customer) {
+                return false;
+            }
+            // Keep the rule at the service boundary for callers other than the HTTP controller.
+            if (!empty($data['coupon_code']) && app(CouponCombinationPolicy::class)->blocksCoupon($data['coupon_code'], $data['packages'])) {
                 return false;
             }
             // customer ID
