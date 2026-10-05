@@ -903,8 +903,10 @@ function applyCoupon(string $couponCode, float $orderAmount, ?int $customerId = 
         ];
     }
 
-    // Apply max discount limit
-    $discountAmount = min($discountAmount, $coupon->max_discount ?? $discountAmount);
+    // A null or zero cap means unlimited, as in the coupon preview endpoint.
+    if ((float) $coupon->max_discount > 0) {
+        $discountAmount = min($discountAmount, (float) $coupon->max_discount);
+    }
 
     // Ensure the discount does not exceed the order total
     $discountAmount = min($discountAmount, $orderAmount);

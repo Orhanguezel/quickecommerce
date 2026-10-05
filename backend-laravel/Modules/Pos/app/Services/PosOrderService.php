@@ -54,6 +54,13 @@ class PosOrderService
         // Steps 4–9: Calculations (in-memory, no DB writes yet)
         $this->productData = $this->getProductDetails(); // Step 4
         $this->calculateFlashSale();                                // Step 5
+        if (!empty($this->orderData['coupon_code'])
+            && collect($this->packageData)->contains(fn ($item) => (float) ($item['admin_discount_amount'] ?? 0) > 0
+                || (float) ($item['discount_amount'] ?? 0) > 0)) {
+            return response()->json([
+                'message' => app(\App\Services\Order\CouponCombinationPolicy::class)->message(),
+            ], 422);
+        }
         $this->applyCoupon();                                       // Step 6
         $this->calculateTax();                                      // Step 7
         $this->calculateAdminCommission();                          // Step 8
@@ -325,7 +332,10 @@ class PosOrderService
         $couponInfo = [];
         $totalAmountForCoupon = $this->formatAmount(array_sum(array_column($this->packageData, 'line_total_price_with_qty')));
 
-        $coupon = checkCoupon($this->orderData['coupon_code'], $totalAmountForCoupon);
+        // POS uses the same non-combination rule as customer checkout.
+        $hasProductDiscount = collect($this->packageData)->contains(fn ($item) => (float) ($item['admin_discount_amount'] ?? 0) > 0
+            || (float) ($item['discount_amount'] ?? 0) > 0);
+        $coupon = $hasProductDiscount ? [] : checkCoupon($this->orderData['coupon_code'], $totalAmountForCoupon);
         $couponTitle = $coupon['title'] ?? null;
         $couponCode = $coupon['code'] ?? null;
         $this->orderData = array_merge($this->orderData, [

@@ -40,7 +40,7 @@ export interface AddressInput {
 export interface CouponCheckInput {
   coupon_code: string;
   currency_code: string;
-  sub_total: number;
+  packages: { items: { product_id: number; variant_id: number; quantity: number }[] }[];
 }
 
 export interface CouponCheckResponse {

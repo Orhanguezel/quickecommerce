@@ -12,6 +12,7 @@ use App\Models\OrderMaster;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Services\OrderService;
+use App\Services\Order\CouponCombinationPolicy;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Modules\Wallet\app\Models\Wallet;
@@ -33,7 +34,7 @@ class PlaceOrderController extends Controller
     }
 
     // place order
-    public function placeOrder(PlaceOrderRequest $request): JsonResponse
+    public function placeOrder(PlaceOrderRequest $request, CouponCombinationPolicy $combinationPolicy): JsonResponse
     {
         $data = $request->validated();
         $user = auth()->guard('api_customer')->user();
@@ -44,6 +45,13 @@ class PlaceOrderController extends Controller
                 'success' => false,
                 'message' => __('messages.order_login_required'),
             ], 400);
+        }
+
+        if (!empty($data['coupon_code']) && $combinationPolicy->hasExistingDiscount($data['packages'])) {
+            return response()->json([
+                'success' => false,
+                'message' => $combinationPolicy->message(),
+            ], 422);
         }
 
         if (($data['payment_gateway'] ?? null) === 'cash_on_delivery' && !$this->isCashOnDeliveryAllowedForOrder($data)) {

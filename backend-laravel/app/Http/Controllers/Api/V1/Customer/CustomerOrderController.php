@@ -16,6 +16,7 @@ use App\Models\CouponLine;
 use App\Models\Order;
 use App\Models\OrderMaster;
 use App\Services\Order\OrderManageNotificationService;
+use App\Services\Order\CouponCombinationPolicy;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -220,15 +221,30 @@ class CustomerOrderController extends Controller
 
     }
 
-    public function checkCoupon(Request $request)
+    public function checkCoupon(Request $request, CouponCombinationPolicy $combinationPolicy)
     {
         $validator = Validator::make($request->all(), [
             'coupon_code' => 'required|string|exists:coupon_lines,coupon_code',
             'currency_code' => 'required|string|exists:currencies,code',
-            'sub_total' => 'required',
+            // Older Flutter clients still send only sub_total. Their order is
+            // checked by PlaceOrderController even when preview is legacy.
+            'packages' => 'required_without:sub_total|array|min:1',
+            'sub_total' => 'required_without:packages|numeric|min:0',
+            'packages.*.items' => 'required|array|min:1',
+            'packages.*.items.*.product_id' => 'required|integer|exists:products,id',
+            'packages.*.items.*.variant_id' => 'required|integer|exists:product_variants,id',
+            'packages.*.items.*.quantity' => 'required|integer|min:1',
         ]);
         if ($validator->fails()) {
             return response()->json(['message' => $validator->errors()], 422);
+        }
+        if ($request->filled('packages')) {
+            if ($combinationPolicy->hasExistingDiscount($request->packages)) {
+                return response()->json(['message' => $combinationPolicy->message()], 422);
+            }
+            $sub_total = $combinationPolicy->cartSubtotal($request->packages);
+        } else {
+            $sub_total = (float) $request->sub_total;
         }
         // Retrieve the coupon by the provided coupon code
         $coupon = CouponLine::where('coupon_code', $request->coupon_code)->first();
@@ -292,7 +308,7 @@ class CustomerOrderController extends Controller
 
 
         // check min_order status — both sub_total and min_order_value are in the same currency (TRY)
-        if ($request->sub_total < $coupon->min_order_value) {
+        if ($sub_total < $coupon->min_order_value) {
             return response()->json([
                 'message' => __('messages.coupon_min_order_amount', [
                     'amount' => amount_with_symbol_format_for_response($coupon->min_order_value, $request->currency_code),
@@ -300,7 +316,6 @@ class CustomerOrderController extends Controller
             ], 422);
         }
 
-        $sub_total = $request->sub_total;
         $final_amount_after_removing_coupon_discount = 0;
         $discount_amount = 0;
         if ($coupon->discount_type == 'percentage') {
@@ -321,6 +336,8 @@ class CustomerOrderController extends Controller
             $discount_amount = $coupon->max_discount;
             $final_amount_after_removing_coupon_discount = $sub_total - $discount_amount;
         }
+        $discount_amount = round(min($discount_amount, $sub_total), 2);
+        $final_amount_after_removing_coupon_discount = round($sub_total - $discount_amount, 2);
         // If all checks pass, return the coupon's discount details
         return response()->json([
             'message' => __('messages.coupon_applied'),
