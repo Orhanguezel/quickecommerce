@@ -68,6 +68,7 @@ import {
 import { flyToCart } from "@/lib/cart-animation";
 import { LiveViewersBadge } from "@/components/product/live-viewers-badge";
 import { VelocityBadge } from "@/components/product/velocity-badge";
+import { StockAlertForm } from "@/components/product/stock-alert-form";
 
 interface ProductDetailTranslations {
   home: string;
@@ -1739,6 +1740,14 @@ export function ProductDetailClient({
                   <p>{t.out_of_stock}. Bu ürün şu anda sepete eklenemez.</p>
                 </div>
               </div>
+            )}
+            {!inStock && selectedVariant && (
+              <StockAlertForm
+                key={selectedVariant.id}
+                productId={product.id}
+                variantId={selectedVariant.id}
+                confirmationStatus={searchParams.get("stock_alert")}
+              />
             )}
             <div className="mb-3 flex items-center justify-between rounded-md border">
               <button

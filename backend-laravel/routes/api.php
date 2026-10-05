@@ -87,6 +87,12 @@ Route::group(['prefix' => 'v1/'], function () {
 
     // public routes for frontend
     Route::middleware('detect.platform')->group(function () {
+        Route::post('/stock-alerts', [\App\Http\Controllers\Api\V1\StockAlertController::class, 'store'])
+            ->middleware('throttle:5,10');
+        Route::get('/stock-alerts/confirm/{token}', [\App\Http\Controllers\Api\V1\StockAlertController::class, 'confirm'])
+            ->name('stock-alerts.confirm');
+        Route::get('/stock-alerts/unsubscribe/{subscription}', [\App\Http\Controllers\Api\V1\StockAlertController::class, 'unsubscribe'])
+            ->name('stock-alerts.unsubscribe');
         Route::get('/slider-list', [FrontendController::class, 'sliders'])->middleware('public.cache:3600');
         // Sadakat kampanyasi: giris yapmamis ziyaretci de banner'i gorebilsin.
         Route::get('/loyalty-campaign', [\App\Http\Controllers\Api\V1\Customer\CustomerLoyaltyController::class, 'campaign'])

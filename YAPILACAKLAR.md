@@ -1,5 +1,11 @@
 # Sportoonline — Yapılacaklar (Sonraki Oturum)
 
+## 2026-10-05 — “Gelince haber ver” (PR hazırlığı)
+
+- [X] Stokta olmayan ürün/variant için e-posta bildirim formu, açık rıza ve doğrulama bağlantısı eklendi.
+- [X] Stoğa dönüşte tek seferlik e-posta, iptal bağlantısı ve 15 dakikalık zamanlama eklendi; SQLite entegrasyon testleri ve frontend derlemesi geçti.
+- [ ] Canlıda migration + backend/frontend deploy, gerçek e-posta ve mobil tarayıcı akışı doğrulanacak. PR: eklenecek.
+
 > Oluşturma: 2026-05-15. Önceki oturumda tamamlananlar: Gmail SMTP, Firebase push,
 > 5 günlük trafik raporu + ayrı nginx log, Geliver Türkçe il/ilçe fix + #113,
 > Google Places API, admin sipariş detayı/fatura adres + isim + temiz format.
