@@ -6,7 +6,7 @@
 - [X] Sepette etkin flaş kampanyalı veya özel fiyatlı ürün varsa kupon önizleme, müşteri siparişi ve POS siparişi 422 ile reddedecek şekilde kural eklendi.
 - [X] Kupon önizlemesi, istemcinin gönderdiği tutar yerine ürün/varyant fiyatını sunucuda hesaplıyor; sepet değişirse ekrandaki kupon düşüyor.
 - [ ] Eski Flutter müşteri uygulaması kupon önizlemesine yalnız `sub_total` gönderiyor. Mobil sürüm ürün/varyant listesini gönderene kadar eski önizleme kabul edilir; sipariş API'si birleşimi yine reddeder.
-- [~] Canlı dağıtım ve ödeme akışı kabul testi: PR bağlantısı eklenecek. Mevcut ödenmiş siparişler değiştirilmez.
+- [~] Canlı dağıtım ve ödeme akışı kabul testi: [PR #27](https://github.com/Orhanguezel/quickecommerce/pull/27). Mevcut ödenmiş siparişler değiştirilmez.
 
 > Oluşturma: 2026-05-15. Önceki oturumda tamamlananlar: Gmail SMTP, Firebase push,
 > 5 günlük trafik raporu + ayrı nginx log, Geliver Türkçe il/ilçe fix + #113,
