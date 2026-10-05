@@ -239,7 +239,7 @@ class CustomerOrderController extends Controller
             return response()->json(['message' => $validator->errors()], 422);
         }
         if ($request->filled('packages')) {
-            if ($combinationPolicy->hasExistingDiscount($request->packages)) {
+            if ($combinationPolicy->blocksCoupon($request->coupon_code, $request->packages)) {
                 return response()->json(['message' => $combinationPolicy->message()], 422);
             }
             $sub_total = $combinationPolicy->cartSubtotal($request->packages);

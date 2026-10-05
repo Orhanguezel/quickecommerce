@@ -2,11 +2,11 @@
 
 ## Kupon ve flaş kampanya birleşimi (2026-10-05)
 
-- [X] Ödenmiş siparişlerde ürün indirimi + kupon birleşimi doğrulandı: 23 siparişte 3.011,84 TL kupon indirimi (flaş kampanyalı 4 sipariş, 244,00 TL, bu toplamın içinde).
-- [X] Sepette etkin flaş kampanyalı veya özel fiyatlı ürün varsa kupon önizleme, müşteri siparişi ve POS siparişi 422 ile reddedecek şekilde kural eklendi.
+- [X] Geçmiş ödenmiş 23 siparişte ürün indirimi + kupon birleşimi görüldü; kupon toplamı 3.011,84 TL (4 flaş siparişinde 244,00 TL). `AYRILMA5` geri kazanım amaçlı olduğundan bu birleşim kullanıcı kararıyla geçerli; tutar zarar olarak raporlanmaz.
+- [X] Sepette etkin flaş kampanyalı veya özel fiyatlı ürün varsa diğer kuponlar önizleme, müşteri siparişi ve POS siparişinde 422 ile reddedilir. `AYRILMA5` açık istisnadır.
 - [X] Kupon önizlemesi, istemcinin gönderdiği tutar yerine ürün/varyant fiyatını sunucuda hesaplıyor; sepet değişirse ekrandaki kupon düşüyor.
-- [ ] Eski Flutter müşteri uygulaması kupon önizlemesine yalnız `sub_total` gönderiyor. Mobil sürüm ürün/varyant listesini gönderene kadar eski önizleme kabul edilir; sipariş API'si birleşimi yine reddeder.
-- [X] Backend ve müşteri web canlı dağıtıldı: [PR #27](https://github.com/Orhanguezel/quickecommerce/pull/27). İndirimli ürün + kupon önizlemesi 422, indirimsiz ürün 200, sahte `sub_total` etkisiz; ana sayfa ve `/tr/odeme` 200. Mevcut ödenmiş siparişler değiştirilmez.
+- [ ] Eski Flutter müşteri uygulaması kupon önizlemesine yalnız `sub_total` gönderiyor. Mobil sürüm ürün/varyant listesini gönderene kadar eski önizleme kabul edilir; sipariş API'si `AYRILMA5` dışındaki birleşimleri yine reddeder.
+- [~] Backend ve müşteri web ilk kuralı canlı dağıtıldı: [PR #27](https://github.com/Orhanguezel/quickecommerce/pull/27). `AYRILMA5` istisnası canlı doğrulama bekliyor. Mevcut ödenmiş siparişler değiştirilmez.
 - [ ] Gerçek kullanıcı oturumunda checkout kupon uyarısı ve POS ödeme öncesi 422 tarayıcı kabul testi.
 
 > Oluşturma: 2026-05-15. Önceki oturumda tamamlananlar: Gmail SMTP, Firebase push,

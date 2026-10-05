@@ -55,6 +55,7 @@ class PosOrderService
         $this->productData = $this->getProductDetails(); // Step 4
         $this->calculateFlashSale();                                // Step 5
         if (!empty($this->orderData['coupon_code'])
+            && !app(\App\Services\Order\CouponCombinationPolicy::class)->allowsProductDiscountCombination($this->orderData['coupon_code'])
             && collect($this->packageData)->contains(fn ($item) => (float) ($item['admin_discount_amount'] ?? 0) > 0
                 || (float) ($item['discount_amount'] ?? 0) > 0)) {
             return response()->json([
@@ -335,7 +336,10 @@ class PosOrderService
         // POS uses the same non-combination rule as customer checkout.
         $hasProductDiscount = collect($this->packageData)->contains(fn ($item) => (float) ($item['admin_discount_amount'] ?? 0) > 0
             || (float) ($item['discount_amount'] ?? 0) > 0);
-        $coupon = $hasProductDiscount ? [] : checkCoupon($this->orderData['coupon_code'], $totalAmountForCoupon);
+        $coupon = $hasProductDiscount
+            && !app(\App\Services\Order\CouponCombinationPolicy::class)->allowsProductDiscountCombination($this->orderData['coupon_code'])
+            ? []
+            : checkCoupon($this->orderData['coupon_code'], $totalAmountForCoupon);
         $couponTitle = $coupon['title'] ?? null;
         $couponCode = $coupon['code'] ?? null;
         $this->orderData = array_merge($this->orderData, [

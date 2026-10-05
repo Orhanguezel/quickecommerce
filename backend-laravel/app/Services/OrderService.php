@@ -39,7 +39,7 @@ class OrderService
                 return false;
             }
             // Keep the rule at the service boundary for callers other than the HTTP controller.
-            if (!empty($data['coupon_code']) && app(CouponCombinationPolicy::class)->hasExistingDiscount($data['packages'])) {
+            if (!empty($data['coupon_code']) && app(CouponCombinationPolicy::class)->blocksCoupon($data['coupon_code'], $data['packages'])) {
                 return false;
             }
             // customer ID

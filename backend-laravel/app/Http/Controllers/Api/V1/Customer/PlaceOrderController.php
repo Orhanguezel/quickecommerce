@@ -47,7 +47,7 @@ class PlaceOrderController extends Controller
             ], 400);
         }
 
-        if (!empty($data['coupon_code']) && $combinationPolicy->hasExistingDiscount($data['packages'])) {
+        if (!empty($data['coupon_code']) && $combinationPolicy->blocksCoupon($data['coupon_code'], $data['packages'])) {
             return response()->json([
                 'success' => false,
                 'message' => $combinationPolicy->message(),
