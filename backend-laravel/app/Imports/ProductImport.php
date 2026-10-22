@@ -21,7 +21,7 @@ class ProductImport implements ToCollection, WithHeadingRow, WithValidation, Wit
         return 1000;
     }
 
-    public function collection(\Illuminate\Support\Collection $rows)
+    public function collection(\Illuminate\Support\Collection $rows): void
     {
         foreach ($rows as $index => $row) {
             $shopId = $row['store_id'];

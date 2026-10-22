@@ -67,7 +67,7 @@ class ProductExport implements FromCollection, WithHeadings
     /**
      * Get the collection of products based on provided filters
      */
-    public function collection()
+    public function collection(): \Illuminate\Support\Enumerable
     {
         if ($this->exportWithoutData) {
             // Return an empty array if export_without_data is true

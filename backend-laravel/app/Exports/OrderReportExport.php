@@ -18,9 +18,9 @@ class OrderReportExport implements FromCollection, WithHeadings, ShouldAutoSize
     {
         $this->orderDetails = $orderDetails;
     }
-    public function collection()
+    public function collection(): \Illuminate\Support\Enumerable
     {
-        return AdminOrderReportResource::collection($this->orderDetails);
+        return collect(AdminOrderReportResource::collection($this->orderDetails)->resolve());
     }
     public function headings(): array
     {
