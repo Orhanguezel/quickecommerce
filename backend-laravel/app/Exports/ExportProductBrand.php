@@ -10,7 +10,7 @@ class ExportProductBrand implements FromCollection
     /**
     * @return \Illuminate\Support\Collection
     */
-    public function collection()
+    public function collection(): \Illuminate\Support\Enumerable
     {
         return ProductBrand::select('id',)->get();
     }

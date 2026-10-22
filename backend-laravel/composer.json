@@ -23,7 +23,7 @@
     "laravel/sanctum": "^4.0",
     "laravel/socialite": "^5.16",
     "laravel/tinker": "^2.9",
-    "maatwebsite/excel": "^3.1",
+    "maatwebsite/excel": "^4.0",
     "matanyadaev/laravel-eloquent-spatial": "^4.3",
     "nwidart/laravel-modules": "^11.1.8",
     "prettus/l5-repository": "^2.9",
