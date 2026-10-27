@@ -10,6 +10,7 @@
 - [ ] Evapera komisyonu, kargo ve iade sorumluluğu açıklanınca mağaza ve ürünler onaylanıp yayınlanacak; ardından gerçek müşteri akışı ve Geliver gönderici adresi doğrulanacak.
 - [ ] Nilvera sandbox/PROD erişimi ve mali teyit kullanıcı tarafında henüz hazır değil; gerçek fatura geçişi bekliyor.
 - [ ] Nilvera için ayrıca canlı kod/erişim kapısı var: Sportoonline sunucusunda e-fatura ince istemcisi ve observer bulunmadı, `efatura.guezelwebdesign.com` DNS çözülmedi. Hazır olduğu varsayılmadan servis ve dağıtım ayrıca doğrulanacak.
+- [x] Mevcut Nilvera ince istemcisi güncel ana dala taşındı, varsayılan kapalı observer kaydı eklendi; 10 test/28 doğrulama geçti. Taslak PR: <https://github.com/Orhanguezel/quickecommerce/pull/31>. Canlıya alınmadı.
 - [ ] Fiziksel mağaza adresi/açılış tarihi ile reklam bütçesi henüz kesinleşmedi.
 
 ## Kaynak ve mevcut durum

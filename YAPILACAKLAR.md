@@ -8,6 +8,7 @@
 - [ ] Komisyon, kargo/iade ve Geliver gönderici adresi kesinleşince ürünleri onaylayıp mağazayı yayına al; gerçek sipariş/kargo akışını doğrula.
 - [ ] Günlük 25 kaynak için başlatılan kurtarma taramasını ve sonraki gerçek cron sonucunu doğrula.
 - [ ] Nilvera geçişi için kullanıcı sandbox/PROD erişimi ve mali teyidi bekleniyor; ayrıca canlı sunucuda ince istemci yok ve servis alan adı DNS çözülmüyor (2026-10-27 okuması).
+- [X] Nilvera istemcisi güncel ana dal için taslak PR'a taşındı; varsayılan kapalı, 10 test/28 doğrulama geçti: <https://github.com/Orhanguezel/quickecommerce/pull/31>.
 - PR: <https://github.com/Orhanguezel/quickecommerce/pull/29>, <https://github.com/Orhanguezel/quickecommerce/pull/30>. Ayrıntı: `EVAPERA-VE-OPERASYON-CHECKLIST-2026-10-27.md`.
 
 > Oluşturma: 2026-05-15. Önceki oturumda tamamlananlar: Gmail SMTP, Firebase push,
