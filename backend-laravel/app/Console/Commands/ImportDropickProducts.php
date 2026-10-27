@@ -463,7 +463,7 @@ class ImportDropickProducts extends Command
                 'source_product_id' => $productData['source_product_id'] ?? $productData['id'] ?? null,
                 'source_product_slug' => $productData['slug'] ?? $product->slug,
                 'source_variant_id' => $variantData['source_variant_id'] ?? $variantData['id'] ?? null,
-                'source_variant_sku' => $variantData['sku'] ?? $productData['sku'] ?? null,
+                'source_variant_sku' => $variantData['source_sku'] ?? $variantData['sku'] ?? $productData['sku'] ?? null,
                 'source_variant_barcode' => $variantData['barcode'] ?? $productData['barcode'] ?? null,
                 'source_variant_title' => $variantData['title'] ?? $variant->variant_slug,
                 'last_synced_price' => $variant->price,

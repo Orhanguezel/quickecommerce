@@ -13,7 +13,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from shopify_scraper import HEADERS, resolve_image_dir, resolve_output
-from woocommerce_scraper import _fetch_all, _process, _download_image
+from woocommerce_scraper import _process, _download_image
 
 BASE_URL = "https://evapera.com"
 API_URL = f"{BASE_URL}/?rest_route=/wc/store/v1/products"
@@ -25,6 +25,25 @@ CATEGORY_MAP = {
     "Ab wheel": "Fitness Aksesuarları",
     "Fitness": "Fitness & Egzersiz",
 }
+
+
+def _fetch_catalog(session):
+    products = []
+    page = 1
+    while True:
+        response = session.get(API_URL, params={"per_page": 100, "page": page}, timeout=30)
+        response.raise_for_status()
+        rows = response.json()
+        pages = int(response.headers["X-WP-TotalPages"])
+        total = int(response.headers["X-WP-Total"])
+        if not isinstance(rows, list) or not rows or page > pages:
+            raise ValueError(f"Incomplete Evapera catalog at page {page}")
+        products.extend(rows)
+        if page == pages:
+            if len(products) != total or len({row["id"] for row in products}) != total:
+                raise ValueError(f"Evapera catalog count mismatch: {len(products)} vs {total}")
+            return products
+        page += 1
 
 
 def _variation_data(session, raw):
@@ -75,7 +94,7 @@ def scrape(with_images=False):
     session = requests.Session()
     session.headers.update(HEADERS)
     session.headers["Accept"] = "application/json"
-    raw_products = _fetch_all(session, API_URL)
+    raw_products = _fetch_catalog(session)
     if not raw_products:
         raise ValueError("Empty Evapera catalog")
     products = _process(raw_products, BASE_URL, "Evapera", "Fitness")
