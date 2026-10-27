@@ -73,7 +73,7 @@ class Store extends Model
 
     public function scopeValidForCustomerView($query)
     {
-        return $query->where(function ($q) {
+        return $query->where('status', 1)->where(function ($q) {
             $q->where('subscription_type', 'commission')
                 ->orWhere(function ($q2) {
                     $q2->where('subscription_type', 'subscription')
