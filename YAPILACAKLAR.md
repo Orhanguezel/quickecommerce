@@ -5,6 +5,7 @@
 - [X] Kaynak `evapera.com` ve satış anlaşması kullanıcı tarafından doğrulandı.
 - [X] Pasif Evapera mağazası #81, 13 bekleyen ürün, 56 varyant/kaynak eşlemesi, yerel görseller ve ilk hatasız fiyat/stok senkronu hazırlandı.
 - [X] Pasif mağazanın public detay API'de görünmesi engellendi.
+- [X] Evapera logosu yerel Media kaydına alındı; mağaza pasif kaldı.
 - [ ] Komisyon, kargo/iade ve Geliver gönderici adresi kesinleşince ürünleri onaylayıp mağazayı yayına al; gerçek sipariş/kargo akışını doğrula.
 - [ ] Günlük 25 kaynak için başlatılan kurtarma taramasını ve sonraki gerçek cron sonucunu doğrula.
 - [ ] Nilvera geçişi için kullanıcı sandbox/PROD erişimi ve mali teyidi bekleniyor; ayrıca canlı sunucuda ince istemci yok ve servis alan adı DNS çözülmüyor (2026-10-27 okuması).

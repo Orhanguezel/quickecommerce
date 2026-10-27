@@ -5,6 +5,7 @@
 - [x] Kullanıcı Evapera anlaşmasını ve yetkili kaynağın `evapera.com` olduğunu doğruladı.
 - [x] Python sanal ortamı 3.13'e geri bağlandı; hedefli Provitanya tarama/senkronu hatasız geçti. PR: <https://github.com/Orhanguezel/quickecommerce/pull/30>.
 - [x] Evapera #81 pasif mağaza açıldı; 13 ürün `pending`, 56 varyant ve kaynak eşlemesi hazır. Görseller yerel Media kaydına alındı; kalite kapısı 0 hata/0 uyarı ve ilk fiyat/stok senkronu 0 hata. PR: <https://github.com/Orhanguezel/quickecommerce/pull/29>.
+- [x] Kaynaktaki Evapera logosu yerel Media kaydına alındı; public dosya HTTP 200 ve kaynakla aynı içerik. Mağaza meta başlığı/açıklaması hazırlandı; mağaza hâlâ pasif.
 - [x] Pasif mağazanın doğrudan public API'de görünmesi düzeltildi; `store-details/evapera` artık 404, `product-list?store_id=81` 0 ürün.
 - [ ] Tüm eski kaynaklar için kurtarma taraması çalışıyor; tamamlanma ve bir sonraki gerçek cron sonucu ayrıca doğrulanacak.
 - [ ] Evapera komisyonu, kargo ve iade sorumluluğu açıklanınca mağaza ve ürünler onaylanıp yayınlanacak; ardından gerçek müşteri akışı ve Geliver gönderici adresi doğrulanacak.
