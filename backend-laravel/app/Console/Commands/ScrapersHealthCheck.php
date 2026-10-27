@@ -77,25 +77,31 @@ class ScrapersHealthCheck extends Command
             }
         }
 
-        // 2) Bugunun cron logundan FAIL satirlari
+        // 2) Bugunun cron logunda her kaynagin son tamamlanan sonucunu oku.
+        // Gun icindeki basarili tekrar denemeler onceki FAIL alarmisini temizler.
         $today = Carbon::now()->format('Ymd');
         $logFile = "{$logsDir}/scrapers-{$today}.log";
         if (file_exists($logFile)) {
             $log = file_get_contents($logFile);
-            // "FAIL: <name> scraper, sync atlaniyor" satirlari.
-            // PASSIVE kaynaklari atla — pause edilmeden ONCE bugun calisip FAIL
-            // etmis olabilirler (bayat log kaydi); artik cron'da degiller.
-            if (preg_match_all('/FAIL:\s*(\S+)\s+scraper/i', $log, $matches)) {
-                foreach (array_unique($matches[1]) as $failed) {
-                    if (isset($passiveSources[$failed])) {
-                        continue;
-                    }
-                    $issues[] = "{$failed}: bugun scrape FAIL etti (cron log)";
+            $latestResults = [];
+            preg_match_all('/^════\s+(\S+)\s+baslangic:[^\n]*\n([\s\S]*?)(?=^════\s+\S+\s+baslangic:|\z)/m', $log, $runs, PREG_SET_ORDER);
+            foreach ($runs as $run) {
+                $source = $run[1];
+                $body = $run[2];
+                $hasScraperExit = preg_match('/scraper exit:\s*(\d+)/', $body, $scraperExit);
+                $hasSyncExit = preg_match('/sync exit:\s*(\d+)/', $body, $syncExit);
+                $failed = preg_match('/FAIL:\s*' . preg_quote($source, '/') . '\s+scraper/i', $body);
+
+                // Son tekrar deneme hala calisiyorsa onceki tamamlanan sonucu koru.
+                if ($hasSyncExit || $failed || ($hasScraperExit && (int) $scraperExit[1] !== 0)) {
+                    $latestResults[$source] = $hasScraperExit && $hasSyncExit
+                        && (int) $scraperExit[1] === 0 && (int) $syncExit[1] === 0 && !$failed;
                 }
             }
-            // "scraper exit: <nonzero>" sayisi
-            if (preg_match_all('/scraper exit:\s*([1-9]\d*)/', $log, $m2)) {
-                $info[] = 'Cron log: ' . count($m2[1]) . ' scraper nonzero exit kodu ile bitti.';
+            foreach ($latestResults as $source => $successful) {
+                if (!$successful && !isset($passiveSources[$source])) {
+                    $issues[] = "{$source}: son tamamlanan scrape/sync FAIL etti (cron log)";
+                }
             }
         } else {
             $issues[] = "Bugunun cron logu yok: {$logFile} (cron tetiklenmedi mi?)";
