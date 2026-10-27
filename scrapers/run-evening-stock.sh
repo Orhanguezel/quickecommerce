@@ -16,6 +16,7 @@ cd /var/www/quikecommerce
 DATE=$(date +%Y%m%d)
 LOG="/var/www/quikecommerce/logs/scrapers-evening-$DATE.log"
 VENV="/var/www/quikecommerce/venv/bin/python3"
+if ! bash /var/www/quikecommerce/scrapers/check-python-env.sh "$VENV"; then exit 1; fi
 
 # Anti-bot env (run-all.sh ile ayni) — bu iki kaynak kullanmaz ama tutarlilik icin.
 export SCRAPER_URL=https://scraper.guezelwebdesign.com

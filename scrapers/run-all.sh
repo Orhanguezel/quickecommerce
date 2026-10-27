@@ -6,6 +6,7 @@ cd /var/www/quikecommerce
 DATE=$(date +%Y%m%d)
 LOG="/var/www/quikecommerce/logs/scrapers-$DATE.log"
 VENV="/var/www/quikecommerce/venv/bin/python3"
+if ! bash /var/www/quikecommerce/scrapers/check-python-env.sh "$VENV"; then exit 1; fi
 
 # Maraton icin Scrapling env (anti-bot)
 export SCRAPER_URL=https://scraper.guezelwebdesign.com
