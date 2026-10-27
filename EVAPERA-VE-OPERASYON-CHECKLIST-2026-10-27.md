@@ -28,7 +28,8 @@
 - [x] Günlük 25 scraper hatasının ortak nedeni bulundu: sanal ortam Python 3.13 için kurulmuşken çalıştırıcı 3.14'e işaret ediyordu; `requests`/`bs4` yüklenemiyordu. Python yolu düzeltildi, bağımlılık/versiyon ön kontrolü cron komutlarına eklendi (PR #30).
 - [x] Hedefli Provitanya taraması ve fiyat/stok senkronu geçti: 1940 kaynak ürünü, 1848 eşleme, 0 hata. Evapera hedefli tarama/senkronu da 0 hata verdi.
 - [ ] 27 Ekim tam kurtarma taraması ile sonraki gerçek 02:00 UTC cron sonucunu kontrol et. Ürün fiyatı/stoku bayatsa satışa açık olup olmadığını kaynak bazında doğrula.
-- [ ] Scraper, kuyruk, ödeme, stok, feed ve fatura için günlük sağlık görünümü ve alarm sahipliği tanımla. Hata için geri alma/manuel işlem adımlarını yaz.
+- [x] Mevcut günlük gözlemler doğrulandı: `monitor:commerce-health` 07:00 UTC, `scrapers:health-check` 09:00 UTC, `scrapers:enforce-freshness --hours=36 --apply` her saatin 20. dakikası. 27 Ekim okumasında temel sayfalar/DB/cache çalışıyor, başarısız kuyruk işi 0; bayat 15 kaynağın satışa açık stok adedi 0. Cimri ve Google XML feed'leri HTTP 200.
+- [ ] Alarm sahibi ve ödeme/fatura sağlayıcı paneli kontrolü operasyon ekibince atanacak. Sonraki gerçek cron döngüsü ile feed kabul/sıralama sonucu ayrıca doğrulanacak.
 
 **Kabul:** En az bir gerçek cron döngüsünde beklenen aktif kaynaklar başarılı; başarısız kaynaklar ve etkiledikleri mağazalar görünür; bayat veri satışa açılmıyor.
 
@@ -56,6 +57,7 @@
 
 - [ ] Yeni fiziksel mağazanın adresi, açılış tarihi, çalışma saatleri, teslim alma/sevkiyat rolü ve sitede gösterilecek bilgilerini doğrula; ilgili iletişim/mağaza sayfalarını ancak bu verilerle güncelle.
 - [ ] Son 4 haftanın organik, reklam, Cimri ve doğrudan trafik/sipariş verisini kanal bazında çıkar. Ses kaydındaki “ikinci sayfa” gözlemini ürün bazında Cimri paneli/sıralama kanıtıyla eşleştir; feed erişimi, redler, fiyat ve stok tutarlılığını kontrol et.
+- [x] Cimri XML (`/feeds/cimri.xml`) ve Google XML (`/feeds/google.xml`) canlı HTTP 200. Bu, Cimri hesabında kabul ve görünürlük sıralamasını kanıtlamaz.
 - [ ] Reklam için hedef ürünler, bütçe üst sınırı, ölçüm ve başarı ölçütünü belirle; küçük bir test önerisi hazırla. Bütçe veya kampanyayı ayrıca onaylanmış ticari karara göre aç.
 
 **Kabul:** Fiziksel mağaza bilgileri doğrulanmış; Cimri görünürlük sorununun ürün bazında nedeni ölçülmüş; reklam testi maliyet ve sipariş sonucuyla değerlendirilebilir.
