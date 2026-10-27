@@ -53,6 +53,10 @@ send_tg() {
 }
 
 FAIL_COUNT=0
+if ! bash /var/www/quikecommerce/scrapers/check-python-env.sh "$VENV"; then
+  send_tg '🚨 <b>Intraday scraper Python ortami bozuk</b> — kaynaklar baslatilmadi; cron logunu kontrol et.'
+  exit 1
+fi
 FAIL_LIST=""
 
 run_scraper() {

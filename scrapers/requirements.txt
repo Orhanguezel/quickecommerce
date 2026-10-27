@@ -1,0 +1,4 @@
+# Active scraper dependencies; install into the pinned Python venv.
+requests==2.33.1
+beautifulsoup4==4.14.3
+lxml==6.1.0
