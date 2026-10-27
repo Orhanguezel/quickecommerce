@@ -38,6 +38,7 @@ class ScraperSourceRegistry
             // floky (Floky Socks) 2026-06-25 SILINDI: store#74 + urunleri soft-delete,
             // 290 mapping + scraper + JSON kaldirildi (kullanici karari). 0 siparis etkilendi.
             ['name' => 'grandgiftstore',      'platform' => 'WooCommerce Store API',              'site_url' => 'https://grandgiftstore.com',            'status' => self::STATUS_ACTIVE, 'db_source_name' => 'grandgiftstore',      'notes' => 'API native is_in_stock'],
+            ['name' => 'evapera',             'platform' => 'WooCommerce Store API + variation page', 'site_url' => 'https://evapera.com',                 'status' => self::STATUS_ACTIVE, 'db_source_name' => 'evapera',             'notes' => 'Variation page provides separate price and stock; fail closed on missing variation data.'],
             ['name' => 'dekomum',             'platform' => 'WooCommerce Store API',              'site_url' => 'https://dekomum.com',                   'status' => self::STATUS_ACTIVE, 'db_source_name' => 'dekomum',             'notes' => 'INT stok native'],
             ['name' => 'maskotmeyvepresleri', 'platform' => 'WooCommerce',                        'site_url' => 'https://www.maskotmeyvepresleri.com',  'status' => self::STATUS_ACTIVE, 'db_source_name' => 'maskotmeyvepresleri', 'notes' => null],
             ['name' => 'ayakkabi',            'platform' => 'OpenCart',                           'site_url' => 'https://www.ayakkabimalzememarket.com', 'status' => self::STATUS_ACTIVE, 'db_source_name' => 'ayakkabi',            'notes' => null],
