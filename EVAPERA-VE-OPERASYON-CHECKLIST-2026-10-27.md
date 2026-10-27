@@ -11,6 +11,7 @@
 - [x] Pasif mağazaların public API'de görünmesi engellendi; Evapera açılışından sonra `store-details/evapera` HTTP 200, `store-list` içinde #81 ve `product-list?store_id=81` 12 stoklu ürün döndü.
 - [ ] Tüm eski kaynaklar için kurtarma taraması çalışıyor; tamamlanma ve bir sonraki gerçek cron sonucu ayrıca doğrulanacak.
 - [x] Masaüstü ve 390 px mobil tarayıcıda mağaza/ürün açıldı; görsel, logo, 12 ürün, varyant fiyat değişimi (5 kg sarı ₺249) ve misafir sepete ekleme (1 ürün, ₺249) doğrulandı. Mobil yatay taşma, görünen kırık görsel ve konsol hatası yok.
+- [x] Platformun kargo ve iade politika sayfaları HTTP 200; global Geliver gönderici kimliği yapılandırılmış, Evapera'ya özel kimlik boş. Mağaza seller #3'e bağlı ve Store cüzdanı aktif.
 - [ ] Gerçek ödeme/sipariş, tedarikçi kabulü ve Geliver gönderisi henüz yapılmadı; gerçek gönderici adresi sağlanırsa mağazaya özel Geliver kimliği bağlanacak. Şimdilik mevcut dropship mağazalarındaki global fallback kullanılıyor.
 - [ ] Nilvera sandbox/PROD erişimi ve mali teyit kullanıcı tarafında henüz hazır değil; gerçek fatura geçişi bekliyor.
 - [ ] Nilvera için ayrıca canlı kod/erişim kapısı var: Sportoonline sunucusunda e-fatura ince istemcisi ve observer bulunmadı, `efatura.guezelwebdesign.com` DNS çözülmedi. Hazır olduğu varsayılmadan servis ve dağıtım ayrıca doğrulanacak.
