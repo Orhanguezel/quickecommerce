@@ -8,7 +8,7 @@
 - [X] Evapera logosu yerel Media kaydına alındı; mağaza pasif kaldı.
 - [ ] Komisyon, kargo/iade ve Geliver gönderici adresi kesinleşince ürünleri onaylayıp mağazayı yayına al; gerçek sipariş/kargo akışını doğrula.
 - [ ] Günlük 25 kaynak için başlatılan kurtarma taramasını ve sonraki gerçek cron sonucunu doğrula.
-- [X] Heyday/Neptün: 880 saat bayat kalan 20 pozitif stoklu varyant güvenli karantinaya alındı; API'de iki mağazada satılabilir ürün 0. Snapshot canlı `/tmp/legacy-source-stock-20261027.json`.
+- [X] Heyday/Neptün: 880 saat bayat kalan 20 pozitif stoklu varyant güvenli karantinaya alındı; API'de iki mağazada satılabilir ürün 0. Snapshot canlı `backend-laravel/storage/app/private/ops/legacy-source-stock-20261027.json`.
 - [ ] Heyday/Neptün kaynak taraması ve eşlemeyi yeniden kurmadan stokları açma; günlük `run-all.sh` listesinde yoklar.
 - [ ] Nilvera geçişi için kullanıcı sandbox/PROD erişimi ve mali teyidi bekleniyor; ayrıca canlı sunucuda ince istemci yok ve servis alan adı DNS çözülmüyor (2026-10-27 okuması).
 - [X] Nilvera istemcisi güncel ana dal için taslak PR'a taşındı; varsayılan kapalı, 10 test/28 doğrulama geçti: <https://github.com/Orhanguezel/quickecommerce/pull/31>.
