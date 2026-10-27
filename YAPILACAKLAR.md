@@ -1,5 +1,14 @@
 # Sportoonline — Yapılacaklar (Sonraki Oturum)
 
+## Evapera mağazası — hazırlık canlı, yayın koşulları bekliyor (2026-10-27)
+
+- [X] Kaynak `evapera.com` ve satış anlaşması kullanıcı tarafından doğrulandı.
+- [X] Pasif Evapera mağazası #81, 13 bekleyen ürün, 56 varyant/kaynak eşlemesi, yerel görseller ve ilk hatasız fiyat/stok senkronu hazırlandı.
+- [X] Pasif mağazanın public detay API'de görünmesi engellendi.
+- [ ] Komisyon, kargo/iade ve Geliver gönderici adresi kesinleşince ürünleri onaylayıp mağazayı yayına al; gerçek sipariş/kargo akışını doğrula.
+- [ ] Günlük 25 kaynak için başlatılan kurtarma taramasını ve sonraki gerçek cron sonucunu doğrula.
+- PR: <https://github.com/Orhanguezel/quickecommerce/pull/29>, <https://github.com/Orhanguezel/quickecommerce/pull/30>. Ayrıntı: `EVAPERA-VE-OPERASYON-CHECKLIST-2026-10-27.md`.
+
 > Oluşturma: 2026-05-15. Önceki oturumda tamamlananlar: Gmail SMTP, Firebase push,
 > 5 günlük trafik raporu + ayrı nginx log, Geliver Türkçe il/ilçe fix + #113,
 > Google Places API, admin sipariş detayı/fatura adres + isim + temiz format.
