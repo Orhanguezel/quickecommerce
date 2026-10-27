@@ -137,6 +137,7 @@ run_scraper() {
   run_scraper everlast       everlast_scraper.py       everlast_products.json
   run_scraper swan           swan_scraper.py           swan_products.json
   run_scraper grandgiftstore grandgiftstore_scraper.py grandgiftstore_products.json
+  run_scraper evapera        scrapers/evapera_scraper.py evapera_products.json
   run_scraper ayakkabi       ayakkabi_scraper.py       ayakkabi_products.json
   run_scraper norfolk        norfolk_scraper.py        norfolk_products.json
   run_scraper superstacy     superstacy_scraper.py     superstacy_products.json

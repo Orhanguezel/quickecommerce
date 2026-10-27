@@ -281,6 +281,7 @@ class ImportDropickProducts extends Command
             // Gorselleri isle
             $mainImageId = null;
             $galleryImageIds = [];
+            $mediaIdBySourceUrl = [];
 
             $imageUrls = $data['all_image_urls'] ?? [];
             $downloadedImages = $data['downloaded_images'] ?? [];
@@ -290,6 +291,9 @@ class ImportDropickProducts extends Command
                 foreach ($downloadedImages as $i => $imgInfo) {
                     $mediaId = $this->importImageFromLocal($imgInfo['local_path'], $slug, $i);
                     if ($mediaId) {
+                        if (!empty($imgInfo['remote_url'])) {
+                            $mediaIdBySourceUrl[$imgInfo['remote_url']] = $mediaId;
+                        }
                         if ($i === 0) {
                             $mainImageId = $mediaId;
                         } else {
@@ -302,6 +306,7 @@ class ImportDropickProducts extends Command
                 foreach ($imageUrls as $i => $imgUrl) {
                     $mediaId = $this->importImageFromUrl($imgUrl, $slug, $i);
                     if ($mediaId) {
+                        $mediaIdBySourceUrl[$imgUrl] = $mediaId;
                         if ($i === 0) {
                             $mainImageId = $mediaId;
                         } else {
@@ -404,7 +409,7 @@ class ImportDropickProducts extends Command
                         'stock_quantity' => $stockQty,
                         'attributes'     => !empty($attributes) ? json_encode($attributes) : null,
                         'status'         => 1,
-                        'image'          => $mainImageId ? (string) $mainImageId : null,
+                        'image'          => (string) ($mediaIdBySourceUrl[$v['image_url'] ?? ''] ?? $mainImageId) ?: null,
                     ]);
                     $this->upsertSourceMapping($product, $variant, $data, $v);
                 }
@@ -423,7 +428,7 @@ class ImportDropickProducts extends Command
                     'special_price'  => $specialPrice,
                     'stock_quantity' => $stockQty,
                     'status'         => 1,
-                    'image'          => $mainImageId ? (string) $mainImageId : null,
+                    'image'          => (string) ($mediaIdBySourceUrl[$variants[0]['image_url'] ?? ''] ?? $mainImageId) ?: null,
                 ]);
                 $this->upsertSourceMapping($product, $variant, $data, $variants[0] ?? []);
             }
@@ -463,7 +468,7 @@ class ImportDropickProducts extends Command
                 'source_product_id' => $productData['source_product_id'] ?? $productData['id'] ?? null,
                 'source_product_slug' => $productData['slug'] ?? $product->slug,
                 'source_variant_id' => $variantData['source_variant_id'] ?? $variantData['id'] ?? null,
-                'source_variant_sku' => $variantData['sku'] ?? $productData['sku'] ?? null,
+                'source_variant_sku' => $variantData['source_sku'] ?? $variantData['sku'] ?? $productData['sku'] ?? null,
                 'source_variant_barcode' => $variantData['barcode'] ?? $productData['barcode'] ?? null,
                 'source_variant_title' => $variantData['title'] ?? $variant->variant_slug,
                 'last_synced_price' => $variant->price,

@@ -1,5 +1,21 @@
 # Sportoonline — Yapılacaklar (Sonraki Oturum)
 
+## Evapera mağazası — canlıda açık, ilk sipariş/kargo kabulü bekliyor (2026-10-27)
+
+- [X] Kaynak `evapera.com` ve satış anlaşması kullanıcı tarafından doğrulandı.
+- [X] Evapera mağazası #81, mevcut tedarikçi modeli `dropship`, %10 komisyon ve 48 saat gönderim hedefiyle açıldı. 13 onaylı ürün, 56 varyant/kaynak eşlemesi; public listede 12 stoklu ürün.
+- [X] Pasif mağazanın public detay API'de görünmesi engellendi.
+- [X] Evapera logosu yerel Media kaydına alındı; marka #550 ve 13 ürünün marka/SEO alanları bağlandı.
+- [X] 13 ürünün kaynak metni, 56 varyantın fiyat/stoku ve 114 görsel dosyası denetlendi; 7 üründe yazım/biçim, 45 varyantta görsel eşleşmesi düzeltildi. Son tarama kalite kontrolü 0 hata/0 uyarı; PR #29.
+- [X] Canlı mağaza ve ürün masaüstü/mobilde, 12 ürün/görsel, varyant fiyatı ve misafir sepetiyle doğrulandı; konsol hatası ve mobil yatay taşma yok.
+- [ ] Gerçek müşteri siparişi/Geliver gönderisi doğrulanacak; Evapera'ya özel gerçek gönderici adresi verilirse bağlanacak. Açılış ve marka alanlarının özel yedeği `backend-laravel/storage/app/private/ops/` altında.
+- [ ] Günlük 25 kaynak için başlatılan kurtarma taramasını ve sonraki gerçek cron sonucunu doğrula.
+- [X] Heyday/Neptün: 880 saat bayat kalan 20 pozitif stoklu varyant güvenli karantinaya alındı; API'de iki mağazada satılabilir ürün 0. Snapshot canlı `backend-laravel/storage/app/private/ops/legacy-source-stock-20261027.json`.
+- [ ] Heyday/Neptün kaynak taraması ve eşlemeyi yeniden kurmadan stokları açma; günlük `run-all.sh` listesinde yoklar.
+- [ ] Nilvera geçişi için kullanıcı sandbox/PROD erişimi ve mali teyidi bekleniyor; ayrıca canlı sunucuda ince istemci yok ve servis alan adı DNS çözülmüyor (2026-10-27 okuması).
+- [X] Nilvera istemcisi güncel ana dal için taslak PR'a taşındı; varsayılan kapalı, 10 test/28 doğrulama geçti: <https://github.com/Orhanguezel/quickecommerce/pull/31>.
+- PR: <https://github.com/Orhanguezel/quickecommerce/pull/29>, <https://github.com/Orhanguezel/quickecommerce/pull/30>. Ayrıntı: `EVAPERA-VE-OPERASYON-CHECKLIST-2026-10-27.md`.
+
 > Oluşturma: 2026-05-15. Önceki oturumda tamamlananlar: Gmail SMTP, Firebase push,
 > 5 günlük trafik raporu + ayrı nginx log, Geliver Türkçe il/ilçe fix + #113,
 > Google Places API, admin sipariş detayı/fatura adres + isim + temiz format.
