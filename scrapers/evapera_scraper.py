@@ -26,6 +26,51 @@ CATEGORY_MAP = {
     "Fitness": "Fitness & Egzersiz",
 }
 
+# Source copy contains a few visible encoding, spelling and punctuation errors.
+# Keep these small corrections keyed by WooCommerce ID so price/stock sync and
+# product identity remain tied to the original source.
+TITLE_CORRECTIONS = {
+    201: ("Plates Topu", "Pilates Topu"),
+    110: ("Tatlısert Eva Yoga Blok Pİlates", "Tatlı Sert EVA Yoga Blok Pilates"),
+    95: ("Max150Kg", "Maks. 150 kg"),
+    85: ("Max 150Kg", "Maks. 150 kg"),
+    34: (" Crossfit Boks Fitness", " Crossfit Boks"),
+}
+DESCRIPTION_CORRECTIONS = {
+    110: [
+        ("bir görünümler sunar", "bir görünüm sunar"),
+        ("<li>yoga ve pilates esnasında", "<li>Yoga ve pilates esnasında"),
+    ],
+    101: [
+        ("Bisikletinizde maksimum ve minimum ağırlık için tasarlanan", "Bisikletinizde ağırlığı düşük tutmak için tasarlanan"),
+        ("esnektir.Özel", "esnektir. Özel"),
+    ],
+    85: [
+        ("aksi taktirde", "aksi takdirde"),
+        ("olur.; Rebound", "olur. Rebound"),
+        ("gönderilmektedir .", "gönderilmektedir."),
+    ],
+    95: [("gönderilmektedir .", "gönderilmektedir.")],
+    34: [("şık, elegant, tarz, estetik, dayanıklı", "şık, dayanıklı")],
+}
+
+
+def _correct_copy(source_id, product):
+    product["name"] = html.unescape(product["name"])
+    if source_id in TITLE_CORRECTIONS:
+        old, new = TITLE_CORRECTIONS[source_id]
+        if product["name"].count(old) != 1:
+            raise ValueError(f"Evapera title correction no longer matches: {source_id}")
+        product["name"] = product["name"].replace(old, new)
+    for old, new in DESCRIPTION_CORRECTIONS.get(source_id, []):
+        if product["description_html"].count(old) != 1:
+            raise ValueError(f"Evapera description correction no longer matches: {source_id}: {old}")
+        product["description_html"] = product["description_html"].replace(old, new)
+    if source_id in DESCRIPTION_CORRECTIONS:
+        product["description_text"] = BeautifulSoup(
+            product["description_html"], "html.parser"
+        ).get_text(" ", strip=True)
+
 
 def _fetch_catalog(session):
     products = []
@@ -102,6 +147,7 @@ def scrape(with_images=False):
         raise ValueError("Products missing after normalization")
 
     for raw, product in zip(raw_products, products):
+        _correct_copy(raw["id"], product)
         product["source_product_id"] = raw["id"]
         product["source_sku"] = product["sku"]
         product["sku"] = f"EVP-P-{raw['id']}"

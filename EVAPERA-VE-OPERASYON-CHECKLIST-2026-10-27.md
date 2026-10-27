@@ -8,6 +8,7 @@
 - [x] Kayıtlı tarayıcısı olmayan Heyday #78 ve Neptün #79'un 880 saattir bayat kalan 23 eşlemesindeki 20 pozitif stok sıfırlandı; geri alma verisi canlı sunucuda `backend-laravel/storage/app/private/ops/legacy-source-stock-20261027.json` (600 izinli). İki public mağazada satılabilir ürün sayısı 0.
 - [x] Kullanıcının “diğer mağazalar gibi” talimatıyla Evapera #81 açıldı: mevcut tedarikçi mağaza modeli `dropship`, %10 komisyon, 48 saat gönderim hedefi. 13 ürün `approved`, 56 varyantın 52'si stoklu; public listede 12 ürün var. Açılış öncesi durum özel yedekte: `backend-laravel/storage/app/private/ops/evapera-before-activation-20261027.json`.
 - [x] Kaynaktaki Evapera logosu yerel Media kaydına alındı; marka #550 ve 13 ürünün marka/SEO alanları tamamlandı. Önceki ürün alanları özel yedekte: `backend-laravel/storage/app/private/ops/evapera-before-brand-metadata-20261027.json`.
+- [x] 13 ürünün başlık/açıklaması, 56 varyantın fiyat/stoku/SKU'su ve görselleri kaynakla karşılaştırıldı. 7 üründeki açık yazım/biçim hatası düzeltildi; 45 renk/ölçü varyantının kaynak görseli bağlandı. Güncel tarama 13 ürün, kalite doğrulaması 0 hata/0 uyarı; canlıda 114 benzersiz görsel dosyası geçerli, 12 stoklu ürün API'si HTTP 200. Geri alma kayıtları `backend-laravel/storage/app/private/ops/evapera-copy-before-20261027.json` ve `evapera-variant-images-before-20261027.json`.
 - [x] Pasif mağazaların public API'de görünmesi engellendi; Evapera açılışından sonra `store-details/evapera` HTTP 200, `store-list` içinde #81 ve `product-list?store_id=81` 12 stoklu ürün döndü.
 - [ ] Tüm eski kaynaklar için kurtarma taraması çalışıyor; tamamlanma ve bir sonraki gerçek cron sonucu ayrıca doğrulanacak.
 - [x] Masaüstü ve 390 px mobil tarayıcıda mağaza/ürün açıldı; görsel, logo, 12 ürün, varyant fiyat değişimi (5 kg sarı ₺249) ve misafir sepete ekleme (1 ürün, ₺249) doğrulandı. Mobil yatay taşma, görünen kırık görsel ve konsol hatası yok.
@@ -44,6 +45,7 @@
 - [x] 13 ürün, 56 varyant, kaynak ID/SKU, varyant fiyat/stok, görsel ve kategori eşleşmeleri incelendi; 13 ürün taslak içe aktarıldı.
 - [x] WooCommerce Store API ve ürün sayfasındaki varyasyon JSON'u doğrulandı; varyant fiyat/stokunu koruyan Evapera tarayıcısı hazırlandı (PR #29).
 - [x] Kalite doğrulaması 0 hata/0 uyarı, dry-run 0 hata/0 kopya, gerçek taslak içe aktarma 13/13 ve ilk stok senkronu 0 hata verdi.
+- [x] Ürün metni denetimi: 13 açıklama kaynak HTML'siyle karşılaştırıldı, 7 üründe açık yazım/biçim kusuru düzeltildi ve tarayıcıya kalıcı düzeltme eklendi. 45 varyantın ayrı kaynak görseli canlıda bağlandı; içe aktarıcı yeni ürünlerde görseli kaynak URL'sine göre eşleştiriyor. 114 yerel görsel dosyası ve 12 stoklu ürün API'si doğrulandı.
 - [x] Mevcut tedarikçi mağaza modeliyle mağaza #81 açıldı. %10 komisyon, 48 saat gönderim hedefi, global kargo/iade politikası ve Geliver fallback kullanılıyor; gerçek Evapera gönderici adresi uydurulmadı.
 - [~] Mağaza ve örnek ürün masaüstü/mobilde açıldı; görsel, varyant fiyatı, stok ve misafir sepeti doğrulandı. Gerçek ödeme/sipariş ve Geliver gönderisi ile sonraki gerçek cron döngüsü henüz kabul edilmedi.
 
