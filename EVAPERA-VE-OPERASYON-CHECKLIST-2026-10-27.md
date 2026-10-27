@@ -25,19 +25,20 @@
 
 ## P0 — Mevcut otomasyonu tekrar güvenilir hale getir
 
-- [ ] Günlük 25 scraper hatasını kaynak ve hata nedenine göre ayır; özellikle Python ortamında `requests` bulunmamasının kapsamını belirle. Çalışan sanal ortam/bağımlılık yolu ve cron komutunu karşılaştır.
-- [ ] Düzeltme sonrası hedefli scraper çalıştırması, JSON tazeliği, fiyat/stok senkronu ve sonraki gerçek cron sonucunu kontrol et. Ürün fiyatı/stoku güncel değilse vitrine alma kuralının çalıştığını doğrula.
+- [x] Günlük 25 scraper hatasının ortak nedeni bulundu: sanal ortam Python 3.13 için kurulmuşken çalıştırıcı 3.14'e işaret ediyordu; `requests`/`bs4` yüklenemiyordu. Python yolu düzeltildi, bağımlılık/versiyon ön kontrolü cron komutlarına eklendi (PR #30).
+- [x] Hedefli Provitanya taraması ve fiyat/stok senkronu geçti: 1940 kaynak ürünü, 1848 eşleme, 0 hata. Evapera hedefli tarama/senkronu da 0 hata verdi.
+- [ ] 27 Ekim tam kurtarma taraması ile sonraki gerçek 02:00 UTC cron sonucunu kontrol et. Ürün fiyatı/stoku bayatsa satışa açık olup olmadığını kaynak bazında doğrula.
 - [ ] Scraper, kuyruk, ödeme, stok, feed ve fatura için günlük sağlık görünümü ve alarm sahipliği tanımla. Hata için geri alma/manuel işlem adımlarını yaz.
 
 **Kabul:** En az bir gerçek cron döngüsünde beklenen aktif kaynaklar başarılı; başarısız kaynaklar ve etkiledikleri mağazalar görünür; bayat veri satışa açılmıyor.
 
 ## P1 — Evapera mağazası
 
-- [ ] Yetkili Evapera alan adını ve katalog kaynağını teyit et: paylaşılan `.com.tr` ile çalışan `.com` arasındaki farkı çöz. Satıcı, satış/tedarik ilişkisi, fiyatlandırma ve sevkiyat sorumluluğunu yazılı netleştir.
-- [ ] 13 ürünlük kaynak örneğini incele: ürün kimliği/SKU, varyant rengi-ölçüsü, varyant bazlı fiyat-stok, açıklama, görsel URL ve kategori eşleşmesi. Stok dışı ürün vitrine çıkmamalı.
-- [ ] WooCommerce Store API için mevcut `scrapers/woocommerce_scraper.py` çekirdeğiyle küçük bir yerel çıktı üret; permalink kapalı olduğu için `?rest_route=/wc/store/v1/products` yolunu ve varsa varyant uçlarını doğrula.
-- [ ] JSON'u `scrapers:validate-products` ve `import:products --dry-run --source-name=evapera` ile kontrol et; sıfır fiyat, belirsiz stok, eksik görsel ve yinelenen ürünleri ayıkla. Kaynak URL/ID ve SKU eşlemesini koru.
-- [ ] Mağaza adı, logo, kapak, açıklama, komisyon, adres, kargo/iade kuralları ve Geliver gönderici adresini hazırla. Ayrı mağaza kaydı ve `ScraperSourceRegistry` kaydı oluştur; ürünleri ancak ticari ve veri kontrolleri tamamlanınca yayınla.
+- [x] Kullanıcı satış anlaşmasını ve yetkili kaynak `evapera.com` alan adını doğruladı. Komisyon, sevkiyat ve iade sorumluluğu bekliyor.
+- [x] 13 ürün, 56 varyant, kaynak ID/SKU, varyant fiyat/stok, görsel ve kategori eşleşmeleri incelendi; 13 ürün taslak içe aktarıldı.
+- [x] WooCommerce Store API ve ürün sayfasındaki varyasyon JSON'u doğrulandı; varyant fiyat/stokunu koruyan Evapera tarayıcısı hazırlandı (PR #29).
+- [x] Kalite doğrulaması 0 hata/0 uyarı, dry-run 0 hata/0 kopya, gerçek taslak içe aktarma 13/13 ve ilk stok senkronu 0 hata verdi.
+- [~] Pasif mağaza #81, kaynak kaydı, yerel görseller, logo ve meta bilgileri hazır. Kapak/adres/Geliver gönderici adresi ile komisyon ve kargo/iade kuralları ticari teyitten sonra tamamlanacak.
 - [ ] Ürün içe aktarma sonrası mağaza ve örnek ürün sayfalarını masaüstü/mobilde aç; görsel, varyant seçimi, fiyat, stok, sepete ekleme ve sipariş akışını doğrula. Günlük fiyat/stok yenilemesini cron ve sağlık raporuna kat; ilk gerçek döngüde kaynak/site karşılaştırması yap.
 
 **Kabul:** Evapera kendi mağaza URL'sinde görünür; yalnız doğrulanmış stoklu ürünler satılır; varyant fiyat/stok ve görseller kaynakla eşleşir; yeni ürün ve sonraki fiyat/stok değişimi izlenebilir. Canlı mağaza açma ve ticari ayarlar bu planın uygulama aşamasıdır.
@@ -61,7 +62,7 @@
 
 ## Önce netleşecek kararlar
 
-1. Evapera'nın yetkili katalog/satış alan adı `.com` mu, `.com.tr` mi? Ürünleri Sportoonline'da satma ve sevkiyat anlaşması hazır mı?
+1. Evapera'nın satış anlaşması ve yetkili kaynak alan adı `evapera.com` kullanıcı tarafından doğrulandı.
 2. Evapera için komisyon, fiyat kuralı, kargo/gönderici ve iade sorumluluğu nedir?
 3. Nilvera ikinci görüşmesinin sahibi ve sandbox/PROD erişim tarihi nedir?
 4. Fiziksel mağaza bilgileri yayınlanacak mı; reklam testi için onaylı bütçe/ürün grubu nedir?
