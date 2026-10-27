@@ -10,6 +10,7 @@ use App\Models\Store;
 use App\Models\User;
 use App\Observers\CustomerObserver;
 use App\Observers\OrderObserver;
+use App\Observers\OrderInvoiceObserver;
 use App\Observers\SellerStoreWiseObserver;
 use App\Observers\StoreObserver;
 use App\Observers\UserObserver;
@@ -46,6 +47,9 @@ class AppServiceProvider extends ServiceProvider
         Store::observe(SellerStoreWiseObserver::class);
         Store::observe(StoreObserver::class);
         Order::observe(OrderObserver::class);
+        if (config('services.einvoice.enabled')) {
+            Order::observe(OrderInvoiceObserver::class);
+        }
 
         // Morph map
         Relation::morphMap([
