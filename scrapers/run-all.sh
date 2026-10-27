@@ -6,7 +6,6 @@ cd /var/www/quikecommerce
 DATE=$(date +%Y%m%d)
 LOG="/var/www/quikecommerce/logs/scrapers-$DATE.log"
 VENV="/var/www/quikecommerce/venv/bin/python3"
-if ! bash /var/www/quikecommerce/scrapers/check-python-env.sh "$VENV"; then exit 1; fi
 
 # Maraton icin Scrapling env (anti-bot)
 export SCRAPER_URL=https://scraper.guezelwebdesign.com
@@ -41,6 +40,10 @@ send_tg() {
 }
 
 FAIL_COUNT=0
+if ! bash /var/www/quikecommerce/scrapers/check-python-env.sh "$VENV"; then
+  send_tg '🚨 <b>Gunluk scraper Python ortami bozuk</b> — kaynaklar baslatilmadi; cron logunu kontrol et.'
+  exit 1
+fi
 FAIL_LIST=""
 
 run_scraper() {
