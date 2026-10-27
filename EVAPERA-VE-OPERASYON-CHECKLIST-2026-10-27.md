@@ -4,6 +4,8 @@
 
 - [x] Kullanıcı Evapera anlaşmasını ve yetkili kaynağın `evapera.com` olduğunu doğruladı.
 - [x] Python sanal ortamı 3.13'e geri bağlandı; hedefli Provitanya tarama/senkronu hatasız geçti. PR: <https://github.com/Orhanguezel/quickecommerce/pull/30>.
+- [x] Sağlık raporu, eski başarısızlığı aynı günkü başarılı tekrar denemeden sonra göstermeyecek şekilde düzeltildi (PR #30; canlıda doğrulandı).
+- [x] Kayıtlı tarayıcısı olmayan Heyday #78 ve Neptün #79'un 880 saattir bayat kalan 23 eşlemesindeki 20 pozitif stok sıfırlandı; geri alma verisi canlı sunucuda `/tmp/legacy-source-stock-20261027.json` (600 izinli). İki public mağazada satılabilir ürün sayısı 0.
 - [x] Evapera #81 pasif mağaza açıldı; 13 ürün `pending`, 56 varyant ve kaynak eşlemesi hazır. Görseller yerel Media kaydına alındı; kalite kapısı 0 hata/0 uyarı ve ilk fiyat/stok senkronu 0 hata. PR: <https://github.com/Orhanguezel/quickecommerce/pull/29>.
 - [x] Kaynaktaki Evapera logosu yerel Media kaydına alındı; public dosya HTTP 200 ve kaynakla aynı içerik. Mağaza meta başlığı/açıklaması hazırlandı; mağaza hâlâ pasif.
 - [x] Pasif mağazanın doğrudan public API'de görünmesi düzeltildi; `store-details/evapera` artık 404, `product-list?store_id=81` 0 ürün.
@@ -28,6 +30,7 @@
 - [x] Günlük 25 scraper hatasının ortak nedeni bulundu: sanal ortam Python 3.13 için kurulmuşken çalıştırıcı 3.14'e işaret ediyordu; `requests`/`bs4` yüklenemiyordu. Python yolu düzeltildi, bağımlılık/versiyon ön kontrolü cron komutlarına eklendi (PR #30).
 - [x] Hedefli Provitanya taraması ve fiyat/stok senkronu geçti: 1940 kaynak ürünü, 1848 eşleme, 0 hata. Evapera hedefli tarama/senkronu da 0 hata verdi.
 - [ ] 27 Ekim tam kurtarma taraması ile sonraki gerçek 02:00 UTC cron sonucunu kontrol et. Ürün fiyatı/stoku bayatsa satışa açık olup olmadığını kaynak bazında doğrula.
+- [ ] Heyday ve Neptün için güvenilir günlük kaynak taraması/senkronu kurulmadan eski stokları yeniden açma. Bu iki kaynak mevcut `run-all.sh`/aktif kaynak kayıt listesinde yok.
 - [x] Mevcut günlük gözlemler doğrulandı: `monitor:commerce-health` 07:00 UTC, `scrapers:health-check` 09:00 UTC, `scrapers:enforce-freshness --hours=36 --apply` her saatin 20. dakikası. 27 Ekim okumasında temel sayfalar/DB/cache çalışıyor, başarısız kuyruk işi 0; bayat 15 kaynağın satışa açık stok adedi 0. Cimri ve Google XML feed'leri HTTP 200.
 - [ ] Alarm sahibi ve ödeme/fatura sağlayıcı paneli kontrolü operasyon ekibince atanacak. Sonraki gerçek cron döngüsü ile feed kabul/sıralama sonucu ayrıca doğrulanacak.
 
