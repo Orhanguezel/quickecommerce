@@ -18,3 +18,6 @@ export const useQuestionsDeleteService = () => {
 export const useQuestionsStatusUpdateService = () => {
   return useBaseService<Questions>(API_ENDPOINTS.QUESTIONS_STATUS_CHANGE);
 };
+export const useQuestionsReplyService = () => {
+  return useBaseService<Questions>(API_ENDPOINTS.QUESTIONS_REPLY);
+};

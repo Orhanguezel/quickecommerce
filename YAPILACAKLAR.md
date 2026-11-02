@@ -4,6 +4,13 @@
 > 5 günlük trafik raporu + ayrı nginx log, Geliver Türkçe il/ilçe fix + #113,
 > Google Places API, admin sipariş detayı/fatura adres + isim + temiz format.
 
+## 🆕 Admin ürün sorularına yanıt (2026-11-02)
+
+- [~] Admin soru listesinde ve ürün düzenleme ekranında yanıt formu ile yetkili API eklendi; 2026-11-02'de canlıya alındı. Admin oturumuyla gerçek yanıt kaydetme kabulü bekliyor.
+- PR: <https://github.com/Orhanguezel/quickecommerce/pull/32>
+- Canlı doğrulama: admin paneli ve müşteri sitesi HTTPS 200; yeni route kayıtlı, yetkisiz POST 401; izole build ve canary 200.
+- [ ] Canlı admin hesabıyla boş yanıtın engellendiğini, geçerli yanıtın kaydedilip listede göründüğünü doğrula.
+
 ## 🔐 Admin Google girişi — TAMAMLANDI (2026-08-22)
 
 - [X] Admin giriş ekranına Google ile giriş eklendi.

@@ -71,4 +71,25 @@ class AdminProductQueryManageController extends Controller
             ], 500);
         }
     }
+
+    public function replyQuestion(Request $request)
+    {
+        if (auth('sanctum')->user()?->activity_scope !== 'system_level') {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'question_id' => 'required|integer|exists:product_queries,id',
+            'reply' => 'required|string|max:1000',
+        ]);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $reply = $this->productQueryRepo->replyQuestion($validator->validated());
+
+        return $reply
+            ? response()->json(['message' => __('messages.reply_success')], 200)
+            : response()->json(['message' => __('messages.data_not_found')], 404);
+    }
 }
