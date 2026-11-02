@@ -7,6 +7,7 @@
 ## 🆕 Admin ürün sorularına yanıt (2026-11-02)
 
 - [~] Admin soru listesinde ve ürün düzenleme ekranında yanıt formu ile yetkili API eklendi; PR incelemesi ve canlı kabul bekliyor.
+- PR: <https://github.com/Orhanguezel/quickecommerce/pull/32>
 - [ ] Canlı admin hesabıyla boş yanıtın engellendiğini, geçerli yanıtın kaydedilip listede göründüğünü doğrula.
 
 ## 🔐 Admin Google girişi — TAMAMLANDI (2026-08-22)
