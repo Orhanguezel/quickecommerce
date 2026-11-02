@@ -4,6 +4,11 @@
 > 5 günlük trafik raporu + ayrı nginx log, Geliver Türkçe il/ilçe fix + #113,
 > Google Places API, admin sipariş detayı/fatura adres + isim + temiz format.
 
+## 🆕 Admin ürün sorularına yanıt (2026-11-02)
+
+- [~] Admin soru listesinde ve ürün düzenleme ekranında yanıt formu ile yetkili API eklendi; PR incelemesi ve canlı kabul bekliyor.
+- [ ] Canlı admin hesabıyla boş yanıtın engellendiğini, geçerli yanıtın kaydedilip listede göründüğünü doğrula.
+
 ## 🔐 Admin Google girişi — TAMAMLANDI (2026-08-22)
 
 - [X] Admin giriş ekranına Google ile giriş eklendi.

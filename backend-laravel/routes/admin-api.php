@@ -466,6 +466,7 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => ['auth:sanctum']], functi
             });
             Route::group(['prefix' => 'questions/'], function () {
                 Route::get('/', [AdminProductQueryManageController::class, 'getAllQueries']);
+                Route::post('reply', [AdminProductQueryManageController::class, 'replyQuestion']);
                 Route::post('change-status', [AdminProductQueryManageController::class, 'changeStatus']);
                 Route::post('remove', [AdminProductQueryManageController::class, 'destroy']);
             });

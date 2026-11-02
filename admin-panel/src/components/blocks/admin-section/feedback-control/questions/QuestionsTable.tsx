@@ -363,8 +363,8 @@ const QuestionsTable = ({ searchValue, selectStatus, selectReplied }: any) => {
             <div className="flex items-center justify-start gap-2">
               <ShowReplyModal
                 trigger={<CustomReplyIcon />}
-                question={row?.question}
-                reply={row?.reply}
+                row={row}
+                refetch={refetch}
               />
             </div>
           ),
