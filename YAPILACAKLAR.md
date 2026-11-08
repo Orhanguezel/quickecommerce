@@ -879,7 +879,11 @@ Sporcu besinleri ve ml/gr içerikli ürünler için weight filter — scraper up
 - [X] Bildirim zili yalnız admin türündeki okunmamış kayıtları getirir; açık panelde 30 saniyede yenilenir.
 - [X] Zil ve bildirim listesindeki başlıklar soru/yorum ekranlarına dil korunarak yönlenir; sipariş bağlantıları korunur.
 - [X] PHPUnit: 3 test / 19 assertion; bağlantı çözümleme: 6 kontrol. Canlı backend transaction testi başarılı, test kayıtları geri alındı.
-- [ ] Canlı panel yayını ve tarayıcı kabulü.
+- [X] Canlı panel yayını: bildirim listesi ve zil üzerinden soru/yorum yönlendirmeleri doğrulandı; JavaScript hatası yok. UI testi yalnız tarayıcı yanıt örnekleriyle yapıldı, gerçek bildirim üretilmedi.
+- [X] `bun run lint` ve `bun run build` başarılı (önceden mevcut uyarılar).
+- PR: https://github.com/Orhanguezel/quickecommerce/pull/38 (draft).
+- Panel geri dönüşü: `/var/www/quikecommerce/admin-panel/deploy.pre-feedback-20261109`.
 
 Kapsam: panel içi bildirimler, yeni kayıtlar. Geçmiş kayıtlar topluca bildirilmez; WhatsApp/e-posta/push gönderimi eklenmedi. Ortak admin kutusunun mevcut okundu davranışı korunur.
 Backend yedeği: `/var/www/feedback-notifications-20261109/backup/` (ProductQuery.php, Review.php).
+- [X] Canlı gerçek API: HTTP 200, yalnız admin bildirimleri; açık panelde 30 saniyelik yenileme gözlendi. 390×844 mobil genişlikte taşma yok.
