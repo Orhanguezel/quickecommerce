@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import WhatsappAdminGuide from "./admin-guide";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useBaseService } from "@/modules/core/base.service";
 
@@ -42,6 +43,7 @@ export default function WhatsappSettings() {
       </ol>
       <p className="mt-3 text-sm">Gönderim durumu: {status?.connection?.enabled ? (status.connection.pilot_mode ? "Yalnız pilot numaralar" : "Etkin") : "Kapalı — kurulum bekleniyor"}</p>
     </section>
+    <WhatsappAdminGuide />
     {notice && <p role="status">{notice}</p>}
     <section className="rounded border bg-white p-4 text-gray-900"><h2 className="mb-3 text-lg font-medium">Hesabı bağla</h2>
       <p className="mb-3 text-sm">Sportoonline numarasına ait ayrı işletme hesabını kullanın. Kimlik bilgileri şifreli saklanır.</p>
