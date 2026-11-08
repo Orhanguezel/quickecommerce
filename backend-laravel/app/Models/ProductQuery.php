@@ -8,6 +8,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class ProductQuery extends Model
 {
     use SoftDeletes;
+
+    protected static function booted(): void
+    {
+        static::created(function (self $feedback): void {
+            app(\App\Services\FeedbackNotificationService::class)->notify($feedback);
+        });
+    }
     protected $fillable = [
         "product_id",
         "customer_id",

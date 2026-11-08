@@ -10,6 +10,8 @@ import TableSkeletonLoader from "@/components/molecules/TableSkeletonLoader";
 import { Badge } from "@/components/ui";
 import { CountItems } from "@/config/helperJson";
 import { Routes } from "@/config/routes";
+import { notificationRoute } from "@/lib/notification-route";
+import Link from "next/link";
 import {
   useNotificationsDelete,
   useNotificationsQuery,
@@ -24,6 +26,7 @@ import React, { useEffect, useMemo, useState } from "react";
 
 interface RecordType {
   id: string;
+  data?: { type?: string; order_id?: string | number };
   serial: string;
   title?: string;
   brand_name: string;
@@ -281,6 +284,15 @@ const NotificationsTable = ({ selectStatus, selectNotifiableType }: any) => {
               />
             </div>
           ),
+        };
+      }
+      if (col.dataIndex === "title") {
+        return {
+          ...col,
+          render: (title: string, row: RecordType) => {
+            const target = notificationRoute(row.data);
+            return target ? <Link className="text-blue-600 underline" href={`/${locale}${target}`}>{title}</Link> : title;
+          },
         };
       }
       if (col.dataIndex === "status") {

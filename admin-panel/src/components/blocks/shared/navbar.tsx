@@ -7,6 +7,7 @@ import { Routes } from "@/config/routes";
 import { SellerRoutes } from "@/config/sellerRoutes";
 import { useFirebaseNotifications } from "@/lib/hooks/useFirebaseNotifications";
 import { cn } from "@/lib/utils";
+import { notificationRoute } from "@/lib/notification-route";
 import { useNotificationsQuery as useAdminNotificationsQuery } from "@/modules/admin-section/notifications/notifications.action";
 import { useNotificationsQuery as useSellerNotificationsQuery } from "@/modules/seller-section/notifications/notifications.action";
 import { useStoreListQuery } from "@/modules/seller-section/product/product.action";
@@ -62,6 +63,8 @@ export function Navbar({ MeData, setIsLoading }: any) {
     {
       per_page: 20,
       language: LocaleDir,
+      status: "unread",
+      notifiable_type: "admin",
     },
     { skip: getPermissions?.activity_scope !== "system_level" }
   );
@@ -159,14 +162,9 @@ export function Navbar({ MeData, setIsLoading }: any) {
   const handleNotificationClick = (notification: any, e?: React.MouseEvent) => {
     if (!notification) return;
     setIsHovering(false);
-    const orderID = notification.data?.order_id;
-    if (!orderID) return;
-
-    let url = `${Routes.orderDetails}/${orderID}`;
-
-    if (data && data.activity_scope === "store_level") {
-      url = `${SellerRoutes.orderDetails}/${orderID}`;
-    }
+    const target = notificationRoute(notification.data, data?.activity_scope === "store_level");
+    if (!target) return;
+    const url = `/${localeRoute}${target}`;
     if (e && (e.ctrlKey || e.metaKey || e.button === 1)) {
       window.open(url, "_blank");
     } else {
