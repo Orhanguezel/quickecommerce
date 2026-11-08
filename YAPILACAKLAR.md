@@ -12,7 +12,7 @@
 - [~] [Ayrıntılı checklist](docs/WHATSAPP-BUSINESS-ENTEGRASYON-CHECKLIST.md) ve [uygulama kanıtları](docs/WHATSAPP-UYGULAMA-VE-YAYIN.md).
 - [ ] Yeni numara henüz alınmadı: Meta bağlantısı/şablon onayı, manuel migration, pilot alıcı ve gerçek teslim kabulü bekliyor.
 - [ ] Genel müşteri lint ve genel PHPUnit mevcut hataları ayrı kayıtta; tamamı geçti denmedi.
-- Uygulama PR: PR_LINK_PENDING (araştırma PR: https://github.com/Orhanguezel/quickecommerce/pull/33).
+- Uygulama PR: https://github.com/Orhanguezel/quickecommerce/pull/34 (araştırma PR: https://github.com/Orhanguezel/quickecommerce/pull/33).
 
 ## 🆕 Satış Büyütme + Ana Sayfa Vitrini — UYGULAMA ÇEKLİSTİ (2026-08-13)
 

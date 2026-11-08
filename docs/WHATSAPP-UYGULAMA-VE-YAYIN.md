@@ -4,6 +4,7 @@
 
 Kullanıcı bilgisi: **Sportoonline için yeni numara henüz alınmadı.** Kod varsayılan olarak gönderime kapalıdır. OSGB hesabı, numarası, tokenı veya aboneliği değiştirilmedi. Müşteriye gerçek mesaj gönderilmedi. Bu belge yerel uygulama kanıtını canlı kabulden ayırır.
 
+- Uygulama PR: https://github.com/Orhanguezel/quickecommerce/pull/34 (taslak; canlı kabul açık).
 - Uygulama dalı: `codex/whatsapp-implementation`; taban `20a51f80`.
 - Araştırma PR'ı: https://github.com/Orhanguezel/quickecommerce/pull/33
 - Yönetici ekranı: `/tr/admin/system-management/whatsapp`.
@@ -36,7 +37,7 @@ Kullanıcı bilgisi: **Sportoonline için yeni numara henüz alınmadı.** Kod v
 
 - `tests/Feature/WhatsappTest.php`: 26 test, 72 assertion geçti (sahte HTTP, SQLite).
 - İzole **MySQL 8.0.46**: sekiz tablo migration'ı uygulandı; iki ayrı PHP worker aynı mesajı eşzamanlı işledi: bir Meta fake çağrısı, bir attempt, accepted durumu. Harness: `tests/Support/whatsapp-concurrency.php`; test socket'i `/tmp/whatsapp-mysql-data/mysql.sock`, DB `whatsapp_test`.
-- Admin ve müşteri `bun run build` geçti. Admin lint mevcut warning'lerle geçti. Müşteri genel lint **82 hata, 29 warning** ile geçmedi; yeni WhatsApp bileşeni hedefli lint'ten geçti. Genel lint başarı olarak işaretlenmedi.
+- Admin ve müşteri `bun run build` geçti. Bunlar test ortamı build’leridir; canlı paket doğru üretim ortam değişkenleriyle yeniden derlenmelidir. Admin lint mevcut warning'lerle geçti. Müşteri genel lint **82 hata, 29 warning** ile geçmedi; yeni WhatsApp bileşeni hedefli lint'ten geçti. Genel lint başarı olarak işaretlenmedi.
 - Playwright yerel API fixture'larıyla bağlantısız/bağlı ekranları açtı. 390px ölçüm: viewport=390, scrollWidth=390; masaüstü 1440px. Ortak navbar mobil boşlukları daraltıldı. Son konsol kontrolü sıfır error. Bu test gerçek canlı oturum/Meta kabulü değildir.
 - Genel PHPUnit ayrıca çalıştırıldı: mevcut iyzico marketplace testlerinin eski constructor çağrısından 4 hata ve örnek HTTP testinde test APP_KEY eksikliğinden 1 hata. Bu genel sonuç geçmedi; WhatsApp testleri ayrı başarılıdır.
 - Canlı entegrasyon patch’i salt okunur indirilen 19 dosyanın kopyasında `git apply --check` kontrolünden geçti; birleştirilmiş PHP dosyaları syntax kontrolünden geçti.
