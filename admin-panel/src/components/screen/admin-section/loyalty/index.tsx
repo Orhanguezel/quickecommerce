@@ -5,6 +5,7 @@ import { API_ENDPOINTS } from "@/endpoints/AdminApiEndPoints";
 import { useBaseService } from "@/modules/core/base.service";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { useLoyaltySummaryQuery } from "@/modules/admin-section/loyalty-settings/loyalty-settings.action";
 import { toast } from "react-toastify";
 
 type CustomerRow = {
@@ -36,7 +37,7 @@ const TYPE_LABEL: Record<string, string> = {
   manual: "Elle düzenleme",
 };
 
-const LoyaltyCustomers = () => {
+const LoyaltyCustomers = ({ embedded = false }: { embedded?: boolean }) => {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<CustomerRow | null>(null);
@@ -45,11 +46,7 @@ const LoyaltyCustomers = () => {
 
   const { getAxiosInstance } = useBaseService<any>(API_ENDPOINTS.LOYALTY_CUSTOMERS);
 
-  const { data: summaryData } = useQuery({
-    queryKey: [API_ENDPOINTS.LOYALTY_SUMMARY],
-    queryFn: async () =>
-      (await getAxiosInstance().get(API_ENDPOINTS.LOYALTY_SUMMARY)).data,
-  });
+  const { summary } = useLoyaltySummaryQuery();
 
   const { data: listData, isPending } = useQuery({
     queryKey: [API_ENDPOINTS.LOYALTY_CUSTOMERS, search],
@@ -94,7 +91,6 @@ const LoyaltyCustomers = () => {
     },
   });
 
-  const summary = summaryData?.data;
   const rows: CustomerRow[] = listData?.data ?? [];
   const history = historyData?.data;
 
@@ -113,7 +109,7 @@ const LoyaltyCustomers = () => {
 
   return (
     <div className="space-y-4">
-      <Card>
+      {!embedded && <Card>
         <CardContent className="p-2 md:p-4">
           <h1 className="text-lg md:text-2xl font-semibold text-blue-500">
             Sadakat Puanları
@@ -122,7 +118,7 @@ const LoyaltyCustomers = () => {
             Müşteri bakiyeleri, puan geçmişi ve elle düzeltme.
           </p>
         </CardContent>
-      </Card>
+      </Card>}
 
       {summary && (
         <Card>
