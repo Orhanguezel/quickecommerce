@@ -109,7 +109,24 @@ def parse_product(html, url, source):
     model = model_from_html(html)
     if str(model.get('brandName', '')).casefold() != brand.casefold():
         raise ValueError(f'Unexpected brand at {url}')
-    data = parse_base(html, url, brand, category)
+    # Ticimax now emits ProductGroup for selectable variants. Only accept the
+    # group belonging to the validated page model; stock/prices still come
+    # exclusively from that model below.
+    metadata_html = html
+    soup = BeautifulSoup(html, 'html.parser')
+    for script in soup.select('script[type="application/ld+json"]'):
+        try:
+            group = json.loads(script.get_text())
+        except (ValueError, TypeError):
+            continue
+        if isinstance(group, dict) and group.get('@type') == 'ProductGroup':
+            if str(group.get('productGroupID', '')) != str(model['productId']):
+                raise ValueError('Product group does not match page model')
+            group['@type'] = 'Product'
+            script.string = json.dumps(group)
+            metadata_html = str(soup)
+            break
+    data = parse_base(metadata_html, url, brand, category)
     if not data:
         raise ValueError(f'Product JSON-LD missing: {url}')
     if str(model.get('productCurrency', '')).upper() not in {'TRY', 'TL'}:

@@ -1,0 +1,91 @@
+{
+  "productId": 12279,
+  "brandName": "Yonex",
+  "productCurrency": "TRY",
+  "productActive": true,
+  "productVariantData": [
+    {
+      "tanim": "Kırmızı",
+      "tipID": 1,
+      "ekSecenekTipiTanim": "Renk",
+      "urunID": 68278
+    },
+    {
+      "tanim": "G1",
+      "tipID": 3,
+      "ekSecenekTipiTanim": "Grip Size",
+      "urunID": 68278
+    },
+    {
+      "tanim": "Kırmızı",
+      "tipID": 1,
+      "ekSecenekTipiTanim": "Renk",
+      "urunID": 68279
+    },
+    {
+      "tanim": "G2",
+      "tipID": 3,
+      "ekSecenekTipiTanim": "Grip Size",
+      "urunID": 68279
+    },
+    {
+      "tanim": "Kırmızı",
+      "tipID": 1,
+      "ekSecenekTipiTanim": "Renk",
+      "urunID": 68280
+    },
+    {
+      "tanim": "G3",
+      "tipID": 3,
+      "ekSecenekTipiTanim": "Grip Size",
+      "urunID": 68280
+    }
+  ],
+  "products": [
+    {
+      "id": 68277,
+      "barkod": "",
+      "stokAdedi": 0.0,
+      "satisFiyati": 13839.1667,
+      "indirimliFiyati": 0.0,
+      "satisKDV": 2767.8333399999997,
+      "indirimliKDV": 0.0,
+      "aktif": true,
+      "anaUrun": true
+    },
+    {
+      "id": 68278,
+      "barkod": "4550468409083",
+      "stokAdedi": 0.0,
+      "satisFiyati": 13839.1667,
+      "indirimliFiyati": 0.0,
+      "satisKDV": 2767.8333399999997,
+      "indirimliKDV": 0.0,
+      "aktif": true,
+      "anaUrun": false
+    },
+    {
+      "id": 68279,
+      "barkod": "4550468409090",
+      "stokAdedi": 0.0,
+      "satisFiyati": 13839.1667,
+      "indirimliFiyati": 0.0,
+      "satisKDV": 2767.8333399999997,
+      "indirimliKDV": 0.0,
+      "aktif": true,
+      "anaUrun": false
+    },
+    {
+      "id": 68280,
+      "barkod": "4550468409106",
+      "stokAdedi": 3.0,
+      "satisFiyati": 13839.1667,
+      "indirimliFiyati": 0.0,
+      "satisKDV": 2767.8333399999997,
+      "indirimliKDV": 0.0,
+      "aktif": true,
+      "anaUrun": false
+    }
+  ],
+  "productImages": []
+}
