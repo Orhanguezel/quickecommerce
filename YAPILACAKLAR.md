@@ -6,6 +6,8 @@
 
 ## WhatsApp Business müşteri bildirimleri — 2026-11-08
 
+- [X] Yönetici erişim düzeltmesi: Engin Eser (ID 1, Super Admin) için eksik WhatsApp izinleri `whatsapp:grant 1` ile verildi. Canlı API önce 403, sonra 200; Engin oturumuyla hesap formu görünür, yetki hatası yok, konsol 0 error. Geçici doğrulama tokenı iptal edildi. Salt okunur hesabın izinleri değiştirilmedi.
+
 - [X] Kullanıcı düzeltmesi: rehber ayrı `/admin/system-management/whatsapp/rehber` sayfasına taşındı. Yönetim / Kullanım Rehberi sekmeleri, karşılıklı geçiş, doğrudan yenileme ve 390px mobil görünüm canlıda doğrulandı. Yönetim sayfasında rehber/uzun kurulum listesi yok. PR #35.
 
 - [X] Panel içi yönetici rehberi canlı: yedi açılır bölüm, altı şablon taslağı, Meta/panel iş ayrımı, pilot ve sorun giderme. Yetkili oturum, açılır bölüm ve 390px mobil kontrolü geçti. PR: https://github.com/Orhanguezel/quickecommerce/pull/35
