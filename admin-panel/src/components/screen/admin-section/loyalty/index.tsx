@@ -5,6 +5,7 @@ import { API_ENDPOINTS } from "@/endpoints/AdminApiEndPoints";
 import { useBaseService } from "@/modules/core/base.service";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { useLoyaltySummaryQuery } from "@/modules/admin-section/loyalty-settings/loyalty-settings.action";
 import { toast } from "react-toastify";
 
 type CustomerRow = {
@@ -45,11 +46,7 @@ const LoyaltyCustomers = ({ embedded = false }: { embedded?: boolean }) => {
 
   const { getAxiosInstance } = useBaseService<any>(API_ENDPOINTS.LOYALTY_CUSTOMERS);
 
-  const { data: summaryData } = useQuery({
-    queryKey: [API_ENDPOINTS.LOYALTY_SUMMARY],
-    queryFn: async () =>
-      (await getAxiosInstance().get(API_ENDPOINTS.LOYALTY_SUMMARY)).data,
-  });
+  const { summary } = useLoyaltySummaryQuery();
 
   const { data: listData, isPending } = useQuery({
     queryKey: [API_ENDPOINTS.LOYALTY_CUSTOMERS, search],
@@ -94,7 +91,6 @@ const LoyaltyCustomers = ({ embedded = false }: { embedded?: boolean }) => {
     },
   });
 
-  const summary = summaryData?.data;
   const rows: CustomerRow[] = listData?.data ?? [];
   const history = historyData?.data;
 
