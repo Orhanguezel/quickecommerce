@@ -161,10 +161,10 @@ const ManagementGuide = () => {
   );
 };
 
-const LoyaltySettings = () => {
+const LoyaltySettings = ({ embedded = false }: { embedded?: boolean }) => {
   return (
     <div>
-      <Card>
+      {!embedded && <Card>
         <CardContent className="flex flex-col md:flex-row gap-4 justify-between p-2 md:p-4">
           <div>
             <h1 className="text-lg md:text-2xl font-semibold text-blue-500 flex items-center gap-2">
@@ -177,7 +177,7 @@ const LoyaltySettings = () => {
             </p>
           </div>
         </CardContent>
-      </Card>
+      </Card>}
 
       <ManagementGuide />
 

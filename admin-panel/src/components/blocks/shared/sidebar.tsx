@@ -157,7 +157,7 @@ export const Sidebar = memo(({ setIsLoading }: any) => {
                   children: [],
                 },
                 {
-                  perm_title: "Sadakat Puanlari",
+                  perm_title: "Sadakat Yönetimi",
                   perm_name: "/admin/loyalty",
                   icon: "Award",
                   children: [],
@@ -166,12 +166,6 @@ export const Sidebar = memo(({ setIsLoading }: any) => {
                   perm_title: "WhatsApp Business",
                   perm_name: "/admin/system-management/whatsapp",
                   icon: "MessageCircle",
-                  children: [],
-                },
-                {
-                  perm_title: "Sadakat Ayarlari",
-                  perm_name: "/admin/system-management/loyalty-settings",
-                  icon: "Settings2",
                   children: [],
                 },
               ],

@@ -1,9 +1,10 @@
-import LoyaltySettings from "@/components/screen/admin-section/loyalty-settings";
+import { redirect } from "next/navigation";
 
-const LoyaltySettingsRoot = () => {
-  return (
-    <LoyaltySettings />
-  );
-};
-
-export default LoyaltySettingsRoot;
+export default async function LegacyLoyaltySettingsPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  redirect(`/${locale}/admin/loyalty/settings`);
+}

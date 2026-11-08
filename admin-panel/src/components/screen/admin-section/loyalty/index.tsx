@@ -36,7 +36,7 @@ const TYPE_LABEL: Record<string, string> = {
   manual: "Elle düzenleme",
 };
 
-const LoyaltyCustomers = () => {
+const LoyaltyCustomers = ({ embedded = false }: { embedded?: boolean }) => {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<CustomerRow | null>(null);
@@ -113,7 +113,7 @@ const LoyaltyCustomers = () => {
 
   return (
     <div className="space-y-4">
-      <Card>
+      {!embedded && <Card>
         <CardContent className="p-2 md:p-4">
           <h1 className="text-lg md:text-2xl font-semibold text-blue-500">
             Sadakat Puanları
@@ -122,7 +122,7 @@ const LoyaltyCustomers = () => {
             Müşteri bakiyeleri, puan geçmişi ve elle düzeltme.
           </p>
         </CardContent>
-      </Card>
+      </Card>}
 
       {summary && (
         <Card>
