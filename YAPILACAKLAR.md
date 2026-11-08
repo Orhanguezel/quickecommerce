@@ -6,6 +6,8 @@
 
 ## WhatsApp Business müşteri bildirimleri — 2026-11-08
 
+- [X] Panel içi yönetici rehberi canlı: yedi açılır bölüm, altı şablon taslağı, Meta/panel iş ayrımı, pilot ve sorun giderme. Yetkili oturum, açılır bölüm ve 390px mobil kontrolü geçti. PR: https://github.com/Orhanguezel/quickecommerce/pull/35
+
 - [X] OSGB mimarisi referansıyla ayrı numara/WABA için Laravel ve Next.js uygulaması eklendi.
 - [X] 29 hedefli test / 81 doğrulama, izole MySQL eşzamanlılık testi ve iki frontend build geçti.
 - [X] Canlı sürüm farklarını koruyan entegrasyon patch'i ve yayın/geri dönüş talimatı hazırlandı.
