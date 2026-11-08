@@ -3,7 +3,7 @@ const templates = [{"name": "sportoonline_payment_confirmed_v1", "text": "Merhab
 export default function WhatsappAdminGuide() {
   return <section className="space-y-3 rounded border bg-white p-4 text-gray-900" aria-labelledby="whatsapp-guide-title">
     <h2 id="whatsapp-guide-title" className="text-lg font-semibold">Yönetici kullanım rehberi</h2>
-    <p className="text-sm">İlk kurulumda aşağıdaki sırayı izleyin. Numara satın alma ve Meta hesabı/şablon onayları Meta tarafında; hesabı bağlama, kontrol ve bildirim ayarları bu panelde tamamlanır.</p>
+    <p className="text-sm">İlk kurulumda aşağıdaki sırayı izleyin. Numara satın alma ve Meta hesabı/şablon onayları Meta tarafında; hesabı bağlama, kontrol ve bildirim ayarları Yönetim sekmesinde tamamlanır.</p>
     <details open className="rounded border p-3">
       <summary className="cursor-pointer font-medium">1. Başlamadan önce hazırlayın</summary>
       <ul className="mt-3 list-disc space-y-2 pl-5 text-sm">
@@ -22,7 +22,7 @@ export default function WhatsappAdminGuide() {
         <div><dt className="font-semibold">Erişim anahtarı</dt><dd>Bu uygulama ve WhatsApp hesabına erişebilen token. Üretim için uygun sistem kullanıcısı erişimini ve WhatsApp mesajlaşma/yönetim izinlerini teknik sorumlunuzla hazırlayın; örnek kurulumdaki geçici tokenı kalıcı kurulum olarak bırakmayın.</dd></div>
         <div><dt className="font-semibold">Uygulama gizli anahtarı</dt><dd>Aynı Meta uygulamasının App Secret değeridir. Telefon doğrulama kodu, WhatsApp PIN’i veya erişim tokenı değildir.</dd></div>
       </dl>
-      <p className="mt-3 text-sm">Bu dört bilgiyi aşağıdaki <strong>Hesabı bağla</strong> formuna girip <strong>Doğrula ve bağla</strong> düğmesine basın. Anahtarları yalnız bu forma girin; sohbet, e-posta veya ekran görüntüsüyle paylaşmayın. Panel sırları şifreli saklar ve geri göstermez.</p>
+      <p className="mt-3 text-sm">Bu dört bilgiyi <strong>Yönetim</strong> sekmesindeki <strong>Hesabı bağla</strong> formuna girip <strong>Doğrula ve bağla</strong> düğmesine basın. Anahtarları yalnız bu forma girin; sohbet, e-posta veya ekran görüntüsüyle paylaşmayın. Panel sırları şifreli saklar ve geri göstermez.</p>
       <p className="mt-3 text-sm">Bağlantı kaydının oluşması gönderimi açmaz. Yanlış hesap veya numara aidiyeti varsa bilgileri düzeltin. Yeniden bağlama gönderimi kapatır; webhook, pilot numaralar ve bildirim ayarlarını tekrar kontrol etmeniz gerekir.</p>
     </details>
     <details className="rounded border p-3">

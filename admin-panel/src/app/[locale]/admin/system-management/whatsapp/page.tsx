@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import WhatsappAdminGuide from "./admin-guide";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useBaseService } from "@/modules/core/base.service";
 
@@ -26,24 +25,11 @@ export default function WhatsappSettings() {
   const status = query.data;
   if (query.isPending) return <p className="p-6">WhatsApp ayarları yükleniyor…</p>;
   if (query.isError) return <p role="alert" className="p-6">WhatsApp ayarları yüklenemedi. Yönetim yetkisi gereklidir.</p>;
-  return <main className="mx-auto max-w-4xl space-y-6 p-4 sm:p-6">
-    <h1 className="text-2xl font-semibold">WhatsApp Business</h1>
+  return <div className="space-y-6">
     <p>Müşterilerin sipariş bildirimlerini ve gelen mesajlarını yönetin.</p>
     <p role="status" className="rounded border p-3">{status?.configured ? `Hesap bağlı · ${status.connection?.health.display_phone_number ?? "Numara doğrulanıyor"} · ${status.connection?.health.messaging_status ?? "Bilinmiyor"}` : "Yeni Sportoonline numarası henüz bağlanmadı. Numara ve Meta hesabı hazır olduğunda aşağıdan bağlayın."}</p>
     {!status?.channel_available && <p className="rounded bg-amber-50 p-3 text-amber-950">Bildirim gönderimi henüz açılmadı.</p>}
-    <section className="rounded border bg-white p-4 text-gray-900" aria-label="Aktivasyon adımları">
-      <h2 className="mb-3 text-lg font-medium">Kurulum ve aktivasyon</h2>
-      <ol className="list-decimal space-y-2 pl-5">
-        <li>{status?.configured ? "✓ Hesap bilgileri kaydedildi." : "Sportoonline için yeni numarayı ve ayrı WhatsApp işletme hesabını hazırlayın; aşağıdaki bilgileri girin."}</li>
-        <li>{status?.connection?.health.connected ? "✓ Numara bağlantısı doğrulandı." : "Numaranın Cloud API bağlantısını doğrulayın."}</li>
-        <li>{status?.connection?.subscribed ? "✓ Webhook bağlantısı kuruldu." : "Hesap bağlandıktan sonra Webhook bağlantısını kur düğmesini kullanın."}</li>
-        <li>Meta tarafından onaylanan Türkçe bildirim şablonlarını eşitleyin.</li>
-        <li>Pilot numarayı ve bildirim türlerini seçin; pilot modunda etkinleştirip test mesajını doğrulayın.</li>
-        <li>Test tamamlanınca pilot modunu kapatarak seçilen bildirimleri müşterilere açın.</li>
-      </ol>
-      <p className="mt-3 text-sm">Gönderim durumu: {status?.connection?.enabled ? (status.connection.pilot_mode ? "Yalnız pilot numaralar" : "Etkin") : "Kapalı — kurulum bekleniyor"}</p>
-    </section>
-    <WhatsappAdminGuide />
+    <p className="text-sm">Gönderim durumu: {status?.connection?.enabled ? (status.connection.pilot_mode ? "Yalnız pilot numaralar" : "Etkin") : "Kapalı — kurulum bekleniyor"}</p>
     {notice && <p role="status">{notice}</p>}
     <section className="rounded border bg-white p-4 text-gray-900"><h2 className="mb-3 text-lg font-medium">Hesabı bağla</h2>
       <p className="mb-3 text-sm">Sportoonline numarasına ait ayrı işletme hesabını kullanın. Kimlik bilgileri şifreli saklanır.</p>
@@ -92,5 +78,5 @@ export default function WhatsappSettings() {
         </div>}
       </section>
     </>}
-  </main>;
+  </div>;
 }
