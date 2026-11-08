@@ -1,5 +1,6 @@
 "use client";
 
+import { WhatsappPreferences } from "@/components/whatsapp/preferences";
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "@/i18n/routing";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -725,6 +726,8 @@ export function AccountClient({ translations: t }: Props) {
                   {t.save}
                 </Button>
               </form>
+
+              <WhatsappPreferences />
 
               {/* Delete Account */}
               <div className="mt-8 border-t pt-6">

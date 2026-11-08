@@ -182,7 +182,11 @@ class AdminOrderManageController extends Controller
             $order->cancelled_by = $userId;
             $order->cancelled_at = Carbon::now();
             $order->status = 'cancelled';
-            $success = $order->save();
+            $success = \Illuminate\Support\Facades\DB::transaction(function () use ($order) {
+            $saved = $order->save();
+            if ($saved) { app(\App\Services\Whatsapp\WhatsappEventService::class)->cancelled($order); }
+            return $saved;
+        });
 
             // Notification + Email
             $this->sendOrderDeliveredNotifications($order, null, 'admin_order_status_cancelled');
@@ -566,7 +570,11 @@ class AdminOrderManageController extends Controller
             $order->cancelled_by = auth('api')->user()->id;
             $order->cancelled_at = Carbon::now();
             $order->status = 'cancelled';
-            $success = $order->save();
+            $success = \Illuminate\Support\Facades\DB::transaction(function () use ($order) {
+            $saved = $order->save();
+            if ($saved) { app(\App\Services\Whatsapp\WhatsappEventService::class)->cancelled($order); }
+            return $saved;
+        });
             if ($success) {
                 return response()->json([
                     'message' => __('messages.order_cancel_successful')

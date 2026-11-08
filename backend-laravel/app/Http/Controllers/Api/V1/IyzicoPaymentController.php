@@ -618,8 +618,11 @@ class IyzicoPaymentController extends Controller
                     $orderMaster->iyzico_payment_items_json = json_encode($transactionIds);
                 }
 
-                $orderMaster->save();
-                $orderMaster->orders()->update(['payment_status' => 'paid']);
+                \Illuminate\Support\Facades\DB::transaction(function () use ($orderMaster) {
+                    $orderMaster->save();
+                    $orderMaster->orders()->update(['payment_status' => 'paid']);
+                    app(\App\Services\Whatsapp\WhatsappEventService::class)->payment($orderMaster);
+                });
 
                 // 2026-06-05: Post-order stok teyit jobu — 30 dk sonra canli
                 // scraper ile dogrula. Bool-only kaynaklar (provitanya, proteinmax)

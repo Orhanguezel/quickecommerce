@@ -1,0 +1,386 @@
+--- a/admin-panel/src/components/blocks/shared/navbar.tsx
++++ b/admin-panel/src/components/blocks/shared/navbar.tsx
+@@ -235,7 +235,7 @@
+           className={` ${
+             data && data.activity_scope === "store_level"
+               ? " flex flex-col flex-1 md:flex-row items-start md:items-center space-x-0 md:space-x-2 justify-start md:justify-end px-0 md:px-2 gap-2"
+-              : "flex items-center flex-1 space-x-0 md:space-x-2 justify-start md:justify-end px-0 md:px-2  gap-4"
++              : "flex items-center flex-1 space-x-0 md:space-x-2 justify-start md:justify-end px-0 md:px-2 gap-1 md:gap-4"
+           } `}
+         >
+           <div className="flex items-center justify-center gap-2">
+@@ -262,11 +262,11 @@
+                 <ExternalLink width={15} height={15} />
+               </Button>
+             </Link>
+-            <div className="mx-2 md:mx-0">
++            <div className="mx-0">
+               <LocaleSwitcher />
+             </div>
+           </div>
+-          <div className={`flex items-center justify-center gap-3`}>
++          <div className={`flex items-center justify-center gap-1 md:gap-3`}>
+             {data && data.activity_scope === "store_level" && (
+               <div
+                 className={cn(
+--- a/admin-panel/src/components/blocks/shared/sidebar.tsx
++++ b/admin-panel/src/components/blocks/shared/sidebar.tsx
+@@ -160,6 +160,12 @@
+                   perm_title: "Sadakat Puanlari",
+                   perm_name: "/admin/loyalty",
+                   icon: "Award",
++                  children: [],
++                },
++                {
++                  perm_title: "WhatsApp Business",
++                  perm_name: "/admin/system-management/whatsapp",
++                  icon: "MessageCircle",
+                   children: [],
+                 },
+                 {
+--- a/backend-laravel/app/Console/Commands/ReconcilePendingIyzicoPayments.php
++++ b/backend-laravel/app/Console/Commands/ReconcilePendingIyzicoPayments.php
+@@ -89,6 +89,7 @@
+                     }
+                     $locked->save();
+                     $locked->orders()->update(['payment_status' => 'paid']);
++                    app(\App\Services\Whatsapp\WhatsappEventService::class)->payment($locked);
+ 
+                     return true;
+                 });
+--- a/backend-laravel/app/Http/Controllers/Api/V1/Admin/AdminOrderManageController.php
++++ b/backend-laravel/app/Http/Controllers/Api/V1/Admin/AdminOrderManageController.php
+@@ -182,7 +182,11 @@
+             $order->cancelled_by = $userId;
+             $order->cancelled_at = Carbon::now();
+             $order->status = 'cancelled';
+-            $success = $order->save();
++            $success = \Illuminate\Support\Facades\DB::transaction(function () use ($order) {
++            $saved = $order->save();
++            if ($saved) { app(\App\Services\Whatsapp\WhatsappEventService::class)->cancelled($order); }
++            return $saved;
++        });
+ 
+             // Odenmis alt siparis iptali: iade talebi ac (odeme saglayicisina gitmez).
+             if ($success) {
+@@ -571,7 +575,11 @@
+             $order->cancelled_by = auth('api')->user()->id;
+             $order->cancelled_at = Carbon::now();
+             $order->status = 'cancelled';
+-            $success = $order->save();
++            $success = \Illuminate\Support\Facades\DB::transaction(function () use ($order) {
++            $saved = $order->save();
++            if ($saved) { app(\App\Services\Whatsapp\WhatsappEventService::class)->cancelled($order); }
++            return $saved;
++        });
+             if ($success) {
+                 // Odenmis alt siparis iptali: iade talebi ac (odeme saglayicisina gitmez).
+                 app(\App\Services\Order\PaidOrderCancellationService::class)->flagForRefund($order, 'admin');
+--- a/backend-laravel/app/Http/Controllers/Api/V1/Customer/CustomerOrderController.php
++++ b/backend-laravel/app/Http/Controllers/Api/V1/Customer/CustomerOrderController.php
+@@ -198,7 +198,11 @@
+         $order->cancelled_by = auth('api_customer')->user()->id;
+         $order->cancelled_at = Carbon::now();
+         $order->status = 'cancelled';
+-        $success = $order->save();
++        $success = \Illuminate\Support\Facades\DB::transaction(function () use ($order) {
++            $saved = $order->save();
++            if ($saved) { app(\App\Services\Whatsapp\WhatsappEventService::class)->cancelled($order); }
++            return $saved;
++        });
+ 
+         // Odenmis alt siparis iptali: iade talebi ac (odeme saglayicisina gitmez).
+         if ($success) {
+--- a/backend-laravel/app/Http/Controllers/Api/V1/Customer/PlaceOrderController.php
++++ b/backend-laravel/app/Http/Controllers/Api/V1/Customer/PlaceOrderController.php
+@@ -103,6 +103,7 @@
+                 if ($order_master['payment_gateway'] === 'wallet') {
+                     $success = $this->updateWallet($order_master['order_amount'], $order_master);
+                     if ($success) {
++                        \Illuminate\Support\Facades\DB::transaction(function () use ($order_master) {
+                         OrderMaster::where('id', $order_master['id'])->update([
+                             'payment_gateway' => 'wallet',
+                             'payment_status' => 'paid',
+@@ -110,6 +111,8 @@
+                         Order::where('order_master_id', $order_master['id'])->update([
+                             'payment_status' => 'paid',
+                         ]);
++                        app(\App\Services\Whatsapp\WhatsappEventService::class)->payment(OrderMaster::findOrFail($order_master['id']));
++                        });
+                     } else {
+                         OrderMaster::where('id', $order_master['id'])->update([
+                             'payment_gateway' => 'wallet',
+--- a/backend-laravel/app/Http/Controllers/Api/V1/IyzicoPaymentController.php
++++ b/backend-laravel/app/Http/Controllers/Api/V1/IyzicoPaymentController.php
+@@ -618,8 +618,11 @@
+                     $orderMaster->iyzico_payment_items_json = json_encode($transactionIds);
+                 }
+ 
+-                $orderMaster->save();
+-                $orderMaster->orders()->update(['payment_status' => 'paid']);
++                \Illuminate\Support\Facades\DB::transaction(function () use ($orderMaster) {
++                    $orderMaster->save();
++                    $orderMaster->orders()->update(['payment_status' => 'paid']);
++                    app(\App\Services\Whatsapp\WhatsappEventService::class)->payment($orderMaster);
++                });
+ 
+                 // Sunucu tarafi GA4 purchase (yalniz izinli ga_client_id varsa; kuyrukta).
+                 \App\Services\Analytics\Ga4MeasurementProtocol::queuePurchase($orderMaster);
+--- a/backend-laravel/app/Http/Controllers/Api/V1/PayTRPaymentController.php
++++ b/backend-laravel/app/Http/Controllers/Api/V1/PayTRPaymentController.php
+@@ -425,9 +425,11 @@
+             $orderMaster->payment_status = 'paid';
+             $orderMaster->transaction_ref = $merchantOid;
+             $orderMaster->paid_amount = (float)$totalAmount / 100; // kuruştan TL'ye çevir
+-            $orderMaster->save();
+-
+-            $orderMaster->orders()->update(['payment_status' => 'paid']);
++            \Illuminate\Support\Facades\DB::transaction(function () use ($orderMaster) {
++                $orderMaster->save();
++                $orderMaster->orders()->update(['payment_status' => 'paid']);
++                app(\App\Services\Whatsapp\WhatsappEventService::class)->payment($orderMaster);
++            });
+ 
+             // Sunucu tarafi GA4 purchase (yalniz izinli ga_client_id varsa; kuyrukta).
+             \App\Services\Analytics\Ga4MeasurementProtocol::queuePurchase($orderMaster);
+--- a/backend-laravel/app/Http/Controllers/Api/V1/Seller/SellerStoreOrderController.php
++++ b/backend-laravel/app/Http/Controllers/Api/V1/Seller/SellerStoreOrderController.php
+@@ -362,7 +362,11 @@
+         $order->cancelled_by = auth('api')->user()->id;
+         $order->cancelled_at = Carbon::now();
+         $order->status = 'cancelled';
+-        $success = $order->save();
++        $success = \Illuminate\Support\Facades\DB::transaction(function () use ($order) {
++            $saved = $order->save();
++            if ($saved) { app(\App\Services\Whatsapp\WhatsappEventService::class)->cancelled($order); }
++            return $saved;
++        });
+ 
+         // Odenmis alt siparis iptali: iade talebi ac (odeme saglayicisina gitmez).
+         if ($success) {
+--- a/backend-laravel/app/Http/Controllers/Api/V1/StripeWebhookController.php
++++ b/backend-laravel/app/Http/Controllers/Api/V1/StripeWebhookController.php
+@@ -59,10 +59,13 @@
+                     $orderMaster->payment_gateway = 'stripe';
+                     $orderMaster->transaction_ref = $sessionId;
+                     $orderMaster->paid_amount = $orderMaster->paid_amount ?? ($amount_total / 100);
+-                    $orderMaster->save();
+-
+-                    // update child orders payment_status
+-                    $orderMaster->orders()->update(['payment_status' => 'paid']);
++                    \Illuminate\Support\Facades\DB::transaction(function () use ($orderMaster, $session) {
++                        $orderMaster->save();
++                        $orderMaster->orders()->update(['payment_status' => 'paid']);
++                        if (($session->payment_status ?? null) === 'paid') {
++                            app(\App\Services\Whatsapp\WhatsappEventService::class)->payment($orderMaster);
++                        }
++                    });
+ 
+                     // Sunucu tarafi GA4 purchase (yalniz izinli ga_client_id varsa; kuyrukta).
+                     \App\Services\Analytics\Ga4MeasurementProtocol::queuePurchase($orderMaster);
+--- a/backend-laravel/app/Http/Controllers/Api/V1/Webhooks/GdeliverWebhookController.php
++++ b/backend-laravel/app/Http/Controllers/Api/V1/Webhooks/GdeliverWebhookController.php
+@@ -108,7 +108,10 @@
+             'full_payload'         => $payload,
+         ];
+         $updateData['raw_response'] = $rawResponse;
+-        $cargoShipment->update($updateData);
++        \Illuminate\Support\Facades\DB::transaction(function () use ($cargoShipment, $updateData) {
++            $cargoShipment->update($updateData);
++            app(\App\Services\Whatsapp\WhatsappEventService::class)->shipment($cargoShipment);
++        });
+ 
+         Log::channel('geliver_webhook')->info('CargoShipment updated', [
+             'cargo_shipment_id' => $cargoShipment->id,
+--- a/backend-laravel/app/Http/Requests/Order/PlaceOrderRequest.php
++++ b/backend-laravel/app/Http/Requests/Order/PlaceOrderRequest.php
+@@ -25,6 +25,9 @@
+     public function rules(): array
+     {
+         return [
++
++            'whatsapp_updates' => 'sometimes|boolean',
++            'whatsapp_phone' => 'required_if:whatsapp_updates,true|nullable|string|max:30|phone:TR',
+ 
+             // Guest Checkout Validation
+             'guest_info' => 'nullable|array',
+--- a/backend-laravel/app/Services/IyzicoRefundService.php
++++ b/backend-laravel/app/Services/IyzicoRefundService.php
+@@ -72,6 +72,7 @@
+             // dokunma. Iade edilemeyen out-order'lar full-cancel YERINE manuel iade icin
+             // escalate edilir — yani stoktaki satici collateral olarak iptal OLMAZ.
+             $refundedOutIds = [];
++            $whatsappConfirmedAmounts = [];
+             $failedOutIds = [];
+             $failedDetail = [];
+             foreach ($items as $it) {
+@@ -93,6 +94,9 @@
+                     // 5249/5088 -> zaten iade (idempotent ok)
+                     if ($status === 'success' || in_array($code, ['5249', '5088'], true)) {
+                         $refundedOutIds[$oid] = true;
++                        if ($status === 'success') {
++                            $whatsappConfirmedAmounts[$oid] = ($whatsappConfirmedAmounts[$oid] ?? 0) + (float) $it['paid_price'];
++                        }
+                     } else {
+                         $failedOutIds[$oid] = true;
+                         $failedDetail[] = "order#{$oid} txn{$it['transaction_id']}:{$code}:" . (string) $res->getErrorMessage();
+@@ -111,7 +115,8 @@
+                     orderIds: $okOutIds,
+                     outOrderIds: $okOutIds,
+                     setMasterRefunded: false,
+-                    note: 'urun-bazli kismi iade'
++                    note: 'urun-bazli kismi iade',
++                    whatsappConfirmedAmounts: $whatsappConfirmedAmounts
+                 );
+             }
+ 
+@@ -215,7 +220,8 @@
+                 orderIds: $allOrderIds,
+                 outOrderIds: $outOrderIds,
+                 setMasterRefunded: true,
+-                note: $note
++                note: $note,
++                whatsappConfirmedAmounts: $ok && !empty($allOrderIds) ? [$allOrderIds[0] => (float) $master->paid_amount] : []
+             );
+ 
+             Log::info('IyzicoRefund: whole cancel success', [
+@@ -248,10 +254,10 @@
+      * outOrderIds icindekiler "stok tukenmis" sebebiyle, digerleri (full cancel
+      * collateral) "Diger" sebebiyle kaydedilir.
+      */
+-    private function markOrdersRefunded(OrderMaster $master, array $orderIds, array $outOrderIds, bool $setMasterRefunded, string $note): void
++    private function markOrdersRefunded(OrderMaster $master, array $orderIds, array $outOrderIds, bool $setMasterRefunded, string $note, array $whatsappConfirmedAmounts = []): void
+     {
+         $newlyRefunded = [];
+-        DB::transaction(function () use ($master, $orderIds, $outOrderIds, $setMasterRefunded, $note, &$newlyRefunded) {
++        DB::transaction(function () use ($master, $orderIds, $outOrderIds, $setMasterRefunded, $note, $whatsappConfirmedAmounts, &$newlyRefunded) {
+             if ($setMasterRefunded) {
+                 $master->payment_status = 'refunded';
+                 $master->save();
+@@ -283,7 +289,7 @@
+                     continue;
+                 }
+                 $isStockOut = in_array((int) $sub->id, array_map('intval', $outOrderIds), true);
+-                DB::table('order_refunds')->insert([
++                $whatsappRefundId = DB::table('order_refunds')->insertGetId([
+                     'order_id' => $sub->id,
+                     'customer_id' => $master->customer_id,
+                     'store_id' => $sub->store_id,
+@@ -296,6 +302,7 @@
+                     'created_at' => now(),
+                     'updated_at' => now(),
+                 ]);
++                app(\App\Services\Whatsapp\WhatsappEventService::class)->refund($sub, 'refund:'.$whatsappRefundId, (float) ($whatsappConfirmedAmounts[$sub->id] ?? 0));
+                 $newlyRefunded[] = (int) $sub->id;
+             }
+ 
+--- a/backend-laravel/app/Services/OrderService.php
++++ b/backend-laravel/app/Services/OrderService.php
+@@ -673,6 +673,7 @@
+             $all_orders_ids = Order::where('order_master_id', $order_master->id)->pluck('id')->toArray();
+ 
+             // notification send
++            app(\App\Services\Whatsapp\WhatsappEventService::class)->created($order_master, $data);
+             $this->orderManageNotificationService->createOrderNotification($all_orders_ids, 'new-order');
+ 
+             // Siparis maili (musteri + admin + magaza) createOrderNotification
+--- a/backend-laravel/routes/api.php
++++ b/backend-laravel/routes/api.php
+@@ -287,3 +287,5 @@
+     });
+ 
+ });
++
++Route::prefix('v1')->group(base_path('routes/whatsapp-api.php'));
+--- a/backend-laravel/routes/console.php
++++ b/backend-laravel/routes/console.php
+@@ -155,3 +155,8 @@
+ }
+ 
+ Schedule::command('wishlist:check-price-drops --apply')->everyFifteenMinutes()->withoutOverlapping();
++
++// Keep callbacks processing while outbound kill switch is disabled.
++Schedule::command('whatsapp:dispatch')->everyMinute()->withoutOverlapping()->when(fn () => \Illuminate\Support\Facades\Schema::hasTable('whatsapp_messages'));
++Schedule::command('whatsapp:refresh')->everyTenMinutes()->withoutOverlapping()->when(fn () => \Illuminate\Support\Facades\Schema::hasTable('whatsapp_connections'));
++Schedule::command('whatsapp:prune --apply')->dailyAt('03:40')->withoutOverlapping()->when(fn () => \Illuminate\Support\Facades\Schema::hasTable('whatsapp_messages'));
+--- a/customer-web-nextjs/src/app/[locale]/hesabim/account-client.tsx
++++ b/customer-web-nextjs/src/app/[locale]/hesabim/account-client.tsx
+@@ -1,5 +1,6 @@
+ "use client";
+ 
++import { WhatsappPreferences } from "@/components/whatsapp/preferences";
+ import { useState, useEffect, useMemo } from "react";
+ import { Link } from "@/i18n/routing";
+ import { useRouter, useSearchParams } from "next/navigation";
+@@ -726,6 +727,8 @@
+                 </Button>
+               </form>
+ 
++              <WhatsappPreferences />
++
+               {/* Delete Account */}
+               <div className="mt-8 border-t pt-6">
+                 <Button
+--- a/customer-web-nextjs/src/app/[locale]/odeme/checkout-client.tsx
++++ b/customer-web-nextjs/src/app/[locale]/odeme/checkout-client.tsx
+@@ -1,4 +1,6 @@
+ "use client";
++import { useQuery } from "@tanstack/react-query";
++import { WhatsappCheckoutConsent } from "@/components/whatsapp/preferences";
+ 
+ import { useEffect, useMemo, useRef, useState } from "react";
+ import { Link } from "@/i18n/routing";
+@@ -164,6 +166,7 @@
+     title: string;
+     cartFingerprint: string;
+   } | null>(null);
++  const [whatsappConsent, setWhatsappConsent] = useState({enabled:false,phone:""});
+   const cartFingerprint = items.map((item) =>
+     `${item.product_id}:${item.variant_id ?? ""}:${item.quantity}:${item.price}`
+   ).join("|");
+@@ -205,6 +208,9 @@
+     usePaymentGatewaysQuery();
+   const { data: walletData } = useWalletInfoQuery();
+   const { getAxiosInstance } = useBaseService("/product");
++
++  const whatsappApi = getAxiosInstance();
++  const whatsappAvailability = useQuery({queryKey:["whatsapp-checkout-availability"], enabled:!!profile, queryFn:async()=>(await whatsappApi.get<{available:boolean}>("/customer/profile/whatsapp-preferences")).data});
+ 
+   const checkoutPaymentGateways = useMemo(
+     () =>
+@@ -643,6 +649,7 @@
+       currency_code: selectedCurrencyCode || "TRY",
+       payment_gateway: paymentMethod,
+       order_notes: orderNotes || undefined,
++      ...(whatsappAvailability.data?.available ? {whatsapp_updates:whatsappConsent.enabled,whatsapp_phone:whatsappConsent.enabled ? whatsappConsent.phone : undefined} : {}),
+       order_amount: total,
+       coupon_code: appliedCoupon?.code,
+       coupon_title: appliedCoupon?.title,
+@@ -1261,6 +1268,8 @@
+                 </div>
+               </div>
+ 
++              {whatsappAvailability.data?.available && <WhatsappCheckoutConsent enabled={whatsappConsent.enabled} phone={whatsappConsent.phone} onChange={(enabled,phone)=>setWhatsappConsent({enabled,phone})} />}
++
+               <Button
+                 className="mt-6 w-full"
+                 size="lg"
+@@ -1270,6 +1279,7 @@
+                   createIyzicoSessionMutation.isPending ||
+                   createPaytrSessionMutation.isPending ||
+                   !paymentMethod ||
++                  (whatsappConsent.enabled && !whatsappConsent.phone.trim()) ||
+                   (!selectedAddressId && paymentMethod !== "takeaway") ||
+                   selectedAddressMissingLocation ||
+                   (paymentMethod === "wallet" && (walletData?.wallets?.total_balance ?? 0) < total)
+--- a/customer-web-nextjs/src/modules/checkout/checkout.type.ts
++++ b/customer-web-nextjs/src/modules/checkout/checkout.type.ts
+@@ -91,6 +91,8 @@
+ }
+ 
+ export interface PlaceOrderInput {
++  whatsapp_updates?: boolean;
++  whatsapp_phone?: string;
+   shipping_address_id?: number;
+   currency_code: string;
+   payment_gateway: string;

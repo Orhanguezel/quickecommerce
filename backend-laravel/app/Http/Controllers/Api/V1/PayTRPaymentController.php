@@ -425,9 +425,11 @@ class PayTRPaymentController extends Controller
             $orderMaster->payment_status = 'paid';
             $orderMaster->transaction_ref = $merchantOid;
             $orderMaster->paid_amount = (float)$totalAmount / 100; // kuruştan TL'ye çevir
-            $orderMaster->save();
-
-            $orderMaster->orders()->update(['payment_status' => 'paid']);
+            \Illuminate\Support\Facades\DB::transaction(function () use ($orderMaster) {
+                $orderMaster->save();
+                $orderMaster->orders()->update(['payment_status' => 'paid']);
+                app(\App\Services\Whatsapp\WhatsappEventService::class)->payment($orderMaster);
+            });
 
             Log::info('PayTR payment verified', [
                 'order_master_id' => $orderMaster->id,

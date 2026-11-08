@@ -1,0 +1,15 @@
+[program:sportoonline-whatsapp]
+process_name=%(program_name)s_%(process_num)02d
+command=/usr/bin/php /var/www/quikecommerce/backend-laravel/artisan queue:work database --queue=whatsapp --sleep=2 --tries=1 --timeout=45 --max-time=3600
+directory=/var/www/quikecommerce/backend-laravel
+user=www-data
+numprocs=2
+autostart=false
+autorestart=true
+stopasgroup=true
+killasgroup=true
+stopwaitsecs=65
+redirect_stderr=true
+stdout_logfile=/var/www/quikecommerce/backend-laravel/storage/logs/whatsapp-worker.log
+stdout_logfile_maxbytes=10MB
+stdout_logfile_backups=3

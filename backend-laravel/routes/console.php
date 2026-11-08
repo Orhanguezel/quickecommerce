@@ -153,3 +153,8 @@ if ($swanSyncStoreId) {
 }
 
 Schedule::command('wishlist:check-price-drops --apply')->everyFifteenMinutes()->withoutOverlapping();
+
+// Keep callbacks processing while outbound kill switch is disabled.
+Schedule::command('whatsapp:dispatch')->everyMinute()->withoutOverlapping()->when(fn () => \Illuminate\Support\Facades\Schema::hasTable('whatsapp_messages'));
+Schedule::command('whatsapp:refresh')->everyTenMinutes()->withoutOverlapping()->when(fn () => \Illuminate\Support\Facades\Schema::hasTable('whatsapp_connections'));
+Schedule::command('whatsapp:prune --apply')->dailyAt('03:40')->withoutOverlapping()->when(fn () => \Illuminate\Support\Facades\Schema::hasTable('whatsapp_messages'));

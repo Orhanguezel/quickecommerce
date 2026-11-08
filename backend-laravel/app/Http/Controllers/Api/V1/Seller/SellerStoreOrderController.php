@@ -362,7 +362,11 @@ class SellerStoreOrderController extends Controller
         $order->cancelled_by = auth('api')->user()->id;
         $order->cancelled_at = Carbon::now();
         $order->status = 'cancelled';
-        $success = $order->save();
+        $success = \Illuminate\Support\Facades\DB::transaction(function () use ($order) {
+            $saved = $order->save();
+            if ($saved) { app(\App\Services\Whatsapp\WhatsappEventService::class)->cancelled($order); }
+            return $saved;
+        });
 
         // Notify seller and customer
         $order = [$order->id];

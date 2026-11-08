@@ -89,6 +89,7 @@ class ReconcilePendingIyzicoPayments extends Command
                     }
                     $locked->save();
                     $locked->orders()->update(['payment_status' => 'paid']);
+                    app(\App\Services\Whatsapp\WhatsappEventService::class)->payment($locked);
 
                     return true;
                 });

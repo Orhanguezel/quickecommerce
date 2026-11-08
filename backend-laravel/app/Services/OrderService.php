@@ -667,6 +667,7 @@ class OrderService
             $all_orders_ids = Order::where('order_master_id', $order_master->id)->pluck('id')->toArray();
 
             // notification send
+            app(\App\Services\Whatsapp\WhatsappEventService::class)->created($order_master, $data);
             $this->orderManageNotificationService->createOrderNotification($all_orders_ids, 'new-order');
 
             // Siparis maili (musteri + admin + magaza) createOrderNotification

@@ -163,6 +163,12 @@ export const Sidebar = memo(({ setIsLoading }: any) => {
                   children: [],
                 },
                 {
+                  perm_title: "WhatsApp Business",
+                  perm_name: "/admin/system-management/whatsapp",
+                  icon: "MessageCircle",
+                  children: [],
+                },
+                {
                   perm_title: "Sadakat Ayarlari",
                   perm_name: "/admin/system-management/loyalty-settings",
                   icon: "Settings2",

@@ -1,4 +1,6 @@
 "use client";
+import { useQuery } from "@tanstack/react-query";
+import { WhatsappCheckoutConsent } from "@/components/whatsapp/preferences";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@/i18n/routing";
@@ -162,6 +164,7 @@ export function CheckoutClient({ translations: t }: Props) {
     discount: number;
     title: string;
   } | null>(null);
+  const [whatsappConsent, setWhatsappConsent] = useState({enabled:false,phone:""});
   const [orderNotes, setOrderNotes] = useState("");
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [addressSearchError, setAddressSearchError] = useState<string | null>(null);
@@ -197,6 +200,9 @@ export function CheckoutClient({ translations: t }: Props) {
     usePaymentGatewaysQuery();
   const { data: walletData } = useWalletInfoQuery();
   const { getAxiosInstance } = useBaseService("/product");
+
+  const whatsappApi = getAxiosInstance();
+  const whatsappAvailability = useQuery({queryKey:["whatsapp-checkout-availability"], enabled:!!profile, queryFn:async()=>(await whatsappApi.get<{available:boolean}>("/customer/profile/whatsapp-preferences")).data});
 
   const checkoutPaymentGateways = useMemo(
     () =>
@@ -612,6 +618,7 @@ export function CheckoutClient({ translations: t }: Props) {
       currency_code: selectedCurrencyCode || "TRY",
       payment_gateway: paymentMethod,
       order_notes: orderNotes || undefined,
+      ...(whatsappAvailability.data?.available ? {whatsapp_updates:whatsappConsent.enabled,whatsapp_phone:whatsappConsent.enabled ? whatsappConsent.phone : undefined} : {}),
       order_amount: total,
       coupon_code: appliedCoupon?.code,
       coupon_title: appliedCoupon?.title,
@@ -1229,6 +1236,8 @@ export function CheckoutClient({ translations: t }: Props) {
                 </div>
               </div>
 
+              {whatsappAvailability.data?.available && <WhatsappCheckoutConsent enabled={whatsappConsent.enabled} phone={whatsappConsent.phone} onChange={(enabled,phone)=>setWhatsappConsent({enabled,phone})} />}
+
               <Button
                 className="mt-6 w-full"
                 size="lg"
@@ -1238,6 +1247,7 @@ export function CheckoutClient({ translations: t }: Props) {
                   createIyzicoSessionMutation.isPending ||
                   createPaytrSessionMutation.isPending ||
                   !paymentMethod ||
+                  (whatsappConsent.enabled && !whatsappConsent.phone.trim()) ||
                   (!selectedAddressId && paymentMethod !== "takeaway") ||
                   selectedAddressMissingLocation ||
                   (paymentMethod === "wallet" && (walletData?.wallets?.total_balance ?? 0) < total)

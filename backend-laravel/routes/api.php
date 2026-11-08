@@ -287,3 +287,5 @@ Route::group(['prefix' => 'v1/admin', 'middleware' => ['auth:sanctum', ApiAuthMi
     });
 
 });
+
+Route::prefix('v1')->group(base_path('routes/whatsapp-api.php'));

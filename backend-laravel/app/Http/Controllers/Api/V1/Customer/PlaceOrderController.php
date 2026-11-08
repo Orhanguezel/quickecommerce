@@ -95,6 +95,7 @@ class PlaceOrderController extends Controller
                 if ($order_master['payment_gateway'] === 'wallet') {
                     $success = $this->updateWallet($order_master['order_amount'], $order_master);
                     if ($success) {
+                        \Illuminate\Support\Facades\DB::transaction(function () use ($order_master) {
                         OrderMaster::where('id', $order_master['id'])->update([
                             'payment_gateway' => 'wallet',
                             'payment_status' => 'paid',
@@ -102,6 +103,8 @@ class PlaceOrderController extends Controller
                         Order::where('order_master_id', $order_master['id'])->update([
                             'payment_status' => 'paid',
                         ]);
+                        app(\App\Services\Whatsapp\WhatsappEventService::class)->payment(OrderMaster::findOrFail($order_master['id']));
+                        });
                     } else {
                         OrderMaster::where('id', $order_master['id'])->update([
                             'payment_gateway' => 'wallet',
