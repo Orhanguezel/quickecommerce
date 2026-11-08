@@ -35,7 +35,7 @@ Kullanıcı bilgisi: **Sportoonline için yeni numara henüz alınmadı.** Kod v
 
 ## Doğrulama
 
-- `tests/Feature/WhatsappTest.php`: 26 test, 72 assertion geçti (sahte HTTP, SQLite).
+- `tests/Feature/WhatsappTest.php`: 27 test, 74 assertion geçti (sahte HTTP, SQLite).
 - İzole **MySQL 8.0.46**: sekiz tablo migration'ı uygulandı; iki ayrı PHP worker aynı mesajı eşzamanlı işledi: bir Meta fake çağrısı, bir attempt, accepted durumu. Harness: `tests/Support/whatsapp-concurrency.php`; test socket'i `/tmp/whatsapp-mysql-data/mysql.sock`, DB `whatsapp_test`.
 - Admin ve müşteri `bun run build` geçti. Bunlar test ortamı build’leridir; canlı paket doğru üretim ortam değişkenleriyle yeniden derlenmelidir. Admin lint mevcut warning'lerle geçti. Müşteri genel lint **82 hata, 29 warning** ile geçmedi; yeni WhatsApp bileşeni hedefli lint'ten geçti. Genel lint başarı olarak işaretlenmedi.
 - Playwright yerel API fixture'larıyla bağlantısız/bağlı ekranları açtı. 390px ölçüm: viewport=390, scrollWidth=390; masaüstü 1440px. Ortak navbar mobil boşlukları daraltıldı. Son konsol kontrolü sıfır error. Bu test gerçek canlı oturum/Meta kabulü değildir.

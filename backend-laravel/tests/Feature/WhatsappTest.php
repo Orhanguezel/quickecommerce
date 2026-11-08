@@ -389,4 +389,19 @@ class WhatsappTest extends TestCase
         $response = app(\App\Http\Middleware\RestrictReadOnlyAdmin::class)->handle($request, fn () => response('unsafe'));
         $this->assertSame(403, $response->getStatusCode());
     }
+
+    public function test_read_callback_before_send_response_is_not_downgraded(): void
+    {
+        $c = $this->connection(); $this->incoming($c); $m = $this->message($c);
+        Http::fake(function () use ($c, $m) {
+            $event = WhatsappWebhookEvent::create(['connection_id' => $c->id, 'event_hash' => hash('sha256', 'early-correlated'),
+                'payload' => ['entry' => [['id' => '123', 'changes' => [['value' => ['metadata' => ['phone_number_id' => '456'],
+                    'statuses' => [['id' => 'wamid.early', 'status' => 'read', 'timestamp' => time(), 'biz_opaque_callback_data' => $m->id]]]]]]]]]);
+            app(WhatsappWebhookProcessor::class)->process($event->id);
+            return Http::response(['messages' => [['id' => 'wamid.early']]]);
+        });
+        app(WhatsappSender::class)->send($m->id);
+        $this->assertSame('read', $m->fresh()->status);
+        $this->assertSame('wamid.early', $m->fresh()->provider_message_id);
+    }
 }

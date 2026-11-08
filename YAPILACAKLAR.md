@@ -7,7 +7,7 @@
 ## WhatsApp Business müşteri bildirimleri — 2026-11-08
 
 - [X] OSGB mimarisi referansıyla ayrı numara/WABA için Laravel ve Next.js uygulaması eklendi.
-- [X] 26 hedefli test / 72 doğrulama, izole MySQL eşzamanlılık testi ve iki frontend build geçti.
+- [X] 27 hedefli test / 74 doğrulama, izole MySQL eşzamanlılık testi ve iki frontend build geçti.
 - [X] Canlı sürüm farklarını koruyan entegrasyon patch'i ve yayın/geri dönüş talimatı hazırlandı.
 - [~] [Ayrıntılı checklist](docs/WHATSAPP-BUSINESS-ENTEGRASYON-CHECKLIST.md) ve [uygulama kanıtları](docs/WHATSAPP-UYGULAMA-VE-YAYIN.md).
 - [ ] Yeni numara henüz alınmadı: Meta bağlantısı/şablon onayı, manuel migration, pilot alıcı ve gerçek teslim kabulü bekliyor.
