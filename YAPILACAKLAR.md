@@ -864,3 +864,5 @@ Sporcu besinleri ve ml/gr içerikli ürünler için weight filter — scraper up
 - [X] Yonex 64/64 ürün kurtarma; canlı panel 28 sağlıklı / 1 kritik / 9 pasif. Açık alarmlar 152 → 8; sipariş/iade alarmları korundu. [PR #36](https://github.com/Orhanguezel/quickecommerce/pull/36).
 - [ ] Animal Türkiye: tedarikçinin sunucu erişim engelini kaldırması.
 - Ayrıntılar: [Sağlık raporu](docs/operations/scraper-health-2026-11-08.md).
+- [X] Animal Türkiye günlük scriptine yerel scraping motoru fallback'i bağlandı (`solve_cloudflare=true`, önbelleksiz); eksik tarama yayınlanmaz. Toplam 12 test geçti. [PR #36](https://github.com/Orhanguezel/quickecommerce/pull/36).
+- [~] Yerel motorla engeli aşma: stealth/fast/dynamic/görünür tarayıcı denemelerinin tamamı kaynak HTTP 403. Güncel stok doğrulaması için erişim engeli halen çözülmeli.

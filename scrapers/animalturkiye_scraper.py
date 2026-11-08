@@ -34,10 +34,16 @@ Cikti: data/source-products/animalturkiye_products.json
 
 import argparse
 import json
+import os
 import re
 import sys
 import time
 import urllib.request
+from urllib.parse import urlsplit
+from pathlib import Path
+
+import requests
+from paths import load_repo_env
 from concurrent.futures import ThreadPoolExecutor
 
 from shopify_scraper import resolve_output
@@ -59,6 +65,39 @@ UA = {
 VENDOR = "Animal Türkiye"
 
 
+def fetch_with_local_engine(url: str) -> str | None:
+    """Retry blocked public pages through this VPS's browser engine only."""
+    load_repo_env()
+    endpoint = os.environ.get('LOCAL_SCRAPER_URL', 'http://127.0.0.1:8200').rstrip('/')
+    if urlsplit(endpoint).hostname not in {'localhost', '127.0.0.1'}:
+        raise ValueError('Animal scraper requires the local VPS browser engine')
+    key = os.environ.get('LOCAL_SCRAPER_API_KEY')
+    if not key:
+        print('Local scraping engine key is not configured', file=sys.stderr)
+        return None
+    try:
+        response = requests.post(endpoint + '/api/v1/scrape',
+            headers={'Authorization': 'Bearer ' + key, 'Cache-Control': 'no-cache'},
+            json={'url': url, 'mode': 'stealthy', 'options': {
+                'solve_cloudflare': True, 'headless': True, 'network_idle': False,
+                'timeout': 120, 'block_ads': False, 'google_search': True,
+            }, 'return_html': True}, timeout=150)
+        response.raise_for_status()
+        result = response.json()
+        html = result.get('html') or ''
+        status = result.get('status_code')
+        print(f'  local engine: source HTTP {status}, cache={result.get("cache_hit")}', flush=True)
+        # HTTP 200 from the engine is transport success, not supplier access.
+        if result.get('success') and status == 200 and html and not any(
+            marker in html for marker in ['Sorry, you have been blocked', '<title>Just a moment', 'cf-chl-widget']
+        ):
+            return html
+    except (requests.RequestException, ValueError):
+        # Never log request headers or credentials from exception messages.
+        print('  local engine request failed', file=sys.stderr, flush=True)
+    return None
+
+
 def fetch(url: str, timeout: int = 30) -> str | None:
     try:
         req = urllib.request.Request(url, headers=UA)
@@ -68,7 +107,7 @@ def fetch(url: str, timeout: int = 30) -> str | None:
             return resp.read().decode("utf-8", "replace")
     except Exception as exc:  # ag/DNS/HTTP — urun atlanir, tarama devam eder
         print(f"  fetch FAIL {url[-45:]}: {exc}", file=sys.stderr, flush=True)
-        return None
+        return fetch_with_local_engine(url)
 
 
 def discover_slugs() -> list[str]:
@@ -92,6 +131,9 @@ def discover_slugs() -> list[str]:
     if listing:
         slugs.extend(re.findall(r'href="(?:' + re.escape(SITE) + r')?/urun/([a-z0-9\-]+)/"', listing))
 
+    if not xml or not listing:
+        print('Incomplete discovery; canonical output will not be replaced.', file=sys.stderr)
+        return []
     return list(dict.fromkeys(slugs))
 
 
@@ -181,8 +223,13 @@ def parse_product(html: str, url: str, slug: str) -> dict | None:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--limit", type=int, default=0, help="Sadece ilk N urun (test icin)")
-    parser.add_argument("--workers", type=int, default=4, help="Es zamanli istek sayisi")
+    parser.add_argument("--workers", type=int, default=2, help="Es zamanli istek sayisi (en fazla 2)")
+    parser.add_argument('--output', help='Separate output for limited/recovery runs')
     args = parser.parse_args()
+    if args.limit < 0 or (args.limit and not args.output):
+        parser.error('Limited runs require --output')
+    if not 1 <= args.workers <= 2:
+        parser.error('--workers must be 1 or 2')
 
     print(f"Animal Turkiye (WooCommerce/JSON-LD) scraper: {SITE}")
     print("=" * 58)
@@ -216,9 +263,14 @@ def main() -> int:
     products = [p for p in results if p]
     failed = len(results) - len(products)
 
-    output_file = resolve_output("animalturkiye_products.json")
-    with open(output_file, "w", encoding="utf-8") as handle:
-        json.dump(products, handle, ensure_ascii=False, indent=2)
+    if failed or not products:
+        print(f'Incomplete scrape ({failed} failed); canonical output preserved.', file=sys.stderr)
+        return 1
+    output_file = Path(args.output or resolve_output("animalturkiye_products.json"))
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    temporary = output_file.with_suffix('.tmp')
+    temporary.write_text(json.dumps(products, ensure_ascii=False, indent=2), encoding='utf-8')
+    temporary.replace(output_file)
 
     in_stock = sum(1 for p in products if p["available"])
     print(f"\nTamamlandi! {len(products)} urun ({in_stock} stokta, {failed} parse edilemedi) "

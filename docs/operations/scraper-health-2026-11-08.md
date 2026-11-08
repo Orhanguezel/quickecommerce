@@ -45,3 +45,20 @@ Sipariş stok teyidi ve manuel iade alarmları bu işlemde kapatılmaz. Eski scr
 - Repo içindeki iki değişen script staged dosyalara symlink ile bağlandı; aktif backend release'e üç PHP dosyası hedefli aktarıldı, PHP-FPM reload edildi.
 - Geri alma: script symlinklerini yedek dosyalara yönlendir; üç PHP dosyasını yedeklerden geri koy ve PHP-FPM reload et. Eski stok verisini körlemesine geri yükleme; tedarikçi güncelliği tekrar doğrulanmalı.
 - Migration, seed veya müşteri bildirimi gerektirmez.
+
+## Animal Türkiye — yerel motor entegrasyonu
+
+Kullanıcı geri bildirimi üzerine günlük scriptin doğrudan HTTP kullandığı doğrulandı. `animalturkiye_scraper.py` artık HTTP hatasında yalnız VPS içindeki `http://127.0.0.1:8200` motoruna döner: `stealthy`, `solve_cloudflare=true`, 120 saniye, önbellek atlama. API'nin HTTP 200 yanıtı kaynak erişimi sayılmaz; kaynak `status_code=200` ve gerçek içerik şarttır. En fazla 2 paralel ürün; eksik keşif veya tek ürün hatasında çıktı yayınlanmaz; sınırlı tarama ayrı `--output` ister.
+
+Canlı motor denemeleri (önbelleksiz):
+
+| Mod | Kaynak sonucu |
+| --- | --- |
+| Stealth + Cloudflare çözme | 403, blok sayfası |
+| Fast | 403, blok sayfası |
+| Dynamic Chromium | 403, blok sayfası |
+| Görünür Stealth Chromium / Xvfb | 403, `No Cloudflare challenge found` |
+
+Motor sürümü Scrapling 0.4.8. Hazır bir proxy yapılandırması yok. Görünür tarayıcı denemesi aynı yerel motor container'ında geçici Xvfb ile yapıldı; servis genel ayarları değiştirilmedi. Mevcut sunucu çıkışıyla engel aşılamadı. Sağlıklı/stokta duruma geçiş yapılmadı. Yetkilendirilmiş farklı ağ çıkışı veya tedarikçi tarafında erişim izni gerekiyor.
+
+4 yeni regresyon testi (403 → yerel motor, motorun 200 yanıtı içinde kaynak 403'ünü reddetme, eksik keşif, eksik ürün taramasında eski çıktıyı koruma) ile toplam **12 test geçti**. Canlı giriş noktasında yerel motor çağrısı loglandı; eski katalog SHA-256 kontrolüyle değişmeden kaldı. Geri alma için `backups/animalturkiye_scraper.py` korundu.
