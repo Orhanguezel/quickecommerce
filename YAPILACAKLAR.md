@@ -11,6 +11,7 @@
 - [X] Ayrı numara, hesap izolasyonu, gönderim kaydı, müşteri tercihi, ödeme/kargo/iade olayları ve test planı belirlendi.
 - [X] Ayrıntılı plan: [WhatsApp Business entegrasyon checklisti](docs/WHATSAPP-BUSINESS-ENTEGRASYON-CHECKLIST.md).
 - [ ] WA00 kaynak sürümü ve hesap hazırlığı; WA01–WA11 uygulama, test ve canlı kabul.
+- [X] Araştırma ve plan PR'ı: <https://github.com/Orhanguezel/quickecommerce/pull/33> (taslak; uygulama PR'ı değildir).
 
 ## 🔐 Admin Google girişi — TAMAMLANDI (2026-08-22)
 
