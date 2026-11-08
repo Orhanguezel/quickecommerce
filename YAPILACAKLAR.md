@@ -854,3 +854,15 @@ Sporcu besinleri ve ml/gr içerikli ürünler için weight filter — scraper up
 ## Blog yazarı profilleri ve eşleştirme (Codex 2026-10-03)
 
 - [X] Ürün yazarı kaydını blog yazısına `author_id` ile bağlama, mevcut Engin Eser atfını migration ile taşıma, yazar menüsünü Blog > Blogs altına alma ve profil/sosyal alanlarını ekleme. PR: https://github.com/Orhanguezel/quickecommerce/pull/25. Canlı deploy: `f04b3e6c` (2026-10-03); 15/15 blog yazısı Engin Eser profiline bağlandı, yazar API'si ve canlı profil/yazı sayfaları doğrulandı. Admin paneli oturum gerektirdiğinden menünün görsel kabulü giriş yapılmış hesapta ayrıca kontrol edilecek.
+
+## Scraper sağlık düzeltmesi — 2026-11-08
+
+- [X] Yonex ProductGroup ayrıştırıcı uyumluluğu ve 5 regresyon testi.
+- [X] Heyday / Neptün günlük zincire ve sağlık paneline eklendi; canlı veri yeniden çekilip eşitlendi.
+- [X] Cron/manual sync hatasının başarı olarak kaydedilmesi düzeltildi; 3 shell regresyon testi.
+- [X] Animal Türkiye 403 engeli doğrulandı; 14 eski stoklu varyant karantinaya alındı.
+- [X] Yonex 64/64 ürün kurtarma; canlı panel 28 sağlıklı / 1 kritik / 9 pasif. Açık alarmlar 152 → 8; sipariş/iade alarmları korundu. [PR #36](https://github.com/Orhanguezel/quickecommerce/pull/36).
+- [ ] Animal Türkiye: tedarikçinin sunucu erişim engelini kaldırması.
+- Ayrıntılar: [Sağlık raporu](docs/operations/scraper-health-2026-11-08.md).
+- [X] Animal Türkiye günlük scriptine yerel scraping motoru fallback'i bağlandı (`solve_cloudflare=true`, önbelleksiz); eksik tarama yayınlanmaz. Toplam 12 test geçti. [PR #36](https://github.com/Orhanguezel/quickecommerce/pull/36).
+- [~] Yerel motorla engeli aşma: stealth/fast/dynamic/görünür tarayıcı denemelerinin tamamı kaynak HTTP 403. Güncel stok doğrulaması için erişim engeli halen çözülmeli.

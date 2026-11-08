@@ -126,26 +126,26 @@ run_scraper() {
     echo "  FAIL: $name bos/dejenere JSON (${json_size} byte)"
   fi
 
-  # 2026-06-04: Admin dashboard icin DB'ye run kaydi yaz.
-  # Fail durumunda son 15 log satiri error_log_excerpt'e konur, otomatik
-  # alarm uretilir (ScrapersRecordRun komutu icinde).
-  local err_excerpt=""
-  if [ $exit -ne 0 ]; then
-    err_excerpt=$(tail -15 "$LOG" 2>/dev/null | tr '\n' ' ' | head -c 500)
-  fi
-  (cd /var/www/quikecommerce/backend-laravel && php artisan scrapers:record-run \
-      --source="$name" \
-      --exit-code="$exit" \
-      --duration="$duration" \
-      --json-size="$json_size" \
-      --triggered-by="cron" \
-      --error-log="$err_excerpt" 2>&1 | head -5) || true
 
   if [ $exit -ne 0 ] || [ ! -s "$json_path" ]; then
     echo "  FAIL: $name scraper, sync atlaniyor"
     FAIL_COUNT=$((FAIL_COUNT + 1))
     FAIL_LIST="${FAIL_LIST}
 • ${name} (exit=${exit})"
+    # 2026-06-04: Admin dashboard icin DB'ye run kaydi yaz.
+    # Fail durumunda son 15 log satiri error_log_excerpt'e konur, otomatik
+    # alarm uretilir (ScrapersRecordRun komutu icinde).
+    local err_excerpt=""
+    if [ $exit -ne 0 ]; then
+      err_excerpt=$(tail -15 "$LOG" 2>/dev/null | tr '\n' ' ' | head -c 500)
+    fi
+    (cd /var/www/quikecommerce/backend-laravel && php artisan scrapers:record-run \
+        --source="$name" \
+        --exit-code="$exit" \
+        --duration="$duration" \
+        --json-size="$json_size" \
+        --triggered-by="cron" \
+        --error-log="$err_excerpt" 2>&1 | head -5) || true
     return 1
   fi
 
@@ -161,6 +161,22 @@ run_scraper() {
     FAIL_LIST="${FAIL_LIST}
 • ${name} sync (exit=${sync_exit})"
   fi
+  exit=$sync_exit
+  # 2026-06-04: Admin dashboard icin DB'ye run kaydi yaz.
+  # Fail durumunda son 15 log satiri error_log_excerpt'e konur, otomatik
+  # alarm uretilir (ScrapersRecordRun komutu icinde).
+  local err_excerpt=""
+  if [ $exit -ne 0 ]; then
+    err_excerpt=$(tail -15 "$LOG" 2>/dev/null | tr '\n' ' ' | head -c 500)
+  fi
+  (cd /var/www/quikecommerce/backend-laravel && php artisan scrapers:record-run \
+      --source="$name" \
+      --exit-code="$exit" \
+      --duration="$duration" \
+      --json-size="$json_size" \
+      --triggered-by="cron" \
+      --error-log="$err_excerpt" 2>&1 | head -5) || true
+
   cd /var/www/quikecommerce
   return $sync_exit
 }
@@ -214,6 +230,8 @@ run_scraper() {
   run_scraper provitanya          provitanya_scraper.py          provitanya_products.json
   run_scraper proteinmax          proteinmax_scraper.py          proteinmax_products.json
   run_scraper heynut              heynut_scraper.py              heynut_products.json
+  run_scraper heyday             heyday_scraper.py             heyday_products.json
+  run_scraper neptun             neptun_scraper.py             neptun_products.json
   run_scraper raketspor_yonex     raketspor_yonex_scraper.py     raketspor_yonex_products.json
   run_scraper ceysport            ceysport_scraper.py            ceysport_products.json
   # 2026-07-27 PASIF (kullanici kurali): speedwa urun sayfalarinda hicbir stok

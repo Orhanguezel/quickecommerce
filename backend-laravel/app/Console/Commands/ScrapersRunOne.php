@@ -122,6 +122,11 @@ class ScrapersRunOne extends Command
             return self::FAILURE;
         }
 
+        if ($jsonSize <= 50) {
+            $this->markFailed($run, 66, 'Scraper produced empty or missing JSON', $duration, $jsonSize);
+            return self::FAILURE;
+        }
+
         // 2) Sync (sadece scrape basarili + JSON var ise)
         $syncOutput = '';
         $syncExit = 0;
@@ -135,8 +140,13 @@ class ScrapersRunOne extends Command
             $syncProc->setWorkingDirectory(self::VPS_BASE . '/backend-laravel');
             $syncProc->setTimeout(1800);
             $syncProc->run();
-            $syncExit = $syncProc->getExitCode() ?? 0;
-            $syncOutput = $syncProc->getOutput();
+            $syncExit = $syncProc->getExitCode() ?? 99;
+            $syncOutput = $syncProc->getOutput() . "\n" . $syncProc->getErrorOutput();
+        }
+
+        if ($syncExit !== 0) {
+            $this->markFailed($run, $syncExit, "Sync FAIL:\n" . mb_substr($syncOutput, -300), $duration, $jsonSize);
+            return self::FAILURE;
         }
 
         $run->update([
@@ -149,6 +159,7 @@ class ScrapersRunOne extends Command
                 : null,
         ]);
 
+        \App\Models\ScraperAlert::resolveOpenForSource($source, 'auto');
         $this->info("OK source={$source} run=#{$runId} duration={$duration}s json=" . number_format($jsonSize) . "b");
         return self::SUCCESS;
     }

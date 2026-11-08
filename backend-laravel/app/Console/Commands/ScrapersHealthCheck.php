@@ -105,6 +105,13 @@ class ScrapersHealthCheck extends Command
                 }
             }
             foreach ($latestResults as $source => $successful) {
+                // A completed repair after this log supersedes its old failure.
+                // Both manual and cron runners record success only after sync.
+                $latestRun = \App\Models\ScraperRun::where('source_name', $source)
+                    ->whereNotNull('finished_at')->latest('finished_at')->first();
+                if ($latestRun && $latestRun->finished_at->timestamp > filemtime($logFile)) {
+                    $successful = $latestRun->exit_code === 0 && $latestRun->json_size_bytes > 50;
+                }
                 if (!$successful && !isset($passiveSources[$source])) {
                     $issues[] = "{$source}: son tamamlanan scrape/sync FAIL etti (cron log)";
                 }
