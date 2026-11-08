@@ -26,6 +26,9 @@ class PlaceOrderRequest extends FormRequest
     {
         return [
 
+            'whatsapp_updates' => 'sometimes|boolean',
+            'whatsapp_phone' => 'required_if:whatsapp_updates,true|nullable|string|max:30|phone:TR',
+
             // Guest Checkout Validation
             'guest_info' => 'nullable|array',
             'guest_info.guest_order' => 'required_with:guest_info|boolean',

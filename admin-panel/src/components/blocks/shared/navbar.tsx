@@ -235,7 +235,7 @@ export function Navbar({ MeData, setIsLoading }: any) {
           className={` ${
             data && data.activity_scope === "store_level"
               ? " flex flex-col flex-1 md:flex-row items-start md:items-center space-x-0 md:space-x-2 justify-start md:justify-end px-0 md:px-2 gap-2"
-              : "flex items-center flex-1 space-x-0 md:space-x-2 justify-start md:justify-end px-0 md:px-2  gap-4"
+              : "flex items-center flex-1 space-x-0 md:space-x-2 justify-start md:justify-end px-0 md:px-2 gap-1 md:gap-4"
           } `}
         >
           <div className="flex items-center justify-center gap-2">
@@ -262,11 +262,11 @@ export function Navbar({ MeData, setIsLoading }: any) {
                 <ExternalLink width={15} height={15} />
               </Button>
             </Link>
-            <div className="mx-2 md:mx-0">
+            <div className="mx-0">
               <LocaleSwitcher />
             </div>
           </div>
-          <div className={`flex items-center justify-center gap-3`}>
+          <div className={`flex items-center justify-center gap-1 md:gap-3`}>
             {data && data.activity_scope === "store_level" && (
               <div
                 className={cn(

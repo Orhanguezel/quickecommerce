@@ -108,7 +108,10 @@ class GdeliverWebhookController extends Controller
             'full_payload'         => $payload,
         ];
         $updateData['raw_response'] = $rawResponse;
-        $cargoShipment->update($updateData);
+        \Illuminate\Support\Facades\DB::transaction(function () use ($cargoShipment, $updateData) {
+            $cargoShipment->update($updateData);
+            app(\App\Services\Whatsapp\WhatsappEventService::class)->shipment($cargoShipment);
+        });
 
         Log::channel('geliver_webhook')->info('CargoShipment updated', [
             'cargo_shipment_id' => $cargoShipment->id,

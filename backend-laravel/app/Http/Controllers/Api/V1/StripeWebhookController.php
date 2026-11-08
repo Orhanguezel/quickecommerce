@@ -59,10 +59,13 @@ class StripeWebhookController extends Controller
                     $orderMaster->payment_gateway = 'stripe';
                     $orderMaster->transaction_ref = $sessionId;
                     $orderMaster->paid_amount = $orderMaster->paid_amount ?? ($amount_total / 100);
-                    $orderMaster->save();
-
-                    // update child orders payment_status
-                    $orderMaster->orders()->update(['payment_status' => 'paid']);
+                    \Illuminate\Support\Facades\DB::transaction(function () use ($orderMaster, $session) {
+                        $orderMaster->save();
+                        $orderMaster->orders()->update(['payment_status' => 'paid']);
+                        if (($session->payment_status ?? null) === 'paid') {
+                            app(\App\Services\Whatsapp\WhatsappEventService::class)->payment($orderMaster);
+                        }
+                    });
 
                     // run any post-payment logic you have (notifications, inventory finalization)
                     // dispatch job or call existing internal services

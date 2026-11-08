@@ -197,7 +197,11 @@ class CustomerOrderController extends Controller
         $order->cancelled_by = auth('api_customer')->user()->id;
         $order->cancelled_at = Carbon::now();
         $order->status = 'cancelled';
-        $success = $order->save();
+        $success = \Illuminate\Support\Facades\DB::transaction(function () use ($order) {
+            $saved = $order->save();
+            if ($saved) { app(\App\Services\Whatsapp\WhatsappEventService::class)->cancelled($order); }
+            return $saved;
+        });
 
         // notification send
         $this->orderManageNotificationService->createOrderNotification($order->id, 'customer_order_status_cancelled');

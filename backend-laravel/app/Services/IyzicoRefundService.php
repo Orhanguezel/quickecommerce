@@ -72,6 +72,7 @@ class IyzicoRefundService
             // dokunma. Iade edilemeyen out-order'lar full-cancel YERINE manuel iade icin
             // escalate edilir — yani stoktaki satici collateral olarak iptal OLMAZ.
             $refundedOutIds = [];
+            $whatsappConfirmedAmounts = [];
             $failedOutIds = [];
             $failedDetail = [];
             foreach ($items as $it) {
@@ -93,6 +94,9 @@ class IyzicoRefundService
                     // 5249/5088 -> zaten iade (idempotent ok)
                     if ($status === 'success' || in_array($code, ['5249', '5088'], true)) {
                         $refundedOutIds[$oid] = true;
+                        if ($status === 'success') {
+                            $whatsappConfirmedAmounts[$oid] = ($whatsappConfirmedAmounts[$oid] ?? 0) + (float) $it['paid_price'];
+                        }
                     } else {
                         $failedOutIds[$oid] = true;
                         $failedDetail[] = "order#{$oid} txn{$it['transaction_id']}:{$code}:" . (string) $res->getErrorMessage();
@@ -111,7 +115,8 @@ class IyzicoRefundService
                     orderIds: $okOutIds,
                     outOrderIds: $okOutIds,
                     setMasterRefunded: false,
-                    note: 'urun-bazli kismi iade'
+                    note: 'urun-bazli kismi iade',
+                    whatsappConfirmedAmounts: $whatsappConfirmedAmounts
                 );
             }
 
@@ -215,7 +220,8 @@ class IyzicoRefundService
                 orderIds: $allOrderIds,
                 outOrderIds: $outOrderIds,
                 setMasterRefunded: true,
-                note: $note
+                note: $note,
+                whatsappConfirmedAmounts: $ok && !empty($allOrderIds) ? [$allOrderIds[0] => (float) $master->paid_amount] : []
             );
 
             Log::info('IyzicoRefund: whole cancel success', [
@@ -248,10 +254,10 @@ class IyzicoRefundService
      * outOrderIds icindekiler "stok tukenmis" sebebiyle, digerleri (full cancel
      * collateral) "Diger" sebebiyle kaydedilir.
      */
-    private function markOrdersRefunded(OrderMaster $master, array $orderIds, array $outOrderIds, bool $setMasterRefunded, string $note): void
+    private function markOrdersRefunded(OrderMaster $master, array $orderIds, array $outOrderIds, bool $setMasterRefunded, string $note, array $whatsappConfirmedAmounts = []): void
     {
         $newlyRefunded = [];
-        DB::transaction(function () use ($master, $orderIds, $outOrderIds, $setMasterRefunded, $note, &$newlyRefunded) {
+        DB::transaction(function () use ($master, $orderIds, $outOrderIds, $setMasterRefunded, $note, $whatsappConfirmedAmounts, &$newlyRefunded) {
             if ($setMasterRefunded) {
                 $master->payment_status = 'refunded';
                 $master->save();
@@ -283,7 +289,7 @@ class IyzicoRefundService
                     continue;
                 }
                 $isStockOut = in_array((int) $sub->id, array_map('intval', $outOrderIds), true);
-                DB::table('order_refunds')->insert([
+                $whatsappRefundId = DB::table('order_refunds')->insertGetId([
                     'order_id' => $sub->id,
                     'customer_id' => $master->customer_id,
                     'store_id' => $sub->store_id,
@@ -296,6 +302,7 @@ class IyzicoRefundService
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
+                app(\App\Services\Whatsapp\WhatsappEventService::class)->refund($sub, 'refund:'.$whatsappRefundId, (float) ($whatsappConfirmedAmounts[$sub->id] ?? 0));
                 $newlyRefunded[] = (int) $sub->id;
             }
 

@@ -91,6 +91,8 @@ export interface PaymentGateway {
 }
 
 export interface PlaceOrderInput {
+  whatsapp_updates?: boolean;
+  whatsapp_phone?: string;
   shipping_address_id?: number;
   currency_code: string;
   payment_gateway: string;

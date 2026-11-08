@@ -1,0 +1,68 @@
+[
+  {
+    "name": "sportoonline_payment_confirmed_v1",
+    "language": "tr",
+    "category": "UTILITY",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Merhaba {{1}}, {{2}} numaralı siparişiniz için {{3}} tutarındaki ödemeniz alındı. Sipariş durumunu hesabınızdan takip edebilirsiniz."
+      }
+    ]
+  },
+  {
+    "name": "sportoonline_cod_order_received_v1",
+    "language": "tr",
+    "category": "UTILITY",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Merhaba {{1}}, {{2}} numaralı kapıda ödemeli siparişiniz alındı. Ödenecek tutar: {{3}}."
+      }
+    ]
+  },
+  {
+    "name": "sportoonline_shipment_dispatched_v1",
+    "language": "tr",
+    "category": "UTILITY",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "{{1}} numaralı siparişinizin {{2}} paketi {{3}} kargosuna verildi. Takip numarası: {{4}}."
+      }
+    ]
+  },
+  {
+    "name": "sportoonline_shipment_delivered_v1",
+    "language": "tr",
+    "category": "UTILITY",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "{{1}} numaralı siparişinizin {{2}} paketi teslim edildi olarak bildirildi. Destek için bize ulaşabilirsiniz."
+      }
+    ]
+  },
+  {
+    "name": "sportoonline_order_cancelled_v1",
+    "language": "tr",
+    "category": "UTILITY",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "{{1}} numaralı siparişinizin {{2}} bölümü iptal edildi. İade durumu varsa ayrıca bilgilendirileceksiniz."
+      }
+    ]
+  },
+  {
+    "name": "sportoonline_refund_confirmed_v1",
+    "language": "tr",
+    "category": "UTILITY",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "{{1}} numaralı siparişiniz için {{2}} tutarındaki iade ödeme sağlayıcısı tarafından işlendi. Hesabınıza yansıma süresi bankanıza bağlıdır."
+      }
+    ]
+  }
+]
