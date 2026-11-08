@@ -6,7 +6,8 @@ import {
   useQuestionsDeleteService,
   useQuestionsQueryService,
   useQuestionsRejectService,
-  useQuestionsStatusUpdateService
+  useQuestionsStatusUpdateService,
+  useQuestionsReplyService,
 } from "./questions.service";
 import { QuestionsQueryOptions } from "./questions.type";
 import { statusUpdateData } from "./questions.schema";
@@ -44,6 +45,19 @@ export const useQuestionsStatusUpdate = () => {
         const errorText = data?.response?.data;
         toast.error(errorText?.message);
       },
+  });
+};
+
+export const useQuestionsReply = () => {
+  const { create } = useQuestionsReplyService();
+  return useMutation({
+    mutationFn: (values: { question_id: number; reply: string }) => create(values),
+    mutationKey: [API_ENDPOINTS.QUESTIONS_REPLY],
+    onSuccess: (data) => toast.success(data?.data?.message),
+    onError: (error: any) => {
+      const response = error?.response?.data;
+      toast.error(response?.message || response?.reply?.[0] || "Yanıt kaydedilemedi.");
+    },
   });
 };
 

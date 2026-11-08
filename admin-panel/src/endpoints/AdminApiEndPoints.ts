@@ -281,6 +281,7 @@ export const API_ENDPOINTS = {
   REVIEWS_DELETE: "v1/admin/feedback-control/review/remove",
 
   QUESTIONS_LIST: "v1/admin/feedback-control/questions",
+  QUESTIONS_REPLY: "v1/admin/feedback-control/questions/reply",
   QUESTIONS_APPROVE: "v1/admin/feedback-control/questions/approve",
   QUESTIONS_REJECT: "v1/admin/feedback-control/questions/reject",
   QUESTIONS_STATUS_CHANGE: "v1/admin/feedback-control/questions/change-status",

@@ -54,6 +54,7 @@ import { toast } from 'react-toastify';
 
 import PhotoUploadModal, { type UploadedImage } from '@/components/blocks/shared/PhotoUploadModal';
 import GeliverSenderAddressPanel from '@/components/blocks/shared/GeliverSenderAddressPanel';
+import AuthorizedSellerPanel from './AuthorizedSellerPanel';
 import CloudIcon from '@/assets/icons/CloudIcon';
 import GlobalImageLoader from '@/lib/imageLoader';
 import Cancel from '../../custom-icons/Cancel';
@@ -984,6 +985,7 @@ export default function CreateOrUpdateStoreForm({ data }: { data?: any }) {
           endpoint={`v1/admin/store/${editData?.id}/geliver-sender-address`}
           store={editData}
         />
+        <AuthorizedSellerPanel storeId={editData?.id} />
         {/* Toggle header */}
         <Card className="mt-4">
           <CardContent className="p-2 md:p-4 flex items-center justify-between gap-3">

@@ -2167,6 +2167,7 @@ const CreateOrUpdateProductForm = ({ data }: any) => {
               productId={editData?.id}
               mode="admin"
               listEndpoint={API_ENDPOINTS.QUESTIONS_LIST}
+              replyEndpoint={API_ENDPOINTS.QUESTIONS_REPLY}
             />
           </div>
           </>

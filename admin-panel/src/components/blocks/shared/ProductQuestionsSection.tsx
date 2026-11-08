@@ -16,11 +16,11 @@ import { format } from "date-fns";
 
 interface ProductQuestionsSectionProps {
   productId: number | string;
-  /** "admin" = read-only reply view, "seller" = can reply */
+  /** Admin and seller can reply when a reply endpoint is provided. */
   mode: "admin" | "seller";
   /** API endpoint for listing questions */
   listEndpoint: string;
-  /** API endpoint for replying (seller only) */
+  /** API endpoint for replying */
   replyEndpoint?: string;
 }
 
@@ -38,7 +38,6 @@ interface QuestionItem {
 
 export default function ProductQuestionsSection({
   productId,
-  mode,
   listEndpoint,
   replyEndpoint,
 }: ProductQuestionsSectionProps) {
@@ -165,8 +164,8 @@ export default function ProductQuestionsSection({
                   </div>
                 )}
 
-                {/* Reply form (seller only, no existing reply) */}
-                {mode === "seller" && !q.reply && replyEndpoint && (
+                {/* Reply form (no existing reply) */}
+                {!q.reply && replyEndpoint && (
                   <div className="border-t p-3 sm:p-4">
                     {replyingId === q.id ? (
                       <div className="space-y-2">

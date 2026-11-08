@@ -52,6 +52,7 @@ import { setRefetch } from '@/redux/slices/refetchSlice';
 import { format, parse } from 'date-fns';
 import { Info } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { toast } from 'react-toastify';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 
@@ -274,22 +275,46 @@ export default function CreateOrUpdateAuthorForm({ data }: any) {
   // -----------------------------
   // Image handlers (GLOBAL)
   // -----------------------------
-  const handleSaveLogo = (images: UploadedImage[]) => {
-    setLastSelectedLogo(images?.[0] ?? null);
-
-    const dimensions = images?.[0]?.dimensions ?? '';
-    const [width, height] = String(dimensions)
-      .split(' x ')
-      .map((dim) => parseInt(dim.trim(), 10));
-
-    const aspectRatio = width && height ? width / height : 0;
-    if (Math.abs(aspectRatio - 1) < 0.01) {
-      setLogoErrorMessage('');
-      return true;
+  const handleSaveLogo = async (images: UploadedImage[]): Promise<boolean> => {
+    const rejectImage = (message: string) => {
+      setLogoErrorMessage(message);
+      toast.error(message);
+      return false;
+    };
+    const candidate = images?.[0];
+    if (!candidate?.image_id) {
+      return rejectImage('Görsel seçilemedi. Lütfen yeniden deneyin.');
     }
 
-    setLogoErrorMessage('Image must have a 1:1 aspect ratio.');
-    return false;
+    const [declaredWidth, declaredHeight] = String(candidate.dimensions ?? '')
+      .split(' x ')
+      .map((dim) => parseInt(dim.trim(), 10));
+    let width = declaredWidth;
+    let height = declaredHeight;
+
+    if (!width || !height) {
+      const url = candidate.img_url || candidate.url;
+      if (!url) {
+        return rejectImage('Görsel ölçüleri okunamadı. Lütfen yeniden yükleyin.');
+      }
+      try {
+        const preview = new window.Image();
+        preview.src = url;
+        await preview.decode();
+        width = preview.naturalWidth;
+        height = preview.naturalHeight;
+      } catch {
+        return rejectImage('Görsel açılamadı. Lütfen başka bir görsel seçin.');
+      }
+    }
+
+    if (width !== height) {
+      return rejectImage('Profil görseli kare (1:1) olmalıdır.');
+    }
+
+    setLastSelectedLogo(candidate);
+    setLogoErrorMessage('');
+    return true;
   };
 
   const removeLogo = () => {

@@ -44,7 +44,7 @@ export interface UploadedImage {
   alt?: string;
 }
 interface PhotoUploadModalProps {
-  onSave: (images: UploadedImage[]) => void;
+  onSave: (images: UploadedImage[]) => boolean | void | Promise<boolean | void>;
   isMultiple: boolean;
   trigger: any;
   buttonTitle?: any;
@@ -212,6 +212,7 @@ const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
             img_url: response.image_url ?? "",
             url: response.image_url ?? "",
             name: file.name,
+            dimensions: response.dimensions ?? undefined,
           };
           setSelectedImages([uploadedImage]);
           setLastSelectedImages(uploadedImage);
@@ -314,15 +315,16 @@ const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
     );
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const payload =
       selectedImages.length > 0
         ? selectedImages
         : lastSelectedImages
           ? [lastSelectedImages]
           : [];
-    onSave(payload);
-    setIsModalOpen(false);
+    if ((await onSave(payload)) !== false) {
+      setIsModalOpen(false);
+    }
   };
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
