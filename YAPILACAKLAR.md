@@ -10,6 +10,7 @@
 - [X] 29 hedefli test / 81 doğrulama, izole MySQL eşzamanlılık testi ve iki frontend build geçti.
 - [X] Canlı sürüm farklarını koruyan entegrasyon patch'i ve yayın/geri dönüş talimatı hazırlandı.
 - [X] Canlı WhatsApp migration, backend/API, iki PM2 worker ve scheduler kuruldu; panel aktivasyonu için seçilen yönetici yetkilendirildi.
+- [X] Canlı panelde Sistem Araçları → WhatsApp Business, gerçek yetkili oturum, boş form engeli ve 390px mobil kontrolü geçti.
 - [~] [Ayrıntılı checklist](docs/WHATSAPP-BUSINESS-ENTEGRASYON-CHECKLIST.md) ve [uygulama kanıtları](docs/WHATSAPP-UYGULAMA-VE-YAYIN.md).
 - [ ] Yeni numara henüz alınmadı: Meta bağlantısı/şablon onayı, pilot alıcı ve gerçek teslim kabulü bekliyor.
 - [ ] Genel müşteri lint ve genel PHPUnit mevcut hataları ayrı kayıtta; tamamı geçti denmedi.

@@ -2,7 +2,7 @@
 
 ## Durum
 
-Kullanıcı bilgisi: **Sportoonline için yeni numara henüz alınmadı.** Kod varsayılan olarak gönderime kapalıdır. OSGB hesabı, numarası, tokenı veya aboneliği değiştirilmedi. Müşteriye gerçek mesaj gönderilmedi. Bu belge yerel uygulama kanıtını canlı kabulden ayırır.
+Kullanıcı bilgisi: **Sportoonline için yeni numara henüz alınmadı.** Kod varsayılan olarak gönderime kapalıdır. OSGB hesabı, numarası, tokenı veya aboneliği değiştirilmedi. Müşteriye gerçek mesaj gönderilmedi. Bu belge yerel testleri, canlı yazılım yayınını ve bekleyen Meta teslim kabulünü ayrı kaydeder. Güncel yayın kanıtı en alttaki 2026-11-08 bölümündedir.
 
 - Uygulama PR: https://github.com/Orhanguezel/quickecommerce/pull/34 (taslak; canlı kabul açık).
 - Uygulama dalı: `codex/whatsapp-implementation`; taban `20a51f80`.
@@ -41,13 +41,13 @@ Kullanıcı bilgisi: **Sportoonline için yeni numara henüz alınmadı.** Kod v
 - Playwright yerel API fixture'larıyla bağlantısız/bağlı ekranları açtı. 390px ölçüm: viewport=390, scrollWidth=390; masaüstü 1440px. Ortak navbar mobil boşlukları daraltıldı. Son konsol kontrolü sıfır error. Bu test gerçek canlı oturum/Meta kabulü değildir.
 - Genel PHPUnit ayrıca çalıştırıldı: mevcut iyzico marketplace testlerinin eski constructor çağrısından 4 hata ve örnek HTTP testinde test APP_KEY eksikliğinden 1 hata. Bu genel sonuç geçmedi; WhatsApp testleri ayrı başarılıdır.
 - Canlı entegrasyon patch’i salt okunur indirilen 19 dosyanın kopyasında `git apply --check` kontrolünden geçti; birleştirilmiş PHP dosyaları syntax kontrolünden geçti.
-- Gerçek ödeme oluşturma, gerçek mesaj, canlı DB migration ve üretim worker aktivasyonu yapılmadı.
+- İlk yerel doğrulama sırasında gerçek ödeme/mesaj, canlı migration ve worker aktivasyonu yapılmadı. Sonraki canlı yayın aşağıda kayıtlıdır.
 
 ## Canlı kaynakları koruma
 
 Canlı HEAD `33d17a14`, yerel taban `20a51f80`, origin/main `ce31b675` farklıdır. Feature dalındaki tüm eski dosyaları doğrudan sunucuya kopyalamayın. Canlıda bulunan `CouponCombinationPolicy`, `PaidOrderCancellationService` ve GA4 purchase/refund çağrıları korunmalıdır.
 
-`docs/whatsapp/live-source-map.json` dosya hashlerini kaydeder. `docs/whatsapp/live-integration.patch` yalnız mevcut canlı dosyalara WhatsApp değişikliklerini uygular. Birleşimde kupon sepet fingerprint'i ve WhatsApp state'i birlikte korundu. Yayın anında kaynak değişmişse patch kontrolü başarısız olur; yeni canlı sürümle tekrar birleştirilir. Yeni WhatsApp dosyaları feature PR'ından alınır. Bu paket canlıya uygulanmadı.
+`docs/whatsapp/live-source-map.json` dosya hashlerini kaydeder. `docs/whatsapp/live-integration.patch` yalnız mevcut canlı dosyalara WhatsApp değişikliklerini uygular. Birleşimde kupon sepet fingerprint'i ve WhatsApp state'i birlikte korundu. Yayın anında kaynak değişmişse patch kontrolü başarısız olur; yeni canlı sürümle tekrar birleştirilir. Yeni WhatsApp dosyaları feature PR'ından alınır. Bu paket sonraki canlı yayın sırasında kaynak hashleri yeniden doğrulanarak uygulandı.
 
 ## Yayın sırası
 
@@ -56,8 +56,8 @@ Kullanıcının 2026-11-08 tarihli “canlıya al” talimatıyla yalnız WhatsA
 1. Yeni numara, yalnız Sportoonline numarasını içeren WABA, Meta App ve gerekli sistem kullanıcısı izinlerini hazırlayın. Token/App Secret sohbet yerine yönetici formundan girilir. Numara CONNECTED/CLOUD_API ve hesap AVAILABLE olmalıdır.
 2. DB ve mevcut uygulama sürümünün erişimi kısıtlı yedeğini alın. APP_KEY'i ayrı güvenli yedekte tutun; anahtarı loga veya PR'a yazmayın.
 3. Canlı hash manifestini karşılaştırın. Mevcut dosyalara `git apply --check` ile entegrasyon patch'ini kontrol edin; yeni dosyaları ve build'leri staging dizininde hazırlayın. Canlı ödemelere eski checkout/kupon dosyası yazmayın.
-4. **Manuel:** yalnız `2026_11_08_170000_create_whatsapp_tables.php` migration'ını uygun bakım/yayın anında çalıştırın. Rollback tablolardaki audit'i siler; normal rollback için down çalıştırılmaz.
-5. `WHATSAPP_ENABLED=false` ve doğru HTTPS callback ile kodu yayınlayın. Route/403/şifreli ayar yazma denetimi ve kuyruk tablosunu kontrol edin. Belirlenmiş yöneticiyi `whatsapp:grant USER_ID` ile yetkilendirin.
+4. Kullanıcı yayın yetkisiyle yalnız `2026_11_08_170000_create_whatsapp_tables.php` migration'ını uygun bakım/yayın anında çalıştırın. Rollback tablolardaki audit'i siler; normal rollback için down çalıştırılmaz.
+5. Doğru HTTPS callback ile kodu yayınlayın. Panelden aktivasyon isteniyorsa `WHATSAPP_ENABLED=true`, hesap düzeyinde gönderim kapalı olsun. Müşteri tercihi hesap genel kullanıma açılana kadar kapalıdır. Route/403/şifreli ayar yazma denetimi ve kuyruk tablosunu kontrol edin. Belirlenmiş yöneticiyi `whatsapp:grant USER_ID` ile yetkilendirin.
 6. Supervisor örneğini kurun; kullanıcı/path doğrulanmadan başlatmayın. database queue retry_after=90 > timeout45; schedule mevcut dakikalık scheduler'ı kullanır. `whatsapp:dispatch` her dakika, `whatsapp:refresh` 10 dakikada, içerik temizliği günlük çalışır.
 7. Hesabı panelden bağlayın, ayrı işlemle webhook aboneliği yapın. Gerçek challenge ve imzalı callback, OSGB aboneliğinin değişmediği, şablonların APPROVED/UTILITY/tr olduğu doğrulansın.
 8. Belirlenmiş pilot numaraları girin. `WHATSAPP_ENABLED=true`, config yenileme ve yalnız WhatsApp worker başlatma sonrası panelde pilotu etkinleştirin. Açık pilot alıcı izni olmadan test gönderimi yapmayın.
@@ -73,7 +73,7 @@ Kullanıcının 2026-11-08 tarihli “canlıya al” talimatıyla yalnız WhatsA
 
 ## Kalan canlı kabul
 
-Yeni numara/WABA/App, Meta şablon onayı, pilot alıcı ve destek sorumlusu; manuel migration/yayın; gerçek yetkili panel oturumu, webhook ve alıcı teslim kabulü; güncel provider sözleşmesi. Bu adımlar bitmeden checklist'in tamamı veya canlı entegrasyon tamamlandı denmez.
+Yeni numara/WABA/App, Meta şablon onayı, pilot alıcı ve destek sorumlusu; gerçek Meta webhook ve alıcı teslim kabulü; güncel provider sözleşmesi. Bu adımlar bitmeden checklist'in tamamı veya canlı entegrasyon tamamlandı denmez.
 
 
 ## 2026-11-08 canlı yayın ilerlemesi
@@ -86,3 +86,14 @@ Yeni numara/WABA/App, Meta şablon onayı, pilot alıcı ve destek sorumlusu; ma
 - Canlı API: yetkili status 200/configured=false, yetkisiz status 401, imzasız webhook 403, boş connect 422. Gerçek Meta çağrısı/mesajı yapılmadı.
 - Sunucuda Supervisor yok; mevcut PM2 altyapısıyla `sportoonline-whatsapp` iki worker olarak kuruldu. `ops/whatsapp/pm2.config.cjs` gerçek yapılandırmadır. Dakikalık dispatch, 10 dakikalık refresh ve günlük prune mevcut scheduler'da doğrulandı.
 - Rollback: gönderimi durdurun; yalnız WhatsApp worker grubunu durdurun. Backend symlink'i kaldırıp `backend-laravel.pre-whatsapp-20261108` dizinini eski adına taşıyın; PHP-FPM'i reload ve mevcut genel worker'ı restart edin. WhatsApp tablolarını/audit verisini silmeyin.
+
+
+### Tamamlanan canlı panel kabulü
+
+- Panel: https://panel.sportoonline.com/tr/admin/system-management/whatsapp — Sistem Araçları → WhatsApp Business. Orhan hesabının gerçek API yetkisiyle geçici, süreli oturum kullanılarak doğrulandı; kabul sonrası geçici token iptal edildi.
+- Üretim admin build'i (Next 15.5.19) ve müşteri build'i (Next 16.1.6) mevcut canlı `.env` değerleriyle geçti. Admin 3100 canary 200 sonrası deploy dizini değiştirildi; önceki paket `admin-panel/deploy.pre-whatsapp-20261108`. Müşteri önceki paketi `customer-web-nextjs/.next.pre-whatsapp-20261108`. Açık oturumların eski static chunk'ları korundu.
+- Menü bağlantısına tıklama → kurulum başlığı, hesap formu, “Kapalı — kurulum bekleniyor” doğrulandı. Boş form tarayıcıda engelleniyor; API ayrıca 422 döndürüyor. 390px ekran/scrollWidth=390; konsolda sıfır error. Kanıt ekranları `/tmp/wa-live-desktop.png`, `/tmp/wa-live-mobile-top.png`.
+- Panel, mağaza ana sayfa, hesap, ödeme ve ürün liste API'si 200. Müşteri uygulaması restart anındaki kısa 502 sonrasında yeniden kontrol edildi: 200. Eski backend public/storage bağlantısı yeni release'te korundu.
+- İki WhatsApp worker online, hata dosyaları 0 byte. Bağlantı/mesaj/attempt/WhatsApp kuyruğu 0. `retry_after=90`; scheduler kayıtları ve boş hesapta refresh/dispatch çalışması doğrulandı.
+- 29 hedefli test / 81 assertion geçti. Yeni testler: sunucu altyapısı açıkken bağlantısız/pilot hesapta müşteri izni gizli; panel onaysız şablonla etkinleştiremiyor.
+- Yazılım canlıya alındı. Numara satın alma, Meta hesap/numara kurulumu, şablonların Meta onayı ve izinli pilotta gerçek teslim henüz tamamlanmadı. OSGB kaynakları değiştirilmedi.
