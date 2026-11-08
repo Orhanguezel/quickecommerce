@@ -869,4 +869,5 @@ Sporcu besinleri ve ml/gr içerikli ürünler için weight filter — scraper up
 - [X] `/admin/loyalty` altında ortak başlık ve iki sekme: Sadakat Puanları / Ayarlar.
 - [X] Ayarlar sekmesi `/admin/loyalty/settings`; eski `/admin/system-management/loyalty-settings` locale korunarak yönlenir.
 - [X] Menü tek Sadakat Yönetimi bağlantısına indirildi; puan işlemleri ve ayar formu korundu.
-- [~] Üretim derlemesi, canlı yayın, masaüstü/mobil sekme ve eski adres kontrolü.
+- [X] `bun run lint` ve `bun run build` geçti. Canlı masaüstü/mobil sekme geçişleri, ortak puan özeti, eski adres yönlendirmesi doğrulandı; sayfa/ağ hatası ve mobil taşma yok. [PR #37](https://github.com/Orhanguezel/quickecommerce/pull/37).
+- Yayın: `/var/www/loyalty-tabs-20261109-v2/admin-panel/deploy`; geri dönüş bağlantısı: `/var/www/quikecommerce/admin-panel/deploy.pre-loyalty-20261109`.
