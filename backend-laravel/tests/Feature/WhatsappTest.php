@@ -404,4 +404,37 @@ class WhatsappTest extends TestCase
         $this->assertSame('read', $m->fresh()->status);
         $this->assertSame('wamid.early', $m->fresh()->provider_message_id);
     }
+    public function test_customer_optin_stays_hidden_until_public_activation(): void
+    {
+        $guard = \Mockery::mock(\Illuminate\Contracts\Auth\Guard::class);
+        $guard->shouldReceive('id')->andReturn(1);
+        \Illuminate\Support\Facades\Auth::shouldReceive('guard')->with('api_customer')->andReturn($guard);
+        $controller = app(\App\Http\Controllers\Api\V1\Whatsapp\PreferenceController::class);
+        $request = \Illuminate\Http\Request::create('/preferences');
+        $this->assertFalse($controller->show($request)->getData(true)['available']);
+        $c = $this->connection();
+        $this->assertFalse($controller->show($request)->getData(true)['available']);
+        $c->update(['pilot_mode' => false]);
+        $this->assertTrue($controller->show($request)->getData(true)['available']);
+        $c->update(['enabled' => false]);
+        $this->assertFalse($controller->show($request)->getData(true)['available']);
+    }
+
+    public function test_panel_activation_requires_approved_event_templates(): void
+    {
+        $c = $this->connection();
+        $c->update(['enabled' => false]);
+        $request = \Illuminate\Http\Request::create('/settings', 'POST', [
+            'enabled' => true, 'pilot_mode' => true, 'pilot_numbers' => ['+905321234567'],
+            'enabled_events' => ['payment_confirmed'],
+        ]);
+        try {
+            app(\App\Http\Controllers\Api\V1\Whatsapp\AdminController::class)->settings($request, app(WhatsappConnectionService::class));
+            $this->fail('Unapproved template activated');
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+            $this->assertSame(422, $e->getStatusCode());
+        }
+        $this->assertFalse($c->fresh()->enabled);
+        Http::assertNothingSent();
+    }
 }

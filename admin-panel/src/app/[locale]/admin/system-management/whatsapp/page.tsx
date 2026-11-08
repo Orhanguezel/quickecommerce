@@ -16,7 +16,7 @@ export default function WhatsappSettings() {
   const [reply, setReply] = useState("");
   const [mediaBusy,setMediaBusy]=useState(false);
   const query = useQuery({queryKey: ["whatsapp-status"], queryFn: async () => (await api.get<Status>("/v1/admin/whatsapp")).data});
-  const messages = useQuery({queryKey: ["whatsapp-messages"], queryFn: async () => (await api.get<{data: Message[]}>("/v1/admin/whatsapp/messages")).data, refetchInterval: 30000});
+  const messages = useQuery({queryKey: ["whatsapp-messages"], enabled: !!query.data?.configured, queryFn: async () => (await api.get<{data: Message[]}>("/v1/admin/whatsapp/messages")).data, refetchInterval: 30000});
   const conversation = useQuery({queryKey: ["whatsapp-conversation", selected], enabled: !!selected, queryFn: async () => (await api.get<{data: (Message & {content: {body?: string; text?: {body: string}; type?: string}})[]}>(`/v1/admin/whatsapp/conversations/${selected}`)).data});
   const mutation = useMutation({mutationFn: async ({path, body}: {path: string; body?: Record<string, unknown>}) => api.post(`/v1/admin/whatsapp/${path}`, body ?? {}), onSuccess: () => {setNotice("İşlem tamamlandı."); void cache.invalidateQueries({queryKey: ["whatsapp-status"]}); void cache.invalidateQueries({queryKey:["whatsapp-templates"]}); void cache.invalidateQueries({queryKey: ["whatsapp-messages"]}); void cache.invalidateQueries({queryKey: ["whatsapp-conversation"]});}, onError: () => setNotice("İşlem tamamlanamadı. Yetkinizi ve hesap bilgilerini kontrol edin.")});
   const templates = useQuery({queryKey:["whatsapp-templates"],enabled:!!query.data?.configured,queryFn:async()=>(await api.get<{data:{id:number;name:string;status:string;category:string;language:string;checked_at:string}[]}>("/v1/admin/whatsapp/templates")).data});
@@ -30,6 +30,18 @@ export default function WhatsappSettings() {
     <p>Müşterilerin sipariş bildirimlerini ve gelen mesajlarını yönetin.</p>
     <p role="status" className="rounded border p-3">{status?.configured ? `Hesap bağlı · ${status.connection?.health.display_phone_number ?? "Numara doğrulanıyor"} · ${status.connection?.health.messaging_status ?? "Bilinmiyor"}` : "Yeni Sportoonline numarası henüz bağlanmadı. Numara ve Meta hesabı hazır olduğunda aşağıdan bağlayın."}</p>
     {!status?.channel_available && <p className="rounded bg-amber-50 p-3 text-amber-950">Bildirim gönderimi henüz açılmadı.</p>}
+    <section className="rounded border bg-white p-4 text-gray-900" aria-label="Aktivasyon adımları">
+      <h2 className="mb-3 text-lg font-medium">Kurulum ve aktivasyon</h2>
+      <ol className="list-decimal space-y-2 pl-5">
+        <li>{status?.configured ? "✓ Hesap bilgileri kaydedildi." : "Sportoonline için yeni numarayı ve ayrı WhatsApp işletme hesabını hazırlayın; aşağıdaki bilgileri girin."}</li>
+        <li>{status?.connection?.health.connected ? "✓ Numara bağlantısı doğrulandı." : "Numaranın Cloud API bağlantısını doğrulayın."}</li>
+        <li>{status?.connection?.subscribed ? "✓ Webhook bağlantısı kuruldu." : "Hesap bağlandıktan sonra Webhook bağlantısını kur düğmesini kullanın."}</li>
+        <li>Meta tarafından onaylanan Türkçe bildirim şablonlarını eşitleyin.</li>
+        <li>Pilot numarayı ve bildirim türlerini seçin; pilot modunda etkinleştirip test mesajını doğrulayın.</li>
+        <li>Test tamamlanınca pilot modunu kapatarak seçilen bildirimleri müşterilere açın.</li>
+      </ol>
+      <p className="mt-3 text-sm">Gönderim durumu: {status?.connection?.enabled ? (status.connection.pilot_mode ? "Yalnız pilot numaralar" : "Etkin") : "Kapalı — kurulum bekleniyor"}</p>
+    </section>
     {notice && <p role="status">{notice}</p>}
     <section className="rounded border bg-white p-4 text-gray-900"><h2 className="mb-3 text-lg font-medium">Hesabı bağla</h2>
       <p className="mb-3 text-sm">Sportoonline numarasına ait ayrı işletme hesabını kullanın. Kimlik bilgileri şifreli saklanır.</p>

@@ -60,6 +60,11 @@ final class AdminController extends Controller
         if ($data['enabled']) {
             abort_unless(config('whatsapp.enabled') && $c->subscribed && ($c->health['connected'] ?? false) && ($c->health['messaging_status'] ?? '') === 'AVAILABLE' && $c->checked_at?->gt(now()->subMinutes(15)), 422, 'Hesap bağlantısını ve sağlığını doğrulayın.');
             abort_if($data['pilot_mode'] && ! $data['pilot_numbers'], 422, 'Pilot numarası ekleyin.');
+            abort_if(! $data['enabled_events'], 422, 'En az bir bildirim türü seçin.');
+            foreach ($data['enabled_events'] as $event) {
+                $spec = config('whatsapp.events.'.$event);
+                abort_unless(app(WhatsappTemplateService::class)->approved($c->id, $spec['template'], $spec['parameters']), 422, 'Seçilen bildirimlerin onaylı şablonlarını eşitleyin.');
+            }
         }
         $c->fill($data);
         if ($c->enabled && ! $c->activated_at) {

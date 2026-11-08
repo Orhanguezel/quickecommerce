@@ -35,7 +35,7 @@ Kullanıcı bilgisi: **Sportoonline için yeni numara henüz alınmadı.** Kod v
 
 ## Doğrulama
 
-- `tests/Feature/WhatsappTest.php`: 27 test, 74 assertion geçti (sahte HTTP, SQLite).
+- `tests/Feature/WhatsappTest.php`: 29 test, 81 assertion geçti (sahte HTTP, SQLite).
 - İzole **MySQL 8.0.46**: sekiz tablo migration'ı uygulandı; iki ayrı PHP worker aynı mesajı eşzamanlı işledi: bir Meta fake çağrısı, bir attempt, accepted durumu. Harness: `tests/Support/whatsapp-concurrency.php`; test socket'i `/tmp/whatsapp-mysql-data/mysql.sock`, DB `whatsapp_test`.
 - Admin ve müşteri `bun run build` geçti. Bunlar test ortamı build’leridir; canlı paket doğru üretim ortam değişkenleriyle yeniden derlenmelidir. Admin lint mevcut warning'lerle geçti. Müşteri genel lint **82 hata, 29 warning** ile geçmedi; yeni WhatsApp bileşeni hedefli lint'ten geçti. Genel lint başarı olarak işaretlenmedi.
 - Playwright yerel API fixture'larıyla bağlantısız/bağlı ekranları açtı. 390px ölçüm: viewport=390, scrollWidth=390; masaüstü 1440px. Ortak navbar mobil boşlukları daraltıldı. Son konsol kontrolü sıfır error. Bu test gerçek canlı oturum/Meta kabulü değildir.
@@ -49,9 +49,9 @@ Canlı HEAD `33d17a14`, yerel taban `20a51f80`, origin/main `ce31b675` farklıd�
 
 `docs/whatsapp/live-source-map.json` dosya hashlerini kaydeder. `docs/whatsapp/live-integration.patch` yalnız mevcut canlı dosyalara WhatsApp değişikliklerini uygular. Birleşimde kupon sepet fingerprint'i ve WhatsApp state'i birlikte korundu. Yayın anında kaynak değişmişse patch kontrolü başarısız olur; yeni canlı sürümle tekrar birleştirilir. Yeni WhatsApp dosyaları feature PR'ından alınır. Bu paket canlıya uygulanmadı.
 
-## Yayın sırası — migration manuel
+## Yayın sırası
 
-AGENTS.md: canlı `php artisan migrate` son manuel adımdır. Bu oturumda canlı migration yapılmadı; genel veya sınıflı db:seed çalıştırılmadı.
+Kullanıcının 2026-11-08 tarihli “canlıya al” talimatıyla yalnız WhatsApp migration’ı uygulandı. Genel veya sınıflı db:seed çalıştırılmadı.
 
 1. Yeni numara, yalnız Sportoonline numarasını içeren WABA, Meta App ve gerekli sistem kullanıcısı izinlerini hazırlayın. Token/App Secret sohbet yerine yönetici formundan girilir. Numara CONNECTED/CLOUD_API ve hesap AVAILABLE olmalıdır.
 2. DB ve mevcut uygulama sürümünün erişimi kısıtlı yedeğini alın. APP_KEY'i ayrı güvenli yedekte tutun; anahtarı loga veya PR'a yazmayın.
@@ -74,3 +74,15 @@ AGENTS.md: canlı `php artisan migrate` son manuel adımdır. Bu oturumda canlı
 ## Kalan canlı kabul
 
 Yeni numara/WABA/App, Meta şablon onayı, pilot alıcı ve destek sorumlusu; manuel migration/yayın; gerçek yetkili panel oturumu, webhook ve alıcı teslim kabulü; güncel provider sözleşmesi. Bu adımlar bitmeden checklist'in tamamı veya canlı entegrasyon tamamlandı denmez.
+
+
+## 2026-11-08 canlı yayın ilerlemesi
+
+- Kullanıcı ayrıca aktivasyonun panel üzerinden tamamlanmasını istedi. Yönetim ekranına kurulum adımları eklendi; bağlantısız hesapta mesaj listesi sorgulanmaz.
+- Yayın dizini: `/var/www/whatsapp-release-20261108`; mevcut canlı kaynaklardan oluşturuldu, 19 kaynak hash'i kontrol edilip entegrasyon patch'i uygulandı. Git çalışma dosyaları yerinde düzenlenmedi; backend yeni release dizinine yönlendirildi.
+- Güvenli yedek: `/var/backups/whatsapp-20261108` (DB dump 257015666 byte ve ayrı `.env`). Eski backend `/var/www/quikecommerce/backend-laravel.pre-whatsapp-20261108`, storage korunuyor.
+- Sekiz tablo migration'ı tamamlandı. Mevcut Orhan yöneticisine (ID 4) üç WhatsApp izni verildi.
+- Panelden aktivasyon için sunucu altyapı anahtarı açık; bağlantı henüz yok ve gönderim kapalı. Yeni bağlantılar da disabled/pilot olarak oluşturulur. Müşteri tercihi yalnız bağlı, etkin, pilot dışı, sağlıklı hesapta açılır. Etkinleştirme en az bir olay ve o olayların onaylı şablonlarını zorunlu tutar.
+- Canlı API: yetkili status 200/configured=false, yetkisiz status 401, imzasız webhook 403, boş connect 422. Gerçek Meta çağrısı/mesajı yapılmadı.
+- Sunucuda Supervisor yok; mevcut PM2 altyapısıyla `sportoonline-whatsapp` iki worker olarak kuruldu. `ops/whatsapp/pm2.config.cjs` gerçek yapılandırmadır. Dakikalık dispatch, 10 dakikalık refresh ve günlük prune mevcut scheduler'da doğrulandı.
+- Rollback: gönderimi durdurun; yalnız WhatsApp worker grubunu durdurun. Backend symlink'i kaldırıp `backend-laravel.pre-whatsapp-20261108` dizinini eski adına taşıyın; PHP-FPM'i reload ve mevcut genel worker'ı restart edin. WhatsApp tablolarını/audit verisini silmeyin.

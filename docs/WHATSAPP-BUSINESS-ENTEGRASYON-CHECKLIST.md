@@ -1,6 +1,6 @@
 # Sportoonline WhatsApp Business entegrasyon araştırması ve uygulama checklisti
 
-Tarih: 8 Kasım 2026. Durum: araştırma ve iş planı hazır; uygulama, Meta hesap kurulumu ve canlı gönderim bekliyor.
+Tarih: 8 Kasım 2026. Durum: uygulama hazır; canlı yayın uygulanıyor. Yeni numara/Meta hesap kurulumu ve gerçek teslim kabulü bekliyor. Güncel kanıtlar: [yayın kaydı](WHATSAPP-UYGULAMA-VE-YAYIN.md).
 
 Sportoonline müşterilerine ayrı bir WhatsApp numarasından sipariş, ödeme, kargo ve iade bildirimleri gönderecek. OSGB projesindeki Meta Cloud API mimarisi Laravel 12 ve mevcut Next.js panellerine uyarlanacak. İlk teslimat, izinli bir pilot alıcıya ödeme bildiriminin gönderilmesi ve teslim sonucunun webhook ile kanıtlanmasıdır. Sonraki adımlarda kargo, iade ve gelen mesaj yönetimi tamamlanır.
 
@@ -22,7 +22,7 @@ Sportoonline müşterilerine ayrı bir WhatsApp numarasından sipariş, ödeme, 
 | Sonraki kapsam | Kargo, teslimat, iptal/iade; ardından OSGB benzeri konuşma ekranı ve dosya iletimi. |
 | Ayrı sonraki çalışma | Kampanya, terk edilmiş sepet, fiyat alarmı, toplu gönderim, WhatsApp OTP ve yapay zekâ yanıtları. |
 
-## 2 Doğrulanmış mevcut durum
+## 2 Araştırma başlangıcında doğrulanan durum
 
 ### QuickEcommerce
 
