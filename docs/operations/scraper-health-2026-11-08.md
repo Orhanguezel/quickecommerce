@@ -22,8 +22,17 @@ Canlı panel: https://panel.sportoonline.com/tr/admin/scrapers
 - Heyday: 2 ürün, 4 eşleşme; doğrulama 0 hata/0 uyarı; sync 4 güncelleme, 0 hata, 0 fiyat sınırı.
 - Neptün: 20 ürün; doğrulama 0 hata/0 uyarı; 1 yeni varyant eşleşmesi, toplam 19 eşleşme; 17 güncelleme, 2 stoksuz, 0 hata, 0 fiyat sınırı.
 - Animal Türkiye: ana alan adı, www, alternatif Vitafy ve Woo endpoint'i HTTP 403. VPS üzerindeki yerel tarayıcı servisi de engelli. 14 eski stoklu varyant mevcut 36 saat güncellik kuralıyla sıfırlandı. Günlük yeniden deneme açık. Tedarikçinin sunucu erişim engelini kaldırması gerekiyor.
-- Yonex: tam katalog kurtarma sonucu aşağıda tamamlanacak.
+- Yonex: 64/64 ürün çekildi. Doğrulama 0 hata; kaynakta kısa açıklaması olan 5 üründe içerik uyarısı var (fiyat/stok hatası değil). 291 eşleşme kontrol edildi: 67 güncelleme, 32 stoksuz kayıt, kaynakta artık bulunmayan 192 eski eşleşme stok 0 olarak korundu. Sync 0 hata, 0 fiyat sınırı. Başarılı çalışma #5499, eski 6 kaynak alarmı otomatik kapandı.
 - Testler: 5 ayrıştırıcı testi + 3 gerçek shell fonksiyonunu izole stub ortamında çalıştıran sonuç testi geçti. PHP syntax, bash syntax ve diff whitespace kontrolleri geçti.
+
+## Son canlı durum (18:56 UTC)
+
+- 38 kaynak: **28 sağlıklı, 0 uyarı, 1 kritik, 9 bilinçli pasif**.
+- Kritik tek kaynak Animal Türkiye; sağlık komutundaki 3 bulgu aynı erişim olayının eski JSON, başarısız çalışma ve eski sync belirtileri.
+- Açık alarmlar **152 → 8**: 6 Yonex alarmı otomatik; 138 eski rapor/tekrar/iyileşmiş karantina kaydı gerekçesiyle kapandı. Kayıtlar silinmedi, önce yedeklendi.
+- Kalan 8: Animal Türkiye erişim olayı #520, 4 manuel iade ve 3 sipariş stok teyidi. Siparişlerin finansal/teslimat durumunu doğrulamadan kapatılmadı.
+- Yönetici tarayıcısında Heyday, Neptün, Yonex sağlıklı; Yonex 67 stoklu varyant; Animal Türkiye 0 stoklu varyant; alarm sayısı 8 olarak görüldü. Sayfa ve overview/sources/alerts API’leri HTTP 200.
+- PR: https://github.com/Orhanguezel/quickecommerce/pull/36
 
 ## Alarm yönetimi
 

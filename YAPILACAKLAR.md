@@ -861,6 +861,6 @@ Sporcu besinleri ve ml/gr içerikli ürünler için weight filter — scraper up
 - [X] Heyday / Neptün günlük zincire ve sağlık paneline eklendi; canlı veri yeniden çekilip eşitlendi.
 - [X] Cron/manual sync hatasının başarı olarak kaydedilmesi düzeltildi; 3 shell regresyon testi.
 - [X] Animal Türkiye 403 engeli doğrulandı; 14 eski stoklu varyant karantinaya alındı.
-- [~] Yonex tam katalog kurtarma, eski alarmları güncel sonuçla uzlaştırma ve son panel kontrolü.
+- [X] Yonex 64/64 ürün kurtarma; canlı panel 28 sağlıklı / 1 kritik / 9 pasif. Açık alarmlar 152 → 8; sipariş/iade alarmları korundu. [PR #36](https://github.com/Orhanguezel/quickecommerce/pull/36).
 - [ ] Animal Türkiye: tedarikçinin sunucu erişim engelini kaldırması.
 - Ayrıntılar: [Sağlık raporu](docs/operations/scraper-health-2026-11-08.md).
