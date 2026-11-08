@@ -14,6 +14,8 @@ export const useNotificationsQuery = (options: Partial<NotificationsQueryOptions
     queryKey: [API_ENDPOINTS.ADMIN_NOTIFICATIONS_ADD, options],
     queryFn: () => findAll(options),
     enabled: !config?.skip,
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
     ...options,
   });
 
