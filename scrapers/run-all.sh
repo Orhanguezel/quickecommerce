@@ -58,6 +58,10 @@ send_tg() {
 }
 
 FAIL_COUNT=0
+if ! bash /var/www/quikecommerce/scrapers/check-python-env.sh "$VENV"; then
+  send_tg '🚨 <b>Gunluk scraper Python ortami bozuk</b> — kaynaklar baslatilmadi; cron logunu kontrol et.'
+  exit 1
+fi
 FAIL_LIST=""
 
 run_scraper() {
@@ -189,6 +193,7 @@ run_scraper() {
   # swan store#46 pasif ve 2094 urunun tamami soft-delete; bosuna tarama.
   # run_scraper swan           swan_scraper.py           swan_products.json
   run_scraper grandgiftstore grandgiftstore_scraper.py grandgiftstore_products.json
+  run_scraper evapera scrapers/evapera_scraper.py evapera_products.json
   run_scraper ayakkabi       ayakkabi_scraper.py       ayakkabi_products.json
   run_scraper norfolk        norfolk_scraper.py        norfolk_products.json
   run_scraper superstacy     superstacy_scraper.py     superstacy_products.json
