@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import styles from "./whatsapp.module.css";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useBaseService } from "@/modules/core/base.service";
 
@@ -141,7 +142,8 @@ export default function WhatsappInbox({ ready }: { ready: boolean }) {
                   setNotice("");
                   if (window.matchMedia("(max-width: 767px)").matches) chat.current?.scrollIntoView({ block: "start" });
                 }}>
-                <span className="grid size-9 place-items-center rounded-full bg-muted text-muted-foreground">
+                <span className={cn("grid size-9 place-items-center rounded-full",
+                  message.direction === "inbound" ? styles.receivedIcon : styles.sentIcon)}>
                   {message.direction === "inbound"
                     ? <ArrowDownLeft aria-hidden className="size-4" />
                     : <ArrowUpRight aria-hidden className="size-4" />}
@@ -169,7 +171,7 @@ export default function WhatsappInbox({ ready }: { ready: boolean }) {
             </div>
           )}
         </div>
-        <div ref={chat} className="flex min-h-52 min-w-0 scroll-mt-20 flex-col gap-3 bg-muted/30 p-4">
+        <div ref={chat} className={cn("flex min-h-52 min-w-0 scroll-mt-20 flex-col gap-3 p-4", styles.chat)}>
           {!selected && (
             <div className="flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center text-sm text-muted-foreground">
               <MessageSquare aria-hidden className="size-7" />
@@ -186,7 +188,8 @@ export default function WhatsappInbox({ ready }: { ready: boolean }) {
                   {[...timeline].reverse().map(message => (
                     <article key={message.id} className={cn(
                       "max-w-[90%] whitespace-pre-wrap break-words rounded-xl border px-3 py-2.5 text-sm",
-                      message.direction === "inbound" ? "self-start bg-card" : "self-end border-primary/15 bg-primary/10"
+                      styles.message,
+                      message.direction === "inbound" ? cn("self-start", styles.inbound) : cn("self-end", styles.outbound)
                     )}>
                       <div className="mb-1 flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
                         <strong>{message.direction === "inbound" ? "Gelen" : "Sportoonline"}</strong>

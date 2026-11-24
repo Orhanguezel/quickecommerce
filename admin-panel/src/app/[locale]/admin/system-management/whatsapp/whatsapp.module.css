@@ -1,11 +1,79 @@
 .shell {
-  --primary: 221.2 83.2% 53.3%;
+  --primary: 160 89% 25%;
   --primary-foreground: 0 0% 100%;
-  --ring: 221.2 83.2% 53.3%;
+  --ring: var(--primary);
+  --wa-workspace-tint: #eff9f4;
+  --wa-chat-background: #f6f0e5;
+  --wa-chat-pattern: #d3bc9845;
+  --wa-inbound: #fffdf8;
+  --wa-inbound-border: #e2d9c9;
+  --wa-outbound: #def4df;
+  --wa-outbound-border: #badabd;
+  --wa-message-shadow: #30291b0d;
+  --wa-received: #f1eadf;
+  --wa-received-text: #6b5139;
+  --wa-sent: #e2f4e9;
+  --wa-sent-text: #176448;
+}
+
+:global(.dark) .shell {
+  --primary: 155 62% 63%;
+  --primary-foreground: 164 65% 11%;
+  --wa-workspace-tint: #172d26;
+  --wa-chat-background: #222925;
+  --wa-chat-pattern: #b4a88c24;
+  --wa-inbound: #293632;
+  --wa-inbound-border: #43514a;
+  --wa-outbound: #164737;
+  --wa-outbound-border: #367259;
+  --wa-message-shadow: #00000025;
+  --wa-received: #403a2e;
+  --wa-received-text: #e5d1aa;
+  --wa-sent: #1b493a;
+  --wa-sent-text: #a6e8bd;
 }
 
 .shell button > svg[data-icon] {
   width: 1rem;
   height: 1rem;
   flex-shrink: 0;
+}
+
+.workspaceHeader {
+  background: linear-gradient(115deg, var(--wa-workspace-tint), transparent 74%) hsl(var(--card));
+}
+
+.chat {
+  background-color: var(--wa-chat-background);
+  background-image:
+    radial-gradient(circle, var(--wa-chat-pattern) 1px, transparent 1.5px),
+    radial-gradient(circle, transparent 3px, var(--wa-chat-pattern) 3.5px, transparent 4.5px);
+  background-position: 0 0, 13px 13px;
+  background-size: 34px 34px;
+}
+
+.message {
+  box-shadow: 0 1px 2px var(--wa-message-shadow);
+}
+
+.inbound {
+  border-color: var(--wa-inbound-border);
+  border-bottom-left-radius: 0.25rem;
+  background: var(--wa-inbound);
+}
+
+.outbound {
+  border-color: var(--wa-outbound-border);
+  border-bottom-right-radius: 0.25rem;
+  background: var(--wa-outbound);
+}
+
+.receivedIcon {
+  background: var(--wa-received);
+  color: var(--wa-received-text);
+}
+
+.sentIcon {
+  background: var(--wa-sent);
+  color: var(--wa-sent-text);
 }
