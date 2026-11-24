@@ -4,6 +4,10 @@
 > 5 günlük trafik raporu + ayrı nginx log, Geliver Türkçe il/ilçe fix + #113,
 > Google Places API, admin sipariş detayı/fatura adres + isim + temiz format.
 
+## Funnel Analitiği
+
+- [X] Son Etkinlikler tablosunda 25 etkinlik türü ve cihaz etiketleri Türkçeleştirildi. Canlı tablo, üç sayfa ve mobil kaydırma doğrulandı. [PR #43](https://github.com/Orhanguezel/quickecommerce/pull/43).
+
 ## WhatsApp Business müşteri bildirimleri — 2026-11-08
 
 - [X] WhatsApp paneline yeşil vurgu, açık ve koyu sohbet renkleri ve mesaj yönüne göre ayrışan balonlar eklendi. Canlı masaüstü ve mobil doğrulandı. [PR #42](https://github.com/Orhanguezel/quickecommerce/pull/42).
