@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\Controller;
 use App\Models\WhatsappConnection;
 use App\Models\WhatsappMessage;
 use App\Services\Whatsapp\WhatsappConnectionService;
+use App\Services\Whatsapp\WhatsappConsentService;
 use App\Services\Whatsapp\WhatsappMessageRecorder;
 use App\Services\Whatsapp\WhatsappPhone;
 use App\Services\Whatsapp\WhatsappTemplateService;
@@ -76,10 +77,13 @@ final class AdminController extends Controller
 
     public function messages(Request $r)
     {
-        $data = $r->validate(['status' => 'sometimes|string|max:40', 'page' => 'sometimes|integer|min:1']);
-        $query = WhatsappMessage::where('connection_id', $this->connection()->id)->latest();
+        $data = $r->validate(['status' => 'sometimes|string|max:40', 'direction' => 'sometimes|in:inbound,outbound', 'page' => 'sometimes|integer|min:1']);
+        $query = WhatsappMessage::where('connection_id', $this->connection()->id)->latest()->orderByDesc('id');
         if (isset($data['status'])) {
             $query->where('status', $data['status']);
+        }
+        if (isset($data['direction'])) {
+            $query->where('direction', $data['direction']);
         }
         $page = $query->paginate(30);
         $page->getCollection()->transform(fn ($m) => $m->toArray() + ['recipient_masked' => WhatsappPhone::mask($m->recipient)]);
@@ -90,9 +94,18 @@ final class AdminController extends Controller
     public function conversation(string $id)
     {
         $m = WhatsappMessage::where('connection_id', $this->connection()->id)->findOrFail($id);
-        $messages = WhatsappMessage::where('connection_id', $m->connection_id)->where('recipient', $m->recipient)->latest()->limit(100)->get();
+        $thread = WhatsappMessage::where('connection_id', $m->connection_id)->where('recipient', $m->recipient);
+        $messages = (clone $thread)->latest()->orderByDesc('id')->limit(100)->get();
+        $incoming = $thread->where('direction', 'inbound')->whereNotNull('provider_at')->latest('provider_at')->first();
 
-        return response()->json(['data' => $messages->map(fn ($item) => $item->toArray() + ['content' => $item->payload, 'recipient_masked' => WhatsappPhone::mask($item->recipient)])]);
+        return response()->json([
+            'data' => $messages->map(fn ($item) => $item->toArray() + ['content' => $item->payload, 'recipient_masked' => WhatsappPhone::mask($item->recipient)]),
+            'reply_to' => $incoming ? [
+                'id' => $incoming->id,
+                'expires_at' => $incoming->provider_at->copy()->addHours(24),
+                'opted_out' => app(WhatsappConsentService::class)->blocked($incoming->recipient),
+            ] : null,
+        ]);
     }
 
     public function reply(Request $r, string $id, WhatsappMessageRecorder $recorder)
@@ -101,7 +114,8 @@ final class AdminController extends Controller
         $c = $this->connection();
         $inbound = WhatsappMessage::where('connection_id', $c->id)->where('direction', 'inbound')->findOrFail($id);
         abort_unless($inbound->provider_at?->gt(now()->subHours(24)), 422, 'Yanıt süresi doldu.');
-        $m = WhatsappMessage::firstOrCreate(['event_key' => 'reply:'.$c->id.':'.$data['request_id']], [
+        abort_if(app(WhatsappConsentService::class)->blocked($inbound->recipient), 422, 'Bu numara WhatsApp iletişiminden çıkmış.');
+        $m = WhatsappMessage::createOrFirst(['event_key' => 'reply:'.$c->id.':'.$data['request_id']], [
             'id' => (string) Str::uuid(), 'connection_id' => $c->id, 'connection_version' => $c->version, 'event_type' => 'reply',
             'recipient' => $inbound->recipient, 'payload' => ['body' => $data['body'], 'reply_to' => $inbound->provider_message_id], 'status' => 'pending', 'expires_at' => $inbound->provider_at->copy()->addHours(24),
             'next_attempt_at' => now(), 'actor_id' => $r->user()->id,
