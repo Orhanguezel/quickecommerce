@@ -336,6 +336,38 @@ class WhatsappTest extends TestCase
         $this->assertSame(2, WhatsappMessage::where('event_type', 'shipment_dispatched')->count());
     }
 
+    public function test_inbound_international_sender_without_plus_is_stored(): void
+    {
+        $c = $this->connection();
+        $event = WhatsappWebhookEvent::create([
+            'connection_id' => $c->id,
+            'event_hash' => hash('sha256', 'german-sender'),
+            'payload' => ['entry' => [[
+                'id' => '123',
+                'changes' => [['value' => [
+                    'metadata' => ['phone_number_id' => '456'],
+                    'messages' => [[
+                        'id' => 'wamid.german-sender',
+                        'from' => '4915123456789',
+                        'timestamp' => time(),
+                        'type' => 'text',
+                        'text' => ['body' => 'Test'],
+                    ]],
+                ]]],
+            ]]],
+        ]);
+
+        app(WhatsappWebhookProcessor::class)->process($event->id);
+
+        $this->assertSame('processed', $event->fresh()->status);
+        $this->assertDatabaseHas('whatsapp_messages', [
+            'provider_message_id' => 'wamid.german-sender',
+            'direction' => 'inbound',
+            'recipient' => '+4915123456789',
+            'status' => 'received',
+        ]);
+    }
+
     public function test_unknown_inbound_identity_is_quarantined_without_fabricated_phone(): void
     {
         $c = $this->connection();
