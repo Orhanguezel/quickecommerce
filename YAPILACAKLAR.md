@@ -6,6 +6,8 @@
 
 ## WhatsApp Business müşteri bildirimleri — 2026-11-08
 
+- [X] WhatsApp yönetim sayfasına gelen/gönderilen filtreleri, konuşma geçmişi ve manuel yanıt eklendi. Canlı panelde masaüstü ve 390 px mobil doğrulandı. [PR #40](https://github.com/Orhanguezel/quickecommerce/pull/40).
+
 - [X] WhatsApp webhook gönderen numaraları ülke koduyla doğrulanıyor. Almanya ve Türkiye testleri geçti. Yeni Almanya test mesajı canlıda Mesajlar kaydına işlendi. [PR #39](https://github.com/Orhanguezel/quickecommerce/pull/39).
 
 - [X] Yönetici erişim düzeltmesi: Engin Eser (ID 1, Super Admin) için eksik WhatsApp izinleri `whatsapp:grant 1` ile verildi. Canlı API önce 403, sonra 200; Engin oturumuyla hesap formu görünür, yetki hatası yok, konsol 0 error. Geçici doğrulama tokenı iptal edildi. Salt okunur hesabın izinleri değiştirilmedi.
