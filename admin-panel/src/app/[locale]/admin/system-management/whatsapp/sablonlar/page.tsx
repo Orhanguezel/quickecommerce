@@ -86,7 +86,7 @@ function DraftEditor({ draft, onSave, onReload }: {
           </section>
           <div className="flex flex-wrap justify-end gap-2">
             {conflict && <Button type="button" variant="outline" onClick={() => void onReload()}>Güncel taslağı yükle</Button>}
-            <Button type="button" variant="outline" disabled={!valid} onClick={async () => {
+            <Button type="button" variant="outline" className="gap-2" disabled={!valid} onClick={async () => {
               try {
                 await navigator.clipboard.writeText(body.trim());
                 setNotice("Şablon metni kopyalandı.");
@@ -145,7 +145,7 @@ export default function WhatsappTemplatesPage() {
             <CardTitle className="text-lg">Mesaj şablonları</CardTitle>
             <CardDescription>Taslaklar burada saklanır. Gönderimde Meta’nın onayladığı sürüm kullanılır.</CardDescription>
           </div>
-          <Button type="button" variant="outline" disabled={sync.isPending} onClick={() => { setNotice(""); sync.mutate(); }}>
+          <Button type="button" variant="outline" className="gap-2" disabled={sync.isPending} onClick={() => { setNotice(""); sync.mutate(); }}>
             <RefreshCw data-icon="inline-start" /> Meta’dan eşitle
           </Button>
         </CardHeader>

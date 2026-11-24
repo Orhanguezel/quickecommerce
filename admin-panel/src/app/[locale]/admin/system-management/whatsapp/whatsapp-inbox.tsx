@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowDownLeft, ArrowUpRight, MessageSquare, RefreshCw, Send } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, MessageSquare, Paperclip, RefreshCw, Send } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -49,6 +49,7 @@ export default function WhatsappInbox({ ready }: { ready: boolean }) {
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Message | null>(null);
   const [reply, setReply] = useState("");
+  const [attachment, setAttachment] = useState("");
   const [notice, setNotice] = useState("");
   const chat = useRef<HTMLDivElement>(null);
   const chatTimeline = useRef<HTMLDivElement>(null);
@@ -136,6 +137,7 @@ export default function WhatsappInbox({ ready }: { ready: boolean }) {
                   if (selected?.id === message.id) return;
                   setSelected(message);
                   setReply("");
+                  setAttachment("");
                   setNotice("");
                   if (window.matchMedia("(max-width: 767px)").matches) chat.current?.scrollIntoView({ block: "start" });
                 }}>
@@ -225,21 +227,25 @@ export default function WhatsappInbox({ ready }: { ready: boolean }) {
                 </form>
               )}
               {canSend && target && (
-                <form className="flex flex-wrap items-end gap-2" onSubmit={event => {
+                <form key={target.id} className="flex flex-wrap items-center gap-2" onSubmit={event => {
                   event.preventDefault();
                   const form = event.currentTarget;
                   const data = new FormData(form) as FormData & { multipart: boolean };
                   data.append("request_id", crypto.randomUUID());
                   data.multipart = true;
                   action.mutate({ path: `conversations/${target.id}/media`, data }, {
-                    onSuccess: () => { form.reset(); setNotice("Dosya gönderim kuyruğuna alındı."); },
+                    onSuccess: () => { form.reset(); setAttachment(""); setNotice("Dosya gönderim kuyruğuna alındı."); },
                     onError: () => setNotice("Dosya gönderilemedi."),
                   });
                 }}>
-                  <label className="grid min-w-0 gap-1 text-sm">Dosya (JPEG, PNG veya PDF, en fazla 5 MB)
-                    <input className="min-w-0 max-w-full" name="file" type="file" accept="image/jpeg,image/png,application/pdf" required />
+                  <input id="wa-message-file" className="peer sr-only" name="file" type="file"
+                    accept="image/jpeg,image/png,application/pdf" required aria-describedby="wa-attachment-hint"
+                    onChange={event => setAttachment(event.target.files?.[0]?.name ?? "")} />
+                  <label htmlFor="wa-message-file" className="inline-flex cursor-pointer items-center gap-2 rounded-md border bg-card px-3 py-2 text-sm hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring">
+                    <Paperclip aria-hidden className="size-4" /> Dosya seç
                   </label>
-                  <button type="submit" className="rounded border p-2" disabled={action.isPending}>Dosyayı gönder</button>
+                  <span id="wa-attachment-hint" className="min-w-0 break-all text-xs text-muted-foreground">{attachment || "JPEG, PNG veya PDF · En fazla 5 MB"}</span>
+                  {attachment && <Button type="submit" variant="outline" size="sm" disabled={action.isPending}>Dosyayı gönder</Button>}
                 </form>
               )}
               <div className="flex flex-wrap gap-2">
