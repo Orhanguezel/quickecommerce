@@ -66,12 +66,14 @@ final class WhatsappWebhookProcessor
                         $m->save();
                     }
                     foreach ($v['messages'] ?? [] as $incoming) {
-                        if (empty($incoming['id']) || empty($incoming['from'])) {
+                        $sender = $incoming['from'] ?? null;
+                        if (empty($incoming['id']) || ! is_string($sender) || ! preg_match('/^\+?[1-9][0-9]{1,14}$/D', $sender)) {
                             $unsupported = true;
                             continue;
                         }
                         try {
-                            $phone = WhatsappPhone::normalize($incoming['from']);
+                            // Meta supplies the international sender number without a plus sign.
+                            $phone = WhatsappPhone::normalize('+'.ltrim($sender, '+'));
                         } catch (\Throwable) {
                             $unsupported = true;
 
