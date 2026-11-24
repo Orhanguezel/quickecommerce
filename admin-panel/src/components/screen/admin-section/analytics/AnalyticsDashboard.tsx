@@ -44,6 +44,42 @@ const fmt = (value: number) => value.toLocaleString("tr-TR");
 const money = (value: number) => value.toLocaleString("tr-TR", { style: "currency", currency: "TRY" });
 const unwrap = <T,>(response: unknown) => (response as { data?: { data?: T } } | undefined)?.data?.data;
 
+const eventLabels = new Map([
+  ["page_view", "Sayfa görüntülendi"],
+  ["product_view", "Ürün görüntülendi"],
+  ["category_view", "Kategori görüntülendi"],
+  ["search", "Site içi arama yapıldı"],
+  ["store_view", "Mağaza görüntülendi"],
+  ["product_click", "Ürüne tıklandı"],
+  ["add_to_cart", "Sepete ürün eklendi"],
+  ["remove_from_cart", "Sepetten ürün çıkarıldı"],
+  ["cart_view", "Sepet görüntülendi"],
+  ["checkout_start", "Sipariş tamamlama başlatıldı"],
+  ["shipping_selected", "Kargo seçildi"],
+  ["payment_selected", "Ödeme yöntemi seçildi"],
+  ["order_created", "Sipariş oluşturuldu"],
+  ["payment_success", "Ödeme başarılı"],
+  ["payment_failed", "Ödeme başarısız"],
+  ["banner_click", "Tanıtım görseline tıklandı"],
+  ["coupon_view", "Kupon görüntülendi"],
+  ["coupon_apply", "Kupon uygulandı"],
+  ["recommendation_view", "Ürün önerisi gösterildi"],
+  ["recommendation_click", "Önerilen ürüne tıklandı"],
+  ["recommendation_add", "Önerilen ürün sepete eklendi"],
+  ["shipping_threshold_crossed", "Kargo için belirlenen tutara ulaşıldı"],
+  ["coupon_threshold_crossed", "Kupon için gereken tutara ulaşıldı"],
+  ["exit_intent_shown", "Çıkış teklifi gösterildi"],
+  ["exit_intent_converted", "Çıkış teklifi dönüşüm sağladı"],
+]);
+
+const deviceLabels = new Map([
+  ["bot", "Bot"],
+  ["desktop", "Masaüstü"],
+  ["mobile", "Mobil"],
+  ["tablet", "Tablet"],
+  ["unknown", "Bilinmiyor"],
+]);
+
 export default function AnalyticsDashboard() {
   const [days, setDays] = useState(30);
   const overviewSvc = useBaseService<OverviewData>(API_ENDPOINTS.ADMIN_ANALYTICS_OVERVIEW);
@@ -161,7 +197,23 @@ function TrafficSection({ overview: o }: { overview: OverviewData }) {
     <Table title="En Çok Etkileşim Alan Ürünler" empty="Henüz veri yok." headers={["Ürün","Görüntüleme","Tıklama","Sepet"]} rows={o.top_products.map((x) => [x.product_name || `#${x.product_id}`,fmt(Number(x.views)),fmt(Number(x.clicks)),fmt(Number(x.add_to_carts))])} pageSize={5} />
     <Table title="En Çok Aranan Kelimeler" empty="Henüz veri yok." headers={["Arama","Adet"]} rows={o.top_searches.map((x) => [x.query,fmt(x.searches)])} pageSize={5} />
     <Table title="UTM Kampanyaları" empty="Henüz UTM verisi yok." headers={["Kaynak","Medium","Kampanya","Event"]} rows={o.utm_campaigns.map((x) => [x.utm_source || "-",x.utm_medium || "-",x.utm_campaign || "-",fmt(x.events)])} pageSize={5} />
-  </section><Table title="Son Eventler" description="Bot ve insan eventlerini cihaz bilgisiyle birlikte inceleyin." empty="Henüz event yok." headers={["Zaman","Event","IP","Path","Cihaz","Bot"]} rows={o.recent_events.map((x) => [new Date(x.created_at).toLocaleString("tr-TR"),x.event,x.ip_address || "-",x.path || "-",[x.device_type,x.browser,x.os].filter(Boolean).join(" / ") || "-",x.is_bot ? "Evet" : "Hayır"])} pageSize={10} /></>;
+  </section>
+    <Table
+      title="Son Etkinlikler"
+      description="Ziyaretçi ve bot hareketlerini sayfa adresi ve cihaz bilgisiyle inceleyin."
+      empty="Henüz etkinlik yok."
+      headers={["Zaman", "Etkinlik", "IP Adresi", "Sayfa Adresi", "Cihaz", "Bot"]}
+      rows={o.recent_events.map((event) => [
+        new Date(event.created_at).toLocaleString("tr-TR"),
+        eventLabels.get(event.event) ?? `Diğer etkinlik (${event.event})`,
+        event.ip_address || "-",
+        event.path || "-",
+        [deviceLabels.get(event.device_type ?? "") ?? event.device_type, event.browser, event.os].filter(Boolean).join(" / ") || "-",
+        event.is_bot ? "Evet" : "Hayır",
+      ])}
+      pageSize={10}
+    />
+  </>;
 }
 
 function ExperimentsSection({ blocks, experiments }: { blocks: CtrRow[]; experiments: ExperimentRow[] }) {
