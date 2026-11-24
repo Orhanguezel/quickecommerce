@@ -1,10 +1,11 @@
 import type { ReactNode } from "react";
-import WhatsappTabs from "./whatsapp-tabs";
+import WhatsappHeader from "./whatsapp-header";
 
 export default function WhatsappLayout({ children }: { children: ReactNode }) {
-  return <section className="mx-auto max-w-4xl space-y-6 p-4 sm:p-6">
-    <h1 className="text-2xl font-semibold">WhatsApp Business</h1>
-    <WhatsappTabs />
-    {children}
-  </section>;
+  return (
+    <section className="mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-5">
+      <WhatsappHeader />
+      {children}
+    </section>
+  );
 }

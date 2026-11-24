@@ -1,9 +1,7 @@
-const templates = [{"name": "sportoonline_payment_confirmed_v1", "text": "Merhaba {{1}}, {{2}} numaralı siparişiniz için {{3}} tutarındaki ödemeniz alındı. Sipariş durumunu hesabınızdan takip edebilirsiniz."}, {"name": "sportoonline_cod_order_received_v1", "text": "Merhaba {{1}}, {{2}} numaralı kapıda ödemeli siparişiniz alındı. Ödenecek tutar: {{3}}."}, {"name": "sportoonline_shipment_dispatched_v1", "text": "{{1}} numaralı siparişinizin {{2}} paketi {{3}} kargosuna verildi. Takip numarası: {{4}}."}, {"name": "sportoonline_shipment_delivered_v1", "text": "{{1}} numaralı siparişinizin {{2}} paketi teslim edildi olarak bildirildi. Destek için bize ulaşabilirsiniz."}, {"name": "sportoonline_order_cancelled_v1", "text": "{{1}} numaralı siparişinizin {{2}} bölümü iptal edildi. İade durumu varsa ayrıca bilgilendirileceksiniz."}, {"name": "sportoonline_refund_confirmed_v1", "text": "{{1}} numaralı siparişiniz için {{2}} tutarındaki iade ödeme sağlayıcısı tarafından işlendi. Hesabınıza yansıma süresi bankanıza bağlıdır."}];
-
 export default function WhatsappAdminGuide() {
-  return <section className="space-y-3 rounded border bg-white p-4 text-gray-900" aria-labelledby="whatsapp-guide-title">
+  return <section className="flex flex-col gap-3 rounded-xl border bg-card p-5 text-card-foreground shadow-sm" aria-labelledby="whatsapp-guide-title">
     <h2 id="whatsapp-guide-title" className="text-lg font-semibold">Yönetici kullanım rehberi</h2>
-    <p className="text-sm">İlk kurulumda aşağıdaki sırayı izleyin. Numara satın alma ve Meta hesabı/şablon onayları Meta tarafında; hesabı bağlama, kontrol ve bildirim ayarları Yönetim sekmesinde tamamlanır.</p>
+    <p className="text-sm">İlk kurulumda aşağıdaki sırayı izleyin. Numara satın alma ve Meta hesabı/şablon onayları Meta tarafında; hesabı bağlama, kontrol ve bildirim ayarları Ayarlar sekmesinde tamamlanır.</p>
     <details open className="rounded border p-3">
       <summary className="cursor-pointer font-medium">1. Başlamadan önce hazırlayın</summary>
       <ul className="mt-3 list-disc space-y-2 pl-5 text-sm">
@@ -22,7 +20,7 @@ export default function WhatsappAdminGuide() {
         <div><dt className="font-semibold">Erişim anahtarı</dt><dd>Bu uygulama ve WhatsApp hesabına erişebilen token. Üretim için uygun sistem kullanıcısı erişimini ve WhatsApp mesajlaşma/yönetim izinlerini teknik sorumlunuzla hazırlayın; örnek kurulumdaki geçici tokenı kalıcı kurulum olarak bırakmayın.</dd></div>
         <div><dt className="font-semibold">Uygulama gizli anahtarı</dt><dd>Aynı Meta uygulamasının App Secret değeridir. Telefon doğrulama kodu, WhatsApp PIN’i veya erişim tokenı değildir.</dd></div>
       </dl>
-      <p className="mt-3 text-sm">Bu dört bilgiyi <strong>Yönetim</strong> sekmesindeki <strong>Hesabı bağla</strong> formuna girip <strong>Doğrula ve bağla</strong> düğmesine basın. Anahtarları yalnız bu forma girin; sohbet, e-posta veya ekran görüntüsüyle paylaşmayın. Panel sırları şifreli saklar ve geri göstermez.</p>
+      <p className="mt-3 text-sm">Bu dört bilgiyi <strong>Ayarlar</strong> sekmesindeki <strong>Hesabı bağla</strong> formuna girip <strong>Doğrula ve bağla</strong> düğmesine basın. Anahtarları yalnız bu forma girin; sohbet, e-posta veya ekran görüntüsüyle paylaşmayın. Panel sırları şifreli saklar ve geri göstermez.</p>
       <p className="mt-3 text-sm">Bağlantı kaydının oluşması gönderimi açmaz. Yanlış hesap veya numara aidiyeti varsa bilgileri düzeltin. Yeniden bağlama gönderimi kapatır; webhook, pilot numaralar ve bildirim ayarlarını tekrar kontrol etmeniz gerekir.</p>
     </details>
     <details className="rounded border p-3">
@@ -36,21 +34,20 @@ export default function WhatsappAdminGuide() {
     </details>
     <details className="rounded border p-3">
       <summary className="cursor-pointer font-medium">4. Bildirim şablonlarını hazırlayın</summary>
-      <p className="mt-3 text-sm">Aşağıdaki taslakları Meta WhatsApp şablon yönetiminde oluşturun. İsimler birebir aynı, dil Türkçe (tr), kategori UTILITY olmalıdır. Numaralı alanları ve sıralarını koruyun; görsel başlık veya dinamik düğme eklemeyin. Meta onayı otomatik değildir.</p>
-      <div className="mt-3 space-y-3">{templates.map(t=><article key={t.name} className="rounded bg-gray-50 p-3 text-sm"><h3 className="break-all font-mono font-semibold">{t.name}</h3><p className="mt-2 whitespace-pre-wrap break-words select-text">{t.text}</p></article>)}</div>
-      <p className="mt-3 text-sm">Meta onayından sonra <strong>Şablonları eşitle</strong> düğmesine basın. Açacağınız her bildirim için APPROVED / UTILITY / tr görünmeli. Bekleyen veya reddedilen şablonu Meta’da düzeltip yeniden eşitleyin. Bu paneldeki eşitleme düğmesi Meta’ya yeni şablon başvurusu yapmaz.</p>
+      <p className="mt-3 text-sm"><strong>Şablonlar</strong> sekmesinde sipariş olayını seçin. Numaralı alanların sırasını koruyarak metni düzenleyin, önizleyin ve taslağı kaydedin.</p>
+      <p className="mt-3 text-sm">Metni kopyalayıp aynı adla, Türkçe (tr) ve UTILITY kategorisinde Meta WhatsApp şablon yönetimine gönderin. Meta onayından sonra <strong>Meta’dan eşitle</strong> düğmesine basın.</p>
     </details>
     <details className="rounded border p-3">
       <summary className="cursor-pointer font-medium">5. Önce pilot gönderim yapın</summary>
       <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm">
-        <li>Bağlantı ve bildirimler bölümünde <strong>Yalnız pilot numaralara gönder</strong> seçili kalsın. İzinli alıcı numarasını ülke koduyla yazın; birden fazla numarayı virgülle ayırın.</li>
+        <li>Ayarlar sekmesindeki Otomatik bildirimler bölümünde <strong>Yalnız pilot numaralara gönder</strong> seçili kalsın. İzinli alıcı numarasını ülke koduyla yazın; birden fazla numarayı virgülle ayırın.</li>
         <li>Onaylı şablonu bulunan bildirim türlerini seçin. <strong>Bildirimleri etkinleştir</strong> seçeneğini açıp <strong>Bildirim ayarlarını kaydet</strong> düğmesine basın. Bağlantı, webhook ve şablon kontrolleri geçmeden etkinleştirme yapılmaz.</li>
         <li>Pilot gönderim bölümünde olayı ve aynı pilot numarayı seçin. Şablon alanlarını yukarıdaki metindeki sırayla doldurun. Ödeme onayında alanlar: müşteri adı, sipariş numarası, tutar.</li>
         <li><strong>Önizle</strong> ile şablonun ve pilot alıcının uygunluğunu kontrol edin; önizleme mesaj göndermez.</li>
         <li>Test gönderimi onay kutusunu işaretleyip <strong>Test mesajı gönder</strong> düğmesine bir kez basın. Alıcıdan mesajı gördüğünü teyit edin ve Mesajlar bölümünde Teslim edildi veya Okundu durumunu kontrol edin.</li>
         <li>Pilot alıcıdan bu işletme numarasına yanıt yazmasını isteyin; gelen mesajı ve panelden yanıtlamayı doğrulayın.</li>
       </ol>
-      <p className="mt-3 rounded bg-amber-50 p-2 text-sm text-amber-950">Ayarları her kaydedişte pilot numaraları yeniden girin. Güvenlik nedeniyle kayıtlı tam numaralar forma geri doldurulmaz.</p>
+      <p className="mt-3 rounded bg-amber-50 p-2 text-sm text-amber-950">Pilot listesi ayarları kaydederken korunur. Listeyi değiştirmek için Pilot listesini değiştir seçeneğini kullanın.</p>
     </details>
     <details className="rounded border p-3">
       <summary className="cursor-pointer font-medium">6. Müşterilere açın ve günlük takip yapın</summary>
@@ -73,9 +70,9 @@ export default function WhatsappAdminGuide() {
         <div><dt className="font-semibold">Sonuç belirsiz</dt><dd>Aynı mesajı yeniden oluşturarak tekrar göndermeyin. Teknik sorumlu sağlayıcı ve webhook kayıtlarını incelemelidir; aksi halde çift mesaj gidebilir.</dd></div>
         <div><dt className="font-semibold">Başarısız / Gönderilmedi</dt><dd>İzin, pilot listesi, hesap sağlığı ve şablon durumunu kontrol edin. Yeniden deneme yalnız sistemin güvenli bulduğu kesin geçici hatalarda kullanılabilir.</dd></div>
       </dl>
-      <p className="mt-3 text-sm"><strong>Gönderimi durdurmak için:</strong> Bildirimleri etkinleştir seçeneğini kapatıp ayarları kaydedin. Bu işlem sağlayıcıya önceden iletilmiş mesajları geri almaz. Panele erişemiyorsanız teknik sorumludan kanalı durdurmasını isteyin.</p>
+      <p className="mt-3 text-sm"><strong>Otomatik bildirimleri durdurmak için</strong> Bildirimleri etkinleştir seçeneğini kapatıp ayarları kaydedin. Bu işlem sağlayıcıya önceden iletilmiş mesajları geri almaz. Panele erişemiyorsanız teknik sorumludan kanalı durdurmasını isteyin.</p>
       <p className="mt-3 text-sm">Destek talebine işlem saatini, yapılan adımı ve sır içermeyen hata bilgisini ekleyin. Token, App Secret ve doğrulama kodlarını eklemeyin.</p>
     </details>
-    <p className="text-xs text-gray-600">Rehber: 8 Kasım 2026 · Meta ekran adları değişebilir. Resmî kaynaklar: <a className="underline" href="https://developers.facebook.com/apps/" target="_blank" rel="noreferrer">Meta uygulamaları</a>, <a className="underline" href="https://www.postman.com/meta/whatsapp-business-platform/documentation/wlk6lh4/whatsapp-cloud-api" target="_blank" rel="noreferrer">Meta Cloud API rehberi</a>. Bu rehberdeki panel adımları mevcut Sportoonline uygulamasına göredir.</p>
+    <p className="text-xs text-gray-600">Meta ekran adları değişebilir. Resmî kaynaklar <a className="underline" href="https://developers.facebook.com/apps/" target="_blank" rel="noreferrer">Meta uygulamaları</a>, <a className="underline" href="https://www.postman.com/meta/whatsapp-business-platform/documentation/wlk6lh4/whatsapp-cloud-api" target="_blank" rel="noreferrer">Meta Cloud API rehberi</a>. Bu rehberdeki panel adımları mevcut Sportoonline uygulamasına göredir.</p>
   </section>;
 }

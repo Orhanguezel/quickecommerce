@@ -14,6 +14,8 @@ Route::prefix('admin/whatsapp')->middleware(['auth:sanctum', \App\Http\Middlewar
     Route::post('subscribe', [AdminController::class, 'subscribe']);
     Route::post('settings', [AdminController::class, 'settings']);
     Route::match(['GET', 'POST'], 'templates', [AdminController::class, 'templates']);
+    Route::get('template-drafts', [AdminController::class, 'templateDrafts']);
+    Route::put('template-drafts/{event}', [AdminController::class, 'updateTemplateDraft']);
 });
 Route::prefix('admin/whatsapp')->middleware(['auth:sanctum', \App\Http\Middleware\WhatsappAdmin::class, 'permission:whatsapp.inbox', 'throttle:60,1'])->group(function () {
     Route::get('messages/{id}', [AdminController::class, 'detail']);

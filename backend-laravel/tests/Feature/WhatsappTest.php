@@ -168,6 +168,55 @@ class WhatsappTest extends TestCase
         $this->assertSame('channel_disabled', $sender->gate($reply, $c));
     }
 
+    public function test_template_draft_has_fixed_parameters_and_rejects_stale_edits(): void
+    {
+        $connection = $this->connection();
+        $originalStorage = $this->app->storagePath();
+        $storage = sys_get_temp_dir().'/wa-draft-'.Str::uuid();
+        $this->app->useStoragePath($storage);
+
+        try {
+            $drafts = app(\App\Services\Whatsapp\WhatsappTemplateDrafts::class);
+            $initial = $drafts->all($connection)[0];
+            $this->assertSame('payment_confirmed', $initial['event']);
+            $saved = $drafts->save($connection, $initial['event'], 'Merhaba {{1}}, sipariş {{2}} için {{3}} alındı.', $initial['revision']);
+            $this->assertNotSame($initial['revision'], $saved['revision']);
+            $this->assertSame($saved, $drafts->all($connection)[0]);
+            $otherAccount = clone $connection;
+            $otherAccount->business_account_id = '321';
+            $this->assertSame($initial, $drafts->all($otherAccount)[0]);
+
+            try {
+                $drafts->save($connection, $initial['event'], '{{3}} alındı. Sipariş {{2}}, müşteri {{1}}.', $saved['revision']);
+                $this->fail('Out-of-order placeholders were accepted');
+            } catch (\Illuminate\Validation\ValidationException $error) {
+                $this->assertArrayHasKey('body', $error->errors());
+            }
+
+            try {
+                $drafts->save($connection, $initial['event'], $initial['body'], $initial['revision']);
+                $this->fail('An outdated draft revision was accepted');
+            } catch (\Symfony\Component\HttpKernel\Exception\HttpException $error) {
+                $this->assertSame(409, $error->getStatusCode());
+            }
+            $this->assertSame($saved, $drafts->all($connection)[0]);
+        } finally {
+            \Illuminate\Support\Facades\File::deleteDirectory($storage);
+            $this->app->useStoragePath($originalStorage);
+        }
+    }
+
+    public function test_notification_settings_preserve_pilot_list_when_not_edited(): void
+    {
+        $connection = $this->connection();
+        $controller = app(\App\Http\Controllers\Api\V1\Whatsapp\AdminController::class);
+        $request = \Illuminate\Http\Request::create('/', 'POST', ['enabled' => false, 'pilot_mode' => true, 'enabled_events' => []]);
+        $controller->settings($request, app(WhatsappConnectionService::class));
+
+        $this->assertSame(['+905321234567'], $connection->fresh()->pilot_numbers);
+        $this->assertSame([], $connection->fresh()->enabled_events);
+    }
+
     public function test_rolled_back_event_does_not_dispatch(): void
     {
         $this->connection();

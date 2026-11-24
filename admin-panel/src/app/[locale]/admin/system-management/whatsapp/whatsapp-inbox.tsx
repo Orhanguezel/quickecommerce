@@ -1,6 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowDownLeft, ArrowUpRight, MessageSquare, RefreshCw, Send } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useBaseService } from "@/modules/core/base.service";
 
@@ -12,6 +17,7 @@ type Message = {
   status: string;
   reason?: string;
   created_at: string;
+  preview?: string | null;
   content?: { body?: string; text?: { body: string }; type?: string; media_type?: string };
 };
 type Conversation = {
@@ -44,6 +50,8 @@ export default function WhatsappInbox({ ready }: { ready: boolean }) {
   const [selected, setSelected] = useState<Message | null>(null);
   const [reply, setReply] = useState("");
   const [notice, setNotice] = useState("");
+  const chat = useRef<HTMLDivElement>(null);
+  const chatTimeline = useRef<HTMLDivElement>(null);
 
   const messages = useQuery({
     queryKey: ["whatsapp-messages", direction, page],
@@ -73,7 +81,13 @@ export default function WhatsappInbox({ ready }: { ready: boolean }) {
     : target?.opted_out ? "Bu numara WhatsApp iletişiminden çıkmış."
     : "Müşterinin son mesajından itibaren 24 saat içinde yanıt yazılabilir.";
   const timeline = conversation.data?.data;
+  const newest = timeline?.[0]?.id;
   const canRetry = selected?.status === "failed" && !!selected.reason;
+
+  useEffect(() => {
+    const panel = chatTimeline.current;
+    if (newest && panel) panel.scrollTop = panel.scrollHeight;
+  }, [newest]);
 
   async function download(id: string) {
     try {
@@ -90,47 +104,61 @@ export default function WhatsappInbox({ ready }: { ready: boolean }) {
   }
 
   return (
-    <section aria-labelledby="whatsapp-messages-heading" className="space-y-4 rounded border p-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 id="whatsapp-messages-heading" className="text-lg font-medium">Mesajlar</h2>
-        <button type="button" className="rounded border px-3 py-2" disabled={messages.isFetching}
+    <section aria-labelledby="whatsapp-messages-heading" className="overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-4 sm:px-5">
+        <h2 id="whatsapp-messages-heading" className="text-lg font-semibold">Mesajlar</h2>
+        <Button type="button" variant="outline" size="sm" className="gap-2" disabled={messages.isFetching}
           onClick={() => { void messages.refetch(); if (selected) void conversation.refetch(); }}>
-          Yenile
-        </button>
+          <RefreshCw data-icon="inline-start" /> Yenile
+        </Button>
       </div>
-      <div className="flex flex-wrap gap-2" role="group" aria-label="Mesaj yönü">
-        {filters.map(filter => (
-          <button type="button" key={filter.value} aria-pressed={direction === filter.value}
-            className={`rounded border px-3 py-2 ${direction === filter.value ? "border-blue-700 font-semibold" : ""}`}
-            onClick={() => { setDirection(filter.value); setPage(1); }}>
-            {filter.label}
-          </button>
-        ))}
-      </div>
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)]">
-        <div className="min-w-0 space-y-2">
+      <div className="grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.65fr)]">
+        <div className="flex min-w-0 flex-col gap-2 border-b p-3 md:border-b-0 md:border-r sm:p-4">
+          <div className="flex flex-wrap gap-1 pb-2" role="group" aria-label="Mesaj yönü">
+            {filters.map(filter => (
+              <Button type="button" size="sm" key={filter.value} aria-pressed={direction === filter.value}
+                variant={direction === filter.value ? "default" : "outline"}
+                onClick={() => { setDirection(filter.value); setPage(1); }}>
+                {filter.label}
+              </Button>
+            ))}
+          </div>
           {messages.isPending && <p>Mesajlar yükleniyor…</p>}
           {messages.isError && <p role="alert">Mesajlar yüklenemedi. Gelen kutusu yetkisini kontrol edin.</p>}
           {messages.data?.data.length === 0 && <p>Bu görünümde mesaj yok.</p>}
-          {messages.data?.data.map(message => (
-            <button type="button" key={message.id} aria-pressed={selected?.id === message.id}
-              className={`block w-full rounded border p-3 text-left ${selected?.id === message.id ? "border-blue-700" : ""}`}
-              disabled={action.isPending}
-              onClick={() => {
-                if (selected?.id === message.id) return;
-                setSelected(message);
-                setReply("");
-                setNotice("");
-              }}>
-              <span className="block font-medium">{message.recipient_masked}</span>
-              <span className="block text-sm">
-                {message.direction === "inbound" ? "Gelen" : "Gönderilen"} · {statuses[message.status] ?? message.status}
-              </span>
-              <time className="text-xs text-gray-500" dateTime={message.created_at}>
-                {dateFormat.format(new Date(message.created_at))}
-              </time>
-            </button>
-          ))}
+          <div className="flex max-h-[18rem] flex-col gap-1 overflow-y-auto md:max-h-[32rem]">
+            {messages.data?.data.map(message => (
+              <button type="button" key={message.id} aria-pressed={selected?.id === message.id}
+                className={cn("grid w-full grid-cols-[auto_minmax(0,1fr)] gap-3 rounded-lg p-3 text-left",
+                  selected?.id === message.id ? "bg-primary/10" : "hover:bg-muted")}
+                disabled={action.isPending}
+                onClick={() => {
+                  if (selected?.id === message.id) return;
+                  setSelected(message);
+                  setReply("");
+                  setNotice("");
+                  if (window.matchMedia("(max-width: 767px)").matches) chat.current?.scrollIntoView({ block: "start" });
+                }}>
+                <span className="grid size-9 place-items-center rounded-full bg-muted text-muted-foreground">
+                  {message.direction === "inbound"
+                    ? <ArrowDownLeft aria-hidden className="size-4" />
+                    : <ArrowUpRight aria-hidden className="size-4" />}
+                </span>
+                <span className="grid min-w-0 gap-1">
+                  <span className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-2">
+                    <span className="font-semibold">{message.recipient_masked}</span>
+                    <time className="text-xs tabular-nums text-muted-foreground" dateTime={message.created_at}>
+                      {dateFormat.format(new Date(message.created_at))}
+                    </time>
+                  </span>
+                  {message.preview && <span className="truncate text-sm text-muted-foreground">{message.preview}</span>}
+                  <span className="text-xs text-muted-foreground">
+                    {message.direction === "inbound" ? "Gelen" : "Gönderilen"} · {statuses[message.status] ?? message.status}
+                  </span>
+                </span>
+              </button>
+            ))}
+          </div>
           {(messages.data?.last_page ?? 1) > 1 && (
             <div className="flex items-center justify-between gap-2">
               <button type="button" className="rounded border p-2" disabled={page === 1} onClick={() => setPage(page - 1)}>Önceki</button>
@@ -139,21 +167,29 @@ export default function WhatsappInbox({ ready }: { ready: boolean }) {
             </div>
           )}
         </div>
-        <div className="min-w-0 space-y-3 rounded border p-3">
-          {!selected && <p>Konuşmayı açmak için bir mesaj seçin.</p>}
+        <div ref={chat} className="flex min-h-52 min-w-0 scroll-mt-20 flex-col gap-3 bg-muted/30 p-4">
+          {!selected && (
+            <div className="flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center text-sm text-muted-foreground">
+              <MessageSquare aria-hidden className="size-7" />
+              <p>Konuşmayı açmak için bir mesaj seçin.</p>
+            </div>
+          )}
           {selected && (
             <>
-              <h3 className="font-medium">Konuşma · {selected.recipient_masked}</h3>
+              <h3 className="border-b pb-3 font-semibold">Konuşma · {selected.recipient_masked}</h3>
               {conversation.isPending && <p>Konuşma yükleniyor…</p>}
               {conversation.isError && <p role="alert">Konuşma yüklenemedi.</p>}
               {timeline && (
-                <div className="max-h-[28rem] space-y-2 overflow-auto">
+                <div ref={chatTimeline} className="flex max-h-[28rem] flex-col gap-3 overflow-y-auto py-2">
                   {[...timeline].reverse().map(message => (
-                    <article key={message.id} className={`break-words whitespace-pre-wrap rounded p-2 text-gray-900 ${message.direction === "inbound" ? "bg-gray-100" : "bg-blue-50"}`}>
-                      <div className="flex flex-wrap gap-x-2 text-xs">
+                    <article key={message.id} className={cn(
+                      "max-w-[90%] whitespace-pre-wrap break-words rounded-xl border px-3 py-2.5 text-sm",
+                      message.direction === "inbound" ? "self-start bg-card" : "self-end border-primary/15 bg-primary/10"
+                    )}>
+                      <div className="mb-1 flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
                         <strong>{message.direction === "inbound" ? "Gelen" : "Sportoonline"}</strong>
                         <time dateTime={message.created_at}>{dateFormat.format(new Date(message.created_at))}</time>
-                        <span>{statuses[message.status] ?? message.status}</span>
+                        <Badge variant="outline">{statuses[message.status] ?? message.status}</Badge>
                       </div>
                       <p>{message.content?.text?.body ?? message.content?.body ?? "Ek veya şablon mesajı"}</p>
                       {message.direction === "inbound" && ["image", "document"].includes(message.content?.type ?? "") && (
@@ -164,7 +200,7 @@ export default function WhatsappInbox({ ready }: { ready: boolean }) {
                 </div>
               )}
               {timeline && (
-                <form className="space-y-2"
+                <form className="flex flex-col gap-2 rounded-lg border bg-card p-3"
                   onSubmit={event => {
                     event.preventDefault();
                     const body = reply.trim();
@@ -176,12 +212,13 @@ export default function WhatsappInbox({ ready }: { ready: boolean }) {
                     });
                   }}>
                   <label className="grid gap-1">Mesaj yaz
-                    <textarea className="min-h-20 rounded border p-2" maxLength={4096}
+                    <Textarea className="min-h-20 min-w-0" maxLength={4096}
                       disabled={!canSend || action.isPending} value={reply}
                       onChange={event => setReply(event.target.value)} />
                   </label>
-                  <button type="submit" className="rounded bg-blue-700 px-3 py-2 text-white disabled:opacity-50"
-                    disabled={!canSend || !reply.trim() || action.isPending}>Mesaj gönder</button>
+                  <Button type="submit" className="self-end gap-2" disabled={!canSend || !reply.trim() || action.isPending}>
+                    <Send data-icon="inline-start" /> Mesaj gönder
+                  </Button>
                   {!canSend && (
                     <p className="text-sm">{unavailableMessage}</p>
                   )}
