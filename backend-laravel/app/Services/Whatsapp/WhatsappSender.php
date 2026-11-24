@@ -12,7 +12,8 @@ final class WhatsappSender
 
     public function gate(WhatsappMessage $m, WhatsappConnection $c): ?string
     {
-        if (! config('whatsapp.enabled') || ! $c->enabled) {
+        $manualReply = $m->actor_id !== null && in_array($m->event_type, ['reply', 'media'], true);
+        if (! config('whatsapp.enabled') || (! $c->enabled && ! $manualReply)) {
             return 'channel_disabled';
         }
         if ($m->connection_version !== $c->version) {
@@ -24,7 +25,8 @@ final class WhatsappSender
         if ($this->consents->blocked($m->recipient)) {
             return 'opted_out';
         }
-        if (($c->pilot_mode || $m->event_type === 'pilot_test') && ! in_array($m->recipient, $c->pilot_numbers ?? [], true)) {
+        $requiresPilot = (! $manualReply && $c->pilot_mode) || $m->event_type === 'pilot_test';
+        if ($requiresPilot && ! in_array($m->recipient, $c->pilot_numbers ?? [], true)) {
             return 'outside_pilot';
         }
         if (! $c->subscribed || ! ($c->health['connected'] ?? false) || ($c->health['messaging_status'] ?? '') !== 'AVAILABLE'

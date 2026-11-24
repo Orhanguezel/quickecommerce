@@ -2,22 +2,16 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useBaseService } from "@/modules/core/base.service";
+import WhatsappInbox from "./whatsapp-inbox";
 
 type Connection = { enabled: boolean; pilot_mode: boolean; enabled_events: string[]; subscribed: boolean; out_of_hours_enabled: boolean; out_of_hours_text?: string; office_start: number; office_end: number; health: { connected?: boolean; messaging_status?: string; display_phone_number?: string } };
 type Status = { configured: boolean; channel_available: boolean; callback_url: string; events: Record<string, { template: string }>; connection: Connection | null };
-type Message = { id: string; event_type: string; status: string; reason?: string; recipient_masked: string; direction: string };
-const statuses: Record<string,string> = {pending:"Kuyrukta",retry_wait:"Yeniden deneme bekliyor",sending:"Gönderiliyor",accepted:"Meta kabul etti",sent:"Gönderildi",delivered:"Teslim edildi",read:"Okundu",failed:"Başarısız",unknown:"Sonuç belirsiz",suppressed:"Gönderilmedi",received:"Gelen mesaj"};
 const labels: Record<string, string> = {payment_confirmed: "Ödeme onayı", cod_order_accepted: "Kapıda ödeme siparişi", shipment_dispatched: "Kargoya verildi", shipment_delivered: "Teslim edildi", order_cancelled: "Sipariş iptali", refund_confirmed: "İade onayı"};
 export default function WhatsappSettings() {
   const api = useBaseService<unknown>("/v1/admin/whatsapp").getAxiosInstance();
   const cache = useQueryClient();
   const [notice, setNotice] = useState("");
-  const [selected, setSelected] = useState<string | null>(null);
-  const [reply, setReply] = useState("");
-  const [mediaBusy,setMediaBusy]=useState(false);
   const query = useQuery({queryKey: ["whatsapp-status"], queryFn: async () => (await api.get<Status>("/v1/admin/whatsapp")).data});
-  const messages = useQuery({queryKey: ["whatsapp-messages"], enabled: !!query.data?.configured, queryFn: async () => (await api.get<{data: Message[]}>("/v1/admin/whatsapp/messages")).data, refetchInterval: 30000});
-  const conversation = useQuery({queryKey: ["whatsapp-conversation", selected], enabled: !!selected, queryFn: async () => (await api.get<{data: (Message & {content: {body?: string; text?: {body: string}; type?: string}})[]}>(`/v1/admin/whatsapp/conversations/${selected}`)).data});
   const mutation = useMutation({mutationFn: async ({path, body}: {path: string; body?: Record<string, unknown>}) => api.post(`/v1/admin/whatsapp/${path}`, body ?? {}), onSuccess: () => {setNotice("İşlem tamamlandı."); void cache.invalidateQueries({queryKey: ["whatsapp-status"]}); void cache.invalidateQueries({queryKey:["whatsapp-templates"]}); void cache.invalidateQueries({queryKey: ["whatsapp-messages"]}); void cache.invalidateQueries({queryKey: ["whatsapp-conversation"]});}, onError: () => setNotice("İşlem tamamlanamadı. Yetkinizi ve hesap bilgilerini kontrol edin.")});
   const templates = useQuery({queryKey:["whatsapp-templates"],enabled:!!query.data?.configured,queryFn:async()=>(await api.get<{data:{id:number;name:string;status:string;category:string;language:string;checked_at:string}[]}>("/v1/admin/whatsapp/templates")).data});
   const [pilotEvent,setPilotEvent]=useState("payment_confirmed");
@@ -26,10 +20,16 @@ export default function WhatsappSettings() {
   if (query.isPending) return <p className="p-6">WhatsApp ayarları yükleniyor…</p>;
   if (query.isError) return <p role="alert" className="p-6">WhatsApp ayarları yüklenemedi. Yönetim yetkisi gereklidir.</p>;
   return <div className="space-y-6">
-    <p>Müşterilerin sipariş bildirimlerini ve gelen mesajlarını yönetin.</p>
+
     <p role="status" className="rounded border p-3">{status?.configured ? `Hesap bağlı · ${status.connection?.health.display_phone_number ?? "Numara doğrulanıyor"} · ${status.connection?.health.messaging_status ?? "Bilinmiyor"}` : "Yeni Sportoonline numarası henüz bağlanmadı. Numara ve Meta hesabı hazır olduğunda aşağıdan bağlayın."}</p>
-    {!status?.channel_available && <p className="rounded bg-amber-50 p-3 text-amber-950">Bildirim gönderimi henüz açılmadı.</p>}
-    <p className="text-sm">Gönderim durumu: {status?.connection?.enabled ? (status.connection.pilot_mode ? "Yalnız pilot numaralar" : "Etkin") : "Kapalı — kurulum bekleniyor"}</p>
+    {!status?.channel_available && <p className="rounded bg-amber-50 p-3 text-amber-950">WhatsApp gönderimi bu ortamda kapalı.</p>}
+    <p className="text-sm">Otomatik bildirimler: {status?.connection?.enabled ? (status.connection.pilot_mode ? "Yalnız pilot numaralar" : "Etkin") : "Kapalı — kurulum bekleniyor"}</p>
+    {status?.configured && (
+      <WhatsappInbox
+        ready={!!(status.channel_available && status.connection?.subscribed &&
+          status.connection.health.connected && status.connection.health.messaging_status === "AVAILABLE")}
+      />
+    )}
     {notice && <p role="status">{notice}</p>}
     <section className="rounded border bg-white p-4 text-gray-900"><h2 className="mb-3 text-lg font-medium">Hesabı bağla</h2>
       <p className="mb-3 text-sm">Sportoonline numarasına ait ayrı işletme hesabını kullanın. Kimlik bilgileri şifreli saklanır.</p>
@@ -44,7 +44,7 @@ export default function WhatsappSettings() {
         <div className="flex flex-wrap gap-3">{[["refresh","Bağlantıyı kontrol et"],["subscribe","Webhook bağlantısını kur"],["templates","Şablonları eşitle"]].map(([path,label]) => <button className="rounded border p-2" disabled={mutation.isPending} key={path} onClick={() => mutation.mutate({path})}>{label}</button>)}</div>
         <form key={JSON.stringify(status.connection)} className="space-y-3" onSubmit={e => {e.preventDefault(); const f=new FormData(e.currentTarget); mutation.mutate({path:"settings",body:{enabled:f.has("enabled"),pilot_mode:f.has("pilot_mode"),pilot_numbers:String(f.get("pilot_numbers") ?? "").split(/[\n,]+/).map(s=>s.trim()).filter(Boolean),enabled_events:f.getAll("events"),out_of_hours_enabled:f.has("out_of_hours_enabled"),out_of_hours_text:f.get("out_of_hours_text"),office_start:Number(f.get("office_start")),office_end:Number(f.get("office_end"))}});}}>
           <label className="flex gap-2"><input type="checkbox" name="enabled" defaultChecked={status.connection?.enabled}/>Bildirimleri etkinleştir</label>
-          <label className="flex gap-2"><input type="checkbox" name="pilot_mode" defaultChecked={status.connection?.pilot_mode}/>Yalnız pilot numaralara gönder</label>
+          <label className="flex gap-2"><input type="checkbox" name="pilot_mode" defaultChecked={status.connection?.pilot_mode}/>Otomatik bildirimleri yalnız pilot numaralara gönder</label>
           <label className="grid gap-1">Pilot numaralar (virgülle ayırın)<input name="pilot_numbers" className="rounded border p-2" placeholder="+90…"/></label>
           <p className="text-sm">Kaydederken pilot numaraları yeniden girin.</p>
           {Object.keys(status.events).map(event => <label className="flex gap-2" key={event}><input type="checkbox" name="events" value={event} defaultChecked={status.connection?.enabled_events.includes(event)}/>{labels[event] ?? event}</label>)}
@@ -66,16 +66,6 @@ export default function WhatsappSettings() {
           <div className="flex flex-wrap gap-2"><button className="rounded border p-2" name="action" value="preview">Önizle</button><button className="rounded bg-blue-700 p-2 text-white" name="action" value="send" disabled={mutation.isPending}>Test mesajı gönder</button></div>
           {preview && <p role="status">{preview}</p>}
         </form>
-      </section>
-      <section className="space-y-3 rounded border p-4"><h2 className="text-lg font-medium">Mesajlar</h2>
-        {messages.isError && <p role="alert">Mesajlar yüklenemedi. Gelen kutusu yetkisi gereklidir.</p>}
-        {messages.data?.data.length === 0 && <p>Henüz mesaj yok.</p>}
-        {messages.data?.data.map(m => <button className="block w-full rounded border p-3 text-left" key={m.id} onClick={()=>setSelected(m.id)}>{m.recipient_masked} · {labels[m.event_type] ?? m.event_type} · {statuses[m.status] ?? m.status}{m.reason && ` (${m.reason})`}</button>)}
-        {selected && <button className="rounded border p-2" disabled={mutation.isPending} onClick={()=>mutation.mutate({path:`messages/${selected}/retry`})}>Kesin geçici hatada yeniden dene</button>}
-        {selected && <div className="space-y-3 border-t pt-3"><h3>Konuşma</h3><button className="rounded border p-2" disabled={mutation.isPending || !conversation.data?.data.some(m=>m.direction==="inbound")} onClick={()=>{const m=conversation.data?.data.find(m=>m.direction==="inbound");if(m)mutation.mutate({path:`messages/${m.id}/read`});}}>Okundu bilgisi gönder</button>{conversation.data?.data.map(m=><p className="break-words rounded bg-gray-50 p-2 text-gray-900" key={m.id}>{m.direction === "inbound" ? "Müşteri" : "Sportoonline"}: {m.content.text?.body ?? m.content.body ?? m.event_type}{m.direction==="inbound" && ["image","document"].includes(m.content.type ?? "") && <button className="ml-2 underline" onClick={async()=>{try{const r=await api.get(`/v1/admin/whatsapp/messages/${m.id}/media`,{responseType:"blob"});const url=URL.createObjectURL(r.data);const a=document.createElement("a");a.href=url;a.download="whatsapp-attachment";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}catch{setNotice("Dosya indirilemedi.");}}}>Dosyayı indir</button>}</p>)}
-          <form onSubmit={e=>{e.preventDefault(); const incoming=conversation.data?.data.find(m=>m.direction==="inbound"); if(incoming) mutation.mutate({path:`conversations/${incoming.id}/reply`,body:{body:reply,request_id:crypto.randomUUID()}},{onSuccess:()=>setReply("")});}}><label className="grid gap-1">Yanıt<textarea className="rounded border p-2" value={reply} onChange={e=>setReply(e.target.value)} maxLength={4096}/></label><button className="mt-2 rounded border p-2" disabled={mutation.isPending || !reply.trim() || !conversation.data?.data.some(m=>m.direction==="inbound")}>Yanıtı gönder</button><p className="text-sm">Müşterinin son mesajından sonraki 24 saat içinde yanıtlanabilir.</p></form>
-          <form onSubmit={async e=>{e.preventDefault();const form=e.currentTarget;const inbound=conversation.data?.data.find(m=>m.direction==="inbound");if(!inbound)return; const data=new FormData(form) as FormData & {multipart:boolean};data.append("request_id",crypto.randomUUID());data.multipart=true;setMediaBusy(true);try{await api.post(`/v1/admin/whatsapp/conversations/${inbound.id}/media`,data);form.reset();setNotice("Dosya gönderim kuyruğuna alındı.");void cache.invalidateQueries({queryKey:["whatsapp-conversation"]});}catch{setNotice("Dosya gönderilemedi. Tür, boyut ve yanıt süresini kontrol edin.");}finally{setMediaBusy(false);}}}><label className="grid gap-1">Dosya (JPEG, PNG veya PDF; en fazla 5 MB)<input className="min-w-0 max-w-full" name="file" type="file" accept="image/jpeg,image/png,application/pdf" required/></label><button className="mt-2 rounded border p-2" disabled={mediaBusy || !conversation.data?.data.some(m=>m.direction==="inbound")}>Dosyayı gönder</button></form>
-        </div>}
       </section>
     </>}
   </div>;

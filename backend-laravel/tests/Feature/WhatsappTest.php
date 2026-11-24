@@ -136,6 +136,38 @@ class WhatsappTest extends TestCase
         $this->assertSame('channel_disabled', $m2->fresh()->reason);
     }
 
+    public function test_admin_reply_uses_open_conversation_with_order_notifications_disabled(): void
+    {
+        $c = $this->connection();
+        $c->update(['enabled' => false, 'pilot_numbers' => []]);
+        $incoming = $this->incoming($c);
+        $request = \Illuminate\Http\Request::create('/', 'POST', ['body' => 'Test yanıtı', 'request_id' => (string) Str::uuid()]);
+        $user = (new \App\Models\User)->forceFill(['id' => 1]);
+        $request->setUserResolver(fn () => $user);
+        $controller = app(\App\Http\Controllers\Api\V1\Whatsapp\AdminController::class);
+        $response = $controller->reply($request, $incoming->id, app(WhatsappMessageRecorder::class));
+        $this->assertSame(202, $response->status());
+        $reply = WhatsappMessage::findOrFail($response->getData()->data->id);
+        $sender = app(WhatsappSender::class);
+        $this->assertNull($sender->gate($reply, $c));
+        Http::fake(['*' => Http::response(['messages' => [['id' => 'wamid.admin-reply']]])]);
+        $sender->send($reply->id);
+        $this->assertSame('accepted', $reply->fresh()->status);
+        Http::assertSentCount(1);
+
+        $automaticReply = $this->message($c);
+        $automaticReply->update(['event_type' => 'auto_reply']);
+        $this->assertSame('channel_disabled', $sender->gate($automaticReply, $c));
+
+        $this->travel(25)->hours();
+        $c->update(['checked_at' => now()]);
+        $reply->update(['expires_at' => now()->addHour()]);
+        $this->assertSame('conversation_window_closed', $sender->gate($reply, $c));
+
+        config(['whatsapp.enabled' => false]);
+        $this->assertSame('channel_disabled', $sender->gate($reply, $c));
+    }
+
     public function test_rolled_back_event_does_not_dispatch(): void
     {
         $this->connection();
