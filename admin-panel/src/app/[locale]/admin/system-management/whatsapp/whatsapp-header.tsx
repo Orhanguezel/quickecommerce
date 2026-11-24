@@ -4,13 +4,14 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import WhatsappTabs from "./whatsapp-tabs";
 import { useWhatsappStatus } from "./whatsapp-data";
+import styles from "./whatsapp.module.css";
 
 export default function WhatsappHeader() {
   const { data } = useWhatsappStatus();
   const connected = data?.connection?.health.connected;
 
   return (
-    <header className="overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm">
+    <header className={cn("overflow-hidden rounded-xl border text-card-foreground shadow-sm", styles.workspaceHeader)}>
       <div className="flex flex-wrap items-start justify-between gap-3 px-4 py-5 sm:px-6">
         <div className="flex min-w-0 flex-col gap-2">
           <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">WhatsApp Business</h1>

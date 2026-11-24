@@ -6,6 +6,8 @@
 
 ## WhatsApp Business müşteri bildirimleri — 2026-11-08
 
+- [X] WhatsApp paneline yeşil vurgu, açık ve koyu sohbet renkleri ve mesaj yönüne göre ayrışan balonlar eklendi. Canlı masaüstü ve mobil doğrulandı. [PR #42](https://github.com/Orhanguezel/quickecommerce/pull/42).
+
 - [X] WhatsApp paneli Sportoonline temasıyla Mesajlar, Şablonlar, Ayarlar ve Kullanım Rehberi sekmelerine ayrıldı. Şablon taslakları sabit değişkenlerle düzenlenip kaydediliyor. [PR #41](https://github.com/Orhanguezel/quickecommerce/pull/41).
 
 - [X] WhatsApp yönetim sayfasına gelen/gönderilen filtreleri, konuşma geçmişi ve manuel yanıt eklendi. Canlı panelde masaüstü ve 390 px mobil doğrulandı. [PR #40](https://github.com/Orhanguezel/quickecommerce/pull/40).
