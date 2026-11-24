@@ -10,6 +10,7 @@ use App\Services\Whatsapp\WhatsappConsentService;
 use App\Services\Whatsapp\WhatsappMessageRecorder;
 use App\Services\Whatsapp\WhatsappPhone;
 use App\Services\Whatsapp\WhatsappTemplateService;
+use App\Services\Whatsapp\WhatsappTemplateDrafts;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -53,14 +54,28 @@ final class AdminController extends Controller
         return response()->json(['data' => DB::table('whatsapp_templates')->where('connection_id', $c->id)->get()]);
     }
 
+    public function templateDrafts(WhatsappTemplateDrafts $drafts)
+    {
+        return response()->json(['data' => $drafts->all($this->connection())]);
+    }
+
+    public function updateTemplateDraft(Request $request, string $event, WhatsappTemplateDrafts $drafts)
+    {
+        $data = $request->validate(['body' => 'required|string|max:1024', 'revision' => 'required|string|size:64']);
+
+        return response()->json(['data' => $drafts->save($this->connection(), $event, $data['body'], $data['revision'])]);
+    }
+
     public function settings(Request $r, WhatsappConnectionService $service)
     {
         $c = $this->connection();
-        $data = $r->validate(['enabled' => 'required|boolean', 'pilot_mode' => 'required|boolean', 'pilot_numbers' => 'required|array|max:20', 'pilot_numbers.*' => 'required|string|max:30', 'enabled_events' => 'required|array', 'out_of_hours_enabled' => 'sometimes|boolean', 'out_of_hours_text' => 'required_if:out_of_hours_enabled,true|nullable|string|max:1000', 'office_start' => 'sometimes|integer|min:0|max:23', 'office_end' => 'sometimes|integer|min:1|max:24|gt:office_start', 'enabled_events.*' => 'in:'.implode(',', array_keys(config('whatsapp.events')))]);
-        $data['pilot_numbers'] = array_values(array_unique(array_map([WhatsappPhone::class, 'normalize'], $data['pilot_numbers'])));
+        $data = $r->validate(['enabled' => 'required|boolean', 'pilot_mode' => 'required|boolean', 'pilot_numbers' => 'sometimes|array|max:20', 'pilot_numbers.*' => 'required|string|max:30', 'enabled_events' => 'present|array', 'out_of_hours_enabled' => 'sometimes|boolean', 'out_of_hours_text' => 'required_if:out_of_hours_enabled,true|nullable|string|max:1000', 'office_start' => 'sometimes|integer|min:0|max:23', 'office_end' => 'sometimes|integer|min:1|max:24|gt:office_start', 'enabled_events.*' => 'in:'.implode(',', array_keys(config('whatsapp.events')))]);
+        if (isset($data['pilot_numbers'])) {
+            $data['pilot_numbers'] = array_values(array_unique(array_map([WhatsappPhone::class, 'normalize'], $data['pilot_numbers'])));
+        }
         if ($data['enabled']) {
             abort_unless(config('whatsapp.enabled') && $c->subscribed && ($c->health['connected'] ?? false) && ($c->health['messaging_status'] ?? '') === 'AVAILABLE' && $c->checked_at?->gt(now()->subMinutes(15)), 422, 'Hesap bağlantısını ve sağlığını doğrulayın.');
-            abort_if($data['pilot_mode'] && ! $data['pilot_numbers'], 422, 'Pilot numarası ekleyin.');
+            abort_if($data['pilot_mode'] && ! ($data['pilot_numbers'] ?? $c->pilot_numbers), 422, 'Pilot numarası ekleyin.');
             abort_if(! $data['enabled_events'], 422, 'En az bir bildirim türü seçin.');
             foreach ($data['enabled_events'] as $event) {
                 $spec = config('whatsapp.events.'.$event);
@@ -86,7 +101,14 @@ final class AdminController extends Controller
             $query->where('direction', $data['direction']);
         }
         $page = $query->paginate(30);
-        $page->getCollection()->transform(fn ($m) => $m->toArray() + ['recipient_masked' => WhatsappPhone::mask($m->recipient)]);
+        $page->getCollection()->transform(function (WhatsappMessage $message) {
+            $preview = data_get($message->payload, 'text.body') ?? data_get($message->payload, 'body');
+
+            return $message->toArray() + [
+                'recipient_masked' => WhatsappPhone::mask($message->recipient),
+                'preview' => is_string($preview) ? Str::limit($preview, 128) : null,
+            ];
+        });
 
         return response()->json($page);
     }

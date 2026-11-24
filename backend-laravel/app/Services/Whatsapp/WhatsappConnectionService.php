@@ -105,6 +105,7 @@ final class WhatsappConnectionService
         $c = WhatsappConnection::current();
 
         return ['configured' => $c !== null, 'channel_available' => (bool) config('whatsapp.enabled'), 'callback_url' => config('whatsapp.callback_url'),
-            'events' => config('whatsapp.events'), 'connection' => $c?->toArray()];
+            'events' => config('whatsapp.events'), 'connection' => $c?->toArray(),
+            'pilot_number_count' => count($c?->pilot_numbers ?? [])];
     }
 }
